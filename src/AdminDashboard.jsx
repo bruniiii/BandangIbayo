@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
- 
+ import logoIcon from './assets/newIcon.png';
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
@@ -159,10 +159,10 @@ const AdminDashboard = () => {
           borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-              <polygon points="16,4 30,28 2,28" fill="#C45C26" opacity="0.9"/>
-              <polygon points="16,10 26,28 6,28" fill="#FDF6EE" opacity="0.25"/>
-            </svg>
+            <img src={logoIcon} 
+                     alt="BANDANG IBAYO" 
+                     style={{ width: 78, height: 78, objectFit: 'contain' }} 
+                     />
             <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE' }}>
               Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
             </span>

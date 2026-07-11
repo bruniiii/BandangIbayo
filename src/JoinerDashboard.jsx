@@ -9,7 +9,8 @@ import JoinerTours from './JoinerTours';
 import TourCalendar from './TourCalendar';
 import MyBookings from './MyBookings';
 import ExclusiveTour from './ExclusiveTour';
- 
+import logoIcon from './assets/newIcon.png';
+ import { JoinerTracking } from './JoinerTracking';
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
@@ -21,7 +22,7 @@ import ExclusiveTour from './ExclusiveTour';
 // ---------------------------------------------------------
  
 const NAV_ITEMS = [
-  { icon: <Home size={18} strokeWidth={2} />,       label: 'Dashboard' },
+  { icon: <Home size={18} strokeWidth={2} />,       label: 'HomePage' },
   { icon: <Compass size={18} strokeWidth={2} />,    label: 'Explore Tours' },
   { icon: <ShoppingBag size={18} strokeWidth={2} />,label: 'My Bookings' },
   { icon: <Calendar size={18} strokeWidth={2} />,   label: 'Calendar' },
@@ -31,7 +32,7 @@ const NAV_ITEMS = [
 ];
  
 const JoinerDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [activeTab, setActiveTab] = useState('HomePage');
   const navigate = useNavigate();
  
   const handleLogout = async () => {
@@ -64,10 +65,11 @@ const JoinerDashboard = () => {
           borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-              <polygon points="16,4 30,28 2,28" fill="#C45C26" opacity="0.9"/>
-              <polygon points="16,10 26,28 6,28" fill="#FDF6EE" opacity="0.25"/>
-            </svg>
+            <img 
+         src={logoIcon} 
+         alt="BANDANG IBAYO" 
+         style={{ width: 78, height: 78, objectFit: 'contain' }} 
+         />
             <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE' }}>
               Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
             </span>
@@ -163,7 +165,7 @@ const JoinerDashboard = () => {
         {/* content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
  
-          {activeTab === 'Dashboard' ? (
+          {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
  
               {/* hero banner */}
@@ -256,6 +258,8 @@ const JoinerDashboard = () => {
             <TourCalendar />
           ) : activeTab === 'Exclusive Tours' ? (
             <ExclusiveTour />
+          ) : activeTab === 'Tracking' ? (   
+            <JoinerTracking />                
           ) : (
             /* empty state */
             <div style={{
