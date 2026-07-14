@@ -8,7 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
- import logoIcon from './assets/newIcon.png';
+
+import { AdminTrackingControls } from "./AdminTrackingControls";
+import logoIcon from './assets/newIcon.png';
+
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
@@ -47,6 +50,7 @@ const NAV_ITEMS = [
   { icon: <LayoutDashboard size={18} strokeWidth={2} />, label: 'Overview' },
   { icon: <Map size={18} strokeWidth={2} />,             label: 'Tour Management' },
   { icon: <Calendar size={18} strokeWidth={2} />,        label: 'Booking Management' },
+  { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Bell size={18} strokeWidth={2} />,            label: 'Reviews' },
 ];
@@ -160,11 +164,11 @@ const AdminDashboard = () => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
             <img src={logoIcon} 
-                     alt="BANDANG IBAYO" 
-                     style={{ width: 78, height: 78, objectFit: 'contain' }} 
-                     />
+                 alt="BANDANG IBAYO" 
+                 style={{ width: 78, height: 78, objectFit: 'contain' }} 
+                 />
             <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE' }}>
-              Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+               Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
             </span>
           </div>
           <p style={{
@@ -289,6 +293,7 @@ const AdminDashboard = () => {
         {/* content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
  
+          {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
  
@@ -438,10 +443,19 @@ const AdminDashboard = () => {
             </div>
           )}
  
+          {/* ROUTED CONTENT VIEWS */}
           {activeTab === 'Tour Management' && <TourManagement />}
           {activeTab === 'Booking Management' && <BookingManagement />}
+          
+          {activeTab === 'Tracking Management' && (
+             <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
+          )}
  
-          {activeTab !== 'Overview' && activeTab !== 'Tour Management' && activeTab !== 'Booking Management' && (
+          {/* FALLBACK COMING SOON SECTION */}
+          {activeTab !== 'Overview' && 
+           activeTab !== 'Tour Management' && 
+           activeTab !== 'Booking Management' && 
+           activeTab !== 'Tracking Management' && ( // <-- 3. Exclude 'Tracking Management' from the fallback screen
             <div style={{
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',
@@ -486,7 +500,7 @@ const ACTIVITY_COLORS = {
   booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
 };
  
-const ActivityItem = ({ label, name, type, ts }) => {
+const ActivityItem = ({ label, name, type, ts, Icon }) => { // <-- Fixed Destructured Icon Prop Bug Here
   const { bg, color } = ACTIVITY_COLORS[type] || ACTIVITY_COLORS.booking;
   return (
     <li style={{
@@ -503,7 +517,7 @@ const ActivityItem = ({ label, name, type, ts }) => {
           flexShrink: 0,
           color,
         }}>
-          <Icon size={17} />
+          {Icon && <Icon size={17} />}
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{label}</p>
