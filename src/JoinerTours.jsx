@@ -5,6 +5,7 @@ import {
   Eye, ImageIcon, Loader2, CheckCircle2, X, AlertCircle, Star,
   CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
 } from 'lucide-react';
+import PayMongoGCashButton from './PayMongoGCashButton';
  
 const JoinerTours = () => {
   const [tours, setTours] = useState([]);
@@ -107,7 +108,7 @@ const JoinerTours = () => {
     return 0;
   });
  
-  // ── shared input style (matches TourManagement) ──
+  // â”€â”€ shared input style (matches TourManagement) â”€â”€
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
     background: '#F2E4D0',
@@ -123,7 +124,7 @@ const JoinerTours = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Filters ── */}
+      {/* â”€â”€ Filters â”€â”€ */}
       <div style={{
         background: '#FDF6EE',
         borderRadius: 20, padding: '14px 18px',
@@ -140,7 +141,7 @@ const JoinerTours = () => {
             color: 'rgba(122,58,24,0.35)', pointerEvents: 'none',
           }} />
           <input
-            type="text" placeholder="Search tours…"
+            type="text" placeholder="Search toursâ€¦"
             value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
             style={{ ...inputStyle, paddingLeft: 36 }}
           />
@@ -172,7 +173,7 @@ const JoinerTours = () => {
         </div>
       </div>
 
-      {/* ── Tour Grid ── */}
+      {/* â”€â”€ Tour Grid â”€â”€ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
           <div style={{
@@ -183,7 +184,7 @@ const JoinerTours = () => {
           }}>
             <Loader2 size={30} className="animate-spin" style={{ marginBottom: 10 }} />
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-              Finding Adventures…
+              Finding Adventuresâ€¦
             </p>
           </div>
         ) : filteredTours.length === 0 ? (
@@ -264,7 +265,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>₱{tour.price.toLocaleString()}</span>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>â‚±{tour.price.toLocaleString()}</span>
           </div>
           <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
             <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
@@ -376,9 +377,13 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
  
         const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name, contact_number, email')
+            .select('first_name, last_name, phone_number, email')
             .eq('id', user.id)
             .single();
+
+        const resolvedFullName = profile
+              ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || "N/A"
+               : "N/A";
  
         // Generate booking number
         const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
@@ -387,9 +392,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             tour_id: tour.id, 
             user_id: user.id,
             booking_number: bookingNumber,
-            full_name: profile?.full_name || "N/A",
+            full_name: resolvedFullName,
             email: user.email || profile?.email || "N/A",
-            contact_number: profile?.contact_number || "N/A",
+            contact_number: profile?.phone_number || "N/A",
             slots_booked: numPersons,
             total_price: subtotal, 
             payment_status: 'Pending',
@@ -404,9 +409,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             setBookingId(booking[0].id);
             setCreatedBooking({
                 ...booking[0],
-                full_name: profile?.full_name || "N/A",
+                full_name: resolvedFullName,
                 email: user.email || profile?.email || "N/A",
-                contact_number: profile?.contact_number || "N/A",
+                contact_number: profile?.phone_number || "N/A",
                 booking_number: bookingNumber,
             });
             setPaymentStep('proceed');
@@ -556,7 +561,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                         {!isFullyBooked && (
                           <div className="flex justify-between items-end mb-8">
                               <p className="text-sm font-black text-[#1A0A00] uppercase tracking-widest">Total</p>
-                              <p className="text-4xl font-black text-[#C45C26]">₱{subtotal.toLocaleString()}</p>
+                              <p className="text-4xl font-black text-[#C45C26]">â‚±{subtotal.toLocaleString()}</p>
                           </div>
                         )}
                         <button 
@@ -643,11 +648,11 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
           <div className="border-t-2 border-[#C45C26]/[0.12] pt-6">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-bold text-[#7A3A18]/80">Price per person</span>
-              <span className="text-sm font-black text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
+              <span className="text-sm font-black text-[#1A0A00]">â‚±{tour.price.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-base font-black text-[#1A0A00] uppercase tracking-wide">Subtotal</span>
-              <span className="text-3xl font-black text-[#C45C26]">₱{subtotal.toLocaleString()}</span>
+              <span className="text-3xl font-black text-[#C45C26]">â‚±{subtotal.toLocaleString()}</span>
             </div>
           </div>
           <button onClick={onProceed}
@@ -686,7 +691,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Full Payment</span>
                         <Check size={16} className="text-[#C45C26]" />
                     </div>
-                    <p className="text-3xl font-black">₱{subtotal.toLocaleString()}</p>
+                    <p className="text-3xl font-black">â‚±{subtotal.toLocaleString()}</p>
                     <p className="text-xs text-[#C45C26]/30 font-medium mt-1">Pay the complete amount now</p>
                 </button>
  
@@ -699,7 +704,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Downpayment (40%)</span>
                         <span className="text-[10px] font-black text-[#7A3A18]/70 uppercase">Balance Later</span>
                     </div>
-                    <p className="text-3xl font-black text-[#1A0A00]">₱{downpaymentAmount.toLocaleString()}</p>
+                    <p className="text-3xl font-black text-[#1A0A00]">â‚±{downpaymentAmount.toLocaleString()}</p>
                     <p className="text-xs text-[#7A3A18]/70 font-medium mt-1">Pay 40% now, settle the rest before the tour</p>
                 </button>
             </div>
@@ -710,6 +715,12 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 // Step 3: GCash Payment Form + Booking Summary
 const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
     const [gcashNumber, setGcashNumber] = useState("");
+    const [paymentMode, setPaymentMode] = useState('manual');
+
+    useEffect(() => {
+        supabase.from('app_settings').select('value').eq('key', 'gcash_payment_mode').single()
+            .then(({ data }) => { if (data) setPaymentMode(data.value); });
+    }, []);
 
     useEffect(() => {
         const prefillPhone = async () => {
@@ -758,12 +769,17 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
               .from('booking-receipts')
               .upload(fileName, screenshot);
  
-            if (!uploadError) {
-                const { data: urlData } = supabase.storage
-                    .from('booking-receipts')
-                    .getPublicUrl(fileName);
-                receiptUrl = urlData?.publicUrl || null;
+            if (uploadError) {
+                console.error('Screenshot upload failed:', uploadError);
+                alert("Couldn't upload your screenshot: " + uploadError.message + "\nPlease check the file and try again.");
+                setSubmitting(false);
+                return;
             }
+
+            const { data: urlData } = supabase.storage
+                .from('booking-receipts')
+                .getPublicUrl(fileName);
+            receiptUrl = urlData?.publicUrl || null;
  
             const { error } = await supabase.from('bookings').update({
                 gcash_number: gcashNumber,
@@ -775,12 +791,14 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
             }).eq('id', bookingId);
  
             if (error) {
+                console.error('Booking update failed:', error);
                 alert("Error: " + error.message);
             } else {
                 onSuccess();
             }
-        } catch { 
-            alert("Something went wrong. Please try again.");
+        } catch (err) {
+            console.error('Confirm booking failed:', err);
+            alert("Something went wrong: " + (err?.message || 'Unknown error') + "\nPlease try again.");
         }
         setSubmitting(false);
     };
@@ -804,6 +822,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
  
                 <div className="p-10 space-y-8">
                     {/* GCash Send To */}
+                    {paymentMode !== 'paymongo' && (
                     <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 flex items-center gap-5">
                         <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center shrink-0">
                             <Smartphone size={22} className="text-white"/>
@@ -814,10 +833,20 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                             <p className="text-xs text-blue-500 font-bold mt-0.5">Bandang IBAYO Tours</p>
                         </div>
                     </div>
+                    )}
  
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Left: Form */}
                         <div className="space-y-5">
+                        {paymentMode === 'paymongo' ? (
+                            <div className="h-full flex flex-col justify-center gap-6">
+                                <p className="text-sm font-medium text-[#7A3A18]/80 leading-relaxed">
+                                    You'll be redirected to GCash to authorize this payment securely. Once confirmed, your booking updates automatically â€” no need to upload a screenshot.
+                                </p>
+                                <PayMongoGCashButton bookingId={bookingId} />
+                            </div>
+                        ) : (
+                        <>
                             <div>
                                 <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">Your GCash Number</label>
                                 <input
@@ -852,8 +881,9 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                                     )}
                                 </label>
                             </div>
+                        </>
+                        )}
                         </div>
- 
                         {/* Right: Booking Summary */}
                         <div className="bg-[#F2E4D0] rounded-3xl p-6 space-y-4">
                             <div className="flex items-center gap-2 mb-4">
@@ -872,22 +902,22 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-[#7A3A18]/80 font-medium">Price/pax</span>
-                                    <span className="font-bold text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
+                                    <span className="font-bold text-[#1A0A00]">â‚±{tour.price.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between border-t border-[#C45C26]/[0.18] pt-3">
                                     <span className="text-[#7A3A18]/80 font-medium">Subtotal</span>
-                                    <span className="font-bold text-[#1A0A00]">₱{subtotal.toLocaleString()}</span>
+                                    <span className="font-bold text-[#1A0A00]">â‚±{subtotal.toLocaleString()}</span>
                                 </div>
  
                                 {paymentType === 'down' && (
                                     <>
                                         <div className="flex justify-between">
                                             <span className="text-[#7A3A18]/80 font-medium">Downpayment (40%)</span>
-                                            <span className="font-bold text-amber-600">₱{downpaymentAmount.toLocaleString()}</span>
+                                            <span className="font-bold text-amber-600">â‚±{downpaymentAmount.toLocaleString()}</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-[#7A3A18]/80 font-medium">Remaining Balance</span>
-                                            <span className="font-bold text-[#7A3A18]/70">₱{balance.toLocaleString()}</span>
+                                            <span className="font-bold text-[#7A3A18]/70">â‚±{balance.toLocaleString()}</span>
                                         </div>
                                     </>
                                 )}
@@ -896,18 +926,19 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                                     <span className="font-black text-[#1A0A00] uppercase text-xs tracking-widest">
                                         {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
                                     </span>
-                                    <span className="font-black text-[#C45C26] text-xl">₱{amountDue.toLocaleString()}</span>
+                                    <span className="font-black text-[#C45C26] text-xl">â‚±{amountDue.toLocaleString()}</span>
                                 </div>
                             </div>
  
                             {paymentType === 'down' && (
                                 <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 mt-2">
-                                    <p className="text-amber-700 text-[10px] font-bold leading-snug">⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
+                                    <p className="text-amber-700 text-[10px] font-bold leading-snug">âš ï¸ Remaining balance of â‚±{balance.toLocaleString()} must be settled before the tour date.</p>
                                 </div>
                             )}
                         </div>
                     </div>
  
+                    {paymentMode !== 'paymongo' && (
                     <button
                         onClick={handleConfirmBooking}
                         disabled={submitting}
@@ -915,6 +946,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                     >
                         {submitting ? <><Loader2 className="animate-spin" size={16}/> Processing...</> : <><Check size={16}/> Confirm Booking</>}
                     </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -938,7 +970,7 @@ const BookingSuccessModal = ({ booking, tour, onClose }) => (
                 <p className="text-xs text-[#7A3A18]/80 font-medium">{tour?.title}</p>
             </div>
             <div className="bg-[#C45C26]/10 rounded-2xl px-5 py-4">
-                <p className="text-[#1A0A00] text-xs font-bold">We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
+                <p className="text-[#1A0A00] text-xs font-bold">We'll verify your GCash payment and confirm your slot shortly. Thank you! ðŸŽ‰</p>
             </div>
             <button onClick={onClose} className="w-full py-4 bg-[#1A0A00] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#2D1B0E] transition-all">Done</button>
         </div>
