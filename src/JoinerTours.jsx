@@ -5,7 +5,7 @@ import {
   Eye, ImageIcon, Loader2, CheckCircle2, X, AlertCircle, Star,
   CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
 } from 'lucide-react';
-import PayMongoGCashButton from './PayMongoGCashButton';
+
  
 const JoinerTours = () => {
   const [tours, setTours] = useState([]);
@@ -459,7 +459,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                         </div>
                     </section>
  
-                    <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/[0.12] pt-10">
+                    <div className="grid grid-cols-2 gap-12 border-t 	border-[#C45C26]/12 pt-10">
                         <section>
                             <h4 className="text-xs font-black text-[#C45C26] uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <CheckCircle2 size={16}/> Inclusions
@@ -474,7 +474,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                         </section>
                     </div>
  
-                    <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/[0.12] pt-10">
+                    <div className="grid grid-cols-2 gap-12 border-t 	border-[#C45C26]/12 pt-10">
                         <section>
                             <h4 className="text-xs font-black text-[#1A0A00] uppercase tracking-widest mb-4">Itinerary</h4>
                             <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.itinerary || "N/A"}</pre>
@@ -484,9 +484,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                             <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.things_to_bring || "N/A"}</pre>
                         </section>
                     </div>
- 
+
                     {tour.important_note && (
-                        <div className="bg-red-50 p-8 rounded-[1.5rem] border border-red-100 flex gap-5">
+                        <div className="bg-red-50 p-8 rounded-3xl border border-red-100 flex gap-5">
                             <AlertCircle className="text-red-500 shrink-0" size={24}/>
                             <div>
                                 <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Important Note</p>
@@ -495,11 +495,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                         </div>
                     )}
                 </div>
- 
+
                 {/* Right: Booking Sidebar */}
-                <div className="w-full md:w-96 bg-[#f8fafc] p-12 flex flex-col h-full shrink-0 border-l border-[#C45C26]/[0.12] overflow-hidden text-left">
+                <div className="w-full md:w-96 bg-[#f8fafc] p-12 flex flex-col h-full shrink-0 border-l 	border-[#C45C26]/12 overflow-hidden text-left">
                     <h2 className="text-4xl font-black text-[#1A0A00] leading-tight mb-8">{tour.title}</h2>
- 
+
                     <div className="space-y-8 mb-8 flex-1">
                         <div className="space-y-5">
                             <div className="flex items-center gap-3 text-[#7A3A18]/80 font-bold text-sm">
@@ -532,9 +532,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                               </div>
                             ) : null}
                         </div>
- 
+
                         {!isFullyBooked && (
-                          <div className="pt-8 border-t border-[#C45C26]/[0.18]">
+                          <div className="pt-8 border-t 	border-[#C45C26]/18">
                               <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase block mb-4">Number of Persons</label>
                               <div className="relative">
                                   <select 
@@ -556,8 +556,8 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                           </div>
                         )}
                     </div>
- 
-                    <div className="pt-8 border-t-2 border-[#C45C26]/[0.18] mt-auto">
+
+                    <div className="pt-8 border-t-2 	border-[#C45C26]/18 mt-auto">
                         {!isFullyBooked && (
                           <div className="flex justify-between items-end mb-8">
                               <p className="text-sm font-black text-[#1A0A00] uppercase tracking-widest">Total</p>
@@ -574,7 +574,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                     </div>
                 </div>
             </div>
- 
+
             {/* Payment Flow Overlays */}
             {paymentStep === 'proceed' && (
                 <ProceedToPaymentModal
@@ -586,7 +586,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                     formatDateRange={formatDateRange}
                 />
             )}
- 
+
             {paymentStep === 'choose' && (
                 <ChoosePaymentTypeModal
                     subtotal={subtotal}
@@ -595,7 +595,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                     onBack={() => setPaymentStep('proceed')}
                 />
             )}
- 
+
             {paymentStep === 'gcash' && (
                 <GCashPaymentModal
                     bookingId={bookingId}
@@ -608,7 +608,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                     onBack={() => setPaymentStep('choose')}
                 />
             )}
- 
+
             {paymentStep === 'success' && (
                 <BookingSuccessModal
                     booking={createdBooking}
@@ -619,7 +619,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
         </div>
     );
 };
- 
+
 // Step 1: Proceed to Payment confirmation
 const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel, formatDateRange }) => {
   return (
@@ -645,7 +645,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
               <Users size={16} className="text-[#C45C26] shrink-0" /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
             </div>
           </div>
-          <div className="border-t-2 border-[#C45C26]/[0.12] pt-6">
+          <div className="border-t-2 	border-[#C45C26]/12 pt-6">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-bold text-[#7A3A18]/80">Price per person</span>
               <span className="text-sm font-black text-[#1A0A00]">â‚±{tour.price.toLocaleString()}</span>
@@ -665,7 +665,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
     </div>
   );
 };
- 
+
 // Step 2: Choose Full or Downpayment
 const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
     <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm">
@@ -698,7 +698,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                 {/* Downpayment */}
                 <button
                     onClick={() => onChoose('down')}
-                    className="w-full bg-[#FDF6EE] border-2 border-[#C45C26]/[0.18] rounded-3xl p-6 text-left hover:border-[#C45C26] hover:bg-[#C45C26]/5 transition-all group"
+                    className="w-full bg-[#FDF6EE] border-2 	border-[#C45C26]/18 rounded-3xl p-6 text-left hover:border-[#C45C26] hover:bg-[#C45C26]/5 transition-all group"
                 >
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Downpayment (40%)</span>
@@ -869,7 +869,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                             </div>
                             <div>
                                 <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">Transaction Screenshot</label>
-                                <label className="w-full border-2 border-dashed border-[#C45C26]/[0.18] hover:border-[#C45C26] rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                                <label className="w-full border-2 border-dashed 	border-[#C45C26]/18 hover:border-[#C45C26] rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all group">
                                     <input type="file" accept="image/*" onChange={handleScreenshotChange} className="hidden" />
                                     {screenshotPreview ? (
                                         <img src={screenshotPreview} alt="Receipt" className="w-full h-32 object-cover rounded-xl" />
@@ -904,7 +904,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                                     <span className="text-[#7A3A18]/80 font-medium">Price/pax</span>
                                     <span className="font-bold text-[#1A0A00]">â‚±{tour.price.toLocaleString()}</span>
                                 </div>
-                                <div className="flex justify-between border-t border-[#C45C26]/[0.18] pt-3">
+                                <div className="flex justify-between border-t 	border-[#C45C26]/18 pt-3">
                                     <span className="text-[#7A3A18]/80 font-medium">Subtotal</span>
                                     <span className="font-bold text-[#1A0A00]">â‚±{subtotal.toLocaleString()}</span>
                                 </div>
@@ -922,7 +922,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                                     </>
                                 )}
  
-                                <div className="flex justify-between border-t-2 border-[#C45C26]/[0.18] pt-3 mt-3">
+                                <div className="flex justify-between border-t-2 	border-[#C45C26]/18 pt-3 mt-3">
                                     <span className="font-black text-[#1A0A00] uppercase text-xs tracking-widest">
                                         {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
                                     </span>
@@ -932,7 +932,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
  
                             {paymentType === 'down' && (
                                 <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 mt-2">
-                                    <p className="text-amber-700 text-[10px] font-bold leading-snug">âš ï¸ Remaining balance of â‚±{balance.toLocaleString()} must be settled before the tour date.</p>
+                                    <p className="text-amber-700 text-[10px] font-bold leading-snug">âšï¸ Remaining balance of â‚±{balance.toLocaleString()} must be settled before the tour date.</p>
                                 </div>
                             )}
                         </div>
