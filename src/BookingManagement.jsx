@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
+  Wallet, Printer,
 } from 'lucide-react';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -21,6 +22,15 @@ const getDerivedStatus = (b) => (
   b.payment_status
 );
  
+// For Downpayment bookings, tracks whether the remaining balance has been
+// settled on the day of the tour (separate from the initial GCash
+// downpayment verification tracked by payment_status/booking_status above).
+const getBalanceStatus = (b) => {
+  if (b.payment_method !== 'Downpayment') return null;
+  if (getDerivedStatus(b) !== 'Complete') return null; // only relevant once the downpayment itself is verified
+  return b.balance_settled ? 'Fully Paid' : 'Balance Due';
+};
+ 
 /* ─────────────────────────────────────────────
    BOOKING MANAGEMENT  (Admin)
 ───────────────────────────────────────────── */
@@ -30,6 +40,8 @@ const BookingManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [methodFilter, setMethodFilter] = useState('All Methods');
+  const [tourFilter, setTourFilter] = useState('All Tours');
+  const [dateFilter, setDateFilter] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
  
   const fetchBookings = async () => {
@@ -92,15 +104,40 @@ const BookingManagement = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
  
+  // ── unique tours available for the Tour filter, narrowed by the selected date ──
+  const tourOptions = useMemo(() => {
+    const map = new Map();
+    bookings.forEach(b => {
+      if (!b.tour_id || !b.tours?.title) return;
+      if (dateFilter && b.tours?.start_date !== dateFilter) return;
+      if (!map.has(b.tour_id)) {
+        map.set(b.tour_id, { id: b.tour_id, title: b.tours.title, start_date: b.tours.start_date });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title));
+  }, [bookings, dateFilter]);
+ 
+  // If the selected date no longer includes the currently selected tour, reset the tour filter.
+  useEffect(() => {
+    if (tourFilter !== 'All Tours' && !tourOptions.some(t => String(t.id) === String(tourFilter))) {
+      setTourFilter('All Tours');
+    }
+  }, [dateFilter, tourOptions, tourFilter]);
+ 
   const filteredBookings = bookings.filter(b => {
+    const joinerName = b.profiles
+      ? `${b.profiles.first_name || ''} ${b.profiles.last_name || ''}`.trim()
+      : (b.full_name || '');
     const matchesSearch =
-      (b.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      joinerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (b.tours?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (b.booking_number || '').toLowerCase().includes(searchTerm.toLowerCase());
     const derived = getDerivedStatus(b);
     const matchesStatus = statusFilter === 'All Status' || derived === statusFilter;
     const matchesMethod = methodFilter === 'All Methods' || b.payment_method === methodFilter;
-    return matchesSearch && matchesStatus && matchesMethod;
+    const matchesTour = tourFilter === 'All Tours' || String(b.tour_id) === String(tourFilter);
+    const matchesDate = !dateFilter || b.tours?.start_date === dateFilter;
+    return matchesSearch && matchesStatus && matchesMethod && matchesTour && matchesDate;
   });
  
   // ── shared input style ──
@@ -121,10 +158,18 @@ const BookingManagement = () => {
     fontSize: 9, fontWeight: 900, letterSpacing: '0.18em',
     textTransform: 'uppercase', color: 'rgba(122,58,24,0.6)',
     textAlign: 'left', whiteSpace: 'nowrap',
+    background: '#F2E4D0',
+    display: 'flex', alignItems: 'center',
   };
+ 
+  // ── grid column template shared by header + rows ──
+  const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 150px 140px';
  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+ 
+      {/* ── Scrollable Content (header + filters + table scroll together) ── */}
+      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Header ── */}
       <div style={{
@@ -191,11 +236,34 @@ const BookingManagement = () => {
           </select>
           <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
         </div>
+        {/* Tour */}
+        <div style={{ position: 'relative', minWidth: 200 }}>
+          <select
+            value={tourFilter} onChange={e => setTourFilter(e.target.value)}
+            style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
+          >
+            <option value="All Tours">All Tours</option>
+            {tourOptions.map(t => (
+              <option key={t.id} value={t.id}>{t.title}</option>
+            ))}
+          </select>
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+        </div>
+        {/* Date */}
+        <div style={{ position: 'relative', minWidth: 175 }}>
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={e => setDateFilter(e.target.value)}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          />
+        </div>
       </div>
  
       {/* ── Table Card ── */}
       <div style={{
-        flex: 1, display: 'flex', flexDirection: 'column',
+        display: 'flex', flexDirection: 'column',
+        flexShrink: 0,
         background: '#FDF6EE',
         borderRadius: 22,
         border: '1px solid rgba(196,92,38,0.12)',
@@ -214,42 +282,39 @@ const BookingManagement = () => {
             </p>
           </div>
         ) : (
-          <div style={{ overflow: 'auto', flex: 1 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#F2E4D0' }}>
-                  <th style={thStyle}>Booking No.</th>
-                  <th style={thStyle}>Joiner Details</th>
-                  <th style={thStyle}>Tour / Destination</th>
-                  <th style={{ ...thStyle, textAlign: 'center' }}>Slots</th>
-                  <th style={thStyle}>Total Amount</th>
-                  <th style={thStyle}>Payment Method</th>
-                  <th style={thStyle}>Booking Status</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBookings.length > 0 ? (
-                  filteredBookings.map(booking => (
-                    <BookingRow
-                      key={booking.id}
-                      booking={booking}
-                      onView={() => setSelectedBooking(booking)}
-                    />
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="8" style={{ padding: '5rem 0', textAlign: 'center' }}>
-                      <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-                        No booking records found.
-                      </p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: bookingGridCols, minWidth: 980 }}>
+              {/* Header row */}
+              <div style={thStyle}>Booking No.</div>
+              <div style={thStyle}>Joiner Details</div>
+              <div style={thStyle}>Tour / Destination</div>
+              <div style={{ ...thStyle, justifyContent: 'center', textAlign: 'center' }}>Slots</div>
+              <div style={thStyle}>Total Amount</div>
+              <div style={thStyle}>Payment Method</div>
+              <div style={thStyle}>Booking Status</div>
+              <div style={{ ...thStyle, justifyContent: 'flex-end', textAlign: 'right' }}>Actions</div>
+ 
+              {/* Body rows */}
+              {filteredBookings.length > 0 ? (
+                filteredBookings.map(booking => (
+                  <BookingRow
+                    key={booking.id}
+                    booking={booking}
+                    onView={() => setSelectedBooking(booking)}
+                  />
+                ))
+              ) : (
+                <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center' }}>
+                  <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
+                    No booking records found.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
+      </div>
+ 
       </div>
  
       {selectedBooking && (
@@ -271,6 +336,24 @@ const BookingManagement = () => {
               alert('Error updating status: ' + error.message);
             }
           }}
+          onSettleBalance={async (id, fullAmount) => {
+            const { data, error } = await supabase.from('bookings').update({
+              balance_settled: true,
+              balance_settled_at: new Date().toISOString(),
+              amount_paid: fullAmount,
+            }).eq('id', id).select(`
+              *,
+              tours ( title, destination, start_date, duration, price )
+            `).single();
+ 
+            if (!error) {
+              await fetchBookings();
+              return data;
+            } else {
+              alert('Error settling balance: ' + error.message);
+              return null;
+            }
+          }}
         />
       )}
     </div>
@@ -282,53 +365,61 @@ const BookingManagement = () => {
 ───────────────────────────────────────────── */
 const BookingRow = ({ booking, onView }) => {
   const [hovered, setHovered] = useState(false);
-  const tdStyle = { padding: '16px 20px', verticalAlign: 'middle' };
+  const cellStyle = {
+    padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+    background: hovered ? 'rgba(196,92,38,0.04)' : 'transparent',
+    borderBottom: '1px solid rgba(196,92,38,0.08)',
+    transition: 'background 0.15s',
+  };
+  const rowHandlers = {
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+  };
  
   return (
-    <tr
-      style={{ background: hovered ? 'rgba(196,92,38,0.04)' : 'transparent', borderBottom: '1px solid rgba(196,92,38,0.08)', transition: 'background 0.15s' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <td style={tdStyle}>
+    <>
+      <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#C45C26', fontSize: 12, margin: 0 }}>
           {booking.booking_number || '—'}
         </p>
-      </td>
-      <td style={tdStyle}>
+      </div>
+      <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontWeight: 900, color: '#1A0A00', fontSize: 13, margin: 0 }}>
           {booking.profiles ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim() : booking.full_name || '—'}
         </p>
         <p style={{ color: '#7A3A18', opacity: 0.55, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
           {booking.profiles?.phone_number || booking.contact_number || '—'}
         </p>
-      </td>
-      <td style={tdStyle}>
+      </div>
+      <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontWeight: 800, color: '#1A0A00', fontSize: 13, margin: 0 }}>{booking.tours?.title || '—'}</p>
         <p style={{ color: '#7A3A18', opacity: 0.55, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
           <MapPin size={11} style={{ color: '#C45C26' }} /> {booking.tours?.destination}
         </p>
-      </td>
-      <td style={{ ...tdStyle, textAlign: 'center', fontWeight: 900, color: '#1A0A00', fontSize: 13 }}>
+      </div>
+      <div style={{ ...cellStyle, alignItems: 'center', textAlign: 'center', fontWeight: 900, color: '#1A0A00', fontSize: 13 }} {...rowHandlers}>
         {booking.slots_booked}
-      </td>
-      <td style={tdStyle}>
+      </div>
+      <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontWeight: 900, color: '#C45C26', fontSize: 13, margin: 0 }}>
           ₱{booking.total_price?.toLocaleString()}
         </p>
         {booking.payment_method === 'Downpayment' && (
-          <p style={{ fontSize: 9, fontWeight: 800, color: '#9A5B1E', margin: '3px 0 0', letterSpacing: '0.04em' }}>
-            Paid: ₱{booking.amount_paid?.toLocaleString()}
+          <p style={{ fontSize: 9, fontWeight: 800, color: booking.balance_settled ? '#C45C26' : '#9A5B1E', margin: '3px 0 0', letterSpacing: '0.04em' }}>
+            Paid: ₱{booking.amount_paid?.toLocaleString()}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}
-      </td>
-      <td style={tdStyle}>
+      </div>
+      <div style={cellStyle} {...rowHandlers}>
         <PaymentMethodBadge method={booking.payment_method} />
-      </td>
-      <td style={tdStyle}>
-        <StatusBadge status={getDerivedStatus(booking)} />
-      </td>
-      <td style={{ ...tdStyle, textAlign: 'right' }}>
+      </div>
+      <div style={cellStyle} {...rowHandlers}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-start' }}>
+          <StatusBadge status={getDerivedStatus(booking)} />
+          {getBalanceStatus(booking) && <BalanceStatusBadge status={getBalanceStatus(booking)} />}
+        </div>
+      </div>
+      <div style={{ ...cellStyle, alignItems: 'flex-end' }} {...rowHandlers}>
         <button
           onClick={onView}
           style={{
@@ -342,19 +433,23 @@ const BookingRow = ({ booking, onView }) => {
         >
           <Eye size={12} /> View Info
         </button>
-      </td>
-    </tr>
+      </div>
+    </>
   );
 };
  
 /* ─────────────────────────────────────────────
    BOOKING DETAIL MODAL
 ───────────────────────────────────────────── */
-const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
+const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance }) => {
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [balanceSettled, setBalanceSettled] = useState(!!booking.balance_settled);
+  const [balanceSettledAt, setBalanceSettledAt] = useState(booking.balance_settled_at || null);
+  const [settlingBalance, setSettlingBalance] = useState(false);
+  const [showSettleConfirm, setShowSettleConfirm] = useState(false);
  
   useEffect(() => {
     const fetchProfile = async () => {
@@ -411,9 +506,68 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
   const derivedStatus = isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : booking.payment_status;
  
   const subtotal = booking.total_price || 0;
-  const amountPaid = booking.amount_paid || subtotal;
+  const amountPaid = balanceSettled ? subtotal : (booking.amount_paid || subtotal);
   const downpaymentAmount = Math.round(subtotal * 0.4);
   const balance = booking.payment_method === 'Downpayment' ? subtotal - downpaymentAmount : 0;
+  const isDownpayment = booking.payment_method === 'Downpayment';
+ 
+  const joinerName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || '—' : (booking.full_name || '—');
+ 
+  const handleSettleBalance = async () => {
+    setShowSettleConfirm(false);
+    setSettlingBalance(true);
+    const updated = await onSettleBalance(booking.id, subtotal);
+    if (updated) {
+      setBalanceSettled(true);
+      setBalanceSettledAt(updated.balance_settled_at);
+    }
+    setSettlingBalance(false);
+  };
+ 
+  const handlePrintReceipt = () => {
+    const win = window.open('', '_blank', 'width=480,height=720');
+    if (!win) return;
+    const dateNow = new Date().toLocaleString('en-PH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    win.document.write(`
+      <html>
+        <head>
+          <title>Receipt - ${booking.booking_number || ''}</title>
+          <style>
+            body { font-family: 'Courier New', monospace; color: #1A0A00; padding: 32px; max-width: 380px; margin: 0 auto; }
+            h1 { font-size: 16px; text-align: center; letter-spacing: 0.1em; margin: 0 0 2px; }
+            .sub { text-align: center; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; margin-bottom: 18px; }
+            .stamp { text-align: center; border: 2px solid #C45C26; color: #C45C26; font-weight: bold; letter-spacing: 0.15em; padding: 6px; margin: 14px 0; text-transform: uppercase; font-size: 12px; }
+            .row { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; }
+            hr { border: none; border-top: 1px dashed #999; margin: 12px 0; }
+            .total { font-weight: bold; font-size: 14px; }
+            .footer { text-align: center; font-size: 10px; opacity: 0.6; margin-top: 20px; }
+          </style>
+        </head>
+        <body onload="window.print()">
+          <h1>BANDANG IBAYO</h1>
+          <div class="sub">Official Payment Receipt</div>
+          <div class="row"><span>Booking No.</span><span>${booking.booking_number || '—'}</span></div>
+          <div class="row"><span>Joiner</span><span>${joinerName}</span></div>
+          <div class="row"><span>Tour</span><span>${booking.tours?.title || '—'}</span></div>
+          <div class="row"><span>Destination</span><span>${booking.tours?.destination || '—'}</span></div>
+          <div class="row"><span>Pax</span><span>${booking.slots_booked}</span></div>
+          <hr />
+          <div class="row"><span>Subtotal</span><span>₱${subtotal.toLocaleString()}</span></div>
+          ${isDownpayment ? `
+            <div class="row"><span>Downpayment Paid</span><span>₱${downpaymentAmount.toLocaleString()}</span></div>
+            <div class="row"><span>Balance Settled</span><span>₱${balance.toLocaleString()}</span></div>
+          ` : ''}
+          <hr />
+          <div class="row total"><span>TOTAL PAID</span><span>₱${subtotal.toLocaleString()}</span></div>
+          <div class="stamp">Payment Complete</div>
+          <div class="footer">
+            Printed: ${dateNow}${balanceSettledAt ? `<br/>Balance settled: ${new Date(balanceSettledAt).toLocaleString('en-PH')}` : ''}
+          </div>
+        </body>
+      </html>
+    `);
+    win.document.close();
+  };
  
   const accentColor = isRejected ? '#8C2F1C' : isCancelled ? '#1A0A00' : isComplete ? '#C45C26' : '#E8A265';
  
@@ -439,10 +593,10 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
       }}>
  
         {/* Header */}
-        <div style={{
+        <div className="responsive-modal-padding" style={{
           background: '#1A0A00', padding: '2rem 2.5rem',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexShrink: 0,
+          flexShrink: 0, flexWrap: 'wrap', gap: 12,
         }}>
           <div>
             <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: '0 0 6px' }}>
@@ -461,17 +615,17 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
         </div>
  
         {/* Scrollable Body */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
+        <div className="responsive-modal-padding" style={{ overflowY: 'auto', flex: 1, padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
  
           <ViewSection title="Booking Information" icon={<Hash size={14} />}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <InfoItem label="Booking Number" value={booking.booking_number} mono />
               <InfoItem label="Booking Date" value={formatDateTime(booking.created_at)} />
             </div>
           </ViewSection>
  
           <ViewSection title="Joiner Information" icon={<User size={14} />}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <InfoItem
                 label="Full Name"
                 value={profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || '—' : booking.full_name || '—'}
@@ -482,7 +636,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
           </ViewSection>
  
           <ViewSection title="Tour Information" icon={<MapPin size={14} />}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <InfoItem label="Tour Name" value={booking.tours?.title || '—'} />
               <InfoItem label="Destination" value={booking.tours?.destination || '—'} />
               <InfoItem label="Tour Date" value={formatDateRange(booking.tours?.start_date, booking.tours?.duration)} />
@@ -493,7 +647,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
           <ViewSection title="Payment Information" icon={<CreditCard size={14} />}>
             <div style={{ background: '#F2E4D0', borderRadius: 18, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
  
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
                   <p style={labelStyle}>Payment Method</p>
                   <PaymentMethodBadge method={booking.payment_method} />
@@ -502,6 +656,17 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
                   <p style={labelStyle}>Booking Status</p>
                   <StatusBadge status={booking.booking_status} />
                 </div>
+                {isDownpayment && isComplete && (
+                  <div>
+                    <p style={labelStyle}>Balance Status</p>
+                    <BalanceStatusBadge status={balanceSettled ? 'Fully Paid' : 'Balance Due'} />
+                    {balanceSettled && balanceSettledAt && (
+                      <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '6px 0 0' }}>
+                        Settled {formatDateTime(balanceSettledAt)}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
  
               {/* Payment Breakdown */}
@@ -655,7 +820,128 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate }) => {
             </div>
           </div>
         )}
+ 
+        {/* Footer: Balance settlement (Downpayment bookings) + Receipt printing */}
+        {isComplete && (
+          <div style={{
+            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+            background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0,
+            flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            {isDownpayment && !balanceSettled ? (
+              <>
+                <div style={{ flex: 1, minWidth: 200, background: 'rgba(140,47,28,0.08)', borderRadius: 16, padding: '14px 18px' }}>
+                  <p style={{ ...labelStyle, color: '#8C2F1C' }}>Balance Due On Tour Day</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0', lineHeight: 1.5 }}>
+                    Remaining balance of ₱{balance.toLocaleString()} is still unpaid. Mark it as paid once the joiner settles it on the day of the tour.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSettleConfirm(true)}
+                  disabled={settlingBalance}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '13px 26px',
+                    background: '#C45C26', color: '#FDF6EE',
+                    border: 'none', borderRadius: 999, cursor: 'pointer',
+                    fontFamily: 'inherit', fontWeight: 900,
+                    fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                    boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                    opacity: settlingBalance ? 0.5 : 1, flexShrink: 0,
+                  }}
+                >
+                  {settlingBalance ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Wallet size={14} />} Mark Balance as Paid
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <p style={labelStyle}>Payment Status</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#C45C26', margin: '4px 0 0' }}>
+                    {isDownpayment
+                      ? `Full payment received${balanceSettledAt ? ' — balance settled ' + formatDateTime(balanceSettledAt) : ''}.`
+                      : 'Payment received in full.'}
+                  </p>
+                </div>
+                <button
+                  onClick={handlePrintReceipt}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '13px 26px',
+                    background: '#1A0A00', color: '#E8A265',
+                    border: 'none', borderRadius: 999, cursor: 'pointer',
+                    fontFamily: 'inherit', fontWeight: 900,
+                    fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                    boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
+                  }}
+                >
+                  <Printer size={14} /> Print Receipt
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
+ 
+      {/* Confirm Settle Balance Modal */}
+      {showSettleConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 10050,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(26,10,0,0.75)', backdropFilter: 'blur(4px)', padding: 16,
+        }}>
+          <div style={{
+            position: 'relative', background: '#FDF6EE',
+            width: '100%', maxWidth: 420,
+            borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            borderTop: '7px solid #C45C26',
+            padding: '2rem',
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'rgba(196,92,38,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 18, color: '#C45C26',
+            }}>
+              <Wallet size={26} />
+            </div>
+            <h3 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 10px' }}>
+              Confirm Balance Payment
+            </h3>
+            <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '0 0 24px', lineHeight: 1.6 }}>
+              Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>₱{balance.toLocaleString()}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowSettleConfirm(false)}
+                style={{
+                  padding: '12px 22px',
+                  background: 'rgba(122,58,24,0.1)', color: '#7A3A18',
+                  border: 'none', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontWeight: 900,
+                  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSettleBalance}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '12px 24px',
+                  background: '#C45C26', color: '#FDF6EE',
+                  border: 'none', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontWeight: 900,
+                  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                }}
+              >
+                <CheckCircle2 size={14} /> Confirm Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
  
       {/* Receipt Full Preview */}
       {showReceiptPreview && booking.receipt_url && (
@@ -782,6 +1068,26 @@ const StatusBadge = ({ status, large = false }) => {
       whiteSpace: 'nowrap',
     }}>
       {status || 'Pending'}
+    </span>
+  );
+};
+ 
+const BALANCE_STATUS_STYLES = {
+  'Fully Paid': { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
+  'Balance Due': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
+};
+ 
+const BalanceStatusBadge = ({ status }) => {
+  const { bg, color } = BALANCE_STATUS_STYLES[status] || BALANCE_STATUS_STYLES['Balance Due'];
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      background: bg, color, borderRadius: 999,
+      padding: '3px 10px', fontSize: 8,
+      fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+    }}>
+      <Wallet size={9} /> {status}
     </span>
   );
 };

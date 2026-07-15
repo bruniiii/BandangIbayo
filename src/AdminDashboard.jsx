@@ -2,13 +2,23 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Calendar, Users,
   FileText, Bell, CreditCard, LogOut, Search, TrendingUp, AlertCircle,
-  CheckCircle2, XCircle, Clock, Compass
+  CheckCircle2, XCircle, Clock, Compass, ChevronLeft, ChevronRight, Menu, X, Rss, Star
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
- import logoIcon from './assets/newIcon.png';
+<<<<<<< HEAD
+import Feed from './Feed';
+import Reviews from './Reviews';
+import JoinerAccounts from './JoinerAccounts';
+ 
+=======
+
+import { AdminTrackingControls } from "./AdminTrackingControls";
+import logoIcon from './assets/newIcon.png';
+
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
@@ -45,17 +55,50 @@ const deriveActivity = (booking) => {
  
 const NAV_ITEMS = [
   { icon: <LayoutDashboard size={18} strokeWidth={2} />, label: 'Overview' },
+  { icon: <Rss size={18} strokeWidth={2} />,             label: 'Feed' },
   { icon: <Map size={18} strokeWidth={2} />,             label: 'Tour Management' },
   { icon: <Calendar size={18} strokeWidth={2} />,        label: 'Booking Management' },
+<<<<<<< HEAD
+  { icon: <Users size={18} strokeWidth={2} />,           label: 'Joiner Accounts' },
+=======
+  { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
-  { icon: <Bell size={18} strokeWidth={2} />,            label: 'Reviews' },
+  { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
 ];
  
 // ─── Main Component ──────────────────────────────────────────────────────────
  
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth <= 900 : false
+  );
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const navigate = useNavigate();
+ 
+  // Track viewport so the sidebar can switch between the desktop
+  // collapse/expand behavior and the mobile off-canvas drawer.
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 900;
+      setIsMobile(mobile);
+      if (!mobile) setMobileNavOpen(false); // never leave the drawer "open" once we're back on desktop
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+ 
+  // On mobile the sidebar is always shown at full width (as a drawer),
+  // so the desktop collapse/expand state only matters on larger screens.
+  const sidebarExpanded = isMobile ? true : sidebarOpen;
+ 
+  const handleNavClick = (label) => {
+    setActiveTab(label);
+    if (isMobile) setMobileNavOpen(false);
+  };
  
   const [stats, setStats] = useState({
     totalBookings: '—',
@@ -135,7 +178,7 @@ const AdminDashboard = () => {
   }, [activeTab]);
  
   return (
-    <div style={{
+    <div className="admin-dashboard-container" style={{
       display: 'flex', height: '100vh',
       fontFamily: "'Inter', system-ui, sans-serif",
       background: '#F2E4D0',
@@ -143,55 +186,116 @@ const AdminDashboard = () => {
       overflow: 'hidden',
     }}>
  
+      {/* MOBILE OVERLAY (dims content behind the drawer) */}
+      <div
+        className={`sidebar-overlay ${mobileNavOpen ? 'is-open' : ''}`}
+        onClick={() => setMobileNavOpen(false)}
+      />
+ 
       {/* ── SIDEBAR ── */}
-      <aside style={{
-        width: 268,
+      <aside className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`} style={{
+        width: sidebarExpanded ? 268 : 84,
         flexShrink: 0,
         background: '#1A0A00',
         display: 'flex',
         flexDirection: 'column',
         zIndex: 20,
         boxShadow: '4px 0 32px rgba(26,10,0,0.28)',
+        position: 'relative',
+        transition: 'width 0.25s ease',
+        overflow: 'visible',
       }}>
+        {/* collapse/expand toggle on desktop; closes the drawer on mobile.
+            On mobile, only rendered while the drawer is open — otherwise it
+            pokes outside the sidebar's translated bounds and peeks onto screen. */}
+        {(!isMobile || mobileNavOpen) && (
+        <button
+          onClick={() => isMobile ? setMobileNavOpen(false) : setSidebarOpen(v => !v)}
+          title={isMobile ? 'Close menu' : (sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar')}
+          style={{
+            position: 'absolute',
+            top: 26, right: -14,
+            width: 28, height: 28,
+            borderRadius: '50%',
+            background: '#C45C26',
+            border: '3px solid #F2E4D0',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            color: '#FDF6EE',
+            zIndex: 30,
+            boxShadow: '0 4px 12px rgba(26,10,0,0.35)',
+            transition: 'background 0.2s, transform 0.2s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
+          onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
+        >
+          {isMobile ? <X size={16} strokeWidth={3} /> : (sidebarOpen ? <ChevronLeft size={16} strokeWidth={3} /> : <ChevronRight size={16} strokeWidth={3} />)}
+        </button>
+        )}
+ 
         {/* brand */}
         <div style={{
-          padding: '2rem 1.75rem',
+          padding: sidebarExpanded ? '2rem 1.75rem' : '2rem 0',
           borderBottom: '1px solid rgba(255,255,255,0.07)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: sidebarExpanded ? 'stretch' : 'center',
+          overflow: 'hidden',
         }}>
+<<<<<<< HEAD
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
+            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+          }}>
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style={{ flexShrink: 0 }}>
+              <polygon points="16,4 30,28 2,28" fill="#C45C26" opacity="0.9"/>
+              <polygon points="16,10 26,28 6,28" fill="#FDF6EE" opacity="0.25"/>
+            </svg>
+            {sidebarExpanded && (
+              <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
+                Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+              </span>
+            )}
+=======
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
             <img src={logoIcon} 
-                     alt="BANDANG IBAYO" 
-                     style={{ width: 78, height: 78, objectFit: 'contain' }} 
-                     />
+                 alt="BANDANG IBAYO" 
+                 style={{ width: 78, height: 78, objectFit: 'contain' }} 
+                 />
             <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE' }}>
-              Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+               Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
             </span>
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
           </div>
-          <p style={{
-            fontSize: 9, fontWeight: 800, letterSpacing: '0.22em',
-            textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: 0,
-          }}>
-            Admin Management
-          </p>
+          {sidebarExpanded && (
+            <p style={{
+              fontSize: 9, fontWeight: 800, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: 0,
+              whiteSpace: 'nowrap',
+            }}>
+              Admin Management
+            </p>
+          )}
         </div>
  
         {/* nav */}
-        <nav style={{ flex: 1, padding: '1.25rem 1rem', display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: sidebarExpanded ? '1.25rem 1rem' : '1.25rem 0.75rem', display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto', overflowX: 'hidden' }}>
           {NAV_ITEMS.map(({ icon, label }) => (
             <NavItem
               key={label}
               icon={icon}
               label={label}
               active={activeTab === label}
-              onClick={() => setActiveTab(label)}
+              collapsed={!sidebarExpanded}
+              onClick={() => handleNavClick(label)}
             />
           ))}
         </nav>
  
         {/* sign out */}
-        <div style={{ padding: '1.5rem 1.75rem', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ padding: sidebarExpanded ? '1.5rem 1.75rem' : '1.5rem 0', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: sidebarExpanded ? 'flex-start' : 'center' }}>
           <button
             onClick={handleLogout}
+            title="Logout System"
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'none', border: 'none', cursor: 'pointer',
@@ -203,10 +307,12 @@ const AdminDashboard = () => {
             onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
             onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.4)'}
           >
-            <LogOut size={16} />
-            <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-              Logout System
-            </span>
+            <LogOut size={16} style={{ flexShrink: 0 }} />
+            {sidebarExpanded && (
+              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                Logout System
+              </span>
+            )}
           </button>
         </div>
       </aside>
@@ -215,7 +321,7 @@ const AdminDashboard = () => {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
  
         {/* header */}
-        <header style={{
+        <header className="dashboard-header" style={{
           background: '#FDF6EE',
           borderBottom: '1px solid rgba(196,92,38,0.12)',
           height: 72,
@@ -223,17 +329,30 @@ const AdminDashboard = () => {
           padding: '0 2.5rem',
           position: 'sticky', top: 0, zIndex: 10,
           boxShadow: '0 2px 16px rgba(26,10,0,0.06)',
+          gap: 12,
         }}>
-          <h2 style={{
-            fontWeight: 900, fontSize: 15, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: '#1A0A00', margin: 0,
-          }}>
-            {activeTab}
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+            {/* hamburger - hidden on desktop via CSS, shown <=900px */}
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={22} />
+            </button>
+ 
+            <h2 className="dashboard-header-title" style={{
+              fontWeight: 900, fontSize: 15, letterSpacing: '0.1em',
+              textTransform: 'uppercase', color: '#1A0A00', margin: 0,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {activeTab}
+            </h2>
+          </div>
  
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             {/* search */}
-            <div style={{ position: 'relative' }}>
+            <div className="dashboard-header-search" style={{ position: 'relative' }}>
               <Search
                 size={15}
                 style={{
@@ -268,7 +387,7 @@ const AdminDashboard = () => {
               border: '1px solid rgba(196,92,38,0.18)',
               borderRadius: 14, padding: '8px 14px',
             }}>
-              <div style={{ textAlign: 'right' }}>
+              <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
                 <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
                 <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
               </div>
@@ -287,13 +406,14 @@ const AdminDashboard = () => {
         </header>
  
         {/* content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
  
+          {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
  
               {/* hero banner */}
-              <div style={{
+              <div className="dashboard-hero-padding" style={{
                 position: 'relative',
                 background: '#1A0A00',
                 borderRadius: 28,
@@ -438,10 +558,29 @@ const AdminDashboard = () => {
             </div>
           )}
  
+<<<<<<< HEAD
+          {activeTab === 'Feed' && <Feed isAdmin={true} />}
           {activeTab === 'Tour Management' && <TourManagement />}
           {activeTab === 'Booking Management' && <BookingManagement />}
+          {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
+          {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
  
-          {activeTab !== 'Overview' && activeTab !== 'Tour Management' && activeTab !== 'Booking Management' && (
+          {activeTab !== 'Overview' && activeTab !== 'Feed' && activeTab !== 'Tour Management' && activeTab !== 'Booking Management' && activeTab !== 'Reviews' && activeTab !== 'Joiner Accounts' && (
+=======
+          {/* ROUTED CONTENT VIEWS */}
+          {activeTab === 'Tour Management' && <TourManagement />}
+          {activeTab === 'Booking Management' && <BookingManagement />}
+          
+          {activeTab === 'Tracking Management' && (
+             <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
+          )}
+ 
+          {/* FALLBACK COMING SOON SECTION */}
+          {activeTab !== 'Overview' && 
+           activeTab !== 'Tour Management' && 
+           activeTab !== 'Booking Management' && 
+           activeTab !== 'Tracking Management' && ( // <-- 3. Exclude 'Tracking Management' from the fallback screen
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
             <div style={{
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',
@@ -486,7 +625,11 @@ const ACTIVITY_COLORS = {
   booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
 };
  
-const ActivityItem = ({ label, name, type, ts }) => {
+<<<<<<< HEAD
+const ActivityItem = ({ label, name, type, ts, Icon }) => {
+=======
+const ActivityItem = ({ label, name, type, ts, Icon }) => { // <-- Fixed Destructured Icon Prop Bug Here
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
   const { bg, color } = ACTIVITY_COLORS[type] || ACTIVITY_COLORS.booking;
   return (
     <li style={{
@@ -503,7 +646,7 @@ const ActivityItem = ({ label, name, type, ts }) => {
           flexShrink: 0,
           color,
         }}>
-          <Icon size={17} />
+          {Icon && <Icon size={17} />}
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{label}</p>
@@ -522,20 +665,23 @@ const ActivityItem = ({ label, name, type, ts }) => {
  
 // ─── Nav Item ────────────────────────────────────────────────────────────────
  
-const NavItem = ({ icon, label, active, onClick }) => (
+const NavItem = ({ icon, label, active, onClick, collapsed }) => (
   <button
     onClick={onClick}
+    title={collapsed ? label : undefined}
     style={{
       width: '100%',
-      display: 'flex', alignItems: 'center', gap: 12,
-      padding: '11px 14px',
+      display: 'flex', alignItems: 'center',
+      justifyContent: collapsed ? 'center' : 'flex-start',
+      gap: collapsed ? 0 : 12,
+      padding: collapsed ? '11px 0' : '11px 14px',
       borderRadius: 12,
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
       background: active ? '#C45C26' : 'transparent',
       color: active ? '#FDF6EE' : 'rgba(232,210,190,0.45)',
       fontWeight: active ? 900 : 600,
-      transform: active ? 'translateX(4px)' : 'translateX(0)',
+      transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
       boxShadow: active ? '0 6px 20px rgba(196,92,38,0.35)' : 'none',
       transition: 'all 0.2s',
       textAlign: 'left',
@@ -546,9 +692,11 @@ const NavItem = ({ icon, label, active, onClick }) => (
     <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.5)', flexShrink: 0 }}>
       {icon}
     </span>
-    <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-      {label}
-    </span>
+    {!collapsed && (
+      <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+        {label}
+      </span>
+    )}
   </button>
 );
  
@@ -603,4 +751,3 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
 );
  
 export default AdminDashboard;
- 
