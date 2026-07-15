@@ -110,58 +110,79 @@ const MyBookings = () => {
   });
  
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 text-left">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#C45C26]/[0.12] pb-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* ── Header / Tabs ── */}
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
+        gap: 20, borderBottom: '1px solid rgba(196,92,38,0.12)', paddingBottom: 24,
+      }}>
         <div>
-          <p className="text-[#7A3A18]/70 font-medium mt-1">Track your adventures and manage your reservations.</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '4px 0 0' }}>
+            Track your adventures and manage your reservations.
+          </p>
         </div>
-        <div className="flex bg-[#F2E4D0] p-1.5 rounded-2xl w-full md:w-auto">
+        <div style={{ display: 'flex', background: '#F2E4D0', padding: 6, borderRadius: 16, width: '100%', maxWidth: 380 }}>
           {['Upcoming', 'Completed', 'Cancelled'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                activeTab === tab 
-                  ? 'bg-[#FDF6EE] text-[#1A0A00] shadow-sm' 
-                  : 'text-[#7A3A18]/70 hover:text-[#7A3A18]'
-              }`}
+              style={{
+                flex: 1, padding: '10px 16px', borderRadius: 12,
+                fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                background: activeTab === tab ? '#FDF6EE' : 'transparent',
+                color: activeTab === tab ? '#1A0A00' : 'rgba(122,58,24,0.7)',
+                boxShadow: activeTab === tab ? '0 2px 8px rgba(26,10,0,0.08)' : 'none',
+              }}
             >
               {tab}
             </button>
           ))}
         </div>
       </div>
- 
-      <div className="grid grid-cols-1 gap-6">
+
+      {/* ── Bookings List ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {loading ? (
-          <div className="py-20 text-center col-span-full">
-            <Loader2 className="animate-spin mx-auto mb-4 text-[#C45C26]" size={40} />
-            <p className="text-[#7A3A18]/70 font-bold uppercase tracking-widest text-xs">Retrieving your trips...</p>
+          <div style={{ padding: '5rem 0', textAlign: 'center', color: 'rgba(122,58,24,0.4)' }}>
+            <Loader2 size={36} className="animate-spin" style={{ marginBottom: 14, color: '#C45C26' }} />
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
+              Retrieving your trips…
+            </p>
           </div>
         ) : filteredBookings.length === 0 ? (
-          <div className="py-24 text-center bg-[#FDF6EE] rounded-[3rem] border-2 border-dashed border-[#C45C26]/[0.12]">
-            <div className="w-20 h-20 bg-[#F2E4D0] rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingBag size={32} className="text-[#C45C26]/20" />
+          <div style={{
+            padding: '5rem 0', textAlign: 'center', background: '#FDF6EE',
+            borderRadius: 28, border: '2px dashed rgba(196,92,38,0.2)',
+          }}>
+            <div style={{
+              width: 80, height: 80, background: '#F2E4D0', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
+            }}>
+              <ShoppingBag size={32} style={{ color: 'rgba(196,92,38,0.25)' }} />
             </div>
-            <h3 className="text-lg font-black text-[#1A0A00] uppercase tracking-wide">No {activeTab} Bookings</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+              No {activeTab} Bookings
+            </h3>
           </div>
         ) : (
           filteredBookings.map((booking) => (
-            <BookingListItem 
-              key={booking.id} 
-              booking={booking} 
-              onView={() => setSelectedBooking(booking)} 
+            <BookingListItem
+              key={booking.id}
+              booking={booking}
+              onView={() => setSelectedBooking(booking)}
               formatDate={formatDate}
               formatDateRange={formatDateRange}
             />
           ))
         )}
       </div>
- 
+
       {selectedBooking && (
-        <BookingDetailModal 
-          booking={selectedBooking} 
-          onClose={() => setSelectedBooking(null)} 
+        <BookingDetailModal
+          booking={selectedBooking}
+          onClose={() => setSelectedBooking(null)}
           formatDate={formatDate}
           formatDateRange={formatDateRange}
           onCancelSuccess={() => {
@@ -173,278 +194,355 @@ const MyBookings = () => {
     </div>
   );
 };
- 
-/* ─── Booking List Card ─────────────────────────────────────────── */
+
+/* ─── Booking List Card (mirrors TourManagement's card language) ─── */
 const BookingListItem = ({ booking, onView, formatDateRange }) => {
+  const [hovered, setHovered] = useState(false);
   const tour = booking.tours || {};
   return (
-    <div className="bg-[#FDF6EE] rounded-[2.5rem] border border-[#C45C26]/[0.12] p-6 flex flex-col md:flex-row items-center gap-8 hover:shadow-xl hover:shadow-[#C45C26]/[0.08] transition-all group">
-      <div className="w-full md:w-48 h-32 rounded-4xl overflow-hidden shrink-0 bg-[#F2E4D0]">
-        <img src={tour.image_urls?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+    <div
+      style={{
+        background: '#FDF6EE', borderRadius: 24,
+        border: '1px solid rgba(196,92,38,0.12)',
+        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.1)' : '0 4px 16px rgba(26,10,0,0.05)',
+        transition: 'all 0.25s',
+        padding: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24,
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div style={{ width: 168, height: 112, borderRadius: 18, overflow: 'hidden', flexShrink: 0, background: '#F2E4D0' }}>
+        {tour.image_urls?.[0]
+          ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ShoppingBag size={28} /></div>
+        }
       </div>
-      <div className="flex-1 text-left">
-        <div className="flex flex-wrap items-center gap-3 mb-2">
-          <span className="px-3 py-1 bg-[#F2E4D0] rounded-full text-[9px] font-black text-[#1A0A00] uppercase tracking-widest font-mono">
-            {booking.booking_number}
-          </span>
+
+      <div style={{ flex: 1, minWidth: 220 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <span style={{
+            background: '#F2E4D0', borderRadius: 999, padding: '3px 12px',
+            fontSize: 9, fontWeight: 900, color: '#1A0A00', letterSpacing: '0.1em', fontFamily: 'monospace',
+          }}>{booking.booking_number}</span>
           <StatusBadge booking={booking} />
         </div>
-        <h3 className="text-xl font-black text-[#1A0A00] leading-tight mb-3">{tour.title}</h3>
-        <div className="flex flex-wrap gap-6 text-[#7A3A18]/70">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide"><MapPin size={14} className="text-[#C45C26]"/> {tour.destination}</div>
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide"><Calendar size={14} className="text-[#C45C26]"/> {formatDateRange(tour.start_date, tour.duration)}</div>
+        <h3 style={{ fontSize: 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: '0 0 10px' }}>{tour.title}</h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <MapPin size={13} style={{ color: '#C45C26' }} /> {tour.destination}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.75, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <Calendar size={13} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
+          </div>
         </div>
       </div>
-      <div className="w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-[#C45C26]/[0.12] pt-6 md:pt-0 md:pl-8 flex flex-col items-center justify-center">
-        <p className="text-2xl font-black text-[#1A0A00] mb-4">₱{booking.total_price?.toLocaleString()}</p>
-        <button onClick={onView} className="w-full md:w-auto px-8 py-3 bg-[#1A0A00] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#2D1B0E] active:scale-95 transition-all flex items-center justify-center gap-2">
-          View Details <ChevronRight size={14} />
+
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+        borderLeft: '1px solid rgba(196,92,38,0.12)', paddingLeft: 24, flexShrink: 0,
+      }}>
+        <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{booking.total_price?.toLocaleString()}</p>
+        <button
+          onClick={onView}
+          style={{
+            padding: '10px 22px', background: '#1A0A00', color: '#FDF6EE',
+            border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+            fontWeight: 900, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+            display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+          }}
+        >
+          View Details <ChevronRight size={13} />
         </button>
       </div>
     </div>
   );
 };
- 
-/* ─── Booking Detail Modal ──────────────────────────────────────── */
+
+/* ─── Booking Detail Modal (split panel, mirrors TourManagement's TourViewModal) ─── */
 const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess }) => {
   const tour = booking.tours || {};
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [reasonError, setReasonError] = useState(false);
- 
+
   const handleCancelBooking = async () => {
     if (!cancelReason.trim()) {
       setReasonError(true);
       return;
     }
-    
+
     setCancelling(true);
-    
+
     const { error } = await supabase
       .from('bookings')
-      .update({ 
+      .update({
         booking_status: 'Cancelled',
-        cancellation_reason: cancelReason.trim() 
+        cancellation_reason: cancelReason.trim()
       })
       .eq('id', booking.id);
- 
+
     if (error) {
       alert("Error: " + error.message);
     } else {
-      onCancelSuccess(); 
+      onCancelSuccess();
     }
     setCancelling(false);
   };
- 
-  const canCancel = booking.booking_status !== 'Cancelled' && 
-                    booking.booking_status !== 'Rejected' && 
+
+  const canCancel = booking.booking_status !== 'Cancelled' &&
+                    booking.booking_status !== 'Rejected' &&
                     !booking.isActuallyCompleted;
- 
-  const heroBg = tour.image_urls?.[0];
- 
+
   return (
-    <div className="fixed inset-0 z-2000 flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="absolute inset-0 bg-[#1A0A00]/95 backdrop-blur-md" onClick={onClose}></div>
-      <div className="relative bg-[#FDF6EE] w-full max-w-2xl max-h-[95vh] rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 flex flex-col text-left">
- 
-        {/* ── Redesigned Hero Header ── */}
-        <div className="relative h-52 shrink-0 overflow-hidden rounded-t-[3rem]">
-          {/* Tour image background */}
-          {heroBg ? (
-            <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover scale-105" />
-          ) : (
-            <div className="absolute inset-0 bg-[#1A0A00]" />
-          )}
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-[#120700]/95 via-[#1A0A00]/70 to-transparent" />
-          {/* Green accent line at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#C45C26]" />
- 
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/50 transition-all z-50"
-          >
-            <X size={18} />
-          </button>
- 
-          {/* Header content */}
-          <div className="absolute bottom-0 left-0 right-0 p-8">
-            <div className="flex items-end justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="text-[#C45C26] text-[9px] font-black uppercase tracking-[0.25em] mb-2 flex items-center gap-2">
-                  <span className="inline-block w-4 h-px bg-[#C45C26]"></span>
-                  Booking Confirmation
-                </p>
-                <h2 className="text-2xl font-black text-white leading-tight truncate">{tour.title}</h2>
-                <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mt-1 font-mono">
-                  {booking.booking_number}
-                </p>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{
+        position: 'relative', background: '#FDF6EE',
+        width: '100%', maxWidth: 900,
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        overflow: 'hidden', maxHeight: '92vh',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        <button onClick={onClose} style={{
+          position: 'absolute', top: 24, right: 24, zIndex: 50,
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: 'rgba(122,58,24,0.5)',
+        }}><X size={28} /></button>
+
+        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', minHeight: 0 }}>
+
+            {/* Left panel: photo, status, price */}
+            <div className="responsive-modal-padding" style={{
+              background: '#F2E4D0', padding: '2.5rem 2rem',
+              borderRight: '1px solid rgba(196,92,38,0.12)',
+              display: 'flex', flexDirection: 'column',
+            }}>
+              <div style={{
+                width: '100%', height: 190, borderRadius: 18, overflow: 'hidden',
+                background: '#E8D5BC', marginBottom: 20, boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
+              }}>
+                {tour.image_urls?.[0]
+                  ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}><ShoppingBag size={40} /></div>
+                }
               </div>
-              <div className="shrink-0">
-                <StatusBadge booking={booking} large />
+
+              <p style={{
+                fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+                color: '#C45C26', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <span style={{ display: 'inline-block', width: 16, height: 1, background: '#C45C26' }} /> Booking Confirmation
+              </p>
+              <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px', lineHeight: 1.2 }}>{tour.title}</h2>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', fontFamily: 'monospace', letterSpacing: '0.08em' }}>
+                {booking.booking_number}
+              </p>
+
+              <div style={{ marginBottom: 20 }}>
+                <StatusBadge booking={booking} />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
+                  <MapPin size={16} style={{ color: '#C45C26' }} /> {tour.destination}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
+                  <Calendar size={16} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
+                </div>
+              </div>
+
+              <div style={{ marginTop: 'auto' }}>
+                <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
+                  ₱{booking.total_price?.toLocaleString()}
+                </p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>total paid</p>
+              </div>
+            </div>
+
+            {/* Right panel: trip info + cancellation */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+                <ViewSection title="Trip Information" icon={<History size={14} style={{ color: '#C45C26' }} />}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 4 }}>
+                    <DetailItem label="Destination" value={tour.destination} />
+                    <DetailItem label="Tour Date" value={formatDateRange(tour.start_date, tour.duration)} />
+                    <DetailItem label="Pax Count" value={`${booking.slots_booked} persons`} />
+                    <DetailItem label="Total Price" value={`₱${booking.total_price?.toLocaleString()}`} />
+                  </div>
+                </ViewSection>
+
+                {canCancel && !showCancelConfirm && (
+                  <div style={{
+                    background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)',
+                    borderRadius: 18, padding: '1.25rem', display: 'flex', gap: 12,
+                  }}>
+                    <ShieldAlert size={18} style={{ color: '#B9762E', flexShrink: 0, marginTop: 2 }} />
+                    <p style={{ fontSize: 12, fontWeight: 700, color: '#8A5A1E', lineHeight: 1.6, margin: 0 }}>
+                      Need to change your plans? You can cancel below. Per our agency policy, all payments are{' '}
+                      <span style={{ textDecoration: 'underline', fontWeight: 900, color: '#6B3F14', textTransform: 'uppercase' }}>non-refundable</span>.
+                    </p>
+                  </div>
+                )}
+
+                {showCancelConfirm && (
+                  <div style={{
+                    background: 'rgba(140,47,28,0.06)', border: '2px solid rgba(140,47,28,0.15)',
+                    borderRadius: 20, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 18,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{
+                        width: 40, height: 40, background: 'rgba(140,47,28,0.12)', color: '#8C2F1C',
+                        borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <Trash2 size={18} />
+                      </div>
+                      <div>
+                        <h4 style={{ fontSize: 13, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#A8543A', margin: '2px 0 0' }}>This action cannot be undone. Payment is non-refundable.</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{
+                        display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, fontWeight: 900,
+                        color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8,
+                      }}>
+                        <MessageSquare size={12} /> Reason for Cancellation <span style={{ color: '#A8543A' }}>*</span>
+                      </label>
+                      <textarea
+                        value={cancelReason}
+                        onChange={(e) => { setCancelReason(e.target.value); setReasonError(false); }}
+                        placeholder="Please tell us why you're cancelling this tour..."
+                        rows={3}
+                        style={{
+                          width: '100%', boxSizing: 'border-box', padding: '12px 14px',
+                          background: '#FDF6EE', border: `2px solid ${reasonError ? '#C45C26' : 'rgba(140,47,28,0.15)'}`,
+                          borderRadius: 16, fontSize: 13, color: '#1A0A00', resize: 'none',
+                          outline: 'none', fontFamily: 'inherit', fontWeight: 500,
+                        }}
+                      />
+                      {reasonError && (
+                        <p style={{ fontSize: 10, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 0' }}>
+                          ⚠ Please provide a reason before cancelling.
+                        </p>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <button
+                        onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setReasonError(false); }}
+                        style={{
+                          flex: 1, padding: '12px 0', background: '#FDF6EE', color: '#7A3A18',
+                          border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14, cursor: 'pointer',
+                          fontFamily: 'inherit', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleCancelBooking}
+                        disabled={cancelling}
+                        style={{
+                          flex: 1, padding: '12px 0', background: '#8C2F1C', color: '#FDF6EE',
+                          border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                          fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        }}
+                      >
+                        {cancelling
+                          ? <Loader2 className="animate-spin" size={14} />
+                          : <><Trash2 size={13} /> Yes, Cancel Tour</>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer actions */}
+              <div style={{
+                marginTop: 'auto', padding: '1.25rem 2.5rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+                background: '#F2E4D0', display: 'flex', gap: 12,
+              }}>
+                <button
+                  onClick={onClose}
+                  style={{
+                    flex: 1, padding: '14px 0', background: '#FDF6EE', color: '#7A3A18',
+                    border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14, cursor: 'pointer',
+                    fontFamily: 'inherit', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                  }}
+                >
+                  Close
+                </button>
+                {canCancel && !showCancelConfirm && (
+                  <button
+                    onClick={() => setShowCancelConfirm(true)}
+                    style={{
+                      flex: 1, padding: '14px 0', background: 'rgba(140,47,28,0.08)', color: '#8C2F1C',
+                      border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                      fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    }}
+                  >
+                    <Trash2 size={14} /> Cancel Tour
+                  </button>
+                )}
               </div>
             </div>
           </div>
-        </div>
- 
-        {/* ── Scrollable Body ── */}
-        <div className="overflow-y-auto flex-1 p-8 space-y-6 custom-scrollbar">
- 
-          {/* Trip Info */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#C45C26]/[0.12] pb-3">
-              <History size={15} className="text-[#C45C26]" />
-              <h4 className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Trip Information</h4>
-            </div>
-            <div className="grid grid-cols-2 gap-5">
-              <DetailItem label="Destination" value={tour.destination} />
-              <DetailItem label="Tour Date" value={formatDateRange(tour.start_date, tour.duration)} />
-              <DetailItem label="Pax Count" value={`${booking.slots_booked} persons`} />
-              <DetailItem label="Total Price" value={`₱${booking.total_price?.toLocaleString()}`} />
-            </div>
-          </section>
- 
-          {/* Non-refundable disclaimer */}
-          {canCancel && !showCancelConfirm && (
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex gap-3">
-              <ShieldAlert size={18} className="text-amber-500 shrink-0 mt-0.5" />
-              <p className="text-amber-700 text-xs font-bold leading-relaxed">
-                Need to change your plans? You can cancel below. Per our agency policy, all payments are{' '}
-                <span className="underline font-black text-amber-900 uppercase">non-refundable</span>.
-              </p>
-            </div>
-          )}
- 
-          {/* Cancellation Confirmation Panel */}
-          {showCancelConfirm && (
-            <div className="bg-red-50 border-2 border-red-100 rounded-4xl p-7 space-y-5 animate-in slide-in-from-top-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center shrink-0">
-                  <Trash2 size={20} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-red-600 uppercase tracking-wide">Confirm Cancellation</h4>
-                  <p className="text-red-400 text-[10px] font-bold">This action cannot be undone. Payment is non-refundable.</p>
-                </div>
-              </div>
- 
-              {/* Reason Field */}
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black text-red-500 uppercase tracking-widest">
-                  <MessageSquare size={12} />
-                  Reason for Cancellation <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={cancelReason}
-                  onChange={(e) => { setCancelReason(e.target.value); setReasonError(false); }}
-                  placeholder="Please tell us why you're cancelling this tour..."
-                  rows={3}
-                  className={`w-full px-4 py-3 bg-[#FDF6EE] border-2 rounded-2xl text-sm text-[#1A0A00] placeholder-[#C45C26]/30 resize-none focus:outline-none transition-colors font-medium ${
-                    reasonError 
-                      ? 'border-red-400 focus:border-red-500' 
-                      : 'border-red-100 focus:border-red-300'
-                  }`}
-                />
-                {reasonError && (
-                  <p className="text-red-500 text-[10px] font-black uppercase tracking-wide">
-                    ⚠ Please provide a reason before cancelling.
-                  </p>
-                )}
-              </div>
- 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setReasonError(false); }}
-                  className="flex-1 py-3 bg-[#FDF6EE] text-[#7A3A18]/80 rounded-xl font-black text-[10px] uppercase border border-[#C45C26]/[0.18] hover:border-[#C45C26]/[0.25] transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCancelBooking}
-                  disabled={cancelling}
-                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-[10px] uppercase shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
-                >
-                  {cancelling 
-                    ? <Loader2 className="animate-spin" size={14} /> 
-                    : <><Trash2 size={13} /> Yes, Cancel Tour</>
-                  }
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
- 
-        {/* ── Footer Actions ── */}
-        <div className="p-6 border-t border-[#C45C26]/[0.12] bg-[#F2E4D0] flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-4 bg-[#FDF6EE] text-[#7A3A18]/70 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-[#C45C26]/[0.18] hover:border-[#C45C26]/[0.25] transition-all"
-          >
-            Close
-          </button>
-          {canCancel && !showCancelConfirm && (
-            <button 
-              onClick={() => setShowCancelConfirm(true)}
-              className="flex-1 py-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
-            >
-              <Trash2 size={15} /> Cancel Tour
-            </button>
-          )}
         </div>
       </div>
     </div>
   );
 };
- 
+
 /* ─── Helpers ───────────────────────────────────────────────────── */
+const ViewSection = ({ title, titleColor, icon, children }) => (
+  <section>
+    <h4 style={{
+      fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
+      textTransform: 'uppercase', color: titleColor || '#7A3A18', opacity: titleColor ? 1 : 0.7,
+      margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6,
+      borderBottom: '1px solid rgba(196,92,38,0.12)', paddingBottom: 12,
+    }}>
+      {icon} {title}
+    </h4>
+    {children}
+  </section>
+);
+
 const DetailItem = ({ label, value }) => (
   <div>
-    <p className="text-[9px] font-black text-[#7A3A18]/70 uppercase tracking-widest mb-1">{label}</p>
-    <p className="text-sm font-bold text-[#1A0A00]">{value || '—'}</p>
+    <p style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.15em', margin: '0 0 5px' }}>{label}</p>
+    <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{value || '—'}</p>
   </div>
 );
- 
-const StatusBadge = ({ booking, large = false }) => {
-  let colorClass = "bg-[#F2E4D0] text-[#7A3A18]/80";
-  let label = "Pending Action";
- 
+
+const StatusBadge = ({ booking }) => {
+  let bg = 'rgba(122,58,24,0.1)', color = '#7A3A18', label = 'Pending Action';
+
   if (booking.isActuallyCompleted) {
-    colorClass = "bg-[#C45C26]/20 text-[#C45C26]";
-    label = "Completed";
+    bg = 'rgba(196,92,38,0.15)'; color = '#C45C26'; label = 'Completed';
   } else if (booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected') {
-    colorClass = "bg-red-500/20 text-red-300";
-    label = "Cancelled";
+    bg = 'rgba(140,47,28,0.1)'; color = '#8C2F1C'; label = 'Cancelled';
   } else if (booking.payment_status === 'Complete') {
-    colorClass = "bg-blue-500/20 text-blue-200";
-    label = "Confirmed Trip";
+    bg = 'rgba(59,130,246,0.12)'; color = '#2563eb'; label = 'Confirmed Trip';
   } else if (booking.payment_status === 'Pending' || booking.payment_status === 'Verification Pending') {
-    colorClass = "bg-amber-400/20 text-amber-200";
-    label = "Verification Pending";
+    bg = 'rgba(232,162,101,0.25)'; color = '#B9762E'; label = 'Verification Pending';
   }
- 
-  // In the hero header context the badge sits over the image — use translucent backdrop
-  const size = large 
-    ? "px-4 py-1.5 text-[10px] backdrop-blur-sm" 
-    : "px-3 py-1 text-[9px]";
- 
-  // For list items (not large), use opaque variants instead
-  const listColorClass = large ? colorClass : colorClass
-    .replace("text-blue-200", "text-blue-600")
-    .replace("text-amber-200", "text-amber-600")
-    .replace("text-red-300", "text-red-500")
-    .replace("text-[#C45C26]", "text-[#9C4A1F]")
-    .replace("bg-blue-500/20", "bg-blue-100")
-    .replace("bg-amber-400/20", "bg-amber-100")
-    .replace("bg-red-500/20", "bg-red-50")
-    .replace("bg-[#C45C26]/20", "bg-[#C45C26]/10");
- 
+
   return (
-    <span className={`${size} rounded-full font-black uppercase tracking-widest ${large ? colorClass : listColorClass}`}>
+    <span style={{
+      display: 'inline-block', padding: '4px 14px', borderRadius: 999,
+      fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em',
+      background: bg, color,
+    }}>
       {label}
     </span>
   );
 };
- 
-export default MyBookings; 
+
+export default MyBookings;

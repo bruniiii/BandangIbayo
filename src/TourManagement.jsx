@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
   Loader2, CheckCircle2, AlertCircle, ImageIcon,
   Trash2, UploadCloud, Calendar, RefreshCw, History, ChevronDown,
-  CreditCard, CheckCircle, XCircle, AlertTriangle
+  CreditCard, CheckCircle, XCircle, AlertTriangle, ChevronLeft, ChevronRight,
 } from 'lucide-react';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -194,12 +194,31 @@ const TourManagement = () => {
       is_archived:    false,
     };
  
+    const isNewTour = !editingTour;
     const request = editingTour
       ? supabase.from('tours').update(tourData).eq('id', editingTour.id)
-      : supabase.from('tours').insert([tourData]);
-    const { error } = await request;
-    if (error) alert('Error: ' + error.message);
-    else { setEditingTour(null); setShowModal(false); fetchTours(); }
+      : supabase.from('tours').insert([tourData]).select();
+    const { data: tourResult, error } = await request;
+    if (error) { alert('Error: ' + error.message); return; }
+
+    // Auto-post newly created tours to the community feed.
+    if (isNewTour) {
+      const newTour = Array.isArray(tourResult) ? tourResult[0] : tourResult;
+      if (newTour?.id) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error: feedError } = await supabase.from('feed_posts').insert([{
+          author_id: user?.id || null,
+          content: `New tour posted: ${newTour.title} — ${newTour.destination}. Book your slot now!`,
+          post_type: 'tour',
+          tour_id: newTour.id,
+        }]);
+        if (feedError) console.error('Error auto-posting tour to feed:', feedError.message);
+      }
+    }
+
+    setEditingTour(null);
+    setShowModal(false);
+    fetchTours();
   };
  
   // ── shared input style ──
@@ -312,6 +331,9 @@ const TourManagement = () => {
         </div>
       )}
  
+      {/* ── Scrollable Content (header + filters + grid scroll together) ── */}
+      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4 }}>
+
       {/* ── Header Tabs ── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -413,8 +435,7 @@ const TourManagement = () => {
       </div>
  
       {/* ── Tour Grid ── */}
-      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
           {loading ? (
             <div style={{
               gridColumn: '1 / -1',
@@ -451,7 +472,8 @@ const TourManagement = () => {
               </p>
             </div>
           )}
-        </div>
+      </div>
+
       </div>
  
       {/* ── Create / Edit Modal ── */}
@@ -486,7 +508,7 @@ const TourManagement = () => {
               }}
             ><X size={22} /></button>
  
-            <div style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
+            <div className="responsive-modal-padding" style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
               <h2 style={{
                 fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em',
                 textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 28px',
@@ -504,7 +526,7 @@ const TourManagement = () => {
                 }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Tour Gallery Management</label>
                   {(tempGallery.length > 0 || newFiles.length > 0) && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+                    <div className="responsive-form-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
                       {tempGallery.map((url, i) => (
                         <GalleryThumb key={`old-${i}`} src={url} onRemove={() => handleRemoveExisting(url)} isNew={false} />
                       ))}
@@ -530,7 +552,7 @@ const TourManagement = () => {
  
                 <ModalInput label="Tour Title" name="title" defaultValue={editingTour?.title} placeholder="e.g., Mt. Pulag" required />
  
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" defaultValue={editingTour?.destination} required />
                   <ModalInput label="Price (₱)" name="price" type="number" defaultValue={editingTour?.price} required />
                 </div>
@@ -541,7 +563,7 @@ const TourManagement = () => {
                   borderRadius: 18, padding: '1.25rem',
                   border: '1px solid rgba(196,92,38,0.18)',
                   display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14,
-                }}>
+                }} className="responsive-form-grid-2">
                   <div>
                     <label style={labelStyle}>Start Date</label>
                     <input type="date" name="start_date" min={getMinStartDate()} defaultValue={editingTour?.start_date} onChange={handleDateChange}
@@ -554,7 +576,7 @@ const TourManagement = () => {
                   </div>
                 </div>
  
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                <div className="responsive-form-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
                   <div>
                     <label style={labelStyle}>Duration</label>
                     <input type="text" value={calculatedDuration} readOnly
@@ -578,7 +600,7 @@ const TourManagement = () => {
                     style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
                 </div>
  
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, borderTop: '1px solid rgba(196,92,38,0.12)', paddingTop: 16 }}>
+                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, borderTop: '1px solid rgba(196,92,38,0.12)', paddingTop: 16 }}>
                   <div>
                     <label style={labelStyle}>Inclusions</label>
                     <textarea name="inclusions" defaultValue={editingTour?.inclusions} rows="4"
@@ -591,7 +613,7 @@ const TourManagement = () => {
                   </div>
                 </div>
  
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
                     <label style={labelStyle}>Things to Bring</label>
                     <textarea name="things_to_bring" defaultValue={editingTour?.things_to_bring} rows="3"
@@ -693,6 +715,123 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
 /* ─────────────────────────────────────────────
    TOUR VIEW MODAL
 ───────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+   TOUR IMAGE CAROUSEL (slideable gallery)
+───────────────────────────────────────────── */
+const TourImageCarousel = ({ images = [], onExpand }) => {
+  const [index, setIndex] = useState(0);
+  const dragStartX = useRef(null);
+  const hasImages = images.length > 0;
+  const hasMultiple = images.length > 1;
+ 
+  const goTo = (i) => setIndex(((i % images.length) + images.length) % images.length);
+  const prev = (e) => { e.stopPropagation(); goTo(index - 1); };
+  const next = (e) => { e.stopPropagation(); goTo(index + 1); };
+ 
+  const handleDragStart = (e) => {
+    dragStartX.current = e.clientX ?? e.touches?.[0]?.clientX ?? null;
+  };
+  const handleDragEnd = (e) => {
+    if (dragStartX.current == null) return;
+    const endX = e.clientX ?? e.changedTouches?.[0]?.clientX ?? dragStartX.current;
+    const delta = endX - dragStartX.current;
+    if (Math.abs(delta) > 40) {
+      delta > 0 ? goTo(index - 1) : goTo(index + 1);
+    }
+    dragStartX.current = null;
+  };
+ 
+  return (
+    <div>
+      <div
+        style={{
+          position: 'relative', width: '100%', height: 190,
+          borderRadius: 18, overflow: 'hidden',
+          background: '#E8D5BC', marginBottom: hasMultiple ? 12 : 20,
+          boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
+          flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
+        }}
+        onPointerDown={handleDragStart}
+        onPointerUp={handleDragEnd}
+      >
+        {hasImages ? (
+          <div style={{
+            display: 'flex', width: '100%', height: '100%',
+            transform: `translateX(-${index * 100}%)`,
+            transition: 'transform 0.35s ease',
+          }}>
+            {images.map((url, i) => (
+              <img
+                key={i} src={url} draggable={false} alt={`Photo ${i + 1}`}
+                onClick={() => onExpand(url)}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}>
+            <ImageIcon size={40} />
+          </div>
+        )}
+ 
+        {hasMultiple && (
+          <>
+            <button
+              type="button" onClick={prev}
+              style={{
+                position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#FDF6EE',
+              }}
+            ><ChevronLeft size={18} /></button>
+            <button
+              type="button" onClick={next}
+              style={{
+                position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#FDF6EE',
+              }}
+            ><ChevronRight size={18} /></button>
+            <div style={{ position: 'absolute', bottom: 10, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 5 }}>
+              {images.map((_, i) => (
+                <span
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); goTo(i); }}
+                  style={{
+                    width: i === index ? 16 : 6, height: 6, borderRadius: 999,
+                    background: i === index ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
+                    cursor: 'pointer', transition: 'width 0.2s',
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+ 
+      {hasMultiple && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 20 }}>
+          {images.map((url, i) => (
+            <div
+              key={i}
+              onClick={() => goTo(i)}
+              style={{
+                aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
+                border: i === index ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.15)',
+                opacity: i === index ? 1 : 0.65, transition: 'opacity 0.2s, border-color 0.2s',
+              }}
+            >
+              <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Thumbnail ${i + 1}`} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+ 
 const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRange }) => {
   const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
   const isFull    = (tour.available_slots ?? 1) <= 0;
@@ -716,32 +855,17 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
         }}><X size={28} /></button>
  
         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', minHeight: 0 }}>
+          <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', minHeight: 0 }}>
  
             {/* Left panel */}
-            <div style={{
+            <div className="responsive-modal-padding" style={{
               background: '#F2E4D0',
               padding: '2.5rem 2rem',
               borderRight: '1px solid rgba(196,92,38,0.12)',
               display: 'flex', flexDirection: 'column',
-              overflowY: 'auto',
             }}>
-              {/* Primary image */}
-              <div
-                style={{
-                  position: 'relative', width: '100%', height: 190,
-                  borderRadius: 18, overflow: 'hidden',
-                  background: '#E8D5BC', marginBottom: 20, cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
-                  flexShrink: 0,
-                }}
-                onClick={() => setSelectedImage(tour.image_urls?.[0])}
-              >
-                {tour.image_urls?.[0]
-                  ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Primary" />
-                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}><ImageIcon size={40} /></div>
-                }
-              </div>
+              {/* Photo Gallery (slideable) */}
+              <TourImageCarousel images={tour.image_urls || []} onExpand={setSelectedImage} />
  
               <h2 style={{
                 fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em',
@@ -781,22 +905,6 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
                 }}>{tour.difficulty}</span>
               </div>
  
-              {/* Gallery thumbnails */}
-              {tour.image_urls?.length > 1 && (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 16, marginBottom: 20 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                    {tour.image_urls.map((url, idx) => (
-                      <div key={idx}
-                        style={{ aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', border: '1px solid rgba(196,92,38,0.15)' }}
-                        onClick={() => setSelectedImage(url)}
-                      >
-                        <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Gallery" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
- 
               {/* Price */}
               <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
                 ₱{tour.price.toLocaleString()}
@@ -820,8 +928,8 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
             </div>
  
             {/* Right panel */}
-            <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-              <div style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
  
                 <ViewSection title="About the Tour">
                   <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
@@ -829,21 +937,21 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
                   </p>
                 </ViewSection>
  
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
                   <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
-                    <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>{tour.inclusions || 'N/A'}</pre>
+                    <ChecklistGrid text={tour.inclusions} variant="include" />
                   </ViewSection>
                   <ViewSection title="Exclusions" titleColor="#C45C26" icon={<X size={14} />}>
-                    <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>{tour.exclusions || 'N/A'}</pre>
+                    <ChecklistGrid text={tour.exclusions} variant="exclude" />
                   </ViewSection>
                 </div>
  
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
                   <ViewSection title="Itinerary">
                     <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>{tour.itinerary || 'N/A'}</pre>
                   </ViewSection>
                   <ViewSection title="Things to Bring">
-                    <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>{tour.things_to_bring || 'N/A'}</pre>
+                    <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
                   </ViewSection>
                 </div>
  
@@ -1003,6 +1111,35 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
   </section>
 );
  
+/* Renders newline-separated text (inclusions/exclusions/things-to-bring)
+   as a tidy checklist grid instead of a raw text block. */
+const ChecklistGrid = ({ text, variant = 'neutral' }) => {
+  const items = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
+ 
+  if (items.length === 0) {
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
+  }
+ 
+  const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#C45C26' : '#7A3A18';
+  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(196,92,38,0.07)' : 'rgba(122,58,24,0.06)';
+  const Icon = variant === 'exclude' ? X : CheckCircle2;
+ 
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
+      {items.map((item, i) => (
+        <div key={i} style={{
+          display: 'flex', alignItems: 'flex-start', gap: 8,
+          background: itemBg, borderRadius: 12, padding: '9px 12px',
+        }}>
+          <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+ 
+ 
 const ModalInput = ({ label, name, defaultValue, ...props }) => (
   <div style={{ marginBottom: 0 }}>
     <label style={{
@@ -1027,4 +1164,3 @@ const ModalInput = ({ label, name, defaultValue, ...props }) => (
 );
  
 export default TourManagement;
- 

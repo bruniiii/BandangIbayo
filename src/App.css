@@ -7,7 +7,7 @@
   border: 2px solid transparent;
   transition: border-color 0.3s;
   margin-bottom: 24px;
-
+ 
   &:hover {
     border-color: var(--accent-border);
   }
@@ -16,28 +16,28 @@
     outline-offset: 2px;
   }
 }
-
+ 
 .hero {
   position: relative;
-
+ 
   .base,
   .framework,
   .vite {
     inset-inline: 0;
     margin: 0 auto;
   }
-
+ 
   .base {
     width: 170px;
     position: relative;
     z-index: 0;
   }
-
+ 
   .framework,
   .vite {
     position: absolute;
   }
-
+ 
   .framework {
     z-index: 1;
     top: 34px;
@@ -45,7 +45,7 @@
     transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
       scale(1.4);
   }
-
+ 
   .vite {
     z-index: 0;
     top: 107px;
@@ -55,7 +55,7 @@
       scale(0.8);
   }
 }
-
+ 
 #center {
   display: flex;
   flex-direction: column;
@@ -63,18 +63,18 @@
   place-content: center;
   place-items: center;
   flex-grow: 1;
-
+ 
   @media (max-width: 1024px) {
     padding: 32px 20px 24px;
     gap: 18px;
   }
 }
-
+ 
 #next-steps {
   display: flex;
   border-top: 1px solid var(--border);
   text-align: left;
-
+ 
   & > div {
     flex: 1 1 0;
     padding: 32px;
@@ -82,39 +82,39 @@
       padding: 24px 20px;
     }
   }
-
+ 
   .icon {
     margin-bottom: 16px;
     width: 22px;
     height: 22px;
   }
-
+ 
   @media (max-width: 1024px) {
     flex-direction: column;
     text-align: center;
   }
 }
-
+ 
 #docs {
   border-right: 1px solid var(--border);
-
+ 
   @media (max-width: 1024px) {
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
 }
-
+ 
 #next-steps ul {
   list-style: none;
   padding: 0;
   display: flex;
   gap: 8px;
   margin: 32px 0 0;
-
+ 
   .logo {
     height: 18px;
   }
-
+ 
   a {
     color: var(--text-h);
     font-size: 16px;
@@ -126,7 +126,7 @@
     gap: 8px;
     text-decoration: none;
     transition: box-shadow 0.3s;
-
+ 
     &:hover {
       box-shadow: var(--shadow);
     }
@@ -135,16 +135,16 @@
       width: 18px;
     }
   }
-
+ 
   @media (max-width: 1024px) {
     margin-top: 20px;
     flex-wrap: wrap;
     justify-content: center;
-
+ 
     li {
       flex: 1 1 calc(50% - 8px);
     }
-
+ 
     a {
       width: 100%;
       justify-content: center;
@@ -152,7 +152,7 @@
     }
   }
 }
-
+ 
 #spacer {
   height: 88px;
   border-top: 1px solid var(--border);
@@ -160,11 +160,11 @@
     height: 48px;
   }
 }
-
+ 
 .ticks {
   position: relative;
   width: 100%;
-
+ 
   &::before,
   &::after {
     content: '';
@@ -172,7 +172,7 @@
     top: -4.5px;
     border: 5px solid transparent;
   }
-
+ 
   &::before {
     left: 0;
     border-left-color: var(--border);
@@ -182,9 +182,9 @@
     border-right-color: var(--border);
   }
 }
-
+ 
 /* --- DASHBOARD LAYOUT FIXES --- */
-
+ 
 /* Force the main dashboard container to never grow larger than the screen */
 .admin-dashboard-container, 
 .joiner-dashboard-container {
@@ -196,7 +196,7 @@
   top: 0;
   left: 0;
 }
-
+ 
 /* Ensure the main content area handles its own scrolling */
 main {
   height: 100vh !important;
@@ -204,11 +204,148 @@ main {
   flex: 1;
   background-color: #f8fafc;
 }
-
+ 
 /* Fix for the white line leaking from the bottom of overlays */
 .fixed.inset-0 {
   bottom: 0 !important;
   height: 100% !important;
   margin: 0 !important;
   padding: 0 !important;
+}
+ 
+/* --- RESPONSIVE DASHBOARD SHELL ---
+   Used by AdminDashboard.jsx and JoinerDashboard.jsx.
+   Desktop: sidebar sits inline at a fixed width.
+   Tablet/Mobile (<=900px): sidebar becomes an off-canvas drawer that
+   slides in over the content, toggled by a hamburger button in the header. */
+ 
+.dashboard-sidebar {
+  transition: transform 0.28s ease;
+}
+ 
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: #1A0A00;
+  align-items: center;
+  justify-content: center;
+}
+ 
+.sidebar-overlay {
+  display: none;
+}
+ 
+@media (max-width: 900px) {
+  .dashboard-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh !important;
+    z-index: 100 !important;
+    transform: translateX(-100%);
+    box-shadow: 8px 0 40px rgba(26,10,0,0.35) !important;
+  }
+ 
+  .dashboard-sidebar.is-open {
+    transform: translateX(0);
+  }
+ 
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+ 
+  .sidebar-overlay.is-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,10,0,0.55);
+    backdrop-filter: blur(2px);
+    z-index: 90;
+  }
+ 
+  .dashboard-header {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+ 
+  .dashboard-header-search {
+    display: none !important;
+  }
+ 
+  .dashboard-user-chip-text {
+    display: none !important;
+  }
+ 
+  .dashboard-content {
+    padding: 1.25rem !important;
+  }
+}
+ 
+@media (max-width: 560px) {
+  .dashboard-header-title {
+    font-size: 12px !important;
+    letter-spacing: 0.04em !important;
+  }
+ 
+  .dashboard-hero-padding {
+    padding: 1.75rem 1.5rem !important;
+  }
+ 
+  .dashboard-content {
+    padding: 1rem !important;
+  }
+}
+ 
+/* --- RESPONSIVE MODAL / FORM UTILITIES ---
+   Used across TourManagement.jsx, BookingManagement.jsx and other
+   inline-styled modals. These classes are added alongside existing
+   inline styles; the !important overrides below only kick in on
+   small screens, so desktop layouts are untouched. */
+ 
+/* Paired content sections (e.g. Inclusions/Exclusions, Itinerary/Things
+   to Bring) hold independent, variable-length lists side by side. On
+   tablet widths that forces users to scroll down one column, then scroll
+   back up to read the other. This class collapses them into a single
+   stacked column earlier (tablet breakpoint) so everything reads
+   top-to-bottom in one continuous grid, matching the dashboard's own
+   tablet breakpoint (900px). */
+@media (max-width: 900px) {
+  .responsive-section-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+ 
+@media (max-width: 640px) {
+  /* Any 2-column or 3-column form grid collapses to a single column */
+  .responsive-form-grid-2,
+  .responsive-form-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+ 
+  /* 4-column gallery thumbnail grids become 2 columns instead of 1 */
+  .responsive-form-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+ 
+  /* Sidebar-style 1fr/2fr split modals (e.g. image | details) stack */
+  .responsive-split-panel {
+    grid-template-columns: 1fr !important;
+  }
+ 
+  /* Large modal body padding shrinks so content isn't cramped */
+  .responsive-modal-padding {
+    padding: 1.25rem !important;
+  }
+ 
+  /* Tables get a horizontal-scroll wrapper instead of squeezing columns */
+  .responsive-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .responsive-table-wrapper table {
+    min-width: 640px;
+  }
 }

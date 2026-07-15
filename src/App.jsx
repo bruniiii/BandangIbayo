@@ -298,7 +298,7 @@ function LandingPage() {
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : tours.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 28 }}>
               {tours.map((tour) => (
                 <div key={tour.id} style={{
                   background: '#FDF6EE', borderRadius: 24, overflow: 'hidden',
@@ -480,7 +480,6 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<JoinerLogin />} />
       <Route path="/register" element={<JoinerRegister />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/dashboard/*" element={<ProtectedRoute><JoinerDashboard /></ProtectedRoute>} />
       <Route path="/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
       <Route path="*" element={<LandingPage />} />

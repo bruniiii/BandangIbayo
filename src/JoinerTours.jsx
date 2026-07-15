@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { 
-  Search, MapPin, Clock, Users, Calendar, ChevronDown, 
+  Search, MapPin, Clock, Users, Calendar, ChevronDown, ChevronLeft, ChevronRight,
   Eye, ImageIcon, Loader2, CheckCircle2, X, AlertCircle, Star,
   CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
 } from 'lucide-react';
@@ -315,8 +315,170 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
   );
 };
  
+/* ─────────────────────────────────────────────
+   HELPERS (mirrors TourManagement's design system)
+───────────────────────────────────────────── */
+const ViewSection = ({ title, titleColor, icon, children }) => (
+  <section>
+    <h4 style={{
+      fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
+      textTransform: 'uppercase', color: titleColor || '#1A0A00',
+      margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6,
+    }}>
+      {icon} {title}
+    </h4>
+    {children}
+  </section>
+);
+
+/* Renders newline-separated text (inclusions/exclusions/things-to-bring)
+   as a tidy checklist grid instead of a raw text block. */
+const ChecklistGrid = ({ text, variant = 'neutral' }) => {
+  const items = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+  if (items.length === 0) {
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
+  }
+
+  const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#C45C26' : '#7A3A18';
+  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(196,92,38,0.07)' : 'rgba(122,58,24,0.06)';
+  const Icon = variant === 'exclude' ? X : CheckCircle2;
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
+      {items.map((item, i) => (
+        <div key={i} style={{
+          display: 'flex', alignItems: 'flex-start', gap: 8,
+          background: itemBg, borderRadius: 12, padding: '9px 12px',
+        }}>
+          <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* Slideable photo gallery, identical behavior to TourManagement's carousel */
+const TourImageCarousel = ({ images = [] }) => {
+  const [index, setIndex] = useState(0);
+  const dragStartX = React.useRef(null);
+  const hasImages = images.length > 0;
+  const hasMultiple = images.length > 1;
+
+  const goTo = (i) => setIndex(((i % images.length) + images.length) % images.length);
+  const prev = (e) => { e.stopPropagation(); goTo(index - 1); };
+  const next = (e) => { e.stopPropagation(); goTo(index + 1); };
+
+  const handleDragStart = (e) => {
+    dragStartX.current = e.clientX ?? e.touches?.[0]?.clientX ?? null;
+  };
+  const handleDragEnd = (e) => {
+    if (dragStartX.current == null) return;
+    const endX = e.clientX ?? e.changedTouches?.[0]?.clientX ?? dragStartX.current;
+    const delta = endX - dragStartX.current;
+    if (Math.abs(delta) > 40) {
+      delta > 0 ? goTo(index - 1) : goTo(index + 1);
+    }
+    dragStartX.current = null;
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          position: 'relative', width: '100%', height: 190,
+          borderRadius: 18, overflow: 'hidden',
+          background: '#E8D5BC', marginBottom: hasMultiple ? 12 : 20,
+          boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
+          flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
+        }}
+        onPointerDown={handleDragStart}
+        onPointerUp={handleDragEnd}
+      >
+        {hasImages ? (
+          <div style={{
+            display: 'flex', width: '100%', height: '100%',
+            transform: `translateX(-${index * 100}%)`,
+            transition: 'transform 0.35s ease',
+          }}>
+            {images.map((url, i) => (
+              <img
+                key={i} src={url} draggable={false} alt={`Photo ${i + 1}`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', flexShrink: 0 }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}>
+            <ImageIcon size={40} />
+          </div>
+        )}
+
+        {hasMultiple && (
+          <>
+            <button
+              type="button" onClick={prev}
+              style={{
+                position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#FDF6EE',
+              }}
+            ><ChevronLeft size={18} /></button>
+            <button
+              type="button" onClick={next}
+              style={{
+                position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#FDF6EE',
+              }}
+            ><ChevronRight size={18} /></button>
+            <div style={{ position: 'absolute', bottom: 10, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 5 }}>
+              {images.map((_, i) => (
+                <span
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); goTo(i); }}
+                  style={{
+                    width: i === index ? 16 : 6, height: 6, borderRadius: 999,
+                    background: i === index ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
+                    cursor: 'pointer', transition: 'width 0.2s',
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {hasMultiple && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 20 }}>
+          {images.map((url, i) => (
+            <div
+              key={i}
+              onClick={() => goTo(i)}
+              style={{
+                aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
+                border: i === index ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.15)',
+                opacity: i === index ? 1 : 0.65, transition: 'opacity 0.2s, border-color 0.2s',
+              }}
+            >
+              <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Thumbnail ${i + 1}`} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────
+   TOUR DETAILS + BOOKING MODAL
+   (split panel, mirrors TourManagement's TourViewModal)
+───────────────────────────────────────────── */
 const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess }) => {
-    const [primaryImage, setPrimaryImage] = useState(tour.image_urls?.[0] || null);
+    const images = tour.image_urls || [];
     const [numPersons, setNumPersons] = useState(1);
     const [isBooking, setIsBooking] = useState(false);
     const [slotError, setSlotError] = useState("");
@@ -325,40 +487,42 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
     const [paymentType, setPaymentType] = useState(null); // 'full' | 'down'
     const [bookingId, setBookingId] = useState(null);
     const [createdBooking, setCreatedBooking] = useState(null);
- 
+
     const isFullyBooked = tour.available_slots <= 0;
+    const isAlmostFull = !isFullyBooked && tour.available_slots <= 3;
     const maxBookingLimit = Math.min(tour.available_slots || 0, 10);
     const subtotal = tour.price * numPersons;
     const downpaymentAmount = Math.round(subtotal * 0.4);
- 
+    const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
+
     const handleBookThisTour = async () => {
         setSlotError("");
         setIsBooking(true);
- 
+
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
- 
+
         const { data: freshBookings } = await supabase
             .from('bookings')
             .select('slots_booked')
             .eq('tour_id', tour.id)
             .eq('booking_status', 'Completed')
- 
+
         const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
         const freshAvailable = (tour.group_size || 15) - totalBooked;
- 
+
         if (freshAvailable <= 0) {
             setSlotError("Sorry, this tour just became fully booked.");
             setIsBooking(false);
             return;
         }
- 
+
         if (numPersons > freshAvailable) {
             setSlotError(`Only ${freshAvailable} slot${freshAvailable > 1 ? 's' : ''} remaining. Please reduce the number of persons.`);
             setIsBooking(false);
             return;
         }
- 
+
         // Duplicate guard: check if user already has an active/pending booking for this tour
         const { data: existingBooking } = await supabase
             .from('bookings')
@@ -367,36 +531,36 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             .eq('user_id', user.id)
             .not('booking_status', 'in', '("Cancelled","Rejected")')
             .maybeSingle();
- 
+
         if (existingBooking) {
             setSlotError(`You already have an active booking for this tour (${existingBooking.booking_number}). Please check My Bookings.`);
             setIsBooking(false);
             return;
         }
- 
+
         const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, contact_number, email')
             .eq('id', user.id)
             .single();
- 
+
         // Generate booking number
         const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
- 
-        const { data: booking, error } = await supabase.from('bookings').insert([{ 
-            tour_id: tour.id, 
+
+        const { data: booking, error } = await supabase.from('bookings').insert([{
+            tour_id: tour.id,
             user_id: user.id,
             booking_number: bookingNumber,
             full_name: profile?.full_name || "N/A",
             email: user.email || profile?.email || "N/A",
             contact_number: profile?.contact_number || "N/A",
             slots_booked: numPersons,
-            total_price: subtotal, 
+            total_price: subtotal,
             payment_status: 'Pending',
             booking_status: 'Active',
             payment_method: null,
         }]).select();
- 
+
         if (error) {
             alert("Database Error: " + error.message);
             setIsBooking(false);
@@ -414,162 +578,210 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
         }
         setIsBooking(false);
     };
- 
+
     const handleChoosePaymentType = (type) => {
         setPaymentType(type);
         setPaymentStep('gcash');
     };
- 
+
     const handlePaymentSuccess = () => {
         setPaymentStep('success');
     };
- 
+
     return (
-        <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 animate-in fade-in duration-300 text-left">
-            <div className="absolute inset-0 bg-[#1A0A00]/95 backdrop-blur-md" onClick={paymentStep ? undefined : onClose}></div>
-            <div className="relative bg-[#FDF6EE] w-full max-w-7xl h-[95vh] rounded-[1.75rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 flex flex-col md:flex-row border-t-8 border-[#C45C26]/90 text-left">
-                <button onClick={onClose} className="absolute top-8 right-8 text-[#7A3A18]/70 hover:text-[#1A0A00] z-50 transition-colors"><X size={32}/></button>
- 
-                {/* Left: Tour Details */}
-                <div className="flex-1 p-12 overflow-y-auto space-y-12 h-full text-left custom-scrollbar">
-                    <section className="text-left">
-                        <div className="rounded-3xl overflow-hidden shadow-xl mb-6 h-112 bg-[#F2E4D0] shrink-0">
-                          {primaryImage 
-                            ? <img src={primaryImage} className="w-full h-full object-cover animate-in fade-in" alt="" /> 
-                            : <div className="w-full h-full flex items-center justify-center italic text-[#C45C26]/30"><ImageIcon size={64}/></div>
-                          }
-                        </div>
-                        {tour.image_urls?.length > 1 && (
-                          <div className="flex gap-3 mb-6 flex-wrap">
-                            {tour.image_urls.map((url, idx) => (
-                              <div key={idx} onClick={() => setPrimaryImage(url)} className="w-16 h-16 rounded-xl overflow-hidden border-2 cursor-pointer transition-all hover:border-[#C45C26]" style={{ borderColor: primaryImage === url ? '#C45C26' : '#e2e8f0' }}>
-                                <img src={url} className="w-full h-full object-cover" alt="" />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <div className="space-y-4">
-                          <h4 className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Description</h4>
-                          <p className="text-[#7A3A18] text-base font-medium leading-relaxed whitespace-pre-wrap">{tour.description}</p>
-                        </div>
-                    </section>
- 
-                    <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/[0.12] pt-10">
-                        <section>
-                            <h4 className="text-xs font-black text-[#C45C26] uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <CheckCircle2 size={16}/> Inclusions
-                            </h4>
-                            <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.inclusions || "N/A"}</pre>
-                        </section>
-                        <section>
-                            <h4 className="text-xs font-black text-red-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <X size={16}/> Exclusions
-                            </h4>
-                            <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.exclusions || "N/A"}</pre>
-                        </section>
-                    </div>
- 
-                    <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/[0.12] pt-10">
-                        <section>
-                            <h4 className="text-xs font-black text-[#1A0A00] uppercase tracking-widest mb-4">Itinerary</h4>
-                            <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.itinerary || "N/A"}</pre>
-                        </section>
-                        <section>
-                            <h4 className="text-xs font-black text-[#1A0A00] uppercase tracking-widest mb-4">Things to Bring</h4>
-                            <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.things_to_bring || "N/A"}</pre>
-                        </section>
-                    </div>
- 
-                    {tour.important_note && (
-                        <div className="bg-red-50 p-8 rounded-[1.5rem] border border-red-100 flex gap-5">
-                            <AlertCircle className="text-red-500 shrink-0" size={24}/>
-                            <div>
-                                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Important Note</p>
-                                <pre className="text-red-700 text-sm font-bold font-sans leading-relaxed whitespace-pre-wrap">{tour.important_note}</pre>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
+            <div style={{
+                position: 'relative', background: '#FDF6EE',
+                width: '100%', maxWidth: 1100,
+                borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+                overflow: 'hidden',
+                maxHeight: '92vh',
+                display: 'flex', flexDirection: 'column',
+            }}>
+                <button onClick={onClose} style={{
+                    position: 'absolute', top: 24, right: 24, zIndex: 50,
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'rgba(122,58,24,0.5)',
+                }}><X size={28} /></button>
+
+                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', minHeight: 0 }}>
+
+                        {/* Left panel: gallery, meta, price, booking action */}
+                        <div className="responsive-modal-padding" style={{
+                            background: '#F2E4D0',
+                            padding: '2.5rem 2rem',
+                            borderRight: '1px solid rgba(196,92,38,0.12)',
+                            display: 'flex', flexDirection: 'column',
+                        }}>
+                            <TourImageCarousel images={images} />
+
+                            <h2 style={{
+                                fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em',
+                                color: '#1A0A00', margin: '0 0 18px', lineHeight: 1.15,
+                            }}>{tour.title}</h2>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+                                {[
+                                    { icon: <MapPin size={16} />, text: tour.destination },
+                                    { icon: <Calendar size={16} />, text: formatDateRange(tour.start_date, tour.duration) },
+                                    { icon: <Clock size={16} />, text: tour.duration },
+                                ].map((row, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
+                                        <span style={{ color: '#C45C26' }}>{row.icon}</span> {row.text}
+                                    </div>
+                                ))}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#C45C26' : '#7A3A18' }}>
+                                    <span style={{ color: '#C45C26' }}><Users size={16} /></span>
+                                    {tour.current_booked} / {tour.group_size} Slots Booked
+                                </div>
+                                <div style={{ background: 'rgba(196,92,38,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+                                    <div style={{
+                                        height: '100%', borderRadius: 999,
+                                        width: `${filledPct}%`,
+                                        background: isFullyBooked ? '#C45C26' : isAlmostFull ? '#E8A265' : '#7A3A18',
+                                        transition: 'width 0.4s',
+                                    }} />
+                                </div>
+                                <span style={{
+                                    display: 'inline-block',
+                                    background: '#FDF6EE',
+                                    border: '1px solid rgba(196,92,38,0.2)',
+                                    borderRadius: 999, padding: '4px 14px',
+                                    fontSize: 9, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
+                                    color: '#1A0A00', width: 'fit-content',
+                                }}>{tour.difficulty}</span>
+
+                                {isFullyBooked ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(196,92,38,0.1)', border: '1px solid rgba(196,92,38,0.25)', borderRadius: 14, padding: '10px 14px' }}>
+                                        <AlertCircle size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#C45C26', margin: 0 }}>Fully Booked</p>
+                                    </div>
+                                ) : isAlmostFull ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px' }}>
+                                        <AlertCircle size={16} style={{ color: '#B9762E', flexShrink: 0 }} />
+                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#8A5A1E', margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            {!isFullyBooked && (
+                                <div style={{ marginBottom: 20 }}>
+                                    <label style={{
+                                        display: 'block', fontSize: 9, fontWeight: 800,
+                                        letterSpacing: '0.2em', textTransform: 'uppercase',
+                                        color: '#7A3A18', opacity: 0.7, marginBottom: 6,
+                                    }}>Number of Persons</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <select
+                                            value={numPersons}
+                                            onChange={(e) => { setNumPersons(parseInt(e.target.value)); setSlotError(""); }}
+                                            style={{
+                                                width: '100%', boxSizing: 'border-box',
+                                                background: '#FDF6EE',
+                                                border: '1px solid rgba(196,92,38,0.18)',
+                                                borderRadius: 14, padding: '12px 14px',
+                                                fontSize: 13, fontWeight: 700,
+                                                color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+                                                appearance: 'none', cursor: 'pointer', paddingRight: 34,
+                                            }}
+                                        >
+                                            {[...Array(maxBookingLimit)].map((_, i) => (
+                                                <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'Person' : 'Persons'}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(196,92,38,0.5)' }} />
+                                    </div>
+                                    {slotError && (
+                                        <p style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#C45C26', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <AlertCircle size={13} /> {slotError}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+
+                            <div style={{ marginTop: 'auto' }}>
+                                {!isFullyBooked && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
+                                        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7 }}>Total</span>
+                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
+                                    </div>
+                                )}
+                                {isFullyBooked && (
+                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>₱{tour.price.toLocaleString()} per person</p>
+                                )}
+                                <button
+                                    onClick={handleBookThisTour}
+                                    disabled={isBooking || isFullyBooked}
+                                    style={{
+                                        width: '100%', padding: '14px 0',
+                                        background: isFullyBooked ? '#E8D5BC' : '#C45C26',
+                                        color: isFullyBooked ? 'rgba(122,58,24,0.6)' : '#FDF6EE',
+                                        border: 'none', borderRadius: 14, cursor: isFullyBooked ? 'not-allowed' : 'pointer',
+                                        fontFamily: 'inherit', fontWeight: 900,
+                                        fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                        boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(196,92,38,0.32)',
+                                    }}
+                                >
+                                    {isBooking ? <Loader2 className="animate-spin" size={15} /> : <><CreditCard size={14} /> {isFullyBooked ? 'Fully Booked' : 'Book This Tour'}</>}
+                                </button>
                             </div>
                         </div>
-                    )}
-                </div>
- 
-                {/* Right: Booking Sidebar */}
-                <div className="w-full md:w-96 bg-[#f8fafc] p-12 flex flex-col h-full shrink-0 border-l border-[#C45C26]/[0.12] overflow-hidden text-left">
-                    <h2 className="text-4xl font-black text-[#1A0A00] leading-tight mb-8">{tour.title}</h2>
- 
-                    <div className="space-y-8 mb-8 flex-1">
-                        <div className="space-y-5">
-                            <div className="flex items-center gap-3 text-[#7A3A18]/80 font-bold text-sm">
-                              <Calendar size={18} className="text-[#C45C26]"/> {formatDateRange(tour.start_date, tour.duration)}
+
+                        {/* Right panel: description, inclusions/exclusions, itinerary */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
+
+                                <ViewSection title="About the Tour">
+                                    <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                        {tour.description || 'No description provided.'}
+                                    </p>
+                                </ViewSection>
+
+                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                    <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
+                                        <ChecklistGrid text={tour.inclusions} variant="include" />
+                                    </ViewSection>
+                                    <ViewSection title="Exclusions" titleColor="#C45C26" icon={<X size={14} />}>
+                                        <ChecklistGrid text={tour.exclusions} variant="exclude" />
+                                    </ViewSection>
+                                </div>
+
+                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                    <ViewSection title="Itinerary">
+                                        <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>{tour.itinerary || 'N/A'}</pre>
+                                    </ViewSection>
+                                    <ViewSection title="Things to Bring">
+                                        <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
+                                    </ViewSection>
+                                </div>
+
+                                {tour.important_note && (
+                                    <div style={{
+                                        background: 'rgba(196,92,38,0.07)',
+                                        borderRadius: 18, padding: '1.5rem',
+                                        border: '1px solid rgba(196,92,38,0.2)',
+                                        display: 'flex', gap: 16,
+                                    }}>
+                                        <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <div>
+                                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>
+                                                Important Note
+                                            </p>
+                                            <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                                {tour.important_note}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center gap-3 text-[#7A3A18]/80 font-bold text-sm">
-                              <Clock size={18} className="text-[#C45C26]"/> {tour.duration}
-                            </div>
-                            <div className="flex items-center gap-3 font-bold text-sm">
-                              <Users size={18} className="text-[#C45C26]"/>
-                              <span className={isFullyBooked ? 'text-red-500' : 'text-[#7A3A18]/80'}>
-                                {tour.current_booked} / {tour.group_size} Slots Booked
-                              </span>
-                            </div>
-                            <div className="w-full bg-[#F2E4D0] rounded-full h-2 overflow-hidden">
-                              <div 
-                                className={`h-2 rounded-full transition-all ${isFullyBooked ? 'bg-red-500' : tour.available_slots <= 3 ? 'bg-amber-500' : 'bg-[#C45C26]'}`}
-                                style={{ width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%` }}
-                              />
-                            </div>
-                            {isFullyBooked ? (
-                              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
-                                <AlertCircle size={16} className="text-red-500 shrink-0"/>
-                                <p className="text-red-600 text-xs font-black uppercase tracking-wide">Fully Booked</p>
-                              </div>
-                            ) : tour.available_slots <= 3 ? (
-                              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-                                <AlertCircle size={16} className="text-amber-500 shrink-0"/>
-                                <p className="text-amber-600 text-xs font-bold">Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
-                              </div>
-                            ) : null}
                         </div>
- 
-                        {!isFullyBooked && (
-                          <div className="pt-8 border-t border-[#C45C26]/[0.18]">
-                              <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase block mb-4">Number of Persons</label>
-                              <div className="relative">
-                                  <select 
-                                    value={numPersons} 
-                                    onChange={(e) => { setNumPersons(parseInt(e.target.value)); setSlotError(""); }} 
-                                    className="w-full bg-[#FDF6EE] rounded-2xl px-6 py-4 text-sm font-bold text-[#1A0A00] appearance-none cursor-pointer focus:ring-2 focus:ring-[#C45C26] shadow-sm"
-                                  >
-                                      {[...Array(maxBookingLimit)].map((_, i) => (
-                                        <option key={i+1} value={i+1}>{i+1} {i === 0 ? 'Person' : 'Persons'}</option>
-                                      ))}
-                                  </select>
-                                  <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 text-[#C45C26]/30 pointer-events-none" size={18} />
-                              </div>
-                              {slotError && (
-                                <p className="mt-3 text-xs text-red-500 font-bold flex items-center gap-2">
-                                  <AlertCircle size={14}/> {slotError}
-                                </p>
-                              )}
-                          </div>
-                        )}
-                    </div>
- 
-                    <div className="pt-8 border-t-2 border-[#C45C26]/[0.18] mt-auto">
-                        {!isFullyBooked && (
-                          <div className="flex justify-between items-end mb-8">
-                              <p className="text-sm font-black text-[#1A0A00] uppercase tracking-widest">Total</p>
-                              <p className="text-4xl font-black text-[#C45C26]">₱{subtotal.toLocaleString()}</p>
-                          </div>
-                        )}
-                        <button 
-                          onClick={handleBookThisTour} 
-                          disabled={isBooking || isFullyBooked} 
-                          className={`w-full py-5 rounded-2xl font-black text-xs uppercase shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-center ${isFullyBooked ? 'bg-[#F2E4D0] text-[#7A3A18]/70 cursor-not-allowed' : 'bg-[#C45C26] hover:bg-[#9C4A1F] text-white'}`}
-                        >
-                            {isBooking ? <Loader2 className="animate-spin" size={16}/> : isFullyBooked ? 'Fully Booked' : 'Book This Tour'}
-                        </button>
                     </div>
                 </div>
             </div>
- 
+
             {/* Payment Flow Overlays */}
             {paymentStep === 'proceed' && (
                 <ProceedToPaymentModal
@@ -581,7 +793,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                     formatDateRange={formatDateRange}
                 />
             )}
- 
+
             {paymentStep === 'choose' && (
                 <ChoosePaymentTypeModal
                     subtotal={subtotal}
@@ -590,7 +802,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                     onBack={() => setPaymentStep('proceed')}
                 />
             )}
- 
+
             {paymentStep === 'gcash' && (
                 <GCashPaymentModal
                     bookingId={bookingId}
@@ -603,7 +815,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                     onBack={() => setPaymentStep('choose')}
                 />
             )}
- 
+
             {paymentStep === 'success' && (
                 <BookingSuccessModal
                     booking={createdBooking}
@@ -614,44 +826,62 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
         </div>
     );
 };
- 
+
+/* ─────────────────────────────────────────────
+   PAYMENT FLOW OVERLAYS (inline-style, matches TourManagement palette)
+───────────────────────────────────────────── */
+
+const overlayBackdrop = {
+    position: 'fixed', inset: 0, zIndex: 10000, display: 'flex',
+    alignItems: 'center', justifyContent: 'center', padding: 16,
+    background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)',
+};
+
 // Step 1: Proceed to Payment confirmation
 const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel, formatDateRange }) => {
   return (
-    <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm">
-      <div className="bg-[#FDF6EE] w-full max-w-lg rounded-[1.75rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border-t-8 border-[#C45C26]/90">
-        <div className="p-10 space-y-8">
-          <div className="flex items-center justify-between">
-            <button onClick={onCancel} className="text-[#7A3A18]/70 hover:text-[#7A3A18] transition-colors"><X size={24} /></button>
-            <span className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Step 1 of 3</span>
+    <div style={overlayBackdrop}>
+      <div style={{
+        background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid rgba(196,92,38,0.9)',
+      }}>
+        <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={22} /></button>
+            <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 3</span>
           </div>
           <div>
-            <p className="text-[10px] font-black text-[#C45C26] uppercase tracking-widest mb-1">Booking Preview</p>
-            <h3 className="text-3xl font-black text-[#1A0A00] leading-tight">{tour.title}</h3>
+            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 4px' }}>Booking Preview</p>
+            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
           </div>
-          <div className="bg-[#F2E4D0] rounded-3xl p-6 space-y-4">
-            <div className="flex items-center gap-3 text-[#7A3A18] text-sm font-bold">
-              <MapPin size={16} className="text-[#C45C26] shrink-0" /> {tour.destination}
+          <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+              <MapPin size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {tour.destination}
             </div>
-            <div className="flex items-center gap-3 text-[#7A3A18] text-sm font-bold">
-              <Calendar size={16} className="text-[#C45C26] shrink-0" /> {formatDateRange(tour.start_date, tour.duration)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+              <Calendar size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
             </div>
-            <div className="flex items-center gap-3 text-[#7A3A18] text-sm font-bold">
-              <Users size={16} className="text-[#C45C26] shrink-0" /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+              <Users size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
             </div>
           </div>
-          <div className="border-t-2 border-[#C45C26]/[0.12] pt-6">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-bold text-[#7A3A18]/80">Price per person</span>
-              <span className="text-sm font-black text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
+          <div style={{ borderTop: '2px solid rgba(196,92,38,0.12)', paddingTop: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.8 }}>Price per person</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-base font-black text-[#1A0A00] uppercase tracking-wide">Subtotal</span>
-              <span className="text-3xl font-black text-[#C45C26]">₱{subtotal.toLocaleString()}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A0A00' }}>Subtotal</span>
+              <span style={{ fontSize: 28, fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
             </div>
           </div>
           <button onClick={onProceed}
-            className="w-full py-5 bg-[#1A0A00] hover:bg-[#2D1B0E] text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+            style={{
+              width: '100%', padding: '15px 0', background: '#1A0A00', color: '#FDF6EE',
+              border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
+              fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
           >
             <CreditCard size={16} /> Proceed to Payment
           </button>
@@ -660,53 +890,56 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
     </div>
   );
 };
- 
+
 // Step 2: Choose Full or Downpayment
 const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
-    <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm">
-        <div className="bg-[#FDF6EE] w-full max-w-md p-10 rounded-[1.75rem] shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300 border-t-8 border-[#C45C26]/90">
-            <div className="flex items-center justify-between w-full mb-2">
-        <button onClick={onBack} className="flex items-center gap-2 text-[#7A3A18]/70 hover:text-[#1A0A00] text-xs font-black uppercase tracking-widest transition-colors">
-            <ArrowLeft size={14}/> Back
-        </button>
-        <span className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Step 2 of 3</span>
-        </div>
-            <div>
-                <h3 className="text-2xl font-black text-[#1A0A00] uppercase tracking-tight">Choose Payment Type</h3>
-                <p className="text-[#7A3A18]/80 text-sm font-medium mt-2">How would you like to pay for your booking?</p>
+    <div style={overlayBackdrop}>
+        <div style={{
+            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
+            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
+            borderTop: '8px solid rgba(196,92,38,0.9)',
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                    <ArrowLeft size={14} /> Back
+                </button>
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 2 of 3</span>
             </div>
- 
-            <div className="space-y-4 text-left">
-                {/* Full Payment */}
+            <div>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left' }}>
                 <button
                     onClick={() => onChoose('full')}
-                    className="w-full bg-[#1A0A00] text-white rounded-3xl p-6 text-left hover:bg-[#2D1B0E] transition-all group shadow-lg"
+                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)' }}
                 >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Full Payment</span>
-                        <Check size={16} className="text-[#C45C26]" />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
+                        <Check size={16} style={{ color: '#E8A265' }} />
                     </div>
-                    <p className="text-3xl font-black">₱{subtotal.toLocaleString()}</p>
-                    <p className="text-xs text-[#C45C26]/30 font-medium mt-1">Pay the complete amount now</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>₱{subtotal.toLocaleString()}</p>
+                    <p style={{ fontSize: 11, opacity: 0.6, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
                 </button>
- 
-                {/* Downpayment */}
+
                 <button
                     onClick={() => onChoose('down')}
-                    className="w-full bg-[#FDF6EE] border-2 border-[#C45C26]/[0.18] rounded-3xl p-6 text-left hover:border-[#C45C26] hover:bg-[#C45C26]/5 transition-all group"
+                    style={{ width: '100%', background: '#FDF6EE', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer' }}
                 >
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Downpayment (40%)</span>
-                        <span className="text-[10px] font-black text-[#7A3A18]/70 uppercase">Balance Later</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
+                        <span style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
                     </div>
-                    <p className="text-3xl font-black text-[#1A0A00]">₱{downpaymentAmount.toLocaleString()}</p>
-                    <p className="text-xs text-[#7A3A18]/70 font-medium mt-1">Pay 40% now, settle the rest before the tour</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{downpaymentAmount.toLocaleString()}</p>
+                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now, settle the rest before the tour</p>
                 </button>
             </div>
         </div>
     </div>
 );
- 
+
 // Step 3: GCash Payment Form + Booking Summary
 const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
     const [gcashNumber, setGcashNumber] = useState("");
@@ -728,10 +961,10 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
     const [screenshot, setScreenshot] = useState(null);
     const [screenshotPreview, setScreenshotPreview] = useState(null);
     const [submitting, setSubmitting] = useState(false);
- 
+
     const amountDue = paymentType === 'full' ? subtotal : downpaymentAmount;
     const balance = paymentType === 'down' ? subtotal - downpaymentAmount : 0;
- 
+
     const handleScreenshotChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -741,30 +974,30 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
             reader.readAsDataURL(file);
         }
     };
- 
+
     const handleConfirmBooking = async () => {
         if (!gcashNumber.trim()) return alert("Please enter your GCash number.");
         if (!refNumber.trim()) return alert("Please enter your GCash Reference Number.");
         if (!screenshot) return alert("Please upload a screenshot of your transaction.");
- 
+
         setSubmitting(true);
         try {
             // Upload screenshot to Supabase storage
             const fileExt = screenshot.name.split('.').pop();
             const fileName = `receipts/${bookingId}_${Date.now()}.${fileExt}`;
             let receiptUrl = null;
- 
+
             const { error: uploadError } = await supabase.storage
               .from('booking-receipts')
               .upload(fileName, screenshot);
- 
+
             if (!uploadError) {
                 const { data: urlData } = supabase.storage
                     .from('booking-receipts')
                     .getPublicUrl(fileName);
                 receiptUrl = urlData?.publicUrl || null;
             }
- 
+
             const { error } = await supabase.from('bookings').update({
                 gcash_number: gcashNumber,
                 gcash_reference_no: refNumber,
@@ -773,176 +1006,190 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                 amount_paid: amountDue,
                 payment_status: 'Pending',
             }).eq('id', bookingId);
- 
+
             if (error) {
                 alert("Error: " + error.message);
             } else {
                 onSuccess();
             }
-        } catch { 
+        } catch {
             alert("Something went wrong. Please try again.");
         }
         setSubmitting(false);
     };
- 
+
+    const fieldLabelStyle = { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8 };
+    const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: 'none', borderRadius: 16, padding: '14px 16px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
+
     return (
-        <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-[#FDF6EE] w-full max-w-2xl rounded-[1.75rem] shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden my-auto">
+        <div style={{ ...overlayBackdrop, overflowY: 'auto' }}>
+            <div style={{ background: '#FDF6EE', width: '100%', maxWidth: 720, borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', margin: 'auto' }}>
                 {/* Header */}
-                <div className="bg-[#1A0A00] px-10 py-8 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button onClick={onBack} className="text-white/60 hover:text-white transition-colors">
-                            <ArrowLeft size={20}/>
+                <div style={{ background: '#1A0A00', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', flexShrink: 0 }}>
+                            <ArrowLeft size={20} />
                         </button>
-                        <div>
-                            <h3 className="text-xl font-black text-white uppercase tracking-tight">GCash Payment</h3>
-                            <p className="text-white/60 text-xs font-bold mt-0.5">{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
+                        <div style={{ minWidth: 0 }}>
+                            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FDF6EE', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>GCash Payment</h3>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '2px 0 0' }}>{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
                         </div>
                     </div>
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Step 3 of 3</span>
+                    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>Step 3 of 3</span>
                 </div>
- 
-                <div className="p-10 space-y-8">
+
+                <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
                     {/* GCash Send To */}
-                    <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 flex items-center gap-5">
-                        <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center shrink-0">
-                            <Smartphone size={22} className="text-white"/>
+                    <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ width: 48, height: 48, background: '#3b82f6', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Smartphone size={22} style={{ color: '#fff' }} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Send GCash Payment To</p>
-                            <p className="text-2xl font-black text-[#1A0A00]">09XX XXX XXXX</p>
-                            <p className="text-xs text-blue-500 font-bold mt-0.5">Bandang IBAYO Tours</p>
+                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3b82f6', margin: '0 0 4px' }}>Send GCash Payment To</p>
+                            <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0 }}>09XX XXX XXXX</p>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', margin: '2px 0 0' }}>Bandang IBAYO Tours</p>
                         </div>
                     </div>
- 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                    <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                         {/* Left: Form */}
-                        <div className="space-y-5">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                             <div>
-                                <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">Your GCash Number</label>
+                                <label style={fieldLabelStyle}>Your GCash Number</label>
                                 <input
                                     type="tel"
                                     value={gcashNumber}
                                     onChange={(e) => setGcashNumber(e.target.value)}
                                     placeholder="09XX XXX XXXX"
-                                    className="w-full bg-[#F2E4D0] border-none rounded-2xl px-5 py-4 text-sm font-bold text-[#1A0A00] focus:ring-2 focus:ring-[#C45C26] outline-none"
+                                    style={fieldInputStyle}
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">GCash Reference Number</label>
+                                <label style={fieldLabelStyle}>GCash Reference Number</label>
                                 <input
                                     type="text"
                                     value={refNumber}
                                     onChange={(e) => setRefNumber(e.target.value)}
                                     placeholder="13-digit reference number"
-                                    className="w-full bg-[#F2E4D0] border-none rounded-2xl px-5 py-4 text-sm font-bold text-[#1A0A00] focus:ring-2 focus:ring-[#C45C26] outline-none"
+                                    style={fieldInputStyle}
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">Transaction Screenshot</label>
-                                <label className="w-full border-2 border-dashed border-[#C45C26]/[0.18] hover:border-[#C45C26] rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all group">
-                                    <input type="file" accept="image/*" onChange={handleScreenshotChange} className="hidden" />
+                                <label style={fieldLabelStyle}>Transaction Screenshot</label>
+                                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                    <input type="file" accept="image/*" onChange={handleScreenshotChange} style={{ display: 'none' }} />
                                     {screenshotPreview ? (
-                                        <img src={screenshotPreview} alt="Receipt" className="w-full h-32 object-cover rounded-xl" />
+                                        <img src={screenshotPreview} alt="Receipt" style={{ width: '100%', height: 128, objectFit: 'cover', borderRadius: 12 }} />
                                     ) : (
                                         <>
-                                            <Upload size={24} className="text-[#C45C26]/30 group-hover:text-[#C45C26] mb-2 transition-colors"/>
-                                            <p className="text-xs font-bold text-[#7A3A18]/70 group-hover:text-[#C45C26] transition-colors">Upload Screenshot</p>
+                                            <Upload size={22} style={{ color: 'rgba(196,92,38,0.4)', marginBottom: 8 }} />
+                                            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Upload Screenshot</p>
                                         </>
                                     )}
                                 </label>
                             </div>
                         </div>
- 
+
                         {/* Right: Booking Summary */}
-                        <div className="bg-[#F2E4D0] rounded-3xl p-6 space-y-4">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Receipt size={16} className="text-[#C45C26]"/>
-                                <p className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Booking Summary</p>
+                        <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                <Receipt size={15} style={{ color: '#C45C26' }} />
+                                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>Booking Summary</p>
                             </div>
- 
-                            <div className="space-y-3 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-[#7A3A18]/80 font-medium">Tour</span>
-                                    <span className="font-bold text-[#1A0A00] text-right max-w-35 leading-snug">{tour.title}</span>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Tour</span>
+                                    <span style={{ fontWeight: 700, color: '#1A0A00', textAlign: 'right' }}>{tour.title}</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-[#7A3A18]/80 font-medium">Quantity</span>
-                                    <span className="font-bold text-[#1A0A00]">{numPersons} {numPersons === 1 ? 'pax' : 'pax'}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Quantity</span>
+                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>{numPersons} pax</span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-[#7A3A18]/80 font-medium">Price/pax</span>
-                                    <span className="font-bold text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Price/pax</span>
+                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
                                 </div>
-                                <div className="flex justify-between border-t border-[#C45C26]/[0.18] pt-3">
-                                    <span className="text-[#7A3A18]/80 font-medium">Subtotal</span>
-                                    <span className="font-bold text-[#1A0A00]">₱{subtotal.toLocaleString()}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 10 }}>
+                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Subtotal</span>
+                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{subtotal.toLocaleString()}</span>
                                 </div>
- 
+
                                 {paymentType === 'down' && (
                                     <>
-                                        <div className="flex justify-between">
-                                            <span className="text-[#7A3A18]/80 font-medium">Downpayment (40%)</span>
-                                            <span className="font-bold text-amber-600">₱{downpaymentAmount.toLocaleString()}</span>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Downpayment (40%)</span>
+                                            <span style={{ fontWeight: 700, color: '#B9762E' }}>₱{downpaymentAmount.toLocaleString()}</span>
                                         </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-[#7A3A18]/80 font-medium">Remaining Balance</span>
-                                            <span className="font-bold text-[#7A3A18]/70">₱{balance.toLocaleString()}</span>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Remaining Balance</span>
+                                            <span style={{ fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>₱{balance.toLocaleString()}</span>
                                         </div>
                                     </>
                                 )}
- 
-                                <div className="flex justify-between border-t-2 border-[#C45C26]/[0.18] pt-3 mt-3">
-                                    <span className="font-black text-[#1A0A00] uppercase text-xs tracking-widest">
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid rgba(196,92,38,0.18)', paddingTop: 10, marginTop: 4 }}>
+                                    <span style={{ fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.1em' }}>
                                         {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
                                     </span>
-                                    <span className="font-black text-[#C45C26] text-xl">₱{amountDue.toLocaleString()}</span>
+                                    <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 18 }}>₱{amountDue.toLocaleString()}</span>
                                 </div>
                             </div>
- 
+
                             {paymentType === 'down' && (
-                                <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 mt-2">
-                                    <p className="text-amber-700 text-[10px] font-bold leading-snug">⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
+                                <div style={{ background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px', marginTop: 4 }}>
+                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#8A5A1E', lineHeight: 1.5, margin: 0 }}>⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
                                 </div>
                             )}
                         </div>
                     </div>
- 
+
                     <button
                         onClick={handleConfirmBooking}
                         disabled={submitting}
-                        className="w-full py-5 bg-[#C45C26] hover:bg-[#9C4A1F] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                        style={{
+                            width: '100%', padding: '15px 0', background: '#C45C26', color: '#FDF6EE',
+                            border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
+                            fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                            boxShadow: '0 8px 24px rgba(196,92,38,0.3)',
+                        }}
                     >
-                        {submitting ? <><Loader2 className="animate-spin" size={16}/> Processing...</> : <><Check size={16}/> Confirm Booking</>}
+                        {submitting ? <><Loader2 className="animate-spin" size={16} /> Processing...</> : <><Check size={16} /> Confirm Booking</>}
                     </button>
                 </div>
             </div>
         </div>
     );
 };
- 
+
 // Step 4: Success screen
 const BookingSuccessModal = ({ booking, tour, onClose }) => (
-    <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm">
-        <div className="bg-[#FDF6EE] w-full max-w-md p-10 rounded-[1.75rem] shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300 border-t-8 border-[#C45C26]/90">
-            <div className="w-20 h-20 bg-[#C45C26]/10 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 size={40} className="text-[#C45C26]" />
+    <div style={overlayBackdrop}>
+        <div style={{
+            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
+            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
+            borderTop: '8px solid rgba(196,92,38,0.9)',
+        }}>
+            <div style={{ width: 72, height: 72, background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+                <CheckCircle2 size={36} style={{ color: '#C45C26' }} />
             </div>
             <div>
-                <h3 className="text-2xl font-black text-[#1A0A00] uppercase tracking-tight">Booking Submitted!</h3>
-                <p className="text-[#7A3A18]/80 text-sm font-medium mt-2">Your booking is now pending verification by our team.</p>
+                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Booking Submitted!</h3>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>Your booking is now pending verification by our team.</p>
             </div>
-            <div className="bg-[#F2E4D0] rounded-3xl p-6 text-left space-y-2">
-                <p className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest mb-3">Booking Reference</p>
-                <p className="text-2xl font-black text-[#1A0A00]">{booking?.booking_number}</p>
-                <p className="text-xs text-[#7A3A18]/80 font-medium">{tour?.title}</p>
+            <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left' }}>
+                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 10px' }}>Booking Reference</p>
+                <p style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0, wordBreak: 'break-word' }}>{booking?.booking_number}</p>
+                <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0' }}>{tour?.title}</p>
             </div>
-            <div className="bg-[#C45C26]/10 rounded-2xl px-5 py-4">
-                <p className="text-[#1A0A00] text-xs font-bold">We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
+            <div style={{ background: 'rgba(196,92,38,0.1)', borderRadius: 16, padding: '14px 18px' }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0 }}>We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
             </div>
-            <button onClick={onClose} className="w-full py-4 bg-[#1A0A00] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#2D1B0E] transition-all">Done</button>
+            <button onClick={onClose} style={{ width: '100%', padding: '14px 0', background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Done</button>
         </div>
     </div>
 );
- 
+
 export default JoinerTours;
