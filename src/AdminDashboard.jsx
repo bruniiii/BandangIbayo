@@ -8,10 +8,17 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
+<<<<<<< HEAD
 import Feed from './Feed';
 import Reviews from './Reviews';
 import JoinerAccounts from './JoinerAccounts';
  
+=======
+
+import { AdminTrackingControls } from "./AdminTrackingControls";
+import logoIcon from './assets/newIcon.png';
+
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
@@ -51,7 +58,11 @@ const NAV_ITEMS = [
   { icon: <Rss size={18} strokeWidth={2} />,             label: 'Feed' },
   { icon: <Map size={18} strokeWidth={2} />,             label: 'Tour Management' },
   { icon: <Calendar size={18} strokeWidth={2} />,        label: 'Booking Management' },
+<<<<<<< HEAD
   { icon: <Users size={18} strokeWidth={2} />,           label: 'Joiner Accounts' },
+=======
+  { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
 ];
@@ -230,6 +241,7 @@ const AdminDashboard = () => {
           alignItems: sidebarExpanded ? 'stretch' : 'center',
           overflow: 'hidden',
         }}>
+<<<<<<< HEAD
           <div style={{
             display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
             justifyContent: sidebarExpanded ? 'flex-start' : 'center',
@@ -243,6 +255,16 @@ const AdminDashboard = () => {
                 Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
               </span>
             )}
+=======
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <img src={logoIcon} 
+                 alt="BANDANG IBAYO" 
+                 style={{ width: 78, height: 78, objectFit: 'contain' }} 
+                 />
+            <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE' }}>
+               Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+            </span>
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
           </div>
           {sidebarExpanded && (
             <p style={{
@@ -386,6 +408,7 @@ const AdminDashboard = () => {
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
  
+          {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
  
@@ -535,6 +558,7 @@ const AdminDashboard = () => {
             </div>
           )}
  
+<<<<<<< HEAD
           {activeTab === 'Feed' && <Feed isAdmin={true} />}
           {activeTab === 'Tour Management' && <TourManagement />}
           {activeTab === 'Booking Management' && <BookingManagement />}
@@ -542,6 +566,21 @@ const AdminDashboard = () => {
           {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
  
           {activeTab !== 'Overview' && activeTab !== 'Feed' && activeTab !== 'Tour Management' && activeTab !== 'Booking Management' && activeTab !== 'Reviews' && activeTab !== 'Joiner Accounts' && (
+=======
+          {/* ROUTED CONTENT VIEWS */}
+          {activeTab === 'Tour Management' && <TourManagement />}
+          {activeTab === 'Booking Management' && <BookingManagement />}
+          
+          {activeTab === 'Tracking Management' && (
+             <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
+          )}
+ 
+          {/* FALLBACK COMING SOON SECTION */}
+          {activeTab !== 'Overview' && 
+           activeTab !== 'Tour Management' && 
+           activeTab !== 'Booking Management' && 
+           activeTab !== 'Tracking Management' && ( // <-- 3. Exclude 'Tracking Management' from the fallback screen
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
             <div style={{
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',
@@ -586,7 +625,11 @@ const ACTIVITY_COLORS = {
   booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
 };
  
+<<<<<<< HEAD
 const ActivityItem = ({ label, name, type, ts, Icon }) => {
+=======
+const ActivityItem = ({ label, name, type, ts, Icon }) => { // <-- Fixed Destructured Icon Prop Bug Here
+>>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
   const { bg, color } = ACTIVITY_COLORS[type] || ACTIVITY_COLORS.booking;
   return (
     <li style={{
@@ -603,7 +646,7 @@ const ActivityItem = ({ label, name, type, ts, Icon }) => {
           flexShrink: 0,
           color,
         }}>
-          <Icon size={17} />
+          {Icon && <Icon size={17} />}
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{label}</p>

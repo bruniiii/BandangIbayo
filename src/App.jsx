@@ -4,8 +4,9 @@ import { supabase } from './supabaseClient';
 import { FaFacebook } from "react-icons/fa"; 
 import { 
   MapPin, Calendar, Users, Clock, Loader2, CheckCircle, 
-  ShieldCheck, Smartphone, Map, CreditCard, Globe, Mail, Phone 
+  ShieldCheck, Smartphone, Map, CreditCard, Globe, Mail, Phone
 } from 'lucide-react';
+ import logoIcon from './assets/newIcon.png';
  
 import JoinerLogin from './JoinerLogin'; 
 import JoinerRegister from './JoinerRegister';
@@ -61,11 +62,12 @@ function LandingPage() {
         padding: '0 clamp(1.5rem,5vw,4rem)', height: 64,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* logomark: stacked triangles */}
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <polygon points="16,4 30,28 2,28" fill="#C45C26" opacity="0.9"/>
-            <polygon points="16,10 26,28 6,28" fill="#1A0A00" opacity="0.55"/>
-          </svg>
+  {/* Car Custom Image Icon */}
+  <img 
+    src={logoIcon} 
+    alt="BANDANG IBAYO" 
+    style={{ width: 68, height: 68, objectFit: 'contain' }} 
+  />
           <span style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00' }}>
             Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
           </span>
@@ -458,11 +460,13 @@ function LandingPage() {
  
       {/* ── FOOTER ── */}
       <footer style={{ borderTop: '1px solid rgba(196,92,38,0.15)', padding: '28px clamp(1.5rem,5vw,4rem)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-            <polygon points="16,4 30,28 2,28" fill="#C45C26" opacity="0.8"/>
-            <polygon points="16,10 26,28 6,28" fill="#1A0A00" opacity="0.5"/>
-          </svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+  {/* Car Custom Image Icon */}
+  <img 
+    src={logoIcon} 
+    alt="BANDANG IBAYO" 
+    style={{ width: 68, height: 68, objectFit: 'contain' }} 
+  />
           <span style={{ fontWeight: 900, fontSize: 13, color: '#1A0A00', letterSpacing: '-0.02em' }}>Bandang <span style={{ color: '#C45C26' }}>IBAYO</span></span>
         </div>
         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.5, margin: 0 }}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { Loader2, CheckCircle2 } from 'lucide-react';
+ import logoIcon from './assets/newIcon.png';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -200,10 +201,11 @@ const JoinerLogin = () => {
         {/* header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-            <svg width="36" height="36" viewBox="0 0 32 32" fill="none">
-              <polygon points="16,4 30,28 2,28" fill="#C45C26" opacity="0.9"/>
-              <polygon points="16,10 26,28 6,28" fill="#1A0A00" opacity="0.55"/>
-            </svg>
+            <img 
+                src={logoIcon} 
+                alt="BANDANG IBAYO" 
+                style={{ width: 78, height: 78, objectFit: 'contain' }} 
+              />
           </div>
           <h1 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
             Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
