@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-<<<<<<< HEAD
-  Home, Calendar, ShoppingBag,
-  Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss
-=======
   Home, Calendar as CalendarIcon, ShoppingBag,
-  Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Sparkles, ArrowRight, MapPin, 
+  Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, Rss,
+  Sparkles, ArrowRight, MapPin,
   ImageIcon, Loader2, CheckCircle2, X, AlertCircle, CreditCard, Smartphone, Receipt, Upload, Check, Users, Eye
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -15,14 +11,11 @@ import JoinerTours from './JoinerTours';
 import TourCalendar from './TourCalendar';
 import MyBookings from './MyBookings';
 import ExclusiveTour from './ExclusiveTour';
-<<<<<<< HEAD
 import Feed from './Feed';
 import Reviews from './Reviews';
 import ProfileSettings from './Profilesettings.jsx';
-=======
 import logoIcon from './assets/newIcon.png';
 import { JoinerTracking } from './JoinerTracking';
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
  
 // ── PALETTE ──────────────────────────────────────────────
 const PALETTE = {
@@ -34,12 +27,8 @@ const PALETTE = {
 };
  
 const NAV_ITEMS = [
-<<<<<<< HEAD
-  { icon: <Home size={18} strokeWidth={2} />,       label: 'Dashboard' },
-  { icon: <Rss size={18} strokeWidth={2} />,        label: 'Feed' },
-=======
   { icon: <Home size={18} strokeWidth={2} />,       label: 'HomePage' },
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
+  { icon: <Rss size={18} strokeWidth={2} />,        label: 'Feed' },
   { icon: <Compass size={18} strokeWidth={2} />,    label: 'Explore Tours' },
   { icon: <ShoppingBag size={18} strokeWidth={2} />,label: 'My Bookings' },
   { icon: <CalendarIcon size={18} strokeWidth={2} />,   label: 'Calendar' },
@@ -50,17 +39,12 @@ const NAV_ITEMS = [
 ];
  
 const JoinerDashboard = () => {
-<<<<<<< HEAD
-  const [activeTab, setActiveTab] = useState('Dashboard');
+  const [activeTab, setActiveTab] = useState('HomePage');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-=======
-  const [activeTab, setActiveTab] = useState('HomePage');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
   const navigate = useNavigate();
 
   // ──  DYNAMIC STATES ──
@@ -190,7 +174,6 @@ const JoinerDashboard = () => {
   }, [activeTab]);
  
   return (
-<<<<<<< HEAD
     <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100vh',
       fontFamily: "'Inter', system-ui, sans-serif",
@@ -198,9 +181,6 @@ const JoinerDashboard = () => {
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
-=======
-    <div style={{ display: 'flex', height: '100vh', fontFamily: "'Inter', system-ui, sans-serif", background: '#F2E4D0', color: '#1A0A00', overflow: 'hidden'}}>
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
  
       {/* MOBILE OVERLAY (dims content behind the drawer) */}
       <div
@@ -209,7 +189,6 @@ const JoinerDashboard = () => {
       />
  
       {/* ── SIDEBAR ── */}
-<<<<<<< HEAD
       <aside className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`} style={{
         width: sidebarExpanded ? 268 : 84,
         flexShrink: 0,
@@ -259,10 +238,10 @@ const JoinerDashboard = () => {
             display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
             justifyContent: sidebarExpanded ? 'flex-start' : 'center',
           }}>
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style={{ flexShrink: 0 }}>
-              <polygon points="16,4 30,28 2,28" fill="#C45C26" opacity="0.9"/>
-              <polygon points="16,10 26,28 6,28" fill="#FDF6EE" opacity="0.25"/>
-            </svg>
+            <img src={logoIcon}
+                 alt="BANDANG IBAYO"
+                 style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
+            />
             {sidebarExpanded && (
               <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
                 Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
@@ -316,35 +295,12 @@ const JoinerDashboard = () => {
                 Sign Out
               </span>
             )}
-=======
-      <aside style={{ width: sidebarOpen ? 268 : 84, flexShrink: 0, background: '#1A0A00', display: 'flex', flexDirection: 'column', zIndex: 20, boxShadow: '4px 0 32px rgba(26,10,0,0.28)', position: 'relative', transition: 'width 0.25s ease', overflow: 'visible' }}>
-        <button onClick={() => setSidebarOpen(v => !v)} style={{ position: 'absolute', top: 26, right: -14, width: 28, height: 28, borderRadius: '50%', background: '#C45C26', border: '3px solid #F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#FDF6EE', zIndex: 30, boxShadow: '0 4px 12px rgba(26,10,0,0.35)' }}>
-          {sidebarOpen ? <ChevronLeft size={16} strokeWidth={3} /> : <ChevronRight size={16} strokeWidth={3} />}
-        </button>
-        <div style={{ padding: sidebarOpen ? '2rem 1.75rem' : '2rem 0', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', flexDirection: 'column', alignItems: sidebarOpen ? 'stretch' : 'center', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarOpen ? 6 : 0, justifyContent: sidebarOpen ? 'flex-start' : 'center' }}>
-            <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 78, height: 78, objectFit: 'contain' }} />
-            {sidebarOpen && <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>Bandang <span style={{ color: '#C45C26' }}>IBAYO</span></span>}
-          </div>
-          {sidebarOpen && <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: 0, whiteSpace: 'nowrap' }}>Joiners Portal</p>}
-        </div>
-        <nav style={{ flex: 1, padding: sidebarOpen ? '1.25rem 1rem' : '1.25rem 0.75rem', display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto', overflowX: 'hidden' }}>
-          {NAV_ITEMS.map(({ icon, label }) => (
-            <NavItem key={label} icon={icon} label={label} active={activeTab === label} collapsed={!sidebarOpen} onClick={() => setActiveTab(label)} />
-          ))}
-        </nav>
-        <div style={{ padding: sidebarOpen ? '1.5rem 1.75rem' : '1.5rem 0', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: sidebarOpen ? 'flex-start' : 'center' }}>
-          <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.4)', fontFamily: 'inherit', padding: 0 }}>
-            <LogOut size={16} style={{ flexShrink: 0 }} />
-            {sidebarOpen && <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Sign Out</span>}
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
           </button>
         </div>
       </aside>
  
       {/* ── MAIN WORKSPACE ── */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-<<<<<<< HEAD
  
         {/* header */}
         <header className="dashboard-header" style={{
@@ -384,12 +340,6 @@ const JoinerDashboard = () => {
             borderRadius: 14, padding: '8px 14px',
           }}>
             <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-=======
-        <header style={{ background: '#FDF6EE', borderBottom: '1px solid rgba(196,92,38,0.12)', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2.5rem', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 16px rgba(26,10,0,0.06)' }}>
-          <h2 style={{ fontWeight: 900, fontSize: 15, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>{activeTab}</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14, padding: '8px 14px' }}>
-            <div style={{ textAlign: 'right' }}>
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
               <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Joiner</p>
               <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Ready for Adventure</p>
             </div>
@@ -397,17 +347,12 @@ const JoinerDashboard = () => {
           </div>
         </header>
  
-<<<<<<< HEAD
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
-=======
-        <div style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
  
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
  
-<<<<<<< HEAD
               {/* hero banner */}
               <div style={{
                 position: 'relative',
@@ -434,12 +379,6 @@ const JoinerDashboard = () => {
                     transform: 'rotate(12deg)',
                   }}
                 />
-=======
-              {/* Hero Banner  */}
-              <div style={{ position: 'relative', height: '235px', background: '#1A0A00', borderRadius: 24, padding: '2rem 3rem', overflow: 'hidden', boxShadow: '0 12px 40px rgba(26,10,0,0.2)' }}>
-                <div style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '100%', background: 'radial-gradient(ellipse at top right, rgba(196,92,38,0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
-                <Compass size={220} style={{ position: 'absolute', right: -30, bottom: -30, color: 'rgba(255,255,255,0.03)', transform: 'rotate(12deg)' }} />
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
  
                 <div style={{ position: 'relative', zIndex: 1, maxWidth: 650, display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', background: '#C45C26', borderRadius: 999, padding: '4px 12px', marginBottom: 10, width: 'fit-content' }}>
@@ -459,17 +398,10 @@ const JoinerDashboard = () => {
                 </div>
               </div>
  
-<<<<<<< HEAD
               {/* stat cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
-                <StatCard label="Upcoming Trips" value="0" valueColor="#1A0A00" />
-                <StatCard label="Completed Tours" value="0" valueColor="#C45C26" />
-=======
-              {/* Stat Cards Layout */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
                 <StatCard label="Upcoming Trips" value={upcomingCount} valueColor="#1A0A00" />
                 <StatCard label="Completed Tours" value={completedCount} valueColor="#C45C26" />
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
               </div>
 
               {/* SPLIT INTERFACE GRID WRAPPER ── */}
@@ -634,15 +566,12 @@ const JoinerDashboard = () => {
             <TourCalendar />
           ) : activeTab === 'Exclusive Tours' ? (
             <ExclusiveTour />
-<<<<<<< HEAD
+          ) : activeTab === 'Tracking' ? (
+            <JoinerTracking />
           ) : activeTab === 'Reviews' ? (
             <Reviews isAdmin={false} />
           ) : activeTab === 'Profile Settings' ? (
             <ProfileSettings />
-=======
-          ) : activeTab === 'Tracking' ? (   
-            <JoinerTracking />                
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
           ) : (
             <div style={{ height: '100%', minHeight: 400, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FDF6EE', borderRadius: 24, border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 24px rgba(26,10,0,0.06)', padding: '3rem', textAlign: 'center' }}>
               <div style={{ width: 72, height: 72, borderRadius: 20, background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(196,92,38,0.25)', marginBottom: 20 }}><Compass size={36} /></div>
@@ -668,7 +597,6 @@ const JoinerDashboard = () => {
  
 /* ── NAV ITEM ── */
 const NavItem = ({ icon, label, active, onClick, collapsed }) => (
-<<<<<<< HEAD
   <button
     onClick={onClick}
     title={collapsed ? label : undefined}
@@ -700,11 +628,6 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
         {label}
       </span>
     )}
-=======
-  <button onClick={onClick} title={collapsed ? label : undefined} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyInContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? 0 : 12, padding: collapsed ? '11px 0' : '11px 14px', borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: 'inherit', background: active ? '#C45C26' : 'transparent', color: active ? '#FDF6EE' : 'rgba(232,210,190,0.45)', fontWeight: active ? 900 : 600, transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)', boxShadow: active ? '0 6px 20px rgba(196,92,38,0.35)' : 'none', transition: 'all 0.2s', textAlign: 'left' }}>
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.5)', flexShrink: 0 }}>{icon}</span>
-    {!collapsed && <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{label}</span>}
->>>>>>> 786bfbcaea9fd3b12f5ed5a54158df0aebc90410
   </button>
 );
  
