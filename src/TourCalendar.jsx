@@ -12,11 +12,19 @@ import {
 } from 'lucide-react';
  
 /* ─────────────────────────────────────────────
-   TOUR CALENDAR
+  TOUR CALENDAR
 ───────────────────────────────────────────── */
-const TourCalendar = () => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const TourCalendar = ({ initialDate }) => {
+  // initialDate is an optional { year, month, day } object passed down from
+  // JoinerDashboard when the joiner clicks a specific day/month in the
+  // dashboard's mini calendar. `month` is 0-indexed to match Date's API.
+  // Falls back to "today" when this component is opened from the sidebar nav.
+  const [currentMonth, setCurrentMonth] = useState(() =>
+    initialDate ? new Date(initialDate.year, initialDate.month, 1) : new Date()
+  );
+  const [selectedDate, setSelectedDate] = useState(() =>
+    initialDate ? new Date(initialDate.year, initialDate.month, initialDate.day || 1) : new Date()
+  );
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTour, setSelectedTour] = useState(null);
@@ -111,7 +119,7 @@ const TourCalendar = () => {
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 text-left">
  
         {/* ── Calendar Grid ── */}
-        <div className="lg:col-span-8 bg-[#FDF6EE] p-8 rounded-[2.5rem] border border-[#C45C26]/[0.12] shadow-sm text-left">
+        <div className="lg:col-span-8 bg-[#FDF6EE] p-8 rounded-[2.5rem] border border-[#C45C26]/12 shadow-sm text-left">
           <div className="flex justify-between items-center mb-10 text-left">
             <h2 className="text-2xl font-black text-[#1A0A00] uppercase tracking-tight text-left">
               {format(currentMonth, 'MMMM yyyy')}
@@ -122,7 +130,7 @@ const TourCalendar = () => {
             </div>
           </div>
  
-          <div className="grid grid-cols-7 mb-6 text-center border-b border-[#C45C26]/[0.08] pb-4">
+          <div className="grid grid-cols-7 mb-6 text-center border-b border-[#C45C26]/8 pb-4">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div key={day} className="text-[11px] font-black text-[#1A0A00] uppercase tracking-[0.2em]">{day}</div>
             ))}
@@ -142,14 +150,14 @@ const TourCalendar = () => {
                   disabled={isPast}
                   className={`h-24 rounded-2xl p-3 transition-all flex flex-col border-2 text-left
                     ${isPast ? 'bg-[#F2E4D0]/10 cursor-not-allowed opacity-20 border-transparent' : 'bg-[#F2E4D0]/30'}
-                    ${isSelected && !isPast ? 'border-[#C45C26] bg-[#C45C26]/[0.08]' : 'border-transparent hover:border-[#C45C26]/[0.12]'}`}
+                    ${isSelected && !isPast ? 'border-[#C45C26] bg-[#C45C26]/8' : 'border-transparent hover:border-[#C45C26]/12'}`}
                 >
                   <span className={`text-sm font-black ${isPast ? 'text-[#C45C26]/30' : isSelected ? 'text-[#C45C26]' : isCurrentMonth ? 'text-[#1A0A00]' : 'text-[#7A3A18]/70'}`}>
                     {format(day, 'd')}
                   </span>
                   {dayTours.length > 0 && !isPast && (
                     <div className="mt-auto">
-                      <div className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md inline-block ${isCurrentMonth ? 'text-[#7A3A18] bg-[#E8A265]/[0.18]' : 'text-[#7A3A18]/70 bg-[#F2E4D0]'}`}>
+                      <div className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md inline-block ${isCurrentMonth ? 'text-[#7A3A18] bg-[#E8A265]/18' : 'text-[#7A3A18]/70 bg-[#F2E4D0]'}`}>
                         {dayTours.length} {dayTours.length === 1 ? 'Tour' : 'Tours'}
                       </div>
                     </div>
@@ -326,7 +334,7 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
           </div>
         </section>
  
-        <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/[0.12] pt-10">
+        <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/12 pt-10">
           <section>
             <h4 className="text-xs font-black text-[#C45C26] uppercase tracking-widest mb-4 flex items-center gap-2"><CheckCircle2 size={16} /> Inclusions</h4>
             <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.inclusions || "N/A"}</pre>
@@ -337,7 +345,7 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
           </section>
         </div>
  
-        <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/[0.12] pt-10">
+        <div className="grid grid-cols-2 gap-12 border-t border-[#C45C26]/12 pt-10">
           <section>
             <h4 className="text-xs font-black text-[#1A0A00] uppercase tracking-widest mb-4">Itinerary</h4>
             <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.itinerary || "N/A"}</pre>
@@ -360,7 +368,7 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
       </div>
  
       {/* Right: Booking sidebar */}
-      <div className="w-full md:w-96 bg-[#f8fafc] p-12 flex flex-col h-full shrink-0 border-l border-[#C45C26]/[0.12] overflow-hidden text-left">
+      <div className="w-full md:w-96 bg-[#f8fafc] p-12 flex flex-col h-full shrink-0 border-l border-[#C45C26]/12 overflow-hidden text-left">
         <h2 className="text-4xl font-black text-[#1A0A00] leading-tight mb-8">{tour.title}</h2>
  
         <div className="space-y-8 mb-8 flex-1">
@@ -397,7 +405,7 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
           </div>
  
           {!isFullyBooked && (
-            <div className="pt-6 border-t border-[#C45C26]/[0.18]">
+            <div className="pt-6 border-t border-[#C45C26]/18">
               <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase block mb-4">Number of Persons</label>
               <div className="relative">
                 <select
@@ -420,7 +428,7 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
           )}
         </div>
  
-        <div className="pt-8 border-t-2 border-[#C45C26]/[0.18] mt-auto">
+        <div className="pt-8 border-t-2 border-[#C45C26]/18 mt-auto">
           {!isFullyBooked && (
             <div className="flex justify-between items-end mb-8">
               <p className="text-sm font-black text-[#1A0A00] uppercase tracking-widest">Total</p>
@@ -484,7 +492,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, formatDateRange, on
             <Users size={16} className="text-[#C45C26] shrink-0" /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
           </div>
         </div>
-        <div className="border-t-2 border-[#C45C26]/[0.12] pt-6">
+        <div className="border-t-2 border-[#C45C26]/12 pt-6">
           <div className="flex justify-between items-center mb-1">
             <span className="text-sm font-bold text-[#7A3A18]/80">Price per person</span>
             <span className="text-sm font-black text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
@@ -535,7 +543,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
         {/* Downpayment */}
         <button
           onClick={() => onChoose('down')}
-          className="w-full bg-[#FDF6EE] border-2 border-[#C45C26]/[0.18] rounded-3xl p-6 text-left hover:border-[#C45C26] hover:bg-[#C45C26]/5 transition-all group"
+          className="w-full bg-[#FDF6EE] border-2 border-[#C45C26]/18 rounded-3xl p-6 text-left hover:border-[#C45C26] hover:bg-[#C45C26]/5 transition-all group"
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Downpayment (40%)</span>
@@ -670,7 +678,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
         
         <div className="p-10 space-y-8">
           {/* Blue send-to card */}
-          <div className="bg-[#E8A265]/[0.18] border border-blue-100 rounded-3xl p-6 flex items-center gap-5">
+          <div className="bg-[#E8A265]/18 border border-blue-100 rounded-3xl p-6 flex items-center gap-5">
             <div className="w-12 h-12 bg-[#E8A265]/[0.18]0 rounded-2xl flex items-center justify-center shrink-0">
               <Smartphone size={22} className="text-white" />
             </div>
@@ -699,7 +707,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
               </div>
               <div>
                 <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">Transaction Screenshot</label>
-                <label className="w-full border-2 border-dashed border-[#C45C26]/[0.18] hover:border-[#C45C26] rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all group">
+                <label className="w-full border-2 border-dashed border-[#C45C26]/18 hover:border-[#C45C26] rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all group">
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleReceiptChange} className="hidden" />
                   {receiptPreview ? (
                     <img src={receiptPreview} alt="Receipt" className="w-full h-32 object-cover rounded-xl" />
@@ -733,7 +741,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
                   <span className="text-[#7A3A18]/80 font-medium">Price/pax</span>
                   <span className="font-bold text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between border-t border-[#C45C26]/[0.18] pt-3">
+                <div className="flex justify-between border-t border-[#C45C26]/18 pt-3">
                   <span className="text-[#7A3A18]/80 font-medium">Subtotal</span>
                   <span className="font-bold text-[#1A0A00]">₱{subtotal.toLocaleString()}</span>
                 </div>
@@ -749,7 +757,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
                     </div>
                   </>
                 )}
-                <div className="flex justify-between border-t-2 border-[#C45C26]/[0.18] pt-3 mt-2">
+                <div className="flex justify-between border-t-2 border-[#C45C26]/18 pt-3 mt-2">
                   <span className="font-black text-[#1A0A00] uppercase text-xs tracking-widest">
                     {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
                   </span>

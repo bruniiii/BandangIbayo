@@ -17,7 +17,7 @@ const InputField = ({ label, type = 'text', placeholder, value, onChange, requir
       value={value}
       onChange={onChange}
       required={required}
-      className="px-4 py-3 rounded-xl border-2 border-[#C45C26]/[0.12] bg-[#F2E4D0] text-sm text-[#1A0A00] 
+      className="px-4 py-3 rounded-xl border-2 	border-[#C45C26]/12 bg-[#F2E4D0] text-sm text-[#1A0A00] 
                  placeholder:text-[#C45C26]/30 focus:outline-none focus:border-[#C45C26] focus:bg-[#FDF6EE] 
                  transition-all font-medium"
     />
@@ -35,7 +35,7 @@ const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4
       onChange={onChange}
       required={required}
       rows={rows}
-      className="px-4 py-3 rounded-xl border-2 border-[#C45C26]/[0.12] bg-[#F2E4D0] text-sm text-[#1A0A00]
+      className="px-4 py-3 rounded-xl border-2 	border-[#C45C26]/12 bg-[#F2E4D0] text-sm text-[#1A0A00]
                  placeholder:text-[#C45C26]/30 focus:outline-none focus:border-[#C45C26] focus:bg-[#FDF6EE] 
                  transition-all font-medium resize-none"
     />
@@ -51,7 +51,7 @@ const SelectField = ({ label, value, onChange, options, required }) => (
       value={value}
       onChange={onChange}
       required={required}
-      className="px-4 py-3 rounded-xl border-2 border-[#C45C26]/[0.12] bg-[#F2E4D0] text-sm text-[#1A0A00]
+      className="px-4 py-3 rounded-xl border-2 	border-[#C45C26]/12 bg-[#F2E4D0] text-sm text-[#1A0A00]
                  focus:outline-none focus:border-[#C45C26] focus:bg-[#FDF6EE] transition-all font-medium appearance-none"
     >
       {options.map(opt => (
@@ -305,7 +305,7 @@ const RequestTourForm = () => {
       </section>
  
       {/* What happens next */}
-      <div className="bg-[#F2E4D0] border border-[#C45C26]/[0.12] rounded-2xl p-5 space-y-3">
+      <div className="bg-[#F2E4D0] border 	border-[#C45C26]/12 rounded-2xl p-5 space-y-3">
         <p className="text-[10px] font-black text-[#1A0A00] uppercase tracking-widest">What Happens Next?</p>
         <div className="space-y-2">
           {[
@@ -379,7 +379,7 @@ const ExclusiveTour = () => {
             className={`flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all duration-300
               ${activeTab === tab.id
                 ? 'bg-[#1A0A00] border-[#1A0A00] text-white shadow-2xl shadow-[#1A0A00]/20 scale-[1.01]'
-                : 'bg-[#FDF6EE] border-[#C45C26]/[0.12] text-[#7A3A18] hover:border-[#1A0A00]/20 hover:bg-[#F2E4D0]'
+                : 'bg-[#FDF6EE] 	border-[#C45C26]/12 text-[#7A3A18] hover:border-[#1A0A00]/20 hover:bg-[#F2E4D0]'
               }`}
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors
@@ -406,7 +406,7 @@ const ExclusiveTour = () => {
       </div>
  
       {/* Form Card */}
-      <div className="bg-[#FDF6EE] rounded-3xl border border-[#C45C26]/[0.12] shadow-sm p-8">
+      <div className="bg-[#FDF6EE] rounded-3xl border 	border-[#C45C26]/12 shadow-sm p-8">
         {activeTab === 'exclusive' ? <ExclusiveTourForm /> : <RequestTourForm />}
       </div>
     </div>

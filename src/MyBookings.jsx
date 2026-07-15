@@ -6,11 +6,30 @@ import {
   History, Trash2, ShieldAlert, MessageSquare
 } from 'lucide-react';
  
-const MyBookings = () => {
+const TAB_BY_FILTER = {
+  upcoming: 'Upcoming',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+
+const MyBookings = ({ initialFilter } = {}) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Upcoming'); 
+  const [activeTab, setActiveTab] = useState(TAB_BY_FILTER[initialFilter] || 'Upcoming');
   const [selectedBooking, setSelectedBooking] = useState(null);
+
+  // If the parent hands us a new filter (e.g. the user tapped "Completed Tours"
+  // on the home dashboard while this component was already mounted), sync to it.
+  // This adjusts state during render instead of in a useEffect, per React's
+  // guidance for "adjusting state when a prop changes" -- it avoids an extra
+  // render pass and the set-state-in-effect lint rule.
+  const [lastSeenFilter, setLastSeenFilter] = useState(initialFilter);
+  if (initialFilter !== lastSeenFilter) {
+    setLastSeenFilter(initialFilter);
+    if (initialFilter && TAB_BY_FILTER[initialFilter]) {
+      setActiveTab(TAB_BY_FILTER[initialFilter]);
+    }
+  }
  
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -111,7 +130,7 @@ const MyBookings = () => {
  
   return (
     <div className="space-y-8 animate-in fade-in duration-500 text-left">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#C45C26]/[0.12] pb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#C45C26]/12 pb-8">
         <div>
           <p className="text-[#7A3A18]/70 font-medium mt-1">Track your adventures and manage your reservations.</p>
         </div>
@@ -139,7 +158,7 @@ const MyBookings = () => {
             <p className="text-[#7A3A18]/70 font-bold uppercase tracking-widest text-xs">Retrieving your trips...</p>
           </div>
         ) : filteredBookings.length === 0 ? (
-          <div className="py-24 text-center bg-[#FDF6EE] rounded-[3rem] border-2 border-dashed border-[#C45C26]/[0.12]">
+          <div className="py-24 text-center bg-[#FDF6EE] rounded-[3rem] border-2 border-dashed border-[#C45C26]/12">
             <div className="w-20 h-20 bg-[#F2E4D0] rounded-full flex items-center justify-center mx-auto mb-6">
               <ShoppingBag size={32} className="text-[#C45C26]/20" />
             </div>
@@ -178,7 +197,7 @@ const MyBookings = () => {
 const BookingListItem = ({ booking, onView, formatDateRange }) => {
   const tour = booking.tours || {};
   return (
-    <div className="bg-[#FDF6EE] rounded-[2.5rem] border border-[#C45C26]/[0.12] p-6 flex flex-col md:flex-row items-center gap-8 hover:shadow-xl hover:shadow-[#C45C26]/[0.08] transition-all group">
+    <div className="bg-[#FDF6EE] rounded-[2.5rem] border border-[#C45C26]/12 p-6 flex flex-col md:flex-row items-center gap-8 hover:shadow-xl hover:shadow-[#C45C26]/8 transition-all group">
       <div className="w-full md:w-48 h-32 rounded-4xl overflow-hidden shrink-0 bg-[#F2E4D0]">
         <img src={tour.image_urls?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
       </div>
@@ -195,7 +214,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
           <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide"><Calendar size={14} className="text-[#C45C26]"/> {formatDateRange(tour.start_date, tour.duration)}</div>
         </div>
       </div>
-      <div className="w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-[#C45C26]/[0.12] pt-6 md:pt-0 md:pl-8 flex flex-col items-center justify-center">
+      <div className="w-full md:w-auto shrink-0 border-t md:border-t-0 md:border-l border-[#C45C26]/12 pt-6 md:pt-0 md:pl-8 flex flex-col items-center justify-center">
         <p className="text-2xl font-black text-[#1A0A00] mb-4">₱{booking.total_price?.toLocaleString()}</p>
         <button onClick={onView} className="w-full md:w-auto px-8 py-3 bg-[#1A0A00] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#2D1B0E] active:scale-95 transition-all flex items-center justify-center gap-2">
           View Details <ChevronRight size={14} />
@@ -294,7 +313,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
  
           {/* Trip Info */}
           <section className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#C45C26]/[0.12] pb-3">
+            <div className="flex items-center gap-2 border-b border-[#C45C26]/12 pb-3">
               <History size={15} className="text-[#C45C26]" />
               <h4 className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Trip Information</h4>
             </div>
@@ -357,7 +376,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
               <div className="flex gap-3">
                 <button
                   onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setReasonError(false); }}
-                  className="flex-1 py-3 bg-[#FDF6EE] text-[#7A3A18]/80 rounded-xl font-black text-[10px] uppercase border border-[#C45C26]/[0.18] hover:border-[#C45C26]/[0.25] transition-all"
+                  className="flex-1 py-3 bg-[#FDF6EE] text-[#7A3A18]/80 rounded-xl font-black text-[10px] uppercase border border-[#C45C26]/18 hover:shadow-[#C45C26]/25 transition-all"
                 >
                   Cancel
                 </button>
@@ -377,10 +396,10 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
         </div>
  
         {/* ── Footer Actions ── */}
-        <div className="p-6 border-t border-[#C45C26]/[0.12] bg-[#F2E4D0] flex gap-3">
+        <div className="p-6 border-t border-[#C45C26]/12 bg-[#F2E4D0] flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-4 bg-[#FDF6EE] text-[#7A3A18]/70 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-[#C45C26]/[0.18] hover:border-[#C45C26]/[0.25] transition-all"
+            className="flex-1 py-4 bg-[#FDF6EE] text-[#7A3A18]/70 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-[#C45C26]/18 hover:border-[#C45C26]/25 transition-all"
           >
             Close
           </button>

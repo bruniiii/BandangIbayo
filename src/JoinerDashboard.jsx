@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Home, Calendar, ShoppingBag,
-  Clock, Star, LogOut, User, Compass, MapIcon,
-  MapPin, ChevronRight, Loader2, Wallet, Bell, ChevronsLeft, ChevronsRight,
+  Clock, Star, LogOut, Compass, MapIcon,
+  MapPin, ChevronRight, ChevronLeft, Loader2, Wallet, Bell, ChevronsLeft, ChevronsRight,
   CheckCircle2, Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -36,6 +36,9 @@ const NAV_ITEMS = [
 const JoinerDashboard = () => {
   const [activeTab, setActiveTab] = useState('HomePage');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [bookingsFilter, setBookingsFilter] = useState(null); // 'upcoming' | 'completed' | null — set when a Trip Pulse stat is clicked
+  const [calendarTarget, setCalendarTarget] = useState(null); // { year, month, day } — set when a mini-calendar cell is clicked
   const navigate = useNavigate();
 
   // ── Dashboard summary data (drives stat cards + calendar/tracking snippets) ──
@@ -111,8 +114,28 @@ const JoinerDashboard = () => {
   }, []);
 
   useEffect(() => {
+    // fetchHomeSummary only calls its setState setters after an internal
+    // `await`, so this effect body itself never sets state synchronously.
+    // Data fetching on mount is a valid use of an effect; the
+    // set-state-in-effect rule can't see past the await boundary into
+    // fetchHomeSummary's body, so it flags this call as a false positive.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchHomeSummary();
   }, [fetchHomeSummary]);
+
+  // ── Notifications, built from data we already have (no fabricated content) ──
+  const notifications = [];
+  if (nextTrip) {
+    const paid = nextTrip.payment_status === 'Paid' || nextTrip.payment_status === 'Verified';
+    if (!paid) notifications.push({ id: 'payment', text: `Payment pending for ${nextTrip.tours.title}` });
+    const daysOut = Math.max(0, Math.ceil((new Date(nextTrip.tours.start_date) - new Date()) / 86400000));
+    if (daysOut <= 7) notifications.push({ id: 'soon', text: `${nextTrip.tours.title} departs in ${daysOut} day${daysOut === 1 ? '' : 's'}` });
+  }
+  if (completedCount > 0) notifications.push({ id: 'review', text: `${completedCount} tour${completedCount === 1 ? '' : 's'} awaiting your review` });
+
+  const nextTripDay = nextTrip && new Date(nextTrip.tours.start_date).getMonth() === new Date().getMonth()
+    ? new Date(nextTrip.tours.start_date).getDate()
+    : null;
 
   return (
     <div style={{
@@ -151,7 +174,7 @@ const JoinerDashboard = () => {
             src={logoIcon}
             alt="BANDANG IBAYO"
             style={{ width: sidebarCollapsed ? 44 : 78, height: sidebarCollapsed ? 44 : 78, objectFit: 'contain', transition: 'width 0.22s, height 0.22s', flexShrink: 0 }}
-        />
+         />
             {!sidebarCollapsed && (
               <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
                 Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
@@ -169,30 +192,29 @@ const JoinerDashboard = () => {
           )}
         </div>
 
-        {/* collapse/expand toggle */}
-        <button
-          onClick={() => setSidebarCollapsed(v => !v)}
-          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(232,210,190,0.4)',
-            fontFamily: 'inherit',
-            padding: sidebarCollapsed ? '12px 0' : '12px 1.75rem',
-            borderBottom: '1px solid rgba(255,255,255,0.07)',
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
-          onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.4)'}
-        >
-          {sidebarCollapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-          {!sidebarCollapsed && (
-            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-              Collapse
-            </span>
-          )}
-        </button>
+        {/* collapse/expand toggle — icon only */}
+        <div style={{
+          padding: sidebarCollapsed ? '10px 0' : '10px 1.75rem',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'flex-end',
+        }}>
+          <button
+            onClick={() => setSidebarCollapsed(v => !v)}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            style={{
+              width: 30, height: 30, borderRadius: 9,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer',
+              color: 'rgba(232,210,190,0.5)',
+              transition: 'background 0.2s, color 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#E8A265'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(232,210,190,0.5)'; }}
+          >
+            {sidebarCollapsed ? <ChevronsRight size={15} /> : <ChevronsLeft size={15} />}
+          </button>
+        </div>
 
         {/* nav */}
         <nav style={{
@@ -206,7 +228,7 @@ const JoinerDashboard = () => {
               label={label}
               active={activeTab === label}
               collapsed={sidebarCollapsed}
-              onClick={() => setActiveTab(label)}
+              onClick={() => { setBookingsFilter(null); setCalendarTarget(null); setActiveTab(label); }}
             />
           ))}
         </nav>
@@ -261,26 +283,82 @@ const JoinerDashboard = () => {
             {activeTab}
           </h2>
 
-          {/* user chip */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 12,
-            background: '#F2E4D0',
-            border: '1px solid rgba(196,92,38,0.18)',
-            borderRadius: 14, padding: '8px 14px',
-          }}>
-            <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Joiner</p>
-              <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Ready for Adventure</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* notification bell */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowNotifications(v => !v)}
+                style={{
+                  width: 38, height: 38, borderRadius: 12,
+                  background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', color: '#1A0A00', position: 'relative',
+                }}
+              >
+                <Bell size={16} />
+                {notifications.length > 0 && (
+                  <span style={{
+                    position: 'absolute', top: -4, right: -4,
+                    width: 16, height: 16, borderRadius: '50%',
+                    background: '#C45C26', color: '#FDF6EE',
+                    fontSize: 9, fontWeight: 900,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {notifications.length}
+                  </span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div style={{
+                  position: 'absolute', top: 46, right: 0, width: 280,
+                  background: '#FDF6EE', borderRadius: 16,
+                  border: '1px solid rgba(196,92,38,0.14)',
+                  boxShadow: '0 12px 32px rgba(26,10,0,0.16)',
+                  padding: '0.75rem', zIndex: 30,
+                }}>
+                  <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, margin: '0 0 8px', padding: '0 4px' }}>
+                    Notifications
+                  </p>
+                  {notifications.length === 0 ? (
+                    <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.6, padding: '8px 4px', margin: 0 }}>
+                      You're all caught up.
+                    </p>
+                  ) : (
+                    notifications.map(n => (
+                      <div key={n.id} style={{
+                        padding: '10px 8px', borderRadius: 10,
+                        fontSize: 12, fontWeight: 600, color: '#1A0A00',
+                      }}>
+                        {n.text}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* user chip */}
             <div style={{
-              width: 38, height: 38, borderRadius: 11,
-              background: '#1A0A00',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#E8A265', fontWeight: 900, fontSize: 15,
-              boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
-              flexShrink: 0,
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: '#F2E4D0',
+              border: '1px solid rgba(196,92,38,0.18)',
+              borderRadius: 14, padding: '8px 14px',
             }}>
-              B
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Joiner</p>
+                <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Ready for Adventure</p>
+              </div>
+              <div style={{
+                width: 38, height: 38, borderRadius: 11,
+                background: '#1A0A00',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#E8A265', fontWeight: 900, fontSize: 15,
+                boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                flexShrink: 0,
+              }}>
+                B
+              </div>
             </div>
           </div>
         </header>
@@ -349,20 +427,40 @@ const JoinerDashboard = () => {
                     we provide budget-friendly tours tailored for joiners.
                   </p>
 
-                  <button
-                    onClick={() => setActiveTab('Explore Tours')}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 8,
-                      background: '#E8A265', color: '#1A0A00',
-                      fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
-                      textTransform: 'uppercase', border: 'none', cursor: 'pointer',
-                      borderRadius: 12, padding: '14px 28px',
-                      boxShadow: '0 8px 24px rgba(232,162,101,0.38)',
-                      fontFamily: 'inherit', transition: 'all 0.2s',
-                    }}
-                  >
-                    Explore All Tours →
-                  </button>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+                    <button
+                      onClick={() => setActiveTab('Explore Tours')}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                        background: '#E8A265', color: '#1A0A00',
+                        fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
+                        textTransform: 'uppercase', border: 'none', cursor: 'pointer',
+                        borderRadius: 999, padding: '14px 28px',
+                        boxShadow: '0 8px 24px rgba(232,162,101,0.38)',
+                        fontFamily: 'inherit', transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(232,162,101,0.48)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(232,162,101,0.38)'; }}
+                    >
+                      Explore Tours →
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('Exclusive Tours')}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                        background: 'transparent', color: '#FDF6EE',
+                        fontWeight: 900, fontSize: 12, letterSpacing: '0.1em',
+                        textTransform: 'uppercase', cursor: 'pointer',
+                        border: '1.5px solid rgba(253,246,238,0.55)',
+                        borderRadius: 999, padding: '14px 28px',
+                        fontFamily: 'inherit', transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(253,246,238,0.08)'; e.currentTarget.style.borderColor = '#FDF6EE'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(253,246,238,0.55)'; }}
+                    >
+                      Request an Exclusive Tour
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -388,6 +486,7 @@ const JoinerDashboard = () => {
                     subcopy={upcomingCount > 0
                       ? "You've got something to look forward to"
                       : 'Your next stamp is one tap away'}
+                    onClick={() => { setBookingsFilter('upcoming'); setActiveTab('My Bookings'); }}
                   />
                   <div style={{ width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 2.5rem' }} />
                   <PulseStat
@@ -397,14 +496,15 @@ const JoinerDashboard = () => {
                     subcopy={completedCount > 0
                       ? 'Adventures logged and loved'
                       : 'First stories start with first trips'}
+                    onClick={() => { setBookingsFilter('completed'); setActiveTab('My Bookings'); }}
                   />
                 </div>
               </div>
 
-              {/* ── Main content: left = trip focus, right = calendar / tracking / reviews rail ── */}
+              {/* ── Main content: left = trip focus, right = a real rail (big calendar, tracking, reviews) ── */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, 2fr) minmax(280px, 1fr)',
+                gridTemplateColumns: 'minmax(0, 1.6fr) minmax(320px, 1fr)',
                 gap: 20,
                 alignItems: 'start',
               }}>
@@ -414,7 +514,6 @@ const JoinerDashboard = () => {
                   <NextTripCard
                     loading={loadingHome}
                     trip={nextTrip}
-                    onExploreExclusive={() => setActiveTab('Exclusive Tours')}
                     onViewBookings={() => setActiveTab('My Bookings')}
                   />
                   {!loadingHome && nextTrip && (
@@ -422,12 +521,14 @@ const JoinerDashboard = () => {
                   )}
                 </div>
 
-                {/* RIGHT RAIL — calendar, tracking, reviews */}
+                {/* RIGHT RAIL — big calendar up top (this is the one meant to be seen), then tracking, then reviews */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
-                  <CalendarSnippet
+                  <CalendarWidget
                     loading={loadingHome}
                     monthDots={monthDots}
-                    onClick={() => setActiveTab('Calendar')}
+                    nextTripDay={nextTripDay}
+                    onClick={() => { setCalendarTarget(null); setActiveTab('Calendar'); }}
+                    onDayClick={(target) => { setCalendarTarget(target); setActiveTab('Calendar'); }}
                   />
                   <TrackingSnippet
                     loading={loadingHome}
@@ -448,9 +549,9 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Explore Tours' ? (
             <JoinerTours />
           ) : activeTab === 'My Bookings' ? (
-            <MyBookings />
+            <MyBookings initialFilter={bookingsFilter} />
           ) : activeTab === 'Calendar' ? (
-            <TourCalendar />
+            <TourCalendar initialDate={calendarTarget} />
           ) : activeTab === 'Exclusive Tours' ? (
             <ExclusiveTour />
           ) : activeTab === 'Tracking' ? (
@@ -528,9 +629,20 @@ const NavItem = ({ icon, label, active, collapsed, onClick }) => (
   </button>
 );
 
-/* ── TRIP PULSE STAT ── */
-const PulseStat = ({ icon, label, value, subcopy }) => (
-  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 16 }}>
+/* ── TRIP PULSE STAT — clickable, routes into My Bookings pre-filtered ── */
+const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
+  <div
+    onClick={onClick}
+    role="button"
+    style={{
+      flex: 1, display: 'flex', alignItems: 'center', gap: 16,
+      cursor: onClick ? 'pointer' : 'default',
+      borderRadius: 14, padding: '4px 8px', margin: '-4px -8px',
+      transition: 'background 0.15s',
+    }}
+    onMouseEnter={e => { if (onClick) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+  >
     <div style={{
       width: 44, height: 44, borderRadius: 12, flexShrink: 0,
       background: 'rgba(232,162,101,0.12)',
@@ -539,7 +651,7 @@ const PulseStat = ({ icon, label, value, subcopy }) => (
     }}>
       {icon}
     </div>
-    <div>
+    <div style={{ flex: 1 }}>
       <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 4px' }}>
         {label}
       </p>
@@ -550,10 +662,13 @@ const PulseStat = ({ icon, label, value, subcopy }) => (
         {subcopy}
       </p>
     </div>
+    {onClick && (
+      <ChevronRight size={16} style={{ color: 'rgba(232,210,190,0.3)', flexShrink: 0 }} />
+    )}
   </div>
 );
 
-const NextTripCard = ({ loading, trip, onExploreExclusive, onViewBookings }) => {
+const NextTripCard = ({ loading, trip, onViewBookings }) => {
   const cardStyle = {
     background: '#FDF6EE',
     borderRadius: 22,
@@ -565,39 +680,15 @@ const NextTripCard = ({ loading, trip, onExploreExclusive, onViewBookings }) => 
 
   if (loading) {
     return (
-      <div style={{ ...cardStyle, alignItems: 'center', justifyContent: 'center', padding: '2rem', color: 'rgba(122,58,24,0.4)', minHeight: 240 }}>
+      <div style={{ ...cardStyle, alignItems: 'center', justifyContent: 'center', padding: '2rem', color: 'rgba(122,58,24,0.4)', minHeight: 260 }}>
         <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
       </div>
     );
   }
 
   if (!trip) {
-    return (
-      <div style={{ ...cardStyle, padding: '2rem', justifyContent: 'space-between', minHeight: 240 }}>
-        <div>
-          <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, margin: '0 0 8px' }}>
-            No upcoming trip
-          </p>
-          <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5, maxWidth: 420 }}>
-            You don't have a confirmed trip yet. While you decide, take a look at this month's exclusive picks.
-          </p>
-        </div>
-        <button
-          onClick={onExploreExclusive}
-          style={{
-            marginTop: 16, alignSelf: 'flex-start',
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: '#1A0A00', color: '#E8A265',
-            border: 'none', borderRadius: 999, cursor: 'pointer',
-            fontFamily: 'inherit', fontWeight: 900, fontSize: 10,
-            letterSpacing: '0.12em', textTransform: 'uppercase',
-            padding: '10px 18px',
-          }}
-        >
-          See Exclusive Picks <ChevronRight size={13} />
-        </button>
-      </div>
-    );
+ 
+    return null;
   }
 
   const today = new Date();
@@ -609,7 +700,7 @@ const NextTripCard = ({ loading, trip, onExploreExclusive, onViewBookings }) => 
   return (
     <div
       onClick={onViewBookings}
-      style={{ ...cardStyle, cursor: 'pointer', position: 'relative', minHeight: 240 }}
+      style={{ ...cardStyle, cursor: 'pointer', position: 'relative', minHeight: 260 }}
     >
       {cover && (
         <img src={cover} alt={trip.tours.title} style={{
@@ -646,10 +737,7 @@ const NextTripCard = ({ loading, trip, onExploreExclusive, onViewBookings }) => 
   );
 };
 
-/* ─────────────────────────────────────────────
-   TRIP READINESS CARD — booking + payment status for the next trip,
-   surfaced from fields already fetched (booking_status, payment_status)
-───────────────────────────────────────────── */
+
 const TripReadinessCard = ({ trip, onClick }) => {
   const paymentVerified = trip.payment_status === 'Paid' || trip.payment_status === 'Verified';
 
@@ -699,64 +787,142 @@ const TripReadinessCard = ({ trip, onClick }) => {
   );
 };
 
+/* ─────────────────────────────────────────────
+   CALENDAR WIDGET — full month grid with prev/next navigation, leading
+   and trailing days from adjacent months (muted), and a distinct amber
+   highlight for the day of the joiner's confirmed upcoming trip.
+   Sized and positioned to be the anchor of the right rail, not a tiny
+   afterthought snippet.
 
-const CalendarSnippet = ({ loading, monthDots, onClick }) => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const monthName = today.toLocaleString('default', { month: 'long' });
+   `onDayClick(target)` fires with the { year, month, day } that was
+   actually visible in THIS widget (respecting whatever month the joiner
+   navigated to via the prev/next arrows), so the Calendar tab opens on
+   the same month/day instead of always defaulting to today.
+───────────────────────────────────────────── */
+const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }) => {
+  const [monthOffset, setMonthOffset] = useState(0);
+
+  const base = new Date();
+  const viewDate = new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const monthName = viewDate.toLocaleString('default', { month: 'long' });
+  const isCurrentMonth = monthOffset === 0;
+
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstWeekday = new Date(year, month, 1).getDay();
-  const todayDate = today.getDate();
+  const prevMonthLastDate = new Date(year, month, 0).getDate();
+  const todayDate = base.getDate();
+
+  const trailingCount = (7 - ((firstWeekday + daysInMonth) % 7)) % 7;
 
   const cells = [];
-  for (let i = 0; i < firstWeekday; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  for (let i = firstWeekday - 1; i >= 0; i--) {
+    cells.push({ day: prevMonthLastDate - i, muted: true });
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ day: d, muted: false });
+  }
+  for (let d = 1; d <= trailingCount; d++) {
+    cells.push({ day: d, muted: true });
+  }
+
+
+  const handleCellClick = (day, muted) => {
+    if (muted) {
+      // Adjacent-month greyed day: just open plainly on today, same as header click.
+      onClick?.();
+      return;
+    }
+    if (onDayClick) {
+      onDayClick({ year, month, day });
+    } else {
+      onClick?.();
+    }
+  };
+
+  const handleHeaderClick = () => {
+    if (onDayClick) {
+      onDayClick({ year, month, day: null }); // no specific day selected, but keep the viewed month
+    } else {
+      onClick?.();
+    }
+  };
 
   return (
     <div
-      onClick={onClick}
       style={{
-        background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
+        background: '#FDF6EE', borderRadius: 22, padding: '1.75rem',
         border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-        cursor: 'pointer', display: 'flex', flexDirection: 'column',
+        display: 'flex', flexDirection: 'column',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Calendar size={15} style={{ color: '#C45C26' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
-            {monthName}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+        <div onClick={handleHeaderClick} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+          <Calendar size={16} style={{ color: '#C45C26' }} />
+          <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00' }}>
+            {monthName} {year}
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: 'rgba(122,58,24,0.4)' }} />
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button
+            onClick={() => setMonthOffset(o => o - 1)}
+            style={{
+              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(196,92,38,0.18)',
+              background: 'transparent', cursor: 'pointer', color: '#7A3A18',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <ChevronLeft size={13} />
+          </button>
+          <button
+            onClick={() => setMonthOffset(o => o + 1)}
+            style={{
+              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(196,92,38,0.18)',
+              background: 'transparent', cursor: 'pointer', color: '#7A3A18',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <ChevronRight size={13} />
+          </button>
+        </div>
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
-          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.4)' }}>
+          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <span key={i} style={{ fontSize: 8, fontWeight: 800, textAlign: 'center', color: 'rgba(122,58,24,0.4)' }}>{d}</span>
+            <span key={i} style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', color: 'rgba(122,58,24,0.4)', paddingBottom: 4 }}>{d}</span>
           ))}
-          {cells.map((d, i) => {
-            const isToday = d === todayDate;
-            const hasDot = d && monthDots.includes(d);
+          {cells.map(({ day, muted }, i) => {
+            const isToday = isCurrentMonth && !muted && day === todayDate;
+            const isConfirmedTrip = isCurrentMonth && !muted && day === nextTripDay;
+            const hasDot = isCurrentMonth && !muted && monthDots.includes(day) && !isConfirmedTrip;
             return (
-              <div key={i} style={{
-                position: 'relative',
-                aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: 8,
-                background: isToday ? '#1A0A00' : 'transparent',
-                color: isToday ? '#E8A265' : d ? '#1A0A00' : 'transparent',
-                fontSize: 10, fontWeight: isToday ? 900 : 600,
-              }}>
-                {d || ''}
-                {hasDot && !isToday && (
+              <div
+                key={i}
+                onClick={() => handleCellClick(day, muted)}
+                style={{
+                  position: 'relative',
+                  aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 9,
+                  cursor: 'pointer',
+                  background: isConfirmedTrip ? '#E8A265' : isToday ? '#1A0A00' : 'transparent',
+                  color: muted ? 'rgba(122,58,24,0.25)' : isConfirmedTrip ? '#1A0A00' : isToday ? '#E8A265' : '#1A0A00',
+                  fontSize: 11, fontWeight: (isToday || isConfirmedTrip) ? 900 : 600,
+                  boxShadow: isConfirmedTrip ? '0 3px 10px rgba(232,162,101,0.5)' : 'none',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'rgba(196,92,38,0.08)'; }}
+                onMouseLeave={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'transparent'; }}
+              >
+                {day}
+                {hasDot && (
                   <span style={{
-                    position: 'absolute', bottom: 1, width: 4, height: 4, borderRadius: '50%', background: '#C45C26',
+                    position: 'absolute', bottom: 2, width: 4, height: 4, borderRadius: '50%', background: '#C45C26',
                   }} />
                 )}
               </div>
@@ -765,14 +931,17 @@ const CalendarSnippet = ({ loading, monthDots, onClick }) => {
         </div>
       )}
 
-      <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '14px 0 0' }}>
-        {monthDots.length > 0 ? `${monthDots.length} trip date(s) this month` : 'View full calendar →'}
-      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
+        <span style={{ width: 9, height: 9, borderRadius: 3, background: '#E8A265', flexShrink: 0 }} />
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>Confirmed trip</span>
+      </div>
     </div>
   );
 };
 
-
+/* ─────────────────────────────────────────────
+   TRACKING SNIPPET — live pickup status for the next trip, click → Tracking tab
+───────────────────────────────────────────── */
 const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
   const isActive = stop?.status === 'CURRENTLY HERE';
 
@@ -789,7 +958,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Clock size={15} style={{ color: isActive ? '#E8A265' : '#C45C26' }} />
           <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? '#FDF6EE' : '#1A0A00' }}>
-            Live Tracking
+            Tracking
           </span>
         </div>
         <ChevronRight size={15} style={{ color: isActive ? 'rgba(253,246,238,0.5)' : 'rgba(122,58,24,0.4)' }} />
@@ -829,7 +998,10 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
   );
 };
 
-
+/* ─────────────────────────────────────────────
+   REVIEW PROMPT CARD — nudges joiners with completed tours to leave a
+   review, using completedCount already computed for the stat card.
+───────────────────────────────────────────── */
 const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
   const hasCompleted = completedCount > 0;
 
