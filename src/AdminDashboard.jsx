@@ -11,7 +11,7 @@ import BookingManagement from './BookingManagement';
 import Feed from './Feed';
 import ProfileSettings from './Profilesettings.jsx';
 import Reviews from './Reviews';
-import JoinerAccounts from './Joinerccounts';
+import JoinerAccounts from './Joineraccounts';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
 
