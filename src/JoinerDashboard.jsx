@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Home, Calendar as CalendarIcon, ShoppingBag,
-  Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, Rss,
-  Sparkles, ArrowRight, MapPin,
-  ImageIcon, Loader2, CheckCircle2, X, AlertCircle, CreditCard, Smartphone, Receipt, Upload, Check, Users, Eye
+  Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss,
+  ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -238,10 +237,7 @@ const JoinerDashboard = () => {
             display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
             justifyContent: sidebarExpanded ? 'flex-start' : 'center',
           }}>
-            <img src={logoIcon}
-                 alt="BANDANG IBAYO"
-                 style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
-            />
+            <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 78, height: 78, objectFit: 'contain', flexShrink: 0 }} />
             {sidebarExpanded && (
               <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
                 Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
@@ -405,7 +401,7 @@ const JoinerDashboard = () => {
               </div>
 
               {/* SPLIT INTERFACE GRID WRAPPER ── */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 10, alignItems: 'flex-start' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, marginTop: 10, alignItems: 'flex-start' }}>
                 
                 {/* LEFT COL: TOUR PACKAGES PANEL BLOCK (50% WIDTH) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -414,29 +410,29 @@ const JoinerDashboard = () => {
                   </div>
 
                   {/* nested grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16 }}>
                     {featuredTours.map((tour) => {
                       const isFull = tour.available_slots <= 0;
                       return (
-                        <div key={tour.id} style={{ background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column', height: '305px' }}>
-                          <div style={{ height: 115, background: '#E8D5BC', position: 'relative', overflow: 'hidden' }}>
+                        <div key={tour.id} style={{ background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
+                          <div style={{ height: 115, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                             {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={32} /></div>}
                             <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
                             <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? '#ef4444' : '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 7, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
                           </div>
-                          <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyInContent: 'space-between' }}>
+                          <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                             <div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
                                 <h4 style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
                                 <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>₱{tour.price?.toLocaleString()}</span>
                               </div>
-                              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '15' }}><MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}</p>
+                              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}</p>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '9px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: '#C45C26' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
                               </div>
                             </div>
-                            <button onClick={() => setSelectedTour(tour)} disabled={isFull} style={{ width: '100%', marginTop: 50, padding: '8px 0', border: 'none', borderRadius: 8, cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: isFull ? '#F2E4D0' : '#1A0A00', color: isFull ? 'rgba(122,58,24,0.5)' : '#FDF6EE' }}>
+                            <button onClick={() => setSelectedTour(tour)} disabled={isFull} style={{ width: '100%', padding: '8px 0', border: 'none', borderRadius: 8, cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: isFull ? '#F2E4D0' : '#1A0A00', color: isFull ? 'rgba(122,58,24,0.5)' : '#FDF6EE' }}>
                               <Eye size={11} /> {isFull ? 'Closed' : 'View Details'}
                             </button>
                           </div>
@@ -566,12 +562,12 @@ const JoinerDashboard = () => {
             <TourCalendar />
           ) : activeTab === 'Exclusive Tours' ? (
             <ExclusiveTour />
-          ) : activeTab === 'Tracking' ? (
-            <JoinerTracking />
           ) : activeTab === 'Reviews' ? (
             <Reviews isAdmin={false} />
           ) : activeTab === 'Profile Settings' ? (
             <ProfileSettings />
+          ) : activeTab === 'Tracking' ? (
+            <JoinerTracking />
           ) : (
             <div style={{ height: '100%', minHeight: 400, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FDF6EE', borderRadius: 24, border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 24px rgba(26,10,0,0.06)', padding: '3rem', textAlign: 'center' }}>
               <div style={{ width: 72, height: 72, borderRadius: 20, background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(196,92,38,0.25)', marginBottom: 20 }}><Compass size={36} /></div>

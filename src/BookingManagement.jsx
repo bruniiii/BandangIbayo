@@ -17,6 +17,7 @@ import {
 // ---------------------------------------------------------
  
 const getDerivedStatus = (b) => (
+  (b.payment_status === 'Pending' || b.payment_status === 'Verification Pending') ? b.payment_status :
   b.payment_status === 'Rejected' ? 'Rejected' :
   b.booking_status === 'Cancelled' ? 'Cancelled' :
   b.payment_status
@@ -502,8 +503,8 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
   const isPending = booking.payment_status === 'Pending' || booking.payment_status === 'Verification Pending';
   const isComplete = booking.payment_status === 'Complete';
   const isRejected = booking.payment_status === 'Rejected';
-  const isCancelled = booking.booking_status === 'Cancelled' && booking.payment_status !== 'Rejected';
-  const derivedStatus = isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : booking.payment_status;
+  const isCancelled = !isPending && booking.booking_status === 'Cancelled' && booking.payment_status !== 'Rejected';
+  const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : booking.payment_status);
  
   const subtotal = booking.total_price || 0;
   const amountPaid = balanceSettled ? subtotal : (booking.amount_paid || subtotal);
@@ -654,7 +655,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                 </div>
                 <div>
                   <p style={labelStyle}>Booking Status</p>
-                  <StatusBadge status={booking.booking_status} />
+                  <StatusBadge status={derivedStatus} />
                 </div>
                 {isDownpayment && isComplete && (
                   <div>

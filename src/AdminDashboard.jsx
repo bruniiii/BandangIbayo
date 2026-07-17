@@ -9,10 +9,12 @@ import { supabase } from './supabaseClient';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
 import Feed from './Feed';
+import ProfileSettings from './Profilesettings.jsx';
 import Reviews from './Reviews';
 import JoinerAccounts from './JoinerAccounts';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
+
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
@@ -236,9 +238,16 @@ const AdminDashboard = () => {
             display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
             justifyContent: sidebarExpanded ? 'flex-start' : 'center',
           }}>
-            <img src={logoIcon}
-                 alt="BANDANG IBAYO"
-                 style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
+            <img
+              src={logoIcon}
+              alt="BANDANG IBAYO"
+              style={{
+                width: sidebarExpanded ? 44 : 36,
+                height: sidebarExpanded ? 44 : 36,
+                objectFit: 'contain',
+                transition: 'width 0.22s, height 0.22s',
+                flexShrink: 0,
+              }}
             />
             {sidebarExpanded && (
               <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
@@ -361,12 +370,15 @@ const AdminDashboard = () => {
             </div>
  
             {/* admin chip */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: '#F2E4D0',
-              border: '1px solid rgba(196,92,38,0.18)',
-              borderRadius: 14, padding: '8px 14px',
-            }}>
+            <div
+              onClick={() => handleNavClick('Profile Settings')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                background: '#F2E4D0',
+                border: '1px solid rgba(196,92,38,0.18)',
+                borderRadius: 14, padding: '8px 14px',
+                cursor: 'pointer',
+              }}>
               <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
                 <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
                 <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
@@ -542,11 +554,12 @@ const AdminDashboard = () => {
           {activeTab === 'Feed' && <Feed isAdmin={true} />}
           {activeTab === 'Tour Management' && <TourManagement />}
           {activeTab === 'Booking Management' && <BookingManagement />}
-          {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
           {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
+          {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
+          {activeTab === 'Profile Settings' && <ProfileSettings />}
 
           {/* FALLBACK COMING SOON SECTION */}
           {activeTab !== 'Overview' &&
@@ -555,7 +568,8 @@ const AdminDashboard = () => {
            activeTab !== 'Booking Management' &&
            activeTab !== 'Reviews' &&
            activeTab !== 'Joiner Accounts' &&
-           activeTab !== 'Tracking Management' && (
+           activeTab !== 'Tracking Management' &&
+           activeTab !== 'Profile Settings' && (
             <div style={{
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',
@@ -600,7 +614,7 @@ const ACTIVITY_COLORS = {
   booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
 };
  
-const ActivityItem = ({ label, name, type, ts, Icon }) => {
+const ActivityItem = ({ label, name, type, ts, Icon }) => { // Fixed destructured Icon prop bug
   const { bg, color } = ACTIVITY_COLORS[type] || ACTIVITY_COLORS.booking;
   return (
     <li style={{
