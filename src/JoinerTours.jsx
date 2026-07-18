@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { 
-  Search, MapPin, Clock, Users, Calendar, ChevronDown, ChevronLeft, ChevronRight,
+  Search, MapPin, Clock, Users, Calendar, ChevronDown, ChevronUp, ChevronLeft, ChevronRight,
   Eye, ImageIcon, Loader2, CheckCircle2, X, AlertCircle, Star,
   CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
 } from 'lucide-react';
@@ -107,7 +107,6 @@ const JoinerTours = () => {
     return 0;
   });
  
-  // ── shared input style (matches TourManagement) ──
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
     background: '#F2E4D0',
@@ -121,7 +120,7 @@ const JoinerTours = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', boxSizing: 'border-box' }}>
 
       {/* ── Filters ── */}
       <div style={{
@@ -132,8 +131,7 @@ const JoinerTours = () => {
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
       }}>
-        {/* Search */}
-        <div style={{ position: 'relative', flex: 1, minWidth: 180 }}>
+        <div style={{ position: 'relative', flex: '1 1 180px' }}>
           <Search size={15} style={{
             position: 'absolute', left: 13, top: '50%',
             transform: 'translateY(-50%)',
@@ -145,8 +143,7 @@ const JoinerTours = () => {
             style={{ ...inputStyle, paddingLeft: 36 }}
           />
         </div>
-        {/* Difficulty */}
-        <div style={{ position: 'relative', minWidth: 160 }}>
+        <div style={{ position: 'relative', flex: '1 1 160px' }}>
           <select
             value={difficultyFilter} onChange={e => setDifficultyFilter(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
@@ -158,8 +155,7 @@ const JoinerTours = () => {
           </select>
           <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
         </div>
-        {/* Price sort */}
-        <div style={{ position: 'relative', minWidth: 175 }}>
+        <div style={{ position: 'relative', flex: '1 1 175px' }}>
           <select
             value={priceSort} onChange={e => setPriceSort(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
@@ -234,13 +230,11 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Image */}
       <div style={{ height: 186, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         {tour.image_urls?.[0]
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="" />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={44} /></div>
         }
-        {/* badges */}
         <div style={{ position: 'absolute', top: 12, left: 12 }}>
           <span style={{
             background: 'rgba(253,246,238,0.92)', borderRadius: 999,
@@ -259,7 +253,6 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
         </div>
       </div>
 
-      {/* Body */}
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
@@ -292,7 +285,6 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
           </div>
         </div>
 
-        {/* Action */}
         <button
           onClick={onDetails}
           disabled={isFull}
@@ -316,10 +308,10 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 };
  
 /* ─────────────────────────────────────────────
-   HELPERS (mirrors TourManagement's design system)
+   HELPERS
 ───────────────────────────────────────────── */
 const ViewSection = ({ title, titleColor, icon, children }) => (
-  <section>
+  <section style={{ width: '100%' }}>
     <h4 style={{
       fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
       textTransform: 'uppercase', color: titleColor || '#1A0A00',
@@ -331,10 +323,9 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
   </section>
 );
 
-/* Renders newline-separated text (inclusions/exclusions/things-to-bring)
-   as a tidy checklist grid instead of a raw text block. */
 const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   const items = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (items.length === 0) {
     return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
@@ -344,22 +335,40 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(196,92,38,0.07)' : 'rgba(122,58,24,0.06)';
   const Icon = variant === 'exclude' ? X : CheckCircle2;
 
+  const displayedItems = isExpanded ? items : items.slice(0, 6);
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
-      {items.map((item, i) => (
-        <div key={i} style={{
-          display: 'flex', alignItems: 'flex-start', gap: 8,
-          background: itemBg, borderRadius: 12, padding: '9px 12px',
-        }}>
-          <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
-        </div>
-      ))}
+    <div style={{ width: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8, width: '100%' }}>
+        {displayedItems.map((item, i) => (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            background: itemBg, borderRadius: 12, padding: '9px 12px',
+          }}>
+            <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
+          </div>
+        ))}
+      </div>
+      
+      {items.length > 6 && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          style={{
+            background: 'none', border: 'none', padding: 0, marginTop: 10,
+            fontSize: 11, fontWeight: 800, color: '#C45C26', cursor: 'pointer',
+            textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 4
+          }}
+        >
+          {isExpanded ? 'Show Less  ▲' : `Show All (+${items.length - 6} more) ▼`}
+        </button>
+      )}
     </div>
   );
 };
 
-/* Slideable photo gallery, identical behavior to TourManagement's carousel */
 const TourImageCarousel = ({ images = [] }) => {
   const [index, setIndex] = useState(0);
   const dragStartX = React.useRef(null);
@@ -384,7 +393,7 @@ const TourImageCarousel = ({ images = [] }) => {
   };
 
   return (
-    <div>
+    <div style={{ width: '100%' }}>
       <div
         style={{
           position: 'relative', width: '100%', height: 190,
@@ -475,16 +484,16 @@ const TourImageCarousel = ({ images = [] }) => {
 
 /* ─────────────────────────────────────────────
    TOUR DETAILS + BOOKING MODAL
-   (split panel, mirrors TourManagement's TourViewModal)
 ───────────────────────────────────────────── */
 const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess }) => {
     const images = tour.image_urls || [];
     const [numPersons, setNumPersons] = useState(1);
     const [isBooking, setIsBooking] = useState(false);
     const [slotError, setSlotError] = useState("");
-    // Payment flow states: null | 'proceed' | 'choose' | 'gcash' | 'success'
+    const [showFullItinerary, setShowFullItinerary] = useState(false);
+
     const [paymentStep, setPaymentStep] = useState(null);
-    const [paymentType, setPaymentType] = useState(null); // 'full' | 'down'
+    const [paymentType, setPaymentType] = useState(null); 
     const [bookingId, setBookingId] = useState(null);
     const [createdBooking, setCreatedBooking] = useState(null);
 
@@ -523,7 +532,6 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             return;
         }
 
-        // Duplicate guard: check if user already has an active/pending booking for this tour
         const { data: existingBooking } = await supabase
             .from('bookings')
             .select('id, booking_number')
@@ -544,7 +552,6 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             .eq('id', user.id)
             .single();
 
-        // Generate booking number
         const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
 
         const { data: booking, error } = await supabase.from('bookings').insert([{
@@ -589,54 +596,56 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
     };
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12, boxSizing: 'border-box' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
             <div style={{
                 position: 'relative', background: '#FDF6EE',
                 width: '100%', maxWidth: 1100,
                 borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
                 overflow: 'hidden',
-                maxHeight: '92vh',
+                maxHeight: '94vh',
                 display: 'flex', flexDirection: 'column',
+                boxSizing: 'border-box'
             }}>
                 <button onClick={onClose} style={{
-                    position: 'absolute', top: 24, right: 24, zIndex: 50,
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'rgba(122,58,24,0.5)',
-                }}><X size={28} /></button>
+                    position: 'absolute', top: 16, right: 16, zIndex: 50,
+                    background: 'rgba(253,246,238,0.9)', border: 'none', cursor: 'pointer',
+                    color: 'rgba(122,58,24,0.7)', borderRadius: '50%', padding: 6, display: 'flex'
+                }}><X size={20} /></button>
 
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', minHeight: 0 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', minHeight: 0, width: '100%' }}>
 
-                        {/* Left panel: gallery, meta, price, booking action */}
-                        <div className="responsive-modal-padding" style={{
-                            background: '#F2E4D0',
-                            padding: '2.5rem 2rem',
-                            borderRight: '1px solid rgba(196,92,38,0.12)',
-                            display: 'flex', flexDirection: 'column',
+                        {/* Left panel */}
+                        <div style={{
+                          background: '#F2E4D0',
+                          padding: '2rem 1.5rem',
+                          borderRight: '1px solid rgba(196,92,38,0.12)',
+                          display: 'flex', flexDirection: 'column',
+                          flex: '1 1 320px', boxSizing: 'border-box'
                         }}>
                             <TourImageCarousel images={images} />
 
                             <h2 style={{
-                                fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em',
-                                color: '#1A0A00', margin: '0 0 18px', lineHeight: 1.15,
+                                fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em',
+                                color: '#1A0A00', margin: '0 0 16px', lineHeight: 1.2,
                             }}>{tour.title}</h2>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
                                 {[
-                                    { icon: <MapPin size={16} />, text: tour.destination },
-                                    { icon: <Calendar size={16} />, text: formatDateRange(tour.start_date, tour.duration) },
-                                    { icon: <Clock size={16} />, text: tour.duration },
+                                    { icon: <MapPin size={15} />, text: tour.destination },
+                                    { icon: <Calendar size={15} />, text: formatDateRange(tour.start_date, tour.duration) },
+                                    { icon: <Clock size={15} />, text: tour.duration },
                                 ].map((row, i) => (
                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
-                                        <span style={{ color: '#C45C26' }}>{row.icon}</span> {row.text}
+                                        <span style={{ color: '#C45C26', display: 'flex' }}>{row.icon}</span> {row.text}
                                     </div>
                                 ))}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#C45C26' : '#7A3A18' }}>
-                                    <span style={{ color: '#C45C26' }}><Users size={16} /></span>
+                                    <span style={{ color: '#C45C26', display: 'flex' }}><Users size={15} /></span>
                                     {tour.current_booked} / {tour.group_size} Slots Booked
                                 </div>
-                                <div style={{ background: 'rgba(196,92,38,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+                                <div style={{ background: 'rgba(196,92,38,0.15)', borderRadius: 999, height: 6, overflow: 'hidden', width: '100%' }}>
                                     <div style={{
                                         height: '100%', borderRadius: 999,
                                         width: `${filledPct}%`,
@@ -705,7 +714,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                 {!isFullyBooked && (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
                                         <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7 }}>Total</span>
-                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
+                                        <span style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
                                     </div>
                                 )}
                                 {isFullyBooked && (
@@ -730,9 +739,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                             </div>
                         </div>
 
-                        {/* Right panel: description, inclusions/exclusions, itinerary */}
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
+                        {/* Right panel */}
+                        <div style={{ display: 'flex', flexDirection: 'column', flex: '1 1 450px', boxSizing: 'border-box' }}>
+                            <div className="responsive-modal-padding" style={{ padding: '2.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 28, width: '100%', boxSizing: 'border-box' }}>
 
                                 <ViewSection title="About the Tour">
                                     <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
@@ -740,34 +749,72 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                     </p>
                                 </ViewSection>
 
-                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
-                                    <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
-                                        <ChecklistGrid text={tour.inclusions} variant="include" />
-                                    </ViewSection>
-                                    <ViewSection title="Exclusions" titleColor="#C45C26" icon={<X size={14} />}>
-                                        <ChecklistGrid text={tour.exclusions} variant="exclude" />
-                                    </ViewSection>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24, width: '100%' }}>
+                                    <div style={{ flex: '1 1 200px' }}>
+                                        <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
+                                            <ChecklistGrid text={tour.inclusions} variant="include" />
+                                        </ViewSection>
+                                    </div>
+                                    <div style={{ flex: '1 1 200px' }}>
+                                        <ViewSection title="Exclusions" titleColor="#C45C26" icon={<X size={14} />}>
+                                            <ChecklistGrid text={tour.exclusions} variant="exclude" />
+                                        </ViewSection>
+                                    </div>
                                 </div>
 
-                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
-                                    <ViewSection title="Itinerary">
-                                        <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>{tour.itinerary || 'N/A'}</pre>
-                                    </ViewSection>
-                                    <ViewSection title="Things to Bring">
-                                        <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
-                                    </ViewSection>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24, width: '100%' }}>
+                                    <div style={{ flex: '1 1 200px' }}>
+                                        <ViewSection title="Itinerary">
+                                            <div style={{ position: 'relative' }}>
+                                                <div style={{ 
+                                                    maxHeight: showFullItinerary ? 'none' : '220px', 
+                                                    overflow: 'hidden',
+                                                    position: 'relative',
+                                                    transition: 'max-height 0.3s ease-in-out'
+                                                }}>
+                                                    <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>
+                                                        {tour.itinerary || 'N/A'}
+                                                    </pre>
+                                                    {!showFullItinerary && (tour.itinerary || '').length > 200 && (
+                                                        <div style={{
+                                                            position: 'absolute', bottom: 0, left: 0, right: 0, height: 60,
+                                                            background: 'linear-gradient(transparent, #FDF6EE)'
+                                                        }} />
+                                                    )}
+                                                </div>
+                                                {(tour.itinerary || '').length > 200 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowFullItinerary(!showFullItinerary)}
+                                                        style={{
+                                                            background: 'none', border: 'none', padding: 0, marginTop: 10,
+                                                            fontSize: 11, fontWeight: 800, color: '#C45C26', cursor: 'pointer',
+                                                            textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'inherit'
+                                                        }}
+                                                    >
+                                                        {showFullItinerary ? 'Collapse Itinerary ▲' : 'Read Full Itinerary ▼'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </ViewSection>
+                                    </div>
+                                    <div style={{ flex: '1 1 200px' }}>
+                                        <ViewSection title="Things to Bring">
+                                            <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
+                                        </ViewSection>
+                                    </div>
                                 </div>
 
                                 {tour.important_note && (
                                     <div style={{
                                         background: 'rgba(196,92,38,0.07)',
-                                        borderRadius: 18, padding: '1.5rem',
+                                        borderRadius: 18, padding: '1.25rem',
                                         border: '1px solid rgba(196,92,38,0.2)',
-                                        display: 'flex', gap: 16,
+                                        display: 'flex', gap: 14, width: '100%', boxSizing: 'border-box'
                                     }}>
-                                        <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <AlertCircle size={20} style={{ color: '#C45C26', flexShrink: 0 }} />
                                         <div>
-                                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>
+                                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 6px' }}>
                                                 Important Note
                                             </p>
                                             <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0 }}>
@@ -828,33 +875,33 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 };
 
 /* ─────────────────────────────────────────────
-   PAYMENT FLOW OVERLAYS (inline-style, matches TourManagement palette)
+   PAYMENT FLOW OVERLAYS
 ───────────────────────────────────────────── */
-
 const overlayBackdrop = {
     position: 'fixed', inset: 0, zIndex: 10000, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', padding: 16,
+    alignItems: 'center', justifyContent: 'center', padding: 12,
     background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)',
+    boxSizing: 'border-box'
 };
 
-// Step 1: Proceed to Payment confirmation
 const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel, formatDateRange }) => {
   return (
     <div style={overlayBackdrop}>
       <div style={{
         background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid rgba(196,92,38,0.9)',
+        boxSizing: 'border-box'
       }}>
-        <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={22} /></button>
+            <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={20} /></button>
             <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 3</span>
           </div>
           <div>
             <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 4px' }}>Booking Preview</p>
-            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
+            <h3 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
           </div>
-          <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
               <MapPin size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {tour.destination}
             </div>
@@ -865,25 +912,25 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
               <Users size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
             </div>
           </div>
-          <div style={{ borderTop: '2px solid rgba(196,92,38,0.12)', paddingTop: 18 }}>
+          <div style={{ borderTop: '2px solid rgba(196,92,38,0.12)', paddingTop: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.8 }}>Price per person</span>
               <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A0A00' }}>Subtotal</span>
-              <span style={{ fontSize: 28, fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
+              <span style={{ fontSize: 26, fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
             </div>
           </div>
           <button onClick={onProceed}
             style={{
-              width: '100%', padding: '15px 0', background: '#1A0A00', color: '#FDF6EE',
+              width: '100%', padding: '14px 0', background: '#1A0A00', color: '#FDF6EE',
               border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             }}
           >
-            <CreditCard size={16} /> Proceed to Payment
+            <CreditCard size={15} /> Proceed to Payment
           </button>
         </div>
       </div>
@@ -891,14 +938,13 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
   );
 };
 
-// Step 2: Choose Full or Downpayment
 const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
     <div style={overlayBackdrop}>
         <div style={{
             background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
-            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
-            borderTop: '8px solid rgba(196,92,38,0.9)',
+            padding: '1.75rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 18,
+            borderTop: '8px solid rgba(196,92,38,0.9)', boxSizing: 'border-box'
         }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
@@ -907,32 +953,32 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                 <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 2 of 3</span>
             </div>
             <div>
-                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+                <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '6px 0 0' }}>How would you like to pay for your booking?</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
                 <button
                     onClick={() => onChoose('full')}
-                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)' }}
+                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)' }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
                         <Check size={16} style={{ color: '#E8A265' }} />
                     </div>
-                    <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>₱{subtotal.toLocaleString()}</p>
+                    <p style={{ fontSize: 22, fontWeight: 900, margin: 0 }}>₱{subtotal.toLocaleString()}</p>
                     <p style={{ fontSize: 11, opacity: 0.6, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
                 </button>
 
                 <button
                     onClick={() => onChoose('down')}
-                    style={{ width: '100%', background: '#FDF6EE', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer' }}
+                    style={{ width: '100%', background: '#FDF6EE', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem', textAlign: 'left', cursor: 'pointer' }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                         <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
                         <span style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
                     </div>
-                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{downpaymentAmount.toLocaleString()}</p>
+                    <p style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{downpaymentAmount.toLocaleString()}</p>
                     <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now, settle the rest before the tour</p>
                 </button>
             </div>
@@ -940,7 +986,6 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
     </div>
 );
 
-// Step 3: GCash Payment Form + Booking Summary
 const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
     const [gcashNumber, setGcashNumber] = useState("");
 
@@ -948,11 +993,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
         const prefillPhone = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('phone_number')
-                .eq('id', user.id)
-                .single();
+            const { data: profile } = await supabase.from('profiles').select('phone_number').eq('id', user.id).single();
             if (profile?.phone_number) setGcashNumber(profile.phone_number);
         };
         prefillPhone();
@@ -982,19 +1023,14 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
 
         setSubmitting(true);
         try {
-            // Upload screenshot to Supabase storage
             const fileExt = screenshot.name.split('.').pop();
             const fileName = `receipts/${bookingId}_${Date.now()}.${fileExt}`;
             let receiptUrl = null;
 
-            const { error: uploadError } = await supabase.storage
-              .from('booking-receipts')
-              .upload(fileName, screenshot);
+            const { error: uploadError } = await supabase.storage.from('booking-receipts').upload(fileName, screenshot);
 
             if (!uploadError) {
-                const { data: urlData } = supabase.storage
-                    .from('booking-receipts')
-                    .getPublicUrl(fileName);
+                const { data: urlData } = supabase.storage.from('booking-receipts').getPublicUrl(fileName);
                 receiptUrl = urlData?.publicUrl || null;
             }
 
@@ -1007,82 +1043,62 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                 payment_status: 'Pending',
             }).eq('id', bookingId);
 
-            if (error) {
-                alert("Error: " + error.message);
-            } else {
-                onSuccess();
-            }
-        } catch {
-            alert("Something went wrong. Please try again.");
-        }
+            if (error) { alert("Error: " + error.message); } else { onSuccess(); }
+        } catch { alert("Something went wrong. Please try again."); }
         setSubmitting(false);
     };
 
-    const fieldLabelStyle = { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8 };
-    const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: 'none', borderRadius: 16, padding: '14px 16px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
+    const fieldLabelStyle = { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 6 };
+    const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: 'none', borderRadius: 16, padding: '12px 14px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
 
     return (
         <div style={{ ...overlayBackdrop, overflowY: 'auto' }}>
-            <div style={{ background: '#FDF6EE', width: '100%', maxWidth: 720, borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', margin: 'auto' }}>
+            <div style={{ background: '#FDF6EE', width: '100%', maxWidth: 720, borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', margin: 'auto', boxSizing: 'border-box' }}>
                 {/* Header */}
-                <div style={{ background: '#1A0A00', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                <div style={{ background: '#1A0A00', padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                         <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', flexShrink: 0 }}>
-                            <ArrowLeft size={20} />
+                            <ArrowLeft size={18} />
                         </button>
                         <div style={{ minWidth: 0 }}>
-                            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FDF6EE', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>GCash Payment</h3>
+                            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#FDF6EE', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>GCash Payment</h3>
                             <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '2px 0 0' }}>{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
                         </div>
                     </div>
                     <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>Step 3 of 3</span>
                 </div>
 
-                <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
-                    {/* GCash Send To */}
-                    <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <div style={{ width: 48, height: 48, background: '#3b82f6', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Smartphone size={22} style={{ color: '#fff' }} />
+                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 20, padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ width: 44, height: 44, background: '#3b82f6', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Smartphone size={20} style={{ color: '#fff' }} />
                         </div>
                         <div>
-                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3b82f6', margin: '0 0 4px' }}>Send GCash Payment To</p>
-                            <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0 }}>09XX XXX XXXX</p>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', margin: '2px 0 0' }}>Bandang IBAYO Tours</p>
+                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3b82f6', margin: '0 0 2px' }}>Send GCash Payment To</p>
+                            <p style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', margin: 0 }}>09XX XXX XXXX</p>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', margin: 0 }}>Bandang IBAYO Tours</p>
                         </div>
                     </div>
 
-                    <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                        {/* Left: Form */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, width: '100%' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: '1 1 280px', boxSizing: 'border-box' }}>
                             <div>
                                 <label style={fieldLabelStyle}>Your GCash Number</label>
-                                <input
-                                    type="tel"
-                                    value={gcashNumber}
-                                    onChange={(e) => setGcashNumber(e.target.value)}
-                                    placeholder="09XX XXX XXXX"
-                                    style={fieldInputStyle}
-                                />
+                                <input type="tel" value={gcashNumber} onChange={(e) => setGcashNumber(e.target.value)} placeholder="09XX XXX XXXX" style={fieldInputStyle} />
                             </div>
                             <div>
                                 <label style={fieldLabelStyle}>GCash Reference Number</label>
-                                <input
-                                    type="text"
-                                    value={refNumber}
-                                    onChange={(e) => setRefNumber(e.target.value)}
-                                    placeholder="13-digit reference number"
-                                    style={fieldInputStyle}
-                                />
+                                <input type="text" value={refNumber} onChange={(e) => setRefNumber(e.target.value)} placeholder="13-digit reference number" style={fieldInputStyle} />
                             </div>
                             <div>
                                 <label style={fieldLabelStyle}>Transaction Screenshot</label>
-                                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <input type="file" accept="image/*" onChange={handleScreenshotChange} style={{ display: 'none' }} />
                                     {screenshotPreview ? (
-                                        <img src={screenshotPreview} alt="Receipt" style={{ width: '100%', height: 128, objectFit: 'cover', borderRadius: 12 }} />
+                                        <img src={screenshotPreview} alt="Receipt" style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 12 }} />
                                     ) : (
                                         <>
-                                            <Upload size={22} style={{ color: 'rgba(196,92,38,0.4)', marginBottom: 8 }} />
+                                            <Upload size={20} style={{ color: 'rgba(196,92,38,0.4)', marginBottom: 6 }} />
                                             <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Upload Screenshot</p>
                                         </>
                                     )}
@@ -1090,20 +1106,19 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                             </div>
                         </div>
 
-                        {/* Right: Booking Summary */}
-                        <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <Receipt size={15} style={{ color: '#C45C26' }} />
+                        <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12, flex: '1 1 280px', boxSizing: 'border-box' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                                <Receipt size={14} style={{ color: '#C45C26' }} />
                                 <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>Booking Summary</p>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                                     <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Tour</span>
                                     <span style={{ fontWeight: 700, color: '#1A0A00', textAlign: 'right' }}>{tour.title}</span>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Quantity</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(196,92,38,0.1)' }}>
+                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500, paddingBottom: 6 }}>Quantity</span>
                                     <span style={{ fontWeight: 700, color: '#1A0A00' }}>{numPersons} pax</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1132,13 +1147,13 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                                     <span style={{ fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.1em' }}>
                                         {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
                                     </span>
-                                    <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 18 }}>₱{amountDue.toLocaleString()}</span>
+                                    <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 16 }}>₱{amountDue.toLocaleString()}</span>
                                 </div>
                             </div>
 
                             {paymentType === 'down' && (
-                                <div style={{ background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px', marginTop: 4 }}>
-                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#8A5A1E', lineHeight: 1.5, margin: 0 }}>⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
+                                <div style={{ background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 12px', marginTop: 4 }}>
+                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#8A5A1E', lineHeight: 1.4, margin: 0 }}>⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
                                 </div>
                             )}
                         </div>
@@ -1148,14 +1163,14 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                         onClick={handleConfirmBooking}
                         disabled={submitting}
                         style={{
-                            width: '100%', padding: '15px 0', background: '#C45C26', color: '#FDF6EE',
+                            width: '100%', padding: '14px 0', background: '#C45C26', color: '#FDF6EE',
                             border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
                             fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                            boxShadow: '0 8px 24px rgba(196,92,38,0.3)',
+                            boxShadow: '0 8px 24px rgba(196,92,38,0.3)', marginTop: 8
                         }}
                     >
-                        {submitting ? <><Loader2 className="animate-spin" size={16} /> Processing...</> : <><Check size={16} /> Confirm Booking</>}
+                        {submitting ? <><Loader2 className="animate-spin" size={15} /> Processing...</> : <><Check size={15} /> Confirm Booking</>}
                     </button>
                 </div>
             </div>
@@ -1163,31 +1178,30 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
     );
 };
 
-// Step 4: Success screen
 const BookingSuccessModal = ({ booking, tour, onClose }) => (
     <div style={overlayBackdrop}>
         <div style={{
-            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
-            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
-            borderTop: '8px solid rgba(196,92,38,0.9)',
+            background: '#FDF6EE', width: '100%', maxWidth: 400, maxHeight: '92vh', overflowY: 'auto',
+            padding: '1.75rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 18,
+            borderTop: '8px solid rgba(196,92,38,0.9)', boxSizing: 'border-box'
         }}>
-            <div style={{ width: 72, height: 72, background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-                <CheckCircle2 size={36} style={{ color: '#C45C26' }} />
+            <div style={{ width: 64, height: 64, background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+                <CheckCircle2 size={32} style={{ color: '#C45C26' }} />
             </div>
             <div>
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Booking Submitted!</h3>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>Your booking is now pending verification by our team.</p>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Booking Submitted!</h3>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '6px 0 0' }}>Your booking is now pending verification by our team.</p>
             </div>
-            <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left' }}>
-                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 10px' }}>Booking Reference</p>
-                <p style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0, wordBreak: 'break-word' }}>{booking?.booking_number}</p>
+            <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem', textAlign: 'left' }}>
+                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 8px' }}>Booking Reference</p>
+                <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0, wordBreak: 'break-word' }}>{booking?.booking_number}</p>
                 <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0' }}>{tour?.title}</p>
             </div>
-            <div style={{ background: 'rgba(196,92,38,0.1)', borderRadius: 16, padding: '14px 18px' }}>
+            <div style={{ background: 'rgba(196,92,38,0.1)', borderRadius: 16, padding: '12px 14px' }}>
                 <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0 }}>We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
             </div>
-            <button onClick={onClose} style={{ width: '100%', padding: '14px 0', background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Done</button>
+            <button onClick={onClose} style={{ width: '100%', padding: '13px 0', background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Done</button>
         </div>
     </div>
 );
