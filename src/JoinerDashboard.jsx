@@ -51,7 +51,7 @@ const JoinerDashboard = () => {
   const [completedCount, setCompletedCount] = useState(0);
   const [featuredTours, setFeaturedTours] = useState([]);
   const [selectedTour, setSelectedTour] = useState(null); 
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
  
   useEffect(() => {
     const handleResize = () => {
@@ -89,10 +89,10 @@ const JoinerDashboard = () => {
       const startMonth = monthNames[startDate.getMonth()];
       const endMonth = monthNames[endDate.getMonth()];
       if (numDays <= 1) return `${startMonth} ${startDate.getDate()}, ${year}`;
-      return `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startDate.getFullYear()}`;
-    } catch (e) {
-      return dateString;
-    }
+      return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startDate.getFullYear()}`;
+    } catch {
+  return dateString;
+}
   };
 
   // ── recovery fetcher ──
@@ -626,7 +626,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
     )}
   </button>
 );
- 
+
 /* ── STAT CARD ── */
 const StatCard = ({ label, value, valueColor }) => (
   <div style={{ background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 2rem', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.04)' }}>
@@ -640,7 +640,6 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
     const [primaryImage, setPrimaryImage] = useState(tour.image_urls?.[0] || null);
     const [numPersons, setNumPersons] = useState(1);
     const [isBooking, setIsBooking] = useState(false);
-    const [slotError, setSlotError] = useState("");
     const [paymentStep, setPaymentStep] = useState(null);
     const [paymentType, setPaymentType] = useState(null);
     const [bookingId, setBookingId] = useState(null);
@@ -652,7 +651,6 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
     const downpaymentAmount = Math.round(subtotal * 0.4);
 
     const handleBookThisTour = async () => {
-        setSlotError("");
         setIsBooking(true);
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
@@ -774,7 +772,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
   </div>
 );
 
-const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
+const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
     const [gcashNumber, setGcashNumber] = useState("");
     const [refNumber, setRefNumber] = useState("");
     const [screenshot, setScreenshot] = useState(null);
@@ -819,7 +817,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
     );
 };
 
-const BookingSuccessModal = ({ booking, tour, onClose }) => (
+const BookingSuccessModal = ({ booking, onClose }) => (
     <div style={{ position: 'fixed', inset: 0, zIndex: 11000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(26,10,0,0.7)', padding: '24px' }}>
         <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '380px', borderRadius: '24px', padding: '32px', borderTop: '6px solid #C45C26' }}>
             <div style={{ width: '60px', height: '60px', background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}><CheckCircle2 size={32} style={{ color: '#C45C26', margin: 'auto' }} /></div>
@@ -829,5 +827,5 @@ const BookingSuccessModal = ({ booking, tour, onClose }) => (
         </div>
     </div>
 );
- 
+
 export default JoinerDashboard;
