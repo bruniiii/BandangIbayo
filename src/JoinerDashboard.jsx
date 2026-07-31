@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Home, Calendar as CalendarIcon, ShoppingBag,
   Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss,
@@ -39,11 +39,12 @@ const NAV_ITEMS = [
 
 const JoinerDashboard = () => {
   const [activeTab, setActiveTab] = useState('HomePage');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const tourScrollRef = useRef(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [bookingsFilter, setBookingsFilter] = useState(null); // 'upcoming' | 'completed' | null
   const [calendarTarget, setCalendarTarget] = useState(null); // { year, month, day }
@@ -70,7 +71,13 @@ const JoinerDashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const sidebarExpanded = isMobile ? true : sidebarOpen;
+  const sidebarExpanded = isMobile ? true : sidebarHovered;
+
+  const scrollTours = (direction) => {
+    if (tourScrollRef.current) {
+      tourScrollRef.current.scrollBy({ left: direction * 250, behavior: 'smooth' });
+    }
+  };
 
   const handleNavClick = (label) => {
     setBookingsFilter(null);
@@ -235,7 +242,11 @@ const JoinerDashboard = () => {
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        .tour-packages-scroll{scrollbar-width:none;-ms-overflow-style:none;}
+        .tour-packages-scroll::-webkit-scrollbar{display:none;}
+      `}</style>
 
       {/* MOBILE OVERLAY (dims content behind the drawer) */}
       <div
@@ -243,23 +254,27 @@ const JoinerDashboard = () => {
         onClick={() => setMobileNavOpen(false)}
       />
 
-      {/* ── SIDEBAR ── */}
-      <aside className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`} style={{
-        width: sidebarExpanded ? 268 : 84,
-        flexShrink: 0,
-        background: '#1A0A00',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 20,
-        boxShadow: '4px 0 32px rgba(26,10,0,0.28)',
-        position: 'relative',
-        transition: 'width 0.25s ease',
-        overflow: 'visible',
-      }}>
-        {(!isMobile || mobileNavOpen) && (
+      {/* ── SIDEBAR — expands on hover (desktop), tap-to-open drawer (mobile) ── */}
+      <aside
+        className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
+        onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}
+        onMouseLeave={() => { if (!isMobile) setSidebarHovered(false); }}
+        style={{
+          width: sidebarExpanded ? 268 : 84,
+          flexShrink: 0,
+          background: '#1A0A00',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 20,
+          boxShadow: '4px 0 32px rgba(26,10,0,0.28)',
+          position: 'relative',
+          transition: 'width 0.25s ease',
+          overflow: 'visible',
+        }}>
+        {isMobile && mobileNavOpen && (
           <button
-            onClick={() => isMobile ? setMobileNavOpen(false) : setSidebarOpen(v => !v)}
-            title={isMobile ? 'Close menu' : (sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar')}
+            onClick={() => setMobileNavOpen(false)}
+            title="Close menu"
             style={{
               position: 'absolute',
               top: 26, right: -14,
@@ -277,7 +292,7 @@ const JoinerDashboard = () => {
             onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
             onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
           >
-            {isMobile ? <X size={16} strokeWidth={3} /> : (sidebarOpen ? <ChevronLeft size={16} strokeWidth={3} /> : <ChevronRight size={16} strokeWidth={3} />)}
+            <X size={16} strokeWidth={3} />
           </button>
         )}
 
@@ -500,7 +515,6 @@ const JoinerDashboard = () => {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                     <button onClick={() => setActiveTab('Exclusive Tours')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#E8A265', color: '#1A0A00', fontWeight: 900, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', borderRadius: 8, padding: '10px 18px', fontFamily: 'inherit', transition: 'all 0.2s' }}>Plan a Trip</button>
-                    <button onClick={() => setActiveTab('Explore Tours')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', color: '#FDF6EE', fontWeight: 800, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', border: '1.5px solid rgba(253, 246, 238, 0.4)', cursor: 'pointer', borderRadius: 8, padding: '9px 18px', fontFamily: 'inherit', transition: 'all 0.2s' }}>Explore All Tours</button>
                   </div>
                 </div>
               </div>
@@ -560,13 +574,35 @@ const JoinerDashboard = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>Latest Tour Packages</h3>
+                    {featuredTours.length > 1 && (
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          onClick={() => scrollTours(-1)}
+                          aria-label="Previous tours"
+                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(196,92,38,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <button
+                          onClick={() => scrollTours(1)}
+                          aria-label="Next tours"
+                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(196,92,38,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 16 }}>
+                  <div
+                    ref={tourScrollRef}
+                    className="tour-packages-scroll"
+                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: 4 }}
+                  >
                     {featuredTours.map((tour) => {
                       const isFull = tour.available_slots <= 0;
                       return (
-                        <div key={tour.id} style={{ background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
+                        <div key={tour.id} style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
                           <div style={{ height: 115, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                             {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={32} /></div>}
                             <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
