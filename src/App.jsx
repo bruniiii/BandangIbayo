@@ -54,31 +54,31 @@ function LandingPage() {
     <div style={{ background: '#FDF6EE', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
  
       {/* ── NAV ── */}
-      <nav style={{
+      <nav className="site-nav" style={{
         position: 'sticky', top: 0, zIndex: 50,
         background: 'rgba(253,246,238,0.92)', backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(196,92,38,0.12)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 clamp(1.5rem,5vw,4rem)', height: 64,
+        padding: '0 clamp(1.5rem,5vw,4rem)', height: 64, gap: 12,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
   {/* Car Custom Image Icon */}
   <img 
     src={logoIcon} 
     alt="BANDANG IBAYO" 
-    style={{ width: 68, height: 68, objectFit: 'contain' }} 
+    className="nav-brand-logo"
+    style={{ width: 68, height: 68, objectFit: 'contain', flexShrink: 0 }} 
   />
-          <span style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00' }}>
+          <span className="nav-brand-text" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <Link to="/login" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none', letterSpacing: '0.04em' }}>Log in</Link>
-          <Link to="/register" style={{
+        <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
+          <Link to="/login" className="nav-login btn-text-link" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none', letterSpacing: '0.04em' }}>Log in</Link>
+          <Link to="/register" className="nav-cta btn-primary" style={{
             fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
             background: '#C45C26', borderRadius: 10, padding: '9px 20px',
             letterSpacing: '0.04em', boxShadow: '0 4px 16px rgba(196,92,38,0.35)',
-            transition: 'all 0.2s',
           }}>Join Now</Link>
         </div>
       </nav>
@@ -92,23 +92,23 @@ function LandingPage() {
         position: 'relative', overflow: 'hidden',
       }} className="hero-grid">
         {/* LEFT PANEL */}
-        <div style={{
+        <div className="hero-left" style={{
           position: 'relative', zIndex: 2,
           display: 'flex', flexDirection: 'column', justifyContent: 'center',
           padding: 'clamp(3rem,8vw,7rem) clamp(2rem,5vw,5rem)',
           background: 'linear-gradient(135deg, #1A0A00 60%, #2D1B0E 100%)',
         }}>
           {/* angled cut on the right edge */}
-          <div style={{
+          <div className="hero-cut" style={{
             position: 'absolute', top: 0, right: -1, width: 80, height: '100%',
             background: '#1A0A00',
             clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
             zIndex: 3,
           }}/>
            
-          <h1 style={{
+          <h1 className="hero-heading" style={{
             fontWeight: 900, lineHeight: 1.0,
-            fontSize: 'clamp(3.2rem, 6.5vw, 6rem)',
+            fontSize: 'clamp(2.6rem, 6.5vw, 6rem)',
             color: '#FDF6EE', marginBottom: 28, letterSpacing: '-0.03em',
           }}>
             Explore<br/>
@@ -123,16 +123,16 @@ function LandingPage() {
             Join group tours across the Philippines. Share the ride, split the cost, and discover more places.
           </p>
  
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            <Link to="/register" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
+          <div className="hero-buttons" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            <Link to="/register" className="btn-primary" style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontWeight: 900, fontSize: 14, color: '#1A0A00', textDecoration: 'none',
               background: '#E8A265', borderRadius: 12,
               padding: '15px 32px', letterSpacing: '0.04em',
               boxShadow: '0 8px 28px rgba(232,162,101,0.38)',
             }}>Browse Tours →</Link>
-            <Link to="/login" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
+            <Link to="/login" className="btn-outline" style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontWeight: 700, fontSize: 14, color: 'rgba(232,210,190,0.8)', textDecoration: 'none',
               border: '1.5px solid rgba(232,210,190,0.22)', borderRadius: 12,
               padding: '15px 28px', letterSpacing: '0.04em',
@@ -183,18 +183,140 @@ function LandingPage() {
         {/* diagonal bottom edge */}
         <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, zIndex: 10 }}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{ width: '100%', height: 80, display: 'block' }}>
-            <polygon points="0,80 1440,0 1440,80" fill="#FDF6EE"/>
+            <polygon points="0,80 1440,0 1440,80" fill="#F2E4D0"/>
           </svg>
         </div>
       </section>
  
-      {/* Mobile hero fix */}
+      {/* Responsive & interaction polish */}
       <style>{`
+        /* ── Hover polish ── */
+        .btn-primary { transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; }
+        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .btn-outline { transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
+        .btn-outline:hover { background: rgba(232,210,190,0.08); border-color: rgba(232,210,190,0.4) !important; transform: translateY(-2px); }
+        .btn-text-link { transition: color 0.2s ease; }
+        .btn-text-link:hover { color: #C45C26 !important; }
+        .tour-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .tour-card:hover { transform: translateY(-6px); box-shadow: 0 16px 36px rgba(26,10,0,0.14); }
+        .tour-card:hover .tour-card-img { transform: scale(1.07); }
+        .type-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .type-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(26,10,0,0.1); }
+
+        /* ── Tablet ── */
+        @media (max-width: 1024px) {
+          .hero-grid { min-height: auto !important; }
+        }
+
+        /* ── Mobile: hero ── */
         @media (max-width: 768px) {
-          .hero-grid { grid-template-columns: 1fr !important; }
+          .hero-grid { grid-template-columns: 1fr !important; min-height: auto !important; }
           .hero-grid > div:last-child { display: none !important; }
+          .hero-cut { display: none !important; }
+          .hero-left { padding: 3.5rem 1.75rem 3rem !important; }
+        }
+
+        /* ── Mobile: nav ── */
+        @media (max-width: 640px) {
+          .site-nav { padding: 0 1.25rem !important; height: 60px !important; }
+          .nav-brand-logo { width: 44px !important; height: 44px !important; }
+          .nav-brand-text { font-size: 14px !important; }
+          .nav-links { gap: 12px !important; }
+          .nav-cta { padding: 8px 16px !important; font-size: 12px !important; }
+        }
+        @media (max-width: 380px) {
+          .nav-login { display: none !important; }
+        }
+
+        /* ── Mobile: hero buttons stack ── */
+        @media (max-width: 420px) {
+          .hero-heading { font-size: 2.5rem !important; }
+          .hero-buttons { flex-direction: column !important; align-items: stretch !important; }
+          .hero-buttons a { width: 100% !important; }
         }
       `}</style>
+ 
+      {/* ── FEATURED TOURS ── */}
+      <section style={{ background: '#F2E4D0', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C45C26' }}>Live Now</span>
+              <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', margin: '8px 0 4px' }}>Upcoming Adventures</h2>
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Verified joiner packages, updated in real time.</p>
+            </div>
+            <Link to="/login" style={{ fontWeight: 900, fontSize: 14, color: '#C45C26', textDecoration: 'none', letterSpacing: '0.04em' }}>
+              Explore All →
+            </Link>
+          </div>
+ 
+          {loading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: '#C45C26' }}>
+              <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={36}/>
+              <p style={{ marginTop: 16, fontWeight: 800, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6 }}>Syncing Tours…</p>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : tours.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 28 }}>
+              {tours.map((tour) => (
+                <div key={tour.id} className="tour-card" style={{
+                  background: '#FDF6EE', borderRadius: 24, overflow: 'hidden',
+                  border: '1px solid rgba(196,92,38,0.1)',
+                  boxShadow: '0 4px 24px rgba(26,10,0,0.07)',
+                  display: 'flex', flexDirection: 'column',
+                }}>
+                  <div style={{ height: 220, overflow: 'hidden', position: 'relative', background: '#2D1B0E' }}>
+                    <img src={tour.image_urls?.[0] || '/LogoLS.png'} alt={tour.title} className="tour-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}/>
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,10,0,0.55) 0%, transparent 55%)' }}/>
+                    {tour.difficulty && (
+                      <span style={{
+                        position: 'absolute', top: 14, left: 14,
+                        fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
+                        background: 'rgba(253,246,238,0.92)', color: '#1A0A00',
+                        padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(4px)',
+                      }}>{tour.difficulty}</span>
+                    )}
+                  </div>
+                  <div style={{ padding: '28px 28px 24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', marginBottom: 6, lineHeight: 1.2 }}>{tour.title}</h3>
+                      <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 700, color: '#C45C26', marginBottom: 20 }}>
+                        <MapPin size={14}/> {tour.destination}
+                      </p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {[
+                          [<Calendar size={15}/>, formatDate(tour.start_date)],
+                          [<Clock size={15}/>, tour.duration],
+                          [<Users size={15}/>, `${tour.group_size} max pax`],
+                        ].map(([icon, text], i) => (
+                          <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: '#7A3A18', margin: 0, opacity: 0.85 }}>
+                            <span style={{ color: '#C45C26' }}>{icon}</span>{text}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 22, marginTop: 22, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, marginBottom: 2 }}>Starting at</div>
+                        <span style={{ fontSize: 28, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em' }}>₱{tour.price.toLocaleString()}</span>
+                      </div>
+                      <Link to="/login" className="btn-primary" style={{
+                        fontWeight: 900, fontSize: 13, color: '#FDF6EE', textDecoration: 'none',
+                        background: '#1A0A00', borderRadius: 12, padding: '12px 22px',
+                        letterSpacing: '0.04em', boxShadow: '0 4px 14px rgba(26,10,0,0.22)',
+                      }}>Book Now</Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: '5rem', textAlign: 'center', borderRadius: 24, border: '2px dashed rgba(196,92,38,0.25)', background: 'rgba(253,246,238,0.5)' }}>
+              <p style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', opacity: 0.6, margin: 0 }}>Check back soon for new dates!</p>
+            </div>
+          )}
+        </div>
+      </section>
  
       {/* ── WHAT IS A JOINER TOUR ── */}
       <section style={{ padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', textAlign: 'center' }}>
@@ -226,11 +348,10 @@ function LandingPage() {
               { icon: <Map size={32} strokeWidth={1.6}/>, title: 'Exclusive Tour', desc: 'Book the entire vehicle for your group. Keep your itinerary private and travel at your own pace.', tag: 'For Groups', accent: '#7A3A18' },
               { icon: <Globe size={32} strokeWidth={1.6}/>, title: 'Request a Tour', desc: 'Have a destination in mind that isn\'t listed? Submit a custom request and we\'ll price it for you.', tag: 'Custom', accent: '#E8A265' },
             ].map((t, i) => (
-              <div key={i} style={{
+              <div key={i} className="type-card" style={{
                 background: '#FDF6EE', borderRadius: 24, padding: '36px 32px',
                 border: '1px solid rgba(196,92,38,0.12)',
                 boxShadow: '0 2px 20px rgba(26,10,0,0.06)',
-                transition: 'all 0.25s',
               }}>
                 <div style={{ width: 60, height: 60, borderRadius: 16, background: `${t.accent}18`, color: t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
                   {t.icon}
@@ -279,88 +400,6 @@ function LandingPage() {
         </div>
       </section>
  
-      {/* ── FEATURED TOURS ── */}
-      <section style={{ background: '#F2E4D0', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', clipPath: 'polygon(0 3%, 100% 0, 100% 100%, 0 100%)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: 16 }}>
-            <div>
-              <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C45C26' }}>Live Now</span>
-              <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', margin: '8px 0 4px' }}>Upcoming Adventures</h2>
-              <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Verified joiner packages, updated in real time.</p>
-            </div>
-            <Link to="/login" style={{ fontWeight: 900, fontSize: 14, color: '#C45C26', textDecoration: 'none', letterSpacing: '0.04em' }}>
-              Explore All →
-            </Link>
-          </div>
- 
-          {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: '#C45C26' }}>
-              <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={36}/>
-              <p style={{ marginTop: 16, fontWeight: 800, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6 }}>Syncing Tours…</p>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
-          ) : tours.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 28 }}>
-              {tours.map((tour) => (
-                <div key={tour.id} style={{
-                  background: '#FDF6EE', borderRadius: 24, overflow: 'hidden',
-                  border: '1px solid rgba(196,92,38,0.1)',
-                  boxShadow: '0 4px 24px rgba(26,10,0,0.07)',
-                  display: 'flex', flexDirection: 'column',
-                  transition: 'transform 0.3s, box-shadow 0.3s',
-                }}>
-                  <div style={{ height: 220, overflow: 'hidden', position: 'relative', background: '#2D1B0E' }}>
-                    <img src={tour.image_urls?.[0] || '/LogoLS.png'} alt={tour.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}/>
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,10,0,0.55) 0%, transparent 55%)' }}/>
-                    {tour.difficulty && (
-                      <span style={{
-                        position: 'absolute', top: 14, left: 14,
-                        fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
-                        background: 'rgba(253,246,238,0.92)', color: '#1A0A00',
-                        padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(4px)',
-                      }}>{tour.difficulty}</span>
-                    )}
-                  </div>
-                  <div style={{ padding: '28px 28px 24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', marginBottom: 6, lineHeight: 1.2 }}>{tour.title}</h3>
-                      <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 700, color: '#C45C26', marginBottom: 20 }}>
-                        <MapPin size={14}/> {tour.destination}
-                      </p>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {[
-                          [<Calendar size={15}/>, formatDate(tour.start_date)],
-                          [<Clock size={15}/>, tour.duration],
-                          [<Users size={15}/>, `${tour.group_size} max pax`],
-                        ].map(([icon, text], i) => (
-                          <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: '#7A3A18', margin: 0, opacity: 0.85 }}>
-                            <span style={{ color: '#C45C26' }}>{icon}</span>{text}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 22, marginTop: 22, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
-                      <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, marginBottom: 2 }}>Starting at</div>
-                        <span style={{ fontSize: 28, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em' }}>₱{tour.price.toLocaleString()}</span>
-                      </div>
-                      <Link to="/login" style={{
-                        fontWeight: 900, fontSize: 13, color: '#FDF6EE', textDecoration: 'none',
-                        background: '#1A0A00', borderRadius: 12, padding: '12px 22px',
-                        letterSpacing: '0.04em', boxShadow: '0 4px 14px rgba(26,10,0,0.22)',
-                      }}>Book Now</Link>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ padding: '5rem', textAlign: 'center', borderRadius: 24, border: '2px dashed rgba(196,92,38,0.25)', background: 'rgba(253,246,238,0.5)' }}>
-              <p style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', opacity: 0.6, margin: 0 }}>Check back soon for new dates!</p>
-            </div>
-          )}
-        </div>
-      </section>
  
       {/* ── WHY CHOOSE US ── */}
       <section style={{ background: '#1A0A00', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)', position: 'relative' }}>
@@ -406,7 +445,7 @@ function LandingPage() {
                 </div>
               ))}
             </div>
-            <Link to="/register" style={{
+            <Link to="/register" className="btn-primary" style={{
               display: 'inline-block', fontWeight: 900, fontSize: 14, color: '#1A0A00', textDecoration: 'none',
               background: '#E8A265', borderRadius: 12, padding: '14px 28px',
               letterSpacing: '0.04em', boxShadow: '0 6px 20px rgba(232,162,101,0.3)',

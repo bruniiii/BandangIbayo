@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Calendar, Users,
   FileText, Bell, CreditCard, LogOut, Search, TrendingUp, AlertCircle,
-  CheckCircle2, XCircle, Clock, Compass, ChevronLeft, ChevronRight, Menu, X, Rss, Star
+  CheckCircle2, XCircle, Clock, Compass, Menu, X, Rss, Star
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -12,6 +12,7 @@ import Feed from './Feed';
 import ProfileSettings from './Profilesettings.jsx';
 import Reviews from './Reviews';
 import JoinerAccounts from './Joineraccounts';
+import Reports from './Reports';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
 
@@ -64,7 +65,7 @@ const NAV_ITEMS = [
  
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('Overview');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
   );
@@ -72,7 +73,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
  
   // Track viewport so the sidebar can switch between the desktop
-  // collapse/expand behavior and the mobile off-canvas drawer.
+  // hover-to-expand behavior and the mobile off-canvas drawer.
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 900;
@@ -85,8 +86,8 @@ const AdminDashboard = () => {
   }, []);
  
   // On mobile the sidebar is always shown at full width (as a drawer),
-  // so the desktop collapse/expand state only matters on larger screens.
-  const sidebarExpanded = isMobile ? true : sidebarOpen;
+  // on desktop it expands only while the cursor is hovering over it.
+  const sidebarExpanded = isMobile ? true : sidebarHovered;
  
   const handleNavClick = (label) => {
     setActiveTab(label);
@@ -185,45 +186,46 @@ const AdminDashboard = () => {
         onClick={() => setMobileNavOpen(false)}
       />
  
-      {/* ── SIDEBAR ── */}
-      <aside className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`} style={{
-        width: sidebarExpanded ? 268 : 84,
-        flexShrink: 0,
-        background: '#1A0A00',
-        display: 'flex',
-        flexDirection: 'column',
-        zIndex: 20,
-        boxShadow: '4px 0 32px rgba(26,10,0,0.28)',
-        position: 'relative',
-        transition: 'width 0.25s ease',
-        overflow: 'visible',
-      }}>
-        {/* collapse/expand toggle on desktop; closes the drawer on mobile.
-            On mobile, only rendered while the drawer is open — otherwise it
-            pokes outside the sidebar's translated bounds and peeks onto screen. */}
-        {(!isMobile || mobileNavOpen) && (
-        <button
-          onClick={() => isMobile ? setMobileNavOpen(false) : setSidebarOpen(v => !v)}
-          title={isMobile ? 'Close menu' : (sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar')}
-          style={{
-            position: 'absolute',
-            top: 26, right: -14,
-            width: 28, height: 28,
-            borderRadius: '50%',
-            background: '#C45C26',
-            border: '3px solid #F2E4D0',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#FDF6EE',
-            zIndex: 30,
-            boxShadow: '0 4px 12px rgba(26,10,0,0.35)',
-            transition: 'background 0.2s, transform 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
-          onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
-        >
-          {isMobile ? <X size={16} strokeWidth={3} /> : (sidebarOpen ? <ChevronLeft size={16} strokeWidth={3} /> : <ChevronRight size={16} strokeWidth={3} />)}
-        </button>
+      {/* ── SIDEBAR — expands on hover (desktop), tap-to-open drawer (mobile) ── */}
+      <aside
+        className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
+        onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}
+        onMouseLeave={() => { if (!isMobile) setSidebarHovered(false); }}
+        style={{
+          width: sidebarExpanded ? 268 : 84,
+          flexShrink: 0,
+          background: '#1A0A00',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 20,
+          boxShadow: '4px 0 32px rgba(26,10,0,0.28)',
+          position: 'relative',
+          transition: 'width 0.25s ease',
+          overflow: 'visible',
+        }}>
+        {isMobile && mobileNavOpen && (
+          <button
+            onClick={() => setMobileNavOpen(false)}
+            title="Close menu"
+            style={{
+              position: 'absolute',
+              top: 26, right: -14,
+              width: 28, height: 28,
+              borderRadius: '50%',
+              background: '#C45C26',
+              border: '3px solid #F2E4D0',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+              color: '#FDF6EE',
+              zIndex: 30,
+              boxShadow: '0 4px 12px rgba(26,10,0,0.35)',
+              transition: 'background 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
+            onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
+          >
+            <X size={16} strokeWidth={3} />
+          </button>
         )}
  
         {/* brand */}
@@ -556,6 +558,7 @@ const AdminDashboard = () => {
           {activeTab === 'Booking Management' && <BookingManagement />}
           {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
           {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
+          {activeTab === 'Reports' && <Reports />}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
@@ -569,6 +572,7 @@ const AdminDashboard = () => {
            activeTab !== 'Reviews' &&
            activeTab !== 'Joiner Accounts' &&
            activeTab !== 'Tracking Management' &&
+           activeTab !== 'Reports' &&
            activeTab !== 'Profile Settings' && (
             <div style={{
               height: '100%', minHeight: 400,
