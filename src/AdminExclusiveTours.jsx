@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { notifyUser } from './notifications';
+import { notifyUser } from "./Notifications";
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
   Phone, Mail, Wallet, Home, ChevronDown, CheckCircle2, XCircle,
