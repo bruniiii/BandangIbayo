@@ -15,6 +15,7 @@ import Reviews from './Reviews';
 import ProfileSettings from './Profilesettings.jsx';
 import logoIcon from './assets/newIcon.png';
 import { JoinerTracking } from './JoinerTracking';
+import NotificationBell from './NotificationBell';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -45,7 +46,6 @@ const JoinerDashboard = () => {
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const tourScrollRef = useRef(null);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [bookingsFilter, setBookingsFilter] = useState(null); // 'upcoming' | 'completed' | null
   const [calendarTarget, setCalendarTarget] = useState(null); // { year, month, day }
   const navigate = useNavigate();
@@ -84,6 +84,30 @@ const JoinerDashboard = () => {
     setCalendarTarget(null);
     setActiveTab(label);
     if (isMobile) setMobileNavOpen(false);
+  };
+
+  // Routes a clicked notification to the module it's about, so tapping
+  // "Exclusive Tour Approved" opens Exclusive Tours, a booking/payment
+  // notification opens My Bookings, etc.
+  const handleNotificationNavigate = (notification) => {
+    switch (notification.type) {
+      case 'exclusive_request':
+        handleNavClick('Exclusive Tours');
+        break;
+      case 'booking':
+      case 'payment':
+        setBookingsFilter(null);
+        handleNavClick('My Bookings');
+        break;
+      case 'tour':
+        handleNavClick('Explore Tours');
+        break;
+      case 'account':
+        handleNavClick('Profile Settings');
+        break;
+      default:
+        handleNavClick('HomePage');
+    }
   };
 
   const handleLogout = async () => {
@@ -219,16 +243,6 @@ const JoinerDashboard = () => {
   useEffect(() => {
     if (activeTab === 'HomePage') fetchDashboardData();
   }, [activeTab, fetchDashboardData]);
-
-  // ── Notifications, built from real fetched data ──
-  const notifications = [];
-  if (nextTrip) {
-    const paid = nextTrip.payment_status === 'Paid' || nextTrip.payment_status === 'Verified';
-    if (!paid) notifications.push({ id: 'payment', text: `Payment pending for ${nextTrip.tours?.title}` });
-    const daysOut = Math.max(0, Math.ceil((new Date(nextTrip.tours?.start_date) - new Date()) / 86400000));
-    if (daysOut <= 7) notifications.push({ id: 'soon', text: `${nextTrip.tours?.title} departs in ${daysOut} day${daysOut === 1 ? '' : 's'}` });
-  }
-  if (completedCount > 0) notifications.push({ id: 'review', text: `${completedCount} tour${completedCount === 1 ? '' : 's'} awaiting your review` });
 
   const nextTripDay = nextTrip && new Date(nextTrip.tours?.start_date).getMonth() === new Date().getMonth()
     ? new Date(nextTrip.tours?.start_date).getDate()
@@ -400,60 +414,10 @@ const JoinerDashboard = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {/* notification bell */}
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowNotifications(v => !v)}
-                aria-label="Notifications"
-                style={{
-                  width: 38, height: 38, borderRadius: 12,
-                  background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', color: '#1A0A00', position: 'relative',
-                }}
-              >
-                <Bell size={16} />
-                {notifications.length > 0 && (
-                  <span style={{
-                    position: 'absolute', top: -4, right: -4,
-                    width: 16, height: 16, borderRadius: '50%',
-                    background: '#C45C26', color: '#FDF6EE',
-                    fontSize: 9, fontWeight: 900,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {notifications.length}
-                  </span>
-                )}
-              </button>
-
-              {showNotifications && (
-                <div style={{
-                  position: 'absolute', top: 46, right: 0, width: 280,
-                  background: '#FDF6EE', borderRadius: 16,
-                  border: '1px solid rgba(196,92,38,0.14)',
-                  boxShadow: '0 12px 32px rgba(26,10,0,0.16)',
-                  padding: '0.75rem', zIndex: 30,
-                }}>
-                  <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, margin: '0 0 8px', padding: '0 4px' }}>
-                    Notifications
-                  </p>
-                  {notifications.length === 0 ? (
-                    <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.6, padding: '8px 4px', margin: 0 }}>
-                      You're all caught up.
-                    </p>
-                  ) : (
-                    notifications.map(n => (
-                      <div key={n.id} style={{
-                        padding: '10px 8px', borderRadius: 10,
-                        fontSize: 12, fontWeight: 600, color: '#1A0A00',
-                      }}>
-                        {n.text}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+            {/* notification bell — reads live from the `notifications` table,
+                so admin approvals/rejections (exclusive & requested tours)
+                actually reach the joiner */}
+            <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
             {/* user chip */}
             <div style={{

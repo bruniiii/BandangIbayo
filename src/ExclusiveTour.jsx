@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from './supabaseClient';
+import { notifyAdmins } from './notifications';
 import {
   MapPin, Users, Calendar, ChevronRight, CheckCircle,
   FileText, Send, Shield, Star, Clock, ArrowRight,
@@ -60,6 +62,30 @@ const SelectField = ({ label, value, onChange, options, required }) => (
     </select>
   </div>
 );
+
+// ─── Prefill helper ─────────────────────────────────────────────────────────────
+// Pulls the joiner's saved profile so the contact fields aren't blank every time.
+const usePrefilledContact = () => {
+  const [contact, setContact] = useState({ fullName: '', contact: '', email: '' });
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, phone_number, email')
+        .eq('id', user.id)
+        .single();
+      const fullName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '';
+      setContact({
+        fullName,
+        contact: profile?.phone_number || '',
+        email: profile?.email || user.email || '',
+      });
+    })();
+  }, []);
+  return contact;
+};
  
 // ─── Success Screen ─────────────────────────────────────────────────────────────
 const SuccessScreen = ({ type, onReset }) => (
@@ -73,8 +99,8 @@ const SuccessScreen = ({ type, onReset }) => (
       </h3>
       <p className="text-[#7A3A18]/80 text-sm mt-2 max-w-sm mx-auto">
         {type === 'exclusive'
-          ? 'Our team will review your exclusive booking and reach out within 24 hours to confirm your itinerary and pricing.'
-          : "Your destination request has been forwarded to the Bandang IBAYO team. They'll prepare a custom price list and get back to you soon."}
+          ? 'Our team will review your exclusive booking and reach out within 24 hours to confirm your itinerary and pricing. You\'ll also get a notification here once it\'s reviewed.'
+          : "Your destination request has been forwarded to the Bandang IBAYO team. You'll get a notification here once they've reviewed it."}
       </p>
     </div>
     <button
@@ -91,11 +117,22 @@ const SuccessScreen = ({ type, onReset }) => (
 const ExclusiveTourForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const prefill = usePrefilledContact();
   const [form, setForm] = useState({
     fullName: '', contact: '', email: '',
     destination: '', groupSize: '', preferredDate: '', alternateDate: '',
     accommodation: '', budget: '', notes: '', agreeTerms: false,
   });
+
+  useEffect(() => {
+    setForm(prev => ({
+      ...prev,
+      fullName: prev.fullName || prefill.fullName,
+      contact: prev.contact || prefill.contact,
+      email: prev.email || prefill.email,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill.fullName, prefill.contact, prefill.email]);
  
   const set = (field) => (e) =>
     setForm(prev => ({ ...prev, [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
@@ -104,8 +141,42 @@ const ExclusiveTourForm = () => {
     e.preventDefault();
     if (!form.agreeTerms) { alert('Please accept the terms and conditions.'); return; }
     setLoading(true);
-    // TODO: replace with Supabase insert
-    await new Promise(r => setTimeout(r, 1500));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Please log in to submit an exclusive booking request.');
+      setLoading(false);
+      return;
+    }
+
+    const { data: inserted, error } = await supabase.from('exclusive_requests').insert([{
+      user_id: user.id,
+      request_type: 'exclusive',
+      full_name: form.fullName,
+      contact_number: form.contact,
+      email: form.email,
+      destination: form.destination,
+      group_size: parseInt(form.groupSize) || null,
+      preferred_date: form.preferredDate || null,
+      alternate_date: form.alternateDate || null,
+      accommodation: form.accommodation,
+      budget: parseFloat(form.budget) || null,
+      notes: form.notes,
+    }]).select();
+
+    if (error) {
+      alert('Error submitting your request: ' + error.message);
+      setLoading(false);
+      return;
+    }
+
+    notifyAdmins({
+      title: 'New Exclusive Tour Request',
+      message: `${form.fullName || 'A joiner'} submitted an exclusive tour request for ${form.destination} (${form.groupSize || '?'} pax).`,
+      type: 'exclusive_request',
+      related_id: inserted?.[0]?.id || null,
+    });
+
     setLoading(false);
     setSubmitted(true);
   };
@@ -225,19 +296,63 @@ const ExclusiveTourForm = () => {
 const RequestTourForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const prefill = usePrefilledContact();
   const [form, setForm] = useState({
     fullName: '', contact: '', email: '',
     destination: '', region: '', groupSize: '', preferredDate: '',
     tourType: '', notes: '',
   });
+
+  useEffect(() => {
+    setForm(prev => ({
+      ...prev,
+      fullName: prev.fullName || prefill.fullName,
+      contact: prev.contact || prefill.contact,
+      email: prev.email || prefill.email,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill.fullName, prefill.contact, prefill.email]);
  
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: replace with Supabase insert
-    await new Promise(r => setTimeout(r, 1500));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Please log in to submit a tour request.');
+      setLoading(false);
+      return;
+    }
+
+    const { data: inserted, error } = await supabase.from('exclusive_requests').insert([{
+      user_id: user.id,
+      request_type: 'request',
+      full_name: form.fullName,
+      contact_number: form.contact,
+      email: form.email,
+      destination: form.destination,
+      region: form.region,
+      group_size: parseInt(form.groupSize) || null,
+      preferred_date: form.preferredDate || null,
+      tour_type: form.tourType,
+      notes: form.notes,
+    }]).select();
+
+    if (error) {
+      alert('Error submitting your request: ' + error.message);
+      setLoading(false);
+      return;
+    }
+
+    notifyAdmins({
+      title: 'New Tour Request',
+      message: `${form.fullName || 'A joiner'} requested a new destination: ${form.destination} (${form.groupSize || '?'} pax).`,
+      type: 'exclusive_request',
+      related_id: inserted?.[0]?.id || null,
+    });
+
     setLoading(false);
     setSubmitted(true);
   };
@@ -311,7 +426,7 @@ const RequestTourForm = () => {
           {[
             ['Agency reviews your request', 'Usually within 24–48 hours'],
             ['Custom price list is prepared', 'Based on group size, destination & dates'],
-            ['You receive an email that the request tour has been approved or denied', 'If approved, the tour will be open for joiners on the Explore Tours page'],
+            ['You receive a notification here that the request has been approved or denied', 'If approved, the tour will be open for joiners on the Explore Tours page'],
             ['You may confirm the tour by making a downpayment', 'Via GCash to secure your booking'],
           ].map(([step, desc], i) => (
             <div key={i} className="flex items-start gap-3">

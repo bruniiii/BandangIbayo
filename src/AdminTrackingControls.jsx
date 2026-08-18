@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import {
   MapPin, Plus, Milestone, FolderArchive, X, Calendar,
   Armchair, Compass, ImageIcon, Loader2, Truck, AlertTriangle,
-  ChevronLeft, ChevronRight, Check, CheckCircle2, ListChecks,
+  ChevronLeft, ChevronRight, Check, CheckCircle2, ListChecks, RefreshCw,
 } from 'lucide-react';
 
 const PALETTE = {
@@ -76,6 +76,7 @@ export const AdminTrackingControls = () => {
   const [customNotes, setCustomNotes] = useState({});
   const [trackingLogs, setTrackingLogs] = useState([]);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const [savingStop, setSavingStop] = useState(false);
   const [updatingStopId, setUpdatingStopId] = useState(null);
   const [generatingStops, setGeneratingStops] = useState(false);
@@ -190,6 +191,31 @@ export const AdminTrackingControls = () => {
     if (meetupStops.length > 0) return;
     generateStopsFromItinerary();
   }, [activeTour, loadingConsole, generatingStops, isLogisticsSaved, meetupStops.length, generateStopsFromItinerary]);
+
+  // Wipes whatever checkpoints/logs currently exist for this tour and rebuilds
+  // them fresh from the itinerary. Needed because auto-generation only fires
+  // when a tour has zero checkpoints — a stray manual stop (old test data, a
+  // one-off addition, etc.) permanently blocks that, so this gives the admin
+  // an explicit way to force a resync at any time.
+  const regenerateStopsFromItinerary = async () => {
+    if (!activeTour) return;
+    setShowRegenerateConfirm(false);
+    setGeneratingStops(true);
+    try {
+      const { error: logsError } = await supabase.from('tour_tracking_logs').delete().eq('tour_id', activeTour.id);
+      if (logsError) throw logsError;
+      const { error: meetupsError } = await supabase.from('tour_meetups').delete().eq('tour_id', activeTour.id);
+      if (meetupsError) throw meetupsError;
+
+      setMeetupStops([]);
+      setTrackingLogs([]);
+      setCustomNotes({});
+      await generateStopsFromItinerary();
+    } catch (err) {
+      alert('Error regenerating checkpoints: ' + err.message);
+      setGeneratingStops(false);
+    }
+  };
 
   // Live updates — realtime sync so admin + joiners always see the same state.
   useEffect(() => {
@@ -434,6 +460,7 @@ export const AdminTrackingControls = () => {
           onAddPickupStop={handleAddPickupStop}
           onAdvanceStop={advanceToNextStop}
           onRequestArchive={() => setShowArchiveConfirm(true)}
+          onRequestRegenerate={() => setShowRegenerateConfirm(true)}
           onClose={() => { setActiveTour(null); setIsLogisticsSaved(false); }}
         />
       )}
@@ -490,6 +517,63 @@ export const AdminTrackingControls = () => {
                   boxShadow: '0 6px 20px rgba(26,10,0,0.22)',
                 }}
               >Archive</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Regenerate-from-Itinerary Confirmation Modal ── */}
+      {showRegenerateConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 10050,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)',
+          padding: 16,
+        }}>
+          <div style={{
+            background: '#FDF6EE', padding: '3rem',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            textAlign: 'center', width: '100%', maxWidth: 420,
+            borderTop: '8px solid #C45C26',
+          }}>
+            <div style={{
+              width: 88, height: 88, borderRadius: '50%',
+              background: '#C45C26',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 28px', color: '#FDF6EE',
+              boxShadow: '0 12px 32px rgba(196,92,38,0.3)',
+            }}>
+              <RefreshCw size={38} />
+            </div>
+            <h3 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 12px' }}>
+              Regenerate Checkpoints?
+            </h3>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.65, lineHeight: 1.7, margin: '0 0 32px' }}>
+              This clears the current checkpoint list and tracking timeline for <strong>{activeTour?.title}</strong>, then rebuilds it fresh from the tour's itinerary. Any progress recorded so far will be lost.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setShowRegenerateConfirm(false)}
+                style={{
+                  flex: 1, padding: '13px 0',
+                  background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+                  borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontWeight: 900,
+                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  color: '#7A3A18',
+                }}
+              >Cancel</button>
+              <button
+                onClick={regenerateStopsFromItinerary}
+                style={{
+                  flex: 1, padding: '13px 0',
+                  background: '#C45C26', border: 'none', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontWeight: 900,
+                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  color: '#FDF6EE',
+                  boxShadow: '0 6px 20px rgba(196,92,38,0.3)',
+                }}
+              >Regenerate</button>
             </div>
           </div>
         </div>
@@ -820,10 +904,14 @@ const TrackingConsoleModal = ({
   driverName, setDriverName, driverContact, setDriverContact,
   newLocName, setNewLocName, newTime, setNewTime,
   hasActiveOrPendingStop, onSaveVehicleInfo, onAddPickupStop, onAdvanceStop,
-  onRequestArchive, onClose,
+  onRequestArchive, onRequestRegenerate, onClose,
 }) => {
   const images = Array.isArray(tour.image_urls) ? tour.image_urls : (tour.image ? [tour.image] : []);
   const itineraryStops = useMemo(() => parseItineraryStops(tour.itinerary), [tour.itinerary]);
+  const itineraryMismatch = itineraryStops.length > 0 && meetupStops.length > 0 && (
+    meetupStops.length !== itineraryStops.length ||
+    meetupStops.some((stop, i) => stop.location_name !== itineraryStops[i]?.label)
+  );
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -1013,6 +1101,12 @@ const TrackingConsoleModal = ({
                           </button>
                         </form>
                       </>
+                    ) : itineraryMismatch ? (
+                      <Notice
+                        color="#8C2F1C" bg="rgba(140,47,28,0.08)"
+                        icon={<AlertTriangle size={16} />}
+                        text={`These ${meetupStops.length} checkpoint${meetupStops.length === 1 ? '' : 's'} don't match this tour's ${itineraryStops.length}-stop itinerary. Regenerate to sync them up.`}
+                      />
                     ) : (
                       <p style={{
                         display: 'flex', alignItems: 'center', gap: 6,
@@ -1021,6 +1115,22 @@ const TrackingConsoleModal = ({
                         <ListChecks size={12} style={{ color: '#C45C26', flexShrink: 0 }} />
                         Checkpoints below were pulled straight from this tour's itinerary — just click Next Stop to move the van along.
                       </p>
+                    )}
+
+                    {isLogisticsSaved && !generatingStops && itineraryStops.length > 0 && (
+                      <button
+                        onClick={onRequestRegenerate}
+                        style={{
+                          alignSelf: 'flex-start',
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                          color: itineraryMismatch ? '#8C2F1C' : 'rgba(122,58,24,0.55)',
+                          fontFamily: 'inherit', fontWeight: 800,
+                          fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+                        }}
+                      >
+                        <RefreshCw size={11} /> Regenerate from Itinerary
+                      </button>
                     )}
 
                     {isLogisticsSaved && meetupStops.length > 0 && (() => {
