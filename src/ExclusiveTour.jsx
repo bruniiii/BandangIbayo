@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { notifyAdmins } from "./Notifications";
+import { notifyAdmins } from "./notifications";
 import {
   MapPin, Users, Calendar, ChevronRight, CheckCircle,
   FileText, Send, Shield, Star, Clock, ArrowRight,
