@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { MapPin, X, Calendar, Armchair, Compass, ChevronLeft, ChevronRight, ImageIcon, Loader2 } from 'lucide-react';
+import { MapPin, X, Calendar, Armchair, Compass, ChevronLeft, ChevronRight, ImageIcon, Loader2, Check, CheckCircle2 } from 'lucide-react';
 
 const PALETTE = {
   espresso: '#1A0A00',
@@ -11,56 +11,34 @@ const PALETTE = {
 };
 
 export const JoinerTracking = () => {
-  const [activeTour, setActiveTour] = useState(null); 
+  const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingConsole, setLoadingConsole] = useState(false);
   const [logs, setLogs] = useState([]);
   const [vehicleInfo, setVehicleInfo] = useState(null);
 
-  // 1. FETCH USER'S BOOKED TOUR ID AND DETAILS
+  // 1. FETCH USER'S BOOKED TOUR(S) FROM SUPABASE
   useEffect(() => {
     const fetchMyBookedAdventure = async () => {
       try {
         setLoading(true);
         let targetTourIds = [];
 
-        // FIND THE USER'S BOOKED TOUR ID FROM DATABASE
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (user) {
           const { data: bookedData } = await supabase
             .from('bookings')
             .select('tour_id')
-            .eq('user_id', user.id);
+            .eq('user_id', user.id)
+            .not('booking_status', 'in', '("Cancelled","Rejected")');
 
           if (bookedData && bookedData.length > 0) {
-            targetTourIds = bookedData.map(b => b.tour_id);
+            targetTourIds = [...new Set(bookedData.map(b => b.tour_id).filter(Boolean))];
           }
         }
 
-        //READ FROM LOCAL STORAGE IF NO TOUR ID FOUND IN DATABASE
-        if (targetTourIds.length === 0) {
-          const allKeys = Object.keys(localStorage);
-          const activeLogKey = allKeys.find(key => key && key.startsWith('logs_'));
-          
-          if (activeLogKey) {
-            const extractedId = activeLogKey.replace('logs_', '');
-            targetTourIds.push(extractedId);
-          }
-          
-          // Check for any live checkpoint logs in localStorage as a fallback
-          const currentLogs = localStorage.getItem('sandbox_live_checkpoint');
-          if (currentLogs) {
-            const parsedCurrent = JSON.parse(currentLogs);
-            if (parsedCurrent.length > 0 && parsedCurrent[0].tour_id) {
-              if (!targetTourIds.includes(parsedCurrent[0].tour_id)) {
-                targetTourIds.push(parsedCurrent[0].tour_id);
-              }
-            }
-          }
-        }
-
-        // FETCH TOUR DETAILS BASED ON THE FOUND TOUR IDS 
         if (targetTourIds.length > 0) {
           const { data: finalTours, error: fetchError } = await supabase
             .from('tours')
@@ -68,14 +46,14 @@ export const JoinerTracking = () => {
             .in('id', targetTourIds)
             .eq('is_archived', false);
 
-          if (!fetchError && finalTours) {
+          if (!fetchError && finalTours && finalTours.length > 0) {
             setToursList(finalTours);
             setLoading(false);
             return;
           }
         }
 
-        // If no tours found, fetch the next upcoming tour as a fallback
+        // Fallback: no active booked tours found — show the next upcoming tour.
         const { data: panicTours } = await supabase
           .from('tours')
           .select('*')
@@ -83,10 +61,9 @@ export const JoinerTracking = () => {
           .order('start_date', { ascending: true })
           .limit(1);
 
-        if (panicTours) setToursList(panicTours);
-
+        setToursList(panicTours || []);
       } catch (err) {
-        console.error("Critical recovery interceptor error:", err);
+        console.error('Error loading tracked tours:', err.message);
       } finally {
         setLoading(false);
       }
@@ -95,57 +72,42 @@ export const JoinerTracking = () => {
     fetchMyBookedAdventure();
   }, []);
 
-  // SYNC LIVE TRACKING LOGS AND VEHICLE INFO FROM LOCAL STORAGE
+  // 2. LOAD LIVE TRACKING DATA FOR THE SELECTED TOUR FROM SUPABASE
+  const fetchTrackingForTour = useCallback(async (tourId) => {
+    setLoadingConsole(true);
+    try {
+      const [{ data: vehicle }, { data: trackingLogs }] = await Promise.all([
+        supabase.from('tour_vehicles').select('*').eq('tour_id', tourId).maybeSingle(),
+        supabase.from('tour_tracking_logs').select('*').eq('tour_id', tourId).order('created_at', { ascending: false }),
+      ]);
+      setVehicleInfo(vehicle || null);
+      setLogs(trackingLogs || []);
+    } catch (err) {
+      console.error('Error loading tracking:', err.message);
+    } finally {
+      setLoadingConsole(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!activeTour) {
       setLogs([]);
       setVehicleInfo(null);
       return;
     }
+    fetchTrackingForTour(activeTour.id);
+  }, [activeTour, fetchTrackingForTour]);
 
-    const syncLiveTrackingMemory = () => {
-      try {
-        const currentLogs = localStorage.getItem('sandbox_live_checkpoint');
-        const allKeys = Object.keys(localStorage);
-
-        const logKey = `logs_${activeTour.id}`;
-        const savedLogs = localStorage.getItem(logKey);
-        
-        if (savedLogs) {
-          setLogs(JSON.parse(savedLogs));
-        } else if (currentLogs) {
-          const parsedCurrent = JSON.parse(currentLogs);
-          if (parsedCurrent.length > 0 && parsedCurrent[0].tour_id === activeTour.id) {
-            setLogs(parsedCurrent);
-          } else {
-            setLogs([]);
-          }
-        } else {
-          setLogs([]);
-        }
-
-        const vehicleKey = `vehicle_info_${activeTour.id}`;
-        const savedVehicle = localStorage.getItem(vehicleKey);
-        
-        if (savedVehicle) {
-          setVehicleInfo(JSON.parse(savedVehicle));
-        } else {
-          const generalVehicleKey = allKeys.find(key => key && key.startsWith('vehicle_info_'));
-          if (generalVehicleKey && !savedLogs) {
-            setVehicleInfo(JSON.parse(localStorage.getItem(generalVehicleKey)));
-          } else {
-            setVehicleInfo(null);
-          }
-        }
-      } catch (err) {
-        console.error("Error parsing layout updates:", err);
-      }
-    };
-
-    syncLiveTrackingMemory();
-    const interval = setInterval(syncLiveTrackingMemory, 1200);
-    return () => clearInterval(interval);
-  }, [activeTour]);
+  // Live updates — new checkpoints / vehicle assignments appear instantly.
+  useEffect(() => {
+    if (!activeTour) return;
+    const channel = supabase
+      .channel(`joiner-tracking-${activeTour.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tour_tracking_logs' }, () => fetchTrackingForTour(activeTour.id))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tour_vehicles' }, () => fetchTrackingForTour(activeTour.id))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [activeTour, fetchTrackingForTour]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -189,6 +151,7 @@ export const JoinerTracking = () => {
           tour={activeTour}
           logs={logs}
           vehicleInfo={vehicleInfo}
+          loadingConsole={loadingConsole}
           onClose={() => setActiveTour(null)}
         />
       )}
@@ -395,10 +358,117 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 );
 
 /* ─────────────────────────────────────────────
+   TRACKING TIMELINE — shipment-tracker style checkpoint feed,
+   shared visual language with AdminTrackingControls. Each log's
+   `display_text` is written as "Title: description" by the admin
+   console, so we split on the first colon to render a bold headline
+   + supporting copy, just like a courier tracking page.
+───────────────────────────────────────────── */
+const splitLogText = (text) => {
+  if (!text) return { title: 'Update', description: '' };
+  const idx = text.indexOf(':');
+  if (idx === -1) return { title: text, description: '' };
+  return { title: text.slice(0, idx).trim(), description: text.slice(idx + 1).trim() };
+};
+
+const formatLogDateTime = (createdAt) => {
+  if (!createdAt) return { dateLabel: '', timeLabel: '' };
+  const d = new Date(createdAt);
+  const isToday = d.toDateString() === new Date().toDateString();
+  return {
+    dateLabel: isToday ? 'Today' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    timeLabel: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+  };
+};
+
+const TrackingTimeline = ({ logs, emptyText = 'No logs posted yet.' }) => {
+  if (!logs || logs.length === 0) {
+    return (
+      <div style={{
+        textAlign: 'center', padding: '2.5rem 1rem',
+        background: '#FDF6EE', borderRadius: 16,
+        border: '2px dashed rgba(196,92,38,0.2)',
+      }}>
+        <Compass size={22} style={{ color: 'rgba(122,58,24,0.3)', marginBottom: 8 }} />
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(122,58,24,0.5)', margin: 0, fontStyle: 'italic' }}>{emptyText}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      {logs.map((log, index) => {
+        const isLast = index === logs.length - 1;
+        const isArrivedStatus = log.status === 'ARRIVED';
+        const isLatestUpdate = index === 0;
+        const { title, description } = splitLogText(log.display_text);
+        const { dateLabel, timeLabel } = formatLogDateTime(log.created_at || log.timestamp);
+
+        const badgeBg = isArrivedStatus ? '#1F8A5C' : isLatestUpdate ? '#C45C26' : 'rgba(122,58,24,0.12)';
+        const badgeColor = isArrivedStatus || isLatestUpdate ? '#FDF6EE' : '#7A3A18';
+        const titleColor = isLatestUpdate || isArrivedStatus ? '#1A0A00' : 'rgba(26,10,0,0.55)';
+        const titleWeight = isLatestUpdate || isArrivedStatus ? 900 : 700;
+
+        return (
+          <div key={log.id || index} style={{ display: 'flex', gap: 12, paddingBottom: isLast ? 0 : 22 }}>
+            {/* date / time column */}
+            <div style={{ width: 56, flexShrink: 0, textAlign: 'right', paddingTop: 3 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.55, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{dateLabel}</p>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.55, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{timeLabel}</p>
+            </div>
+
+            {/* badge + connector column */}
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                background: badgeBg, color: badgeColor,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 2,
+                boxShadow: isLatestUpdate && !isArrivedStatus ? '0 0 0 4px rgba(196,92,38,0.16)' : 'none',
+              }}>
+                {isArrivedStatus ? <CheckCircle2 size={14} strokeWidth={2.5} /> : <Check size={13} strokeWidth={3} />}
+              </div>
+              {!isLast && (
+                <div style={{ position: 'absolute', top: 26, bottom: -22, width: 2, background: 'rgba(196,92,38,0.18)' }} />
+              )}
+            </div>
+
+            {/* content column */}
+            <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: titleWeight, color: titleColor, margin: 0, lineHeight: 1.4 }}>
+                {title}
+              </p>
+              {description && (
+                <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.75, margin: '4px 0 0', lineHeight: 1.6 }}>
+                  {description}
+                </p>
+              )}
+              {log.note && (
+                <div style={{
+                  marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 6,
+                  background: 'rgba(196,92,38,0.08)',
+                  border: '1px solid rgba(196,92,38,0.18)', borderRadius: 10,
+                  padding: '8px 12px',
+                }}>
+                  <MapPin size={12} style={{ color: '#9A5B1E', flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9A5B1E', margin: 0, lineHeight: 1.5 }}>
+                    {log.note}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────
    TRACKING DETAIL MODAL
    (split panel, mirrors JoinerTours' DetailedTourModal)
 ───────────────────────────────────────────── */
-const TrackingDetailModal = ({ tour, logs, vehicleInfo, onClose }) => {
+const TrackingDetailModal = ({ tour, logs, vehicleInfo, loadingConsole, onClose }) => {
   const images = Array.isArray(tour.image_urls) ? tour.image_urls : (tour.image ? [tour.image] : []);
 
   return (
@@ -443,12 +513,17 @@ const TrackingDetailModal = ({ tour, logs, vehicleInfo, onClose }) => {
               {/* Fleet details */}
               <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)', boxShadow: '0 2px 8px rgba(26,10,0,0.02)' }}>
                 <ViewSection title="Assigned Fleet Details" titleColor="#C45C26">
-                  {vehicleInfo ? (
+                  {loadingConsole ? (
+                    <div style={{ padding: '10px 0', textAlign: 'center', color: '#7A3A18', opacity: 0.6, fontSize: 12 }}>
+                      <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', marginRight: 6, verticalAlign: 'middle' }} />
+                      Loading fleet details…
+                    </div>
+                  ) : vehicleInfo ? (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12, color: '#1A0A00' }}>
-                      <div><strong>Van Model:</strong> {vehicleInfo.carType || "Pending Dispatch"}</div>
-                      <div><strong>Plate No:</strong> {vehicleInfo.plateNumber || "Pending Setup"}</div>
-                      <div><strong>Driver:</strong> {vehicleInfo.driverName || "Assigning Staff"}</div>
-                      <div><strong>Contact:</strong> {vehicleInfo.driverContact || "Not Available"}</div>
+                      <div><strong>Van Model:</strong> {vehicleInfo.car_type || "Pending Dispatch"}</div>
+                      <div><strong>Plate No:</strong> {vehicleInfo.plate_number || "Pending Setup"}</div>
+                      <div><strong>Driver:</strong> {vehicleInfo.driver_name || "Assigning Staff"}</div>
+                      <div><strong>Contact:</strong> {vehicleInfo.driver_contact || "Not Available"}</div>
 
                       <div style={{ gridColumn: 'span 2', borderTop: '1px dashed rgba(26,10,0,0.1)', paddingTop: 10, marginTop: 2, display: 'flex', justifyContent: 'space-between', color: '#7A3A18', fontWeight: 600 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -473,53 +548,14 @@ const TrackingDetailModal = ({ tour, logs, vehicleInfo, onClose }) => {
             {/* Right panel: live tracking timeline */}
             <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column' }}>
               <ViewSection title="Tracking Details" titleColor="#C45C26" icon={<Compass size={14} />}>
-                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 16, marginTop: 8 }}>
-                  {!logs || logs.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', marginTop: 8 }}>
+                  {loadingConsole ? (
                     <div style={{ textAlign: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.5)' }}>
-                      <Compass size={24} style={{ opacity: 0.5, marginBottom: 8 }} />
-                      <p style={{ fontSize: 12, margin: 0, fontStyle: 'italic' }}>Waiting for arrival updates…</p>
+                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} />
+                      <p style={{ fontSize: 12, margin: 0 }}>Loading updates…</p>
                     </div>
                   ) : (
-                    logs.map((log, index) => {
-                      const isArrivedStatus = log.status === 'ARRIVED';
-                      const isLatestUpdate = index === 0;
-
-                      let textColor = '#9CA3AF';
-                      let timeColor = '#9CA3AF';
-                      let textWeight = 500;
-                      let dotColor = '#D1D5DB';
-
-                      if (isArrivedStatus) {
-                        textColor = PALETTE.espresso;
-                        timeColor = PALETTE.espresso;
-                        textWeight = 900;
-                        dotColor = '#10B981';
-                      } else if (isLatestUpdate) {
-                        textColor = PALETTE.espresso;
-                        timeColor = '#9CA3AF';
-                        textWeight = 700;
-                        dotColor = PALETTE.burntSienna;
-                      }
-
-                      return (
-                        <div key={log.id || index} style={{ display: 'flex', gap: 16, position: 'relative', paddingBottom: 20, alignItems: 'flex-start' }}>
-                          {index !== logs.length - 1 && (
-                            <div style={{ position: 'absolute', left: 4, top: 16, bottom: 0, width: 2, background: '#E5E7EB', zIndex: 1 }} />
-                          )}
-                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: dotColor, marginTop: 5, zIndex: 2, flexShrink: 0 }} />
-
-                          <div style={{ flex: 1, fontSize: 12 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: textWeight, color: textColor }}>
-                              <span style={{ lineHeight: 1.4 }}>{log.display_text || ""}</span>
-                              <span style={{ fontSize: 10, color: timeColor, fontWeight: textWeight, whiteSpace: 'nowrap', marginLeft: 8 }}>
-                                {log.timestamp || ""}
-                              </span>
-                            </div>
-                            {log.note && <p style={{ margin: '4px 0 0', color: '#9CA3AF', fontSize: 11, fontStyle: 'italic' }}>— Note: "{log.note}"</p>}
-                          </div>
-                        </div>
-                      );
-                    })
+                    <TrackingTimeline logs={logs} emptyText="Waiting for arrival updates…" />
                   )}
                 </div>
               </ViewSection>

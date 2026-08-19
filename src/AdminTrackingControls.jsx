@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import {
   MapPin, Plus, Milestone, FolderArchive, X, Calendar,
   Armchair, Compass, ImageIcon, Loader2, Truck, AlertTriangle,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Check, CheckCircle2, ListChecks, RefreshCw,
 } from 'lucide-react';
 
 const PALETTE = {
@@ -35,14 +35,52 @@ const inputStyle = {
   outline: 'none',
 };
 
+// ── parses a tour's free-text itinerary into selectable checkpoint options ──
+// Matches lines like "04:00 AM – Assembly & Departure" or
+// "08:15 AM – 11:00 AM – Trek to Aw Asen Falls" and pulls out a time + label
+// so the admin can pick a checkpoint instead of retyping the itinerary by hand.
+const ITINERARY_LINE_REGEX = /^(\d{1,2}:\d{2}\s*(?:AM|PM))\s*(?:[–—-]\s*\d{1,2}:\d{2}\s*(?:AM|PM))?\s*[–—-]\s*(.+)$/i;
+const ITINERARY_DAY_REGEX = /^day\s*\d+\s*:?$/i;
+
+const parseItineraryStops = (itineraryText) => {
+  if (!itineraryText) return [];
+  const lines = itineraryText.split('\n').map(l => l.trim()).filter(Boolean);
+  const stops = [];
+  let currentDay = '';
+
+  lines.forEach((line) => {
+    if (ITINERARY_DAY_REGEX.test(line)) {
+      currentDay = line.replace(/:$/, '');
+      return;
+    }
+    const match = line.match(ITINERARY_LINE_REGEX);
+    if (match) {
+      const [, time, label] = match;
+      stops.push({
+        time: time.trim().toUpperCase(),
+        label: label.trim(),
+        day: currentDay,
+      });
+    }
+  });
+
+  return stops;
+};
+
 export const AdminTrackingControls = () => {
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
   const [meetupStops, setMeetupStops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingConsole, setLoadingConsole] = useState(false);
   const [customNotes, setCustomNotes] = useState({});
   const [trackingLogs, setTrackingLogs] = useState([]);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
+  const [savingStop, setSavingStop] = useState(false);
+  const [updatingStopId, setUpdatingStopId] = useState(null);
+  const [generatingStops, setGeneratingStops] = useState(false);
+  const [advancing, setAdvancing] = useState(false);
 
   // Checkpoint Inputs
   const [newLocName, setNewLocName] = useState('');
@@ -54,6 +92,7 @@ export const AdminTrackingControls = () => {
   const [driverName, setDriverName] = useState('');
   const [driverContact, setDriverContact] = useState('');
   const [isLogisticsSaved, setIsLogisticsSaved] = useState(false);
+  const [savingLogistics, setSavingLogistics] = useState(false);
 
   // 1. FETCH TOURS FROM DB
   const fetchToursFromDatabase = async () => {
@@ -77,41 +116,126 @@ export const AdminTrackingControls = () => {
     fetchToursFromDatabase();
   }, []);
 
-  useEffect(() => {
-    if (activeTour) {
-      const isArchivedLocally = localStorage.getItem(`archived_tour_${activeTour.id}`);
-      if (isArchivedLocally === 'true') {
-        setMeetupStops([]);
-        setTrackingLogs([]);
-        setIsLogisticsSaved(false);
+  // 2. LOAD TRACKING STATE FOR THE SELECTED TOUR FROM SUPABASE
+  const fetchTrackingConsole = useCallback(async (tourId) => {
+    setLoadingConsole(true);
+    try {
+      const [{ data: vehicle }, { data: stops }, { data: logs }] = await Promise.all([
+        supabase.from('tour_vehicles').select('*').eq('tour_id', tourId).maybeSingle(),
+        supabase.from('tour_meetups').select('*').eq('tour_id', tourId).order('created_at', { ascending: true }),
+        supabase.from('tour_tracking_logs').select('*').eq('tour_id', tourId).order('created_at', { ascending: false }),
+      ]);
+
+      if (vehicle) {
+        setCarType(vehicle.car_type || '');
+        setPlateNumber(vehicle.plate_number || '');
+        setDriverName(vehicle.driver_name || '');
+        setDriverContact(vehicle.driver_contact || '');
+        setIsLogisticsSaved(true);
       } else {
-        const savedStops = localStorage.getItem(`offline_stops_${activeTour.id}`);
-        setMeetupStops(savedStops ? JSON.parse(savedStops) : []);
-
-        const savedLogs = localStorage.getItem(`logs_${activeTour.id}`);
-        setTrackingLogs(savedLogs ? JSON.parse(savedLogs) : []);
-
-        const savedVehicle = localStorage.getItem(`vehicle_info_${activeTour.id}`);
-        if (savedVehicle) {
-          const parsed = JSON.parse(savedVehicle);
-          setCarType(parsed.carType || '');
-          setPlateNumber(parsed.plateNumber || '');
-          setDriverName(parsed.driverName || '');
-          setDriverContact(parsed.driverContact || '');
-          setIsLogisticsSaved(true);
-        } else {
-          setCarType('');
-          setPlateNumber('');
-          setDriverName('');
-          setDriverContact('');
-          setIsLogisticsSaved(false);
-        }
+        setCarType('');
+        setPlateNumber('');
+        setDriverName('');
+        setDriverContact('');
+        setIsLogisticsSaved(false);
       }
+
+      setMeetupStops(stops || []);
+      setTrackingLogs(logs || []);
+    } catch (err) {
+      console.error('Error loading tracking console:', err.message);
+    } finally {
+      setLoadingConsole(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTour) fetchTrackingConsole(activeTour.id);
+  }, [activeTour, fetchTrackingConsole]);
+
+  // Auto-populate checkpoints straight from the tour's itinerary, so the admin
+  // never has to retype stops the tour already describes. Runs once fleet
+  // details exist and no checkpoints have been created yet for this tour.
+  // Inserted one row at a time (awaited) so each gets a strictly later
+  // created_at than the last — that's what the list is ordered by.
+  const generateStopsFromItinerary = useCallback(async () => {
+    if (!activeTour) return;
+    const stops = parseItineraryStops(activeTour.itinerary);
+    if (stops.length === 0) return;
+
+    setGeneratingStops(true);
+    try {
+      const inserted = [];
+      for (const s of stops) {
+        const { data, error } = await supabase.from('tour_meetups').insert([{
+          tour_id: activeTour.id,
+          location_name: s.label,
+          scheduled_time: s.time,
+          status: 'DEPARTURE',
+          note: '',
+        }]).select().single();
+        if (error) throw error;
+        inserted.push(data);
+      }
+      setMeetupStops(inserted);
+    } catch (err) {
+      alert('Error auto-generating checkpoints from itinerary: ' + err.message);
+    } finally {
+      setGeneratingStops(false);
     }
   }, [activeTour]);
 
+  useEffect(() => {
+    if (!activeTour || loadingConsole || generatingStops) return;
+    if (!isLogisticsSaved) return;
+    if (meetupStops.length > 0) return;
+    generateStopsFromItinerary();
+  }, [activeTour, loadingConsole, generatingStops, isLogisticsSaved, meetupStops.length, generateStopsFromItinerary]);
+
+  // Wipes whatever checkpoints/logs currently exist for this tour and rebuilds
+  // them fresh from the itinerary. Needed because auto-generation only fires
+  // when a tour has zero checkpoints — a stray manual stop (old test data, a
+  // one-off addition, etc.) permanently blocks that, so this gives the admin
+  // an explicit way to force a resync at any time.
+  const regenerateStopsFromItinerary = async () => {
+    if (!activeTour) return;
+    setShowRegenerateConfirm(false);
+    setGeneratingStops(true);
+    try {
+      const { error: logsError } = await supabase.from('tour_tracking_logs').delete().eq('tour_id', activeTour.id);
+      if (logsError) throw logsError;
+      const { error: meetupsError } = await supabase.from('tour_meetups').delete().eq('tour_id', activeTour.id);
+      if (meetupsError) throw meetupsError;
+
+      setMeetupStops([]);
+      setTrackingLogs([]);
+      setCustomNotes({});
+      await generateStopsFromItinerary();
+    } catch (err) {
+      alert('Error regenerating checkpoints: ' + err.message);
+      setGeneratingStops(false);
+    }
+  };
+
+  // Live updates — realtime sync so admin + joiners always see the same state.
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-tracking-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tour_meetups' }, () => {
+        if (activeTour) fetchTrackingConsole(activeTour.id);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tour_tracking_logs' }, () => {
+        if (activeTour) fetchTrackingConsole(activeTour.id);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tour_vehicles' }, () => {
+        if (activeTour) fetchTrackingConsole(activeTour.id);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [activeTour, fetchTrackingConsole]);
+
   // SAVE VEHICLE DISPATCH
-  const handleSaveVehicleInfo = (e) => {
+  const handleSaveVehicleInfo = async (e) => {
     e.preventDefault();
     if (!carType || !plateNumber || !driverName || !driverContact) {
       alert('Please complete all driver and vehicle form fields.');
@@ -124,48 +248,62 @@ export const AdminTrackingControls = () => {
       return;
     }
 
-    const manifest = { carType, plateNumber, driverName, driverContact };
-    localStorage.setItem(`vehicle_info_${activeTour.id}`, JSON.stringify(manifest));
+    setSavingLogistics(true);
+    const { error } = await supabase.from('tour_vehicles').upsert([{
+      tour_id: activeTour.id,
+      car_type: carType,
+      plate_number: plateNumber,
+      driver_name: driverName,
+      driver_contact: driverContact,
+      updated_at: new Date().toISOString(),
+    }], { onConflict: 'tour_id' });
+
+    setSavingLogistics(false);
+    if (error) {
+      alert('Error saving fleet details: ' + error.message);
+      return;
+    }
     setIsLogisticsSaved(true);
   };
 
-  // 2. FIXED INSERT
+  // 2. ADD PICKUP STOP
   const handleAddPickupStop = async (e) => {
     e.preventDefault();
     if (!newLocName || !newTime || !activeTour) return;
 
-    const newStopRow = {
-      id: `stop-${Date.now()}`,
+    setSavingStop(true);
+    const { data, error } = await supabase.from('tour_meetups').insert([{
       tour_id: activeTour.id,
       location_name: newLocName,
       scheduled_time: newTime,
       status: 'DEPARTURE',
       note: '',
-    };
+    }]).select();
 
-    const updatedStops = [...meetupStops, newStopRow];
-    setMeetupStops(updatedStops);
-    localStorage.removeItem(`archived_tour_${activeTour.id}`);
-    localStorage.setItem(`offline_stops_${activeTour.id}`, JSON.stringify(updatedStops));
-
-    try {
-      await supabase.from('tour_meetups').insert([newStopRow]);
-    } catch (err) {
-      console.log('Saved.');
+    setSavingStop(false);
+    if (error) {
+      alert('Error adding checkpoint: ' + error.message);
+      return;
     }
 
+    setMeetupStops(prev => [...prev, ...(data || [])]);
     setNewLocName('');
     setNewTime('');
   };
 
-  // 3. ARCHIVE SESSION
-  const executeArchiveTrackingTimeline = () => {
+  // 3. ARCHIVE SESSION — clears all tracking rows for this tour in Supabase
+  const executeArchiveTrackingTimeline = async () => {
     if (!activeTour) return;
-    localStorage.setItem(`archived_tour_${activeTour.id}`, 'true');
-    localStorage.removeItem(`offline_stops_${activeTour.id}`);
-    localStorage.removeItem(`logs_${activeTour.id}`);
-    localStorage.removeItem(`vehicle_info_${activeTour.id}`);
-    localStorage.removeItem('sandbox_live_checkpoint');
+    try {
+      await Promise.all([
+        supabase.from('tour_tracking_logs').delete().eq('tour_id', activeTour.id),
+        supabase.from('tour_meetups').delete().eq('tour_id', activeTour.id),
+        supabase.from('tour_vehicles').delete().eq('tour_id', activeTour.id),
+      ]);
+    } catch (err) {
+      alert('Error archiving tracking: ' + err.message);
+      return;
+    }
     setMeetupStops([]);
     setTrackingLogs([]);
     setCarType('');
@@ -177,48 +315,87 @@ export const AdminTrackingControls = () => {
     setActiveTour(null);
   };
 
-  // 4. TIMELINE FLOW CONTROLLER
-  const updateStopStatus = async (stopId, newStatus) => {
-    if (!activeTour) return;
-    const typedNote = customNotes[stopId] || '';
+  // Drives the whole checkpoint list with a single button: finds the first
+  // stop that hasn't been reached yet, and either sends the van "on the way"
+  // to it, or — if it's already on the way — marks it arrived and
+  // immediately starts the next stop in the sequence.
+  const advanceToNextStop = async () => {
+    if (!activeTour || advancing) return;
+    const idx = meetupStops.findIndex(s => s.status !== 'ARRIVED');
+    if (idx === -1) return;
+    const current = meetupStops[idx];
 
-    const currentLiveDateTime = new Date().toLocaleString('en-US', {
-      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true,
-    });
+    setAdvancing(true);
+    setUpdatingStopId(current.id);
+    try {
+      if (current.status !== 'CURRENTLY HERE') {
+        const note = customNotes[current.id] || '';
+        const { error } = await supabase
+          .from('tour_meetups')
+          .update({ status: 'CURRENTLY HERE', note: note || current.note })
+          .eq('id', current.id);
+        if (error) throw error;
 
-    const updatedStops = meetupStops.map(stop => {
-      if (stop.id === stopId) {
-        return { ...stop, status: newStatus, note: typedNote || stop.note };
+        const { error: logError } = await supabase.from('tour_tracking_logs').insert([{
+          tour_id: activeTour.id,
+          meetup_id: current.id,
+          location_name: current.location_name,
+          status: 'CURRENTLY HERE',
+          display_text: `Van is now heading to ${current.location_name}.`,
+          note,
+        }]);
+        if (logError) throw logError;
+
+        setMeetupStops(prev => prev.map(s => s.id === current.id ? { ...s, status: 'CURRENTLY HERE', note: note || s.note } : s));
+      } else {
+        const note = customNotes[current.id] || '';
+        const { error } = await supabase
+          .from('tour_meetups')
+          .update({ status: 'ARRIVED', note: note || current.note })
+          .eq('id', current.id);
+        if (error) throw error;
+
+        const { error: logError } = await supabase.from('tour_tracking_logs').insert([{
+          tour_id: activeTour.id,
+          meetup_id: current.id,
+          location_name: current.location_name,
+          status: 'ARRIVED',
+          display_text: `Destination Reached: Van has arrived at [${current.location_name}]`,
+          note,
+        }]);
+        if (logError) throw logError;
+
+        let updated = meetupStops.map(s => s.id === current.id ? { ...s, status: 'ARRIVED', note: note || s.note } : s);
+        const next = meetupStops[idx + 1];
+        if (next) {
+          const { error: nextError } = await supabase
+            .from('tour_meetups')
+            .update({ status: 'CURRENTLY HERE' })
+            .eq('id', next.id);
+          if (nextError) throw nextError;
+
+          const { error: nextLogError } = await supabase.from('tour_tracking_logs').insert([{
+            tour_id: activeTour.id,
+            meetup_id: next.id,
+            location_name: next.location_name,
+            status: 'CURRENTLY HERE',
+            display_text: `Van is now heading to ${next.location_name}.`,
+            note: '',
+          }]);
+          if (nextLogError) throw nextLogError;
+
+          updated = updated.map(s => s.id === next.id ? { ...s, status: 'CURRENTLY HERE' } : s);
+        }
+
+        setMeetupStops(updated);
+        setCustomNotes(prev => ({ ...prev, [current.id]: '' }));
       }
-      return stop;
-    });
-
-    setMeetupStops(updatedStops);
-    localStorage.setItem(`offline_stops_${activeTour.id}`, JSON.stringify(updatedStops));
-
-    const targetStop = meetupStops.find(s => s.id === stopId);
-    if (targetStop) {
-      let labelMessage = `Transit Update: Van is on the way or updating`;
-      if (newStatus === 'DEPARTED') labelMessage = `Departure: Van has departed from its location.`;
-      if (newStatus === 'ARRIVED') labelMessage = `Destination Reached: Van has arrived at the Final Pick-up [${targetStop.location_name}]`;
-
-      const newLogEntry = {
-        id: `log-${Date.now()}`,
-        tour_id: activeTour.id,
-        location_name: targetStop.location_name,
-        status: newStatus,
-        display_text: labelMessage,
-        note: typedNote,
-        timestamp: currentLiveDateTime,
-      };
-
-      const updatedLogs = [newLogEntry, ...trackingLogs];
-      setTrackingLogs(updatedLogs);
-      localStorage.setItem(`logs_${activeTour.id}`, JSON.stringify(updatedLogs));
-      localStorage.setItem('sandbox_live_checkpoint', JSON.stringify(updatedLogs));
+    } catch (err) {
+      alert('Error updating checkpoint: ' + err.message);
+    } finally {
+      setAdvancing(false);
+      setUpdatingStopId(null);
     }
-
-    setCustomNotes(prev => ({ ...prev, [stopId]: '' }));
   };
 
   const hasActiveOrPendingStop = meetupStops.some(stop => stop.status !== 'ARRIVED');
@@ -262,10 +439,16 @@ export const AdminTrackingControls = () => {
           tour={activeTour}
           meetupStops={meetupStops}
           trackingLogs={trackingLogs}
+          loadingConsole={loadingConsole}
           customNotes={customNotes}
           setCustomNotes={setCustomNotes}
           isLogisticsSaved={isLogisticsSaved}
           setIsLogisticsSaved={setIsLogisticsSaved}
+          savingLogistics={savingLogistics}
+          savingStop={savingStop}
+          updatingStopId={updatingStopId}
+          generatingStops={generatingStops}
+          advancing={advancing}
           carType={carType} setCarType={setCarType}
           plateNumber={plateNumber} setPlateNumber={setPlateNumber}
           driverName={driverName} setDriverName={setDriverName}
@@ -275,8 +458,9 @@ export const AdminTrackingControls = () => {
           hasActiveOrPendingStop={hasActiveOrPendingStop}
           onSaveVehicleInfo={handleSaveVehicleInfo}
           onAddPickupStop={handleAddPickupStop}
-          onUpdateStopStatus={updateStopStatus}
+          onAdvanceStop={advanceToNextStop}
           onRequestArchive={() => setShowArchiveConfirm(true)}
+          onRequestRegenerate={() => setShowRegenerateConfirm(true)}
           onClose={() => { setActiveTour(null); setIsLogisticsSaved(false); }}
         />
       )}
@@ -333,6 +517,63 @@ export const AdminTrackingControls = () => {
                   boxShadow: '0 6px 20px rgba(26,10,0,0.22)',
                 }}
               >Archive</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Regenerate-from-Itinerary Confirmation Modal ── */}
+      {showRegenerateConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 10050,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)',
+          padding: 16,
+        }}>
+          <div style={{
+            background: '#FDF6EE', padding: '3rem',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            textAlign: 'center', width: '100%', maxWidth: 420,
+            borderTop: '8px solid #C45C26',
+          }}>
+            <div style={{
+              width: 88, height: 88, borderRadius: '50%',
+              background: '#C45C26',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 28px', color: '#FDF6EE',
+              boxShadow: '0 12px 32px rgba(196,92,38,0.3)',
+            }}>
+              <RefreshCw size={38} />
+            </div>
+            <h3 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 12px' }}>
+              Regenerate Checkpoints?
+            </h3>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.65, lineHeight: 1.7, margin: '0 0 32px' }}>
+              This clears the current checkpoint list and tracking timeline for <strong>{activeTour?.title}</strong>, then rebuilds it fresh from the tour's itinerary. Any progress recorded so far will be lost.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => setShowRegenerateConfirm(false)}
+                style={{
+                  flex: 1, padding: '13px 0',
+                  background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+                  borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontWeight: 900,
+                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  color: '#7A3A18',
+                }}
+              >Cancel</button>
+              <button
+                onClick={regenerateStopsFromItinerary}
+                style={{
+                  flex: 1, padding: '13px 0',
+                  background: '#C45C26', border: 'none', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontWeight: 900,
+                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  color: '#FDF6EE',
+                  boxShadow: '0 6px 20px rgba(196,92,38,0.3)',
+                }}
+              >Regenerate</button>
             </div>
           </div>
         </div>
@@ -543,21 +784,134 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 );
 
 /* ─────────────────────────────────────────────
+   TRACKING TIMELINE — shipment-tracker style checkpoint feed,
+   shared visual language between AdminTrackingControls & JoinerTracking.
+   Each tracking log's `display_text` is written as "Title: description"
+   (see updateStopStatus), so we split on the first colon to render a
+   bold headline + supporting copy, just like a courier tracking page.
+───────────────────────────────────────────── */
+const splitLogText = (text) => {
+  if (!text) return { title: 'Update', description: '' };
+  const idx = text.indexOf(':');
+  if (idx === -1) return { title: text, description: '' };
+  return { title: text.slice(0, idx).trim(), description: text.slice(idx + 1).trim() };
+};
+
+const formatLogDateTime = (createdAt) => {
+  if (!createdAt) return { dateLabel: '', timeLabel: '' };
+  const d = new Date(createdAt);
+  const isToday = d.toDateString() === new Date().toDateString();
+  return {
+    dateLabel: isToday ? 'Today' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    timeLabel: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+  };
+};
+
+const TrackingTimeline = ({ logs, emptyText = 'No logs posted yet.' }) => {
+  if (!logs || logs.length === 0) {
+    return (
+      <div style={{
+        textAlign: 'center', padding: '2.5rem 1rem',
+        background: '#FDF6EE', borderRadius: 16,
+        border: '2px dashed rgba(196,92,38,0.2)',
+      }}>
+        <Compass size={22} style={{ color: 'rgba(122,58,24,0.3)', marginBottom: 8 }} />
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(122,58,24,0.5)', margin: 0, fontStyle: 'italic' }}>{emptyText}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      {logs.map((log, index) => {
+        const isLast = index === logs.length - 1;
+        const isArrivedStatus = log.status === 'ARRIVED';
+        const isLatestUpdate = index === 0;
+        const { title, description } = splitLogText(log.display_text);
+        const { dateLabel, timeLabel } = formatLogDateTime(log.created_at || log.timestamp);
+
+        const badgeBg = isArrivedStatus ? '#1F8A5C' : isLatestUpdate ? '#C45C26' : 'rgba(122,58,24,0.12)';
+        const badgeColor = isArrivedStatus || isLatestUpdate ? '#FDF6EE' : '#7A3A18';
+        const titleColor = isLatestUpdate || isArrivedStatus ? '#1A0A00' : 'rgba(26,10,0,0.55)';
+        const titleWeight = isLatestUpdate || isArrivedStatus ? 900 : 700;
+
+        return (
+          <div key={log.id || index} style={{ display: 'flex', gap: 12, paddingBottom: isLast ? 0 : 22 }}>
+            {/* date / time column */}
+            <div style={{ width: 56, flexShrink: 0, textAlign: 'right', paddingTop: 3 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.55, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{dateLabel}</p>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.55, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{timeLabel}</p>
+            </div>
+
+            {/* badge + connector column */}
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                background: badgeBg, color: badgeColor,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 2,
+                boxShadow: isLatestUpdate && !isArrivedStatus ? '0 0 0 4px rgba(196,92,38,0.16)' : 'none',
+              }}>
+                {isArrivedStatus ? <CheckCircle2 size={14} strokeWidth={2.5} /> : <Check size={13} strokeWidth={3} />}
+              </div>
+              {!isLast && (
+                <div style={{ position: 'absolute', top: 26, bottom: -22, width: 2, background: 'rgba(196,92,38,0.18)' }} />
+              )}
+            </div>
+
+            {/* content column */}
+            <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: titleWeight, color: titleColor, margin: 0, lineHeight: 1.4 }}>
+                {title}
+              </p>
+              {description && (
+                <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.75, margin: '4px 0 0', lineHeight: 1.6 }}>
+                  {description}
+                </p>
+              )}
+              {log.note && (
+                <div style={{
+                  marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 6,
+                  background: 'rgba(196,92,38,0.08)',
+                  border: '1px solid rgba(196,92,38,0.18)', borderRadius: 10,
+                  padding: '8px 12px',
+                }}>
+                  <MapPin size={12} style={{ color: '#9A5B1E', flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9A5B1E', margin: 0, lineHeight: 1.5 }}>
+                    {log.note}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────
    TRACKING CONSOLE MODAL
    (split panel, mirrors JoinerTracking's TrackingDetailModal —
    left panel adds the fleet-assignment form and checkpoint controls
    an admin needs; right panel is the same live timeline)
 ───────────────────────────────────────────── */
 const TrackingConsoleModal = ({
-  tour, meetupStops, trackingLogs, customNotes, setCustomNotes,
-  isLogisticsSaved, setIsLogisticsSaved,
+  tour, meetupStops, trackingLogs, loadingConsole, customNotes, setCustomNotes,
+  isLogisticsSaved, setIsLogisticsSaved, savingLogistics, savingStop, updatingStopId,
+  generatingStops, advancing,
   carType, setCarType, plateNumber, setPlateNumber,
   driverName, setDriverName, driverContact, setDriverContact,
   newLocName, setNewLocName, newTime, setNewTime,
-  hasActiveOrPendingStop, onSaveVehicleInfo, onAddPickupStop, onUpdateStopStatus,
-  onRequestArchive, onClose,
+  hasActiveOrPendingStop, onSaveVehicleInfo, onAddPickupStop, onAdvanceStop,
+  onRequestArchive, onRequestRegenerate, onClose,
 }) => {
   const images = Array.isArray(tour.image_urls) ? tour.image_urls : (tour.image ? [tour.image] : []);
+  const itineraryStops = useMemo(() => parseItineraryStops(tour.itinerary), [tour.itinerary]);
+  const itineraryMismatch = itineraryStops.length > 0 && meetupStops.length > 0 && (
+    meetupStops.length !== itineraryStops.length ||
+    meetupStops.some((stop, i) => stop.location_name !== itineraryStops[i]?.label)
+  );
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -615,6 +969,13 @@ const TrackingConsoleModal = ({
                 <span>{tour.destination || 'Dynamic Target Route'}</span>
               </p>
 
+              {loadingConsole ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+                  <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
+                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading tracking…</span>
+                </div>
+              ) : (
+              <>
               {/* Fleet details */}
               <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)', boxShadow: '0 2px 8px rgba(26,10,0,0.02)', marginBottom: 20 }}>
                 <ViewSection title="Assigned Fleet Details" titleColor="#C45C26" icon={<Truck size={14} />}>
@@ -647,14 +1008,17 @@ const TrackingConsoleModal = ({
                           {tour.max_seats || tour.seats || 'Not Specified'} Seats
                         </div>
                       </div>
-                      <button type="submit" style={{
+                      <button type="submit" disabled={savingLogistics} style={{
                         width: '100%', padding: '11px 0',
                         background: '#C45C26', color: '#FDF6EE',
-                        border: 'none', borderRadius: 999, cursor: 'pointer',
+                        border: 'none', borderRadius: 999, cursor: savingLogistics ? 'not-allowed' : 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
                         fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
                         boxShadow: '0 6px 20px rgba(196,92,38,0.3)',
+                        opacity: savingLogistics ? 0.6 : 1,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       }}>
+                        {savingLogistics ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : null}
                         Save Details
                       </button>
                     </form>
@@ -693,7 +1057,7 @@ const TrackingConsoleModal = ({
                 </ViewSection>
               </div>
 
-              {/* Checkpoint management */}
+              {/* Checkpoint management — auto-built from the tour itinerary */}
               <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)', boxShadow: '0 2px 8px rgba(26,10,0,0.02)', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <ViewSection title="Checkpoint Management" titleColor="#C45C26" icon={<Milestone size={14} />}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 4 }}>
@@ -701,170 +1065,189 @@ const TrackingConsoleModal = ({
                       <Notice
                         color="#9A5B1E" bg="rgba(232,162,101,0.15)"
                         icon={<AlertTriangle size={16} />}
-                        text="Complete the fleet form above to enable checkpoint creation."
+                        text="Complete the fleet form above to enable checkpoint tracking."
                       />
-                    ) : hasActiveOrPendingStop && meetupStops.length > 0 ? (
-                      <Notice
-                        color="#9A5B1E" bg="rgba(232,162,101,0.15)"
-                        icon={<AlertTriangle size={16} />}
-                        text="Complete the arrival and departure of all checkpoints before adding new ones."
-                      />
-                    ) : (
-                      <form onSubmit={onAddPickupStop} style={{ display: 'flex', gap: 10 }}>
-                        <input
-                          type="text" placeholder="Location (e.g., SM MOA)"
-                          value={newLocName} onChange={e => setNewLocName(e.target.value)}
-                          style={{ ...inputStyle, flex: 2 }}
-                        />
-                        <input
-                          type="text" placeholder="ETA (e.g., 08:00 PM)"
-                          value={newTime} onChange={e => setNewTime(e.target.value)}
-                          style={{ ...inputStyle, flex: 1 }}
-                        />
-                        <button type="submit" style={{
-                          flexShrink: 0, width: 44,
-                          background: '#1A0A00', color: '#FDF6EE',
-                          border: 'none', borderRadius: 14, cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          <Plus size={16} strokeWidth={3} />
-                        </button>
-                      </form>
-                    )}
-
-                    {meetupStops.length === 0 ? (
-                      <div style={{
-                        textAlign: 'center', padding: '1.5rem 1rem',
-                        background: '#FDF6EE', borderRadius: 14,
-                        border: '2px dashed rgba(196,92,38,0.2)',
-                      }}>
-                        <Milestone size={20} style={{ color: 'rgba(122,58,24,0.3)', marginBottom: 6 }} />
-                        <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(122,58,24,0.5)', margin: 0 }}>
-                          No pickup stations created yet.
-                        </p>
+                    ) : generatingStops ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.5)' }}>
+                        <Loader2 size={18} style={{ marginRight: 8, animation: 'spin 1s linear infinite' }} />
+                        <span style={{ fontSize: 11, fontWeight: 700 }}>Pulling checkpoints from the itinerary…</span>
                       </div>
+                    ) : meetupStops.length === 0 && itineraryStops.length === 0 ? (
+                      <>
+                        <Notice
+                          color="#9A5B1E" bg="rgba(232,162,101,0.15)"
+                          icon={<ListChecks size={16} />}
+                          text="No timestamped itinerary lines were found for this tour, so checkpoints can't be auto-filled. Add stops manually below."
+                        />
+                        <form onSubmit={onAddPickupStop} style={{ display: 'flex', gap: 10 }}>
+                          <input
+                            type="text" placeholder="Location (e.g., SM MOA)"
+                            value={newLocName} onChange={e => setNewLocName(e.target.value)}
+                            style={{ ...inputStyle, flex: 2 }}
+                          />
+                          <input
+                            type="text" placeholder="ETA (e.g., 08:00 PM)"
+                            value={newTime} onChange={e => setNewTime(e.target.value)}
+                            style={{ ...inputStyle, flex: 1 }}
+                          />
+                          <button type="submit" disabled={savingStop} style={{
+                            flexShrink: 0, width: 44,
+                            background: '#1A0A00', color: '#FDF6EE',
+                            border: 'none', borderRadius: 14, cursor: savingStop ? 'not-allowed' : 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            opacity: savingStop ? 0.6 : 1,
+                          }}>
+                            {savingStop ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={16} strokeWidth={3} />}
+                          </button>
+                        </form>
+                      </>
+                    ) : itineraryMismatch ? (
+                      <Notice
+                        color="#8C2F1C" bg="rgba(140,47,28,0.08)"
+                        icon={<AlertTriangle size={16} />}
+                        text={`These ${meetupStops.length} checkpoint${meetupStops.length === 1 ? '' : 's'} don't match this tour's ${itineraryStops.length}-stop itinerary. Regenerate to sync them up.`}
+                      />
                     ) : (
-                      meetupStops.map((stop) => {
-                        const isUpcoming = stop.status === 'DEPARTURE';
-                        const isOnTheWay = stop.status === 'CURRENTLY HERE';
-                        const isArrived = stop.status === 'ARRIVED';
-                        const isDeparted = stop.status === 'DEPARTED';
-                        const canMessage = isDeparted || isOnTheWay;
-                        const statusStyle = STOP_STATUS_STYLES[stop.status] || STOP_STATUS_STYLES.DEPARTURE;
-
-                        return (
-                          <div
-                            key={stop.id}
-                            style={{
-                              background: isOnTheWay ? 'rgba(196,92,38,0.06)' : '#FDF6EE',
-                              border: isOnTheWay ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.12)',
-                              borderRadius: 14, padding: '0.9rem',
-                            }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                              <span style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>
-                                {stop.location_name} <span style={{ fontWeight: 600, opacity: 0.6 }}>(ETA: {stop.scheduled_time})</span>
-                              </span>
-                              <span style={{
-                                flexShrink: 0,
-                                background: statusStyle.bg, color: statusStyle.color,
-                                fontSize: 8, fontWeight: 900, padding: '5px 10px', borderRadius: 999,
-                                letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                              }}>
-                                {statusStyle.label}
-                              </span>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder={!canMessage ? "Mark 'Departed' first to add location updates" : 'Type location updates…'}
-                              disabled={!canMessage}
-                              value={customNotes[stop.id] || ''}
-                              onChange={(e) => setCustomNotes({ ...customNotes, [stop.id]: e.target.value })}
-                              style={{
-                                ...inputStyle, marginTop: 9, padding: '8px 12px', fontSize: 12,
-                                background: !canMessage ? 'rgba(122,58,24,0.05)' : '#F2E4D0',
-                                cursor: !canMessage ? 'not-allowed' : 'text',
-                              }}
-                            />
-                            <div style={{ display: 'flex', gap: 6, marginTop: 9, flexWrap: 'wrap' }}>
-                              <StopActionButton
-                                label="Departed"
-                                disabled={isDeparted || isOnTheWay || isArrived}
-                                onClick={() => onUpdateStopStatus(stop.id, 'DEPARTED')}
-                                variant="dark"
-                              />
-                              <StopActionButton
-                                label="Set Active"
-                                disabled={isUpcoming || isArrived}
-                                onClick={() => onUpdateStopStatus(stop.id, 'CURRENTLY HERE')}
-                                variant="accent"
-                              />
-                              <StopActionButton
-                                label="Arrived"
-                                disabled={isUpcoming || isArrived}
-                                onClick={() => onUpdateStopStatus(stop.id, 'ARRIVED')}
-                                variant="solid"
-                              />
-                            </div>
-                          </div>
-                        );
-                      })
+                      <p style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0,
+                      }}>
+                        <ListChecks size={12} style={{ color: '#C45C26', flexShrink: 0 }} />
+                        Checkpoints below were pulled straight from this tour's itinerary — just click Next Stop to move the van along.
+                      </p>
                     )}
+
+                    {isLogisticsSaved && !generatingStops && itineraryStops.length > 0 && (
+                      <button
+                        onClick={onRequestRegenerate}
+                        style={{
+                          alignSelf: 'flex-start',
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                          color: itineraryMismatch ? '#8C2F1C' : 'rgba(122,58,24,0.55)',
+                          fontFamily: 'inherit', fontWeight: 800,
+                          fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+                        }}
+                      >
+                        <RefreshCw size={11} /> Regenerate from Itinerary
+                      </button>
+                    )}
+
+                    {isLogisticsSaved && meetupStops.length > 0 && (() => {
+                      const activeIdx = meetupStops.findIndex(s => s.status !== 'ARRIVED');
+                      const allArrived = activeIdx === -1;
+                      const activeStop = !allArrived ? meetupStops[activeIdx] : null;
+                      const isHeadingThere = activeStop?.status === 'CURRENTLY HERE';
+
+                      return (
+                        <>
+                          {/* Ordered checkpoint list */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {meetupStops.map((stop, i) => {
+                              const isArrived = stop.status === 'ARRIVED';
+                              const isCurrent = i === activeIdx;
+                              const statusStyle = STOP_STATUS_STYLES[stop.status] || STOP_STATUS_STYLES.DEPARTURE;
+
+                              return (
+                                <div
+                                  key={stop.id}
+                                  style={{
+                                    display: 'flex', alignItems: 'center', gap: 10,
+                                    padding: '10px 12px', borderRadius: 12,
+                                    background: isCurrent ? 'rgba(196,92,38,0.07)' : '#FDF6EE',
+                                    border: isCurrent ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.12)',
+                                  }}
+                                >
+                                  <div style={{
+                                    width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    background: isArrived ? '#1A0A00' : isCurrent ? '#C45C26' : 'rgba(122,58,24,0.12)',
+                                    color: isArrived || isCurrent ? '#FDF6EE' : '#7A3A18',
+                                    fontSize: 10, fontWeight: 900,
+                                  }}>
+                                    {isArrived ? <Check size={12} strokeWidth={3} /> : i + 1}
+                                  </div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
+                                      {stop.location_name}
+                                    </p>
+                                    <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>
+                                      ETA: {stop.scheduled_time}
+                                    </p>
+                                  </div>
+                                  <span style={{
+                                    flexShrink: 0,
+                                    background: statusStyle.bg, color: statusStyle.color,
+                                    fontSize: 8, fontWeight: 900, padding: '5px 10px', borderRadius: 999,
+                                    letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                                  }}>
+                                    {statusStyle.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Single advance control */}
+                          {allArrived ? (
+                            <Notice
+                              color="#C45C26" bg="rgba(196,92,38,0.08)"
+                              icon={<CheckCircle2 size={16} />}
+                              text="All checkpoints have been reached — this tour's route is complete."
+                            />
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                              <input
+                                type="text"
+                                placeholder="Optional note for joiners (e.g. traffic update)…"
+                                value={customNotes[activeStop.id] || ''}
+                                onChange={(e) => setCustomNotes({ ...customNotes, [activeStop.id]: e.target.value })}
+                                style={{ ...inputStyle, fontSize: 12 }}
+                              />
+                              <button
+                                onClick={onAdvanceStop}
+                                disabled={advancing}
+                                style={{
+                                  width: '100%', padding: '13px 0',
+                                  background: advancing ? 'rgba(26,10,0,0.4)' : '#1A0A00',
+                                  color: '#FDF6EE', border: 'none', borderRadius: 999,
+                                  cursor: advancing ? 'not-allowed' : 'pointer',
+                                  fontFamily: 'inherit', fontWeight: 900,
+                                  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                  boxShadow: advancing ? 'none' : '0 6px 18px rgba(26,10,0,0.25)',
+                                }}
+                              >
+                                {advancing ? (
+                                  <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                                ) : (
+                                  <ChevronRight size={14} strokeWidth={3} />
+                                )}
+                                {isHeadingThere ? `Arrived at ${activeStop.location_name}` : `Head to ${activeStop.location_name}`}
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </ViewSection>
               </div>
+              </>
+              )}
             </div>
 
             {/* Right panel: live tracking timeline — identical to JoinerTracking's */}
             <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column' }}>
               <ViewSection title="Tracking Details" titleColor="#C45C26" icon={<Compass size={14} />}>
-                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 16, marginTop: 8 }}>
-                  {!trackingLogs || trackingLogs.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', marginTop: 8 }}>
+                  {loadingConsole ? (
                     <div style={{ textAlign: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.5)' }}>
-                      <Compass size={24} style={{ opacity: 0.5, marginBottom: 8 }} />
-                      <p style={{ fontSize: 12, margin: 0, fontStyle: 'italic' }}>No logs posted yet.</p>
+                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} />
+                      <p style={{ fontSize: 12, margin: 0 }}>Loading updates…</p>
                     </div>
                   ) : (
-                    trackingLogs.map((log, index) => {
-                      const isArrivedStatus = log.status === 'ARRIVED';
-                      const isLatestUpdate = index === 0;
-
-                      let textColor = '#9CA3AF';
-                      let timeColor = '#9CA3AF';
-                      let textWeight = 500;
-                      let dotColor = '#D1D5DB';
-
-                      if (isArrivedStatus) {
-                        textColor = PALETTE.espresso;
-                        timeColor = PALETTE.espresso;
-                        textWeight = 900;
-                        dotColor = '#10B981';
-                      } else if (isLatestUpdate) {
-                        textColor = PALETTE.espresso;
-                        timeColor = '#9CA3AF';
-                        textWeight = 700;
-                        dotColor = PALETTE.burntSienna;
-                      }
-
-                      return (
-                        <div key={log.id || index} style={{ display: 'flex', gap: 16, position: 'relative', paddingBottom: 20, alignItems: 'flex-start' }}>
-                          {index !== trackingLogs.length - 1 && (
-                            <div style={{ position: 'absolute', left: 4, top: 16, bottom: 0, width: 2, background: '#E5E7EB', zIndex: 1 }} />
-                          )}
-                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: dotColor, marginTop: 5, zIndex: 2, flexShrink: 0 }} />
-
-                          <div style={{ flex: 1, fontSize: 12 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: textWeight, color: textColor }}>
-                              <span style={{ lineHeight: 1.4 }}>{log.display_text || ''}</span>
-                              <span style={{ fontSize: 10, color: timeColor, fontWeight: textWeight, whiteSpace: 'nowrap', marginLeft: 8 }}>
-                                {log.timestamp || ''}
-                              </span>
-                            </div>
-                            {log.note && <p style={{ margin: '4px 0 0', color: '#9CA3AF', fontSize: 11, fontStyle: 'italic' }}>— Note: "{log.note}"</p>}
-                          </div>
-                        </div>
-                      );
-                    })
+                    <TrackingTimeline logs={trackingLogs} emptyText="No logs posted yet." />
                   )}
                 </div>
               </ViewSection>
@@ -889,34 +1272,5 @@ const Notice = ({ color, bg, icon, text }) => (
     <p style={{ fontSize: 11, fontWeight: 700, color, margin: 0, lineHeight: 1.5 }}>{text}</p>
   </div>
 );
-
-const STOP_ACTION_STYLES = {
-  dark:   { bg: '#1A0A00', color: '#FDF6EE' },
-  accent: { bg: '#C45C26', color: '#FDF6EE' },
-  solid:  { bg: '#7A3A18', color: '#FDF6EE' },
-};
-
-const StopActionButton = ({ label, disabled, onClick, variant }) => {
-  const { bg, color } = STOP_ACTION_STYLES[variant] || STOP_ACTION_STYLES.dark;
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        flex: 1, minWidth: 88,
-        padding: '8px 8px',
-        background: disabled ? 'rgba(122,58,24,0.12)' : bg,
-        color: disabled ? 'rgba(122,58,24,0.4)' : color,
-        border: 'none', borderRadius: 10,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        fontFamily: 'inherit', fontWeight: 900,
-        fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
-        transition: 'opacity 0.15s',
-      }}
-    >
-      {label}
-    </button>
-  );
-};
 
 export default AdminTrackingControls;
