@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Home, Calendar as CalendarIcon, ShoppingBag,
-  Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss,
+  Clock, Star, LogOut, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss,
   ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -34,8 +34,12 @@ const NAV_ITEMS = [
   { icon: <Clock size={18} strokeWidth={2} />,       label: 'Tracking' },
   { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Exclusive Tours' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
-  { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
 ];
+
+// Tour carousel card sizing (kept in one place so the track math always matches)
+const TOUR_CARD_WIDTH = 220;
+const TOUR_CARD_GAP = 16;
+const TOUR_CARD_STEP = TOUR_CARD_WIDTH + TOUR_CARD_GAP;
 
 const JoinerDashboard = () => {
   const [activeTab, setActiveTab] = useState('HomePage');
@@ -44,7 +48,6 @@ const JoinerDashboard = () => {
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const tourScrollRef = useRef(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [bookingsFilter, setBookingsFilter] = useState(null); // 'upcoming' | 'completed' | null
   const [calendarTarget, setCalendarTarget] = useState(null); // { year, month, day }
@@ -72,12 +75,6 @@ const JoinerDashboard = () => {
   }, []);
 
   const sidebarExpanded = isMobile ? true : sidebarHovered;
-
-  const scrollTours = (direction) => {
-    if (tourScrollRef.current) {
-      tourScrollRef.current.scrollBy({ left: direction * 250, behavior: 'smooth' });
-    }
-  };
 
   const handleNavClick = (label) => {
     setBookingsFilter(null);
@@ -127,6 +124,7 @@ const JoinerDashboard = () => {
           let upcoming = 0;
           let completed = 0;
           let soonest = null;
+          let soonestDate = null;
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const dots = [];
@@ -148,8 +146,9 @@ const JoinerDashboard = () => {
                 if (tour && tourDate.getMonth() === today.getMonth() && tourDate.getFullYear() === today.getFullYear()) {
                   dots.push(tourDate.getDate());
                 }
-                if (!soonest || tourDate < new Date(soonest.tours.start_date)) {
+                if (!soonestDate || tourDate < soonestDate) {
                   soonest = booking;
+                  soonestDate = tourDate;
                 }
               } else {
                 completed++;
@@ -184,10 +183,12 @@ const JoinerDashboard = () => {
         }
       }
 
+      const todayStr = new Date().toISOString().split('T')[0];
       const { data: toursData } = await supabase
         .from('tours')
         .select('*')
         .eq('is_archived', false)
+        .gte('start_date', todayStr)
         .order('start_date', { ascending: true })
         .limit(4);
 
@@ -230,8 +231,12 @@ const JoinerDashboard = () => {
   }
   if (completedCount > 0) notifications.push({ id: 'review', text: `${completedCount} tour${completedCount === 1 ? '' : 's'} awaiting your review` });
 
-  const nextTripDay = nextTrip && new Date(nextTrip.tours?.start_date).getMonth() === new Date().getMonth()
-    ? new Date(nextTrip.tours?.start_date).getDate()
+  const nextTripDay = nextTrip && nextTrip.tours?.start_date
+    ? (() => {
+        const d = new Date(nextTrip.tours.start_date);
+        const now = new Date();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() ? d.getDate() : null;
+      })()
     : null;
 
   return (
@@ -244,17 +249,14 @@ const JoinerDashboard = () => {
     }}>
       <style>{`
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-        .tour-packages-scroll{scrollbar-width:none;-ms-overflow-style:none;}
-        .tour-packages-scroll::-webkit-scrollbar{display:none;}
+        .tour-carousel-track::-webkit-scrollbar{ display: none; }
       `}</style>
 
-      {/* MOBILE OVERLAY (dims content behind the drawer) */}
       <div
         className={`sidebar-overlay ${mobileNavOpen ? 'is-open' : ''}`}
         onClick={() => setMobileNavOpen(false)}
       />
 
-      {/* ── SIDEBAR — expands on hover (desktop), tap-to-open drawer (mobile) ── */}
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
         onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}
@@ -296,7 +298,6 @@ const JoinerDashboard = () => {
           </button>
         )}
 
-        {/* brand */}
         <div style={{
           padding: sidebarExpanded ? '2rem 1.75rem' : '2rem 0',
           borderBottom: '1px solid rgba(255,255,255,0.07)',
@@ -326,7 +327,6 @@ const JoinerDashboard = () => {
           )}
         </div>
 
-        {/* nav */}
         <nav style={{ flex: 1, padding: sidebarExpanded ? '1.25rem 1rem' : '1.25rem 0.75rem', display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto', overflowX: 'hidden' }}>
           {NAV_ITEMS.map(({ icon, label }) => (
             <NavItem
@@ -340,7 +340,6 @@ const JoinerDashboard = () => {
           ))}
         </nav>
 
-        {/* sign out */}
         <div style={{ padding: sidebarExpanded ? '1.5rem 1.75rem' : '1.5rem 0', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: sidebarExpanded ? 'flex-start' : 'center' }}>
           <button
             onClick={handleLogout}
@@ -366,10 +365,8 @@ const JoinerDashboard = () => {
         </div>
       </aside>
 
-      {/* ── MAIN WORKSPACE ── */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
-        {/* header */}
         <header className="dashboard-header" style={{
           background: '#FDF6EE',
           borderBottom: '1px solid rgba(196,92,38,0.12)',
@@ -381,7 +378,6 @@ const JoinerDashboard = () => {
           gap: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-            {/* hamburger - hidden on desktop via CSS, shown <=900px */}
             <button
               className="mobile-menu-btn"
               onClick={() => setMobileNavOpen(true)}
@@ -400,7 +396,6 @@ const JoinerDashboard = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            {/* notification bell */}
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowNotifications(v => !v)}
@@ -455,29 +450,35 @@ const JoinerDashboard = () => {
               )}
             </div>
 
-            {/* user chip */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: '#F2E4D0',
-              border: '1px solid rgba(196,92,38,0.18)',
-              borderRadius: 14, padding: '8px 14px',
-            }}>
+            <button
+              onClick={() => handleNavClick('Profile Settings')}
+              title="Profile Settings"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                background: activeTab === 'Profile Settings' ? '#E8D5BC' : '#F2E4D0',
+                border: '1px solid rgba(196,92,38,0.18)',
+                borderRadius: 14, padding: '8px 14px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => { if (activeTab !== 'Profile Settings') e.currentTarget.style.background = '#EAD9C0'; }}
+              onMouseLeave={e => { if (activeTab !== 'Profile Settings') e.currentTarget.style.background = '#F2E4D0'; }}
+            >
               <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
                 <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Joiner</p>
                 <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Ready for Adventure</p>
               </div>
-              <div style={{ width: 38, height: 38, borderRadius: 11, background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265', fontWeight: 900, fontSize: 15, boxShadow: '0 4px 12px rgba(26,10,0,0.22)' }}>B</div>
-            </div>
+              <div style={{ width: 38, height: 38, borderRadius: 11, background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265', fontWeight: 900, fontSize: 15, boxShadow: '0 4px 12px rgba(26,10,0,0.22)', flexShrink: 0 }}>B</div>
+            </button>
           </div>
         </header>
 
-        {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
 
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-              {/* hero banner */}
               <div style={{
                 position: 'relative',
                 background: '#1A0A00',
@@ -519,7 +520,6 @@ const JoinerDashboard = () => {
                 </div>
               </div>
 
-              {/* TRIP PULSE — dark clickable stat band, routes into My Bookings pre-filtered */}
               <div style={{
                 position: 'relative',
                 background: '#1A0A00',
@@ -556,10 +556,8 @@ const JoinerDashboard = () => {
                 </div>
               </div>
 
-              {/* SPLIT GRID: left = trip focus + tour packages, right = calendar/tracking/reviews rail */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
 
-                {/* LEFT COL */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
                   {!loadingHome && nextTrip && (
@@ -572,62 +570,11 @@ const JoinerDashboard = () => {
                     <TripReadinessCard trip={nextTrip} onClick={() => { setBookingsFilter('upcoming'); setActiveTab('My Bookings'); }} />
                   )}
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>Latest Tour Packages</h3>
-                    {featuredTours.length > 1 && (
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          onClick={() => scrollTours(-1)}
-                          aria-label="Previous tours"
-                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(196,92,38,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <ChevronLeft size={14} />
-                        </button>
-                        <button
-                          onClick={() => scrollTours(1)}
-                          aria-label="Next tours"
-                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(196,92,38,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <ChevronRight size={14} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div
-                    ref={tourScrollRef}
-                    className="tour-packages-scroll"
-                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: 4 }}
-                  >
-                    {featuredTours.map((tour) => {
-                      const isFull = tour.available_slots <= 0;
-                      return (
-                        <div key={tour.id} style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
-                          <div style={{ height: 115, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={32} /></div>}
-                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? '#ef4444' : '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 7, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
-                          </div>
-                          <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
-                            <div>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
-                                <h4 style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
-                                <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>₱{tour.price?.toLocaleString()}</span>
-                              </div>
-                              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}</p>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '9px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: '#C45C26' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
-                              </div>
-                            </div>
-                            <button onClick={() => setSelectedTour(tour)} disabled={isFull} style={{ width: '100%', padding: '8px 0', border: 'none', borderRadius: 8, cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: isFull ? '#F2E4D0' : '#1A0A00', color: isFull ? 'rgba(122,58,24,0.5)' : '#FDF6EE' }}>
-                              <Eye size={11} /> {isFull ? 'Closed' : 'View Details'}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <TourPackagesCarousel
+                    tours={featuredTours}
+                    onSelectTour={setSelectedTour}
+                    formatDateRange={formatDateRange}
+                  />
 
                   <button
                     onClick={() => setActiveTab('Explore Tours')}
@@ -665,7 +612,6 @@ const JoinerDashboard = () => {
                   </button>
                 </div>
 
-                {/* RIGHT RAIL: calendar widget, tracking snippet, review prompt */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <CalendarWidget
                     loading={loadingHome}
@@ -716,7 +662,6 @@ const JoinerDashboard = () => {
         </div>
       </main>
 
-      {/* ── INLINE DETAILED TOUR BOOKING OVERLAY MODAL ── */}
       {selectedTour && (
         <DetailedTourModal
           tour={selectedTour}
@@ -729,7 +674,6 @@ const JoinerDashboard = () => {
   );
 };
 
-/* ── NAV ITEM ── */
 const NavItem = ({ icon, label, active, onClick, collapsed }) => (
   <button
     onClick={onClick}
@@ -765,7 +709,6 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
   </button>
 );
 
-/* ── TRIP PULSE STAT — clickable, routes into My Bookings pre-filtered ── */
 const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
   <div
     onClick={onClick}
@@ -804,7 +747,219 @@ const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
   </div>
 );
 
-/* ── NEXT TRIP CARD ── */
+// ── Latest Tour Packages — native-scroll carousel ──
+// Uses real overflow-x scrolling + scroll-snap instead of manual translateX
+// math, so it's physically impossible to scroll past the last card no matter
+// how wide the container is or how many cards fit per view. The component
+// manages its own scroll position internally — no index state needed upstream.
+const TourPackagesCarousel = ({ tours, onSelectTour, formatDateRange }) => {
+  const trackRef = useRef(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(true);
+
+  const updateEdges = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setAtStart(el.scrollLeft <= 2);
+    setAtEnd(el.scrollLeft >= maxScroll - 2);
+  }, []);
+
+  useEffect(() => {
+    updateEdges();
+    const el = trackRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateEdges, { passive: true });
+    window.addEventListener('resize', updateEdges);
+    return () => {
+      el.removeEventListener('scroll', updateEdges);
+      window.removeEventListener('resize', updateEdges);
+    };
+  }, [tours.length, updateEdges]);
+
+  const scrollByStep = (direction) => {
+    trackRef.current?.scrollBy({ left: direction * TOUR_CARD_STEP, behavior: 'smooth' });
+  };
+
+  // Floating circular arrow, half-overlapping the card row edges — like the reference.
+  const navButtonStyle = (disabled, side) => ({
+    position: 'absolute',
+    top: '50%',
+    [side]: -14,
+    transform: 'translateY(-50%)',
+    width: 38, height: 38, borderRadius: '50%',
+    border: '1px solid rgba(196,92,38,0.14)',
+    background: '#FDF6EE',
+    boxShadow: '0 8px 20px rgba(26,10,0,0.16)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: disabled ? 'default' : 'pointer',
+    color: '#7A3A18',
+    opacity: disabled ? 0.4 : 1,
+    zIndex: 2,
+    transition: 'background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease',
+  });
+
+  const handleNavHover = (e, disabled, entering) => {
+    if (disabled) return;
+    e.currentTarget.style.background = entering ? '#1A0A00' : '#FDF6EE';
+    e.currentTarget.style.color = entering ? '#FDF6EE' : '#7A3A18';
+    e.currentTarget.style.boxShadow = entering
+      ? '0 10px 24px rgba(26,10,0,0.26)'
+      : '0 8px 20px rgba(26,10,0,0.16)';
+  };
+
+  return (
+    <div>
+      <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 16px' }}>
+        Latest Tour Packages
+      </h3>
+
+      <div style={{ position: 'relative' }}>
+        <div
+          ref={trackRef}
+          className="tour-carousel-track"
+          style={{
+            display: 'flex',
+            gap: TOUR_CARD_GAP,
+            overflowX: 'auto',
+            scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          {tours.map((tour) => (
+            <TourPackageCard
+              key={tour.id}
+              tour={tour}
+              formatDateRange={formatDateRange}
+              onView={() => onSelectTour(tour)}
+            />
+          ))}
+        </div>
+
+        {tours.length > 1 && (
+          <>
+            <button
+              onClick={() => scrollByStep(-1)}
+              disabled={atStart}
+              aria-label="Previous tours"
+              style={navButtonStyle(atStart, 'left')}
+              onMouseEnter={e => handleNavHover(e, atStart, true)}
+              onMouseLeave={e => handleNavHover(e, atStart, false)}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              onClick={() => scrollByStep(1)}
+              disabled={atEnd}
+              aria-label="Next tours"
+              style={navButtonStyle(atEnd, 'right')}
+              onMouseEnter={e => handleNavHover(e, atEnd, true)}
+              onMouseLeave={e => handleNavHover(e, atEnd, false)}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </>
+        )}
+      </div>
+
+    </div>
+  );
+};
+
+const TourPackageCard = ({ tour, formatDateRange, onView }) => {
+  const isFull = tour.available_slots <= 0;
+
+  return (
+    <div
+      style={{
+        flex: `0 0 ${TOUR_CARD_WIDTH}px`,
+        scrollSnapAlign: 'start',
+        background: '#FDF6EE',
+        borderRadius: 18,
+        overflow: 'hidden',
+        border: '1px solid rgba(196,92,38,0.12)',
+        boxShadow: '0 4px 14px rgba(26,10,0,0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 14px 28px rgba(26,10,0,0.12)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 4px 14px rgba(26,10,0,0.05)';
+      }}
+    >
+      <div style={{ height: 115, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+        {tour.image_urls?.[0] ? (
+          <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}>
+            <ImageIcon size={32} />
+          </div>
+        )}
+        <div style={{ position: 'absolute', top: 10, left: 10, right: 66, maxWidth: 'calc(100% - 76px)' }}>
+          <span style={{
+            display: 'inline-block',
+            maxWidth: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00',
+          }}>
+            {tour.difficulty}
+          </span>
+        </div>
+        <div style={{ position: 'absolute', top: 10, right: 10 }}>
+          <span style={{ background: isFull ? '#ef4444' : '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 7, fontWeight: 900, textTransform: 'uppercase' }}>
+            {isFull ? 'Full' : `${tour.available_slots} Slots`}
+          </span>
+        </div>
+      </div>
+
+      <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
+            <h4 style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>
+              {tour.title}
+            </h4>
+            <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>₱{tour.price?.toLocaleString()}</span>
+          </div>
+          <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}>
+            <MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '9px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <CalendarIcon size={11} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Users size={11} style={{ color: '#C45C26' }} /> {tour.current_booked} / {tour.group_size} Booked
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={onView}
+          disabled={isFull}
+          style={{
+            width: '100%', padding: '8px 0', border: 'none', borderRadius: 8,
+            cursor: isFull ? 'not-allowed' : 'pointer',
+            fontWeight: 900, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+            background: isFull ? '#F2E4D0' : '#1A0A00',
+            color: isFull ? 'rgba(122,58,24,0.5)' : '#FDF6EE',
+          }}
+        >
+          <Eye size={11} /> {isFull ? 'Closed' : 'View Details'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const NextTripCard = ({ trip, onViewBookings }) => {
   const cardStyle = {
     background: '#FDF6EE',
@@ -862,7 +1017,6 @@ const NextTripCard = ({ trip, onViewBookings }) => {
   );
 };
 
-/* ── TRIP READINESS CARD ── */
 const TripReadinessCard = ({ trip, onClick }) => {
   const paymentVerified = trip.payment_status === 'Paid' || trip.payment_status === 'Verified';
 
@@ -912,7 +1066,6 @@ const TripReadinessCard = ({ trip, onClick }) => {
   );
 };
 
-/* ── CALENDAR WIDGET — full month grid with prev/next navigation ── */
 const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }) => {
   const [monthOffset, setMonthOffset] = useState(0);
 
@@ -1053,7 +1206,6 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
   );
 };
 
-/* ── TRACKING SNIPPET — live pickup status for the next trip ── */
 const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
   const isActive = stop?.status === 'CURRENTLY HERE';
 
@@ -1110,7 +1262,6 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
   );
 };
 
-/* ── REVIEW PROMPT CARD ── */
 const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
   const hasCompleted = completedCount > 0;
 
@@ -1158,7 +1309,6 @@ const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
   );
 };
 
-// ── DETAILED TOUR MODAL WITH BOOKING + GCASH PAYMENT FLOW ──
 const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess }) => {
   const [primaryImage, setPrimaryImage] = useState(tour.image_urls?.[0] || null);
   const [numPersons, setNumPersons] = useState(1);
