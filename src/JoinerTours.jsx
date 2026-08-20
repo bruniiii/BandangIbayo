@@ -5,6 +5,19 @@ import {
   Eye, ImageIcon, Loader2, CheckCircle2, X, AlertCircle, Star,
   CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
 } from 'lucide-react';
+
+// ── PALETTE ──────────────────────────────────────────────
+// #1A0A00  espresso dark
+// #C45C26  burnt sienna (accent)
+// #E8A265  warm amber (highlight)
+// #FDF6EE  cream (light card bg)
+// #2D1B0E  deep brown (dark card)
+// #7A3A18  rust mid-tone
+// #8C2F1C  deep rust red (error / full / alert)
+// #F2E4D0  parchment (inset panel bg)
+// #EDEAE3  warm stone (page bg)
+// #3F5D62  slate teal (secondary contrast accent)
+// ---------------------------------------------------------
  
 const JoinerTours = () => {
   const [tours, setTours] = useState([]);
@@ -24,7 +37,6 @@ const JoinerTours = () => {
     if (!dateString) return "";
     const [year, month, day] = dateString.split('-').map(Number);
  
-    // Parse number of days from strings like "3 Days", "1 Day", "2 Days", etc.
     const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;
     const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
  
@@ -61,7 +73,7 @@ const JoinerTours = () => {
     const { data: bookingsData } = await supabase
       .from('bookings')
       .select('tour_id, slots_booked')
-      .eq('booking_status', 'Completed')
+      .not('booking_status', 'in', '("Cancelled","Rejected")');
  
     const updatedTours = (toursData || []).map(tour => {
       const totalBooked = (bookingsData || [])
@@ -107,7 +119,6 @@ const JoinerTours = () => {
     return 0;
   });
  
-  // ── shared input style (matches TourManagement) ──
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
     background: '#F2E4D0',
@@ -181,7 +192,7 @@ const JoinerTours = () => {
             alignItems: 'center', justifyContent: 'center',
             padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
           }}>
-            <Loader2 size={30} className="animate-spin" style={{ marginBottom: 10 }} />
+            <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
               Finding Adventures…
             </p>
@@ -235,7 +246,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
-      <div style={{ height: 186, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ height: 186, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         {tour.image_urls?.[0]
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="" />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={44} /></div>
@@ -250,7 +261,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
         </div>
         <div style={{ position: 'absolute', top: 12, right: 12 }}>
           <span style={{
-            background: isFull ? '#ef4444' : '#C45C26', color: '#FDF6EE',
+            background: isFull ? '#8C2F1C' : '#C45C26', color: '#FDF6EE',
             borderRadius: 999, padding: '4px 10px',
             fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
           }}>
@@ -273,11 +284,11 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               <Calendar size={12} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, fontWeight: 700, color: isFull ? '#C45C26' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, fontWeight: 700, color: isFull ? '#8C2F1C' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
               <Users size={12} style={{ color: '#C45C26' }} />
               {tour.current_booked} / {tour.group_size} Booked
               {isFull && (
-                <span style={{ background: 'rgba(196,92,38,0.12)', color: '#C45C26', fontSize: 7, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
+                <span style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', fontSize: 7, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
               )}
             </div>
           </div>
@@ -285,7 +296,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
             <div
               style={{
                 height: 6, borderRadius: 999, transition: 'all 0.3s',
-                background: isFull ? '#ef4444' : tour.available_slots <= 3 ? '#f59e0b' : '#C45C26',
+                background: isFull ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#C45C26',
                 width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`,
               }}
             />
@@ -303,10 +314,12 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            transition: 'opacity 0.15s',
+            transition: 'all 0.2s',
             background: isFull ? '#F2E4D0' : '#1A0A00',
             color: isFull ? 'rgba(122,58,24,0.5)' : '#FDF6EE',
           }}
+          onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#C45C26'; }}
+          onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = '#1A0A00'; }}
         >
           <Eye size={13} /> {isFull ? 'Closed' : 'View Details'}
         </button>
@@ -316,7 +329,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 };
  
 /* ─────────────────────────────────────────────
-   HELPERS (mirrors TourManagement's design system)
+   HELPERS
 ───────────────────────────────────────────── */
 const ViewSection = ({ title, titleColor, icon, children }) => (
   <section>
@@ -331,8 +344,6 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
   </section>
 );
 
-/* Renders newline-separated text (inclusions/exclusions/things-to-bring)
-   as a tidy checklist grid instead of a raw text block. */
 const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   const items = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
 
@@ -359,7 +370,6 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   );
 };
 
-/* Slideable photo gallery, identical behavior to TourManagement's carousel */
 const TourImageCarousel = ({ images = [] }) => {
   const [index, setIndex] = useState(0);
   const dragStartX = React.useRef(null);
@@ -389,7 +399,7 @@ const TourImageCarousel = ({ images = [] }) => {
         style={{
           position: 'relative', width: '100%', height: 190,
           borderRadius: 18, overflow: 'hidden',
-          background: '#E8D5BC', marginBottom: hasMultiple ? 12 : 20,
+          background: '#F2E4D0', marginBottom: hasMultiple ? 12 : 20,
           boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
         }}
@@ -421,7 +431,7 @@ const TourImageCarousel = ({ images = [] }) => {
               type="button" onClick={prev}
               style={{
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer', color: '#FDF6EE',
               }}
@@ -430,7 +440,7 @@ const TourImageCarousel = ({ images = [] }) => {
               type="button" onClick={next}
               style={{
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer', color: '#FDF6EE',
               }}
@@ -475,16 +485,14 @@ const TourImageCarousel = ({ images = [] }) => {
 
 /* ─────────────────────────────────────────────
    TOUR DETAILS + BOOKING MODAL
-   (split panel, mirrors TourManagement's TourViewModal)
 ───────────────────────────────────────────── */
 const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess }) => {
     const images = tour.image_urls || [];
     const [numPersons, setNumPersons] = useState(1);
     const [isBooking, setIsBooking] = useState(false);
     const [slotError, setSlotError] = useState("");
-    // Payment flow states: null | 'proceed' | 'choose' | 'gcash' | 'success'
     const [paymentStep, setPaymentStep] = useState(null);
-    const [paymentType, setPaymentType] = useState(null); // 'full' | 'down'
+    const [paymentType, setPaymentType] = useState(null);
     const [bookingId, setBookingId] = useState(null);
     const [createdBooking, setCreatedBooking] = useState(null);
 
@@ -506,7 +514,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             .from('bookings')
             .select('slots_booked')
             .eq('tour_id', tour.id)
-            .eq('booking_status', 'Completed')
+            .not('booking_status', 'in', '("Cancelled","Rejected")');
 
         const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
         const freshAvailable = (tour.group_size || 15) - totalBooked;
@@ -523,7 +531,6 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             return;
         }
 
-        // Duplicate guard: check if user already has an active/pending booking for this tour
         const { data: existingBooking } = await supabase
             .from('bookings')
             .select('id, booking_number')
@@ -544,7 +551,6 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             .eq('id', user.id)
             .single();
 
-        // Generate booking number
         const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
 
         const { data: booking, error } = await supabase.from('bookings').insert([{
@@ -595,6 +601,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                 position: 'relative', background: '#FDF6EE',
                 width: '100%', maxWidth: 1100,
                 borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+                borderTop: '8px solid #C45C26',
                 overflow: 'hidden',
                 maxHeight: '92vh',
                 display: 'flex', flexDirection: 'column',
@@ -608,7 +615,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', minHeight: 0 }}>
 
-                        {/* Left panel: gallery, meta, price, booking action */}
+                        {/* Left panel */}
                         <div className="responsive-modal-padding" style={{
                             background: '#F2E4D0',
                             padding: '2.5rem 2rem',
@@ -632,7 +639,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                         <span style={{ color: '#C45C26' }}>{row.icon}</span> {row.text}
                                     </div>
                                 ))}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#C45C26' : '#7A3A18' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#8C2F1C' : '#7A3A18' }}>
                                     <span style={{ color: '#C45C26' }}><Users size={16} /></span>
                                     {tour.current_booked} / {tour.group_size} Slots Booked
                                 </div>
@@ -640,7 +647,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                     <div style={{
                                         height: '100%', borderRadius: 999,
                                         width: `${filledPct}%`,
-                                        background: isFullyBooked ? '#C45C26' : isAlmostFull ? '#E8A265' : '#7A3A18',
+                                        background: isFullyBooked ? '#8C2F1C' : isAlmostFull ? '#E8A265' : '#7A3A18',
                                         transition: 'width 0.4s',
                                     }} />
                                 </div>
@@ -654,14 +661,14 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                 }}>{tour.difficulty}</span>
 
                                 {isFullyBooked ? (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(196,92,38,0.1)', border: '1px solid rgba(196,92,38,0.25)', borderRadius: 14, padding: '10px 14px' }}>
-                                        <AlertCircle size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
-                                        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#C45C26', margin: 0 }}>Fully Booked</p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(140,47,28,0.1)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '10px 14px' }}>
+                                        <AlertCircle size={16} style={{ color: '#8C2F1C', flexShrink: 0 }} />
+                                        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8C2F1C', margin: 0 }}>Fully Booked</p>
                                     </div>
                                 ) : isAlmostFull ? (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px' }}>
-                                        <AlertCircle size={16} style={{ color: '#B9762E', flexShrink: 0 }} />
-                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#8A5A1E', margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
+                                        <AlertCircle size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
                                     </div>
                                 ) : null}
                             </div>
@@ -694,7 +701,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                         <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(196,92,38,0.5)' }} />
                                     </div>
                                     {slotError && (
-                                        <p style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#C45C26', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <p style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#8C2F1C', display: 'flex', alignItems: 'center', gap: 6 }}>
                                             <AlertCircle size={13} /> {slotError}
                                         </p>
                                     )}
@@ -716,21 +723,24 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                     disabled={isBooking || isFullyBooked}
                                     style={{
                                         width: '100%', padding: '14px 0',
-                                        background: isFullyBooked ? '#E8D5BC' : '#C45C26',
-                                        color: isFullyBooked ? 'rgba(122,58,24,0.6)' : '#FDF6EE',
+                                        background: isFullyBooked ? '#EDEAE3' : '#C45C26',
+                                        color: isFullyBooked ? '#7A3A18' : '#FDF6EE',
                                         border: 'none', borderRadius: 14, cursor: isFullyBooked ? 'not-allowed' : 'pointer',
                                         fontFamily: 'inherit', fontWeight: 900,
                                         fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                                         boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(196,92,38,0.32)',
+                                        transition: 'background 0.2s',
                                     }}
+                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#1A0A00'; }}
+                                    onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#C45C26'; }}
                                 >
-                                    {isBooking ? <Loader2 className="animate-spin" size={15} /> : <><CreditCard size={14} /> {isFullyBooked ? 'Fully Booked' : 'Book This Tour'}</>}
+                                    {isBooking ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <><CreditCard size={14} /> {isFullyBooked ? 'Fully Booked' : 'Book This Tour'}</>}
                                 </button>
                             </div>
                         </div>
 
-                        {/* Right panel: description, inclusions/exclusions, itinerary */}
+                        {/* Right panel */}
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
 
@@ -744,7 +754,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
                                     <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
                                         <ChecklistGrid text={tour.inclusions} variant="include" />
                                     </ViewSection>
-                                    <ViewSection title="Exclusions" titleColor="#C45C26" icon={<X size={14} />}>
+                                    <ViewSection title="Exclusions" titleColor="#8C2F1C" icon={<X size={14} />}>
                                         <ChecklistGrid text={tour.exclusions} variant="exclude" />
                                     </ViewSection>
                                 </div>
@@ -828,7 +838,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 };
 
 /* ─────────────────────────────────────────────
-   PAYMENT FLOW OVERLAYS (inline-style, matches TourManagement palette)
+   PAYMENT FLOW OVERLAYS
 ───────────────────────────────────────────── */
 
 const overlayBackdrop = {
@@ -837,13 +847,12 @@ const overlayBackdrop = {
     background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)',
 };
 
-// Step 1: Proceed to Payment confirmation
 const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel, formatDateRange }) => {
   return (
     <div style={overlayBackdrop}>
       <div style={{
         background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid rgba(196,92,38,0.9)',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #C45C26',
       }}>
         <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -881,7 +890,10 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
               border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'background 0.2s',
             }}
+            onMouseEnter={e => e.currentTarget.style.background = '#C45C26'}
+            onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
           >
             <CreditCard size={16} /> Proceed to Payment
           </button>
@@ -891,14 +903,13 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
   );
 };
 
-// Step 2: Choose Full or Downpayment
 const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
     <div style={overlayBackdrop}>
         <div style={{
             background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
             padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
             textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
-            borderTop: '8px solid rgba(196,92,38,0.9)',
+            borderTop: '8px solid #C45C26',
         }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
@@ -914,7 +925,9 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left' }}>
                 <button
                     onClick={() => onChoose('full')}
-                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)' }}
+                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#2D1B0E'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
@@ -926,7 +939,9 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
                 <button
                     onClick={() => onChoose('down')}
-                    style={{ width: '100%', background: '#FDF6EE', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer' }}
+                    style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#C45C26'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)'}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                         <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
@@ -940,7 +955,6 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
     </div>
 );
 
-// Step 3: GCash Payment Form + Booking Summary
 const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
     const [gcashNumber, setGcashNumber] = useState("");
 
@@ -982,7 +996,6 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
 
         setSubmitting(true);
         try {
-            // Upload screenshot to Supabase storage
             const fileExt = screenshot.name.split('.').pop();
             const fileName = `receipts/${bookingId}_${Date.now()}.${fileExt}`;
             let receiptUrl = null;
@@ -1019,7 +1032,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
     };
 
     const fieldLabelStyle = { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8 };
-    const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: 'none', borderRadius: 16, padding: '14px 16px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
+    const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 16, padding: '14px 16px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
 
     return (
         <div style={{ ...overlayBackdrop, overflowY: 'auto' }}>
@@ -1027,27 +1040,27 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                 {/* Header */}
                 <div style={{ background: '#1A0A00', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-                        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', flexShrink: 0 }}>
+                        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E8A265', flexShrink: 0 }}>
                             <ArrowLeft size={20} />
                         </button>
                         <div style={{ minWidth: 0 }}>
                             <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FDF6EE', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>GCash Payment</h3>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '2px 0 0' }}>{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.7)', margin: '2px 0 0' }}>{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
                         </div>
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>Step 3 of 3</span>
+                    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', flexShrink: 0 }}>Step 3 of 3</span>
                 </div>
 
                 <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
                     {/* GCash Send To */}
-                    <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <div style={{ width: 48, height: 48, background: '#3b82f6', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Smartphone size={22} style={{ color: '#fff' }} />
+                    <div style={{ background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.25)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ width: 48, height: 48, background: '#3F5D62', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Smartphone size={22} style={{ color: '#FDF6EE' }} />
                         </div>
                         <div>
-                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3b82f6', margin: '0 0 4px' }}>Send GCash Payment To</p>
+                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3F5D62', margin: '0 0 4px' }}>Send GCash Payment To</p>
                             <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0 }}>09XX XXX XXXX</p>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', margin: '2px 0 0' }}>Bandang IBAYO Tours</p>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>Bandang IBAYO Tours</p>
                         </div>
                     </div>
 
@@ -1076,13 +1089,13 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                             </div>
                             <div>
                                 <label style={fieldLabelStyle}>Transaction Screenshot</label>
-                                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F2E4D0' }}>
                                     <input type="file" accept="image/*" onChange={handleScreenshotChange} style={{ display: 'none' }} />
                                     {screenshotPreview ? (
                                         <img src={screenshotPreview} alt="Receipt" style={{ width: '100%', height: 128, objectFit: 'cover', borderRadius: 12 }} />
                                     ) : (
                                         <>
-                                            <Upload size={22} style={{ color: 'rgba(196,92,38,0.4)', marginBottom: 8 }} />
+                                            <Upload size={22} style={{ color: 'rgba(196,92,38,0.5)', marginBottom: 8 }} />
                                             <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Upload Screenshot</p>
                                         </>
                                     )}
@@ -1119,7 +1132,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                                     <>
                                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Downpayment (40%)</span>
-                                            <span style={{ fontWeight: 700, color: '#B9762E' }}>₱{downpaymentAmount.toLocaleString()}</span>
+                                            <span style={{ fontWeight: 700, color: '#C45C26' }}>₱{downpaymentAmount.toLocaleString()}</span>
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                             <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Remaining Balance</span>
@@ -1138,7 +1151,7 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
 
                             {paymentType === 'down' && (
                                 <div style={{ background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px', marginTop: 4 }}>
-                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#8A5A1E', lineHeight: 1.5, margin: 0 }}>⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
+                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5, margin: 0 }}>⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
                                 </div>
                             )}
                         </div>
@@ -1153,9 +1166,12 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                             fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                             boxShadow: '0 8px 24px rgba(196,92,38,0.3)',
+                            transition: 'background 0.2s',
                         }}
+                        onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = '#1A0A00'; }}
+                        onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = '#C45C26'; }}
                     >
-                        {submitting ? <><Loader2 className="animate-spin" size={16} /> Processing...</> : <><Check size={16} /> Confirm Booking</>}
+                        {submitting ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</> : <><Check size={16} /> Confirm Booking</>}
                     </button>
                 </div>
             </div>
@@ -1163,14 +1179,13 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
     );
 };
 
-// Step 4: Success screen
 const BookingSuccessModal = ({ booking, tour, onClose }) => (
     <div style={overlayBackdrop}>
         <div style={{
             background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
             padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
             textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
-            borderTop: '8px solid rgba(196,92,38,0.9)',
+            borderTop: '8px solid #C45C26',
         }}>
             <div style={{ width: 72, height: 72, background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
                 <CheckCircle2 size={36} style={{ color: '#C45C26' }} />
