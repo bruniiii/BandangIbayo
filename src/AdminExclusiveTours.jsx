@@ -138,7 +138,7 @@ const AdminExclusiveTours = () => {
             <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
               Exclusive & Requested Tours
             </h2>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
               Review private-group booking requests and new destination suggestions submitted by joiners.
               {pendingCount > 0 && (
                 <span style={{ color: '#C45C26', fontWeight: 900 }}> {pendingCount} awaiting review.</span>
@@ -213,7 +213,7 @@ const AdminExclusiveTours = () => {
               borderRadius: 20,
               border: '2px dashed rgba(196,92,38,0.2)',
             }}>
-              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.68)', margin: 0 }}>
                 No requests found.
               </p>
             </div>
@@ -258,14 +258,14 @@ const RequestRow = ({ request, onView }) => {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
         <TypeBadge type={request.request_type} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.55 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78 }}>
           {formatDate(request.created_at)}
         </span>
       </div>
 
       <div style={{ flex: 1, minWidth: 200 }}>
         <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{request.full_name || '—'}</p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.8, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
           <MapPin size={12} style={{ color: '#C45C26' }} /> {request.destination || '—'}
         </p>
       </div>
@@ -292,7 +292,7 @@ const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
     <span style={{ color: '#C45C26', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.65, margin: 0 }}>
+      <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.8, margin: 0 }}>
         {label}
       </p>
       <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: '3px 0 0' }}>
@@ -370,7 +370,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     display: 'block',
     fontSize: 9, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.7,
+    color: '#7A3A18', opacity: 0.8,
     marginBottom: 6,
   };
 
@@ -434,7 +434,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78 }}>
             <Clock size={13} /> Submitted {formatDateTime(request.created_at)}
             {request.reviewed_at && <> · Reviewed {formatDateTime(request.reviewed_at)}</>}
           </div>

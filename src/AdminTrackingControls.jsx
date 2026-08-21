@@ -491,7 +491,7 @@ export const AdminTrackingControls = () => {
             <h3 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 12px' }}>
               Archive Tracking?
             </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.65, lineHeight: 1.7, margin: '0 0 32px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.78, lineHeight: 1.7, margin: '0 0 32px' }}>
               This clears the checkpoints, timeline, and fleet details for <strong>{activeTour?.title}</strong>. Joiners will no longer see live tracking for this tour.
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
@@ -548,7 +548,7 @@ export const AdminTrackingControls = () => {
             <h3 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 12px' }}>
               Regenerate Checkpoints?
             </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.65, lineHeight: 1.7, margin: '0 0 32px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.78, lineHeight: 1.7, margin: '0 0 32px' }}>
               This clears the current checkpoint list and tracking timeline for <strong>{activeTour?.title}</strong>, then rebuilds it fresh from the tour's itinerary. Any progress recorded so far will be lost.
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
@@ -624,11 +624,11 @@ const TrackingTourCard = ({ tour, onTrack }) => {
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: '0 0 10px' }}>{tour.title}</h3>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 8px' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 8px' }}>
             <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination || 'Not Specified'}
           </p>
           {(tour.start_date || tour.date) && (
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 5, margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, display: 'flex', alignItems: 'center', gap: 5, margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               <Calendar size={11} style={{ color: '#C45C26' }} /> {tour.start_date || tour.date}
             </p>
           )}
@@ -839,8 +839,8 @@ const TrackingTimeline = ({ logs, emptyText = 'No logs posted yet.' }) => {
           <div key={log.id || index} style={{ display: 'flex', gap: 12, paddingBottom: isLast ? 0 : 22 }}>
             {/* date / time column */}
             <div style={{ width: 56, flexShrink: 0, textAlign: 'right', paddingTop: 3 }}>
-              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.55, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{dateLabel}</p>
-              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.55, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{timeLabel}</p>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.72, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{dateLabel}</p>
+              <p style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.72, margin: 0, lineHeight: 1.5, whiteSpace: 'nowrap' }}>{timeLabel}</p>
             </div>
 
             {/* badge + connector column */}
@@ -1110,7 +1110,7 @@ const TrackingConsoleModal = ({
                     ) : (
                       <p style={{
                         display: 'flex', alignItems: 'center', gap: 6,
-                        fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0,
+                        fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: 0,
                       }}>
                         <ListChecks size={12} style={{ color: '#C45C26', flexShrink: 0 }} />
                         Checkpoints below were pulled straight from this tour's itinerary — just click Next Stop to move the van along.
@@ -1124,7 +1124,7 @@ const TrackingConsoleModal = ({
                           alignSelf: 'flex-start',
                           display: 'flex', alignItems: 'center', gap: 6,
                           background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                          color: itineraryMismatch ? '#8C2F1C' : 'rgba(122,58,24,0.55)',
+                          color: itineraryMismatch ? '#8C2F1C' : 'rgba(122,58,24,0.78)',
                           fontFamily: 'inherit', fontWeight: 800,
                           fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
                         }}
@@ -1171,7 +1171,7 @@ const TrackingConsoleModal = ({
                                     <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
                                       {stop.location_name}
                                     </p>
-                                    <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>
+                                    <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
                                       ETA: {stop.scheduled_time}
                                     </p>
                                   </div>

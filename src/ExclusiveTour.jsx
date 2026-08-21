@@ -6,12 +6,50 @@ import {
   FileText, Send, Shield, Star, Clock, ArrowRight,
   Phone, Globe, Loader2
 } from 'lucide-react';
+
+// ── PALETTE ──────────────────────────────────────────────
+// #1A0A00  espresso dark
+// #C45C26  burnt sienna (accent)
+// #E8A265  warm amber (highlight)
+// #FDF6EE  cream (light card bg)
+// #2D1B0E  deep brown (dark card)
+// #7A3A18  rust mid-tone
+// #8C2F1C  deep rust red (error / alert)
+// #F2E4D0  parchment (inset panel / input bg)
+// #EDEAE3  warm stone (page bg)
+// #3F5D62  slate teal (secondary contrast accent)
+// ---------------------------------------------------------
  
 // ─── Shared helpers ────────────────────────────────────────────────────────────
+const inputStyle = {
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '12px 16px',
+  borderRadius: 14,
+  border: '1px solid rgba(196,92,38,0.18)',
+  background: '#F2E4D0',
+  fontSize: 13,
+  fontWeight: 600,
+  color: '#1A0A00',
+  fontFamily: 'inherit',
+  outline: 'none',
+  transition: 'all 0.2s',
+};
+
+const labelStyle = {
+  fontSize: 10,
+  fontWeight: 900,
+  textTransform: 'uppercase',
+  letterSpacing: '0.18em',
+  color: '#1A0A00',
+  marginBottom: 6,
+  display: 'block',
+};
+
 const InputField = ({ label, type = 'text', placeholder, value, onChange, required }) => (
-  <div className="flex flex-col gap-1.5">
-    <label className="text-[10px] font-black uppercase tracking-[0.18em] text-[#1A0A00]">
-      {label} {required && <span className="text-[#C45C26]">*</span>}
+  <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <label style={labelStyle}>
+      {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
     </label>
     <input
       type={type}
@@ -19,17 +57,23 @@ const InputField = ({ label, type = 'text', placeholder, value, onChange, requir
       value={value}
       onChange={onChange}
       required={required}
-      className="px-4 py-3 rounded-xl border-2 	border-[#C45C26]/12 bg-[#F2E4D0] text-sm text-[#1A0A00] 
-                 placeholder:text-[#C45C26]/30 focus:outline-none focus:border-[#C45C26] focus:bg-[#FDF6EE] 
-                 transition-all font-medium"
+      style={inputStyle}
+      onFocus={e => {
+        e.currentTarget.style.borderColor = '#C45C26';
+        e.currentTarget.style.background = '#FDF6EE';
+      }}
+      onBlur={e => {
+        e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)';
+        e.currentTarget.style.background = '#F2E4D0';
+      }}
     />
   </div>
 );
  
 const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4 }) => (
-  <div className="flex flex-col gap-1.5">
-    <label className="text-[10px] font-black uppercase tracking-[0.18em] text-[#1A0A00]">
-      {label} {required && <span className="text-[#C45C26]">*</span>}
+  <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <label style={labelStyle}>
+      {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
     </label>
     <textarea
       placeholder={placeholder}
@@ -37,24 +81,37 @@ const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4
       onChange={onChange}
       required={required}
       rows={rows}
-      className="px-4 py-3 rounded-xl border-2 	border-[#C45C26]/12 bg-[#F2E4D0] text-sm text-[#1A0A00]
-                 placeholder:text-[#C45C26]/30 focus:outline-none focus:border-[#C45C26] focus:bg-[#FDF6EE] 
-                 transition-all font-medium resize-none"
+      style={{ ...inputStyle, resize: 'none' }}
+      onFocus={e => {
+        e.currentTarget.style.borderColor = '#C45C26';
+        e.currentTarget.style.background = '#FDF6EE';
+      }}
+      onBlur={e => {
+        e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)';
+        e.currentTarget.style.background = '#F2E4D0';
+      }}
     />
   </div>
 );
  
 const SelectField = ({ label, value, onChange, options, required }) => (
-  <div className="flex flex-col gap-1.5">
-    <label className="text-[10px] font-black uppercase tracking-[0.18em] text-[#1A0A00]">
-      {label} {required && <span className="text-[#C45C26]">*</span>}
+  <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <label style={labelStyle}>
+      {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
     </label>
     <select
       value={value}
       onChange={onChange}
       required={required}
-      className="px-4 py-3 rounded-xl border-2 	border-[#C45C26]/12 bg-[#F2E4D0] text-sm text-[#1A0A00]
-                 focus:outline-none focus:border-[#C45C26] focus:bg-[#FDF6EE] transition-all font-medium appearance-none"
+      style={{ ...inputStyle, cursor: 'pointer' }}
+      onFocus={e => {
+        e.currentTarget.style.borderColor = '#C45C26';
+        e.currentTarget.style.background = '#FDF6EE';
+      }}
+      onBlur={e => {
+        e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)';
+        e.currentTarget.style.background = '#F2E4D0';
+      }}
     >
       {options.map(opt => (
         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -64,7 +121,6 @@ const SelectField = ({ label, value, onChange, options, required }) => (
 );
 
 // ─── Prefill helper ─────────────────────────────────────────────────────────────
-// Pulls the joiner's saved profile so the contact fields aren't blank every time.
 const usePrefilledContact = () => {
   const [contact, setContact] = useState({ fullName: '', contact: '', email: '' });
   useEffect(() => {
@@ -89,24 +145,42 @@ const usePrefilledContact = () => {
  
 // ─── Success Screen ─────────────────────────────────────────────────────────────
 const SuccessScreen = ({ type, onReset }) => (
-  <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
-    <div className="w-24 h-24 bg-[#C45C26]/10 rounded-full flex items-center justify-center animate-bounce">
-      <CheckCircle size={48} className="text-[#C45C26]" />
+  <div style={{
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    padding: '6rem 1.5rem', textAlign: 'center', gap: 24,
+  }}>
+    <div style={{
+      width: 80, height: 80, background: 'rgba(196,92,38,0.12)', borderRadius: '50%',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C45C26',
+    }}>
+      <CheckCircle size={44} />
     </div>
     <div>
-      <h3 className="text-2xl font-black text-[#1A0A00] uppercase tracking-tight">
+      <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
         {type === 'exclusive' ? 'Exclusive Booking Submitted!' : 'Tour Request Sent!'}
       </h3>
-      <p className="text-[#7A3A18]/80 text-sm mt-2 max-w-sm mx-auto">
+      <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 8, maxWidth: 420, lineHeight: 1.6 }}>
         {type === 'exclusive'
-          ? 'Our team will review your exclusive booking and reach out within 24 hours to confirm your itinerary and pricing. You\'ll also get a notification here once it\'s reviewed.'
+          ? "Our team will review your exclusive booking and reach out within 24 hours to confirm your itinerary and pricing. You'll also get a notification here once it's reviewed."
           : "Your destination request has been forwarded to the Bandang IBAYO team. You'll get a notification here once they've reviewed it."}
       </p>
     </div>
     <button
       onClick={onReset}
-      className="px-8 py-3 bg-[#1A0A00] text-white rounded-2xl text-xs font-black uppercase tracking-widest
-                 hover:bg-[#C45C26] hover:text-[#1A0A00] transition-all"
+      style={{
+        padding: '12px 28px', background: '#1A0A00', color: '#FDF6EE',
+        borderRadius: 14, border: 'none', fontSize: 11, fontWeight: 900,
+        textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer',
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = '#C45C26';
+        e.currentTarget.style.color = '#FDF6EE';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = '#1A0A00';
+        e.currentTarget.style.color = '#FDF6EE';
+      }}
     >
       Submit Another
     </button>
@@ -131,7 +205,6 @@ const ExclusiveTourForm = () => {
       contact: prev.contact || prefill.contact,
       email: prev.email || prefill.email,
     }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill.fullName, prefill.contact, prefill.email]);
  
   const set = (field) => (e) =>
@@ -184,13 +257,18 @@ const ExclusiveTourForm = () => {
   if (submitted) return <SuccessScreen type="exclusive" onReset={() => setSubmitted(false)} />;
  
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       {/* Info Banner */}
-      <div className="bg-[#1A0A00]/5 border border-[#1A0A00]/10 rounded-2xl p-5 flex gap-4 items-start">
-        <Shield size={20} className="text-[#1A0A00] shrink-0 mt-0.5" />
+      <div style={{
+        background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.15)',
+        borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', gap: 14, alignItems: 'flex-start',
+      }}>
+        <Shield size={20} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
         <div>
-          <p className="text-xs font-black text-[#1A0A00] uppercase tracking-wide">Private Group Booking</p>
-          <p className="text-xs text-[#7A3A18]/80 mt-0.5 leading-relaxed">
+          <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            Private Group Booking
+          </p>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
             Exclusive tours reserve the entire vehicle and itinerary just for your group. No other joiners. 
             The agency handles all coordination — accommodation, van, guide. You pay all-in.
           </p>
@@ -198,12 +276,12 @@ const ExclusiveTourForm = () => {
       </div>
  
       {/* Personal Info */}
-      <section className="space-y-4">
-        <h3 className="text-[10px] font-black text-[#1A0A00] uppercase tracking-[0.2em] flex items-center gap-2">
-          <span className="w-5 h-5 bg-[#C45C26] rounded-full text-white flex items-center justify-center text-[9px]">1</span>
+      <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>1</span>
           Contact Information
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
           <InputField label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
           <InputField label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
@@ -211,18 +289,18 @@ const ExclusiveTourForm = () => {
       </section>
  
       {/* Trip Details */}
-      <section className="space-y-4">
-        <h3 className="text-[10px] font-black text-[#1A0A00] uppercase tracking-[0.2em] flex items-center gap-2">
-          <span className="w-5 h-5 bg-[#C45C26] rounded-full text-white flex items-center justify-center text-[9px]">2</span>
+      <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>2</span>
           Trip Details
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField label="Destination" placeholder="e.g. Mt. Pulag, Batanes, Palawan" value={form.destination} onChange={set('destination')} required />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+          <InputField label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
           <InputField label="Number of Participants" type="number" placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField label="Preferred Date" type="date" value={form.preferredDate} onChange={set('preferredDate')} required />
           <InputField label="Alternate Date (optional)" type="date" value={form.alternateDate} onChange={set('alternateDate')} />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <SelectField
             label="Accommodation Preference"
             value={form.accommodation}
@@ -254,38 +332,49 @@ const ExclusiveTourForm = () => {
       </section>
  
       {/* Policy Reminder */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-1">
-        <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Policy Reminder</p>
-        <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
+      <div style={{
+        background: 'rgba(196,92,38,0.08)', border: '1px solid rgba(196,92,38,0.22)',
+        borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 6,
+      }}>
+        <p style={{ fontSize: 10, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
+          Policy Reminder
+        </p>
+        <ul style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
           <li>A <strong>downpayment via GCash</strong> is required to confirm the booking.</li>          
           <li>Bookings are <strong>non-refundable</strong>. Cancellations are not allowed.</li>
           <li>All prices are all-in (van, accommodation, coordination). Entrance/environmental fees are separate.</li>
-          <li>An email will be sent to confirm your exclusive booking.</li>
+          <li>An email and notification will be sent to confirm your exclusive booking.</li>
         </ul>
       </div>
  
       {/* Terms */}
-      <label className="flex items-start gap-3 cursor-pointer group">
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
         <input
           type="checkbox"
           checked={form.agreeTerms}
           onChange={set('agreeTerms')}
-          className="mt-0.5 w-4 h-4 accent-[#C45C26]"
+          style={{ marginTop: 3, accentColor: '#C45C26', width: 16, height: 16 }}
         />
-        <span className="text-xs text-[#7A3A18]/80 leading-relaxed group-hover:text-[#7A3A18] transition-colors">
-          I have read and agree to the <span className="text-[#1A0A00] font-bold underline underline-offset-2">Terms & Conditions</span> and understand the 
-          non-refundable payment policy. I also acknowledge the medical disclaimer applicable to adventure tours.
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.85, lineHeight: 1.6 }}>
+          I have read and agree to the <span style={{ color: '#1A0A00', fontWeight: 900, textDecoration: 'underline' }}>Terms & Conditions</span> and understand the 
+          non-refundable payment policy. I also acknowledge the medical disclaimer applicable to overland travel.
         </span>
       </label>
  
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 bg-[#1A0A00] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em]
-                   hover:bg-[#C45C26] hover:text-[#1A0A00] transition-all shadow-xl shadow-[#1A0A00]/20
-                   disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        style={{
+          width: '100%', padding: '16px 0', background: '#1A0A00', color: '#FDF6EE',
+          borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11,
+          letterSpacing: '0.18em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          boxShadow: '0 6px 20px rgba(26,10,0,0.15)', transition: 'background 0.2s',
+        }}
+        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#C45C26'; }}
+        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#1A0A00'; }}
       >
-        {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+        {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />}
         {loading ? 'Submitting…' : 'Submit Exclusive Booking Request'}
       </button>
     </form>
@@ -310,7 +399,6 @@ const RequestTourForm = () => {
       contact: prev.contact || prefill.contact,
       email: prev.email || prefill.email,
     }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill.fullName, prefill.contact, prefill.email]);
  
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -360,13 +448,18 @@ const RequestTourForm = () => {
   if (submitted) return <SuccessScreen type="request" onReset={() => setSubmitted(false)} />;
  
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       {/* Info Banner */}
-      <div className="bg-[#C45C26]/10 border border-[#C45C26]/20 rounded-2xl p-5 flex gap-4 items-start">
-        <Globe size={20} className="text-[#C45C26] shrink-0 mt-0.5" />
+      <div style={{
+        background: 'rgba(196,92,38,0.08)', border: '1px solid rgba(196,92,38,0.22)',
+        borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', gap: 14, alignItems: 'flex-start',
+      }}>
+        <Globe size={20} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
         <div>
-          <p className="text-xs font-black text-[#1A0A00] uppercase tracking-wide">Suggest a Destination</p>
-          <p className="text-xs text-[#7A3A18]/80 mt-0.5 leading-relaxed">
+          <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+            Suggest a Destination
+          </p>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
             Don't see your dream destination listed? Request it here. The Bandang IBAYO team will review 
             your suggestion, check availability, and send you a <strong>customized price list</strong>. 
             Approved requests may be opened to other joiners.
@@ -375,12 +468,12 @@ const RequestTourForm = () => {
       </div>
  
       {/* Personal Info */}
-      <section className="space-y-4">
-        <h3 className="text-[10px] font-black text-[#1A0A00] uppercase tracking-[0.2em] flex items-center gap-2">
-          <span className="w-5 h-5 bg-[#C45C26] rounded-full text-white flex items-center justify-center text-[9px]">1</span>
+      <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>1</span>
           Your Information
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
           <InputField label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
           <InputField label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
@@ -388,12 +481,12 @@ const RequestTourForm = () => {
       </section>
  
       {/* Destination Details */}
-      <section className="space-y-4">
-        <h3 className="text-[10px] font-black text-[#1A0A00] uppercase tracking-[0.2em] flex items-center gap-2">
-          <span className="w-5 h-5 bg-[#C45C26] rounded-full text-white flex items-center justify-center text-[9px]">2</span>
-          Destination & Tour Details
+      <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>2</span>
+          Destination &amp; Tour Details
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
           <InputField label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
           <InputField label="Estimated Group Size" type="number" placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
@@ -420,20 +513,31 @@ const RequestTourForm = () => {
       </section>
  
       {/* What happens next */}
-      <div className="bg-[#F2E4D0] border 	border-[#C45C26]/12 rounded-2xl p-5 space-y-3">
-        <p className="text-[10px] font-black text-[#1A0A00] uppercase tracking-widest">What Happens Next?</p>
-        <div className="space-y-2">
+      <div style={{
+        background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.14)',
+        borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12,
+      }}>
+        <p style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
+          What Happens Next?
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             ['Agency reviews your request', 'Usually within 24–48 hours'],
             ['Custom price list is prepared', 'Based on group size, destination & dates'],
             ['You receive a notification here that the request has been approved or denied', 'If approved, the tour will be open for joiners on the Explore Tours page'],
             ['You may confirm the tour by making a downpayment', 'Via GCash to secure your booking'],
           ].map(([step, desc], i) => (
-            <div key={i} className="flex items-start gap-3">
-              <span className="w-5 h-5 bg-[#1A0A00] text-[#C45C26] rounded-full text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{
+                width: 20, height: 20, background: '#1A0A00', color: '#E8A265',
+                borderRadius: '50%', fontSize: 9, fontWeight: 900, display: 'flex',
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
+              }}>
+                {i + 1}
+              </span>
               <div>
-                <p className="text-xs font-black text-[#7A3A18]">{step}</p>
-                <p className="text-[10px] text-[#7A3A18]/70">{desc}</p>
+                <p style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{step}</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '2px 0 0' }}>{desc}</p>
               </div>
             </div>
           ))}
@@ -443,11 +547,17 @@ const RequestTourForm = () => {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 bg-[#C45C26] text-[#1A0A00] rounded-2xl font-black text-xs uppercase tracking-[0.2em]
-                   hover:bg-[#1A0A00] hover:text-white transition-all shadow-xl shadow-[#C45C26]/20
-                   disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        style={{
+          width: '100%', padding: '16px 0', background: '#C45C26', color: '#FDF6EE',
+          borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11,
+          letterSpacing: '0.18em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          boxShadow: '0 6px 20px rgba(196,92,38,0.25)', transition: 'background 0.2s',
+        }}
+        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#1A0A00'; }}
+        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#C45C26'; }}
       >
-        {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowRight size={16} />}
+        {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
         {loading ? 'Sending Request…' : 'Send Tour Request'}
       </button>
     </form>
@@ -474,54 +584,69 @@ const ExclusiveTour = () => {
   ];
  
   return (
-    <div className="space-y-8 text-left">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
       {/* Page Header */}
       <div>
-        <h2 className="text-3xl font-black text-[#1A0A00] uppercase tracking-tight leading-none">
-          Exclusive & <span className="text-[#C45C26]">Requested</span> Tours
+        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.15 }}>
+          Exclusive &amp; <span style={{ color: '#C45C26' }}>Requested</span> Tours
         </h2>
-        <p className="text-[#7A3A18]/80 text-sm mt-2">
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.8, marginTop: 6, margin: '6px 0 0' }}>
           Want privacy, a tailored itinerary, or a destination we don't offer yet? You're in the right place.
         </p>
       </div>
  
       {/* Tab Switcher */}
-      <div className="grid grid-cols-2 gap-4">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all duration-300
-              ${activeTab === tab.id
-                ? 'bg-[#1A0A00] border-[#1A0A00] text-white shadow-2xl shadow-[#1A0A00]/20 scale-[1.01]'
-                : 'bg-[#FDF6EE] 	border-[#C45C26]/12 text-[#7A3A18] hover:border-[#1A0A00]/20 hover:bg-[#F2E4D0]'
-              }`}
-          >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors
-              ${activeTab === tab.id ? 'bg-[#C45C26] text-[#1A0A00]' : 'bg-[#F2E4D0] text-[#7A3A18]/70'}`}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+        {tabs.map(tab => {
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 16, padding: '1.25rem 1.5rem',
+                borderRadius: 20, border: active ? '2px solid #1A0A00' : '1px solid rgba(196,92,38,0.15)',
+                textAlign: 'left', cursor: 'pointer', transition: 'all 0.25s',
+                background: active ? '#1A0A00' : '#FDF6EE',
+                color: active ? '#FDF6EE' : '#7A3A18',
+                boxShadow: active ? '0 8px 24px rgba(26,10,0,0.18)' : '0 2px 10px rgba(26,10,0,0.04)',
+                transform: active ? 'scale(1.01)' : 'scale(1)',
+              }}
             >
-              {tab.icon}
-            </div>
-            <div>
-              <p className={`text-xs font-black uppercase tracking-widest leading-none
-                ${activeTab === tab.id ? 'text-white' : 'text-[#1A0A00]'}`}
-              >
-                {tab.label}
-              </p>
-              <p className={`text-[10px] mt-1 ${activeTab === tab.id ? 'text-white/60' : 'text-[#7A3A18]/70'}`}>
-                {tab.sub}
-              </p>
-            </div>
-            <ChevronRight
-              size={16}
-              className={`ml-auto transition-colors ${activeTab === tab.id ? 'text-[#C45C26]' : 'text-[#C45C26]/20'}`}
-            />
-          </button>
-        ))}
+              <div style={{
+                width: 42, height: 42, borderRadius: 12, display: 'flex',
+                alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                background: active ? '#C45C26' : '#F2E4D0',
+                color: active ? '#FDF6EE' : '#C45C26',
+              }}>
+                {tab.icon}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{
+                  fontSize: 12, fontWeight: 900, textTransform: 'uppercase',
+                  letterSpacing: '0.12em', margin: 0, color: active ? '#FDF6EE' : '#1A0A00',
+                }}>
+                  {tab.label}
+                </p>
+                <p style={{ fontSize: 10.5, fontWeight: 600, margin: '3px 0 0', opacity: active ? 0.7 : 0.65 }}>
+                  {tab.sub}
+                </p>
+              </div>
+              <ChevronRight
+                size={16}
+                style={{ color: active ? '#E8A265' : 'rgba(196,92,38,0.3)', flexShrink: 0 }}
+              />
+            </button>
+          );
+        })}
       </div>
  
       {/* Form Card */}
-      <div className="bg-[#FDF6EE] rounded-3xl border 	border-[#C45C26]/12 shadow-sm p-8">
+      <div style={{
+        background: '#FDF6EE', borderRadius: 24, padding: '2rem 2.25rem',
+        border: '1px solid rgba(196,92,38,0.12)', borderTop: '8px solid #C45C26',
+        boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+      }}>
         {activeTab === 'exclusive' ? <ExclusiveTourForm /> : <RequestTourForm />}
       </div>
     </div>

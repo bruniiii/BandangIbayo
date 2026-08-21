@@ -8,17 +8,26 @@ import {
   ChevronLeft, ChevronRight, MapPin, Users, Calendar as CalendarIcon,
   Loader2, Eye, X, CheckCircle2, ImageIcon, AlertCircle, ChevronDown,
   Clock, CreditCard, Wallet, Receipt, Upload, ArrowRight, Check,
-  ArrowLeft, Smartphone // <-- Add these two
+  ArrowLeft, Smartphone
 } from 'lucide-react';
+
+// ── PALETTE ──────────────────────────────────────────────
+// #1A0A00  espresso dark
+// #C45C26  burnt sienna (accent)
+// #E8A265  warm amber (highlight)
+// #FDF6EE  cream (light card bg)
+// #2D1B0E  deep brown (dark card)
+// #7A3A18  rust mid-tone
+// #8C2F1C  deep rust red (error / full / alert)
+// #F2E4D0  parchment (inset panel bg)
+// #EDEAE3  warm stone (page bg)
+// #3F5D62  slate teal (secondary contrast accent)
+// ---------------------------------------------------------
  
 /* ─────────────────────────────────────────────
   TOUR CALENDAR
 ───────────────────────────────────────────── */
 const TourCalendar = ({ initialDate }) => {
-  // initialDate is an optional { year, month, day } object passed down from
-  // JoinerDashboard when the joiner clicks a specific day/month in the
-  // dashboard's mini calendar. `month` is 0-indexed to match Date's API.
-  // Falls back to "today" when this component is opened from the sidebar nav.
   const [currentMonth, setCurrentMonth] = useState(() =>
     initialDate ? new Date(initialDate.year, initialDate.month, 1) : new Date()
   );
@@ -32,7 +41,10 @@ const TourCalendar = ({ initialDate }) => {
   const fetchToursWithAvailability = useCallback(async () => {
     setLoading(true);
     const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false);
-    const { data: bookingsData } = await supabase.from('bookings').select('tour_id, slots_booked').eq('booking_status', 'Completed')
+    const { data: bookingsData } = await supabase
+      .from('bookings')
+      .select('tour_id, slots_booked')
+      .not('booking_status', 'in', '("Cancelled","Rejected")');
  
     const updatedTours = (toursData || []).map(tour => {
       const totalBooked = (bookingsData || [])
@@ -107,7 +119,7 @@ const TourCalendar = ({ initialDate }) => {
     return tours.filter(tour => {
       const checkDay = new Date(new Date(day).setHours(0, 0, 0, 0));
       const start = new Date(new Date(tour.start_date).setHours(0, 0, 0, 0));
-      const end = new Date(new Date(tour.end_date).setHours(0, 0, 0, 0));
+      const end = new Date(new Date(tour.end_date || tour.start_date).setHours(0, 0, 0, 0));
       return checkDay >= start && checkDay <= end;
     });
   };
@@ -115,28 +127,51 @@ const TourCalendar = ({ initialDate }) => {
   const selectedDayTours = getToursForDay(selectedDate);
  
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 text-left">
-      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 text-left">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, textAlign: 'left' }}>
+      <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 32, alignItems: 'start' }}>
  
         {/* ── Calendar Grid ── */}
-        <div className="lg:col-span-8 bg-[#FDF6EE] p-8 rounded-[2.5rem] border border-[#C45C26]/12 shadow-sm text-left">
-          <div className="flex justify-between items-center mb-10 text-left">
-            <h2 className="text-2xl font-black text-[#1A0A00] uppercase tracking-tight text-left">
+        <div style={{
+          background: '#FDF6EE',
+          padding: '2rem',
+          borderRadius: 28,
+          border: '1px solid rgba(196,92,38,0.12)',
+          boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          textAlign: 'left'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
-            <div className="flex gap-2 text-left">
-              <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-[#F2E4D0] rounded-full transition-colors"><ChevronLeft /></button>
-              <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-[#F2E4D0] rounded-full transition-colors"><ChevronRight /></button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                style={{
+                  padding: 8, background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.15)',
+                  borderRadius: 12, cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                style={{
+                  padding: 8, background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.15)',
+                  borderRadius: 12, cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                <ChevronRight size={18} />
+              </button>
             </div>
           </div>
  
-          <div className="grid grid-cols-7 mb-6 text-center border-b border-[#C45C26]/8 pb-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 14, textAlign: 'center', borderBottom: '1px solid rgba(196,92,38,0.1)', paddingBottom: 12 }}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-[11px] font-black text-[#1A0A00] uppercase tracking-[0.2em]">{day}</div>
+              <div key={day} style={{ fontSize: 10, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
             ))}
           </div>
  
-          <div className="grid grid-cols-7 gap-2 text-left">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, textAlign: 'left' }}>
             {calendarDays.map((day, idx) => {
               const dayTours = getToursForDay(new Date(day));
               const isSelected = isSameDay(day, selectedDate);
@@ -148,16 +183,39 @@ const TourCalendar = ({ initialDate }) => {
                   key={idx}
                   onClick={() => !isPast && setSelectedDate(day)}
                   disabled={isPast}
-                  className={`h-24 rounded-2xl p-3 transition-all flex flex-col border-2 text-left
-                    ${isPast ? 'bg-[#F2E4D0]/10 cursor-not-allowed opacity-20 border-transparent' : 'bg-[#F2E4D0]/30'}
-                    ${isSelected && !isPast ? 'border-[#C45C26] bg-[#C45C26]/8' : 'border-transparent hover:border-[#C45C26]/12'}`}
+                  style={{
+                    height: 92,
+                    borderRadius: 16,
+                    padding: 10,
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    border: isSelected && !isPast ? '2px solid #C45C26' : '1px solid transparent',
+                    background: isPast ? 'rgba(242,228,208,0.2)' : isSelected ? 'rgba(196,92,38,0.08)' : '#F2E4D0',
+                    cursor: isPast ? 'not-allowed' : 'pointer',
+                    opacity: isPast ? 0.35 : 1,
+                    textAlign: 'left'
+                  }}
                 >
-                  <span className={`text-sm font-black ${isPast ? 'text-[#C45C26]/30' : isSelected ? 'text-[#C45C26]' : isCurrentMonth ? 'text-[#1A0A00]' : 'text-[#7A3A18]/70'}`}>
+                  <span style={{
+                    fontSize: 13,
+                    fontWeight: 900,
+                    color: isPast ? '#7A3A18' : isSelected ? '#C45C26' : isCurrentMonth ? '#1A0A00' : 'rgba(122,58,24,0.45)'
+                  }}>
                     {format(day, 'd')}
                   </span>
                   {dayTours.length > 0 && !isPast && (
-                    <div className="mt-auto">
-                      <div className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md inline-block ${isCurrentMonth ? 'text-[#7A3A18] bg-[#E8A265]/18' : 'text-[#7A3A18]/70 bg-[#F2E4D0]'}`}>
+                    <div style={{ marginTop: 'auto' }}>
+                      <div style={{
+                        fontSize: 8,
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        padding: '2px 6px',
+                        borderRadius: 6,
+                        display: 'inline-block',
+                        color: '#1A0A00',
+                        background: '#E8A265'
+                      }}>
                         {dayTours.length} {dayTours.length === 1 ? 'Tour' : 'Tours'}
                       </div>
                     </div>
@@ -169,41 +227,79 @@ const TourCalendar = ({ initialDate }) => {
         </div>
  
         {/* ── Daily Sidebar ── */}
-        <div className="lg:col-span-4 space-y-6 h-full text-left">
-          <div className="bg-[#1A0A00] p-8 rounded-[2.5rem] text-white shadow-xl h-full flex flex-col text-left">
-            <p className="text-[10px] font-black text-[#C45C26] uppercase tracking-[0.2em] mb-2">Schedule for</p>
-            <h3 className="text-3xl font-black mb-8">{format(selectedDate, 'MMMM dd')}</h3>
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%', textAlign: 'left' }}>
+          <div style={{
+            background: '#1A0A00',
+            padding: '2rem',
+            borderRadius: 28,
+            color: '#FDF6EE',
+            boxShadow: '0 16px 40px rgba(26,10,0,0.22)',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            textAlign: 'left'
+          }}>
+            <p style={{ fontSize: 9, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
+            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#FDF6EE', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {loading ? (
-                <div className="flex justify-center py-10"><Loader2 className="animate-spin text-white/20" size={32} /></div>
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '2.5rem 0' }}><Loader2 style={{ animation: 'spin 1s linear infinite', color: '#E8A265' }} size={28} /></div>
               ) : selectedDayTours.length > 0 ? (
                 selectedDayTours.map(tour => (
-                  <div key={tour.id} className="bg-[#FDF6EE]/10 p-5 rounded-3xl border border-white/5 group hover:bg-[#FDF6EE]/20 transition-all duration-300">
-                    <h4 className="font-black text-sm uppercase mb-2">{tour.title}</h4>
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-white/60 mb-1">
-                      <MapPin size={12} className="text-[#C45C26]" /> {tour.destination}
+                  <div key={tour.id} style={{
+                    background: 'rgba(253,246,238,0.06)',
+                    padding: '1.25rem',
+                    borderRadius: 20,
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    transition: 'all 0.2s'
+                  }}>
+                    <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: '#FDF6EE', margin: '0 0 8px' }}>{tour.title}</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: 'rgba(232,210,190,0.7)', marginBottom: 4 }}>
+                      <MapPin size={12} style={{ color: '#C45C26' }} /> {tour.destination}
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] font-bold mb-4">
-                      <Users size={12} className="text-[#C45C26]" />
-                      <span className={tour.available_slots > 0 ? 'text-white/70' : 'text-red-400'}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, marginBottom: 12 }}>
+                      <Users size={12} style={{ color: '#C45C26' }} />
+                      <span style={{ color: tour.available_slots > 0 ? '#FDF6EE' : '#8C2F1C' }}>
                         {tour.current_booked}/{tour.group_size} Booked
                       </span>
                       {tour.available_slots <= 0 && (
-                        <span className="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase">Full</span>
+                        <span style={{ background: '#8C2F1C', color: '#FDF6EE', fontSize: 7, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
                       )}
                     </div>
                     {/* Slot bar */}
-                    <div className="w-full bg-[#FDF6EE]/10 rounded-full h-1.5 overflow-hidden mb-4">
+                    <div style={{ width: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: 999, height: 5, overflow: 'hidden', marginBottom: 14 }}>
                       <div
-                        className={`h-1.5 rounded-full transition-all ${tour.available_slots <= 0 ? 'bg-red-400' : tour.available_slots <= 3 ? 'bg-amber-400' : 'bg-[#C45C26]'}`}
-                        style={{ width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%` }}
+                        style={{
+                          height: '100%',
+                          borderRadius: 999,
+                          transition: 'all 0.3s',
+                          background: tour.available_slots <= 0 ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#C45C26',
+                          width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`
+                        }}
                       />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-black text-[#C45C26]">₱{tour.price.toLocaleString()}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: '#E8A265' }}>₱{tour.price.toLocaleString()}</span>
                       <button
                         onClick={() => setSelectedTour(tour)}
-                        className="bg-[#FDF6EE] text-[#1A0A00] px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[#C45C26] hover:text-white transition-all"
+                        style={{
+                          background: '#FDF6EE',
+                          color: '#1A0A00',
+                          border: 'none',
+                          padding: '7px 14px',
+                          borderRadius: 10,
+                          fontSize: 9,
+                          fontWeight: 900,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#C45C26'; e.currentTarget.style.color = '#FDF6EE'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#FDF6EE'; e.currentTarget.style.color = '#1A0A00'; }}
                       >
                         Details
                       </button>
@@ -211,7 +307,10 @@ const TourCalendar = ({ initialDate }) => {
                   </div>
                 ))
               ) : (
-                <div className="py-20 text-center opacity-30 italic text-sm border-2 border-dashed border-white/10 rounded-4xl">
+                <div style={{
+                  padding: '3rem 1rem', textAlign: 'center', color: 'rgba(232,210,190,0.4)', fontStyle: 'italic',
+                  fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
+                }}>
                   No tours scheduled.
                 </div>
               )}
@@ -222,9 +321,13 @@ const TourCalendar = ({ initialDate }) => {
  
       {/* ── Tour Detail Modal ── */}
       {selectedTour && (
-        <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 text-left">
-          <div className="absolute inset-0 bg-[#1A0A00]/95 backdrop-blur-md" onClick={() => setSelectedTour(null)}></div>
-          <div className="relative bg-[#FDF6EE] w-full max-w-7xl h-[95vh] rounded-4xl shadow-2xl overflow-hidden flex flex-col text-left">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, textAlign: 'left' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={() => setSelectedTour(null)}></div>
+          <div style={{
+            position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 1100, height: '92vh',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            borderTop: '8px solid #C45C26', textAlign: 'left'
+          }}>
             <TourDetailView
               tour={selectedTour}
               onClose={() => setSelectedTour(null)}
@@ -262,7 +365,7 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
       .from('bookings')
       .select('slots_booked')
       .eq('tour_id', tour.id)
-      .eq('booking_status', 'Completed')
+      .not('booking_status', 'in', '("Cancelled","Rejected")');
 
     const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
     const freshAvailable = (tour.group_size || 15) - totalBooked;
@@ -278,7 +381,6 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
       return;
     }
 
-    // Duplicate guard: check if user already has an active/pending booking for this tour
     const { data: existingBooking } = await supabase
       .from('bookings')
       .select('id, booking_number')
@@ -304,88 +406,106 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
   };
 
   return (
-    <div className="flex flex-col w-full h-full relative text-left overflow-hidden">
-      <button onClick={onClose} className="absolute top-5 right-5 md:top-8 md:right-8 z-50 text-[#7A3A18]/70 hover:text-[#1A0A00] bg-[#FDF6EE]/85 backdrop-blur-sm rounded-full p-1.5 transition-colors shadow-sm"><X size={24} /></button>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', position: 'relative', textAlign: 'left', overflow: 'hidden' }}>
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute', top: 20, right: 24, zIndex: 50,
+          background: '#FDF6EE', border: 'none', cursor: 'pointer',
+          color: 'rgba(122,58,24,0.7)', borderRadius: '50%', padding: 6,
+          boxShadow: '0 2px 8px rgba(26,10,0,0.1)'
+        }}
+      >
+        <X size={24} />
+      </button>
 
-      {/* Single scroll container -- carousel, meta, and booking controls sit in
-          one panel, description sections in another; both flow as ONE column
-          on mobile and sit side by side on desktop (md+), matching the admin
-          Tour View modal's layout language. */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.6fr]">
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', minHeight: 0 }}>
 
-          {/* Left / top panel: gallery, meta, booking */}
-          <div className="bg-[#F2E4D0] p-6 md:p-10 md:border-r border-[#C45C26]/12 flex flex-col">
+          {/* Left panel: gallery, meta, booking */}
+          <div style={{
+            background: '#F2E4D0', padding: '2.5rem 2rem',
+            borderRight: '1px solid rgba(196,92,38,0.12)', display: 'flex', flexDirection: 'column'
+          }}>
             <TourImageCarousel images={tour.image_urls || []} />
 
-            <h2 className="text-2xl md:text-[26px] font-black text-[#1A0A00] leading-tight mt-6 mb-5">{tour.title}</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: '20px 0 16px' }}>{tour.title}</h2>
 
-            <div className="space-y-3 mb-5">
-              <div className="flex items-center gap-2.5 text-[#7A3A18] font-semibold text-sm">
-                <CalendarIcon size={16} className="text-[#C45C26] shrink-0" /> {formatDateRange(tour.start_date, tour.duration)}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#7A3A18', fontWeight: 600, fontSize: 13 }}>
+                <CalendarIcon size={16} style={{ color: '#C45C26', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
               </div>
-              <div className="flex items-center gap-2.5 text-[#7A3A18] font-semibold text-sm">
-                <Clock size={16} className="text-[#C45C26] shrink-0" /> {tour.duration}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#7A3A18', fontWeight: 600, fontSize: 13 }}>
+                <Clock size={16} style={{ color: '#C45C26', flexShrink: 0 }} /> {tour.duration}
               </div>
-              <div className="flex items-center gap-2.5 font-semibold text-sm">
-                <Users size={16} className="text-[#C45C26] shrink-0" />
-                <span className={isFullyBooked ? 'text-red-500' : 'text-[#7A3A18]'}>
-                  {tour.current_booked} / {tour.group_size} Slots Booked
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600, fontSize: 13, color: isFullyBooked ? '#8C2F1C' : '#7A3A18' }}>
+                <Users size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+                {tour.current_booked} / {tour.group_size} Slots Booked
               </div>
-              <div className="w-full bg-[#C45C26]/15 rounded-full h-1.5 overflow-hidden">
+              <div style={{ width: '100%', background: 'rgba(196,92,38,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
                 <div
-                  className={`h-full rounded-full transition-all ${isFullyBooked ? 'bg-red-500' : tour.available_slots <= 3 ? 'bg-amber-500' : 'bg-[#7A3A18]'}`}
-                  style={{ width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%` }}
+                  style={{
+                    height: '100%', borderRadius: 999, transition: 'all 0.3s',
+                    background: isFullyBooked ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#C45C26',
+                    width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`
+                  }}
                 />
               </div>
               {tour.difficulty && (
-                <span className="inline-block bg-[#FDF6EE] border border-[#C45C26]/20 rounded-full px-3.5 py-1 text-[9px] font-black uppercase tracking-widest text-[#1A0A00] w-fit">
+                <span style={{
+                  display: 'inline-block', background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.2)',
+                  borderRadius: 999, padding: '4px 14px', fontSize: 9, fontWeight: 900,
+                  textTransform: 'uppercase', letterSpacing: '0.15em', color: '#1A0A00', width: 'fit-content'
+                }}>
                   {tour.difficulty}
                 </span>
               )}
             </div>
 
             {isFullyBooked ? (
-              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-5">
-                <AlertCircle size={16} className="text-red-500 shrink-0" />
-                <p className="text-red-600 text-xs font-black uppercase tracking-wide">Fully Booked</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(140,47,28,0.1)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 16, padding: '12px 16px', marginBottom: 20 }}>
+                <AlertCircle size={16} style={{ color: '#8C2F1C', flexShrink: 0 }} />
+                <p style={{ color: '#8C2F1C', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Fully Booked</p>
               </div>
             ) : tour.available_slots <= 3 ? (
-              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-5">
-                <AlertCircle size={16} className="text-amber-500 shrink-0" />
-                <p className="text-amber-600 text-xs font-bold">Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 16, padding: '12px 16px', marginBottom: 20 }}>
+                <AlertCircle size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+                <p style={{ color: '#7A3A18', fontSize: 11, fontWeight: 700, margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
               </div>
             ) : null}
 
-            <div className="mb-1">
-              <p className="text-4xl font-black text-[#C45C26] leading-none">₱{tour.price.toLocaleString()}</p>
-              <p className="text-[10px] font-bold text-[#7A3A18]/60 uppercase tracking-widest mt-1">Per Person</p>
+            <div style={{ marginBottom: 4 }}>
+              <p style={{ fontSize: 34, fontWeight: 900, color: '#C45C26', margin: 0, lineHeight: 1 }}>₱{tour.price.toLocaleString()}</p>
+              <p style={{ fontSize: 9, fontWeight: 800, color: '#7A3A18', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.18em', marginTop: 4 }}>Per Person</p>
             </div>
 
             {!isFullyBooked && (
-              <div className="mt-6 pt-5 border-t border-[#C45C26]/18">
-                <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase block mb-3">Number of Persons</label>
-                <div className="relative">
+              <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid rgba(196,92,38,0.18)' }}>
+                <label style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#7A3A18', display: 'block', marginBottom: 8 }}>Number of Persons</label>
+                <div style={{ position: 'relative' }}>
                   <select
                     value={numPersons}
                     onChange={(e) => { setNumPersons(parseInt(e.target.value)); setSlotError(""); }}
-                    className="w-full bg-[#FDF6EE] rounded-2xl px-5 py-3.5 text-sm font-bold text-[#1A0A00] appearance-none cursor-pointer focus:ring-2 focus:ring-[#C45C26] shadow-sm"
+                    style={{
+                      width: '100%', background: '#FDF6EE', borderRadius: 14, padding: '12px 16px',
+                      fontSize: 13, fontWeight: 700, color: '#1A0A00', appearance: 'none', cursor: 'pointer',
+                      border: '1px solid rgba(196,92,38,0.2)', outline: 'none'
+                    }}
                   >
                     {[...Array(maxBookingLimit)].map((_, i) => (
                       <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'Person' : 'Persons'}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 text-[#C45C26]/30 pointer-events-none" size={16} />
+                  <ChevronDown style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(196,92,38,0.5)', pointerEvents: 'none' }} size={16} />
                 </div>
                 {slotError && (
-                  <p className="mt-3 text-xs text-red-500 font-bold flex items-center gap-2">
+                  <p style={{ marginTop: 8, fontSize: 11, color: '#8C2F1C', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <AlertCircle size={14} /> {slotError}
                   </p>
                 )}
-                <div className="flex justify-between items-end mt-5 mb-5">
-                  <p className="text-xs font-black text-[#1A0A00] uppercase tracking-widest">Total</p>
-                  <p className="text-2xl font-black text-[#C45C26]">₱{(tour.price * numPersons).toLocaleString()}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 18, marginBottom: 18 }}>
+                  <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.12em', margin: 0 }}>Total</p>
+                  <p style={{ fontSize: 26, fontWeight: 900, color: '#C45C26', margin: 0 }}>₱{(tour.price * numPersons).toLocaleString()}</p>
                 </div>
               </div>
             )}
@@ -393,47 +513,58 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
             <button
               onClick={handleProceedToPayment}
               disabled={validating || isFullyBooked}
-              className={`w-full py-4 rounded-2xl font-black text-xs uppercase shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-center mt-auto ${isFullyBooked ? 'bg-[#F2E4D0] border border-[#C45C26]/25 text-[#7A3A18]/70 cursor-not-allowed' : 'bg-[#C45C26] hover:bg-[#9C4A1F] text-white'}`}
+              style={{
+                width: '100%', padding: '15px 0', borderRadius: 14, fontWeight: 900,
+                fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.15em', border: 'none',
+                cursor: isFullyBooked ? 'not-allowed' : 'pointer',
+                background: isFullyBooked ? '#EDEAE3' : '#C45C26',
+                color: isFullyBooked ? '#7A3A18' : '#FDF6EE',
+                boxShadow: isFullyBooked ? 'none' : '0 6px 20px rgba(196,92,38,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 'auto',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={e => { if (!isFullyBooked && !validating) e.currentTarget.style.background = '#1A0A00'; }}
+              onMouseLeave={e => { if (!isFullyBooked && !validating) e.currentTarget.style.background = '#C45C26'; }}
             >
-              {validating ? <Loader2 className="animate-spin" size={16} /> : isFullyBooked ? 'Fully Booked' : <><ArrowRight size={16} /> Book This Tour</>}
+              {validating ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : isFullyBooked ? 'Fully Booked' : <><ArrowRight size={16} /> Book This Tour</>}
             </button>
           </div>
 
-          {/* Right / bottom panel: descriptive content */}
-          <div className="bg-[#FDF6EE] p-6 md:p-10 space-y-8">
+          {/* Right panel: descriptive content */}
+          <div style={{ background: '#FDF6EE', padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
             <section>
-              <h4 className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-[0.2em] mb-3">About the Tour</h4>
-              <p className="text-[#7A3A18] text-sm leading-relaxed font-medium whitespace-pre-wrap">{tour.description}</p>
+              <h4 style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px' }}>About the Tour</h4>
+              <p style={{ color: '#7A3A18', fontSize: 13, lineHeight: 1.8, fontWeight: 500, whiteSpace: 'pre-wrap', margin: 0 }}>{tour.description}</p>
             </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-[#C45C26]/10 pt-8">
+            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
               <section>
-                <h4 className="text-[10px] font-black text-[#C45C26] uppercase tracking-[0.2em] mb-3 flex items-center gap-2"><CheckCircle2 size={14} /> Inclusions</h4>
+                <h4 style={{ fontSize: 9, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={14} /> Inclusions</h4>
                 <ChecklistGrid text={tour.inclusions} variant="include" />
               </section>
               <section>
-                <h4 className="text-[10px] font-black text-red-700 uppercase tracking-[0.2em] mb-3 flex items-center gap-2"><X size={14} /> Exclusions</h4>
+                <h4 style={{ fontSize: 9, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}><X size={14} /> Exclusions</h4>
                 <ChecklistGrid text={tour.exclusions} variant="exclude" />
               </section>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-[#C45C26]/10 pt-8">
+            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
               <section>
-                <h4 className="text-[10px] font-black text-[#1A0A00] uppercase tracking-[0.2em] mb-3">Itinerary</h4>
-                <pre className="text-[#7A3A18]/80 text-sm font-sans whitespace-pre-wrap leading-relaxed">{tour.itinerary || "N/A"}</pre>
+                <h4 style={{ fontSize: 9, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px' }}>Itinerary</h4>
+                <pre style={{ color: '#7A3A18', fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, margin: 0 }}>{tour.itinerary || "N/A"}</pre>
               </section>
               <section>
-                <h4 className="text-[10px] font-black text-[#1A0A00] uppercase tracking-[0.2em] mb-3">Things to Bring</h4>
+                <h4 style={{ fontSize: 9, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px' }}>Things to Bring</h4>
                 <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
               </section>
             </div>
 
             {tour.important_note && (
-              <div className="bg-red-50 p-6 rounded-3xl border border-red-100 flex gap-4">
-                <AlertCircle className="text-red-500 shrink-0" size={22} />
+              <div style={{ background: 'rgba(196,92,38,0.07)', padding: '1.5rem', borderRadius: 20, border: '1px solid rgba(196,92,38,0.2)', display: 'flex', gap: 16 }}>
+                <AlertCircle style={{ color: '#C45C26', flexShrink: 0 }} size={22} />
                 <div>
-                  <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Important Note</p>
-                  <pre className="text-red-700 text-sm font-bold font-sans leading-relaxed whitespace-pre-wrap">{tour.important_note}</pre>
+                  <p style={{ fontSize: 9, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.18em', margin: '0 0 6px' }}>Important Note</p>
+                  <pre style={{ color: '#1A0A00', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0 }}>{tour.important_note}</pre>
                 </div>
               </div>
             )}
@@ -457,7 +588,7 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
 };
 
 /* ─────────────────────────────────────────────
-   TOUR IMAGE CAROUSEL  (gallery with dots + thumbnails)
+   TOUR IMAGE CAROUSEL
 ───────────────────────────────────────────── */
 const TourImageCarousel = ({ images = [] }) => {
   const [index, setIndex] = useState(0);
@@ -483,31 +614,56 @@ const TourImageCarousel = ({ images = [] }) => {
   return (
     <div>
       <div
-        className="relative w-full h-48 md:h-64 rounded-3xl overflow-hidden bg-[#E8D5BC] shadow-xl shrink-0 select-none"
-        style={{ touchAction: 'pan-y' }}
+        style={{
+          position: 'relative', width: '100%', height: 190,
+          borderRadius: 20, overflow: 'hidden', background: '#F2E4D0',
+          boxShadow: '0 8px 24px rgba(26,10,0,0.15)', flexShrink: 0, userSelect: 'none', touchAction: 'pan-y'
+        }}
         onPointerDown={handleDragStart}
         onPointerUp={handleDragEnd}
       >
         {hasImages ? (
-          <div className="flex w-full h-full transition-transform duration-300 ease-out" style={{ transform: `translateX(-${index * 100}%)` }}>
+          <div style={{ display: 'flex', width: '100%', height: '100%', transition: 'transform 0.35s ease', transform: `translateX(-${index * 100}%)` }}>
             {images.map((url, i) => (
-              <img key={i} src={url} draggable={false} alt={`Photo ${i + 1}`} className="w-full h-full object-cover shrink-0" />
+              <img key={i} src={url} draggable={false} alt={`Photo ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', flexShrink: 0 }} />
             ))}
           </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-[#C45C26]/30"><ImageIcon size={40} /></div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}><ImageIcon size={40} /></div>
         )}
 
         {hasMultiple && (
           <>
-            <button type="button" onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#1A0A00]/50 hover:bg-[#1A0A00]/70 text-[#FDF6EE] flex items-center justify-center transition-colors"><ChevronLeft size={18} /></button>
-            <button type="button" onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#1A0A00]/50 hover:bg-[#1A0A00]/70 text-[#FDF6EE] flex items-center justify-center transition-colors"><ChevronRight size={18} /></button>
-            <div className="absolute bottom-2.5 left-0 right-0 flex justify-center gap-1.5">
+            <button
+              type="button" onClick={prev}
+              style={{
+                position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
+                width: 32, height: 32, borderRadius: '50%', background: 'rgba(26,10,0,0.6)',
+                border: 'none', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button" onClick={next}
+              style={{
+                position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                width: 32, height: 32, borderRadius: '50%', background: 'rgba(26,10,0,0.6)',
+                border: 'none', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            >
+              <ChevronRight size={18} />
+            </button>
+            <div style={{ position: 'absolute', bottom: 10, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 6 }}>
               {images.map((_, i) => (
                 <span
                   key={i}
                   onClick={(e) => { e.stopPropagation(); goTo(i); }}
-                  className={`h-1.5 rounded-full cursor-pointer transition-all ${i === index ? 'w-4 bg-[#FDF6EE]' : 'w-1.5 bg-[#FDF6EE]/50'}`}
+                  style={{
+                    height: 6, borderRadius: 999, cursor: 'pointer', transition: 'all 0.2s',
+                    width: i === index ? 16 : 6,
+                    background: i === index ? '#FDF6EE' : 'rgba(253,246,238,0.5)'
+                  }}
                 />
               ))}
             </div>
@@ -516,14 +672,18 @@ const TourImageCarousel = ({ images = [] }) => {
       </div>
 
       {hasMultiple && (
-        <div className="grid grid-cols-4 gap-2 mt-3">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: 12 }}>
           {images.map((url, i) => (
             <div
               key={i}
               onClick={() => goTo(i)}
-              className={`aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${i === index ? 'border-[#C45C26] opacity-100' : 'border-transparent opacity-60 hover:opacity-90'}`}
+              style={{
+                aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
+                border: i === index ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.15)',
+                opacity: i === index ? 1 : 0.65, transition: 'all 0.2s'
+              }}
             >
-              <img src={url} className="w-full h-full object-cover" alt={`Thumbnail ${i + 1}`} />
+              <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`Thumbnail ${i + 1}`} />
             </div>
           ))}
         </div>
@@ -532,25 +692,23 @@ const TourImageCarousel = ({ images = [] }) => {
   );
 };
 
-/* Renders newline-separated text (inclusions/exclusions/things-to-bring)
-   as a tidy checklist grid instead of a raw text block. */
 const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   const items = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
 
   if (items.length === 0) {
-    return <p className="text-sm font-semibold text-[#7A3A18]/50">N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
   }
 
-  const iconColor = variant === 'exclude' ? 'text-red-700' : variant === 'include' ? 'text-[#C45C26]' : 'text-[#7A3A18]';
-  const itemBg = variant === 'exclude' ? 'bg-red-700/6' : variant === 'include' ? 'bg-[#C45C26]/7' : 'bg-[#7A3A18]/6';
+  const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#C45C26' : '#7A3A18';
+  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(196,92,38,0.07)' : 'rgba(122,58,24,0.06)';
   const Icon = variant === 'exclude' ? X : CheckCircle2;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
       {items.map((item, i) => (
-        <div key={i} className={`flex items-start gap-2 rounded-xl px-3 py-2 ${itemBg}`}>
-          <Icon size={13} className={`${iconColor} shrink-0 mt-0.5`} />
-          <span className="text-sm font-semibold text-[#1A0A00] leading-snug">{item}</span>
+        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, borderRadius: 12, padding: '8px 12px', background: itemBg }}>
+          <Icon size={13} style={{ color: iconColor, flexShrink: 0, marginTop: 2 }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
         </div>
       ))}
     </div>
@@ -558,49 +716,61 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 };
  
 /* ─────────────────────────────────────────────
-   PAYMENT FLOW MODAL  (4-step)
-   Step 1 → Proceed to Payment Modal
-   Step 2 → Choose Payment Type Modal
-   Step 3 → GCash Payment Modal
-   Step 4 → Success Modal
+   PAYMENT FLOW MODAL (4-step)
 ───────────────────────────────────────────── */
- 
+
+const overlayBackdrop = {
+  position: 'fixed', inset: 0, zIndex: 2000, display: 'flex',
+  alignItems: 'center', justifyContent: 'center', padding: 16,
+  background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)',
+};
+
 // Step 1: Proceed to Payment confirmation
 const ProceedToPaymentModal = ({ tour, numPersons, subtotal, formatDateRange, onProceed, onCancel }) => (
-  <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm">
-    <div className="bg-[#FDF6EE] w-full max-w-lg rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-      <div className="p-10 space-y-8">
-        <div className="flex items-center justify-between">
-          <button onClick={onCancel} className="text-[#7A3A18]/70 hover:text-[#7A3A18] transition-colors"><X size={24} /></button>
-          <span className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Step 1 of 3</span>
+  <div style={overlayBackdrop}>
+    <div style={{
+      background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
+      borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #C45C26'
+    }}>
+      <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={22} /></button>
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 3</span>
         </div>
         <div>
-          <p className="text-[10px] font-black text-[#C45C26] uppercase tracking-widest mb-1">Booking Preview</p>
-          <h3 className="text-3xl font-black text-[#1A0A00] leading-tight">{tour.title}</h3>
+          <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 4px' }}>Booking Preview</p>
+          <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
         </div>
-        <div className="bg-[#F2E4D0] rounded-3xl p-6 space-y-4">
-          <div className="flex items-center gap-3 text-[#7A3A18] text-sm font-bold">
-            <MapPin size={16} className="text-[#C45C26] shrink-0" /> {tour.destination}
+        <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+            <MapPin size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {tour.destination}
           </div>
-          <div className="flex items-center gap-3 text-[#7A3A18] text-sm font-bold">
-            <CalendarIcon size={16} className="text-[#C45C26] shrink-0" /> {formatDateRange(tour.start_date, tour.duration)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+            <CalendarIcon size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
           </div>
-          <div className="flex items-center gap-3 text-[#7A3A18] text-sm font-bold">
-            <Users size={16} className="text-[#C45C26] shrink-0" /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+            <Users size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
           </div>
         </div>
-        <div className="border-t-2 border-[#C45C26]/12 pt-6">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-sm font-bold text-[#7A3A18]/80">Price per person</span>
-            <span className="text-sm font-black text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
+        <div style={{ borderTop: '2px solid rgba(196,92,38,0.12)', paddingTop: 18 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.8 }}>Price per person</span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-base font-black text-[#1A0A00] uppercase tracking-wide">Subtotal</span>
-            <span className="text-3xl font-black text-[#C45C26]">₱{subtotal.toLocaleString()}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A0A00' }}>Subtotal</span>
+            <span style={{ fontSize: 28, fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
           </div>
         </div>
         <button onClick={onProceed}
-          className="w-full py-5 bg-[#1A0A00] hover:bg-[#2D1B0E] text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+          style={{
+            width: '100%', padding: '15px 0', background: '#1A0A00', color: '#FDF6EE',
+            border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
+            fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#C45C26'}
+          onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
         >
           <CreditCard size={16} /> Proceed to Payment
         </button>
@@ -611,43 +781,50 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, formatDateRange, on
  
 // Step 2: Choose Full or Downpayment
 const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
-  <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm">
-    <div className="bg-[#FDF6EE] w-full max-w-md p-10 rounded-[3rem] shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300">
-      <div className="flex items-center justify-between w-full mb-2">
-        <button onClick={onBack} className="flex items-center gap-2 text-[#7A3A18]/70 hover:text-[#1A0A00] text-xs font-black uppercase tracking-widest transition-colors">
+  <div style={overlayBackdrop}>
+    <div style={{
+      background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
+      padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+      textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
+      borderTop: '8px solid #C45C26'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
           <ArrowLeft size={14}/> Back
         </button>
-        <span className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Step 2 of 3</span>
+        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 2 of 3</span>
       </div>
       <div>
-        <h3 className="text-2xl font-black text-[#1A0A00] uppercase tracking-tight">Choose Payment Type</h3>
-        <p className="text-[#7A3A18]/80 text-sm font-medium mt-2">How would you like to pay for your booking?</p>
+        <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
+        <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
       </div>
-      <div className="space-y-4 text-left">
-        {/* Full Payment */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left' }}>
         <button
           onClick={() => onChoose('full')}
-          className="w-full bg-[#1A0A00] text-white rounded-3xl p-6 text-left hover:bg-[#2D1B0E] transition-all group shadow-lg"
+          style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.background = '#2D1B0E'}
+          onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Full Payment</span>
-            <Check size={16} className="text-[#C45C26]" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
+            <Check size={16} style={{ color: '#E8A265' }} />
           </div>
-          <p className="text-3xl font-black">₱{subtotal.toLocaleString()}</p>
-          <p className="text-xs text-[#C45C26]/30 font-medium mt-1">Pay the complete amount now</p>
+          <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>₱{subtotal.toLocaleString()}</p>
+          <p style={{ fontSize: 11, opacity: 0.6, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
         </button>
         
-        {/* Downpayment */}
         <button
           onClick={() => onChoose('down')}
-          className="w-full bg-[#FDF6EE] border-2 border-[#C45C26]/18 rounded-3xl p-6 text-left hover:border-[#C45C26] hover:bg-[#C45C26]/5 transition-all group"
+          style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = '#C45C26'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)'}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#C45C26]">Downpayment (40%)</span>
-            <span className="text-[10px] font-black text-[#7A3A18]/70 uppercase">Balance Later</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
+            <span style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
           </div>
-          <p className="text-3xl font-black text-[#1A0A00]">₱{downpaymentAmount.toLocaleString()}</p>
-          <p className="text-xs text-[#7A3A18]/70 font-medium mt-1">Pay 40% now, settle the rest before the tour</p>
+          <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{downpaymentAmount.toLocaleString()}</p>
+          <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now, settle the rest before the tour</p>
         </button>
       </div>
     </div>
@@ -704,18 +881,16 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please log in to book a tour.");
       
-      /* Race condition: re-verify slots */
       const { data: freshBookings } = await supabase
         .from('bookings')
         .select('slots_booked')
         .eq('tour_id', tour.id)
-        .eq('booking_status', 'Completed');
+        .not('booking_status', 'in', '("Cancelled","Rejected")');
       
       const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
       const freshAvailable = (tour.group_size || 15) - totalBooked;
       if (numPersons > freshAvailable) throw new Error(`Only ${freshAvailable} slot(s) remaining.`);
       
-      /* Upload receipt */
       const fileExt = receipt.name.split('.').pop();
       const fileName = `receipts/${Date.now()}_${user.id}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
@@ -725,17 +900,14 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       
       const { data: { publicUrl } } = supabase.storage.from('booking-receipts').getPublicUrl(fileName);
       
-      /* Fetch profile */
       const { data: profile } = await supabase
         .from('profiles')
         .select('first_name, last_name, phone_number')
         .eq('id', user.id)
         .single();
       
-      /* Generate booking number */
       const bkNum = 'BK-' + Math.random().toString(36).substr(2, 8).toUpperCase();
       
-      /* Insert booking */
       const { error: bookingError } = await supabase.from('bookings').insert([{
         tour_id: tour.id,
         user_id: user.id,
@@ -747,6 +919,8 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
         total_price: totalDue,
         receipt_url: publicUrl, 
         payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
+        payment_status: 'Pending',
+        booking_status: 'Active',
       }]);
       
       if (bookingError) throw new Error(bookingError.message);
@@ -756,63 +930,65 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
     }
     setSubmitting(false);
   };
+
+  const fieldLabelStyle = { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8 };
+  const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 16, padding: '14px 16px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
   
   return (
-    <div className="fixed inset-0 z-9999 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-[#FDF6EE] w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-300">
-        <div className="bg-[#1A0A00] px-10 py-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button onClick={onBack} className="text-white/60 hover:text-white transition-colors">
+    <div style={{ ...overlayBackdrop, overflowY: 'auto' }}>
+      <div style={{ background: '#FDF6EE', width: '100%', maxWidth: 720, borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', margin: 'auto' }}>
+        <div style={{ background: '#1A0A00', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+            <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E8A265', flexShrink: 0 }}>
               <ArrowLeft size={20}/>
             </button>
-            <div>
-              <h3 className="text-xl font-black text-white uppercase tracking-tight">GCash Payment</h3>
-              <p className="text-white/60 text-xs font-bold mt-0.5">{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FDF6EE', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>GCash Payment</h3>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.7)', margin: '2px 0 0' }}>{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
             </div>
           </div>
-          <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Step 3 of 3</span>
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', flexShrink: 0 }}>Step 3 of 3</span>
         </div>
         
-        <div className="p-10 space-y-8">
-          {/* Blue send-to card */}
-          <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 flex items-center gap-5">
-            <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center shrink-0">
-              <Smartphone size={22} className="text-white" />
+        <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Slate Teal send-to card */}
+          <div style={{ background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.25)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ width: 48, height: 48, background: '#3F5D62', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Smartphone size={22} style={{ color: '#FDF6EE' }} />
             </div>
             <div>
-              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Send GCash Payment To</p>
-              <p className="text-2xl font-black text-[#1A0A00]">09XX XXX XXXX</p>
-              <p className="text-xs text-[#7A3A18] font-bold mt-0.5">Bandang IBAYO Tours</p>
+              <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3F5D62', margin: '0 0 4px' }}>Send GCash Payment To</p>
+              <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0 }}>09XX XXX XXXX</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>Bandang IBAYO Tours</p>
             </div>
           </div>
           
-          {/* 2-column: form left, summary right */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
             {/* Left: Form */}
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">Your GCash Number</label>
+                <label style={fieldLabelStyle}>Your GCash Number</label>
                 <input type="tel" value={gcashNumber} onChange={(e) => { setGcashNumber(e.target.value); setError(""); }}
                   placeholder="09XX XXX XXXX"
-                  className="w-full bg-[#F2E4D0] border-none rounded-2xl px-5 py-4 text-sm font-bold text-[#1A0A00] focus:ring-2 focus:ring-[#C45C26] outline-none" />
+                  style={fieldInputStyle} />
               </div>
               <div>
-                <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">GCash Reference Number</label>
+                <label style={fieldLabelStyle}>GCash Reference Number</label>
                 <input type="text" value={refNumber} onChange={(e) => { setRefNumber(e.target.value); setError(""); }}
                   placeholder="13-digit reference number"
-                  className="w-full bg-[#F2E4D0] border-none rounded-2xl px-5 py-4 text-sm font-bold text-[#1A0A00] focus:ring-2 focus:ring-[#C45C26] outline-none" />
+                  style={fieldInputStyle} />
               </div>
               <div>
-                <label className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest block mb-2">Transaction Screenshot</label>
-                <label className="w-full border-2 border-dashed border-[#C45C26]/18 hover:border-[#C45C26] rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all group">
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleReceiptChange} className="hidden" />
+                <label style={fieldLabelStyle}>Transaction Screenshot</label>
+                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F2E4D0' }}>
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleReceiptChange} style={{ display: 'none' }} />
                   {receiptPreview ? (
-                    <img src={receiptPreview} alt="Receipt" className="w-full h-32 object-cover rounded-xl" />
+                    <img src={receiptPreview} alt="Receipt" style={{ width: '100%', height: 128, objectFit: 'cover', borderRadius: 12 }} />
                   ) : (
                     <>
-                      <Upload size={24} className="text-[#C45C26]/30 group-hover:text-[#C45C26] mb-2 transition-colors" />
-                      <p className="text-xs font-bold text-[#7A3A18]/70 group-hover:text-[#C45C26] transition-colors">Upload Screenshot</p>
-                      <p className="text-[10px] text-[#C45C26]/30 mt-1">Click to browse your GCash transaction receipt</p>
+                      <Upload size={22} style={{ color: 'rgba(196,92,38,0.5)', marginBottom: 8 }} />
+                      <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Upload Screenshot</p>
+                      <p style={{ fontSize: 9, color: 'rgba(122,58,24,0.5)', margin: '4px 0 0' }}>Click to browse your GCash transaction receipt</p>
                     </>
                   )}
                 </label>
@@ -820,72 +996,84 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
             </div>
             
             {/* Right: Booking Summary */}
-            <div className="bg-[#F2E4D0] rounded-3xl p-6 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Receipt size={16} className="text-[#C45C26]" />
-                <p className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest">Booking Summary</p>
+            <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Receipt size={15} style={{ color: '#C45C26' }} />
+                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>Booking Summary</p>
               </div>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-[#7A3A18]/80 font-medium">Tour</span>
-                  <span className="font-bold text-[#1A0A00] text-right max-w-[55%] leading-snug">{tour.title}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Tour</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00', textAlign: 'right', maxWidth: '55%', lineHeight: 1.3 }}>{tour.title}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[#7A3A18]/80 font-medium">Quantity</span>
-                  <span className="font-bold text-[#1A0A00]">{numPersons} pax</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Quantity</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{numPersons} pax</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[#7A3A18]/80 font-medium">Price/pax</span>
-                  <span className="font-bold text-[#1A0A00]">₱{tour.price.toLocaleString()}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Price/pax</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between border-t border-[#C45C26]/18 pt-3">
-                  <span className="text-[#7A3A18]/80 font-medium">Subtotal</span>
-                  <span className="font-bold text-[#1A0A00]">₱{subtotal.toLocaleString()}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 10 }}>
+                  <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Subtotal</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{subtotal.toLocaleString()}</span>
                 </div>
                 {paymentType === 'down' && (
                   <>
-                    <div className="flex justify-between">
-                      <span className="text-[#7A3A18]/80 font-medium">Downpayment (40%)</span>
-                      <span className="font-bold text-amber-600">₱{downpaymentAmount.toLocaleString()}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Downpayment (40%)</span>
+                      <span style={{ fontWeight: 700, color: '#C45C26' }}>₱{downpaymentAmount.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#7A3A18]/80 font-medium">Remaining Balance</span>
-                      <span className="font-bold text-[#7A3A18]/70">₱{(subtotal - downpaymentAmount).toLocaleString()}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Remaining Balance</span>
+                      <span style={{ fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>₱{(subtotal - downpaymentAmount).toLocaleString()}</span>
                     </div>
                   </>
                 )}
-                <div className="flex justify-between border-t-2 border-[#C45C26]/18 pt-3 mt-2">
-                  <span className="font-black text-[#1A0A00] uppercase text-xs tracking-widest">
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid rgba(196,92,38,0.18)', paddingTop: 10, marginTop: 4 }}>
+                  <span style={{ fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.1em' }}>
                     {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
                   </span>
-                  <span className="font-black text-[#C45C26] text-xl">₱{totalDue.toLocaleString()}</span>
+                  <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 18 }}>₱{totalDue.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-[#7A3A18]/70 font-bold">Payment Method</span>
-                  <span className={`font-black uppercase tracking-widest text-xs px-3 py-1 rounded-full ${paymentType === 'full' ? 'bg-[#C45C26]/10 text-[#C45C26]' : 'bg-[#1A0A00]/10 text-[#1A0A00]'}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, marginTop: 4 }}>
+                  <span style={{ color: '#7A3A18', opacity: 0.7, fontWeight: 700 }}>Payment Method</span>
+                  <span style={{
+                    fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 9, padding: '3px 10px', borderRadius: 999,
+                    background: paymentType === 'full' ? 'rgba(196,92,38,0.15)' : 'rgba(26,10,0,0.08)',
+                    color: paymentType === 'full' ? '#C45C26' : '#1A0A00'
+                  }}>
                     {paymentType === 'full' ? 'Full Payment' : 'Downpayment'}
                   </span>
                 </div>
               </div>
               {paymentType === 'down' && (
-                <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3">
-                  <p className="text-amber-700 text-[10px] font-bold leading-snug">⚠️ Remaining balance of ₱{(subtotal - downpaymentAmount).toLocaleString()} must be settled before the tour date.</p>
+                <div style={{ background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px', marginTop: 4 }}>
+                  <p style={{ color: '#7A3A18', fontSize: 10, fontWeight: 700, lineHeight: 1.5, margin: 0 }}>⚠️ Remaining balance of ₱{(subtotal - downpaymentAmount).toLocaleString()} must be settled before the tour date.</p>
                 </div>
               )}
             </div>
           </div>
           
           {error && (
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
-              <AlertCircle size={16} className="text-red-500 shrink-0" />
-              <p className="text-red-600 text-xs font-bold">{error}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(140,47,28,0.1)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '10px 14px' }}>
+              <AlertCircle size={16} style={{ color: '#8C2F1C', flexShrink: 0 }} />
+              <p style={{ color: '#8C2F1C', fontSize: 12, fontWeight: 700, margin: 0 }}>{error}</p>
             </div>
           )}
           
           <button onClick={handleConfirmBooking} disabled={submitting}
-            className="w-full py-5 bg-[#C45C26] hover:bg-[#9C4A1F] disabled:bg-[#F2E4D0] disabled:text-[#7A3A18]/70 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 shadow-xl"
+            style={{
+              width: '100%', padding: '15px 0', background: '#C45C26', color: '#FDF6EE',
+              border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
+              fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              boxShadow: '0 8px 24px rgba(196,92,38,0.3)', transition: 'background 0.2s'
+            }}
+            onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = '#1A0A00'; }}
+            onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = '#C45C26'; }}
           >
-            {submitting ? <Loader2 className="animate-spin" size={16} /> : <><Check size={16} /> Confirm Booking</>}
+            {submitting ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <><Check size={16} /> Confirm Booking</>}
           </button>
         </div>
       </div>
@@ -895,24 +1083,29 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
  
 // Step 4: Success screen
 const BookingSuccessModal = ({ booking, tour, onClose }) => (
-  <div className="fixed inset-0 z-2000 flex items-center justify-center p-6 bg-[#1A0A00]/80 backdrop-blur-sm">
-    <div className="bg-[#FDF6EE] w-full max-w-md p-10 rounded-[3rem] shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300">
-      <div className="w-20 h-20 bg-[#C45C26]/10 rounded-full flex items-center justify-center mx-auto">
-        <CheckCircle2 size={40} className="text-[#C45C26]" />
+  <div style={overlayBackdrop}>
+    <div style={{
+      background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
+      padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+      textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
+      borderTop: '8px solid #C45C26'
+    }}>
+      <div style={{ width: 72, height: 72, background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+        <CheckCircle2 size={36} style={{ color: '#C45C26' }} />
       </div>
       <div>
-        <h3 className="text-2xl font-black text-[#1A0A00] uppercase tracking-tight">Booking Submitted!</h3>
-        <p className="text-[#7A3A18]/80 text-sm font-medium mt-2">Your booking is now pending verification by our team.</p>
+        <h3 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Booking Submitted!</h3>
+        <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>Your booking is now pending verification by our team.</p>
       </div>
-      <div className="bg-[#F2E4D0] rounded-3xl p-6 text-left space-y-2">
-        <p className="text-[10px] font-black text-[#7A3A18]/70 uppercase tracking-widest mb-3">Booking Reference</p>
-        <p className="text-2xl font-black text-[#1A0A00]">{booking?.booking_number}</p>
-        <p className="text-xs text-[#7A3A18]/80 font-medium">{tour?.title}</p>
+      <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left' }}>
+        <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 10px' }}>Booking Reference</p>
+        <p style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0, wordBreak: 'break-word' }}>{booking?.booking_number}</p>
+        <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0' }}>{tour?.title}</p>
       </div>
-      <div className="bg-[#C45C26]/10 rounded-2xl px-5 py-4">
-        <p className="text-[#1A0A00] text-xs font-bold">We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
+      <div style={{ background: 'rgba(196,92,38,0.1)', borderRadius: 16, padding: '14px 18px' }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0 }}>We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
       </div>
-      <button onClick={onClose} className="w-full py-4 bg-[#1A0A00] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#2D1B0E] transition-all">Done</button>
+      <button onClick={onClose} style={{ width: '100%', padding: '14px 0', background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Done</button>
     </div>
   </div>
 );

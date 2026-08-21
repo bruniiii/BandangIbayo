@@ -311,7 +311,7 @@ const Feed = ({ isAdmin = false }) => {
           <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
             Community Feed
           </h2>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
             Updates, announcements &amp; newly posted tours
           </p>
         </div>
@@ -509,7 +509,7 @@ const FeedPostCard = ({
                 }}>Admin</span>
               )}
             </p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.55, margin: '3px 0 0' }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '3px 0 0' }}>
               {timeAgo(post.created_at)} {isTourPost && '· New Tour Posted'}
             </p>
           </div>
@@ -717,7 +717,7 @@ const FeedPostCard = ({
                     <p style={{ fontSize: 12.5, color: '#1A0A00', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
                       {c.content}
                     </p>
-                    <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.5, margin: '4px 0 0' }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.72, margin: '4px 0 0' }}>
                       {timeAgo(c.created_at)}
                     </p>
                   </div>

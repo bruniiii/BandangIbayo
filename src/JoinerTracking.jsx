@@ -2,13 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { MapPin, X, Calendar, Armchair, Compass, ChevronLeft, ChevronRight, ImageIcon, Loader2, Check, CheckCircle2 } from 'lucide-react';
 
-const PALETTE = {
-  espresso: '#1A0A00',
-  burntSienna: '#C45C26',
-  warmAmber: '#E8A265',
-  cream: '#FDF6EE',
-  rust: '#7A3A18',
-};
+// ── PALETTE ──────────────────────────────────────────────
+// #1A0A00  espresso dark
+// #C45C26  burnt sienna (accent)
+// #E8A265  warm amber (highlight)
+// #FDF6EE  cream (light card bg)
+// #2D1B0E  deep brown (dark card)
+// #7A3A18  rust mid-tone
+// #8C2F1C  deep rust red (error / alert)
+// #F2E4D0  parchment (inset panel bg)
+// #EDEAE3  warm stone (page bg)
+// #3F5D62  slate teal (secondary contrast accent / arrived)
+// ---------------------------------------------------------
 
 export const JoinerTracking = () => {
   const [activeTour, setActiveTour] = useState(null);
@@ -53,15 +58,15 @@ export const JoinerTracking = () => {
           }
         }
 
-        // Fallback: no active booked tours found — show the next upcoming tour.
-        const { data: panicTours } = await supabase
+        // Fallback: show the next upcoming tour
+        const { data: fallbackTours } = await supabase
           .from('tours')
           .select('*')
           .eq('is_archived', false)
           .order('start_date', { ascending: true })
           .limit(1);
 
-        setToursList(panicTours || []);
+        setToursList(fallbackTours || []);
       } catch (err) {
         console.error('Error loading tracked tours:', err.message);
       } finally {
@@ -98,7 +103,7 @@ export const JoinerTracking = () => {
     fetchTrackingForTour(activeTour.id);
   }, [activeTour, fetchTrackingForTour]);
 
-  // Live updates — new checkpoints / vehicle assignments appear instantly.
+  // Live updates
   useEffect(() => {
     if (!activeTour) return;
     const channel = supabase
@@ -112,7 +117,7 @@ export const JoinerTracking = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Tour Grid (matches JoinerTours card grid) ── */}
+      {/* ── Tour Grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
           <div style={{
@@ -121,7 +126,7 @@ export const JoinerTracking = () => {
             alignItems: 'center', justifyContent: 'center',
             padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
           }}>
-            <Loader2 size={30} className="animate-spin" style={{ marginBottom: 10 }} />
+            <Loader2 size={30} style={{ marginBottom: 10, color: '#C45C26', animation: 'spin 1s linear infinite' }} />
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
               Loading Your Adventures…
             </p>
@@ -179,14 +184,14 @@ const TrackingTourCard = ({ tour, onTrack }) => {
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
-      <div style={{ height: 186, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ height: 186, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         {displayImage
           ? <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="" />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={44} /></div>
         }
         <div style={{ position: 'absolute', top: 12, right: 12 }}>
           <span style={{
-            background: PALETTE.burntSienna, color: '#FDF6EE',
+            background: '#C45C26', color: '#FDF6EE',
             borderRadius: 999, padding: '4px 10px',
             fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', gap: 4,
@@ -218,9 +223,11 @@ const TrackingTourCard = ({ tour, onTrack }) => {
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            transition: 'opacity 0.15s',
+            transition: 'background 0.2s',
             background: '#1A0A00', color: '#FDF6EE',
           }}
+          onMouseEnter={e => e.currentTarget.style.background = '#C45C26'}
+          onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
         >
           <MapPin size={13} /> Track This Tour
         </button>
@@ -229,7 +236,6 @@ const TrackingTourCard = ({ tour, onTrack }) => {
   );
 };
 
-/* Slideable photo gallery -- identical behavior/style to JoinerTours' carousel */
 const TourImageCarousel = ({ images = [] }) => {
   const [index, setIndex] = useState(0);
   const dragStartX = React.useRef(null);
@@ -259,7 +265,7 @@ const TourImageCarousel = ({ images = [] }) => {
         style={{
           position: 'relative', width: '100%', height: 190,
           borderRadius: 18, overflow: 'hidden',
-          background: '#E8D5BC', marginBottom: hasMultiple ? 12 : 20,
+          background: '#F2E4D0', marginBottom: hasMultiple ? 12 : 20,
           boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
         }}
@@ -291,7 +297,7 @@ const TourImageCarousel = ({ images = [] }) => {
               type="button" onClick={prev}
               style={{
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer', color: '#FDF6EE',
               }}
@@ -300,7 +306,7 @@ const TourImageCarousel = ({ images = [] }) => {
               type="button" onClick={next}
               style={{
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: 'pointer', color: '#FDF6EE',
               }}
@@ -343,7 +349,6 @@ const TourImageCarousel = ({ images = [] }) => {
   );
 };
 
-/* Section header helper, mirrors TourManagement/JoinerTours' ViewSection */
 const ViewSection = ({ title, titleColor, icon, children }) => (
   <section>
     <h4 style={{
@@ -358,11 +363,7 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 );
 
 /* ─────────────────────────────────────────────
-   TRACKING TIMELINE — shipment-tracker style checkpoint feed,
-   shared visual language with AdminTrackingControls. Each log's
-   `display_text` is written as "Title: description" by the admin
-   console, so we split on the first colon to render a bold headline
-   + supporting copy, just like a courier tracking page.
+   TRACKING TIMELINE
 ───────────────────────────────────────────── */
 const splitLogText = (text) => {
   if (!text) return { title: 'Update', description: '' };
@@ -404,7 +405,7 @@ const TrackingTimeline = ({ logs, emptyText = 'No logs posted yet.' }) => {
         const { title, description } = splitLogText(log.display_text);
         const { dateLabel, timeLabel } = formatLogDateTime(log.created_at || log.timestamp);
 
-        const badgeBg = isArrivedStatus ? '#1F8A5C' : isLatestUpdate ? '#C45C26' : 'rgba(122,58,24,0.12)';
+        const badgeBg = isArrivedStatus ? '#3F5D62' : isLatestUpdate ? '#C45C26' : 'rgba(122,58,24,0.12)';
         const badgeColor = isArrivedStatus || isLatestUpdate ? '#FDF6EE' : '#7A3A18';
         const titleColor = isLatestUpdate || isArrivedStatus ? '#1A0A00' : 'rgba(26,10,0,0.55)';
         const titleWeight = isLatestUpdate || isArrivedStatus ? 900 : 700;
@@ -450,8 +451,8 @@ const TrackingTimeline = ({ logs, emptyText = 'No logs posted yet.' }) => {
                   border: '1px solid rgba(196,92,38,0.18)', borderRadius: 10,
                   padding: '8px 12px',
                 }}>
-                  <MapPin size={12} style={{ color: '#9A5B1E', flexShrink: 0, marginTop: 2 }} />
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9A5B1E', margin: 0, lineHeight: 1.5 }}>
+                  <MapPin size={12} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
                     {log.note}
                   </p>
                 </div>
@@ -466,7 +467,6 @@ const TrackingTimeline = ({ logs, emptyText = 'No logs posted yet.' }) => {
 
 /* ─────────────────────────────────────────────
    TRACKING DETAIL MODAL
-   (split panel, mirrors JoinerTours' DetailedTourModal)
 ───────────────────────────────────────────── */
 const TrackingDetailModal = ({ tour, logs, vehicleInfo, loadingConsole, onClose }) => {
   const images = Array.isArray(tour.image_urls) ? tour.image_urls : (tour.image ? [tour.image] : []);
@@ -478,6 +478,7 @@ const TrackingDetailModal = ({ tour, logs, vehicleInfo, loadingConsole, onClose 
         position: 'relative', background: '#FDF6EE',
         width: '100%', maxWidth: 1100,
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderTop: '8px solid #C45C26',
         overflow: 'hidden',
         maxHeight: '92vh',
         display: 'flex', flexDirection: 'column',
@@ -511,21 +512,21 @@ const TrackingDetailModal = ({ tour, logs, vehicleInfo, loadingConsole, onClose 
               </p>
 
               {/* Fleet details */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)', boxShadow: '0 2px 8px rgba(26,10,0,0.02)' }}>
+              <div style={{ background: '#FDF6EE', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.04)' }}>
                 <ViewSection title="Assigned Fleet Details" titleColor="#C45C26">
                   {loadingConsole ? (
                     <div style={{ padding: '10px 0', textAlign: 'center', color: '#7A3A18', opacity: 0.6, fontSize: 12 }}>
-                      <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', marginRight: 6, verticalAlign: 'middle' }} />
+                      <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', marginRight: 6, verticalAlign: 'middle', color: '#C45C26' }} />
                       Loading fleet details…
                     </div>
                   ) : vehicleInfo ? (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12, color: '#1A0A00' }}>
-                      <div><strong>Van Model:</strong> {vehicleInfo.car_type || "Pending Dispatch"}</div>
-                      <div><strong>Plate No:</strong> {vehicleInfo.plate_number || "Pending Setup"}</div>
-                      <div><strong>Driver:</strong> {vehicleInfo.driver_name || "Assigning Staff"}</div>
-                      <div><strong>Contact:</strong> {vehicleInfo.driver_contact || "Not Available"}</div>
+                      <div><strong style={{ color: '#7A3A18' }}>Van Model:</strong> {vehicleInfo.car_type || "Pending Dispatch"}</div>
+                      <div><strong style={{ color: '#7A3A18' }}>Plate No:</strong> {vehicleInfo.plate_number || "Pending Setup"}</div>
+                      <div><strong style={{ color: '#7A3A18' }}>Driver:</strong> {vehicleInfo.driver_name || "Assigning Staff"}</div>
+                      <div><strong style={{ color: '#7A3A18' }}>Contact:</strong> {vehicleInfo.driver_contact || "Not Available"}</div>
 
-                      <div style={{ gridColumn: 'span 2', borderTop: '1px dashed rgba(26,10,0,0.1)', paddingTop: 10, marginTop: 2, display: 'flex', justifyContent: 'space-between', color: '#7A3A18', fontWeight: 600 }}>
+                      <div style={{ gridColumn: 'span 2', borderTop: '1px dashed rgba(196,92,38,0.15)', paddingTop: 10, marginTop: 2, display: 'flex', justifyContent: 'space-between', color: '#7A3A18', fontWeight: 700 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <Calendar size={14} style={{ color: '#C45C26' }} />
                           <span>{tour.start_date || tour.date || 'No Date Assigned'}</span>
@@ -551,8 +552,8 @@ const TrackingDetailModal = ({ tour, logs, vehicleInfo, loadingConsole, onClose 
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', marginTop: 8 }}>
                   {loadingConsole ? (
                     <div style={{ textAlign: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.5)' }}>
-                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} />
-                      <p style={{ fontSize: 12, margin: 0 }}>Loading updates…</p>
+                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8, color: '#C45C26' }} />
+                      <p style={{ fontSize: 12, margin: 0, fontWeight: 700 }}>Loading updates…</p>
                     </div>
                   ) : (
                     <TrackingTimeline logs={logs} emptyText="Waiting for arrival updates…" />
