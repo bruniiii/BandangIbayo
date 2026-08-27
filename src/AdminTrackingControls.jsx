@@ -540,6 +540,18 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
   );
 };
 
+const useIsMobile = (breakpoint = 768) => {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return isMobile;
+};
+
 const TrackingConsoleModal = ({
   tour, meetupStops = [], trackingLogs = [], loadingConsole,
   isLogisticsSaved, setIsLogisticsSaved,
@@ -556,6 +568,7 @@ const TrackingConsoleModal = ({
   const activeIdx = safeStops.findIndex(s => s.status !== 'ARRIVED');
   const allArrived = safeStops.length > 0 && activeIdx === -1;
   const currentActiveStop = !allArrived && activeIdx !== -1 ? safeStops[activeIdx] : null;
+  const isMobile = useIsMobile();
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -567,18 +580,20 @@ const TrackingConsoleModal = ({
         maxHeight: '92vh', display: 'flex', flexDirection: 'column',
       }}>
         {/* Top Controls */}
-        <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 50, display: 'flex', gap: 12 }}>
+        <div style={{ position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 50, display: 'flex', gap: isMobile ? 8 : 12 }}>
           <button
             type="button"
             onClick={onRequestArchive}
+            title={tour?.is_archived ? 'Restore Tour' : 'Archive Tour'}
             style={{
               display: 'flex', alignItems: 'center', gap: 6, background: '#FDF6EE',
-              border: '1px solid rgba(196,92,38,0.3)', borderRadius: 999, padding: '7px 14px',
+              border: '1px solid rgba(196,92,38,0.3)', borderRadius: 999,
+              padding: isMobile ? '8px' : '7px 14px',
               cursor: 'pointer', color: '#7A3A18', fontWeight: 900, fontSize: 9, textTransform: 'uppercase',
             }}
           >
             {tour?.is_archived ? <RefreshCw size={12} /> : <Archive size={12} />}
-            {tour?.is_archived ? 'Restore Tour' : 'Archive Tour'}
+            {!isMobile && (tour?.is_archived ? 'Restore Tour' : 'Archive Tour')}
           </button>
           <button
             type="button"
@@ -586,7 +601,7 @@ const TrackingConsoleModal = ({
             style={{
               background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.2)', borderRadius: '50%',
               width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#1A0A00',
+              cursor: 'pointer', color: '#1A0A00', flexShrink: 0,
             }}
           >
             <X size={18} />
@@ -594,10 +609,15 @@ const TrackingConsoleModal = ({
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', minHeight: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', minHeight: 0 }}>
             {/* Left Console */}
-            <div style={{ background: '#F2E4D0', padding: '2.2rem 2rem', borderRight: '1px solid rgba(196,92,38,0.12)' }}>
-              <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour?.title}</h2>
+            <div style={{
+              background: '#F2E4D0',
+              padding: isMobile ? '4rem 1.25rem 1.5rem' : '2.2rem 2rem',
+              borderRight: isMobile ? 'none' : '1px solid rgba(196,92,38,0.12)',
+              borderBottom: isMobile ? '1px solid rgba(196,92,38,0.12)' : 'none',
+            }}>
+              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour?.title}</h2>
               <p style={{ margin: '0 0 18px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <MapPin size={14} style={{ color: '#C45C26' }} /> {tour?.destination}
               </p>
@@ -610,11 +630,11 @@ const TrackingConsoleModal = ({
 
                 {!isLogisticsSaved ? (
                   <form onSubmit={onSaveVehicleInfo} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                       <input type="text" placeholder="Van Model (e.g. Toyota Hiace)" value={carType} onChange={e => setCarType(e.target.value)} style={inputStyle} />
                       <input type="text" placeholder="Plate Number (e.g. NBT-8921)" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} style={inputStyle} />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                       <input type="text" placeholder="Driver Name" value={driverName} onChange={e => setDriverName(e.target.value)} style={inputStyle} />
                       <input type="text" placeholder="Driver Contact No." value={driverContact} onChange={e => setDriverContact(e.target.value)} style={inputStyle} />
                     </div>
@@ -627,12 +647,12 @@ const TrackingConsoleModal = ({
                     </button>
                   </form>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
                     <div><strong>Vehicle:</strong> {carType}</div>
                     <div><strong>Plate:</strong> {plateNumber}</div>
                     <div><strong>Driver:</strong> {driverName}</div>
                     <div><strong>Contact:</strong> {driverContact}</div>
-                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: 'span 2', background: 'none', border: '1px dashed #C45C26', borderRadius: 999, padding: '6px', fontSize: 9, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
+                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #C45C26', borderRadius: 999, padding: '6px', fontSize: 9, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
                       Edit Driver & Vehicle
                     </button>
                   </div>
@@ -645,7 +665,7 @@ const TrackingConsoleModal = ({
                   <MapPin size={14} /> Manual Pickup Stops & ETA Dispatch
                 </h4>
 
-                <form onSubmit={onAddPickupStop} style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                <form onSubmit={onAddPickupStop} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 8, marginBottom: 14 }}>
                   <input
                     type="text"
                     placeholder="Pickup Point (e.g. Shell Mindanao Ave)"
@@ -653,20 +673,22 @@ const TrackingConsoleModal = ({
                     onChange={e => setNewLocName(e.target.value)}
                     style={{ ...inputStyle, flex: 2 }}
                   />
-                  <input
-                    type="text"
-                    placeholder="ETA (e.g. 04:30 AM)"
-                    value={newTime}
-                    onChange={e => setNewTime(e.target.value)}
-                    style={{ ...inputStyle, flex: 1 }}
-                  />
-                  <button type="submit" disabled={savingStop} style={{
-                    width: 44, background: '#1A0A00', color: '#FDF6EE',
-                    border: 'none', borderRadius: 12, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {savingStop ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={18} />}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      type="text"
+                      placeholder="ETA (e.g. 04:30 AM)"
+                      value={newTime}
+                      onChange={e => setNewTime(e.target.value)}
+                      style={{ ...inputStyle, flex: 1 }}
+                    />
+                    <button type="submit" disabled={savingStop} style={{
+                      width: 44, flexShrink: 0, background: '#1A0A00', color: '#FDF6EE',
+                      border: 'none', borderRadius: 12, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {savingStop ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={18} />}
+                    </button>
+                  </div>
                 </form>
 
                 {safeStops.length === 0 ? (
@@ -726,7 +748,7 @@ const TrackingConsoleModal = ({
                           </div>
 
                           {/* Controlled Stop Edit Inputs */}
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: 6, alignItems: 'center' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr auto', gap: 6, alignItems: 'center' }}>
                             <input
                               type="text"
                               placeholder="ETA"
@@ -750,7 +772,8 @@ const TrackingConsoleModal = ({
                               style={{
                                 background: '#7A3A18', color: '#FDF6EE', border: 'none',
                                 borderRadius: 10, padding: '7px 12px', cursor: 'pointer',
-                                fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4,
+                                fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center',
+                                justifyContent: 'center', gap: 4, width: isMobile ? '100%' : 'auto',
                               }}
                             >
                               <Send size={11} /> Update
@@ -790,7 +813,7 @@ const TrackingConsoleModal = ({
             </div>
 
             {/* Live Feed */}
-            <div style={{ padding: '4.5rem 2rem 2.2rem', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '4.5rem 2rem 2.2rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <h4 style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Compass size={14} /> Live Tracking Activity Feed
