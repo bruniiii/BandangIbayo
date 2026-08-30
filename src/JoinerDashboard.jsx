@@ -92,6 +92,7 @@ const JoinerDashboard = () => {
   const handleNotificationNavigate = (notification) => {
     switch (notification.type) {
       case 'exclusive_request':
+      case 'exclusive_package':
         handleNavClick('Exclusive Tours');
         break;
       case 'booking':

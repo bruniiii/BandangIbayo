@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from "./notifications";
 import {
-  MapPin, Users, Calendar, ChevronRight, CheckCircle,
-  FileText, Send, Shield, Star, Clock, ArrowRight,
+  MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
+  FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
   Phone, Globe, Loader2
 } from 'lucide-react';
 
@@ -311,6 +311,7 @@ const ExclusiveTourForm = () => {
               { value: 'non-ac', label: 'Non-AC Room' },
               { value: 'ac', label: 'AC Room' },
               { value: 'with-cr', label: 'With Private CR' },
+              { value: 'with-all', label: 'With All Amenities' },
               { value: 'none', label: 'No accommodation needed' },
             ]}
           />
@@ -564,6 +565,285 @@ const RequestTourForm = () => {
   );
 };
  
+// ─── REQUEST STATUS + ADMIN UPDATES (shown to the joiner on this page) ─────────
+const STATUS_STYLES = {
+  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
+  Approved: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
+  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
+};
+
+const RequestStatusBadge = ({ status }) => {
+  const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      background: bg, color, borderRadius: 999,
+      padding: '4px 12px', fontSize: 9, fontWeight: 900,
+      letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+    }}>
+      {status}
+    </span>
+  );
+};
+
+const formatShortDate = (d) => {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+const formatFullDateTime = (d) => {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+// A single labeled block inside the dark "package" panel.
+const PackageDetail = ({ label, icon, color = 'rgba(232,210,190,0.5)', textColor = 'rgba(253,246,238,0.9)', children }) => (
+  <div>
+    <p style={{
+      display: 'flex', alignItems: 'center', gap: 5,
+      fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
+      color, margin: '0 0 4px',
+    }}>
+      {icon} {label}
+    </p>
+    <p style={{ fontSize: 12.5, fontWeight: 500, color: textColor, whiteSpace: 'pre-wrap', lineHeight: 1.6, margin: 0 }}>
+      {children}
+    </p>
+  </div>
+);
+
+const RequestHistoryCard = ({ request }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isExclusive = request.request_type === 'exclusive';
+  const pkg = request.package_details;
+  const hasPackage = !!request.package_sent_at && pkg;
+
+  return (
+    <div style={{
+      background: '#FDF6EE', borderRadius: 18,
+      border: '1px solid rgba(196,92,38,0.12)',
+      boxShadow: '0 2px 10px rgba(26,10,0,0.04)',
+      overflow: 'hidden',
+    }}>
+      <button
+        onClick={() => setExpanded(v => !v)}
+        style={{
+          width: '100%', padding: '1rem 1.25rem',
+          background: 'none', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          textAlign: 'left', fontFamily: 'inherit',
+        }}
+      >
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          background: isExclusive ? 'rgba(26,10,0,0.06)' : 'rgba(196,92,38,0.12)',
+          color: isExclusive ? '#1A0A00' : '#C45C26',
+          borderRadius: 999, padding: '4px 12px', fontSize: 9, fontWeight: 900,
+          letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0,
+        }}>
+          {isExclusive ? <Shield size={11} /> : <Globe size={11} />}
+          {isExclusive ? 'Exclusive' : 'Request'}
+        </span>
+
+        <div style={{ flex: 1, minWidth: 140 }}>
+          <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {request.destination || 'Destination TBD'}
+          </p>
+          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: '3px 0 0' }}>
+            Submitted {formatShortDate(request.created_at)}
+          </p>
+        </div>
+
+        {hasPackage && (
+          <span style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            fontSize: 9, fontWeight: 900, color: '#C45C26',
+            letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0,
+          }}>
+            <FileText size={11} /> Package Ready
+          </span>
+        )}
+
+        <RequestStatusBadge status={request.status} />
+
+        <ChevronDown
+          size={16}
+          style={{
+            color: 'rgba(122,58,24,0.5)', flexShrink: 0,
+            transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s',
+          }}
+        />
+      </button>
+
+      {expanded && (
+        <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Admin's approve/reject note */}
+          {request.admin_response ? (
+            <div style={{
+              background: request.status === 'Rejected' ? 'rgba(140,47,28,0.06)' : '#F2E4D0',
+              borderRadius: 14, padding: '12px 16px',
+              border: `1px solid ${request.status === 'Rejected' ? 'rgba(140,47,28,0.18)' : 'rgba(196,92,38,0.14)'}`,
+            }}>
+              <p style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                fontSize: 9, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
+                color: request.status === 'Rejected' ? '#8C2F1C' : '#C45C26', margin: '0 0 6px',
+              }}>
+                <MessageSquare size={11} /> Note from Bandang IBAYO
+              </p>
+              <p style={{ fontSize: 12.5, fontWeight: 500, color: '#1A0A00', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                {request.admin_response}
+              </p>
+              {request.reviewed_at && (
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '8px 0 0' }}>
+                  Reviewed {formatFullDateTime(request.reviewed_at)}
+                </p>
+              )}
+            </div>
+          ) : request.status === 'Pending' && (
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: 0 }}>
+              Still under review — you'll get a notification once our team responds.
+            </p>
+          )}
+
+          {/* Full tour package details, once the admin has sent them */}
+          {hasPackage && (
+            <div style={{
+              background: '#1A0A00', borderRadius: 18, padding: '1.25rem 1.5rem',
+              display: 'flex', flexDirection: 'column', gap: 14,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                <p style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
+                  color: '#E8A265', margin: 0,
+                }}>
+                  <FileText size={13} /> Tour Package Details
+                </p>
+                <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(232,210,190,0.5)' }}>
+                  Sent {formatFullDateTime(request.package_sent_at)}
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 14 }}>
+                {pkg.price != null && pkg.price !== '' && (
+                  <div>
+                    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 3px' }}>
+                      Price
+                    </p>
+                    <p style={{ fontSize: 19, fontWeight: 900, color: '#E8A265', margin: 0 }}>
+                      ₱{Number(pkg.price).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+                {pkg.accommodation && (
+                  <div>
+                    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 3px' }}>
+                      Accommodation
+                    </p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#FDF6EE', margin: 0 }}>{pkg.accommodation}</p>
+                  </div>
+                )}
+              </div>
+
+              {pkg.itinerary && (
+                <PackageDetail label="Itinerary" icon={<Calendar size={11} />}>{pkg.itinerary}</PackageDetail>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14 }}>
+                {pkg.inclusions && (
+                  <PackageDetail label="Inclusions" icon={<CheckCircle2 size={11} />} color="#C45C26">
+                    {pkg.inclusions}
+                  </PackageDetail>
+                )}
+                {pkg.exclusions && (
+                  <PackageDetail label="Exclusions" icon={<XCircle size={11} />}>
+                    {pkg.exclusions}
+                  </PackageDetail>
+                )}
+              </div>
+
+              {pkg.things_to_bring && (
+                <PackageDetail label="Things to Bring" icon={<Star size={11} />}>{pkg.things_to_bring}</PackageDetail>
+              )}
+
+              {pkg.additional_notes && (
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
+                  <PackageDetail label="Notes">{pkg.additional_notes}</PackageDetail>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MyRequestsSection = () => {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+
+  const fetchRequests = useCallback(async (uid) => {
+    const { data, error } = await supabase
+      .from('exclusive_requests')
+      .select('*')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false });
+    if (!error) setRequests(data || []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      setUserId(user.id);
+      fetchRequests(user.id);
+    })();
+  }, [fetchRequests]);
+
+  // Live updates — approvals, rejections, and newly-sent package
+  // details all appear here immediately without a manual refresh.
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`joiner-exclusive-requests-${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'exclusive_requests', filter: `user_id=eq.${userId}` }, () => fetchRequests(userId))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, fetchRequests]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <Loader2 size={18} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
+        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading your requests…</span>
+        <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
+
+  if (requests.length === 0) return null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div>
+        <h3 style={{ fontSize: 15, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00', margin: '0 0 4px' }}>
+          Your Submitted Requests
+        </h3>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: 0 }}>
+          Track the status of your exclusive tours and destination requests, plus any updates from our team.
+        </p>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {requests.map(r => <RequestHistoryCard key={r.id} request={r} />)}
+      </div>
+    </div>
+  );
+};
+
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 const ExclusiveTour = () => {
   const [activeTab, setActiveTab] = useState('exclusive');
@@ -648,6 +928,11 @@ const ExclusiveTour = () => {
         boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
       }}>
         {activeTab === 'exclusive' ? <ExclusiveTourForm /> : <RequestTourForm />}
+      </div>
+
+      {/* Your Submitted Requests — status + admin updates + tour package details */}
+      <div style={{ borderTop: '1px solid rgba(196,92,38,0.12)', paddingTop: 28 }}>
+        <MyRequestsSection />
       </div>
     </div>
   );

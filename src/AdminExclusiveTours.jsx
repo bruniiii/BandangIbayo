@@ -4,7 +4,7 @@ import { notifyUser } from "./notifications";
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
   Phone, Mail, Wallet, Home, ChevronDown, CheckCircle2, XCircle,
-  Clock, MessageSquare, ArrowRight,
+  Clock, MessageSquare, ArrowRight, FileText, Send, PencilLine, Package,
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -311,6 +311,68 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
   const isPending = request.status === 'Pending';
   const isExclusive = request.request_type === 'exclusive';
+  const isApproved = request.status === 'Approved';
+
+  // ── Tour Package Details (sent to the joiner once a request is approved) ──
+  const existingPackage = request.package_details || {};
+  const [showPackageForm, setShowPackageForm] = useState(false);
+  const [packageSentAt, setPackageSentAt] = useState(request.package_sent_at || null);
+  const [sendingPackage, setSendingPackage] = useState(false);
+  const [packageForm, setPackageForm] = useState({
+    destination: existingPackage.destination || request.destination || '',
+    price: existingPackage.price ?? (request.budget || ''),
+    accommodation: existingPackage.accommodation || request.accommodation || '',
+    itinerary: existingPackage.itinerary || '',
+    inclusions: existingPackage.inclusions || '',
+    exclusions: existingPackage.exclusions || '',
+    things_to_bring: existingPackage.things_to_bring || '',
+    additional_notes: existingPackage.additional_notes || '',
+  });
+
+  const setPkgField = (field) => (e) =>
+    setPackageForm(prev => ({ ...prev, [field]: e.target.value }));
+
+  const handleSendPackage = async () => {
+    setSendingPackage(true);
+    try {
+      const sentAt = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from('exclusive_requests')
+        .update({
+          package_details: packageForm,
+          package_sent_at: sentAt,
+        })
+        .eq('id', request.id);
+      if (updateError) throw updateError;
+
+      const lines = [
+        `📍 Destination: ${packageForm.destination || request.destination || '—'}`,
+      ];
+      if (packageForm.price) lines.push(`💰 Price: ₱${Number(packageForm.price).toLocaleString()}`);
+      if (packageForm.accommodation) lines.push(`🏨 Accommodation: ${packageForm.accommodation}`);
+      if (packageForm.itinerary) lines.push(`🗺️ Itinerary:\n${packageForm.itinerary}`);
+      if (packageForm.inclusions) lines.push(`✅ Inclusions:\n${packageForm.inclusions}`);
+      if (packageForm.exclusions) lines.push(`❌ Exclusions:\n${packageForm.exclusions}`);
+      if (packageForm.things_to_bring) lines.push(`🎒 Things to Bring:\n${packageForm.things_to_bring}`);
+      if (packageForm.additional_notes) lines.push(`📝 Notes:\n${packageForm.additional_notes}`);
+
+      if (request.user_id) {
+        await notifyUser(request.user_id, {
+          title: 'Your Tour Package Details 📋',
+          message: `Here's the full package for your ${isExclusive ? 'exclusive tour' : 'requested tour'} to ${packageForm.destination || request.destination}:\n\n${lines.join('\n\n')}`,
+          type: 'exclusive_package',
+          related_id: request.id,
+        });
+      }
+
+      setPackageSentAt(sentAt);
+      setShowPackageForm(false);
+    } catch (err) {
+      alert('Error sending tour package: ' + err.message);
+    } finally {
+      setSendingPackage(false);
+    }
+  };
 
   const resolveRequest = async (decision) => {
     setSubmitting(decision);
@@ -372,6 +434,15 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     letterSpacing: '0.2em', textTransform: 'uppercase',
     color: '#7A3A18', opacity: 0.8,
     marginBottom: 6,
+  };
+
+  const packageInputStyle = {
+    width: '100%', boxSizing: 'border-box',
+    background: '#FDF6EE',
+    border: '1px solid rgba(196,92,38,0.2)',
+    borderRadius: 14, padding: '10px 14px',
+    fontSize: 13, fontWeight: 500, color: '#1A0A00',
+    fontFamily: 'inherit', outline: 'none',
   };
 
   const accentColor = request.status === 'Approved' ? '#C45C26' : request.status === 'Rejected' ? '#8C2F1C' : '#E8A265';
@@ -477,6 +548,174 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                   <> Remember to create the actual listing in <strong>Tour Management</strong> so joiners can book it.</>
                 )}
               </p>
+            </div>
+          )}
+
+          {/* Tour Package Details — send full trip info to the joiner once approved */}
+          {isApproved && (
+            <div style={{
+              background: '#F2E4D0', borderRadius: 18, padding: '1.5rem',
+              border: '1px solid rgba(196,92,38,0.18)',
+              display: 'flex', flexDirection: 'column', gap: 16,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+                <p style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
+                  color: '#1A0A00', margin: 0,
+                }}>
+                  <Package size={14} style={{ color: '#C45C26' }} /> Tour Package Details
+                </p>
+                {packageSentAt && (
+                  <span style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: '#C45C26', background: 'rgba(196,92,38,0.12)', borderRadius: 999, padding: '4px 10px',
+                  }}>
+                    <CheckCircle2 size={12} /> Sent {formatDateTime(packageSentAt)}
+                  </span>
+                )}
+              </div>
+
+              {!showPackageForm ? (
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.85, margin: '0 0 14px', lineHeight: 1.6 }}>
+                    {packageSentAt
+                      ? "Send updated details if anything about the trip has changed since you last notified the joiner."
+                      : "Once you've finalized the trip, send the joiner the confirmed destination, price, inclusions, exclusions, itinerary, and things to bring — delivered straight to their notifications."}
+                  </p>
+                  <button
+                    onClick={() => setShowPackageForm(true)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '12px 22px',
+                      background: '#1A0A00', color: '#E8A265',
+                      border: 'none', borderRadius: 999, cursor: 'pointer',
+                      fontFamily: 'inherit', fontWeight: 900,
+                      fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    }}
+                  >
+                    {packageSentAt ? <PencilLine size={14} /> : <Send size={14} />}
+                    {packageSentAt ? 'Edit & Resend Package' : 'Send Tour Package to Joiner'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div>
+                      <p style={labelStyle}>Confirmed Destination</p>
+                      <input
+                        type="text" value={packageForm.destination} onChange={setPkgField('destination')}
+                        placeholder="e.g. Sagada, Mountain Province"
+                        style={packageInputStyle}
+                      />
+                    </div>
+                    <div>
+                      <p style={labelStyle}>Final Price (₱)</p>
+                      <input
+                        type="number" value={packageForm.price} onChange={setPkgField('price')}
+                        placeholder="e.g. 55000"
+                        style={packageInputStyle}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <p style={labelStyle}>Accommodation</p>
+                    <input
+                      type="text" value={packageForm.accommodation} onChange={setPkgField('accommodation')}
+                      placeholder="e.g. AC Room, Private CR"
+                      style={packageInputStyle}
+                    />
+                  </div>
+
+                  <div>
+                    <p style={labelStyle}>Itinerary</p>
+                    <textarea
+                      value={packageForm.itinerary} onChange={setPkgField('itinerary')}
+                      placeholder={'Day 1:\n08:00 AM – Departure from meetup point\n...'}
+                      rows={3}
+                      style={{ ...packageInputStyle, resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div>
+                      <p style={labelStyle}>Inclusions</p>
+                      <textarea
+                        value={packageForm.inclusions} onChange={setPkgField('inclusions')}
+                        placeholder={'Van transport\nAccommodation\nGuide fee'}
+                        rows={3}
+                        style={{ ...packageInputStyle, resize: 'vertical' }}
+                      />
+                    </div>
+                    <div>
+                      <p style={labelStyle}>Exclusions</p>
+                      <textarea
+                        value={packageForm.exclusions} onChange={setPkgField('exclusions')}
+                        placeholder={'Personal expenses\nEntrance fees'}
+                        rows={3}
+                        style={{ ...packageInputStyle, resize: 'vertical' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <p style={labelStyle}>Things to Bring</p>
+                    <textarea
+                      value={packageForm.things_to_bring} onChange={setPkgField('things_to_bring')}
+                      placeholder={'Comfortable shoes\nRaincoat\nCash for entrance fees'}
+                      rows={2}
+                      style={{ ...packageInputStyle, resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <div>
+                    <p style={labelStyle}>Additional Notes (optional)</p>
+                    <textarea
+                      value={packageForm.additional_notes} onChange={setPkgField('additional_notes')}
+                      placeholder="Anything else the joiner should know before the trip."
+                      rows={2}
+                      style={{ ...packageInputStyle, resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => setShowPackageForm(false)}
+                      disabled={sendingPackage}
+                      style={{
+                        padding: '12px 20px',
+                        background: 'rgba(122,58,24,0.1)', color: '#7A3A18',
+                        border: 'none', borderRadius: 999, cursor: 'pointer',
+                        fontFamily: 'inherit', fontWeight: 900,
+                        fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSendPackage}
+                      disabled={sendingPackage}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '12px 24px',
+                        background: '#C45C26', color: '#FDF6EE',
+                        border: 'none', borderRadius: 999, cursor: 'pointer',
+                        fontFamily: 'inherit', fontWeight: 900,
+                        fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                        boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                        opacity: sendingPackage ? 0.6 : 1,
+                      }}
+                    >
+                      {sendingPackage
+                        ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                        : <Send size={14} />}
+                      {packageSentAt ? 'Resend to Joiner' : 'Send to Joiner'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

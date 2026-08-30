@@ -19,6 +19,20 @@ import {
 // #3F5D62  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
  
+/* Tracks viewport width so the booking card can switch from a
+   horizontal (desktop) to a stacked (mobile) layout. */
+const useIsMobile = (breakpoint = 640) => {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return isMobile;
+};
+
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -211,6 +225,7 @@ const MyBookings = () => {
 /* ─── Booking List Card ─── */
 const BookingListItem = ({ booking, onView, formatDateRange }) => {
   const [hovered, setHovered] = useState(false);
+  const isMobile = useIsMobile();
   const tour = booking.tours || {};
   return (
     <div
@@ -218,21 +233,30 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         background: '#FDF6EE', borderRadius: 24,
         border: '1px solid rgba(196,92,38,0.12)',
         boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.1)' : '0 4px 16px rgba(26,10,0,0.05)',
-        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+        transform: hovered && !isMobile ? 'translateY(-2px)' : 'translateY(0)',
         transition: 'all 0.25s',
-        padding: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24,
+        padding: isMobile ? '1rem' : '1.25rem',
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        flexWrap: isMobile ? 'nowrap' : 'wrap',
+        alignItems: isMobile ? 'stretch' : 'center',
+        gap: isMobile ? 14 : 24,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{ width: 168, height: 112, borderRadius: 18, overflow: 'hidden', flexShrink: 0, background: '#F2E4D0' }}>
+      <div style={{
+        width: isMobile ? '100%' : 168,
+        height: isMobile ? 160 : 112,
+        borderRadius: 18, overflow: 'hidden', flexShrink: 0, background: '#F2E4D0',
+      }}>
         {tour.image_urls?.[0]
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}><ShoppingBag size={28} /></div>
         }
       </div>
 
-      <div style={{ flex: 1, minWidth: 220 }}>
+      <div style={{ flex: 1, minWidth: isMobile ? 'auto' : 220 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <span style={{
             background: '#F2E4D0', borderRadius: 999, padding: '3px 12px',
@@ -241,8 +265,8 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
           }}>{booking.booking_number}</span>
           <StatusBadge booking={booking} />
         </div>
-        <h3 style={{ fontSize: 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: '0 0 10px' }}>{tour.title}</h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+        <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.25, margin: '0 0 10px' }}>{tour.title}</h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 10 : 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <MapPin size={13} style={{ color: '#C45C26' }} /> {tour.destination}
           </div>
@@ -253,14 +277,23 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
       </div>
 
       <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
-        borderLeft: '1px solid rgba(196,92,38,0.12)', paddingLeft: 24, flexShrink: 0,
+        display: 'flex',
+        flexDirection: isMobile ? 'row' : 'column',
+        alignItems: 'center',
+        justifyContent: isMobile ? 'space-between' : 'center',
+        gap: isMobile ? 0 : 12,
+        width: isMobile ? '100%' : 'auto',
+        borderLeft: isMobile ? 'none' : '1px solid rgba(196,92,38,0.12)',
+        borderTop: isMobile ? '1px solid rgba(196,92,38,0.12)' : 'none',
+        paddingLeft: isMobile ? 0 : 24,
+        paddingTop: isMobile ? 14 : 0,
+        flexShrink: 0,
       }}>
-        <p style={{ fontSize: 20, fontWeight: 900, color: '#C45C26', margin: 0 }}>₱{booking.total_price?.toLocaleString()}</p>
+        <p style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#C45C26', margin: 0 }}>₱{booking.total_price?.toLocaleString()}</p>
         <button
           onClick={onView}
           style={{
-            padding: '10px 22px', background: '#1A0A00', color: '#FDF6EE',
+            padding: isMobile ? '10px 18px' : '10px 22px', background: '#1A0A00', color: '#FDF6EE',
             border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',

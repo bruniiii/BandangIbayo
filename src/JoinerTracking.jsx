@@ -191,7 +191,22 @@ const TrackingTourCard = ({ tour, onTrack }) => {
   );
 };
 
+/* Tracks viewport width so the tracking console can switch from a
+   two-column desktop layout to a stacked mobile layout. */
+const useIsMobile = (breakpoint = 900) => {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return isMobile;
+};
+
 const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingConsole, onClose }) => {
+  const isMobile = useIsMobile();
   const images = Array.isArray(tour.image_urls) ? tour.image_urls : (tour.image ? [tour.image] : []);
   const activeStop = meetupStops.find(s => s.status === 'CURRENTLY HERE') || meetupStops.find(s => s.status !== 'ARRIVED');
   const isCompleted = meetupStops.length > 0 && meetupStops.every(s => s.status === 'ARRIVED');
@@ -204,15 +219,31 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #C45C26',
         overflow: 'hidden', maxHeight: '92vh', display: 'flex', flexDirection: 'column',
       }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, zIndex: 50, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}>
-          <X size={26} />
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 50,
+            background: isMobile ? '#FDF6EE' : 'none',
+            border: isMobile ? '1px solid rgba(196,92,38,0.2)' : 'none',
+            borderRadius: isMobile ? '50%' : 0,
+            width: isMobile ? 34 : 'auto', height: isMobile ? 34 : 'auto',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: '#7A3A18',
+          }}
+        >
+          <X size={isMobile ? 18 : 26} />
         </button>
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', minHeight: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.2fr', minHeight: 0 }}>
             {/* Left Side: Vehicle & Route Checkpoints */}
-            <div style={{ background: '#F2E4D0', padding: '2.5rem 2rem', borderRight: '1px solid rgba(196,92,38,0.12)' }}>
-              <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour.title}</h2>
+            <div style={{
+              background: '#F2E4D0',
+              padding: isMobile ? '3.5rem 1.25rem 1.5rem' : '2.5rem 2rem',
+              borderRight: isMobile ? 'none' : '1px solid rgba(196,92,38,0.12)',
+              borderBottom: isMobile ? '1px solid rgba(196,92,38,0.12)' : 'none',
+            }}>
+              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour.title}</h2>
               <p style={{ margin: '0 0 16px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <MapPin size={14} style={{ color: '#C45C26' }} /> {tour.destination}
               </p>
@@ -248,7 +279,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                   <Truck size={14} /> Assigned Driver & Vehicle
                 </h4>
                 {vehicleInfo ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
                     <div><strong style={{ color: '#7A3A18' }}>Vehicle:</strong> {vehicleInfo.car_type || 'Pending'}</div>
                     <div><strong style={{ color: '#7A3A18' }}>Plate No:</strong> {vehicleInfo.plate_number || 'Pending'}</div>
                     <div><strong style={{ color: '#7A3A18' }}>Driver:</strong> {vehicleInfo.driver_name || 'Assigned Staff'}</div>
@@ -279,6 +310,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                       return (
                         <div key={stop.id} style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          flexWrap: 'wrap', gap: 8,
                           padding: '10px 12px', borderRadius: 12,
                           background: isCurrent ? 'rgba(196,92,38,0.08)' : '#FDF6EE',
                           border: isCurrent ? '1.5px solid #C45C26' : '1px solid rgba(196,92,38,0.1)',
@@ -311,7 +343,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
             </div>
 
             {/* Right Side: Detailed Updates Feed */}
-            <div style={{ padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '2.5rem 2rem', display: 'flex', flexDirection: 'column' }}>
               <h4 style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Compass size={14} /> Live Departure Feed & Whereabouts
               </h4>

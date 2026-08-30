@@ -433,6 +433,9 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#7A3A18', fontWeight: 600, fontSize: 13 }}>
+                <MapPin size={16} style={{ color: '#C45C26', flexShrink: 0 }} /> {tour.destination}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#7A3A18', fontWeight: 600, fontSize: 13 }}>
                 <CalendarIcon size={16} style={{ color: '#C45C26', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#7A3A18', fontWeight: 600, fontSize: 13 }}>
@@ -548,11 +551,14 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
               </section>
             </div>
 
-            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+            <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
               <section>
-                <h4 style={{ fontSize: 9, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px' }}>Itinerary</h4>
-                <pre style={{ color: '#7A3A18', fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, margin: 0 }}>{tour.itinerary || "N/A"}</pre>
+                <h4 style={{ fontSize: 9, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}><Clock size={14} /> Itinerary</h4>
+                <ItineraryTimeline text={tour.itinerary} />
               </section>
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
               <section>
                 <h4 style={{ fontSize: 9, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 12px' }}>Things to Bring</h4>
                 <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
@@ -709,6 +715,78 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, borderRadius: 12, padding: '8px 12px', background: itemBg }}>
           <Icon size={13} style={{ color: iconColor, flexShrink: 0, marginTop: 2 }} />
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* Renders itinerary text ("Day 1:" headers + "TIME – Activity" or
+   "START – END – Activity" lines) as grouped timeline rows, each
+   sized to its own content instead of stretched full-width. */
+const ItineraryTimeline = ({ text }) => {
+  const rawLines = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+  if (rawLines.length === 0) {
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
+  }
+
+  // Matches a leading time or time-range (e.g. "04:00 AM", "08:15 AM – 11:00 AM",
+  // or Filipino shorthand "12:00nn"/"12:00mn"), followed by a separator (":" or "-"/"–"),
+  // with everything after it treated as the activity text.
+  const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
+  const isDayHeader = (line) => /^day\b/i.test(line);
+
+  const days = [];
+  let current = null;
+  rawLines.forEach(line => {
+    if (isDayHeader(line)) {
+      current = { label: line.replace(/:$/, ''), items: [] };
+      days.push(current);
+      return;
+    }
+    if (!current) {
+      current = { label: null, items: [] };
+      days.push(current);
+    }
+    const match = line.match(TIME_PREFIX_RE);
+    if (match) {
+      const time = match[1].replace(/\s*[–-]\s*/g, ' – ').trim();
+      current.items.push({ time, activity: match[2].trim() });
+    } else {
+      current.items.push({ time: null, activity: line });
+    }
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {days.map((day, di) => (
+        <div key={di}>
+          {day.label && (
+            <span style={{
+              display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
+              borderRadius: 999, padding: '4px 12px', fontSize: 9, fontWeight: 900,
+              letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
+            }}>{day.label}</span>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            {day.items.map((item, ii) => (
+              <div key={ii} style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+                background: 'rgba(196,92,38,0.06)', borderRadius: 12, padding: '9px 12px',
+                maxWidth: '100%',
+              }}>
+                {item.time && (
+                  <span style={{
+                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#C45C26',
+                    background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.25)',
+                    borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
+                  }}>{item.time}</span>
+                )}
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
