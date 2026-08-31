@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { Bell, CheckCheck, Compass, Loader2 } from 'lucide-react';
+import { Bell, CheckCheck, Compass, Loader2, X, ArrowRight, Clock } from 'lucide-react';
 
 const timeAgo = (dateStr) => {
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -10,6 +10,11 @@ const timeAgo = (dateStr) => {
   if (diff < 2592000) return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? 's' : ''} ago`;
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
+
+const fullDateTime = (dateStr) =>
+  new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
 
 /* ─────────────────────────────────────────────
    NOTIFICATION BELL
@@ -22,6 +27,7 @@ const NotificationBell = ({ onNotificationClick }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [viewingNotification, setViewingNotification] = useState(null);
   const wrapperRef = useRef(null);
 
   const fetchNotifications = useCallback(async (uid) => {
@@ -79,6 +85,7 @@ const NotificationBell = ({ onNotificationClick }) => {
   };
 
   return (
+    <>
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <button
         onClick={() => setOpen(v => !v)}
@@ -154,7 +161,7 @@ const NotificationBell = ({ onNotificationClick }) => {
                   onClick={() => {
                     if (!n.is_read) markAsRead(n.id);
                     setOpen(false);
-                    onNotificationClick?.(n);
+                    setViewingNotification(n);
                   }}
                   style={{
                     padding: '12px 18px',
@@ -169,7 +176,10 @@ const NotificationBell = ({ onNotificationClick }) => {
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{n.title}</p>
-                    <p style={{ fontSize: 11.5, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '4px 0 0', lineHeight: 1.5 }}>
+                    <p style={{
+                      fontSize: 11.5, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '4px 0 0', lineHeight: 1.5,
+                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    }}>
                       {n.message}
                     </p>
                     <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.5, margin: '6px 0 0' }}>
@@ -184,7 +194,123 @@ const NotificationBell = ({ onNotificationClick }) => {
         </div>
       )}
     </div>
+
+    {viewingNotification && (
+      <NotificationDetailModal
+        notification={viewingNotification}
+        onClose={() => setViewingNotification(null)}
+        onNavigate={() => {
+          const target = viewingNotification;
+          setViewingNotification(null);
+          onNotificationClick?.(target);
+        }}
+      />
+    )}
+    </>
   );
 };
+
+/* ─────────────────────────────────────────────
+   NOTIFICATION DETAIL MODAL
+   Full, untruncated view of a single notification —
+   opened when the joiner/admin taps an item in the bell
+   dropdown, since the dropdown itself only shows a
+   2-line preview for longer messages (e.g. tour package
+   details, which can run several paragraphs).
+───────────────────────────────────────────── */
+const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
+  <div style={{
+    position: 'fixed', inset: 0, zIndex: 9999,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+  }}>
+    <div
+      style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.75)', backdropFilter: 'blur(6px)' }}
+      onClick={onClose}
+    />
+    <div style={{
+      position: 'relative', background: '#FDF6EE',
+      width: '100%', maxWidth: 520,
+      borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+      borderTop: '7px solid #C45C26',
+      overflow: 'hidden', maxHeight: '85vh',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '1.5rem 1.75rem 1.25rem', flexShrink: 0,
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+        borderBottom: '1px solid rgba(196,92,38,0.12)',
+      }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{
+            fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+            color: '#C45C26', margin: '0 0 8px',
+          }}>
+            Notification
+          </p>
+          <h3 style={{ fontSize: 17, fontWeight: 900, color: '#1A0A00', margin: 0, lineHeight: 1.3, wordBreak: 'break-word' }}>
+            {notification.title}
+          </h3>
+        </div>
+        <button
+          onClick={onClose}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(122,58,24,0.5)', padding: 4, flexShrink: 0,
+          }}
+        >
+          <X size={22} />
+        </button>
+      </div>
+
+      {/* Body — full message, whitespace preserved */}
+      <div style={{ padding: '1.5rem 1.75rem', overflowY: 'auto', flex: 1 }}>
+        <p style={{
+          fontSize: 13.5, fontWeight: 500, color: '#1A0A00',
+          lineHeight: 1.75, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+        }}>
+          {notification.message}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, color: '#7A3A18', opacity: 0.6 }}>
+          <Clock size={12} />
+          <span style={{ fontSize: 10.5, fontWeight: 700 }}>{fullDateTime(notification.created_at)}</span>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{
+        padding: '1.25rem 1.75rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+        background: '#F2E4D0', display: 'flex', gap: 10, flexShrink: 0, justifyContent: 'flex-end',
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            padding: '12px 20px',
+            background: 'transparent', color: '#7A3A18',
+            border: '1px solid rgba(196,92,38,0.2)', borderRadius: 999, cursor: 'pointer',
+            fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+          }}
+        >
+          Close
+        </button>
+        <button
+          onClick={onNavigate}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '12px 22px',
+            background: '#1A0A00', color: '#E8A265',
+            border: 'none', borderRadius: 999, cursor: 'pointer',
+            fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+            boxShadow: '0 6px 20px rgba(26,10,0,0.25)',
+          }}
+        >
+          Go There <ArrowRight size={13} />
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 export default NotificationBell;
