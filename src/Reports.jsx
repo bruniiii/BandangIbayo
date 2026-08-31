@@ -656,7 +656,7 @@ const Reports = () => {
           <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>
             {formatRangeLabel(start, end)} · {loading ? 'Loading…' : `${stats.total} booking${stats.total !== 1 ? 's' : ''} in range`}
             {lastUpdated && !loading && (
-              <span style={{ opacity: 0.6 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span style={{ opacity: 0.85 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
             )}
           </p>
         </div>
@@ -777,7 +777,7 @@ const Reports = () => {
                     fontFamily: 'inherit', outline: 'none',
                   }}
                 />
-                <span style={{ color: '#7A3A18', opacity: 0.5, fontSize: 11, fontWeight: 700 }}>to</span>
+                <span style={{ color: '#7A3A18', opacity: 0.65, fontSize: 11, fontWeight: 700 }}>to</span>
                 <input
                   type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
                   style={{
@@ -919,7 +919,7 @@ const Reports = () => {
                 border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '-8px 0 16px' }}>
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '-8px 0 16px' }}>
                   Based on a weighted average of the last three months.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
@@ -961,7 +961,7 @@ const Reports = () => {
                 border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<ArrowRight size={14} />}>Booking Funnel</SectionTitle>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.55, margin: '-8px 0 16px' }}>
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '-8px 0 16px' }}>
                   Based on stages currently tracked in the system (visitor/page-view analytics aren't collected yet).
                 </p>
                 <FunnelChart steps={funnel} />
@@ -978,7 +978,7 @@ const Reports = () => {
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
                         {['Tour', 'Bookings', 'Revenue', 'Pax', 'Completion', 'Rating'].map((h) => (
-                          <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.65 }}>{h}</th>
+                          <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.78 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -1068,7 +1068,7 @@ const Reports = () => {
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '8px 14px' }}>
                             <div>
                               <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{c.name}</p>
-                              <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>{c.tours} tour{c.tours !== 1 ? 's' : ''}</p>
+                              <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>{c.tours} tour{c.tours !== 1 ? 's' : ''}</p>
                             </div>
                             <span style={{ fontSize: 13, fontWeight: 900, color: '#C45C26' }}>{peso(c.spend)}</span>
                           </div>
@@ -1081,7 +1081,7 @@ const Reports = () => {
                     {customerAnalytics.topLocations.length === 0 ? <EmptyChartNotice /> : (
                       <HorizontalBarChart data={customerAnalytics.topLocations.map((l) => ({ label: l.label, value: l.value }))} color="#7A3A18" />
                     )}
-                    <p style={{ fontSize: 9.5, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: '10px 0 0' }}>
+                    <p style={{ fontSize: 9.5, fontWeight: 600, color: '#7A3A18', opacity: 0.72, margin: '10px 0 0' }}>
                       Age and gender aren't collected during registration, so those breakdowns aren't available yet.
                     </p>
                   </div>
@@ -1141,7 +1141,7 @@ const Reports = () => {
                         {['Booking No.', 'Joiner', 'Tour', 'Pax', 'Status', 'Date'].map((h) => (
                           <th key={h} style={{
                             textAlign: 'left', padding: '12px 20px', fontSize: 9, fontWeight: 800,
-                            letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.65,
+                            letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.78,
                           }}>
                             {h}
                           </th>
@@ -1175,7 +1175,7 @@ const Reports = () => {
                   </table>
                 </div>
                 {bookings.length > recentBookings.length && (
-                  <p style={{ padding: '14px 20px', fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.55, margin: 0 }}>
+                  <p style={{ padding: '14px 20px', fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: 0 }}>
                     Showing {recentBookings.length} most recent of {bookings.length} bookings matching current filters.
                   </p>
                 )}
@@ -1223,7 +1223,7 @@ const BarChart = ({ data, color = '#C45C26', height = 180 }) => {
             transition: 'height 0.3s',
           }} />
           <span style={{
-            fontSize: 8, fontWeight: 800, color: '#7A3A18', opacity: 0.55,
+            fontSize: 8, fontWeight: 800, color: '#7A3A18', opacity: 0.68,
             marginTop: 8, whiteSpace: 'nowrap',
           }}>
             {i % labelStep === 0 ? d.label : ''}
@@ -1287,7 +1287,7 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         }}>
           <span style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', lineHeight: 1 }}>{total}</span>
-          <span style={{ fontSize: 8, fontWeight: 800, color: '#7A3A18', opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+          <span style={{ fontSize: 8, fontWeight: 800, color: '#7A3A18', opacity: 0.78, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
             Total
           </span>
         </div>
@@ -1305,7 +1305,7 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
           >
             <span style={{ width: 10, height: 10, borderRadius: 3, background: seg.color, flexShrink: 0 }} />
             {seg.label}
-            <span style={{ opacity: 0.5, fontWeight: 700 }}>
+            <span style={{ opacity: 0.68, fontWeight: 700 }}>
               ({seg.value} · {Math.round((seg.value / total) * 100)}%)
             </span>
           </div>

@@ -20,9 +20,12 @@ import { JoinerTracking } from './JoinerTracking';
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
+// #FDF6EE  cream (light bg / card bg)
+// #2D1B0E  deep brown (dark card)
 // #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
+// #F2E4D0  parchment (inset panels / secondary bg)
+// #EDEAE3  warm stone (page bg — provides contrast for cream cards)
+// #3F5D62  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
 const NAV_ITEMS = [
@@ -88,7 +91,6 @@ const JoinerDashboard = () => {
     navigate('/login');
   };
 
-  // Date Range Formatter
   const formatDateRange = (dateString, duration) => {
     if (!dateString) return "";
     try {
@@ -107,8 +109,6 @@ const JoinerDashboard = () => {
     }
   };
 
-  // ── combined dashboard fetcher: metrics, next trip, calendar dots,
-  //    tracking preview, and the featured tour packages grid ──
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoadingHome(true);
@@ -243,7 +243,7 @@ const JoinerDashboard = () => {
     <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100vh',
       fontFamily: "'Inter', system-ui, sans-serif",
-      background: '#F2E4D0',
+      background: '#EDEAE3',
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
@@ -252,11 +252,13 @@ const JoinerDashboard = () => {
         .tour-carousel-track::-webkit-scrollbar{ display: none; }
       `}</style>
 
+      {/* MOBILE OVERLAY */}
       <div
         className={`sidebar-overlay ${mobileNavOpen ? 'is-open' : ''}`}
         onClick={() => setMobileNavOpen(false)}
       />
 
+      {/* ── SIDEBAR ── */}
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
         onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}
@@ -283,7 +285,7 @@ const JoinerDashboard = () => {
               width: 28, height: 28,
               borderRadius: '50%',
               background: '#C45C26',
-              border: '3px solid #F2E4D0',
+              border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
               color: '#FDF6EE',
@@ -309,7 +311,17 @@ const JoinerDashboard = () => {
             display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
             justifyContent: sidebarExpanded ? 'flex-start' : 'center',
           }}>
-            <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 78, height: 78, objectFit: 'contain', flexShrink: 0 }} />
+            <img
+              src={logoIcon}
+              alt="BANDANG IBAYO"
+              style={{
+                width: sidebarExpanded ? 44 : 36,
+                height: sidebarExpanded ? 44 : 36,
+                objectFit: 'contain',
+                transition: 'width 0.22s, height 0.22s',
+                flexShrink: 0,
+              }}
+            />
             {sidebarExpanded && (
               <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
                 Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
@@ -474,6 +486,7 @@ const JoinerDashboard = () => {
           </div>
         </header>
 
+        {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
 
           {activeTab === 'HomePage' ? (
@@ -482,10 +495,10 @@ const JoinerDashboard = () => {
               <div style={{
                 position: 'relative',
                 background: '#1A0A00',
-                borderRadius: 28,
+                borderRadius: 24,
                 padding: '3.5rem',
                 overflow: 'hidden',
-                boxShadow: '0 20px 60px rgba(26,10,0,0.28)',
+                boxShadow: '0 16px 40px rgba(26,10,0,0.22)',
                 borderBottom: '6px solid #C45C26',
               }} className="dashboard-hero-padding">
                 <div style={{
@@ -515,11 +528,25 @@ const JoinerDashboard = () => {
                   </p>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <button onClick={() => setActiveTab('Exclusive Tours')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: '#E8A265', color: '#1A0A00', fontWeight: 900, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', cursor: 'pointer', borderRadius: 8, padding: '10px 18px', fontFamily: 'inherit', transition: 'all 0.2s' }}>Plan a Trip</button>
+                    <button
+                      onClick={() => setActiveTab('Exclusive Tours')}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        background: '#E8A265', color: '#1A0A00', fontWeight: 900,
+                        fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
+                        border: 'none', cursor: 'pointer', borderRadius: 8, padding: '10px 18px',
+                        fontFamily: 'inherit', transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#FDF6EE'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#E8A265'}
+                    >
+                      Plan a Trip
+                    </button>
                   </div>
                 </div>
               </div>
 
+              {/* TRIP PULSE */}
               <div style={{
                 position: 'relative',
                 background: '#1A0A00',
@@ -556,6 +583,7 @@ const JoinerDashboard = () => {
                 </div>
               </div>
 
+              {/* SPLIT GRID */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -584,7 +612,7 @@ const JoinerDashboard = () => {
                       borderRadius: '12px',
                       background: '#1A0A00',
                       border: '1.5px solid #C45C26',
-                      color: '#fff',
+                      color: '#FDF6EE',
                       fontWeight: 900,
                       fontSize: '11px',
                       letterSpacing: '0.08em',
@@ -595,16 +623,16 @@ const JoinerDashboard = () => {
                       justifyContent: 'center',
                       gap: 6,
                       fontFamily: 'inherit',
-                      boxShadow: '0 4px 12px rgba(196,92,38,0.03)',
+                      boxShadow: '0 4px 12px rgba(26,10,0,0.1)',
                       transition: 'all 0.2s'
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.background = '#fff';
-                      e.currentTarget.style.color = '#1A0A00';
+                      e.currentTarget.style.background = '#C45C26';
+                      e.currentTarget.style.color = '#FDF6EE';
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.background = '#1A0A00';
-                      e.currentTarget.style.color = '#fff';
+                      e.currentTarget.style.color = '#FDF6EE';
                     }}
                   >
                     <span>See More</span>
@@ -612,6 +640,7 @@ const JoinerDashboard = () => {
                   </button>
                 </div>
 
+                {/* RIGHT RAIL */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <CalendarWidget
                     loading={loadingHome}
@@ -653,10 +682,25 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Tracking' ? (
             <JoinerTracking />
           ) : (
-            <div style={{ height: '100%', minHeight: 400, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#FDF6EE', borderRadius: 24, border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 24px rgba(26,10,0,0.06)', padding: '3rem', textAlign: 'center' }}>
-              <div style={{ width: 72, height: 72, borderRadius: 20, background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(196,92,38,0.25)', marginBottom: 20 }}><Compass size={36} /></div>
-              <h3 style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 8px' }}>{activeTab} Section</h3>
-              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.6, margin: 0 }}>Coming soon — check back later.</p>
+            <div style={{
+              height: '100%', minHeight: 400, display: 'flex',
+              flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              background: '#FDF6EE', borderRadius: 24, border: '1px solid rgba(196,92,38,0.12)',
+              boxShadow: '0 4px 24px rgba(26,10,0,0.06)', padding: '3rem', textAlign: 'center'
+            }}>
+              <div style={{
+                width: 72, height: 72, borderRadius: 20,
+                background: '#F2E4D0', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', color: 'rgba(196,92,38,0.25)', marginBottom: 20
+              }}>
+                <Compass size={36} />
+              </div>
+              <h3 style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 8px' }}>
+                {activeTab} Section
+              </h3>
+              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+                Coming soon — check back later.
+              </p>
             </div>
           )}
         </div>
@@ -709,6 +753,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
   </button>
 );
 
+/* ── TRIP PULSE STAT ── */
 const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
   <div
     onClick={onClick}
@@ -1066,6 +1111,7 @@ const TripReadinessCard = ({ trip, onClick }) => {
   );
 };
 
+/* ── CALENDAR WIDGET ── */
 const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }) => {
   const [monthOffset, setMonthOffset] = useState(0);
 
@@ -1206,6 +1252,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
   );
 };
 
+/* ── TRACKING SNIPPET ── */
 const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
   const isActive = stop?.status === 'CURRENTLY HERE';
 
@@ -1309,6 +1356,7 @@ const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
   );
 };
 
+// ── DETAILED TOUR MODAL ──
 const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess }) => {
   const [primaryImage, setPrimaryImage] = useState(tour.image_urls?.[0] || null);
   const [numPersons, setNumPersons] = useState(1);
@@ -1358,8 +1406,8 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.45)', backdropFilter: 'blur(12px)' }} onClick={paymentStep ? undefined : onClose}></div>
-      <div style={{ position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: '1100px', height: '90vh', borderRadius: '28px', overflow: 'hidden', display: 'flex', flexDirection: 'row', borderTop: '8px solid #C45C26', boxShadow: '0 24px 60px rgba(0,0,0,0.25)', zIndex: 10000 }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.5)', backdropFilter: 'blur(10px)' }} onClick={paymentStep ? undefined : onClose}></div>
+      <div style={{ position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: '1100px', height: '90vh', borderRadius: '28px', overflow: 'hidden', display: 'flex', flexDirection: 'row', borderTop: '8px solid #C45C26', boxShadow: '0 24px 60px rgba(26,10,0,0.3)', zIndex: 10000 }}>
         <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 24, background: 'none', border: 'none', color: '#7A3A18', cursor: 'pointer', zIndex: 50 }}><X size={28} /></button>
 
         <div style={{ flex: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -1370,7 +1418,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
             {tour.image_urls?.length > 1 && (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                 {tour.image_urls.map((url, idx) => (
-                  <div key={idx} onClick={() => setPrimaryImage(url)} style={{ width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', border: primaryImage === url ? '2px solid #C45C26' : '2px solid #e2e8f0', cursor: 'pointer' }}><img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /></div>
+                  <div key={idx} onClick={() => setPrimaryImage(url)} style={{ width: '60px', height: '60px', borderRadius: '12px', overflow: 'hidden', border: primaryImage === url ? '2px solid #C45C26' : '2px solid rgba(196,92,38,0.18)', cursor: 'pointer' }}><img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /></div>
                 ))}
               </div>
             )}
@@ -1379,11 +1427,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
           </div>
           <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div><h4 style={{ fontSize: '11px', fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 8px 0' }}><CheckCircle2 size={14} /> Inclusions</h4><pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'sans-serif', fontSize: '12px', color: '#7A3A18', margin: 0 }}>{tour.inclusions || "N/A"}</pre></div>
-            <div><h4 style={{ fontSize: '11px', fontWeight: 900, color: '#ef4444', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 8px 0' }}><X size={14} /> Exclusions</h4><pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'sans-serif', fontSize: '12px', color: '#7A3A18', margin: 0 }}>{tour.exclusions || "N/A"}</pre></div>
+            <div><h4 style={{ fontSize: '11px', fontWeight: 900, color: '#7A3A18', opacity: 0.8, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', margin: '0 0 8px 0' }}><X size={14} /> Exclusions</h4><pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'sans-serif', fontSize: '12px', color: '#7A3A18', margin: 0 }}>{tour.exclusions || "N/A"}</pre></div>
           </div>
         </div>
 
-        <div style={{ width: '340px', background: '#f8fafc', padding: '40px', display: 'flex', flexDirection: 'column', borderLeft: '1px solid rgba(196,92,38,0.15)' }}>
+        <div style={{ width: '340px', background: '#F2E4D0', padding: '40px', display: 'flex', flexDirection: 'column', borderLeft: '1px solid rgba(196,92,38,0.15)' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 900, color: '#1A0A00', margin: '0 0 16px 0', lineHeight: '1.2' }}>{tour.title}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 700, color: '#7A3A18' }}><CalendarIcon size={16} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
@@ -1402,7 +1450,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
           <div style={{ marginTop: 'auto', borderTop: '2px solid rgba(196,92,38,0.2)', paddingTop: '16px' }}>
             {!isFullyBooked && <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}><span style={{ fontSize: '11px', fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>Total</span><span style={{ fontSize: '28px', fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span></div>}
-            <button onClick={handleBookThisTour} disabled={isBooking || isFullyBooked} style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: '11px', textTransform: 'uppercase', cursor: isFullyBooked ? 'not-allowed' : 'pointer', background: isFullyBooked ? '#F2E4D0' : '#C45C26', color: isFullyBooked ? '#7A3A18' : '#FFF', boxShadow: '0 8px 20px rgba(196,92,38,0.2)' }}>{isBooking ? 'Processing...' : isFullyBooked ? 'Fully Booked' : 'Book This Tour'}</button>
+            <button onClick={handleBookThisTour} disabled={isBooking || isFullyBooked} style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: '11px', textTransform: 'uppercase', cursor: isFullyBooked ? 'not-allowed' : 'pointer', background: isFullyBooked ? '#EDEAE3' : '#C45C26', color: isFullyBooked ? '#7A3A18' : '#FFF', boxShadow: '0 8px 20px rgba(196,92,38,0.2)' }}>{isBooking ? 'Processing...' : isFullyBooked ? 'Fully Booked' : 'Book This Tour'}</button>
           </div>
         </div>
       </div>
@@ -1417,28 +1465,28 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
 const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel, formatDateRange }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 11000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(26,10,0,0.7)', padding: '24px' }}>
-    <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '440px', borderRadius: '24px', padding: '32px', boxSizing: 'border-box', borderTop: '6px solid #C45C26' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}><button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button></div>
-      <h3 style={{ fontSize: '20px', fontWeight: 900, margin: '0 0 16px 0' }}>Review Payment</h3>
-      <div style={{ background: '#F2E4D0', padding: '16px', borderRadius: '16px', fontSize: '13px', fontWeight: 700, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+    <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '440px', borderRadius: '24px', padding: '32px', boxSizing: 'border-box', borderTop: '6px solid #C45C26', boxShadow: '0 20px 48px rgba(26,10,0,0.3)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}><button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button></div>
+      <h3 style={{ fontSize: '20px', fontWeight: 900, color: '#1A0A00', margin: '0 0 16px 0' }}>Review Payment</h3>
+      <div style={{ background: '#F2E4D0', padding: '16px', borderRadius: '16px', fontSize: '13px', fontWeight: 700, display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', color: '#1A0A00' }}>
         <div>⛰️ {tour.title}</div>
         <div>📅 {formatDateRange(tour.start_date, tour.duration)}</div>
         <div>👤 {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}</div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}><span style={{ fontWeight: 800, fontSize: '13px' }}>Amount Due</span><span style={{ fontSize: '24px', fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span></div>
-      <button onClick={onProceed} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: '#1A0A00', color: '#FFF', fontWeight: 900, textTransform: 'uppercase', fontSize: '11px', cursor: 'pointer' }}>Proceed to Pay</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}><span style={{ fontWeight: 800, fontSize: '13px', color: '#7A3A18' }}>Amount Due</span><span style={{ fontSize: '24px', fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span></div>
+      <button onClick={onProceed} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: '#1A0A00', color: '#FDF6EE', fontWeight: 900, textTransform: 'uppercase', fontSize: '11px', cursor: 'pointer' }}>Proceed to Pay</button>
     </div>
   </div>
 );
 
 const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 11000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(26,10,0,0.7)', padding: '24px' }}>
-    <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '400px', borderRadius: '24px', padding: '32px', borderTop: '6px solid #C45C26' }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: '11px', fontWeight: 800, cursor: 'pointer', marginBottom: '16px' }}>← BACK</button>
-      <h3 style={{ fontSize: '18px', fontWeight: 900, margin: '0 0 20px 0' }}>Select Option</h3>
+    <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '400px', borderRadius: '24px', padding: '32px', borderTop: '6px solid #C45C26', boxShadow: '0 20px 48px rgba(26,10,0,0.3)' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: '11px', fontWeight: 800, cursor: 'pointer', color: '#7A3A18', marginBottom: '16px' }}>← BACK</button>
+      <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#1A0A00', margin: '0 0 20px 0' }}>Select Option</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <button onClick={() => onChoose('full')} style={{ width: '100%', padding: '20px', background: '#1A0A00', color: '#FFF', borderRadius: '16px', border: 'none', cursor: 'pointer', textAlign: 'left' }}><div style={{ fontSize: '10px', fontWeight: 900, color: '#C45C26' }}>FULL AMOUNT</div><p style={{ fontSize: '22px', fontWeight: 900, margin: '4px 0 0' }}>₱{subtotal.toLocaleString()}</p></button>
-        <button onClick={() => onChoose('down')} style={{ width: '100%', padding: '20px', background: '#FFF', border: '2px solid rgba(196,92,38,0.2)', borderRadius: '16px', cursor: 'pointer', textAlign: 'left' }}><div style={{ fontSize: '10px', fontWeight: 900, color: '#C45C26' }}>DOWNPAYMENT (40%)</div><p style={{ fontSize: '22px', fontWeight: 900, margin: '4px 0 0', color: '#1A0A00' }}>₱{downpaymentAmount.toLocaleString()}</p></button>
+        <button onClick={() => onChoose('full')} style={{ width: '100%', padding: '20px', background: '#1A0A00', color: '#FDF6EE', borderRadius: '16px', border: 'none', cursor: 'pointer', textAlign: 'left' }}><div style={{ fontSize: '10px', fontWeight: 900, color: '#E8A265' }}>FULL AMOUNT</div><p style={{ fontSize: '22px', fontWeight: 900, margin: '4px 0 0' }}>₱{subtotal.toLocaleString()}</p></button>
+        <button onClick={() => onChoose('down')} style={{ width: '100%', padding: '20px', background: '#F2E4D0', border: '2px solid rgba(196,92,38,0.2)', borderRadius: '16px', cursor: 'pointer', textAlign: 'left' }}><div style={{ fontSize: '10px', fontWeight: 900, color: '#C45C26' }}>DOWNPAYMENT (40%)</div><p style={{ fontSize: '22px', fontWeight: 900, margin: '4px 0 0', color: '#1A0A00' }}>₱{downpaymentAmount.toLocaleString()}</p></button>
       </div>
     </div>
   </div>
@@ -1477,13 +1525,13 @@ const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 11000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(26,10,0,0.7)', padding: '24px' }}>
-      <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '460px', borderRadius: '24px', overflow: 'hidden' }}>
-        <div style={{ background: '#1A0A00', padding: '16px 24px', color: '#FFF', display: 'flex', alignItems: 'center', gap: '12px' }}><button onClick={onBack} style={{ background: 'none', border: 'none', color: '#FFF', cursor: 'pointer' }}>←</button><h4 style={{ margin: 0, fontWeight: 900 }}>GCash Portal</h4></div>
+      <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '460px', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 48px rgba(26,10,0,0.3)' }}>
+        <div style={{ background: '#1A0A00', padding: '16px 24px', color: '#FDF6EE', display: 'flex', alignItems: 'center', gap: '12px' }}><button onClick={onBack} style={{ background: 'none', border: 'none', color: '#E8A265', cursor: 'pointer', fontWeight: 800 }}>←</button><h4 style={{ margin: 0, fontWeight: 900 }}>GCash Portal</h4></div>
         <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ background: '#eff6ff', padding: '12px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 700 }}>📱 Send GCash To: <strong style={{ color: '#2563eb' }}>09XX XXX XXXX</strong> (Bandang IBAYO)</div>
-          <input type="tel" placeholder="Your GCash Account Number" value={gcashNumber} onChange={e => setGcashNumber(e.target.value)} style={{ width: '100%', background: '#F2E4D0', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '13px', fontWeight: 600, outline: 'none' }} />
-          <input type="text" placeholder="13-Digit Receipt Reference Number" value={refNumber} onChange={e => setRefNumber(e.target.value)} style={{ width: '100%', background: '#F2E4D0', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '13px', fontWeight: 600, outline: 'none' }} />
-          <input type="file" accept="image/*" onChange={e => setScreenshot(e.target.files[0])} style={{ fontSize: '11px' }} />
+          <div style={{ background: '#F2E4D0', padding: '12px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 700, color: '#1A0A00', border: '1px solid rgba(196,92,38,0.15)' }}>📱 Send GCash To: <strong style={{ color: '#C45C26' }}>09XX XXX XXXX</strong> (Bandang IBAYO)</div>
+          <input type="tel" placeholder="Your GCash Account Number" value={gcashNumber} onChange={e => setGcashNumber(e.target.value)} style={{ width: '100%', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: '10px', padding: '12px', fontSize: '13px', fontWeight: 600, color: '#1A0A00', outline: 'none' }} />
+          <input type="text" placeholder="13-Digit Receipt Reference Number" value={refNumber} onChange={e => setRefNumber(e.target.value)} style={{ width: '100%', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: '10px', padding: '12px', fontSize: '13px', fontWeight: 600, color: '#1A0A00', outline: 'none' }} />
+          <input type="file" accept="image/*" onChange={e => setScreenshot(e.target.files[0])} style={{ fontSize: '11px', color: '#7A3A18' }} />
           <button onClick={handleConfirmBooking} disabled={submitting} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: '#C45C26', color: '#FFF', fontWeight: 900, textTransform: 'uppercase', fontSize: '11px', cursor: 'pointer', marginTop: '6px' }}>{submitting ? 'Verifying Reference...' : 'Submit Booking'}</button>
         </div>
       </div>
@@ -1493,11 +1541,11 @@ const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType
 
 const BookingSuccessModal = ({ booking, onClose }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 11000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(26,10,0,0.7)', padding: '24px' }}>
-    <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '380px', borderRadius: '24px', padding: '32px', borderTop: '6px solid #C45C26' }}>
+    <div style={{ background: '#FDF6EE', width: '100%', maxWidth: '380px', borderRadius: '24px', padding: '32px', borderTop: '6px solid #C45C26', boxShadow: '0 20px 48px rgba(26,10,0,0.3)' }}>
       <div style={{ width: '60px', height: '60px', background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}><CheckCircle2 size={32} style={{ color: '#C45C26', margin: 'auto' }} /></div>
-      <h3 style={{ fontSize: '20px', fontWeight: 900, margin: '0 0 8px 0', textAlign: 'center' }}>Booking Submitted!</h3>
-      <div style={{ background: '#F2E4D0', padding: '12px', borderRadius: '12px', fontSize: '12px', fontWeight: 800, margin: '16px 0', textAlign: 'center' }}>Reference: {booking?.booking_number}</div>
-      <button onClick={onClose} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: '#1A0A00', color: '#FFF', fontWeight: 900, textTransform: 'uppercase', fontSize: '11px', cursor: 'pointer' }}>Done</button>
+      <h3 style={{ fontSize: '20px', fontWeight: 900, margin: '0 0 8px 0', textAlign: 'center', color: '#1A0A00' }}>Booking Submitted!</h3>
+      <div style={{ background: '#F2E4D0', padding: '12px', borderRadius: '12px', fontSize: '12px', fontWeight: 800, margin: '16px 0', textAlign: 'center', color: '#7A3A18' }}>Reference: {booking?.booking_number}</div>
+      <button onClick={onClose} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: 'none', background: '#1A0A00', color: '#FDF6EE', fontWeight: 900, textTransform: 'uppercase', fontSize: '11px', cursor: 'pointer' }}>Done</button>
     </div>
   </div>
 );

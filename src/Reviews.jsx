@@ -4,9 +4,10 @@ import { Star, Send, Trash2, Loader2, MapPin, MessageSquare, Image as ImageIcon,
 
 const displayName = (profile) => {
   if (!profile) return 'A Traveler';
-  if (profile.full_name) return profile.full_name;
   const combo = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-  return combo || 'A Traveler';
+  if (combo) return combo;
+  if (profile.username) return profile.username;
+  return 'A Traveler';
 };
 
 const formatDate = (dateStr) =>
@@ -84,9 +85,10 @@ const Reviews = ({ isAdmin = false }) => {
     if (error) { console.error('Error fetching reviews:', error.message); setLoading(false); return; }
 
     const userIds = [...new Set((data || []).map(r => r.user_id).filter(Boolean))];
-    const { data: profilesData } = userIds.length
-      ? await supabase.from('profiles').select('id, full_name, first_name, last_name').in('id', userIds)
+    const { data: profilesData, error: profilesError } = userIds.length
+      ? await supabase.from('profiles').select('id, first_name, last_name, username').in('id', userIds)
       : { data: [] };
+    if (profilesError) console.error('Error fetching review authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
 
     setReviews((data || []).map(r => ({ ...r, author: profileMap[r.user_id] || null })));
@@ -221,7 +223,7 @@ const Reviews = ({ isAdmin = false }) => {
             <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
               Tour Reviews
             </h2>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
               {isAdmin ? 'What joiners are saying about your tours' : 'Share your experience &amp; read what others say'}
             </p>
           </div>
@@ -231,7 +233,7 @@ const Reviews = ({ isAdmin = false }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 999, padding: '8px 16px' }}>
             <StarRow rating={Math.round(avgRating)} size={13} />
             <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{avgRating}</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6 }}>({reviews.length})</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78 }}>({reviews.length})</span>
           </div>
         )}
       </div>
@@ -243,7 +245,7 @@ const Reviews = ({ isAdmin = false }) => {
           border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
           {reviewableTours.length === 0 ? (
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.65, margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: 0 }}>
               Once you've completed a tour, it'll show up here so you can leave a review.
             </p>
           ) : (
@@ -441,7 +443,7 @@ const ReviewCard = ({ review, canDelete, deleting, onDelete }) => (
           <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
             {displayName(review.author)}
           </p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.55, margin: '3px 0 0' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '3px 0 0' }}>
             {formatDate(review.created_at)}
           </p>
         </div>

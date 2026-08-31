@@ -157,7 +157,7 @@ const BookingManagement = () => {
   const thStyle = {
     padding: '14px 20px',
     fontSize: 9, fontWeight: 900, letterSpacing: '0.18em',
-    textTransform: 'uppercase', color: 'rgba(122,58,24,0.6)',
+    textTransform: 'uppercase', color: 'rgba(122,58,24,0.78)',
     textAlign: 'left', whiteSpace: 'nowrap',
     background: '#F2E4D0',
     display: 'flex', alignItems: 'center',
@@ -388,13 +388,13 @@ const BookingRow = ({ booking, onView }) => {
         <p style={{ fontWeight: 900, color: '#1A0A00', fontSize: 13, margin: 0 }}>
           {booking.profiles ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim() : booking.full_name || '—'}
         </p>
-        <p style={{ color: '#7A3A18', opacity: 0.55, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
+        <p style={{ color: '#7A3A18', opacity: 0.75, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
           {booking.profiles?.phone_number || booking.contact_number || '—'}
         </p>
       </div>
       <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontWeight: 800, color: '#1A0A00', fontSize: 13, margin: 0 }}>{booking.tours?.title || '—'}</p>
-        <p style={{ color: '#7A3A18', opacity: 0.55, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
+        <p style={{ color: '#7A3A18', opacity: 0.75, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
           <MapPin size={11} style={{ color: '#C45C26' }} /> {booking.tours?.destination}
         </p>
       </div>
@@ -662,7 +662,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                     <p style={labelStyle}>Balance Status</p>
                     <BalanceStatusBadge status={balanceSettled ? 'Fully Paid' : 'Balance Due'} />
                     {balanceSettled && balanceSettledAt && (
-                      <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '6px 0 0' }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '6px 0 0' }}>
                         Settled {formatDateTime(balanceSettledAt)}
                       </p>
                     )}
@@ -689,7 +689,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                       <span style={{ color: '#7A3A18', opacity: 0.7 }}>Remaining Balance</span>
-                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.55)' }}>₱{balance.toLocaleString()}</span>
+                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.8)' }}>₱{balance.toLocaleString()}</span>
                     </div>
                   </>
                 )}

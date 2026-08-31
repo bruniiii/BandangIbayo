@@ -275,7 +275,7 @@ const TourManagement = () => {
             }}>
               {confirmAction.isArchived ? 'Restore Tour?' : 'Archive Tour?'}
             </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.65, lineHeight: 1.7, margin: '0 0 32px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.78, lineHeight: 1.7, margin: '0 0 32px' }}>
               {confirmAction.isArchived
                 ? 'This tour will be moved back to the active listings.'
                 : 'This tour will be moved to your private archives.'}
@@ -909,7 +909,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
               <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
                 ₱{tour.price.toLocaleString()}
               </p>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>per person</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>per person</p>
  
               <button
                 onClick={onEdit}
@@ -946,10 +946,13 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
                   </ViewSection>
                 </div>
  
-                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
-                  <ViewSection title="Itinerary">
-                    <pre style={{ fontSize: 13, fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.7, color: '#7A3A18', margin: 0 }}>{tour.itinerary || 'N/A'}</pre>
+                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                  <ViewSection title="Itinerary" titleColor="#C45C26" icon={<Clock size={14} />}>
+                    <ItineraryTimeline text={tour.itinerary} />
                   </ViewSection>
+                </div>
+
+                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
                   <ViewSection title="Things to Bring">
                     <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
                   </ViewSection>
@@ -1044,7 +1047,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, formatDateRange }) =>
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
             <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>₱{tour.price.toLocaleString()}</span>
           </div>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
             <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
@@ -1117,7 +1120,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   const items = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
  
   if (items.length === 0) {
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.72, margin: 0 }}>N/A</p>;
   }
  
   const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#C45C26' : '#7A3A18';
@@ -1125,11 +1128,12 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   const Icon = variant === 'exclude' ? X : CheckCircle2;
  
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {items.map((item, i) => (
         <div key={i} style={{
           display: 'flex', alignItems: 'flex-start', gap: 8,
           background: itemBg, borderRadius: 12, padding: '9px 12px',
+          flex: '0 1 auto', maxWidth: '100%',
         }}>
           <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
@@ -1140,6 +1144,78 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 };
  
  
+/* Renders itinerary text ("Day 1:" headers + "TIME – Activity" or
+   "START – END – Activity" lines) as grouped timeline cards, matching
+   the styled look of ChecklistGrid. */
+const ItineraryTimeline = ({ text }) => {
+  const rawLines = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+  if (rawLines.length === 0) {
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.72, margin: 0 }}>N/A</p>;
+  }
+
+  // Matches a leading time or time-range (e.g. "04:00 AM" or "08:15 AM – 11:00 AM"),
+  // followed by a separator (":" or "-"/"–"), with everything after it as the activity.
+  const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
+  const isDayHeader = (line) => /^day\b/i.test(line);
+
+  const days = [];
+  let current = null;
+  rawLines.forEach(line => {
+    if (isDayHeader(line)) {
+      current = { label: line.replace(/:$/, ''), items: [] };
+      days.push(current);
+      return;
+    }
+    if (!current) {
+      current = { label: null, items: [] };
+      days.push(current);
+    }
+    const match = line.match(TIME_PREFIX_RE);
+    if (match) {
+      const time = match[1].replace(/\s*[–-]\s*/g, ' – ').trim();
+      current.items.push({ time, activity: match[2].trim() });
+    } else {
+      current.items.push({ time: null, activity: line });
+    }
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {days.map((day, di) => (
+        <div key={di}>
+          {day.label && (
+            <span style={{
+              display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
+              borderRadius: 999, padding: '4px 12px', fontSize: 9, fontWeight: 900,
+              letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
+            }}>{day.label}</span>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+            {day.items.map((item, ii) => (
+              <div key={ii} style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+                background: 'rgba(196,92,38,0.06)', borderRadius: 12, padding: '9px 12px',
+                maxWidth: '100%',
+              }}>
+                {item.time && (
+                  <span style={{
+                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#C45C26',
+                    background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.25)',
+                    borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
+                  }}>{item.time}</span>
+                )}
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+
 const ModalInput = ({ label, name, defaultValue, ...props }) => (
   <div style={{ marginBottom: 0 }}>
     <label style={{

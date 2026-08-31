@@ -26,7 +26,9 @@ import NotificationBell from './NotificationBell';
 // #FDF6EE  cream (light bg)
 // #2D1B0E  deep brown (dark card)
 // #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
+// #F2E4D0  parchment (legacy section bg, still used for some inset panels)
+// #EDEAE3  warm stone (page bg — cooler/greyer than parchment so cream cards pop)
+// #3F5D62  slate teal (secondary contrast accent, used sparingly)
 // ---------------------------------------------------------
  
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -337,7 +339,7 @@ const AdminDashboard = () => {
     <div className="admin-dashboard-container" style={{
       display: 'flex', height: '100vh',
       fontFamily: "'Inter', system-ui, sans-serif",
-      background: '#F2E4D0',
+      background: '#EDEAE3',
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
@@ -375,7 +377,7 @@ const AdminDashboard = () => {
               width: 28, height: 28,
               borderRadius: '50%',
               background: '#C45C26',
-              border: '3px solid #F2E4D0',
+              border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
               color: '#FDF6EE',
@@ -567,7 +569,7 @@ const AdminDashboard = () => {
         </header>
  
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#F2E4D0' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#EDEAE3' }}>
  
           {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
@@ -627,7 +629,7 @@ const AdminDashboard = () => {
                   title="Total Bookings"
                   value={loadingStats ? '…' : stats.totalBookings}
                   icon={<TrendingUp size={18} />}
-                  iconColor="#7A3A18"
+                  iconColor="#3F5D62"
                   trend={loadingStats ? '' : (() => {
                     const curr = parseInt(stats.bookingsThisMonth.replace(/,/g, '')) || 0;
                     const last = stats.bookingsLastMonth || 0;
@@ -646,7 +648,7 @@ const AdminDashboard = () => {
                   title="Total Joiners"
                   value={loadingStats ? '…' : stats.totalJoiners}
                   icon={<Users size={18} />}
-                  iconColor="#7A3A18"
+                  iconColor="#3F5D62"
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
                 />
               </div>
@@ -1089,7 +1091,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
       </p>
       <div style={{
         width: 36, height: 36, borderRadius: 10,
-        background: '#F2E4D0',
+        background: '#F1EEE8',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: iconColor || '#C45C26',
         flexShrink: 0,
@@ -1106,7 +1108,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     {trend && (
       <p style={{
         fontSize: 10, fontWeight: 700, fontStyle: 'italic',
-        color: '#7A3A18', opacity: 0.55, margin: 0,
+        color: '#7A3A18', opacity: 0.7, margin: 0,
       }}>
         {trend}
       </p>
