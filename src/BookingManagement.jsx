@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { sendBookingConfirmedEmail, sendBookingRejectedEmail } from './email';
+import { sendBookingConfirmedEmail, sendBookingRejectedEmail } from "./Email";
 import { notifyUser } from './notifications';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,

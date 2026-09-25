@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import { supabase } from './supabaseClient';
 
-import { sendBookingSubmittedEmail } from './email';
+import { sendBookingSubmittedEmail } from './Email';
 
 import { notifyAdmins } from './notifications';
 
