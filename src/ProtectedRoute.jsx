@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading) return null; // Or a loading spinner
 
   if (!session) {
-    return <Navigate to="/admin-login" replace />; // Redirect if not logged in
+    return <Navigate to={redirectTo} replace />; // Redirect if not logged in
   }
 
   return children;

@@ -231,7 +231,13 @@ const JoinerLogin = () => {
             <label style={labelStyle}>Password</label>
             <input name="password" type="password" placeholder="••••••••" style={inputStyle} required />
           </div>
- 
+
+          <div style={{ textAlign: 'right' }}>
+            <Link to="/forgot-password" style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, textDecoration: 'none' }}>
+              Forgot password?
+            </Link>
+          </div>
+          
           <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', marginTop: 4 }} />
  
           <button

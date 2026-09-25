@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { sendBookingSubmittedEmail } from './Email';
+import { notifyAdmins } from './notifications';
 import JoinerTours from './JoinerTours';
 import TourCalendar from './TourCalendar';
 import MyBookings from './MyBookings';
@@ -16,6 +18,7 @@ import ProfileSettings from './Profilesettings.jsx';
 import logoIcon from './assets/newIcon.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
+import Notification from './Notification';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -39,6 +42,7 @@ const NAV_ITEMS = [
   { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Exclusive Tours' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
+  { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
 ];
 
 const JoinerDashboard = () => {
@@ -52,6 +56,13 @@ const JoinerDashboard = () => {
   const [bookingsFilter, setBookingsFilter] = useState(null);
   const [calendarTarget, setCalendarTarget] = useState(null);
   const navigate = useNavigate();
+
+  // ── USER PROFILE STATE ──
+  const [userProfile, setUserProfile] = useState({
+    name: 'Joiner',
+    initial: 'J',
+    avatarUrl: null,
+  });
 
   // ── DYNAMIC DASHBOARD DATA ──
   const [loadingHome, setLoadingHome] = useState(true);
@@ -97,6 +108,7 @@ const JoinerDashboard = () => {
         break;
       case 'booking':
       case 'payment':
+      case 'cancellation':
         setBookingsFilter(null);
         handleNavClick('My Bookings');
         break;
@@ -133,6 +145,34 @@ const JoinerDashboard = () => {
       return dateString;
     }
   };
+
+  // ── FETCH CURRENT USER PROFILE FOR CHIP ──
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, username, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        const full = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+        const display = full || profile.username || 'Joiner';
+        const init = (profile.first_name?.[0] || profile.username?.[0] || 'J').toUpperCase();
+
+        setUserProfile({
+          name: display,
+          initial: init,
+          avatarUrl: profile.avatar_url || null,
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+    }
+  }, []);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -237,6 +277,30 @@ const JoinerDashboard = () => {
       setLoadingHome(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchUserProfile();
+
+    const handleProfileUpdate = (event) => {
+      const detail = event?.detail;
+
+      // Update the header immediately from Profile Settings.
+      // Then refetch from Supabase so refresh/navigation stays persistent.
+      if (detail) {
+        const full = `${detail.first_name || ''} ${detail.last_name || ''}`.trim();
+        setUserProfile(prev => ({
+          ...prev,
+          name: full || prev.name,
+          initial: (detail.first_name?.[0] || prev.initial || 'J').toUpperCase(),
+          avatarUrl: detail.avatar_url || null,
+        }));
+      }
+
+      fetchUserProfile();
+    };
+    window.addEventListener('user_profile_updated', handleProfileUpdate);
+    return () => window.removeEventListener('user_profile_updated', handleProfileUpdate);
+  }, [fetchUserProfile]);
 
   useEffect(() => {
     if (activeTab === 'HomePage') fetchDashboardData();
@@ -423,7 +487,7 @@ const JoinerDashboard = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
-            {/* user chip */}
+            {/* dynamic user chip matching the Reviews identity */}
             <div
               onClick={() => handleNavClick('Profile Settings')}
               style={{
@@ -434,17 +498,27 @@ const JoinerDashboard = () => {
                 cursor: 'pointer'
               }}>
               <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Joiner</p>
-                <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Ready for Adventure</p>
+                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
+                  {userProfile.name}
+                </p>
+                <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>
+                  Ready for Adventure
+                </p>
               </div>
               <div style={{
-                width: 38, height: 38, borderRadius: 11,
+                width: 38, height: 38, borderRadius: '50%',
                 background: '#1A0A00',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#E8A265', fontWeight: 900, fontSize: 15,
-                boxShadow: '0 4px 12px rgba(26,10,0,0.22)'
+                boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                overflow: 'hidden',
+                flexShrink: 0,
               }}>
-                B
+                {userProfile.avatarUrl ? (
+                  <img src={userProfile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  userProfile.initial
+                )}
               </div>
             </div>
           </div>
@@ -712,6 +786,8 @@ const JoinerDashboard = () => {
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
             <JoinerTracking />
+          ) : activeTab === 'Notification' ? (
+            <Notification isAdmin={false} onNavigate={handleNotificationNavigate} />
           ) : (
             <div style={{
               height: '100%', minHeight: 400, display: 'flex',
@@ -1223,6 +1299,13 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
       setCreatedBooking({ ...booking[0], full_name: profile?.full_name || "N/A", email: user.email || profile?.email || "N/A", contact_number: profile?.contact_number || "N/A", booking_number: bookingNumber });
       setPaymentStep('proceed');
       if (onBookingSuccess) onBookingSuccess();
+
+      notifyAdmins({
+        title: 'New Booking Received',
+        message: `${profile?.full_name || 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
+        type: 'booking',
+        related_id: booking[0].id,
+      });
     }
     setIsBooking(false);
   };
@@ -1280,7 +1363,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
       {paymentStep === 'proceed' && <ProceedToPaymentModal tour={tour} numPersons={numPersons} subtotal={subtotal} onProceed={() => setPaymentStep('choose')} onCancel={() => setPaymentStep(null)} formatDateRange={formatDateRange} />}
       {paymentStep === 'choose' && <ChoosePaymentTypeModal subtotal={subtotal} downpaymentAmount={downpaymentAmount} onChoose={(type) => { setPaymentType(type); setPaymentStep('gcash'); }} onBack={() => setPaymentStep('proceed')} />}
-      {paymentStep === 'gcash' && <GCashPaymentModal bookingId={bookingId} subtotal={subtotal} downpaymentAmount={downpaymentAmount} paymentType={paymentType} onSuccess={() => setPaymentStep('success')} onBack={() => setPaymentStep('choose')} />}
+      {paymentStep === 'gcash' && <GCashPaymentModal bookingId={bookingId} booking={createdBooking} tour={tour} subtotal={subtotal} downpaymentAmount={downpaymentAmount} paymentType={paymentType} onSuccess={() => setPaymentStep('success')} onBack={() => setPaymentStep('choose')} />}
       {paymentStep === 'success' && <BookingSuccessModal booking={createdBooking} onClose={() => { setPaymentStep(null); onClose(); }} />}
     </div>
   );
@@ -1315,7 +1398,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
   </div>
 );
 
-const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
+const GCashPaymentModal = ({ bookingId, booking, tour, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
   const [gcashNumber, setGcashNumber] = useState("");
   const [refNumber, setRefNumber] = useState("");
   const [screenshot, setScreenshot] = useState(null);
@@ -1339,6 +1422,15 @@ const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType
         amount_paid: amountDue,
         payment_status: 'Pending',
       }).eq('id', bookingId);
+
+      sendBookingSubmittedEmail({
+        to: booking?.email,
+        name: booking?.full_name,
+        bookingNumber: booking?.booking_number,
+        tourTitle: tour.title,
+        amount: amountDue,
+      });
+
       onSuccess();
     } catch {
       alert("Upload error.");

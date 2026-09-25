@@ -6,14 +6,15 @@ import {
   MapPin, Calendar, Users, Clock, Loader2, CheckCircle, 
   ShieldCheck, Smartphone, Map, CreditCard, Globe, Mail, Phone
 } from 'lucide-react';
- import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/newIcon.png';
  
 import JoinerLogin from './JoinerLogin'; 
 import JoinerRegister from './JoinerRegister';
 import AdminDashboard from './AdminDashboard';
-import AdminLogin from './AdminLogin';
 import ProtectedRoute from './ProtectedRoute';
 import JoinerDashboard from './JoinerDashboard';
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -62,13 +63,13 @@ function LandingPage() {
         padding: '0 clamp(1.5rem,5vw,4rem)', height: 64, gap: 12,
       }}>
         <div className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-  {/* Car Custom Image Icon */}
-  <img 
-    src={logoIcon} 
-    alt="BANDANG IBAYO" 
-    className="nav-brand-logo"
-    style={{ width: 68, height: 68, objectFit: 'contain', flexShrink: 0 }} 
-  />
+          {/* Car Custom Image Icon */}
+          <img 
+            src={logoIcon} 
+            alt="BANDANG IBAYO" 
+            className="nav-brand-logo"
+            style={{ width: 68, height: 68, objectFit: 'contain', flexShrink: 0 }} 
+          />
           <span className="nav-brand-text" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
           </span>
@@ -84,7 +85,6 @@ function LandingPage() {
       </nav>
  
       {/* ── HERO ── */}
-      {/* Two-panel: left = full-bleed warm texture + big type, right = logo on terrain art */}
       <section style={{
         minHeight: '92vh', display: 'grid',
         gridTemplateColumns: '1fr 1fr',
@@ -98,7 +98,6 @@ function LandingPage() {
           padding: 'clamp(3rem,8vw,7rem) clamp(2rem,5vw,5rem)',
           background: 'linear-gradient(135deg, #1A0A00 60%, #2D1B0E 100%)',
         }}>
-          {/* angled cut on the right edge */}
           <div className="hero-cut" style={{
             position: 'absolute', top: 0, right: -1, width: 80, height: '100%',
             background: '#1A0A00',
@@ -140,9 +139,8 @@ function LandingPage() {
           </div>
         </div>
  
-        {/* RIGHT PANEL — abstract terrain + logo */}
+        {/* RIGHT PANEL */}
         <div style={{ position: 'relative', overflow: 'hidden', background: '#2D1B0E' }}>
-          {/* layered terrain SVG */}
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} viewBox="0 0 600 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <radialGradient id="sunGlow" cx="50%" cy="35%" r="45%">
@@ -152,16 +150,13 @@ function LandingPage() {
             </defs>
             <rect width="600" height="700" fill="#2D1B0E"/>
             <circle cx="300" cy="200" r="160" fill="url(#sunGlow)"/>
-            {/* terrain layers far to near */}
             <path d="M0 700 L0 420 L80 340 L160 400 L260 290 L340 370 L420 280 L500 360 L600 300 L600 700Z" fill="#3D2410" opacity="0.9"/>
             <path d="M0 700 L0 480 L100 390 L200 450 L320 350 L400 420 L480 360 L600 410 L600 700Z" fill="#4A2C12" opacity="0.85"/>
             <path d="M0 700 L0 540 L150 460 L280 510 L380 440 L500 490 L600 450 L600 700Z" fill="#5A3418" opacity="0.8"/>
             <path d="M0 700 L0 600 L200 540 L350 580 L500 530 L600 560 L600 700Z" fill="#6B3D1C" opacity="0.75"/>
-            {/* horizon glow strip */}
             <rect x="0" y="195" width="600" height="30" fill="#C45C26" opacity="0.08"/>
           </svg>
  
-          {/* logo centered */}
           <div style={{
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
           }}>
@@ -176,11 +171,9 @@ function LandingPage() {
             </div>
           </div>
  
-          {/* bottom fade into page */}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 120, background: 'linear-gradient(to bottom,transparent,#1A0A00)', zIndex: 3 }}/>
         </div>
  
-        {/* diagonal bottom edge */}
         <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, zIndex: 10 }}>
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{ width: '100%', height: 80, display: 'block' }}>
             <polygon points="0,80 1440,0 1440,80" fill="#F2E4D0"/>
@@ -188,9 +181,8 @@ function LandingPage() {
         </div>
       </section>
  
-      {/* Responsive & interaction polish */}
+      {/* ── Responsive & interaction polish ── */}
       <style>{`
-        /* ── Hover polish ── */
         .btn-primary { transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; }
         .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.06); }
         .btn-outline { transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
@@ -203,12 +195,10 @@ function LandingPage() {
         .type-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
         .type-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(26,10,0,0.1); }
 
-        /* ── Tablet ── */
         @media (max-width: 1024px) {
           .hero-grid { min-height: auto !important; }
         }
 
-        /* ── Mobile: hero ── */
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; min-height: auto !important; }
           .hero-grid > div:last-child { display: none !important; }
@@ -216,7 +206,6 @@ function LandingPage() {
           .hero-left { padding: 3.5rem 1.75rem 3rem !important; }
         }
 
-        /* ── Mobile: nav ── */
         @media (max-width: 640px) {
           .site-nav { padding: 0 1.25rem !important; height: 60px !important; }
           .nav-brand-logo { width: 44px !important; height: 44px !important; }
@@ -228,7 +217,6 @@ function LandingPage() {
           .nav-login { display: none !important; }
         }
 
-        /* ── Mobile: hero buttons stack ── */
         @media (max-width: 420px) {
           .hero-heading { font-size: 2.5rem !important; }
           .hero-buttons { flex-direction: column !important; align-items: stretch !important; }
@@ -400,11 +388,8 @@ function LandingPage() {
         </div>
       </section>
  
- 
       {/* ── WHY CHOOSE US ── */}
       <section style={{ background: '#1A0A00', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)', position: 'relative' }}>
-        
- 
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))', gap: 64, alignItems: 'start', position: 'relative', zIndex: 1 }}>
           <div>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#E8A265' }}>Why Us</span>
@@ -500,12 +485,11 @@ function LandingPage() {
       {/* ── FOOTER ── */}
       <footer style={{ borderTop: '1px solid rgba(196,92,38,0.15)', padding: '28px clamp(1.5rem,5vw,4rem)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-  {/* Car Custom Image Icon */}
-  <img 
-    src={logoIcon} 
-    alt="BANDANG IBAYO" 
-    style={{ width: 68, height: 68, objectFit: 'contain' }} 
-  />
+          <img 
+            src={logoIcon} 
+            alt="BANDANG IBAYO" 
+            style={{ width: 68, height: 68, objectFit: 'contain' }} 
+          />
           <span style={{ fontWeight: 900, fontSize: 13, color: '#1A0A00', letterSpacing: '-0.02em' }}>Bandang <span style={{ color: '#C45C26' }}>IBAYO</span></span>
         </div>
         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.5, margin: 0 }}>
@@ -525,6 +509,8 @@ export default function App() {
       <Route path="/register" element={<JoinerRegister />} />
       <Route path="/dashboard/*" element={<ProtectedRoute><JoinerDashboard /></ProtectedRoute>} />
       <Route path="/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<LandingPage />} />
     </Routes>
   );

@@ -18,6 +18,7 @@ import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
 import NotificationBell from './NotificationBell';
+import Notification from './Notification';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -92,6 +93,7 @@ const NAV_ITEMS = [
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
+  { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
 ];
  
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -133,6 +135,7 @@ const AdminDashboard = () => {
     switch (notification.type) {
       case 'booking':
       case 'payment':
+      case 'cancellation':
         handleNavClick('Booking Management');
         break;
       case 'exclusive_request':
@@ -939,6 +942,8 @@ const AdminDashboard = () => {
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
           {activeTab === 'Profile Settings' && <ProfileSettings />}
+          {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
+          
 
           {/* FALLBACK COMING SOON SECTION */}
           {activeTab !== 'Overview' &&
@@ -950,7 +955,8 @@ const AdminDashboard = () => {
            activeTab !== 'Exclusive Requests' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
-           activeTab !== 'Profile Settings' && (
+           activeTab !== 'Profile Settings' &&
+           activeTab !== 'Notification' && (
             <div style={{
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',

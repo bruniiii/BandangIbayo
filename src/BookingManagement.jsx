@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import { sendBookingConfirmedEmail, sendBookingRejectedEmail } from './email';
+import { notifyUser } from './notifications';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
@@ -331,6 +333,27 @@ const BookingManagement = () => {
             }).eq('id', id);
  
             if (!error) {
+              const joinerName = selectedBooking.profiles
+                ? `${selectedBooking.profiles.first_name || ''} ${selectedBooking.profiles.last_name || ''}`.trim()
+                : selectedBooking.full_name;
+              const sendEmail = status === 'Confirmed' ? sendBookingConfirmedEmail : sendBookingRejectedEmail;
+              sendEmail({
+                to: selectedBooking.email,
+                name: joinerName,
+                bookingNumber: selectedBooking.booking_number,
+                tourTitle: selectedBooking.tours?.title,
+                startDate: selectedBooking.tours?.start_date,
+              });
+
+              notifyUser(selectedBooking.user_id, {
+                title: status === 'Confirmed' ? 'Booking Confirmed 🎉' : 'Booking Update',
+                message: status === 'Confirmed'
+                  ? `Your payment for ${selectedBooking.tours?.title} has been verified. Your booking is confirmed!`
+                  : `We weren't able to verify your payment for ${selectedBooking.tours?.title} (${selectedBooking.booking_number}). Please reach out to us.`,
+                type: 'payment',
+                related_id: selectedBooking.id,
+              });
+
               setSelectedBooking(null);
               fetchBookings();
             } else {
@@ -349,6 +372,12 @@ const BookingManagement = () => {
  
             if (!error) {
               await fetchBookings();
+              notifyUser(selectedBooking.user_id, {
+                title: 'Balance Payment Confirmed',
+                message: `Your remaining balance for ${selectedBooking.tours?.title} (${selectedBooking.booking_number}) has been marked as paid in full.`,
+                type: 'payment',
+                related_id: selectedBooking.id,
+              });
               return data;
             } else {
               alert('Error settling balance: ' + error.message);

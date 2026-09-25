@@ -2,6 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import { supabase } from './supabaseClient';
 
+import { sendBookingSubmittedEmail } from './email';
+
+import { notifyAdmins } from './notifications';
+
 import { 
 
   Search, MapPin, Clock, Users, Calendar, ChevronDown, ChevronLeft, ChevronRight,
@@ -1310,6 +1314,18 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
             if (onBookingSuccess) onBookingSuccess();
 
+            notifyAdmins({
+
+                title: 'New Booking Received',
+
+                message: `${profile?.full_name || 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
+
+                type: 'booking',
+
+                related_id: booking[0].id,
+
+            });
+
         }
 
         setIsBooking(false);
@@ -1786,6 +1802,8 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                     bookingId={bookingId}
 
+                    booking={createdBooking}
+
                     tour={tour}
 
                     numPersons={numPersons}
@@ -2064,7 +2082,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
 
 
-const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
+const GCashPaymentModal = ({ bookingId, booking, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
 
     const [gcashNumber, setGcashNumber] = useState("");
 
@@ -2199,6 +2217,20 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
                 alert("Error: " + error.message);
 
             } else {
+
+                sendBookingSubmittedEmail({
+
+                    to: booking?.email,
+
+                    name: booking?.full_name,
+
+                    bookingNumber: booking?.booking_number,
+
+                    tourTitle: tour.title,
+
+                    amount: amountDue,
+
+                });
 
                 onSuccess();
 

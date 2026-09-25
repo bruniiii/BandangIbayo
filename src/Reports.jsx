@@ -500,19 +500,7 @@ const Reports = () => {
     return { data, peak, low };
   }, [allBookings]);
 
-  // ── booking funnel (based on data actually tracked — no visitor/page-view analytics exist yet) ──
-  const funnel = useMemo(() => {
-    const created = bookings.length;
-    const paymentSubmitted = bookings.filter((b) => b.payment_method).length;
-    const verified = bookings.filter((b) => getDerivedStatus(b) === 'Complete').length;
-    const completed = bookings.filter((b) => b.booking_status === 'Completed').length;
-    return [
-      { label: 'Bookings Created', value: created },
-      { label: 'Payment Submitted', value: paymentSubmitted },
-      { label: 'Payment Verified', value: verified },
-      { label: 'Tour Completed', value: completed },
-    ];
-  }, [bookings]);
+  
 
   // ── cancellation analytics (grouped by joiner-supplied reason text) ──
   const cancellationReasons = useMemo(() => {
@@ -955,17 +943,7 @@ const Reports = () => {
                 </div>
               </div>
 
-              {/* ── Booking Funnel ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<ArrowRight size={14} />}>Booking Funnel</SectionTitle>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '-8px 0 16px' }}>
-                  Based on stages currently tracked in the system (visitor/page-view analytics aren't collected yet).
-                </p>
-                <FunnelChart steps={funnel} />
-              </div>
+             
 
               {/* ── Tour Performance ── */}
               <div style={{
@@ -1088,19 +1066,7 @@ const Reports = () => {
                 </div>
               </div>
 
-              {/* ── Payment Analytics ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Wallet size={14} />}>Payment Analytics</SectionTitle>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                  <MiniMetric label="Average Verification Time" value={formatDuration(paymentAnalytics.avgVerificationMs)} />
-                  <MiniMetric label="Rejected Payments" value={paymentAnalytics.failedRejected} tone={paymentAnalytics.failedRejected ? 'warn' : undefined} />
-                  <MiniMetric label="Pending Verification" value={paymentAnalytics.failedPending} />
-                  <MiniMetric label="Outstanding Balance" value={peso(outstandingBalance)} tone="warn" />
-                </div>
-              </div>
+              
 
               {/* ── Seasonal Trends ── */}
               <div style={{

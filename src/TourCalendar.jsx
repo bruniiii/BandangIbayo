@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { sendBookingSubmittedEmail } from './email';
+import { notifyAdmins } from './notifications';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths
@@ -88,6 +90,7 @@ const TourCalendar = ({ initialDate }) => {
     const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
  
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+
                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
  
     const startDate = new Date(year, month - 1, day);
@@ -731,9 +734,8 @@ const ItineraryTimeline = ({ text }) => {
     return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
   }
 
-  // Matches a leading time or time-range (e.g. "04:00 AM", "08:15 AM – 11:00 AM",
-  // or Filipino shorthand "12:00nn"/"12:00mn"), followed by a separator (":" or "-"/"–"),
-  // with everything after it treated as the activity text.
+  // Matches a leading time or time-range (e.g. "04:00 AM" or "08:15 AM – 11:00 AM"),
+  // followed by a separator (":" or "-"/"–"), with everything after it as the activity.
   const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
   const isDayHeader = (line) => /^day\b/i.test(line);
 
@@ -985,12 +987,13 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
         .single();
       
       const bkNum = 'BK-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+      const joinerName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || "N/A" : "N/A";
       
       const { error: bookingError } = await supabase.from('bookings').insert([{
         tour_id: tour.id,
         user_id: user.id,
         booking_number: bkNum,
-        full_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || "N/A" : "N/A",
+        full_name: joinerName,
         contact_number: profile?.phone_number || "N/A",
         email: user.email,        
         slots_booked: numPersons,
@@ -1002,6 +1005,22 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       }]);
       
       if (bookingError) throw new Error(bookingError.message);
+
+      sendBookingSubmittedEmail({
+        to: user.email,
+        name: joinerName,
+        bookingNumber: bkNum,
+        tourTitle: tour.title,
+        amount: totalDue,
+      });
+
+      notifyAdmins({
+        title: 'New Booking Received',
+        message: `${joinerName} submitted a booking for ${tour.title} (${numPersons} pax).`,
+        type: 'booking',
+        related_id: bkNum,
+      });
+
       onSuccess({ booking_number: bkNum });
     } catch (err) {
       setError(err.message);

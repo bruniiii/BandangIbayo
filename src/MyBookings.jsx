@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { notifyAdmins } from './notifications';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
@@ -336,6 +337,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
     if (error) {
       alert("Error: " + error.message);
     } else {
+      notifyAdmins({
+        title: 'Booking Cancellation',
+        message: `A joiner cancelled their booking for ${tour.title || 'a tour'} (${booking.booking_number}). Reason: ${cancelReason.trim()}`,
+        type: 'cancellation',
+        related_id: booking.id,
+      });
       onCancelSuccess();
     }
     setCancelling(false);

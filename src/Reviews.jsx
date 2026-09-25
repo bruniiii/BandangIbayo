@@ -10,10 +10,17 @@ const displayName = (profile) => {
   return 'A Traveler';
 };
 
+const initialsOf = (profile) => {
+  const first = (profile?.first_name || '').trim();
+  const last = (profile?.last_name || '').trim();
+  if (first || last) return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase() || first.charAt(0).toUpperCase();
+  if (profile?.username) return profile.username.charAt(0).toUpperCase();
+  return '?';
+};
+
 const formatDate = (dateStr) =>
   new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-/* Formats a tour's date (or date range, if start/end differ) for display */
 const formatTourDate = (startStr, endStr) => {
   if (!startStr) return '';
   const opts = { month: 'short', day: 'numeric', year: 'numeric' };
@@ -28,7 +35,6 @@ const formatTourDate = (startStr, endStr) => {
   return `${startLabel} – ${endLabel}`;
 };
 
-/* Read-only star display */
 const StarRow = ({ rating, size = 14 }) => (
   <div style={{ display: 'flex', gap: 2 }}>
     {[1, 2, 3, 4, 5].map(n => (
@@ -37,7 +43,6 @@ const StarRow = ({ rating, size = 14 }) => (
   </div>
 );
 
-/* Interactive star picker */
 const StarPicker = ({ value, onChange }) => {
   const [hover, setHover] = useState(0);
   return (
@@ -58,11 +63,6 @@ const StarPicker = ({ value, onChange }) => {
   );
 };
 
-/* ─────────────────────────────────────────────
-   REVIEWS  (shared between AdminDashboard & JoinerDashboard)
-   isAdmin=true  -> read-only, sees every review, can moderate (delete)
-   isAdmin=false -> can leave a review for any tour they've completed
-───────────────────────────────────────────── */
 const Reviews = ({ isAdmin = false }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ const Reviews = ({ isAdmin = false }) => {
   const [selectedTourId, setSelectedTourId] = useState('');
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [mediaItems, setMediaItems] = useState([]); // [{ file, preview, type: 'image'|'video' }]
+  const [mediaItems, setMediaItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -86,7 +86,7 @@ const Reviews = ({ isAdmin = false }) => {
 
     const userIds = [...new Set((data || []).map(r => r.user_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = userIds.length
-      ? await supabase.from('profiles').select('id, first_name, last_name, username').in('id', userIds)
+      ? await supabase.from('profiles').select('id, first_name, last_name, username, avatar_url').in('id', userIds)
       : { data: [] };
     if (profilesError) console.error('Error fetching review authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
@@ -95,7 +95,6 @@ const Reviews = ({ isAdmin = false }) => {
     setLoading(false);
   }, []);
 
-  // Tours this joiner has completed and hasn't reviewed yet.
   const fetchReviewableTours = useCallback(async (userId, existingReviewTourIds) => {
     const { data: bookings } = await supabase
       .from('bookings')
@@ -224,7 +223,7 @@ const Reviews = ({ isAdmin = false }) => {
               Tour Reviews
             </h2>
             <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
-              {isAdmin ? 'What joiners are saying about your tours' : 'Share your experience &amp; read what others say'}
+              {isAdmin ? 'What joiners are saying about your tours' : 'Share your experience & read what others say'}
             </p>
           </div>
         </div>
@@ -435,9 +434,13 @@ const ReviewCard = ({ review, canDelete, deleting, onDelete }) => (
         <div style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
           background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#E8A265', fontWeight: 900, fontSize: 15,
+          color: '#E8A265', fontWeight: 900, fontSize: 15, overflow: 'hidden',
         }}>
-          {displayName(review.author).charAt(0).toUpperCase()}
+          {review.author?.avatar_url ? (
+            <img src={review.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            initialsOf(review.author)
+          )}
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>

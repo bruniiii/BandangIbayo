@@ -74,10 +74,13 @@ const ProfileSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarBusy, setAvatarBusy] = useState(false);
-  const [toast, setToast] = useState(null); // { type: 'success' | 'error', message }
+  const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
 
   const [profile, setProfile] = useState(null);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
   const [form, setForm] = useState({
     first_name: '',
     last_name: '',
@@ -101,9 +104,10 @@ const ProfileSettings = () => {
         .single();
 
       if (error) {
-        setToast({ type: 'error', message: 'Could not load your profile: ' + error.message });
+        setToast({ type: 'error', message: 'Could not load profile: ' + error.message });
       } else if (data) {
         setProfile(data);
+        setAvatarPreview(data.avatar_url || null);
         setForm({
           first_name: data.first_name || '',
           last_name: data.last_name || '',
@@ -127,69 +131,110 @@ const ProfileSettings = () => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
   };
 
-  const uploadAvatar = async (file) => {
-    setAvatarBusy(true);
-    try {
-      const ext = file.name.split('.').pop();
-      const path = `avatars/${userId}-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from('tours').upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('tours').getPublicUrl(path);
+  const handleAvatarSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: data.publicUrl })
-        .eq('id', userId);
-      if (updateError) throw updateError;
-
-      setProfile(prev => ({ ...prev, avatar_url: data.publicUrl }));
-      setToast({ type: 'success', message: 'Profile photo updated.' });
-    } catch (err) {
-      setToast({ type: 'error', message: 'Error uploading photo: ' + err.message });
-    } finally {
-      setAvatarBusy(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+    if (!file.type.startsWith('image/')) {
+      setToast({ type: 'error', message: 'Please choose a valid image file.' });
+      e.target.value = '';
+      return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setToast({ type: 'error', message: 'Profile photo must be 5 MB or smaller.' });
+      e.target.value = '';
+      return;
+    }
+
+    setPendingAvatarFile(file);
+    setAvatarPreview(prev => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
   };
 
-  const handleRemoveAvatar = async () => {
-    if (!profile?.avatar_url) return;
-    setAvatarBusy(true);
-    try {
-      const { error } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId);
-      if (error) throw error;
-      setProfile(prev => ({ ...prev, avatar_url: null }));
-      setToast({ type: 'success', message: 'Profile photo removed.' });
-    } catch (err) {
-      setToast({ type: 'error', message: 'Error removing photo: ' + err.message });
-    } finally {
-      setAvatarBusy(false);
-    }
+  const handleRemoveAvatar = () => {
+    setPendingAvatarFile('REMOVE');
+    setAvatarPreview(null);
   };
 
   const handleSave = async () => {
     if (!userId) return;
     setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: form.first_name.trim(),
-          last_name: form.last_name.trim(),
-          phone_number: form.phone_number.trim(),
-          date_of_birth: form.date_of_birth || null,
-          address: form.address.trim(),
-          emergency_contact_number: form.emergency_contact_number.trim(),
-        })
-        .eq('id', userId);
-      if (error) throw error;
 
-      setProfile(prev => ({ ...prev, ...form }));
-      setToast({ type: 'success', message: 'Your changes have been saved.' });
+    try {
+      let finalAvatarUrl = profile?.avatar_url || null;
+
+      // 1. Upload new avatar if selected
+      if (pendingAvatarFile === 'REMOVE') {
+        finalAvatarUrl = null;
+      } else if (pendingAvatarFile instanceof File) {
+        setAvatarBusy(true);
+        const rawExt = pendingAvatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const ext = rawExt.replace(/[^a-z0-9]/g, '') || 'jpg';
+        const filePath = `avatars/${userId}-${Date.now()}.${ext}`;
+
+        // Use the same public bucket already used elsewhere in the app.
+        // A unique path avoids browser/CDN caching an older profile photo.
+        const { error: uploadError } = await supabase.storage
+          .from('tours')
+          .upload(filePath, pendingAvatarFile, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: pendingAvatarFile.type,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicData } = supabase.storage
+          .from('tours')
+          .getPublicUrl(filePath);
+
+        finalAvatarUrl = publicData.publicUrl;
+        setAvatarBusy(false);
+      }
+
+      // 2. Update Database Record
+      const updatePayload = {
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        phone_number: form.phone_number.trim(),
+        date_of_birth: form.date_of_birth || null,
+        address: form.address.trim(),
+        emergency_contact_number: form.emergency_contact_number.trim(),
+        avatar_url: finalAvatarUrl,
+      };
+
+      const { data: savedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .update(updatePayload)
+        .eq('id', userId)
+        .select('id, avatar_url, first_name, last_name, phone_number, date_of_birth, address, emergency_contact_number')
+        .single();
+
+      if (updateError) throw updateError;
+      if (!savedProfile) throw new Error('Profile was not updated. Check your Supabase RLS UPDATE policy.');
+
+      setProfile(prev => ({ ...prev, ...updatePayload, ...savedProfile }));
+      setPendingAvatarFile(null);
+      setAvatarPreview(finalAvatarUrl);
+
+      // 3. Notify Dashboard Header immediately so both profile pictures match
+      window.dispatchEvent(new CustomEvent('user_profile_updated', {
+        detail: {
+          first_name: updatePayload.first_name,
+          last_name: updatePayload.last_name,
+          avatar_url: finalAvatarUrl
+        }
+      }));
+
+      setToast({ type: 'success', message: 'Profile and photo saved successfully!' });
     } catch (err) {
-      setToast({ type: 'error', message: 'Error saving changes: ' + err.message });
+      setToast({ type: 'error', message: 'Failed to save: ' + err.message });
     } finally {
       setSaving(false);
+      setAvatarBusy(false);
     }
   };
 
@@ -207,8 +252,6 @@ const ProfileSettings = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 780, margin: '0 auto', position: 'relative' }}>
-
-      {/* header */}
       <div>
         <h2 style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
           Profile Settings
@@ -218,7 +261,6 @@ const ProfileSettings = () => {
         </p>
       </div>
 
-      {/* toast */}
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 400,
@@ -247,10 +289,10 @@ const ProfileSettings = () => {
             color: '#E8A265', fontWeight: 900, fontSize: 28,
             boxShadow: '0 6px 20px rgba(26,10,0,0.25)',
           }}>
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {avatarPreview ? (
+              <img src={avatarPreview} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              initialsOf(profile)
+              initialsOf(form.first_name ? form : profile)
             )}
           </div>
           {avatarBusy && (
@@ -270,25 +312,25 @@ const ProfileSettings = () => {
           <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
             <button
               onClick={() => fileInputRef.current?.click()}
-              disabled={avatarBusy}
+              disabled={saving}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 background: '#1A0A00', color: '#E8A265', border: 'none',
                 borderRadius: 10, padding: '9px 16px', fontSize: 11.5, fontWeight: 800,
-                cursor: avatarBusy ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
               }}
             >
-              <Camera size={14} /> Change Photo
+              <Camera size={14} /> Choose Photo
             </button>
-            {profile?.avatar_url && (
+            {avatarPreview && (
               <button
                 onClick={handleRemoveAvatar}
-                disabled={avatarBusy}
+                disabled={saving}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   background: 'none', color: '#7A3A18', border: '1px solid rgba(196,92,38,0.25)',
                   borderRadius: 10, padding: '9px 16px', fontSize: 11.5, fontWeight: 800,
-                  cursor: avatarBusy ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                  cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 }}
               >
                 <Trash2 size={14} /> Remove
@@ -299,7 +341,7 @@ const ProfileSettings = () => {
               type="file"
               accept="image/*"
               style={{ display: 'none' }}
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAvatar(f); }}
+              onChange={handleAvatarSelect}
             />
           </div>
         </div>
@@ -312,7 +354,7 @@ const ProfileSettings = () => {
       }}>
         <h3 style={{ fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>Personal Information</h3>
         <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.65, margin: '4px 0 20px' }}>
-          Update your personal details and contact information
+          Update your personal details and click Save Changes below.
         </p>
 
         <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
@@ -347,9 +389,6 @@ const ProfileSettings = () => {
             <input style={inputStyle} value={form.address} onChange={handleChange('address')} placeholder="City, Province" />
           </Field>
         </div>
-        <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.55, margin: '0 0 20px' }}>
-          Your emergency contact will be notified in case of emergencies during your tours.
-        </p>
 
         <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
           <button
