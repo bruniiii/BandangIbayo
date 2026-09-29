@@ -989,7 +989,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       const bkNum = 'BK-' + Math.random().toString(36).substr(2, 8).toUpperCase();
       const joinerName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || "N/A" : "N/A";
       
-      const { error: bookingError } = await supabase.from('bookings').insert([{
+      const { data: insertedBooking, error: bookingError } = await supabase.from('bookings').insert([{
         tour_id: tour.id,
         user_id: user.id,
         booking_number: bkNum,
@@ -1002,7 +1002,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
         payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
         payment_status: 'Pending',
         booking_status: 'Active',
-      }]);
+      }]).select();
       
       if (bookingError) throw new Error(bookingError.message);
 
@@ -1018,7 +1018,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
         title: 'New Booking Received',
         message: `${joinerName} submitted a booking for ${tour.title} (${numPersons} pax).`,
         type: 'booking',
-        related_id: bkNum,
+        related_id: insertedBooking?.[0]?.id || null,
       });
 
       onSuccess({ booking_number: bkNum });

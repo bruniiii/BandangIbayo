@@ -14,6 +14,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { notifyAdmins } from './notifications';
 import logoIcon from './assets/newIcon.png';
 
 const JoinerRegister = () => {
@@ -151,6 +152,13 @@ const JoinerRegister = () => {
         alert('Registration could not be completed. Please try again.');
         return;
       }
+
+      notifyAdmins({
+        title: 'New Joiner Registered',
+        message: `${firstName || username || 'A new joiner'} ${lastName || ''} just created an account.`.trim(),
+        type: 'account',
+        related_id: data.user.id,
+      });
 
       /*
        * Profile picture is optional.
