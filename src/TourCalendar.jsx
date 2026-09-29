@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { sendBookingSubmittedEmail } from './email';
+import { sendBookingSubmittedEmail } from './Email';
 import { notifyAdmins } from './notifications';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
