@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { sendWaitlistOpeningsEmail } from './Email';
+import JoinerListModal from './JoinerManifest';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
   Loader2, CheckCircle2, AlertCircle, ImageIcon,
@@ -23,6 +25,7 @@ const TourManagement = () => {
   const [showModal, setShowModal]               = useState(false);
   const [viewTour, setViewTour]                 = useState(null);
   const [editingTour, setEditingTour]           = useState(null);
+  const [joinerListTour, setJoinerListTour]     = useState(null);
   const [tours, setTours]                       = useState([]);
   const [filteredTours, setFilteredTours]       = useState([]);
   const [loading, setLoading]                   = useState(true);
@@ -201,6 +204,9 @@ const TourManagement = () => {
     const { data: tourResult, error } = await request;
     if (error) { alert('Error: ' + error.message); return; }
 
+    // A bigger group size may open slots: email anyone on the waitlist (the database already notified them in-app).
+    if (editingTour && (tourData.group_size || 0) > (editingTour.group_size || 0)) sendWaitlistOpeningsEmail({ tourId: editingTour.id });
+
     // Auto-post newly created tours to the community feed.
     if (isNewTour) {
       const newTour = Array.isArray(tourResult) ? tourResult[0] : tourResult;
@@ -245,6 +251,10 @@ const TourManagement = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
  
+      {joinerListTour && (
+        <JoinerListModal tour={joinerListTour} onClose={() => setJoinerListTour(null)} />
+      )}
+
       {/* ── Confirm Archive/Restore ── */}
       {confirmAction && (
         <div style={{
@@ -456,6 +466,7 @@ const TourManagement = () => {
                 onConfirmAction={() => setConfirmAction({ id: tour.id, isArchived: tour.is_archived })}
                 onView={() => setViewTour(tour)}
                 onEdit={() => { setEditingTour(tour); setShowModal(true); }}
+                onJoiners={() => setJoinerListTour(tour)}
                 formatDateRange={formatDateRange}
               />
             ))
@@ -988,7 +999,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
 /* ─────────────────────────────────────────────
    TOUR CARD
 ───────────────────────────────────────────── */
-const TourCard = ({ tour, onConfirmAction, onView, onEdit, formatDateRange }) => {
+const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDateRange }) => {
   const [hovered, setHovered] = useState(false);
   const today  = new Date().toISOString().split('T')[0];
   const isLive = today >= tour.start_date && today <= tour.end_date;
@@ -1065,9 +1076,10 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, formatDateRange }) =>
         </div>
  
         {/* Action buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, paddingTop: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingTop: 8 }}>
           {[
             { label: 'View', icon: <Eye size={11} />, onClick: onView, style: { background: '#F2E4D0', color: '#1A0A00' } },
+            { label: 'Joiners', icon: <Users size={11} />, onClick: onJoiners, style: { background: '#F2E4D0', color: '#1A0A00' } },
             { label: 'Edit', icon: <Edit size={11} />, onClick: onEdit, style: { background: '#F2E4D0', color: '#1A0A00' } },
             {
               label: tour.is_archived ? 'Restore' : 'Archive',

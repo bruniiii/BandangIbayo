@@ -7,6 +7,8 @@
 //        - { type: "booking-submitted", bookingId }  booking owner (or admin)
 //        - { type: "booking-status",    bookingId }  admin only; confirmed/rejected per payment_status
 //        - { type: "custom", userId, subject, message }  admin only (Joiner Accounts manual email)
+//        - { type: "waitlist-openings", tourId }  any logged-in user; emails the waitlisted joiners
+//          the database already notified about an opening on that tour (each joiner once)
 //   2) Reminder mode — body { action: "tour-reminders", date?, dryRun? }
 //        emails every confirmed joiner whose tour starts TOMORROW (Philippine time).
 //        Called daily by pg_cron with the x-cron-secret header; blocked for everyone else.
@@ -339,6 +341,49 @@ async function buildNormalEmail(payload: any, callerId: string) {
   throw new HttpError(400, "Unknown email type");
 }
 
+// ───────────── Waitlist openings ─────────────
+// The database (notify_waitlist) marks waitlist rows notified_at when slots open
+// and creates the in-app notification. This sends the matching email, once.
+async function sendWaitlistEmails(tourId: unknown) {
+  if (!tourId) throw new HttpError(400, "Missing tourId");
+
+  const { data: tour } = await supabase
+    .from("tours").select("id, title, destination, start_date").eq("id", tourId).maybeSingle();
+  if (!tour) throw new HttpError(404, "Tour not found");
+
+  const { data: rows } = await supabase
+    .from("tour_waitlist")
+    .select("id, user_id, slots_wanted")
+    .eq("tour_id", tourId)
+    .not("notified_at", "is", null)
+    .is("emailed_at", null);
+
+  let sent = 0;
+  for (const w of rows ?? []) {
+    const { data: profile } = await supabase
+      .from("profiles").select("first_name, last_name, email").eq("id", w.user_id).maybeSingle();
+    const to = await recipientFor(w.user_id, profile?.email);
+    if (to) {
+      await transporter.sendMail({
+        from: `"Bandang IBAYO" <${GMAIL_USER}>`,
+        to,
+        replyTo: GMAIL_USER,
+        subject: `A slot opened up: ${tour.title}`,
+        html: wrapper("A slot opened up! 🎉", "#C45C26", `
+          <p>Hi ${esc(displayName(profile))}, good news: a slot just opened on a tour you're waiting for.</p>
+          <p><strong>${esc(tour.title)}</strong><br/>
+          📍 ${esc(tour.destination)}<br/>
+          📅 ${prettyDate(tour.start_date)}</p>
+          <p>Log in to Bandang IBAYO and book now. Slots go to whoever books first.</p>
+        `),
+      });
+      sent++;
+    }
+    await supabase.from("tour_waitlist").update({ emailed_at: new Date().toISOString() }).eq("id", w.id);
+  }
+  return { success: true, sent };
+}
+
 // ───────────── Request handler ─────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -364,6 +409,8 @@ Deno.serve(async (req) => {
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     const { data: userData, error: authErr } = await supabase.auth.getUser(token);
     if (authErr || !userData?.user) return reply({ error: "You must be logged in to send email." }, 401);
+
+    if (payload.type === "waitlist-openings") return reply(await sendWaitlistEmails(payload.tourId));
 
     const email = await buildNormalEmail(payload, userData.user.id);
     if (!email.to) return reply({ error: "This joiner has no email address on file." }, 422);

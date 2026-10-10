@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { todayManila } from './tourUtils';
 import { Star, Send, Trash2, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
 
 const displayName = (profile) => {
@@ -95,16 +96,20 @@ const Reviews = ({ isAdmin = false }) => {
     setLoading(false);
   }, []);
 
+  // Same rule the database enforces (can_review_tour): payment confirmed and the tour has ended.
   const fetchReviewableTours = useCallback(async (userId, existingReviewTourIds) => {
     const { data: bookings } = await supabase
       .from('bookings')
-      .select('tour_id, tours(id, title, destination, start_date, end_date)')
+      .select('tour_id, payment_status, booking_status, tours(id, title, destination, start_date, end_date)')
       .eq('user_id', userId)
-      .eq('booking_status', 'Completed');
+      .not('booking_status', 'in', '("Cancelled","Rejected")');
 
+    const today = todayManila();
     const uniqueMap = {};
     (bookings || []).forEach(b => {
-      if (b.tour_id && b.tours && !existingReviewTourIds.includes(b.tour_id)) {
+      const paid = b.payment_status === 'Complete' || b.booking_status === 'Completed';
+      const ended = b.tours && (b.tours.end_date || b.tours.start_date) < today;
+      if (b.tour_id && b.tours && paid && ended && !existingReviewTourIds.includes(b.tour_id)) {
         uniqueMap[b.tour_id] = b.tours;
       }
     });
@@ -152,12 +157,13 @@ const Reviews = ({ isAdmin = false }) => {
     const uploaded = [];
     for (const item of mediaItems) {
       const ext = item.file.name.split('.').pop();
-      const fileName = `${Math.random()}.${ext}`;
+      // Joiners may only upload into their own review-media/<user id>/ folder.
+      const filePath = `review-media/${currentUserId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('tours')
-        .upload(`review-media/${fileName}`, item.file);
+        .upload(filePath, item.file);
       if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('tours').getPublicUrl(`review-media/${fileName}`);
+      const { data } = supabase.storage.from('tours').getPublicUrl(filePath);
       uploaded.push({ url: data.publicUrl, type: item.type });
     }
     return uploaded;
