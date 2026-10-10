@@ -72,8 +72,7 @@ const JoinerAccounts = () => {
     setEmailStatus(null);
 
     const { ok, error } = await sendCustomEmail({
-      to: selected.email,
-      name: fullName(selected),
+      userId: selected.id,
       subject: subject.trim(),
       message: body.trim(),
     });
@@ -511,7 +510,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
     for (let i = 0; i < recipients.length; i++) {
       const p = recipients[i];
       const { ok, error } = await sendCustomEmail({
-        to: p.email, name: fullName(p), subject: subject.trim(), message: body.trim(),
+        userId: p.id, subject: subject.trim(), message: body.trim(),
       });
       if (ok) {
         sent++;

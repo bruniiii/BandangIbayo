@@ -1669,8 +1669,6 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                     bookingId={bookingId}
 
-                    booking={createdBooking}
-
                     tour={tour}
 
                     numPersons={numPersons}
@@ -1949,7 +1947,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
 
 
-const GCashPaymentModal = ({ bookingId, booking, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
+const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
 
     const [gcashNumber, setGcashNumber] = useState("");
 
@@ -2085,19 +2083,7 @@ const GCashPaymentModal = ({ bookingId, booking, tour, numPersons, subtotal, dow
 
             } else {
 
-                sendBookingSubmittedEmail({
-
-                    to: booking?.email,
-
-                    name: booking?.full_name,
-
-                    bookingNumber: booking?.booking_number,
-
-                    tourTitle: tour.title,
-
-                    amount: amountDue,
-
-                });
+                sendBookingSubmittedEmail({ bookingId });
 
                 onSuccess();
 

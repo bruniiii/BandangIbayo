@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { sendBookingConfirmedEmail, sendBookingRejectedEmail } from "./Email";
+import { sendBookingStatusEmail } from "./Email";
 import { notifyUser } from './notifications';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
@@ -333,17 +333,7 @@ const BookingManagement = () => {
             }).eq('id', id);
  
             if (!error) {
-              const joinerName = selectedBooking.profiles
-                ? `${selectedBooking.profiles.first_name || ''} ${selectedBooking.profiles.last_name || ''}`.trim()
-                : selectedBooking.full_name;
-              const sendEmail = status === 'Confirmed' ? sendBookingConfirmedEmail : sendBookingRejectedEmail;
-              sendEmail({
-                to: selectedBooking.email,
-                name: joinerName,
-                bookingNumber: selectedBooking.booking_number,
-                tourTitle: selectedBooking.tours?.title,
-                startDate: selectedBooking.tours?.start_date,
-              });
+              sendBookingStatusEmail({ bookingId: id });
 
               notifyUser(selectedBooking.user_id, {
                 title: status === 'Confirmed' ? 'Booking Confirmed 🎉' : 'Booking Update',

@@ -1,14 +1,19 @@
 // supabase/functions/send-email/index.ts
 //
 // ONE function for ALL emails, sent through the agency Gmail (bandangibayo@gmail.com):
-//   1) Normal mode  — body { to, subject, html, replyTo? }
-//        used by booking emails (Email.js) and the admin's manual email (Joiner Accounts)
+//   1) Normal mode  — body { type, ... }. The caller only says WHICH email to send;
+//        the recipient and content are looked up and built here, so a logged-in user
+//        can't use this function to send arbitrary email from the agency Gmail.
+//        - { type: "booking-submitted", bookingId }  booking owner (or admin)
+//        - { type: "booking-status",    bookingId }  admin only; confirmed/rejected per payment_status
+//        - { type: "custom", userId, subject, message }  admin only (Joiner Accounts manual email)
 //   2) Reminder mode — body { action: "tour-reminders", date?, dryRun? }
 //        emails every confirmed joiner whose tour starts TOMORROW (Philippine time).
 //        Called daily by pg_cron with the x-cron-secret header; blocked for everyone else.
 //
 // Deploy:   supabase functions deploy send-email --no-verify-jwt
-//           (auth is checked inside the function: user login for normal mode, CRON_SECRET for reminders)
+//           (auth is checked inside the function: user login + ownership/admin role for normal mode,
+//           CRON_SECRET for reminders)
 // Secrets:  supabase secrets set GMAIL_USER=bandangibayo@gmail.com
 //           supabase secrets set GMAIL_APP_PASSWORD=xxxxxxxxxxxxxxxx
 //           supabase secrets set CRON_SECRET=<any long random string>
@@ -214,6 +219,126 @@ async function runReminders(date: string, dryRun: boolean) {
   return { date, dryRun, found: list.length, sent, failed, skipped, errors };
 }
 
+// ───────────── Transactional templates (normal mode) ─────────────
+const wrapper = (title: string, titleColor: string, bodyHtml: string) => `
+  <div style="font-family: 'Inter', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1A0A00;">
+    <h2 style="color:${titleColor}; margin: 0 0 16px;">${title}</h2>
+    ${bodyHtml}
+    <p style="color:#7A3A18; font-size: 13px; margin-top: 24px;">— The Bandang IBAYO Team</p>
+  </div>
+`;
+
+// What the joiner says they paid: the amount they submitted, else what their payment option requires.
+const amountSubmitted = (b: any) =>
+  b.amount_paid ?? (b.payment_method === "Downpayment" ? Math.round((b.total_price || 0) * 0.4) : b.total_price || 0);
+
+const bookingSubmittedEmail = (name: string, b: any, tour: any) => ({
+  subject: `Booking Received — ${b.booking_number}`,
+  html: wrapper("Booking Received", "#1A0A00", `
+    <p>Thanks for booking with Bandang IBAYO, ${esc(name)}!</p>
+    <p>We've received your booking for <strong>${esc(tour?.title)}</strong>.</p>
+    <p><strong>Booking Reference:</strong> ${esc(b.booking_number)}<br/>
+    <strong>Amount Paid Now:</strong> ${peso(amountSubmitted(b))}</p>
+    <p>Your payment is now pending verification. We'll email you again as soon as it's confirmed.</p>
+  `),
+});
+
+const bookingConfirmedEmail = (name: string, b: any, tour: any) => ({
+  subject: `Booking Confirmed 🎉 — ${b.booking_number}`,
+  html: wrapper("You're Confirmed!", "#C45C26", `
+    <p>Hi ${esc(name)}, your payment for <strong>${esc(tour?.title)}</strong> has been verified.</p>
+    <p><strong>Booking Reference:</strong> ${esc(b.booking_number)}<br/>
+    ${tour?.start_date ? `<strong>Tour Date:</strong> ${prettyDate(tour.start_date)}<br/>` : ""}</p>
+    <p>See you on the trip! Pickup and driver details will be posted in the app closer to your departure date.</p>
+  `),
+});
+
+const bookingRejectedEmail = (name: string, b: any, tour: any) => ({
+  subject: `Booking Update — ${b.booking_number}`,
+  html: wrapper("Payment Verification Issue", "#8C2F1C", `
+    <p>Hi ${esc(name)}, we weren't able to verify the payment for your booking of <strong>${esc(tour?.title)}</strong> (${esc(b.booking_number)}).</p>
+    <p>Please reach out to us so we can help sort this out.</p>
+  `),
+});
+
+const customEmail = (name: string, subject: string, message: string) => ({
+  subject,
+  html: wrapper(esc(subject), "#C45C26", `
+    <p>Hi ${esc(name)},</p>
+    <p style="line-height:1.7; white-space:pre-wrap;">${esc(message)}</p>
+    <p style="color:#7A3A18; font-size: 12px;">You can reply directly to this email.</p>
+  `),
+});
+
+const usableEmail = (e: unknown) => (typeof e === "string" && e.includes("@") ? e.trim() : null);
+
+const displayName = (profile: any, fallback?: string | null) => {
+  const n = profile ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() : "";
+  return n || (fallback && fallback !== "N/A" ? fallback : "Traveler");
+};
+
+// Who the email goes to: the address on the record, else the account's login email.
+async function recipientFor(userId: string | null, recordEmail?: string | null) {
+  const direct = usableEmail(recordEmail);
+  if (direct) return direct;
+  if (!userId) return null;
+  const { data } = await supabase.auth.admin.getUserById(userId);
+  return usableEmail(data?.user?.email);
+}
+
+class HttpError extends Error {
+  constructor(public status: number, message: string) { super(message); }
+}
+
+async function buildNormalEmail(payload: any, callerId: string) {
+  const { data: caller } = await supabase.from("profiles").select("role").eq("id", callerId).maybeSingle();
+  const isAdmin = caller?.role === "admin";
+
+  if (payload.type === "booking-submitted" || payload.type === "booking-status") {
+    if (!payload.bookingId) throw new HttpError(400, "Missing bookingId");
+
+    const { data: b } = await supabase
+      .from("bookings")
+      .select("id, user_id, booking_number, full_name, email, total_price, amount_paid, payment_method, payment_status, tours ( title, start_date )")
+      .eq("id", payload.bookingId)
+      .maybeSingle();
+    if (!b) throw new HttpError(404, "Booking not found");
+
+    const tour = Array.isArray(b.tours) ? b.tours[0] : b.tours;
+    const { data: profile } = b.user_id
+      ? await supabase.from("profiles").select("first_name, last_name").eq("id", b.user_id).maybeSingle()
+      : { data: null };
+    const name = displayName(profile, b.full_name);
+    const to = await recipientFor(b.user_id, b.email);
+
+    if (payload.type === "booking-submitted") {
+      if (!isAdmin && b.user_id !== callerId) throw new HttpError(403, "Not your booking");
+      return { to, ...bookingSubmittedEmail(name, b, tour) };
+    }
+
+    if (!isAdmin) throw new HttpError(403, "Admins only");
+    if (b.payment_status === "Complete") return { to, ...bookingConfirmedEmail(name, b, tour) };
+    if (b.payment_status === "Rejected") return { to, ...bookingRejectedEmail(name, b, tour) };
+    throw new HttpError(409, "Booking has not been confirmed or rejected yet");
+  }
+
+  if (payload.type === "custom") {
+    if (!isAdmin) throw new HttpError(403, "Admins only");
+    const subject = String(payload.subject ?? "").trim();
+    const message = String(payload.message ?? "").trim();
+    if (!payload.userId || !subject || !message) throw new HttpError(400, "Missing userId/subject/message");
+    if (subject.length > 200 || message.length > 5000) throw new HttpError(400, "Subject or message is too long");
+
+    const { data: profile } = await supabase
+      .from("profiles").select("first_name, last_name, email").eq("id", payload.userId).maybeSingle();
+    if (!profile) throw new HttpError(404, "Joiner not found");
+    const to = await recipientFor(payload.userId, profile.email);
+    return { to, ...customEmail(displayName(profile), subject, message) };
+  }
+
+  throw new HttpError(400, "Unknown email type");
+}
+
 // ───────────── Request handler ─────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -235,25 +360,25 @@ Deno.serve(async (req) => {
       return reply(result);
     }
 
-    // ── Normal mode: send one email (logged-in users only) ──
+    // ── Normal mode: send one templated email (logged-in users only) ──
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     const { data: userData, error: authErr } = await supabase.auth.getUser(token);
     if (authErr || !userData?.user) return reply({ error: "You must be logged in to send email." }, 401);
 
-    const { to, subject, html, replyTo } = payload;
-    const recipient = typeof to === "string" ? to.trim() : to;
-    if (!recipient || !subject || !html) return reply({ error: "Missing to/subject/html" }, 400);
+    const email = await buildNormalEmail(payload, userData.user.id);
+    if (!email.to) return reply({ error: "This joiner has no email address on file." }, 422);
 
     const info = await transporter.sendMail({
       from: `"Bandang IBAYO" <${GMAIL_USER}>`,
-      to: recipient,
-      replyTo: replyTo || GMAIL_USER,
-      subject,
-      html,
+      to: email.to,
+      replyTo: GMAIL_USER,
+      subject: email.subject,
+      html: email.html,
     });
-    console.log("send-email: sent", { to: recipient, messageId: info.messageId });
+    console.log("send-email: sent", { type: payload.type, to: email.to, messageId: info.messageId });
     return reply({ success: true, messageId: info.messageId });
   } catch (err) {
+    if (err instanceof HttpError) return reply({ error: err.message }, err.status);
     console.error("send-email: error", err);
     return reply({ error: String((err as Error)?.message || err) }, 500);
   }

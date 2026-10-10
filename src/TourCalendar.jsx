@@ -983,13 +983,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       const bkNum = insertedBooking.booking_number;
       const joinerName = insertedBooking.full_name;
 
-      sendBookingSubmittedEmail({
-        to: user.email,
-        name: joinerName,
-        bookingNumber: bkNum,
-        tourTitle: tour.title,
-        amount: totalDue,
-      });
+      sendBookingSubmittedEmail({ bookingId: insertedBooking.id });
 
       notifyAdmins({
         title: 'New Booking Received',

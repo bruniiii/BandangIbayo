@@ -1350,7 +1350,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
       {paymentStep === 'proceed' && <ProceedToPaymentModal tour={tour} numPersons={numPersons} subtotal={subtotal} onProceed={() => setPaymentStep('choose')} onCancel={() => setPaymentStep(null)} formatDateRange={formatDateRange} />}
       {paymentStep === 'choose' && <ChoosePaymentTypeModal subtotal={subtotal} downpaymentAmount={downpaymentAmount} onChoose={(type) => { setPaymentType(type); setPaymentStep('gcash'); }} onBack={() => setPaymentStep('proceed')} />}
-      {paymentStep === 'gcash' && <GCashPaymentModal bookingId={bookingId} booking={createdBooking} tour={tour} subtotal={subtotal} downpaymentAmount={downpaymentAmount} paymentType={paymentType} onSuccess={() => setPaymentStep('success')} onBack={() => setPaymentStep('choose')} />}
+      {paymentStep === 'gcash' && <GCashPaymentModal bookingId={bookingId} subtotal={subtotal} downpaymentAmount={downpaymentAmount} paymentType={paymentType} onSuccess={() => setPaymentStep('success')} onBack={() => setPaymentStep('choose')} />}
       {paymentStep === 'success' && <BookingSuccessModal booking={createdBooking} onClose={() => { setPaymentStep(null); onClose(); }} />}
     </div>
   );
@@ -1385,7 +1385,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
   </div>
 );
 
-const GCashPaymentModal = ({ bookingId, booking, tour, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
+const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
   const [gcashNumber, setGcashNumber] = useState("");
   const [refNumber, setRefNumber] = useState("");
   const [screenshot, setScreenshot] = useState(null);
@@ -1410,13 +1410,7 @@ const GCashPaymentModal = ({ bookingId, booking, tour, subtotal, downpaymentAmou
         payment_status: 'Pending',
       }).eq('id', bookingId);
 
-      sendBookingSubmittedEmail({
-        to: booking?.email,
-        name: booking?.full_name,
-        bookingNumber: booking?.booking_number,
-        tourTitle: tour.title,
-        amount: amountDue,
-      });
+      sendBookingSubmittedEmail({ bookingId });
 
       onSuccess();
     } catch {

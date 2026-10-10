@@ -7,6 +7,7 @@
 --   * checks the tour is open, has enough slots, and the joiner has no active booking on it
 --   * computes total_price from tours.price (the browser can no longer set its own price)
 --   * generates a unique booking number from a sequence
+--   * records amount_paid when the receipt is submitted with the booking (calendar flow)
 
 create sequence if not exists public.booking_number_seq start 1001;
 
@@ -88,7 +89,7 @@ begin
 
   insert into public.bookings (
     tour_id, user_id, booking_number, full_name, email, contact_number,
-    slots_booked, total_price, payment_method, receipt_url,
+    slots_booked, total_price, amount_paid, payment_method, receipt_url,
     payment_status, booking_status
   ) values (
     p_tour_id,
@@ -99,6 +100,11 @@ begin
     coalesce(nullif(trim(v_profile.phone_number), ''), 'N/A'),
     p_slots,
     coalesce(v_tour.price, 0) * p_slots,
+    -- Amount the joiner says they sent (pending admin verification); same 40% rule as the booking screens.
+    case p_payment_method
+      when 'Full Payment' then coalesce(v_tour.price, 0) * p_slots
+      when 'Downpayment'  then round(coalesce(v_tour.price, 0) * p_slots * 0.4)
+    end,
     p_payment_method,
     p_receipt_url,
     'Pending',
