@@ -39,16 +39,14 @@ const JoinerLogin = () => {
       let email = identifier;
  
       if (!identifier.includes('@')) {
-        const { data: profileByUsername, error: usernameError } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('username', identifier)
-          .single();
- 
-        if (usernameError || !profileByUsername) {
+        // Logged-out visitors can't read profiles, so this database function returns just the email.
+        const { data: emailForUsername, error: usernameError } = await supabase
+          .rpc('email_for_login', { p_username: identifier });
+
+        if (usernameError || !emailForUsername) {
           throw new Error('Username not found.');
         }
-        email = profileByUsername.email;
+        email = emailForUsername;
       }
  
       // ── Step 2: Authenticate ──

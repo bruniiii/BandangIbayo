@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { sendBookingSubmittedEmail } from './Email';
 import { notifyAdmins } from './notifications';
+import { withAvailableSlots } from './tourUtils';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths
@@ -43,22 +44,8 @@ const TourCalendar = ({ initialDate }) => {
   const fetchToursWithAvailability = useCallback(async () => {
     setLoading(true);
     const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false);
-    const { data: bookingsData } = await supabase
-      .from('bookings')
-      .select('tour_id, slots_booked')
-      .not('booking_status', 'in', '("Cancelled","Rejected")');
- 
-    const updatedTours = (toursData || []).map(tour => {
-      const totalBooked = (bookingsData || [])
-        .filter(b => b.tour_id === tour.id)
-        .reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-      const maxCapacity = tour.group_size || 15;
-      return {
-        ...tour,
-        current_booked: totalBooked,
-        available_slots: Math.max(0, maxCapacity - totalBooked)
-      };
-    });
+    // Joiners can only read their own bookings, so slot totals come from tour_slots_booked().
+    const updatedTours = await withAvailableSlots(toursData);
  
     setTours(updatedTours);
     setLoading(false);
@@ -364,14 +351,8 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { alert("Please log in to book a tour."); setValidating(false); return; }
 
-    const { data: freshBookings } = await supabase
-      .from('bookings')
-      .select('slots_booked')
-      .eq('tour_id', tour.id)
-      .not('booking_status', 'in', '("Cancelled","Rejected")');
-
-    const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-    const freshAvailable = (tour.group_size || 15) - totalBooked;
+    const [fresh] = await withAvailableSlots([tour]);
+    const freshAvailable = fresh.available_slots;
 
     if (freshAvailable <= 0) {
       setSlotError("Sorry, this tour is now fully booked.");
