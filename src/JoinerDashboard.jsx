@@ -4,10 +4,11 @@ import {
   Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss,
   ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { sendBookingSubmittedEmail } from './Email';
 import { notifyAdmins } from './notifications';
+import { withAvailableSlots } from './tourUtils';
 import JoinerTours from './JoinerTours';
 import TourCalendar from './TourCalendar';
 import MyBookings from './MyBookings';
@@ -46,7 +47,10 @@ const NAV_ITEMS = [
 ];
 
 const JoinerDashboard = () => {
-  const [activeTab, setActiveTab] = useState('HomePage');
+  // A public tour page's "Book" button lands here as /dashboard?book=<tourId>.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [bookTourId, setBookTourId] = useState(() => searchParams.get('book'));
+  const [activeTab, setActiveTab] = useState(bookTourId ? 'Explore Tours' : 'HomePage');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -74,6 +78,11 @@ const JoinerDashboard = () => {
   const [featuredTours, setFeaturedTours] = useState([]);
   const [selectedTour, setSelectedTour] = useState(null);
 
+  // Drop ?book= from the URL so a refresh doesn't reopen the booking window.
+  useEffect(() => {
+    if (searchParams.has('book')) setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 900;
@@ -94,6 +103,7 @@ const JoinerDashboard = () => {
   };
 
   const handleNavClick = (label) => {
+    setBookTourId(null);
     setBookingsFilter(null);
     setCalendarTarget(null);
     setActiveTab(label);
@@ -253,22 +263,7 @@ const JoinerDashboard = () => {
         .order('start_date', { ascending: true })
         .limit(4);
 
-      const { data: bookingsData } = await supabase
-        .from('bookings')
-        .select('tour_id, slots_booked')
-        .not('booking_status', 'in', '("Cancelled","Rejected")');
-
-      const updatedTours = (toursData || []).map(tour => {
-        const totalBooked = (bookingsData || [])
-          .filter(b => b.tour_id === tour.id)
-          .reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-        const maxCapacity = tour.group_size || 18;
-        return {
-          ...tour,
-          current_booked: totalBooked,
-          available_slots: Math.max(0, maxCapacity - totalBooked)
-        };
-      });
+      const updatedTours = await withAvailableSlots(toursData);
 
       setFeaturedTours(updatedTours);
     } catch (err) {
@@ -773,7 +768,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Feed' ? (
             <Feed isAdmin={false} />
           ) : activeTab === 'Explore Tours' ? (
-            <JoinerTours />
+            <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
             <MyBookings initialFilter={bookingsFilter} />
           ) : activeTab === 'Calendar' ? (

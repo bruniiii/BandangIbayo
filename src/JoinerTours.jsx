@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { supabase } from './supabaseClient';
 import { sendBookingSubmittedEmail } from "./Email";
 
 import { notifyAdmins } from './notifications';
+import { withAvailableSlots, formatDateRange } from './tourUtils';
 
 import { 
 
@@ -43,7 +44,9 @@ import {
 
  
 
-const JoinerTours = () => {
+const JoinerTours = ({ initialTourId = null }) => {
+
+  const pendingTourId = useRef(initialTourId);
 
   const [tours, setTours] = useState([]);
 
@@ -71,61 +74,6 @@ const JoinerTours = () => {
 
  
 
-  const formatDateRange = (dateString, duration) => {
-
-    if (!dateString) return "";
-
-    const [year, month, day] = dateString.split('-').map(Number);
-
- 
-
-    const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;
-
-    const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
-
- 
-
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
- 
-
-    const startDate = new Date(year, month - 1, day);
-
-    const endDate = new Date(year, month - 1, day + numDays - 1);
-
- 
-
-    const startMonth = monthNames[startDate.getMonth()];
-
-    const endMonth = monthNames[endDate.getMonth()];
-
-    const startYear = startDate.getFullYear();
-
-    const endYear = endDate.getFullYear();
-
- 
-
-    if (numDays <= 1) {
-
-      return `${startMonth} ${startDate.getDate()}, ${startYear}`;
-
-    } else if (startMonth === endMonth && startYear === endYear) {
-
-      return `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startYear}`;
-
-    } else if (startYear === endYear) {
-
-      return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startYear}`;
-
-    } else {
-
-      return `${startMonth} ${startDate.getDate()}, ${startYear} - ${endMonth} ${endDate.getDate()}, ${endYear}`;
-
-    }
-
-  };
 
  
 
@@ -145,41 +93,18 @@ const JoinerTours = () => {
 
  
 
-    const { data: bookingsData } = await supabase
+    const updatedTours = await withAvailableSlots(toursData);
 
-      .from('bookings')
 
-      .select('tour_id, slots_booked')
-
-      .not('booking_status', 'in', '("Cancelled","Rejected")');
-
- 
-
-    const updatedTours = (toursData || []).map(tour => {
-
-      const totalBooked = (bookingsData || [])
-
-        .filter(b => b.tour_id === tour.id)
-
-        .reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-
-      const maxCapacity = tour.group_size || 15;
-
-      return { 
-
-        ...tour, 
-
-        current_booked: totalBooked, 
-
-        available_slots: Math.max(0, maxCapacity - totalBooked) 
-
-      };
-
-    });
-
- 
 
     setTours(updatedTours);
+
+    // Opened from a shared tour link (/dashboard?book=<id>): show that tour's booking window once.
+    if (pendingTourId.current) {
+      const target = updatedTours.find((t) => String(t.id) === String(pendingTourId.current));
+      pendingTourId.current = null;
+      if (target) setSelectedTour(target);
+    }
 
     setLoading(false);
 
@@ -2452,5 +2377,7 @@ const BookingSuccessModal = ({ booking, tour, onClose }) => (
 );
 
 
+
+export { JoinerTourCard, ViewSection, ChecklistGrid, ItineraryTimeline, TourImageCarousel };
 
 export default JoinerTours;

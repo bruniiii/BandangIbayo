@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { safeNextPath } from './tourUtils';
 import { Loader2, CheckCircle2 } from 'lucide-react';
  import logoIcon from './assets/newIcon.png';
  
@@ -19,6 +20,9 @@ const JoinerLogin = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [successRole, setSuccessRole] = useState('joiner'); // 'joiner' | 'admin'
   const navigate = useNavigate();
+  // Where to go after login, e.g. back to a tour page (?next=/tours/12)
+  const [searchParams] = useSearchParams();
+  const nextPath = safeNextPath(searchParams.get('next'));
  
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -73,7 +77,7 @@ const JoinerLogin = () => {
       setIsSuccess(true);
  
       setTimeout(() => {
-        navigate(role === 'admin' ? '/admin/dashboard' : '/dashboard');
+        navigate(role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard');
       }, 1500);
  
     } catch (error) {
@@ -273,7 +277,7 @@ const JoinerLogin = () => {
         {/* register link */}
         <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.8 }}>
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
+          <Link to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
             Register here
           </Link>
         </p>
