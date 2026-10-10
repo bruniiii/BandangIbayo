@@ -4,10 +4,11 @@ import {
   Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss,
   ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { sendBookingSubmittedEmail } from './Email';
 import { notifyAdmins } from './notifications';
+import { withAvailableSlots } from './tourUtils';
 import JoinerTours from './JoinerTours';
 import TourCalendar from './TourCalendar';
 import MyBookings from './MyBookings';
@@ -46,7 +47,10 @@ const NAV_ITEMS = [
 ];
 
 const JoinerDashboard = () => {
-  const [activeTab, setActiveTab] = useState('HomePage');
+  // A public tour page's "Book" button lands here as /dashboard?book=<tourId>.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [bookTourId, setBookTourId] = useState(() => searchParams.get('book'));
+  const [activeTab, setActiveTab] = useState(bookTourId ? 'Explore Tours' : 'HomePage');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -74,6 +78,11 @@ const JoinerDashboard = () => {
   const [featuredTours, setFeaturedTours] = useState([]);
   const [selectedTour, setSelectedTour] = useState(null);
 
+  // Drop ?book= from the URL so a refresh doesn't reopen the booking window.
+  useEffect(() => {
+    if (searchParams.has('book')) setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 900;
@@ -94,6 +103,7 @@ const JoinerDashboard = () => {
   };
 
   const handleNavClick = (label) => {
+    setBookTourId(null);
     setBookingsFilter(null);
     setCalendarTarget(null);
     setActiveTab(label);
@@ -253,22 +263,7 @@ const JoinerDashboard = () => {
         .order('start_date', { ascending: true })
         .limit(4);
 
-      const { data: bookingsData } = await supabase
-        .from('bookings')
-        .select('tour_id, slots_booked')
-        .not('booking_status', 'in', '("Cancelled","Rejected")');
-
-      const updatedTours = (toursData || []).map(tour => {
-        const totalBooked = (bookingsData || [])
-          .filter(b => b.tour_id === tour.id)
-          .reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-        const maxCapacity = tour.group_size || 18;
-        return {
-          ...tour,
-          current_booked: totalBooked,
-          available_slots: Math.max(0, maxCapacity - totalBooked)
-        };
-      });
+      const updatedTours = await withAvailableSlots(toursData);
 
       setFeaturedTours(updatedTours);
     } catch (err) {
@@ -773,7 +768,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Feed' ? (
             <Feed isAdmin={false} />
           ) : activeTab === 'Explore Tours' ? (
-            <JoinerTours />
+            <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
             <MyBookings initialFilter={bookingsFilter} />
           ) : activeTab === 'Calendar' ? (
@@ -1275,36 +1270,23 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
 
-    const { data: profile } = await supabase.from('profiles').select('full_name, contact_number, email').eq('id', user.id).single();
-    const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
-
-    const { data: booking, error } = await supabase.from('bookings').insert([{
-      tour_id: tour.id,
-      user_id: user.id,
-      booking_number: bookingNumber,
-      full_name: profile?.full_name || "N/A",
-      email: user.email || profile?.email || "N/A",
-      contact_number: profile?.contact_number || "N/A",
-      slots_booked: numPersons,
-      total_price: subtotal,
-      payment_status: 'Pending',
-      booking_status: 'Active',
-      payment_method: null,
-    }]).select();
-
+    // Capacity, duplicate-booking and price checks run inside the database function.
+    const { data: booking, error } = await supabase.rpc('create_booking', {
+      p_tour_id: tour.id,
+      p_slots: numPersons,
+    });
     if (error) {
-      alert("Error: " + error.message);
+      alert(error.message);
     } else {
-      setBookingId(booking[0].id);
-      setCreatedBooking({ ...booking[0], full_name: profile?.full_name || "N/A", email: user.email || profile?.email || "N/A", contact_number: profile?.contact_number || "N/A", booking_number: bookingNumber });
+      setBookingId(booking.id);
+      setCreatedBooking(booking);
       setPaymentStep('proceed');
       if (onBookingSuccess) onBookingSuccess();
-
       notifyAdmins({
         title: 'New Booking Received',
-        message: `${profile?.full_name || 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
+        message: `${booking.full_name !== 'N/A' ? booking.full_name : 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
         type: 'booking',
-        related_id: booking[0].id,
+        related_id: booking.id,
       });
     }
     setIsBooking(false);
@@ -1363,7 +1345,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
       {paymentStep === 'proceed' && <ProceedToPaymentModal tour={tour} numPersons={numPersons} subtotal={subtotal} onProceed={() => setPaymentStep('choose')} onCancel={() => setPaymentStep(null)} formatDateRange={formatDateRange} />}
       {paymentStep === 'choose' && <ChoosePaymentTypeModal subtotal={subtotal} downpaymentAmount={downpaymentAmount} onChoose={(type) => { setPaymentType(type); setPaymentStep('gcash'); }} onBack={() => setPaymentStep('proceed')} />}
-      {paymentStep === 'gcash' && <GCashPaymentModal bookingId={bookingId} booking={createdBooking} tour={tour} subtotal={subtotal} downpaymentAmount={downpaymentAmount} paymentType={paymentType} onSuccess={() => setPaymentStep('success')} onBack={() => setPaymentStep('choose')} />}
+      {paymentStep === 'gcash' && <GCashPaymentModal bookingId={bookingId} subtotal={subtotal} downpaymentAmount={downpaymentAmount} paymentType={paymentType} onSuccess={() => setPaymentStep('success')} onBack={() => setPaymentStep('choose')} />}
       {paymentStep === 'success' && <BookingSuccessModal booking={createdBooking} onClose={() => { setPaymentStep(null); onClose(); }} />}
     </div>
   );
@@ -1398,7 +1380,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
   </div>
 );
 
-const GCashPaymentModal = ({ bookingId, booking, tour, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
+const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
   const [gcashNumber, setGcashNumber] = useState("");
   const [refNumber, setRefNumber] = useState("");
   const [screenshot, setScreenshot] = useState(null);
@@ -1423,13 +1405,7 @@ const GCashPaymentModal = ({ bookingId, booking, tour, subtotal, downpaymentAmou
         payment_status: 'Pending',
       }).eq('id', bookingId);
 
-      sendBookingSubmittedEmail({
-        to: booking?.email,
-        name: booking?.full_name,
-        bookingNumber: booking?.booking_number,
-        tourTitle: tour.title,
-        amount: amountDue,
-      });
+      sendBookingSubmittedEmail({ bookingId });
 
       onSuccess();
     } catch {

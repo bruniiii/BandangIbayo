@@ -12,9 +12,12 @@ import JoinerLogin from './JoinerLogin';
 import JoinerRegister from './JoinerRegister';
 import AdminDashboard from './AdminDashboard';
 import ProtectedRoute from './ProtectedRoute';
+import AdminRoute from './AdminRoute';
 import JoinerDashboard from './JoinerDashboard';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
+import { PublicTourList, PublicTourDetail } from './PublicTours';
+import { todayManila } from './tourUtils';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -43,6 +46,7 @@ function LandingPage() {
         .from('tours')
         .select('*')
         .eq('is_archived', false)
+        .gte('start_date', todayManila())
         .order('start_date', { ascending: true });
       if (error) console.error('Error fetching tours:', error.message);
       else setTours(data);
@@ -123,7 +127,7 @@ function LandingPage() {
           </p>
  
           <div className="hero-buttons" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            <Link to="/register" className="btn-primary" style={{
+            <Link to="/tours" className="btn-primary" style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontWeight: 900, fontSize: 14, color: '#1A0A00', textDecoration: 'none',
               background: '#E8A265', borderRadius: 12,
@@ -233,7 +237,7 @@ function LandingPage() {
               <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', margin: '8px 0 4px' }}>Upcoming Adventures</h2>
               <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Verified joiner packages, updated in real time.</p>
             </div>
-            <Link to="/login" style={{ fontWeight: 900, fontSize: 14, color: '#C45C26', textDecoration: 'none', letterSpacing: '0.04em' }}>
+            <Link to="/tours" style={{ fontWeight: 900, fontSize: 14, color: '#C45C26', textDecoration: 'none', letterSpacing: '0.04em' }}>
               Explore All →
             </Link>
           </div>
@@ -254,6 +258,7 @@ function LandingPage() {
                   display: 'flex', flexDirection: 'column',
                 }}>
                   <div style={{ height: 220, overflow: 'hidden', position: 'relative', background: '#2D1B0E' }}>
+                    <Link to={`/tours/${tour.id}`} aria-label={tour.title} style={{ position: 'absolute', inset: 0, zIndex: 1 }} />
                     <img src={tour.image_urls?.[0] || '/LogoLS.png'} alt={tour.title} className="tour-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}/>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,10,0,0.55) 0%, transparent 55%)' }}/>
                     {tour.difficulty && (
@@ -288,7 +293,7 @@ function LandingPage() {
                         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, marginBottom: 2 }}>Starting at</div>
                         <span style={{ fontSize: 28, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em' }}>₱{tour.price.toLocaleString()}</span>
                       </div>
-                      <Link to="/login" className="btn-primary" style={{
+                      <Link to={`/tours/${tour.id}`} className="btn-primary" style={{
                         fontWeight: 900, fontSize: 13, color: '#FDF6EE', textDecoration: 'none',
                         background: '#1A0A00', borderRadius: 12, padding: '12px 22px',
                         letterSpacing: '0.04em', boxShadow: '0 4px 14px rgba(26,10,0,0.22)',
@@ -507,8 +512,10 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<JoinerLogin />} />
       <Route path="/register" element={<JoinerRegister />} />
+      <Route path="/tours" element={<PublicTourList />} />
+      <Route path="/tours/:id" element={<PublicTourDetail />} />
       <Route path="/dashboard/*" element={<ProtectedRoute><JoinerDashboard /></ProtectedRoute>} />
-      <Route path="/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<LandingPage />} />

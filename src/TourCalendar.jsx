@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { sendBookingSubmittedEmail } from './Email';
 import { notifyAdmins } from './notifications';
+import { withAvailableSlots } from './tourUtils';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths
@@ -43,22 +44,8 @@ const TourCalendar = ({ initialDate }) => {
   const fetchToursWithAvailability = useCallback(async () => {
     setLoading(true);
     const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false);
-    const { data: bookingsData } = await supabase
-      .from('bookings')
-      .select('tour_id, slots_booked')
-      .not('booking_status', 'in', '("Cancelled","Rejected")');
- 
-    const updatedTours = (toursData || []).map(tour => {
-      const totalBooked = (bookingsData || [])
-        .filter(b => b.tour_id === tour.id)
-        .reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-      const maxCapacity = tour.group_size || 15;
-      return {
-        ...tour,
-        current_booked: totalBooked,
-        available_slots: Math.max(0, maxCapacity - totalBooked)
-      };
-    });
+    // Joiners can only read their own bookings, so slot totals come from tour_slots_booked().
+    const updatedTours = await withAvailableSlots(toursData);
  
     setTours(updatedTours);
     setLoading(false);
@@ -364,14 +351,8 @@ const TourDetailView = ({ tour, onClose, formatDate, formatDateRange, onBookingS
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { alert("Please log in to book a tour."); setValidating(false); return; }
 
-    const { data: freshBookings } = await supabase
-      .from('bookings')
-      .select('slots_booked')
-      .eq('tour_id', tour.id)
-      .not('booking_status', 'in', '("Cancelled","Rejected")');
-
-    const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-    const freshAvailable = (tour.group_size || 15) - totalBooked;
+    const [fresh] = await withAvailableSlots([tour]);
+    const freshAvailable = fresh.available_slots;
 
     if (freshAvailable <= 0) {
       setSlotError("Sorry, this tour is now fully booked.");
@@ -961,16 +942,6 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please log in to book a tour.");
       
-      const { data: freshBookings } = await supabase
-        .from('bookings')
-        .select('slots_booked')
-        .eq('tour_id', tour.id)
-        .not('booking_status', 'in', '("Cancelled","Rejected")');
-      
-      const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-      const freshAvailable = (tour.group_size || 15) - totalBooked;
-      if (numPersons > freshAvailable) throw new Error(`Only ${freshAvailable} slot(s) remaining.`);
-      
       const fileExt = receipt.name.split('.').pop();
       const fileName = `receipts/${Date.now()}_${user.id}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
@@ -980,45 +951,26 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       
       const { data: { publicUrl } } = supabase.storage.from('booking-receipts').getPublicUrl(fileName);
       
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, phone_number')
-        .eq('id', user.id)
-        .single();
-      
-      const bkNum = 'BK-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-      const joinerName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || "N/A" : "N/A";
-      
-      const { data: insertedBooking, error: bookingError } = await supabase.from('bookings').insert([{
-        tour_id: tour.id,
-        user_id: user.id,
-        booking_number: bkNum,
-        full_name: joinerName,
-        contact_number: profile?.phone_number || "N/A",
-        email: user.email,        
-        slots_booked: numPersons,
-        total_price: totalDue,
-        receipt_url: publicUrl, 
-        payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
-        payment_status: 'Pending',
-        booking_status: 'Active',
-      }]).select();
-      
+      // Capacity, duplicate-booking and price checks run inside the database function.
+      const { data: insertedBooking, error: bookingError } = await supabase.rpc('create_booking', {
+        p_tour_id: tour.id,
+        p_slots: numPersons,
+        p_payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
+        p_receipt_url: publicUrl,
+      });
+
       if (bookingError) throw new Error(bookingError.message);
 
-      sendBookingSubmittedEmail({
-        to: user.email,
-        name: joinerName,
-        bookingNumber: bkNum,
-        tourTitle: tour.title,
-        amount: totalDue,
-      });
+      const bkNum = insertedBooking.booking_number;
+      const joinerName = insertedBooking.full_name;
+
+      sendBookingSubmittedEmail({ bookingId: insertedBooking.id });
 
       notifyAdmins({
         title: 'New Booking Received',
         message: `${joinerName} submitted a booking for ${tour.title} (${numPersons} pax).`,
         type: 'booking',
-        related_id: insertedBooking?.[0]?.id || null,
+        related_id: insertedBooking.id,
       });
 
       onSuccess({ booking_number: bkNum });

@@ -187,7 +187,7 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) alert('Logout failed: ' + error.message);
-    else navigate('/admin/login');
+    else navigate('/login');
   };
  
   const fetchOverviewData = async () => {

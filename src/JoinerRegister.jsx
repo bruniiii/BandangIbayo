@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Loader2,
   CheckCircle2,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from './notifications';
+import { safeNextPath } from './tourUtils';
 import logoIcon from './assets/newIcon.png';
 
 const JoinerRegister = () => {
@@ -30,6 +31,10 @@ const JoinerRegister = () => {
   const [avatarPreview, setAvatarPreview] = useState(null);
 
   const navigate = useNavigate();
+  // Keep a pending tour (?next=/tours/12) through register → login.
+  const [searchParams] = useSearchParams();
+  const nextPath = safeNextPath(searchParams.get('next'));
+  const loginPath = nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login';
 
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
@@ -201,7 +206,7 @@ const JoinerRegister = () => {
         setNeedsEmailConfirmation(false);
 
         setTimeout(() => {
-          navigate('/login');
+          navigate(loginPath);
         }, 2000);
       } else {
         setNeedsEmailConfirmation(true);
@@ -345,7 +350,7 @@ const JoinerRegister = () => {
 
             {needsEmailConfirmation ? (
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate(loginPath)}
                 style={{
                   marginTop: 24,
                   background: '#1A0A00',
@@ -930,7 +935,7 @@ const JoinerRegister = () => {
         >
           Already have an account?{' '}
           <Link
-            to="/login"
+            to={loginPath}
             style={{
               color: '#C45C26',
               fontWeight: 800,
