@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from './notifications';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS } from './tourUtils';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
@@ -348,9 +349,16 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
     setCancelling(false);
   };
 
-  const canCancel = booking.booking_status !== 'Cancelled' &&
-                    booking.booking_status !== 'Rejected' &&
-                    !booking.isActuallyCompleted;
+  const isOpenBooking = booking.booking_status !== 'Cancelled' &&
+                        booking.booking_status !== 'Rejected' &&
+                        !booking.isActuallyCompleted;
+  // Terms, section 2: no cancellations within two weeks of the tour date.
+  const cancellationClosed = isOpenBooking && isWithinCancellationWindow(tour.start_date);
+  const canCancel = isOpenBooking && !cancellationClosed;
+  const deadline = cancellationDeadline(tour.start_date);
+  const deadlineLabel = deadline
+    ? new Date(`${deadline}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -440,8 +448,20 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   }}>
                     <ShieldAlert size={18} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
                     <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
-                      Need to change your plans? You can cancel below. Per our agency policy, all payments are{' '}
+                      Need to change your plans? You can cancel until <strong>{deadlineLabel}</strong>. Per our agency policy, all payments are{' '}
                       <span style={{ textDecoration: 'underline', fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase' }}>non-refundable</span>.
+                    </p>
+                  </div>
+                )}
+
+                {cancellationClosed && (
+                  <div style={{
+                    background: 'rgba(140,47,28,0.08)', border: '1px solid rgba(140,47,28,0.2)',
+                    borderRadius: 18, padding: '1.25rem', display: 'flex', gap: 12,
+                  }}>
+                    <ShieldAlert size={18} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 2 }} />
+                    <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
+                      Cancellations for this tour closed on <strong>{deadlineLabel}</strong>. Per our Terms, bookings can't be cancelled within {CANCELLATION_CUTOFF_DAYS} days of the tour date.
                     </p>
                   </div>
                 )}

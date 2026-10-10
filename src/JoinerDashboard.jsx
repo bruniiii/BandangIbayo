@@ -9,6 +9,7 @@ import { supabase } from './supabaseClient';
 import { sendBookingSubmittedEmail } from './Email';
 import { notifyAdmins } from './notifications';
 import { withAvailableSlots } from './tourUtils';
+import { uploadReceipt } from './receipts';
 import JoinerTours from './JoinerTours';
 import TourCalendar from './TourCalendar';
 import MyBookings from './MyBookings';
@@ -1391,15 +1392,13 @@ const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType
     if (!gcashNumber.trim() || !refNumber.trim() || !screenshot) return alert("Please fill all payment fields.");
     setSubmitting(true);
     try {
-      const fileExt = screenshot.name.split('.').pop();
-      const fileName = `receipts/${bookingId}_${Date.now()}.${fileExt}`;
-      await supabase.storage.from('booking-receipts').upload(fileName, screenshot);
-      const { data: urlData } = supabase.storage.from('booking-receipts').getPublicUrl(fileName);
+      // Private bucket: stores the file's path, admins view it through a signed link.
+      const receiptPath = await uploadReceipt(screenshot);
 
       await supabase.from('bookings').update({
         gcash_number: gcashNumber,
         gcash_reference_no: refNumber,
-        receipt_url: urlData?.publicUrl || null,
+        receipt_url: receiptPath,
         payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
         amount_paid: amountDue,
         payment_status: 'Pending',
@@ -1408,8 +1407,8 @@ const GCashPaymentModal = ({ bookingId, subtotal, downpaymentAmount, paymentType
       sendBookingSubmittedEmail({ bookingId });
 
       onSuccess();
-    } catch {
-      alert("Upload error.");
+    } catch (err) {
+      alert(err?.message || "Upload error.");
     }
     setSubmitting(false);
   };

@@ -86,7 +86,7 @@ const Reviews = ({ isAdmin = false }) => {
 
     const userIds = [...new Set((data || []).map(r => r.user_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = userIds.length
-      ? await supabase.from('profiles').select('id, first_name, last_name, username, avatar_url').in('id', userIds)
+      ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url').in('id', userIds)
       : { data: [] };
     if (profilesError) console.error('Error fetching review authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));

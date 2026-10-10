@@ -14,7 +14,6 @@ import {
   Mail,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
-import { notifyAdmins } from './notifications';
 import { safeNextPath } from './tourUtils';
 import logoIcon from './assets/newIcon.png';
 
@@ -158,12 +157,8 @@ const JoinerRegister = () => {
         return;
       }
 
-      notifyAdmins({
-        title: 'New Joiner Registered',
-        message: `${firstName || username || 'A new joiner'} ${lastName || ''} just created an account.`.trim(),
-        type: 'account',
-        related_id: data.user.id,
-      });
+      // Admins get a "New Joiner Registered" notification from the database
+      // (notify_admins_new_joiner trigger), even before the new user is logged in.
 
       /*
        * Profile picture is optional.

@@ -5,6 +5,7 @@ import { sendBookingSubmittedEmail } from "./Email";
 
 import { notifyAdmins } from './notifications';
 import { withAvailableSlots, formatDateRange } from './tourUtils';
+import { uploadReceipt } from './receipts';
 
 import { 
 
@@ -1954,35 +1955,8 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
 
         try {
 
-            const fileExt = screenshot.name.split('.').pop();
-
-            const fileName = `receipts/${bookingId}_${Date.now()}.${fileExt}`;
-
-            let receiptUrl = null;
-
-
-
-            const { error: uploadError } = await supabase.storage
-
-              .from('booking-receipts')
-
-              .upload(fileName, screenshot);
-
-
-
-            if (!uploadError) {
-
-                const { data: urlData } = supabase.storage
-
-                    .from('booking-receipts')
-
-                    .getPublicUrl(fileName);
-
-                receiptUrl = urlData?.publicUrl || null;
-
-            }
-
-
+            // Private bucket: stores the file's path, admins view it through a signed link.
+            const receiptUrl = await uploadReceipt(screenshot);
 
             const { error } = await supabase.from('bookings').update({
 
@@ -2014,9 +1988,9 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
 
             }
 
-        } catch {
+        } catch (err) {
 
-            alert("Something went wrong. Please try again.");
+            alert(err?.message || "Something went wrong. Please try again.");
 
         }
 

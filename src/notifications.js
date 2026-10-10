@@ -41,13 +41,9 @@ import { supabase } from './supabaseClient';
      on notifications for update
      using (auth.uid() = user_id);
 
-   -- Notifications are inserted from the client on behalf of *other*
-   -- users (e.g. a joiner's booking notifies the admin), so inserts
-   -- need to be allowed broadly. If you want tighter control, move
-   -- these inserts into a Supabase Edge Function / DB trigger instead.
-   create policy "Any authenticated user can insert notifications"
-     on notifications for insert
-     with check (auth.role() = 'authenticated');
+   -- Insert rules now live in
+   -- supabase/migrations/20261013000000_privacy_cancellation_receipts.sql:
+   -- admins can notify anyone; joiners can only notify admins.
    ------------------------------------------------------------
 ───────────────────────────────────────────── */
 
@@ -79,7 +75,7 @@ export const notifyUser = async (userId, { title, message, type = null, related_
 export const notifyAdmins = async ({ title, message, type = null, related_id = null }) => {
   try {
     const { data: admins, error } = await supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('id')
       .eq('role', 'admin');
     if (error) throw error;
@@ -107,7 +103,7 @@ export const notifyAdmins = async ({ title, message, type = null, related_id = n
 export const notifyAllJoiners = async ({ title, message, type = null, related_id = null }) => {
   try {
     const { data: joiners, error } = await supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('id')
       .neq('role', 'admin');
     if (error) throw error;
