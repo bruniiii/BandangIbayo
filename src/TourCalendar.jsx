@@ -961,16 +961,6 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please log in to book a tour.");
       
-      const { data: freshBookings } = await supabase
-        .from('bookings')
-        .select('slots_booked')
-        .eq('tour_id', tour.id)
-        .not('booking_status', 'in', '("Cancelled","Rejected")');
-      
-      const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-      const freshAvailable = (tour.group_size || 15) - totalBooked;
-      if (numPersons > freshAvailable) throw new Error(`Only ${freshAvailable} slot(s) remaining.`);
-      
       const fileExt = receipt.name.split('.').pop();
       const fileName = `receipts/${Date.now()}_${user.id}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
@@ -980,31 +970,18 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       
       const { data: { publicUrl } } = supabase.storage.from('booking-receipts').getPublicUrl(fileName);
       
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, phone_number')
-        .eq('id', user.id)
-        .single();
-      
-      const bkNum = 'BK-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-      const joinerName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || "N/A" : "N/A";
-      
-      const { data: insertedBooking, error: bookingError } = await supabase.from('bookings').insert([{
-        tour_id: tour.id,
-        user_id: user.id,
-        booking_number: bkNum,
-        full_name: joinerName,
-        contact_number: profile?.phone_number || "N/A",
-        email: user.email,        
-        slots_booked: numPersons,
-        total_price: totalDue,
-        receipt_url: publicUrl, 
-        payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
-        payment_status: 'Pending',
-        booking_status: 'Active',
-      }]).select();
-      
+      // Capacity, duplicate-booking and price checks run inside the database function.
+      const { data: insertedBooking, error: bookingError } = await supabase.rpc('create_booking', {
+        p_tour_id: tour.id,
+        p_slots: numPersons,
+        p_payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
+        p_receipt_url: publicUrl,
+      });
+
       if (bookingError) throw new Error(bookingError.message);
+
+      const bkNum = insertedBooking.booking_number;
+      const joinerName = insertedBooking.full_name;
 
       sendBookingSubmittedEmail({
         to: user.email,
@@ -1018,7 +995,7 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
         title: 'New Booking Received',
         message: `${joinerName} submitted a booking for ${tour.title} (${numPersons} pax).`,
         type: 'booking',
-        related_id: insertedBooking?.[0]?.id || null,
+        related_id: insertedBooking.id,
       });
 
       onSuccess({ booking_number: bkNum });

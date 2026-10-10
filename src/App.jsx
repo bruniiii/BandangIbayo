@@ -12,6 +12,7 @@ import JoinerLogin from './JoinerLogin';
 import JoinerRegister from './JoinerRegister';
 import AdminDashboard from './AdminDashboard';
 import ProtectedRoute from './ProtectedRoute';
+import AdminRoute from './AdminRoute';
 import JoinerDashboard from './JoinerDashboard';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
@@ -508,7 +509,7 @@ export default function App() {
       <Route path="/login" element={<JoinerLogin />} />
       <Route path="/register" element={<JoinerRegister />} />
       <Route path="/dashboard/*" element={<ProtectedRoute><JoinerDashboard /></ProtectedRoute>} />
-      <Route path="/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<LandingPage />} />

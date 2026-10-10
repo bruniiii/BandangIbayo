@@ -1171,161 +1171,29 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
 
 
-        const { data: freshBookings } = await supabase
-
-            .from('bookings')
-
-            .select('slots_booked')
-
-            .eq('tour_id', tour.id)
-
-            .not('booking_status', 'in', '("Cancelled","Rejected")');
-
-
-
-        const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-
-        const freshAvailable = (tour.group_size || 15) - totalBooked;
-
-
-
-        if (freshAvailable <= 0) {
-
-            setSlotError("Sorry, this tour just became fully booked.");
-
-            setIsBooking(false);
-
-            return;
-
-        }
-
-
-
-        if (numPersons > freshAvailable) {
-
-            setSlotError(`Only ${freshAvailable} slot${freshAvailable > 1 ? 's' : ''} remaining. Please reduce the number of persons.`);
-
-            setIsBooking(false);
-
-            return;
-
-        }
-
-
-
-        const { data: existingBooking } = await supabase
-
-            .from('bookings')
-
-            .select('id, booking_number')
-
-            .eq('tour_id', tour.id)
-
-            .eq('user_id', user.id)
-
-            .not('booking_status', 'in', '("Cancelled","Rejected")')
-
-            .maybeSingle();
-
-
-
-        if (existingBooking) {
-
-            setSlotError(`You already have an active booking for this tour (${existingBooking.booking_number}). Please check My Bookings.`);
-
-            setIsBooking(false);
-
-            return;
-
-        }
-
-
-
-        const { data: profile } = await supabase
-
-            .from('profiles')
-
-            .select('full_name, contact_number, email')
-
-            .eq('id', user.id)
-
-            .single();
-
-
-
-        const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
-
-
-
-        const { data: booking, error } = await supabase.from('bookings').insert([{
-
-            tour_id: tour.id,
-
-            user_id: user.id,
-
-            booking_number: bookingNumber,
-
-            full_name: profile?.full_name || "N/A",
-
-            email: user.email || profile?.email || "N/A",
-
-            contact_number: profile?.contact_number || "N/A",
-
-            slots_booked: numPersons,
-
-            total_price: subtotal,
-
-            payment_status: 'Pending',
-
-            booking_status: 'Active',
-
-            payment_method: null,
-
-        }]).select();
-
-
+        // Capacity, duplicate-booking and price checks run inside the database function
+        // so two joiners can't book the last slots at the same time.
+        const { data: booking, error } = await supabase.rpc('create_booking', {
+            p_tour_id: tour.id,
+            p_slots: numPersons,
+        });
 
         if (error) {
-
-            alert("Database Error: " + error.message);
-
+            setSlotError(error.message);
             setIsBooking(false);
-
-        } else {
-
-            setBookingId(booking[0].id);
-
-            setCreatedBooking({
-
-                ...booking[0],
-
-                full_name: profile?.full_name || "N/A",
-
-                email: user.email || profile?.email || "N/A",
-
-                contact_number: profile?.contact_number || "N/A",
-
-                booking_number: bookingNumber,
-
-            });
-
-            setPaymentStep('proceed');
-
-            if (onBookingSuccess) onBookingSuccess();
-
-            notifyAdmins({
-
-                title: 'New Booking Received',
-
-                message: `${profile?.full_name || 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
-
-                type: 'booking',
-
-                related_id: booking[0].id,
-
-            });
-
+            return;
         }
+
+        setBookingId(booking.id);
+        setCreatedBooking(booking);
+        setPaymentStep('proceed');
+        if (onBookingSuccess) onBookingSuccess();
+        notifyAdmins({
+            title: 'New Booking Received',
+            message: `${booking.full_name !== 'N/A' ? booking.full_name : 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
+            type: 'booking',
+            related_id: booking.id,
+        });
 
         setIsBooking(false);
 

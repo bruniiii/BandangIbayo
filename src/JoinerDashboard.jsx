@@ -1275,36 +1275,23 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
 
-    const { data: profile } = await supabase.from('profiles').select('full_name, contact_number, email').eq('id', user.id).single();
-    const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
-
-    const { data: booking, error } = await supabase.from('bookings').insert([{
-      tour_id: tour.id,
-      user_id: user.id,
-      booking_number: bookingNumber,
-      full_name: profile?.full_name || "N/A",
-      email: user.email || profile?.email || "N/A",
-      contact_number: profile?.contact_number || "N/A",
-      slots_booked: numPersons,
-      total_price: subtotal,
-      payment_status: 'Pending',
-      booking_status: 'Active',
-      payment_method: null,
-    }]).select();
-
+    // Capacity, duplicate-booking and price checks run inside the database function.
+    const { data: booking, error } = await supabase.rpc('create_booking', {
+      p_tour_id: tour.id,
+      p_slots: numPersons,
+    });
     if (error) {
-      alert("Error: " + error.message);
+      alert(error.message);
     } else {
-      setBookingId(booking[0].id);
-      setCreatedBooking({ ...booking[0], full_name: profile?.full_name || "N/A", email: user.email || profile?.email || "N/A", contact_number: profile?.contact_number || "N/A", booking_number: bookingNumber });
+      setBookingId(booking.id);
+      setCreatedBooking(booking);
       setPaymentStep('proceed');
       if (onBookingSuccess) onBookingSuccess();
-
       notifyAdmins({
         title: 'New Booking Received',
-        message: `${profile?.full_name || 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
+        message: `${booking.full_name !== 'N/A' ? booking.full_name : 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
         type: 'booking',
-        related_id: booking[0].id,
+        related_id: booking.id,
       });
     }
     setIsBooking(false);
