@@ -543,15 +543,13 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           onClick={onDetails}
 
-          disabled={isFull}
-
           style={{
 
             width: '100%', marginTop: 14,
 
             padding: '11px 0',
 
-            border: 'none', borderRadius: 12, cursor: isFull ? 'not-allowed' : 'pointer',
+            border: 'none', borderRadius: 12, cursor: 'pointer',
 
             fontFamily: 'inherit', fontWeight: 900,
 
@@ -573,7 +571,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
         >
 
-          <Eye size={13} /> {isFull ? 'Closed' : 'View Details'}
+          <Eye size={13} /> {isFull ? 'Join Waitlist' : 'View Details'}
 
         </button>
 
@@ -1063,84 +1061,119 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
     const [paymentType, setPaymentType] = useState(null);
 
-    const [bookingId, setBookingId] = useState(null);
-
     const [createdBooking, setCreatedBooking] = useState(null);
-
-
+    // Everyone joining besides the person booking (persons 2..N): name + contact each.
+    const [companions, setCompanions] = useState([]);
+    const [companionError, setCompanionError] = useState("");
+    // Waitlist, shown when the tour is full.
+    const [myWaitlist, setMyWaitlist] = useState(null);
+    const [waitlistSlots, setWaitlistSlots] = useState(1);
+    const [waitlistBusy, setWaitlistBusy] = useState(false);
 
     const isFullyBooked = tour.available_slots <= 0;
-
     const isAlmostFull = !isFullyBooked && tour.available_slots <= 3;
-
     const maxBookingLimit = Math.min(tour.available_slots || 0, 10);
-
     const subtotal = tour.price * numPersons;
-
     const downpaymentAmount = Math.round(subtotal * 0.4);
-
     const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
 
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const { data } = await supabase
+                .from('tour_waitlist')
+                .select('id, slots_wanted, notified_at')
+                .eq('tour_id', tour.id)
+                .eq('user_id', user.id)
+                .maybeSingle();
+            if (active) setMyWaitlist(data || null);
+        })();
+        return () => { active = false; };
+    }, [tour.id]);
 
-
-    const handleBookThisTour = async () => {
-
+    const handlePersonsChange = (count) => {
+        setNumPersons(count);
+        setCompanions((prev) => Array.from({ length: count - 1 }, (_, i) => prev[i] || { full_name: '', contact_number: '' }));
         setSlotError("");
+        setCompanionError("");
+    };
 
+    const updateCompanion = (index, field, value) => {
+        setCompanions((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
+        setCompanionError("");
+    };
+
+    // Nothing is reserved here: the booking is created only when the GCash
+    // payment is submitted (create_booking). These checks just stop a joiner
+    // from paying for a tour that's already full or already booked by them.
+    const handleBookThisTour = async () => {
+        setSlotError("");
+        setCompanionError("");
+        if (companions.some((c) => !c.full_name.trim() || !c.contact_number.trim())) {
+            setCompanionError("Please enter the name and contact number of each person joining you.");
+            return;
+        }
         setIsBooking(true);
-
-
-
         const { data: { user } } = await supabase.auth.getUser();
-
         if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
 
-
-
-        // Capacity, duplicate-booking and price checks run inside the database function
-        // so two joiners can't book the last slots at the same time.
-        const { data: booking, error } = await supabase.rpc('create_booking', {
-            p_tour_id: tour.id,
-            p_slots: numPersons,
-        });
-
-        if (error) {
-            setSlotError(error.message);
+        const [fresh] = await withAvailableSlots([tour]);
+        if (numPersons > fresh.available_slots) {
+            setSlotError(fresh.available_slots <= 0
+                ? "Sorry, this tour is now fully booked."
+                : `Only ${fresh.available_slots} slot${fresh.available_slots > 1 ? 's' : ''} remaining. Please reduce the number of persons.`);
             setIsBooking(false);
             return;
         }
 
-        setBookingId(booking.id);
-        setCreatedBooking(booking);
-        setPaymentStep('proceed');
-        if (onBookingSuccess) onBookingSuccess();
-        notifyAdmins({
-            title: 'New Booking Received',
-            message: `${booking.full_name !== 'N/A' ? booking.full_name : 'A joiner'} submitted a booking for ${tour.title} (${numPersons} pax).`,
-            type: 'booking',
-            related_id: booking.id,
-        });
+        const { data: existingBooking } = await supabase
+            .from('bookings')
+            .select('booking_number')
+            .eq('tour_id', tour.id)
+            .eq('user_id', user.id)
+            .not('booking_status', 'in', '("Cancelled","Rejected")')
+            .maybeSingle();
+        if (existingBooking) {
+            setSlotError(`You already have an active booking for this tour (${existingBooking.booking_number}). Please check My Bookings.`);
+            setIsBooking(false);
+            return;
+        }
 
         setIsBooking(false);
-
+        setPaymentStep('proceed');
     };
 
+    const handleJoinWaitlist = async () => {
+        setWaitlistBusy(true);
+        const { data, error } = await supabase
+            .from('tour_waitlist')
+            .insert([{ tour_id: tour.id, slots_wanted: waitlistSlots }])
+            .select('id, slots_wanted, notified_at')
+            .single();
+        if (error) alert("Couldn't join the waitlist: " + error.message);
+        else setMyWaitlist(data);
+        setWaitlistBusy(false);
+    };
 
+    const handleLeaveWaitlist = async () => {
+        setWaitlistBusy(true);
+        const { error } = await supabase.from('tour_waitlist').delete().eq('id', myWaitlist.id);
+        if (error) alert("Couldn't leave the waitlist: " + error.message);
+        else setMyWaitlist(null);
+        setWaitlistBusy(false);
+    };
 
     const handleChoosePaymentType = (type) => {
-
         setPaymentType(type);
-
         setPaymentStep('gcash');
-
     };
 
-
-
-    const handlePaymentSuccess = () => {
-
+    const handlePaymentSuccess = (booking) => {
+        setCreatedBooking(booking);
         setPaymentStep('success');
-
+        if (onBookingSuccess) onBookingSuccess();
     };
 
 
@@ -1323,7 +1356,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                             value={numPersons}
 
-                                            onChange={(e) => { setNumPersons(parseInt(e.target.value)); setSlotError(""); }}
+                                            onChange={(e) => handlePersonsChange(parseInt(e.target.value))}
 
                                             style={{
 
@@ -1367,6 +1400,10 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     )}
 
+                                    {companions.length > 0 && (
+                                        <CompanionFields companions={companions} onChange={updateCompanion} error={companionError} />
+                                    )}
+
                                 </div>
 
                             )}
@@ -1393,7 +1430,18 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                 )}
 
-                                <button
+                                {isFullyBooked && (
+                                    <WaitlistPanel
+                                        entry={myWaitlist}
+                                        slots={waitlistSlots}
+                                        onSlotsChange={setWaitlistSlots}
+                                        busy={waitlistBusy}
+                                        onJoin={handleJoinWaitlist}
+                                        onLeave={handleLeaveWaitlist}
+                                    />
+                                )}
+
+                                {!isFullyBooked && <button
 
                                     onClick={handleBookThisTour}
 
@@ -1427,9 +1475,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                 >
 
-                                    {isBooking ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <><CreditCard size={14} /> {isFullyBooked ? 'Fully Booked' : 'Book This Tour'}</>}
+                                    {isBooking ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <><CreditCard size={14} /> Book This Tour</>}
 
-                                </button>
+                                </button>}
 
                             </div>
 
@@ -1593,7 +1641,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                 <GCashPaymentModal
 
-                    bookingId={bookingId}
+                    companions={companions}
 
                     tour={tour}
 
@@ -1873,7 +1921,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
 
 
-const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
+const GCashPaymentModal = ({ tour, numPersons, companions, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
 
     const [gcashNumber, setGcashNumber] = useState("");
 
@@ -1956,36 +2004,31 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
         try {
 
             // Private bucket: stores the file's path, admins view it through a signed link.
-            const receiptUrl = await uploadReceipt(screenshot);
+            const receiptPath = await uploadReceipt(screenshot);
 
-            const { error } = await supabase.from('bookings').update({
-
-                gcash_number: gcashNumber,
-
-                gcash_reference_no: refNumber,
-
-                receipt_url: receiptUrl,
-
-                payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
-
-                amount_paid: amountDue,
-
-                payment_status: 'Pending',
-
-            }).eq('id', bookingId);
-
-
+            // The booking is created only now, together with its payment. The
+            // database re-checks slots, duplicates and price, and stores everything at once.
+            const { data: booking, error } = await supabase.rpc('create_booking', {
+                p_tour_id: tour.id,
+                p_slots: numPersons,
+                p_payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
+                p_receipt_path: receiptPath,
+                p_gcash_number: gcashNumber.trim(),
+                p_gcash_reference_no: refNumber.trim(),
+                p_companions: companions,
+            });
 
             if (error) {
-
-                alert("Error: " + error.message);
-
+                alert(error.message);
             } else {
-
-                sendBookingSubmittedEmail({ bookingId });
-
-                onSuccess();
-
+                notifyAdmins({
+                    title: 'New Booking Received',
+                    message: `${booking.full_name !== 'N/A' ? booking.full_name : 'A joiner'} booked ${tour.title} (${numPersons} pax) and submitted a GCash payment.`,
+                    type: 'booking',
+                    related_id: booking.id,
+                });
+                sendBookingSubmittedEmail({ bookingId: booking.id });
+                onSuccess(booking);
             }
 
         } catch (err) {
@@ -2296,6 +2339,97 @@ const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentA
 
 
 
+/* ─────────────────────────────────────────────
+   GROUP BOOKING: details of everyone else joining
+───────────────────────────────────────────── */
+const CompanionFields = ({ companions, onChange, error }) => {
+    const inputStyle = {
+        width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
+        border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12,
+        padding: '10px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
+        fontFamily: 'inherit', outline: 'none',
+    };
+    return (
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>
+                Who's joining you?
+            </p>
+            {companions.map((c, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#C45C26' }}>Person {i + 2}</span>
+                    <input
+                        aria-label={`Person ${i + 2} full name`}
+                        placeholder="Full name"
+                        value={c.full_name}
+                        onChange={(e) => onChange(i, 'full_name', e.target.value)}
+                        style={inputStyle}
+                    />
+                    <input
+                        aria-label={`Person ${i + 2} contact number`}
+                        placeholder="Contact number"
+                        inputMode="tel"
+                        value={c.contact_number}
+                        onChange={(e) => onChange(i, 'contact_number', e.target.value)}
+                        style={inputStyle}
+                    />
+                </div>
+            ))}
+            {error && (
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#8C2F1C', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <AlertCircle size={13} /> {error}
+                </p>
+            )}
+        </div>
+    );
+};
+
+/* ─────────────────────────────────────────────
+   WAITLIST (fully booked tours)
+───────────────────────────────────────────── */
+const WaitlistPanel = ({ entry, slots, onSlotsChange, busy, onJoin, onLeave }) => (
+    <div style={{ background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.2)', borderRadius: 16, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {entry ? (
+            <>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
+                    {entry.notified_at
+                        ? `A slot opened up! Slots go to whoever books first, so book soon if it's still open.`
+                        : `You're on the waitlist for ${entry.slots_wanted} slot${entry.slots_wanted > 1 ? 's' : ''}. We'll notify you and email you if a slot opens.`}
+                </p>
+                <button type="button" onClick={onLeave} disabled={busy} style={waitlistButton(false)}>
+                    {busy ? 'Leaving…' : 'Leave Waitlist'}
+                </button>
+            </>
+        ) : (
+            <>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+                    This tour is full. Join the waitlist and we'll let you know if a slot opens.
+                </p>
+                <select
+                    aria-label="Slots needed"
+                    value={slots}
+                    onChange={(e) => onSlotsChange(parseInt(e.target.value))}
+                    style={{ width: '100%', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 12px', fontSize: 12, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit' }}
+                >
+                    {[...Array(10)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'Person' : 'Persons'}</option>
+                    ))}
+                </select>
+                <button type="button" onClick={onJoin} disabled={busy} style={waitlistButton(true)}>
+                    {busy ? 'Joining…' : 'Join Waitlist'}
+                </button>
+            </>
+        )}
+    </div>
+);
+
+const waitlistButton = (primary) => ({
+    width: '100%', padding: '12px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+    fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+    border: primary ? 'none' : '1px solid rgba(140,47,28,0.25)',
+    background: primary ? '#1A0A00' : 'transparent',
+    color: primary ? '#FDF6EE' : '#8C2F1C',
+});
+
 const BookingSuccessModal = ({ booking, tour, onClose }) => (
 
     <div style={overlayBackdrop}>
@@ -2352,6 +2486,6 @@ const BookingSuccessModal = ({ booking, tour, onClose }) => (
 
 
 
-export { JoinerTourCard, ViewSection, ChecklistGrid, ItineraryTimeline, TourImageCarousel };
+export { JoinerTourCard, ViewSection, ChecklistGrid, ItineraryTimeline, TourImageCarousel, DetailedTourModal };
 
 export default JoinerTours;

@@ -54,3 +54,8 @@ export const sendCustomEmail = async ({ userId, subject, message }) => {
   if (!userId) return { ok: false, error: 'No recipient.' };
   return send({ type: 'custom', userId, subject, message });
 };
+
+// After slots open on a tour (cancellation, rejection, date change, bigger group
+// size): emails the waitlisted joiners the database has already notified in-app.
+export const sendWaitlistOpeningsEmail = ({ tourId }) =>
+  tourId ? send({ type: 'waitlist-openings', tourId }) : null;

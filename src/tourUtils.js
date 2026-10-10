@@ -51,9 +51,12 @@ export const formatDateRange = (dateString, duration) => {
 export const todayManila = () =>
   new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
 
-// Only allow in-app paths as post-login redirects (no "//evil.com" or absolute URLs).
+// Only allow in-app paths as post-login redirects: no "//evil.com", "/\\evil.com"
+// (browsers treat a backslash like a slash) or absolute URLs.
 export const safeNextPath = (next) =>
-  typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : null;
+  typeof next === 'string' && next.startsWith('/') && !/^\/[/\\]/.test(next) && !next.includes('\\')
+    ? next
+    : null;
 
 // Terms, section 2: no cancellations within two weeks of the tour date.
 // Keep in sync with cancellation_cutoff_days() in the database.

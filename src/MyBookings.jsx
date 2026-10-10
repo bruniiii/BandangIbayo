@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila } from './tourUtils';
+import { sendWaitlistOpeningsEmail } from './Email';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
-  History, Trash2, ShieldAlert, MessageSquare
+  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -344,6 +345,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
         type: 'cancellation',
         related_id: booking.id,
       });
+      sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
       onCancelSuccess();
     }
     setCancelling(false);
@@ -440,6 +442,23 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     <DetailItem label="Total Price" value={`₱${booking.total_price?.toLocaleString()}`} />
                   </div>
                 </ViewSection>
+
+                {booking.companions?.length > 0 && (
+                  <ViewSection title="Joining You" icon={<Users size={14} style={{ color: '#C45C26' }} />}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {booking.companions.map((c, i) => (
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13, fontWeight: 700, color: '#1A0A00' }}>
+                          <span>{c.full_name}</span>
+                          <span style={{ color: '#7A3A18', fontWeight: 600 }}>{c.contact_number}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </ViewSection>
+                )}
+
+                {canCancel && !showCancelConfirm && (
+                  <RescheduleSection booking={booking} tour={tour} formatDateRange={formatDateRange} onMoved={onCancelSuccess} />
+                )}
 
                 {canCancel && !showCancelConfirm && (
                   <div style={{
@@ -597,6 +616,92 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 };
 
 /* ─── Helpers ───────────────────────────────────────────────────── */
+/* ── Move to another date: same trip (destination) at the same price ── */
+const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
+  const [options, setOptions] = useState(null); // null = not loaded yet
+  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [moving, setMoving] = useState(null);
+
+  const loadOptions = async () => {
+    setLoadingOptions(true);
+    const { data, error } = await supabase
+      .from('tours')
+      .select('*')
+      .eq('is_archived', false)
+      .eq('price', tour.price)
+      .ilike('destination', (tour.destination || '').trim())
+      .gt('start_date', todayManila())
+      .neq('id', booking.tour_id)
+      .order('start_date', { ascending: true });
+    if (error) console.error('Error loading other dates:', error.message);
+    const withSlots = await withAvailableSlots(data || []);
+    setOptions(withSlots.filter((t) => t.available_slots >= booking.slots_booked));
+    setLoadingOptions(false);
+  };
+
+  const moveTo = async (newTour) => {
+    if (!window.confirm(`Move booking ${booking.booking_number} to ${formatDateRange(newTour.start_date, newTour.duration)}?`)) return;
+    setMoving(newTour.id);
+    const { error } = await supabase.rpc('reschedule_booking', { p_booking_id: booking.id, p_new_tour_id: newTour.id });
+    setMoving(null);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    // The old date now has free slots: email anyone waiting for them.
+    sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
+    alert('Your booking has been moved. Your payment carries over to the new date.');
+    onMoved();
+  };
+
+  return (
+    <ViewSection title="Move to Another Date" icon={<CalendarClock size={14} style={{ color: '#C45C26' }} />}>
+      {options === null ? (
+        <button
+          type="button"
+          onClick={loadOptions}
+          disabled={loadingOptions}
+          style={{
+            width: '100%', padding: '12px 0', background: '#FDF6EE', color: '#1A0A00',
+            border: '1px solid rgba(196,92,38,0.25)', borderRadius: 14, cursor: 'pointer',
+            fontFamily: 'inherit', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+          }}
+        >
+          {loadingOptions ? 'Checking dates…' : 'See other dates for this trip'}
+        </button>
+      ) : options.length === 0 ? (
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+          No other dates of this trip at the same price have room for {booking.slots_booked} right now.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {options.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => moveTo(t)}
+              disabled={moving !== null}
+              style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+                width: '100%', padding: '12px 14px', background: '#FDF6EE', textAlign: 'left',
+                border: '1px solid rgba(196,92,38,0.2)', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00' }}>{formatDateRange(t.start_date, t.duration)}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>
+                {moving === t.id ? 'Moving…' : `${t.available_slots} slot${t.available_slots === 1 ? '' : 's'} left`}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '10px 0 0' }}>
+        Same trip and price, so your payment carries over. Possible until the cancellation deadline.
+      </p>
+    </ViewSection>
+  );
+};
+
 const ViewSection = ({ title, titleColor, icon, children }) => (
   <section>
     <h4 style={{

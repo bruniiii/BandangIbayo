@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { sendBookingStatusEmail } from "./Email";
+import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
-  Wallet, Printer,
+  Wallet, Printer, Users, History,
 } from 'lucide-react';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -335,6 +335,8 @@ const BookingManagement = () => {
  
             if (!error) {
               sendBookingStatusEmail({ bookingId: id });
+              // A rejected booking frees its slots: email anyone on the waitlist.
+              if (status !== 'Confirmed') sendWaitlistOpeningsEmail({ tourId: selectedBooking.tour_id });
 
               notifyUser(selectedBooking.user_id, {
                 title: status === 'Confirmed' ? 'Booking Confirmed 🎉' : 'Booking Update',
@@ -666,6 +668,16 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               <InfoItem label="Quantity (pax)" value={`${booking.slots_booked} ${booking.slots_booked === 1 ? 'person' : 'persons'}`} />
             </div>
           </ViewSection>
+
+          {booking.companions?.length > 0 && (
+            <ViewSection title="Group Members" icon={<Users size={14} />}>
+              <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                {booking.companions.map((c, i) => (
+                  <InfoItem key={i} label={`Person ${i + 2}`} value={`${c.full_name} · ${c.contact_number}`} />
+                ))}
+              </div>
+            </ViewSection>
+          )}
  
           <ViewSection title="Payment Information" icon={<CreditCard size={14} />}>
             <div style={{ background: '#F2E4D0', borderRadius: 18, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -794,6 +806,8 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               text="Payment has been verified and the booking is confirmed."
             />
           )}
+
+          <BookingActivity bookingId={booking.id} />
         </div>
  
         {/* Footer: Action Buttons */}
@@ -1044,6 +1058,66 @@ const ViewSection = ({ title, icon, children }) => (
   </section>
 );
  
+/* Who confirmed, rejected, moved or edited this booking, and when (booking_activity). */
+const ACTIVITY_FIELD_LABELS = {
+  payment_status: 'Payment status', booking_status: 'Booking status', tour_id: 'Tour',
+  amount_paid: 'Amount paid', total_price: 'Total price', slots_booked: 'Slots',
+  receipt_url: 'Receipt', gcash_reference_no: 'GCash reference', gcash_number: 'GCash number',
+  payment_method: 'Payment method', balance_settled: 'Balance settled', cancellation_reason: 'Cancellation reason',
+  full_name: 'Name', contact_number: 'Contact number', email: 'Email',
+};
+
+const BookingActivity = ({ bookingId }) => {
+  const [entries, setEntries] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase
+      .from('booking_activity')
+      .select('id, actor_name, action, changes, created_at')
+      .eq('booking_id', bookingId)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) console.error('Error loading booking activity:', error.message);
+        if (active) setEntries(data || []);
+      });
+    return () => { active = false; };
+  }, [bookingId]);
+
+  const describe = (changes) => Object.keys(changes || {})
+    .filter((k) => ACTIVITY_FIELD_LABELS[k] && typeof changes[k] === 'object' && changes[k] !== null && 'to' in changes[k])
+    .map((k) => {
+      const { from, to } = changes[k];
+      if (k === 'receipt_url' || k === 'tour_id') return ACTIVITY_FIELD_LABELS[k] + ' changed';
+      return `${ACTIVITY_FIELD_LABELS[k]}: ${from ?? '—'} → ${to ?? '—'}`;
+    })
+    .join(' · ');
+
+  return (
+    <ViewSection title="Activity" icon={<History size={14} />}>
+      {entries === null ? (
+        <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>Loading…</p>
+      ) : entries.length === 0 ? (
+        <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>No activity recorded yet.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {entries.map((e) => (
+            <div key={e.id} style={{ borderLeft: '3px solid rgba(196,92,38,0.35)', paddingLeft: 12 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
+                {e.action} <span style={{ fontWeight: 600, color: '#7A3A18' }}>by {e.actor_name}</span>
+              </p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>
+                {new Date(e.created_at).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
+                {describe(e.changes) && ` · ${describe(e.changes)}`}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </ViewSection>
+  );
+};
+
 const InfoItem = ({ label, value, mono = false }) => (
   <div>
     <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 5px' }}>

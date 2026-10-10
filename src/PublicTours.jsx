@@ -267,7 +267,8 @@ export const PublicTourDetail = () => {
   const capacity = tour.group_size || DEFAULT_GROUP_SIZE;
   const hasDeparted = tour.start_date < todayManila();
   const isFull = tour.available_slots <= 0;
-  const canBook = !hasDeparted && !isFull;
+  // Full tours still open the booking window, where joiners can join the waitlist.
+  const canBook = !hasDeparted;
   const filledPct = Math.min(100, (tour.current_booked / capacity) * 100);
 
   const facts = [
@@ -382,7 +383,7 @@ export const PublicTourDetail = () => {
                 color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
               }}
             >
-              {hasDeparted ? 'This tour has departed' : isFull ? 'Fully booked' : session ? 'Book this tour' : 'Log in to book'}
+              {hasDeparted ? 'This tour has departed' : isFull ? (session ? 'Join the waitlist' : 'Log in to join the waitlist') : session ? 'Book this tour' : 'Log in to book'}
             </button>
             {canBook && !session && (
               <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.7)', margin: '-8px 0 0', textAlign: 'center' }}>
@@ -430,7 +431,7 @@ export const PublicTourDetail = () => {
             color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
           }}
         >
-          {hasDeparted ? 'Departed' : isFull ? 'Fully booked' : session ? 'Book now' : 'Log in to book'}
+          {hasDeparted ? 'Departed' : isFull ? 'Join waitlist' : session ? 'Book now' : 'Log in to book'}
         </button>
       </div>
       <style>{publicCss}</style>
