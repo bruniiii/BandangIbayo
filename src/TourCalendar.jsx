@@ -13,7 +13,7 @@ import {
   ArrowLeft, Smartphone
 } from 'lucide-react';
 
-// ── PALETTE ──────────────────────────────────────────────
+// ── PALETTE ──────────────────────────────────────────────  
 // #1A0A00  espresso dark
 // #C45C26  burnt sienna (accent)
 // #E8A265  warm amber (highlight)

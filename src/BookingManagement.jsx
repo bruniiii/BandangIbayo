@@ -995,7 +995,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
       )}
     </div>
   );
-};
+};       
  
 /* ─────────────────────────────────────────────
    RECEIPT THUMBNAIL (helper)

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { supabase } from './supabaseClient';
-
-import { sendBookingSubmittedEmail } from './Email';
+import { sendBookingSubmittedEmail } from "./Email";
 
 import { notifyAdmins } from './notifications';
 

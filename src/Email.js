@@ -61,3 +61,41 @@ export const sendBookingRejectedEmail = ({ to, name, bookingNumber, tourTitle })
     <p>Please reach out to us so we can help sort this out.</p>
   `),
 });
+
+// ─────────────────────────────────────────────
+// ADMIN → JOINER MANUAL EMAIL
+// Unlike the helpers above, this one reports success/failure so the
+// admin UI can tell the admin whether the email actually went out.
+// ─────────────────────────────────────────────
+const escapeHtml = (str) =>
+  String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+export const sendCustomEmail = async ({ to, name, subject, message }) => {
+  if (!to) return { ok: false, error: 'No recipient email.' };
+  const html = wrapper(escapeHtml(subject), '#C45C26', `
+    <p>Hi ${escapeHtml(name || 'Traveler')},</p>
+    <p style="line-height:1.7; white-space:pre-wrap;">${escapeHtml(message)}</p>
+    <p style="color:#7A3A18; font-size: 12px;">You can reply directly to this email.</p>
+  `);
+  try {
+    const { data, error } = await supabase.functions.invoke('send-email', {
+      body: { to, subject, html, replyTo: 'bandangibayo@gmail.com' },
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error));
+    return { ok: true };
+  } catch (err) {
+    console.error('Error sending custom email:', err);
+    // supabase-js hides the real reason behind "non-2xx status code";
+    // the actual message is in the function's response body.
+    let detail = err.message || 'Unknown error';
+    try {
+      if (err.context && typeof err.context.json === 'function') {
+        const body = await err.context.clone().json();
+        const raw = body?.error ?? body;
+        detail = typeof raw === 'string' ? raw : JSON.stringify(raw);
+      }
+    } catch { /* keep the generic message */ }
+    return { ok: false, error: detail };
+  }
+};
