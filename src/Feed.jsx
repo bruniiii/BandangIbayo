@@ -87,7 +87,7 @@ const Feed = ({ isAdmin = false }) => {
 
     const authorIds = [...new Set((data || []).map(c => c.user_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = authorIds.length
-      ? await supabase.from('profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
+      ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
       : { data: [] };
     if (profilesError) console.error('Error fetching comment authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
@@ -111,7 +111,7 @@ const Feed = ({ isAdmin = false }) => {
 
     const authorIds = [...new Set((data || []).map(p => p.author_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = authorIds.length
-      ? await supabase.from('profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
+      ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
       : { data: [] };
     if (profilesError) console.error('Error fetching post authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));

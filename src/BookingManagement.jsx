@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import { sendBookingStatusEmail } from "./Email";
 import { notifyUser } from './notifications';
+import { useReceiptUrl } from './receipts';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
@@ -462,6 +463,8 @@ const BookingRow = ({ booking, onView }) => {
    BOOKING DETAIL MODAL
 ───────────────────────────────────────────── */
 const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance }) => {
+  // Receipts are private: view them through a short-lived signed link.
+  const receiptSrc = useReceiptUrl(booking.receipt_url);
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
@@ -744,7 +747,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               {booking.receipt_url ? (
                 <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
-                  <ReceiptThumb src={booking.receipt_url} onClick={() => setShowReceiptPreview(true)} />
+                  <ReceiptThumb src={receiptSrc} onClick={() => setShowReceiptPreview(true)} />
                 </div>
               ) : (
                 <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
@@ -964,7 +967,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
       )}
  
       {/* Receipt Full Preview */}
-      {showReceiptPreview && booking.receipt_url && (
+      {showReceiptPreview && receiptSrc && (
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 99999,
@@ -980,7 +983,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           }}>
             <X size={40} />
           </button>
-          <img src={booking.receipt_url} style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Receipt" />
+          <img src={receiptSrc} style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Receipt" />
         </div>
       )}
     </div>

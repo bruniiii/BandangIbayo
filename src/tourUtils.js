@@ -54,3 +54,19 @@ export const todayManila = () =>
 // Only allow in-app paths as post-login redirects (no "//evil.com" or absolute URLs).
 export const safeNextPath = (next) =>
   typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : null;
+
+// Terms, section 2: no cancellations within two weeks of the tour date.
+// Keep in sync with cancellation_cutoff_days() in the database.
+export const CANCELLATION_CUTOFF_DAYS = 14;
+
+// Last day a joiner can cancel (YYYY-MM-DD), and whether that's still possible today.
+export const cancellationDeadline = (startDate) => {
+  if (!startDate) return null;
+  const [y, m, d] = startDate.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d - CANCELLATION_CUTOFF_DAYS)).toISOString().slice(0, 10);
+};
+
+export const isWithinCancellationWindow = (startDate) => {
+  const deadline = cancellationDeadline(startDate);
+  return !!deadline && todayManila() > deadline;
+};

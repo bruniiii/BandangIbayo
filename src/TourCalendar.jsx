@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import { sendBookingSubmittedEmail } from './Email';
 import { notifyAdmins } from './notifications';
 import { withAvailableSlots } from './tourUtils';
+import { uploadReceipt } from './receipts';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths
@@ -942,21 +943,15 @@ const GCashPaymentModal = ({ tour, numPersons, subtotal, downpaymentAmount, paym
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Please log in to book a tour.");
       
-      const fileExt = receipt.name.split('.').pop();
-      const fileName = `receipts/${Date.now()}_${user.id}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from('booking-receipts')
-        .upload(fileName, receipt, { upsert: true });
-      if (uploadError) throw new Error("Receipt upload failed: " + uploadError.message);
-      
-      const { data: { publicUrl } } = supabase.storage.from('booking-receipts').getPublicUrl(fileName);
-      
+      // Private bucket: stores the file's path, admins view it through a signed link.
+      const receiptPath = await uploadReceipt(receipt);
+
       // Capacity, duplicate-booking and price checks run inside the database function.
       const { data: insertedBooking, error: bookingError } = await supabase.rpc('create_booking', {
         p_tour_id: tour.id,
         p_slots: numPersons,
         p_payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
-        p_receipt_url: publicUrl,
+        p_receipt_url: receiptPath,
       });
 
       if (bookingError) throw new Error(bookingError.message);
