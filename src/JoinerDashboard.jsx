@@ -5,6 +5,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { withAvailableSlots } from './tourUtils';
+import { verifyCheckout, cancelCheckout } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
 import JoinerTours, { DetailedTourModal } from './JoinerTours';
 import TourCalendar from './TourCalendar';
@@ -47,7 +48,15 @@ const JoinerDashboard = () => {
   // A public tour page's "Book" button lands here as /dashboard?book=<tourId>.
   const [searchParams, setSearchParams] = useSearchParams();
   const [bookTourId, setBookTourId] = useState(() => searchParams.get('book'));
-  const [activeTab, setActiveTab] = useState(bookTourId ? 'Explore Tours' : 'HomePage');
+  // Coming back from PayMongo: /dashboard?payment=success|cancelled&booking=<id>
+  // (or ?balance=… after paying a downpayment's remaining balance).
+  const [paymentReturn] = useState(() => {
+    const kind = searchParams.has('payment') ? 'payment' : searchParams.has('balance') ? 'balance' : null;
+    return kind ? { kind, result: searchParams.get(kind), bookingId: searchParams.get('booking') } : null;
+  });
+  const [paymentNotice, setPaymentNotice] = useState(paymentReturn ? { type: 'info', text: 'Checking your payment…' } : null);
+  const [myBookingsKey, setMyBookingsKey] = useState(0);
+  const [activeTab, setActiveTab] = useState(paymentReturn ? 'My Bookings' : bookTourId ? 'Explore Tours' : 'HomePage');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -75,10 +84,43 @@ const JoinerDashboard = () => {
   const [featuredTours, setFeaturedTours] = useState([]);
   const [selectedTour, setSelectedTour] = useState(null);
 
-  // Drop ?book= from the URL so a refresh doesn't reopen the booking window.
+  // Drop ?book= / ?payment= from the URL so a refresh doesn't repeat them.
   useEffect(() => {
-    if (searchParams.has('book')) setSearchParams({}, { replace: true });
+    if (['book', 'payment', 'balance'].some((k) => searchParams.has(k))) setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  // Confirm (or release) the booking with PayMongo's answer, then show the result.
+  useEffect(() => {
+    if (!paymentReturn?.bookingId) return;
+    let active = true;
+    (async () => {
+      const { bookingId, kind, result } = paymentReturn;
+      let notice;
+      if (result === 'cancelled') {
+        if (kind === 'payment') {
+          const { ok, data } = await cancelCheckout({ bookingId });
+          // If they had actually paid before backing out, the booking is confirmed instead.
+          notice = ok && ['confirmed', 'already', 'Complete'].includes(data?.status)
+            ? { type: 'success', text: 'Payment received! Your booking is confirmed.' }
+            : { type: 'info', text: 'Payment cancelled. Your held slots were released.' };
+        } else {
+          notice = { type: 'info', text: 'Balance payment cancelled. You can pay online anytime from My Bookings, or in person on the tour day.' };
+        }
+      } else {
+        const { ok, data, error } = await verifyCheckout({ bookingId });
+        const status = kind === 'balance' ? data?.balance?.status : data?.booking?.status;
+        if (!ok) notice = { type: 'error', text: `We couldn't check your payment yet (${error}). It will update automatically once PayMongo confirms it.` };
+        else if (status === 'refund_needed') notice = { type: 'error', text: 'We received your payment, but the tour filled up after your checkout expired. We\'ll contact you about a refund.' };
+        else if (status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your payment yet. If you paid, it will show here once PayMongo confirms it.' };
+        else if (kind === 'balance') notice = { type: 'success', text: 'Balance paid! Your booking is now fully paid.' };
+        else notice = { type: 'success', text: 'Payment received! Your booking is confirmed. 🎉' };
+      }
+      if (!active) return;
+      setPaymentNotice(notice);
+      setMyBookingsKey((k) => k + 1);
+    })();
+    return () => { active = false; };
+  }, [paymentReturn]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -519,6 +561,21 @@ const JoinerDashboard = () => {
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#EDEAE3' }}>
 
+          {paymentNotice && (
+            <div role="status" style={{
+              display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+              marginBottom: 20, padding: '14px 18px', borderRadius: 16, fontSize: 13, fontWeight: 700,
+              background: paymentNotice.type === 'success' ? 'rgba(196,92,38,0.12)' : paymentNotice.type === 'error' ? 'rgba(140,47,28,0.12)' : '#FDF6EE',
+              border: `1px solid ${paymentNotice.type === 'error' ? 'rgba(140,47,28,0.3)' : 'rgba(196,92,38,0.25)'}`,
+              color: paymentNotice.type === 'error' ? '#8C2F1C' : '#1A0A00',
+            }}>
+              <span>{paymentNotice.text}</span>
+              <button type="button" aria-label="Dismiss" onClick={() => setPaymentNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', flexShrink: 0 }}>
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -767,7 +824,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Explore Tours' ? (
             <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
-            <MyBookings initialFilter={bookingsFilter} />
+            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} />
           ) : activeTab === 'Calendar' ? (
             <TourCalendar initialDate={calendarTarget} />
           ) : activeTab === 'Exclusive Tours' ? (

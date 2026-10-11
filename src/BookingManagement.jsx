@@ -22,6 +22,7 @@ import {
 const getDerivedStatus = (b) => (
   (b.payment_status === 'Pending' || b.payment_status === 'Verification Pending') ? b.payment_status :
   b.payment_status === 'Rejected' ? 'Rejected' :
+  b.payment_status === 'Refund Needed' ? 'Refund Needed' :
   b.booking_status === 'Cancelled' ? 'Cancelled' :
   b.payment_status
 );
@@ -262,6 +263,8 @@ const BookingManagement = () => {
             <option value="Complete">Complete</option>
             <option value="Rejected">Rejected</option>
             <option value="Cancelled">Cancelled</option>
+            <option value="Awaiting Payment">Awaiting Payment</option>
+            <option value="Refund Needed">Refund Needed</option>
             <option value="Balance Due">Balance Due</option>
           </select>
           <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
@@ -793,8 +796,26 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                 </div>
               )}
  
-              {/* Receipt Screenshot */}
-              {booking.receipt_url ? (
+              {/* Paid online through PayMongo: no receipt to check */}
+              {booking.paymongo_payment_id ? (
+                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+                  <p style={labelStyle}>Online Payment (PayMongo)</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.7 }}>
+                    Confirmed automatically{booking.paid_online_at ? ` on ${formatDateTime(booking.paid_online_at)}` : ''}.<br />
+                    Payment ID: <span style={{ fontFamily: 'monospace' }}>{booking.paymongo_payment_id}</span>
+                    {booking.paymongo_balance_payment_id && (
+                      <><br />Balance payment ID: <span style={{ fontFamily: 'monospace' }}>{booking.paymongo_balance_payment_id}</span></>
+                    )}
+                  </p>
+                </div>
+              ) : booking.payment_status === 'Awaiting Payment' ? (
+                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+                  <p style={labelStyle}>Online Payment (PayMongo)</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+                    The joiner hasn't finished paying yet. The slots are released automatically if they don't pay within 30 minutes.
+                  </p>
+                </div>
+              ) : booking.receipt_url ? (
                 <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
                   <ReceiptThumb src={receiptSrc} onClick={() => setShowReceiptPreview(true)} />
@@ -1187,6 +1208,9 @@ const STATUS_STYLES = {
   Verified: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
   Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
+  'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
+  Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
+  'Refund Needed': { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
 };
  
 const StatusBadge = ({ status, large = false }) => {

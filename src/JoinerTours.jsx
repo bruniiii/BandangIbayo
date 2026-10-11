@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { supabase } from './supabaseClient';
-import { sendBookingSubmittedEmail } from "./Email";
 
-import { notifyAdmins } from './notifications';
 import { withAvailableSlots, formatDateRange } from './tourUtils';
-import { uploadReceipt } from './receipts';
+import { startCheckout } from './payments';
 
 import { 
 
@@ -1047,7 +1045,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
 ───────────────────────────────────────────── */
 
-const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess }) => {
+const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
     const images = tour.image_urls || [];
 
@@ -1059,9 +1057,8 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
     const [paymentStep, setPaymentStep] = useState(null);
 
-    const [paymentType, setPaymentType] = useState(null);
 
-    const [createdBooking, setCreatedBooking] = useState(null);
+    const [redirectingToPayment, setRedirectingToPayment] = useState(false);
     // Everyone joining besides the person booking (persons 2..N): name + contact each.
     const [companions, setCompanions] = useState([]);
     const [companionError, setCompanionError] = useState("");
@@ -1105,9 +1102,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
         setCompanionError("");
     };
 
-    // Nothing is reserved here: the booking is created only when the GCash
-    // payment is submitted (create_booking). These checks just stop a joiner
-    // from paying for a tour that's already full or already booked by them.
+    // Nothing is reserved here: slots are held only once the joiner picks a
+    // payment type and goes to PayMongo (start_online_booking). These checks just
+    // stop a joiner from starting checkout for a tour that's full or already booked.
     const handleBookThisTour = async () => {
         setSlotError("");
         setCompanionError("");
@@ -1165,15 +1162,21 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
         setWaitlistBusy(false);
     };
 
-    const handleChoosePaymentType = (type) => {
-        setPaymentType(type);
-        setPaymentStep('gcash');
-    };
-
-    const handlePaymentSuccess = (booking) => {
-        setCreatedBooking(booking);
-        setPaymentStep('success');
-        if (onBookingSuccess) onBookingSuccess();
+    // Online payment: hold the slots and go to PayMongo's secure checkout page.
+    const handleChoosePaymentType = async (type) => {
+        setRedirectingToPayment(true);
+        const { ok, data, error } = await startCheckout({
+            tourId: tour.id,
+            slots: numPersons,
+            paymentType: type,
+            companions,
+        });
+        if (!ok) {
+            alert(error);
+            setRedirectingToPayment(false);
+            return;
+        }
+        window.location.assign(data.checkoutUrl);
     };
 
 
@@ -1629,53 +1632,14 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                     onChoose={handleChoosePaymentType}
 
+                    busy={redirectingToPayment}
+
                     onBack={() => setPaymentStep('proceed')}
 
                 />
 
             )}
 
-
-
-            {paymentStep === 'gcash' && (
-
-                <GCashPaymentModal
-
-                    companions={companions}
-
-                    tour={tour}
-
-                    numPersons={numPersons}
-
-                    subtotal={subtotal}
-
-                    downpaymentAmount={downpaymentAmount}
-
-                    paymentType={paymentType}
-
-                    onSuccess={handlePaymentSuccess}
-
-                    onBack={() => setPaymentStep('choose')}
-
-                />
-
-            )}
-
-
-
-            {paymentStep === 'success' && (
-
-                <BookingSuccessModal
-
-                    booking={createdBooking}
-
-                    tour={tour}
-
-                    onClose={() => { setPaymentStep(null); onClose(); }}
-
-                />
-
-            )}
 
         </div>
 
@@ -1725,7 +1689,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
             <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={22} /></button>
 
-            <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 3</span>
+            <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 2</span>
 
           </div>
 
@@ -1817,7 +1781,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
 
 
-const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
+const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack, busy }) => (
 
     <div style={overlayBackdrop}>
 
@@ -1841,7 +1805,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
                 </button>
 
-                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 2 of 3</span>
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 2 of 2</span>
 
             </div>
 
@@ -1850,6 +1814,9 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                 <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
 
                 <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '6px 0 0' }}>
+                    You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for 30 minutes.
+                </p>
 
             </div>
 
@@ -1860,6 +1827,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                 <button
 
                     onClick={() => onChoose('full')}
+                    disabled={busy}
 
                     style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s' }}
 
@@ -1888,6 +1856,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                 <button
 
                     onClick={() => onChoose('down')}
+                    disabled={busy}
 
                     style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.2s' }}
 
@@ -1907,11 +1876,16 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
                     <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{downpaymentAmount.toLocaleString()}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now, settle the rest before the tour</p>
+                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
 
             </div>
+            {busy && (
+                <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#C45C26', margin: 0 }}>
+                    <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Opening secure checkout…
+                </p>
+            )}
 
         </div>
 
@@ -1921,421 +1895,6 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
 
 
-const GCashPaymentModal = ({ tour, numPersons, companions, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
-
-    const [gcashNumber, setGcashNumber] = useState("");
-
-
-
-    useEffect(() => {
-
-        const prefillPhone = async () => {
-
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) return;
-
-            const { data: profile } = await supabase
-
-                .from('profiles')
-
-                .select('phone_number')
-
-                .eq('id', user.id)
-
-                .single();
-
-            if (profile?.phone_number) setGcashNumber(profile.phone_number);
-
-        };
-
-        prefillPhone();
-
-    }, []);
-
-    const [refNumber, setRefNumber] = useState("");
-
-    const [screenshot, setScreenshot] = useState(null);
-
-    const [screenshotPreview, setScreenshotPreview] = useState(null);
-
-    const [submitting, setSubmitting] = useState(false);
-
-
-
-    const amountDue = paymentType === 'full' ? subtotal : downpaymentAmount;
-
-    const balance = paymentType === 'down' ? subtotal - downpaymentAmount : 0;
-
-
-
-    const handleScreenshotChange = (e) => {
-
-        const file = e.target.files[0];
-
-        if (file) {
-
-            setScreenshot(file);
-
-            const reader = new FileReader();
-
-            reader.onloadend = () => setScreenshotPreview(reader.result);
-
-            reader.readAsDataURL(file);
-
-        }
-
-    };
-
-
-
-    const handleConfirmBooking = async () => {
-
-        if (!gcashNumber.trim()) return alert("Please enter your GCash number.");
-
-        if (!refNumber.trim()) return alert("Please enter your GCash Reference Number.");
-
-        if (!screenshot) return alert("Please upload a screenshot of your transaction.");
-
-
-
-        setSubmitting(true);
-
-        try {
-
-            // Private bucket: stores the file's path, admins view it through a signed link.
-            const receiptPath = await uploadReceipt(screenshot);
-
-            // The booking is created only now, together with its payment. The
-            // database re-checks slots, duplicates and price, and stores everything at once.
-            const { data: booking, error } = await supabase.rpc('create_booking', {
-                p_tour_id: tour.id,
-                p_slots: numPersons,
-                p_payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
-                p_receipt_path: receiptPath,
-                p_gcash_number: gcashNumber.trim(),
-                p_gcash_reference_no: refNumber.trim(),
-                p_companions: companions,
-            });
-
-            if (error) {
-                alert(error.message);
-            } else {
-                notifyAdmins({
-                    title: 'New Booking Received',
-                    message: `${booking.full_name !== 'N/A' ? booking.full_name : 'A joiner'} booked ${tour.title} (${numPersons} pax) and submitted a GCash payment.`,
-                    type: 'booking',
-                    related_id: booking.id,
-                });
-                sendBookingSubmittedEmail({ bookingId: booking.id });
-                onSuccess(booking);
-            }
-
-        } catch (err) {
-
-            alert(err?.message || "Something went wrong. Please try again.");
-
-        }
-
-        setSubmitting(false);
-
-    };
-
-
-
-    const fieldLabelStyle = { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8 };
-
-    const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 16, padding: '14px 16px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
-
-
-
-    return (
-
-        <div style={{ ...overlayBackdrop, overflowY: 'auto' }}>
-
-            <div style={{ background: '#FDF6EE', width: '100%', maxWidth: 720, borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', margin: 'auto' }}>
-
-                {/* Header */}
-
-                <div style={{ background: '#1A0A00', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-
-                        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E8A265', flexShrink: 0 }}>
-
-                            <ArrowLeft size={20} />
-
-                        </button>
-
-                        <div style={{ minWidth: 0 }}>
-
-                            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FDF6EE', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>GCash Payment</h3>
-
-                            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.7)', margin: '2px 0 0' }}>{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
-
-                        </div>
-
-                    </div>
-
-                    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', flexShrink: 0 }}>Step 3 of 3</span>
-
-                </div>
-
-
-
-                <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-                    {/* GCash Send To */}
-
-                    <div style={{ background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.25)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
-
-                        <div style={{ width: 48, height: 48, background: '#3F5D62', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-
-                            <Smartphone size={22} style={{ color: '#FDF6EE' }} />
-
-                        </div>
-
-                        <div>
-
-                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3F5D62', margin: '0 0 4px' }}>Send GCash Payment To</p>
-
-                            <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0 }}>09XX XXX XXXX</p>
-
-                            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>Bandang IBAYO Tours</p>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-
-                        {/* Left: Form */}
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-                            <div>
-
-                                <label style={fieldLabelStyle}>Your GCash Number</label>
-
-                                <input
-
-                                    type="tel"
-
-                                    value={gcashNumber}
-
-                                    onChange={(e) => setGcashNumber(e.target.value)}
-
-                                    placeholder="09XX XXX XXXX"
-
-                                    style={fieldInputStyle}
-
-                                />
-
-                            </div>
-
-                            <div>
-
-                                <label style={fieldLabelStyle}>GCash Reference Number</label>
-
-                                <input
-
-                                    type="text"
-
-                                    value={refNumber}
-
-                                    onChange={(e) => setRefNumber(e.target.value)}
-
-                                    placeholder="13-digit reference number"
-
-                                    style={fieldInputStyle}
-
-                                />
-
-                            </div>
-
-                            <div>
-
-                                <label style={fieldLabelStyle}>Transaction Screenshot</label>
-
-                                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F2E4D0' }}>
-
-                                    <input type="file" accept="image/*" onChange={handleScreenshotChange} style={{ display: 'none' }} />
-
-                                    {screenshotPreview ? (
-
-                                        <img src={screenshotPreview} alt="Receipt" style={{ width: '100%', height: 128, objectFit: 'cover', borderRadius: 12 }} />
-
-                                    ) : (
-
-                                        <>
-
-                                            <Upload size={22} style={{ color: 'rgba(196,92,38,0.5)', marginBottom: 8 }} />
-
-                                            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Upload Screenshot</p>
-
-                                        </>
-
-                                    )}
-
-                                </label>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* Right: Booking Summary */}
-
-                        <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-
-                                <Receipt size={15} style={{ color: '#C45C26' }} />
-
-                                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>Booking Summary</p>
-
-                            </div>
-
-
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Tour</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00', textAlign: 'right' }}>{tour.title}</span>
-
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Quantity</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>{numPersons} pax</span>
-
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Price/pax</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
-
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 10 }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Subtotal</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{subtotal.toLocaleString()}</span>
-
-                                </div>
-
-
-
-                                {paymentType === 'down' && (
-
-                                    <>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                            <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Downpayment (40%)</span>
-
-                                            <span style={{ fontWeight: 700, color: '#C45C26' }}>₱{downpaymentAmount.toLocaleString()}</span>
-
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                            <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Remaining Balance</span>
-
-                                            <span style={{ fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>₱{balance.toLocaleString()}</span>
-
-                                        </div>
-
-                                    </>
-
-                                )}
-
-
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid rgba(196,92,38,0.18)', paddingTop: 10, marginTop: 4 }}>
-
-                                    <span style={{ fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.1em' }}>
-
-                                        {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
-
-                                    </span>
-
-                                    <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 18 }}>₱{amountDue.toLocaleString()}</span>
-
-                                </div>
-
-                            </div>
-
-
-
-                            {paymentType === 'down' && (
-
-                                <div style={{ background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px', marginTop: 4 }}>
-
-                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5, margin: 0 }}>⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
-
-                                </div>
-
-                            )}
-
-                        </div>
-
-                    </div>
-
-
-
-                    <button
-
-                        onClick={handleConfirmBooking}
-
-                        disabled={submitting}
-
-                        style={{
-
-                            width: '100%', padding: '15px 0', background: '#C45C26', color: '#FDF6EE',
-
-                            border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
-
-                            fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
-
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-
-                            boxShadow: '0 8px 24px rgba(196,92,38,0.3)',
-
-                            transition: 'background 0.2s',
-
-                        }}
-
-                        onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = '#1A0A00'; }}
-
-                        onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = '#C45C26'; }}
-
-                    >
-
-                        {submitting ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</> : <><Check size={16} /> Confirm Booking</>}
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    );
-
-};
 
 
 
@@ -2430,59 +1989,6 @@ const waitlistButton = (primary) => ({
     color: primary ? '#FDF6EE' : '#8C2F1C',
 });
 
-const BookingSuccessModal = ({ booking, tour, onClose }) => (
-
-    <div style={overlayBackdrop}>
-
-        <div style={{
-
-            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
-
-            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-
-            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
-
-            borderTop: '8px solid #C45C26',
-
-        }}>
-
-            <div style={{ width: 72, height: 72, background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-
-                <CheckCircle2 size={36} style={{ color: '#C45C26' }} />
-
-            </div>
-
-            <div>
-
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Booking Submitted!</h3>
-
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>Your booking is now pending verification by our team.</p>
-
-            </div>
-
-            <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left' }}>
-
-                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 10px' }}>Booking Reference</p>
-
-                <p style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0, wordBreak: 'break-word' }}>{booking?.booking_number}</p>
-
-                <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0' }}>{tour?.title}</p>
-
-            </div>
-
-            <div style={{ background: 'rgba(196,92,38,0.1)', borderRadius: 16, padding: '14px 18px' }}>
-
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0 }}>We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
-
-            </div>
-
-            <button onClick={onClose} style={{ width: '100%', padding: '14px 0', background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Done</button>
-
-        </div>
-
-    </div>
-
-);
 
 
 

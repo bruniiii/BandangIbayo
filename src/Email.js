@@ -12,7 +12,7 @@ import { supabase } from './supabaseClient';
 
 // supabase-js hides the real reason behind "non-2xx status code";
 // the actual message is in the function's response body.
-const errorDetail = async (err) => {
+export const errorDetail = async (err) => {
   let detail = err.message || 'Unknown error';
   try {
     if (err.context && typeof err.context.json === 'function') {

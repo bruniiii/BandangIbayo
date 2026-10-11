@@ -297,9 +297,11 @@ class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
 
-async function buildNormalEmail(payload: any, callerId: string) {
-  const { data: caller } = await supabase.from("profiles").select("role").eq("id", callerId).maybeSingle();
-  const isAdmin = caller?.role === "admin";
+async function buildNormalEmail(payload: any, callerId: string | null, trustedServer: boolean) {
+  const { data: caller } = callerId
+    ? await supabase.from("profiles").select("role").eq("id", callerId).maybeSingle()
+    : { data: null };
+  const isAdmin = trustedServer || caller?.role === "admin";
 
   if (payload.type === "booking-submitted" || payload.type === "booking-status") {
     if (!payload.bookingId) throw new HttpError(400, "Missing bookingId");
@@ -388,7 +390,9 @@ async function runBalanceReminders(dryRun: boolean) {
             📅 ${prettyDate(tour.start_date)}<br/>
             Booking reference: ${esc(b.booking_number)}</p>
             <p>You paid a downpayment of ${peso(b.amount_paid)}. The remaining balance of
-            <strong>${peso(balance)}</strong> is due on or before the day of the tour (cash or GCash).</p>
+            <strong>${peso(balance)}</strong> is due on or before the day of the tour.</p>
+            <p>You can pay it online now from <strong>My Bookings → Pay balance online</strong>
+            (GCash, Maya or card), or pay in person on the day of the tour.</p>
           `),
         });
       }
@@ -520,13 +524,23 @@ Deno.serve(async (req) => {
 
     // ── Normal mode: send one templated email (logged-in users only) ──
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
-    const { data: userData, error: authErr } = await supabase.auth.getUser(token);
-    if (authErr || !userData?.user) return reply({ error: "You must be logged in to send email." }, 401);
+    // The payments function calls this with the service-role key (e.g. to send the
+    // booking confirmation after an online payment); it's treated like an admin.
+    const trustedServer = !!SERVICE_ROLE && token === SERVICE_ROLE;
+    let callerId: string | null = null;
+    if (!trustedServer) {
+      const { data: userData, error: authErr } = await supabase.auth.getUser(token);
+      if (authErr || !userData?.user) return reply({ error: "You must be logged in to send email." }, 401);
+      callerId = userData.user.id;
+    }
 
     if (payload.type === "waitlist-openings") return reply(await sendWaitlistEmails(payload.tourId));
-    if (payload.type === "delete-account") return reply(await deleteAccount(userData.user.id, payload));
+    if (payload.type === "delete-account") {
+      if (!callerId) return reply({ error: "Only the account owner can delete their account." }, 403);
+      return reply(await deleteAccount(callerId, payload));
+    }
 
-    const email = await buildNormalEmail(payload, userData.user.id);
+    const email = await buildNormalEmail(payload, callerId, trustedServer);
     if (!email.to) return reply({ error: "This joiner has no email address on file." }, 422);
 
     const info = await transporter.sendMail({

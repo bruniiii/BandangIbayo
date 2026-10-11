@@ -1,21 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
-// GCash receipts live in the private `booking-receipts` bucket, one folder
-// per joiner (<user id>/<file>). bookings.receipt_url stores that path.
-// Older bookings store a full public URL; both forms are handled below.
+// GCash receipts from before online payments live in the private
+// `booking-receipts` bucket, one folder per joiner (<user id>/<file>).
+// bookings.receipt_url stores that path; older bookings store a full public
+// URL. Both forms are handled below so admins can still view them.
 const BUCKET = 'booking-receipts';
-
-// Uploads a receipt image for the logged-in joiner; returns its storage path.
-export const uploadReceipt = async (file) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Please log in again to upload your receipt.');
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-  const path = `${user.id}/${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file);
-  if (error) throw new Error('Receipt upload failed: ' + error.message);
-  return path;
-};
 
 // Path inside the bucket, from either a stored path or an old public URL.
 const receiptPath = (value) => {

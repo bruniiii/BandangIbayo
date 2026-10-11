@@ -71,8 +71,14 @@ export const downloadReceipt = async (booking, tour) => {
   }
 
   section('Payment');
-  line('Payment method', `GCash · ${booking.payment_method || '—'}`);
-  if (booking.gcash_reference_no) line('GCash reference', booking.gcash_reference_no);
+  if (booking.paymongo_payment_id) {
+    line('Payment method', `Online via PayMongo · ${booking.payment_method || '—'}`);
+    line('Payment ID', booking.paymongo_payment_id);
+    if (booking.paymongo_balance_payment_id) line('Balance payment ID', booking.paymongo_balance_payment_id);
+  } else {
+    line('Payment method', `GCash · ${booking.payment_method || '—'}`);
+    if (booking.gcash_reference_no) line('GCash reference', booking.gcash_reference_no);
+  }
   line('Tour total', php(booking.total_price));
   line('Amount paid', php(booking.amount_paid ?? booking.total_price), { bold: true, size: 12 });
   const balance = balanceRemaining(booking);
@@ -81,7 +87,7 @@ export const downloadReceipt = async (booking, tour) => {
   y += 24;
   doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(122, 58, 24);
   doc.text(doc.splitTextToSize(
-    'This receipt acknowledges payment received via GCash for the booking above, verified by Bandang IBAYO. '
+    'This receipt acknowledges payment received for the booking above, verified by Bandang IBAYO. '
     + 'All payments are non-refundable per our Terms & Conditions. This is not a BIR-registered official receipt.',
     right - left,
   ), left, y);
