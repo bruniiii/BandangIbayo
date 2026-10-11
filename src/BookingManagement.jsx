@@ -35,6 +35,11 @@ const getBalanceStatus = (b) => {
   return b.balance_settled ? 'Fully Paid' : 'Balance Due';
 };
  
+// Remaining balance on a confirmed downpayment booking that isn't settled yet.
+const balanceOwed = (b) => Math.max(0, (b.total_price || 0) - (b.amount_paid || 0));
+const owesBalance = (b) =>
+  getBalanceStatus(b) === 'Balance Due' && b.booking_status !== 'Cancelled' && balanceOwed(b) > 0;
+
 /* ─────────────────────────────────────────────
    BOOKING MANAGEMENT  (Admin)
 ───────────────────────────────────────────── */
@@ -137,12 +142,19 @@ const BookingManagement = () => {
       (b.tours?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (b.booking_number || '').toLowerCase().includes(searchTerm.toLowerCase());
     const derived = getDerivedStatus(b);
-    const matchesStatus = statusFilter === 'All Status' || derived === statusFilter;
+    const matchesStatus = statusFilter === 'All Status' || derived === statusFilter
+      || (statusFilter === 'Balance Due' && owesBalance(b));
     const matchesMethod = methodFilter === 'All Methods' || b.payment_method === methodFilter;
     const matchesTour = tourFilter === 'All Tours' || String(b.tour_id) === String(tourFilter);
     const matchesDate = !dateFilter || b.tours?.start_date === dateFilter;
     return matchesSearch && matchesStatus && matchesMethod && matchesTour && matchesDate;
   });
+  // Who still owes: soonest tour first.
+  if (statusFilter === 'Balance Due') {
+    filteredBookings.sort((a, b) => (a.tours?.start_date || '').localeCompare(b.tours?.start_date || ''));
+  }
+  const balancesDue = bookings.filter(owesBalance);
+  const totalBalanceDue = balancesDue.reduce((sum, b) => sum + balanceOwed(b), 0);
  
   // ── shared input style ──
   const inputStyle = {
@@ -191,6 +203,31 @@ const BookingManagement = () => {
         </div>
       </div>
  
+      {/* ── Balances still owed (downpayment bookings) ── */}
+      {balancesDue.length > 0 && (
+        <div style={{
+          background: 'rgba(232,162,101,0.16)', border: '1px solid rgba(232,162,101,0.45)',
+          borderRadius: 18, padding: '12px 16px', marginBottom: 16,
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+            <Wallet size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+            <span><strong style={{ color: '#1A0A00' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: '#1A0A00' }}>₱{totalBalanceDue.toLocaleString()}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'Balance Due' ? 'All Status' : 'Balance Due')}
+            style={{
+              background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 12,
+              padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 10,
+              letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
+            }}
+          >
+            {statusFilter === 'Balance Due' ? 'Show all bookings' : 'Show who owes'}
+          </button>
+        </div>
+      )}
+
       {/* ── Filters ── */}
       <div style={{
         background: '#FDF6EE',
@@ -225,6 +262,7 @@ const BookingManagement = () => {
             <option value="Complete">Complete</option>
             <option value="Rejected">Rejected</option>
             <option value="Cancelled">Cancelled</option>
+            <option value="Balance Due">Balance Due</option>
           </select>
           <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
         </div>

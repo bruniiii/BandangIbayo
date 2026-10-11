@@ -3,10 +3,11 @@ import { supabase } from './supabaseClient';
 import { notifyAdmins } from './notifications';
 import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
+import { downloadReceipt } from './paymentReceipt';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
-  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock
+  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -351,6 +352,20 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
     setCancelling(false);
   };
 
+  const [downloadingReceipt, setDownloadingReceipt] = useState(false);
+  const isPaymentConfirmed = booking.payment_status === 'Complete' &&
+                             booking.booking_status !== 'Cancelled' &&
+                             booking.booking_status !== 'Rejected';
+  const handleDownloadReceipt = async () => {
+    setDownloadingReceipt(true);
+    try {
+      await downloadReceipt(booking, tour);
+    } catch (err) {
+      alert('Could not create the receipt: ' + (err?.message || err));
+    }
+    setDownloadingReceipt(false);
+  };
+
   const isOpenBooking = booking.booking_status !== 'Cancelled' &&
                         booking.booking_status !== 'Rejected' &&
                         !booking.isActuallyCompleted;
@@ -584,6 +599,22 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 >
                   Close
                 </button>
+                {/* Receipt once the payment has been verified */}
+                {isPaymentConfirmed && (
+                  <button
+                    type="button"
+                    onClick={handleDownloadReceipt}
+                    disabled={downloadingReceipt}
+                    style={{
+                      flex: 1, padding: '14px 0', background: '#1A0A00', color: '#FDF6EE',
+                      border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                      fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    }}
+                  >
+                    {downloadingReceipt ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={14} />} Receipt
+                  </button>
+                )}
                 {canCancel && !showCancelConfirm && (
                   <button
                     onClick={() => setShowCancelConfirm(true)}

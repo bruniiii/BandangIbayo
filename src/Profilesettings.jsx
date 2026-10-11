@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import MyData from './MyData';
 import {
   User, Mail, Phone, Calendar, MapPin, ShieldAlert,
   Loader2, CheckCircle2, Camera, Trash2,
@@ -409,6 +410,9 @@ const ProfileSettings = () => {
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       </div>
+
+      {/* Data Privacy Act: download or delete your data (joiners only) */}
+      {profile && profile.role !== 'admin' && <MyData />}
     </div>
   );
 };
