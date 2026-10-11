@@ -59,3 +59,6 @@ export const sendCustomEmail = async ({ userId, subject, message }) => {
 // size): emails the waitlisted joiners the database has already notified in-app.
 export const sendWaitlistOpeningsEmail = ({ tourId }) =>
   tourId ? send({ type: 'waitlist-openings', tourId }) : null;
+
+// The logged-in joiner deletes their own account (Profile Settings → Your Data).
+export const deleteMyAccount = () => send({ type: 'delete-account', confirm: 'DELETE' });

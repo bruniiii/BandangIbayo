@@ -8,8 +8,12 @@
 //        - { type: "booking-status",    bookingId }  admin only; confirmed/rejected per payment_status
 //        - { type: "custom", userId, subject, message }  admin only (Joiner Accounts manual email)
 //        - { type: "waitlist-openings", tourId }  any logged-in user; emails the waitlisted joiners
+//        - { type: "delete-account", confirm: "DELETE" }  the logged-in joiner deletes their own
+//          account: personal data removed (purge_user_data), their files deleted, login deleted
 //          the database already notified about an opening on that tour (each joiner once)
 //   2) Reminder mode — body { action: "tour-reminders", date?, dryRun? }
+//        Also sends balance reminders: joiners who paid a downpayment and whose tour
+//        starts in 2–3 days get one email + in-app notice about the remaining balance.
 //        emails every confirmed joiner whose tour starts TOMORROW (Philippine time).
 //        Called daily by pg_cron with the x-cron-secret header; blocked for everyone else.
 //
@@ -49,9 +53,10 @@ const esc = (s: unknown) =>
 
 const peso = (n: number) => `₱${Math.round(n || 0).toLocaleString("en-PH")}`;
 
-// "Tomorrow" in Asia/Manila (UTC+8), as YYYY-MM-DD — matches tours.start_date
-const tomorrowManila = () =>
-  new Date(Date.now() + 8 * 3600 * 1000 + 24 * 3600 * 1000).toISOString().slice(0, 10);
+// A day in Asia/Manila (UTC+8), as YYYY-MM-DD — matches tours.start_date
+const manilaDate = (daysFromToday: number) =>
+  new Date(Date.now() + 8 * 3600 * 1000 + daysFromToday * 24 * 3600 * 1000).toISOString().slice(0, 10);
+const tomorrowManila = () => manilaDate(1);
 
 const prettyDate = (ymd: string) => {
   const [y, m, d] = ymd.split("-").map(Number);
@@ -341,6 +346,108 @@ async function buildNormalEmail(payload: any, callerId: string) {
   throw new HttpError(400, "Unknown email type");
 }
 
+// ───────────── Balance reminders ─────────────
+// Downpayment bookings (downpayment confirmed, balance not yet settled) whose
+// tour starts in 2–3 days. Each booking is reminded once (balance_reminder_sent_at).
+async function runBalanceReminders(dryRun: boolean) {
+  const from = manilaDate(2), to = manilaDate(3);
+  const { data: bookings, error } = await supabase
+    .from("bookings")
+    .select("id, user_id, booking_number, full_name, email, total_price, amount_paid, balance_settled, tours!inner ( title, destination, start_date )")
+    .gte("tours.start_date", from)
+    .lte("tours.start_date", to)
+    .eq("payment_method", "Downpayment")
+    .eq("payment_status", "Complete")
+    .neq("booking_status", "Cancelled")
+    .neq("booking_status", "Rejected")
+    .is("balance_reminder_sent_at", null);
+  if (error) throw new Error(error.message);
+
+  let sent = 0, skipped = 0;
+  const errors: string[] = [];
+  for (const b of (bookings ?? []) as any[]) {
+    const balance = Math.max(0, (b.total_price || 0) - (b.amount_paid || 0));
+    if (b.balance_settled || balance <= 0) { skipped++; continue; }
+    const tour = Array.isArray(b.tours) ? b.tours[0] : b.tours;
+    if (dryRun) { sent++; continue; }
+    try {
+      const { data: profile } = b.user_id
+        ? await supabase.from("profiles").select("first_name, last_name, email").eq("id", b.user_id).maybeSingle()
+        : { data: null };
+      const to = await recipientFor(b.user_id, b.email);
+      if (to) {
+        await transporter.sendMail({
+          from: `"Bandang IBAYO" <${GMAIL_USER}>`,
+          to,
+          replyTo: GMAIL_USER,
+          subject: `Balance reminder: ${peso(balance)} due for ${tour.title} (${b.booking_number})`,
+          html: wrapper("Your balance is due soon", "#C45C26", `
+            <p>Hi ${esc(displayName(profile, b.full_name))}, your tour is coming up!</p>
+            <p><strong>${esc(tour.title)}</strong><br/>
+            📍 ${esc(tour.destination)}<br/>
+            📅 ${prettyDate(tour.start_date)}<br/>
+            Booking reference: ${esc(b.booking_number)}</p>
+            <p>You paid a downpayment of ${peso(b.amount_paid)}. The remaining balance of
+            <strong>${peso(balance)}</strong> is due on or before the day of the tour (cash or GCash).</p>
+          `),
+        });
+      }
+      if (b.user_id) {
+        await supabase.from("notifications").insert([{
+          user_id: b.user_id,
+          title: "Balance due soon",
+          message: `Your remaining balance of ${peso(balance)} for ${tour.title} (${b.booking_number}) is due on or before ${prettyDate(tour.start_date)}.`,
+          type: "payment",
+          related_id: b.id,
+        }]);
+      }
+      await supabase.from("bookings").update({ balance_reminder_sent_at: new Date().toISOString() }).eq("id", b.id);
+      sent++;
+    } catch (err) {
+      errors.push(`${b.booking_number}: ${String((err as Error)?.message || err)}`);
+      console.error("send-email[balance]: failed for", b.booking_number, err);
+    }
+  }
+  return { from, to, found: (bookings ?? []).length, sent, skipped, errors };
+}
+
+// ───────────── Account deletion (Data Privacy Act) ─────────────
+// The joiner deletes their own account. purge_user_data() keeps booking records
+// for the agency but strips personal details, and deletes everything else; then
+// their uploaded files and their login are deleted.
+const receiptStoragePath = (value: string) => {
+  if (!/^https?:\/\//.test(value)) return value;
+  const i = value.indexOf("/booking-receipts/");
+  return i === -1 ? null : decodeURIComponent(value.slice(i + "/booking-receipts/".length).split("?")[0]);
+};
+
+async function removeFolder(bucket: string, folder: string) {
+  const { data } = await supabase.storage.from(bucket).list(folder, { limit: 1000 });
+  const paths = (data ?? []).filter((f: any) => f.id).map((f: any) => `${folder}/${f.name}`);
+  if (paths.length) await supabase.storage.from(bucket).remove(paths);
+  return paths.length;
+}
+
+async function deleteAccount(userId: string, payload: any) {
+  if (payload.confirm !== "DELETE") throw new HttpError(400, "Please confirm by typing DELETE.");
+
+  const { data: purged, error } = await supabase.rpc("purge_user_data", { p_user_id: userId });
+  if (error) throw new HttpError(409, error.message);
+
+  const receipts = ((purged?.receipts ?? []) as string[]).map(receiptStoragePath).filter(Boolean) as string[];
+  if (receipts.length) await supabase.storage.from("booking-receipts").remove(receipts);
+  const files = receipts.length
+    + await removeFolder("booking-receipts", userId)
+    + await removeFolder("tours", `avatars/${userId}`)
+    + await removeFolder("tours", `review-media/${userId}`);
+
+  const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+  if (authError) throw new Error("Your data was removed, but the login could not be deleted: " + authError.message);
+
+  console.log("send-email[delete-account]:", { userId, bookingsKept: purged?.bookings_kept, files });
+  return { success: true };
+}
+
 // ───────────── Waitlist openings ─────────────
 // The database (notify_waitlist) marks waitlist rows notified_at when slots open
 // and creates the in-app notification. This sends the matching email, once.
@@ -401,8 +508,14 @@ Deno.serve(async (req) => {
       if (!CRON_SECRET || req.headers.get("x-cron-secret") !== CRON_SECRET) {
         return reply({ error: "Forbidden: reminders can only be triggered by the scheduler" }, 403);
       }
-      const result = await runReminders(payload.date || tomorrowManila(), !!payload.dryRun);
-      return reply(result);
+      // Run independently, so a problem with one kind of reminder doesn't stop the other.
+      const [result, balance] = await Promise.all([
+        runReminders(payload.date || tomorrowManila(), !!payload.dryRun)
+          .catch((err) => ({ error: String((err as Error)?.message || err) })),
+        runBalanceReminders(!!payload.dryRun)
+          .catch((err) => ({ error: String((err as Error)?.message || err) })),
+      ]);
+      return reply({ ...result, balance });
     }
 
     // ── Normal mode: send one templated email (logged-in users only) ──
@@ -411,6 +524,7 @@ Deno.serve(async (req) => {
     if (authErr || !userData?.user) return reply({ error: "You must be logged in to send email." }, 401);
 
     if (payload.type === "waitlist-openings") return reply(await sendWaitlistEmails(payload.tourId));
+    if (payload.type === "delete-account") return reply(await deleteAccount(userData.user.id, payload));
 
     const email = await buildNormalEmail(payload, userData.user.id);
     if (!email.to) return reply({ error: "This joiner has no email address on file." }, 422);
