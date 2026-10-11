@@ -17,7 +17,7 @@ import JoinerDashboard from './JoinerDashboard';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import { PublicTourList, PublicTourDetail } from './PublicTours';
-import { todayManila } from './tourUtils';
+import { todayManila, formatPeso } from './tourUtils';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -291,7 +291,7 @@ function LandingPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 22, marginTop: 22, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
                       <div>
                         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, marginBottom: 2 }}>Starting at</div>
-                        <span style={{ fontSize: 28, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em' }}>₱{tour.price.toLocaleString()}</span>
+                        <span style={{ fontSize: 28, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em' }}>{formatPeso(tour.price)}</span>
                       </div>
                       <Link to={`/tours/${tour.id}`} className="btn-primary" style={{
                         fontWeight: 900, fontSize: 13, color: '#FDF6EE', textDecoration: 'none',

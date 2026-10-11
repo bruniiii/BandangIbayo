@@ -15,6 +15,10 @@ import {
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { safeNextPath } from './tourUtils';
+import { passwordErrorMessage } from './passwordPolicy';
+import PasswordChecklist from './PasswordChecklist';
+import AddressFields from './AddressFields';
+import { composeAddress } from './phAddress';
 import logoIcon from './assets/newIcon.png';
 
 const JoinerRegister = () => {
@@ -30,6 +34,7 @@ const JoinerRegister = () => {
   const [avatarPreview, setAvatarPreview] = useState(null);
 
   const navigate = useNavigate();
+  const [passwordInput, setPasswordInput] = useState('');
   // Keep a pending tour (?next=/tours/12) through register → login.
   const [searchParams] = useSearchParams();
   const nextPath = safeNextPath(searchParams.get('next'));
@@ -109,15 +114,24 @@ const JoinerRegister = () => {
       const emergencyContactNumber = String(
         formData.get('emergencyContactNumber') || ''
       ).trim();
-      const address = String(formData.get('address') || '').trim();
+      const province = String(formData.get('province') || '').trim();
+      const city = String(formData.get('city') || '').trim();
+      const street = String(formData.get('street') || '').trim();
+      const address = composeAddress({ street, city, province });
 
       if (password !== confirmPassword) {
         alert('Passwords do not match!');
         return;
       }
 
-      if (password.length < 6) {
-        alert('Password must be at least 6 characters long.');
+      const passwordError = passwordErrorMessage(password);
+      if (passwordError) {
+        alert(passwordError);
+        return;
+      }
+
+      if (!province || !city || !street) {
+        alert('Please choose your province and city/municipality, and enter your street.');
         return;
       }
 
@@ -141,6 +155,9 @@ const JoinerRegister = () => {
             phone_number: phone,
             date_of_birth: dateOfBirth || null,
             address,
+            province,
+            city_municipality: city,
+            street,
             emergency_contact_number: emergencyContactNumber,
             terms_accepted: true,
           },
@@ -734,19 +751,13 @@ const JoinerRegister = () => {
             </div>
           </div>
 
-          {/* ADDRESS */}
-          <div>
-            <label style={labelStyle}>Address</label>
-            <div style={{ position: 'relative' }}>
-              <MapPin size={16} style={fieldIconStyle} />
-              <input
-                name="address"
-                type="text"
-                placeholder="City, Province"
-                style={inputWithIconStyle}
-              />
-            </div>
-          </div>
+          {/* ADDRESS: province → city/municipality dropdowns + street */}
+          <AddressFields
+            labelStyle={labelStyle}
+            selectStyle={{ ...inputStyle, cursor: 'pointer' }}
+            inputStyle={inputStyle}
+            required
+          />
 
           {/* PASSWORD ROW */}
           <div
@@ -764,9 +775,13 @@ const JoinerRegister = () => {
                 type="password"
                 placeholder="••••••••"
                 style={inputStyle}
-                minLength={6}
+                minLength={8}
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                autoComplete="new-password"
                 required
               />
+              <PasswordChecklist password={passwordInput} />
             </div>
 
             <div>
@@ -776,7 +791,8 @@ const JoinerRegister = () => {
                 type="password"
                 placeholder="••••••••"
                 style={inputStyle}
-                minLength={6}
+                minLength={8}
+                autoComplete="new-password"
                 required
               />
             </div>

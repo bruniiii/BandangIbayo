@@ -19,6 +19,7 @@ import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
+import { formatPeso } from './tourUtils';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -56,7 +57,7 @@ const deriveActivity = (booking) => {
   return { label: 'New booking created', name, type: 'booking', Icon: CheckCircle2, ts: booking.created_at };
 };
  
-const peso = (n) => `₱${Number(n || 0).toLocaleString()}`;
+const peso = formatPeso;
 
 const truncate = (text, max = 74) => {
   if (!text) return '';

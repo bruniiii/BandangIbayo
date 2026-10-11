@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila, formatPeso } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
@@ -304,7 +304,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         paddingTop: isMobile ? 14 : 0,
         flexShrink: 0,
       }}>
-        <p style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#C45C26', margin: 0 }}>₱{booking.total_price?.toLocaleString()}</p>
+        <p style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#C45C26', margin: 0 }}>{formatPeso(booking.total_price)}</p>
         <button
           onClick={onView}
           style={{
@@ -454,7 +454,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
               <div style={{ marginTop: 'auto' }}>
                 <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
-                  ₱{(isAwaitingPayment ? 0 : (booking.amount_paid ?? booking.total_price) ?? 0).toLocaleString()}
+                  {formatPeso((isAwaitingPayment ? 0 : (booking.amount_paid ?? booking.total_price) ?? 0))}
                 </p>
                 <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAwaitingPayment ? 'not paid yet' : isPaymentConfirmed ? 'amount paid' : 'amount sent'}</p>
               </div>
@@ -469,7 +469,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     <DetailItem label="Destination" value={tour.destination} />
                     <DetailItem label="Tour Date" value={formatDateRange(tour.start_date, tour.duration)} />
                     <DetailItem label="Pax Count" value={`${booking.slots_booked} persons`} />
-                    <DetailItem label="Total Price" value={`₱${booking.total_price?.toLocaleString()}`} />
+                    <DetailItem label="Total Price" value={`${formatPeso(booking.total_price)}`} />
                   </div>
                 </ViewSection>
 
@@ -705,7 +705,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
       <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.6 }}>
         {isAwaitingPayment
           ? `Your slots are held${holdUntil ? ` until ${holdUntil}` : ''}. Finish paying on PayMongo to confirm your booking.`
-          : `₱${balance.toLocaleString()} is still due. Pay it online now, or in person on the day of the tour.`}
+          : `${formatPeso(balance)} is still due. Pay it online now, or in person on the day of the tour.`}
       </p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
         {isAwaitingPayment ? (
@@ -721,7 +721,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
           </>
         ) : (
           <button type="button" disabled={busy !== null} onClick={payBalance} style={buttonStyle(true)}>
-            {busy === 'balance' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay ₱{balance.toLocaleString()} online
+            {busy === 'balance' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(balance)} online
           </button>
         )}
       </div>

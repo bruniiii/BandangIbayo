@@ -259,7 +259,7 @@ begin
 
   v_expected := case v_b.payment_method
                   when 'Full Payment' then coalesce(v_b.total_price, 0)
-                  else round(coalesce(v_b.total_price, 0) * 0.4)
+                  else round(coalesce(v_b.total_price, 0) * 0.4, 2)
                 end;
   if p_amount < v_expected then
     return jsonb_build_object('status', 'amount_mismatch');

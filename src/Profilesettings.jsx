@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import MyData from './MyData';
+import ChangePassword from './ChangePassword';
+import AddressFields from './AddressFields';
+import { composeAddress } from './phAddress';
 import {
   User, Mail, Phone, Calendar, MapPin, ShieldAlert,
   Loader2, CheckCircle2, Camera, Trash2,
@@ -88,6 +91,9 @@ const ProfileSettings = () => {
     phone_number: '',
     date_of_birth: '',
     address: '',
+    province: '',
+    city_municipality: '',
+    street: '',
     emergency_contact_number: '',
   });
 
@@ -115,6 +121,9 @@ const ProfileSettings = () => {
           phone_number: data.phone_number || '',
           date_of_birth: data.date_of_birth || '',
           address: data.address || '',
+          province: data.province || '',
+          city_municipality: data.city_municipality || '',
+          street: data.street || '',
           emergency_contact_number: data.emergency_contact_number || '',
         });
       }
@@ -162,6 +171,12 @@ const ProfileSettings = () => {
 
   const handleSave = async () => {
     if (!userId) return;
+    // Address: province, city/municipality and street together (or none, to keep an older address as is).
+    const addressParts = [form.province, form.city_municipality, form.street.trim()];
+    if (addressParts.some(Boolean) && !addressParts.every(Boolean)) {
+      setToast({ type: 'error', message: 'Please choose your province and city/municipality, and enter your street.' });
+      return;
+    }
     setSaving(true);
 
     try {
@@ -202,7 +217,12 @@ const ProfileSettings = () => {
         last_name: form.last_name.trim(),
         phone_number: form.phone_number.trim(),
         date_of_birth: form.date_of_birth || null,
-        address: form.address.trim(),
+        ...(form.province ? {
+          province: form.province,
+          city_municipality: form.city_municipality,
+          street: form.street.trim(),
+          address: composeAddress({ street: form.street, city: form.city_municipality, province: form.province }),
+        } : {}),
         emergency_contact_number: form.emergency_contact_number.trim(),
         avatar_url: finalAvatarUrl,
       };
@@ -211,7 +231,7 @@ const ProfileSettings = () => {
         .from('profiles')
         .update(updatePayload)
         .eq('id', userId)
-        .select('id, avatar_url, first_name, last_name, phone_number, date_of_birth, address, emergency_contact_number')
+        .select('id, avatar_url, first_name, last_name, phone_number, date_of_birth, address, province, city_municipality, street, emergency_contact_number')
         .single();
 
       if (updateError) throw updateError;
@@ -385,10 +405,23 @@ const ProfileSettings = () => {
           </Field>
         </div>
 
-        <div style={{ marginBottom: 8 }}>
-          <Field label="Address" icon={<MapPin size={15} />}>
-            <input style={inputStyle} value={form.address} onChange={handleChange('address')} placeholder="City, Province" />
-          </Field>
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            <MapPin size={14} style={{ color: '#C45C26' }} /> Address
+          </p>
+          {!form.province && form.address && (
+            <p style={{ fontSize: 12, color: '#7A3A18', margin: '0 0 10px' }}>
+              Current address: <strong>{form.address}</strong>. Choose your province and city/municipality below to update it.
+            </p>
+          )}
+          <AddressFields
+            key={userId || 'address'}
+            defaultValue={{ province: form.province, city: form.city_municipality, street: form.street }}
+            onChange={({ province, city, street }) => setForm((f) => ({ ...f, province, city_municipality: city, street }))}
+            labelStyle={labelStyle}
+            selectStyle={{ ...inputStyle, paddingLeft: 14, cursor: 'pointer' }}
+            inputStyle={{ ...inputStyle, paddingLeft: 14 }}
+          />
         </div>
 
         <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
@@ -410,6 +443,8 @@ const ProfileSettings = () => {
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       </div>
+
+      <ChangePassword />
 
       {/* Data Privacy Act: download or delete your data (joiners only) */}
       {profile && profile.role !== 'admin' && <MyData />}

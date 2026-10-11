@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from "./notifications";
+import { formatPeso } from './tourUtils';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
   FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
@@ -46,7 +47,7 @@ const labelStyle = {
   display: 'block',
 };
 
-const InputField = ({ label, type = 'text', placeholder, value, onChange, required }) => (
+const InputField = ({ label, type = 'text', placeholder, value, onChange, required, min, step }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <label style={labelStyle}>
       {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
@@ -57,6 +58,8 @@ const InputField = ({ label, type = 'text', placeholder, value, onChange, requir
       value={value}
       onChange={onChange}
       required={required}
+      min={min}
+      step={step}
       style={inputStyle}
       onFocus={e => {
         e.currentTarget.style.borderColor = '#C45C26';
@@ -213,6 +216,7 @@ const ExclusiveTourForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.agreeTerms) { alert('Please accept the terms and conditions.'); return; }
+    if (form.budget !== '' && !(Number(form.budget) >= 0)) { alert('Budget must be zero or more.'); return; }
     setLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -318,6 +322,8 @@ const ExclusiveTourForm = () => {
           <InputField
             label="Budget for Exclusive Tour"
             type="number"
+            min="0"
+            step="0.01"
             placeholder="e.g. 50000"
             value={form.budget}
             onChange={set('budget')}
@@ -732,7 +738,7 @@ const RequestHistoryCard = ({ request }) => {
                       Price
                     </p>
                     <p style={{ fontSize: 19, fontWeight: 900, color: '#E8A265', margin: 0 }}>
-                      ₱{Number(pkg.price).toLocaleString()}
+                      {formatPeso(Number(pkg.price))}
                     </p>
                   </div>
                 )}

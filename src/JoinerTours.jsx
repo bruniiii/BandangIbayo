@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { supabase } from './supabaseClient';
 
-import { withAvailableSlots, formatDateRange } from './tourUtils';
+import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor } from './tourUtils';
 import { startCheckout } from './payments';
 
 import { 
@@ -479,7 +479,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
 
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>₱{tour.price.toLocaleString()}</span>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
 
           </div>
 
@@ -1071,7 +1071,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
     const isAlmostFull = !isFullyBooked && tour.available_slots <= 3;
     const maxBookingLimit = Math.min(tour.available_slots || 0, 10);
     const subtotal = tour.price * numPersons;
-    const downpaymentAmount = Math.round(subtotal * 0.4);
+    const downpaymentAmount = downpaymentFor(subtotal);
     const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
 
     useEffect(() => {
@@ -1421,7 +1421,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7 }}>Total</span>
 
-                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
+                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>{formatPeso(subtotal)}</span>
 
                                     </div>
 
@@ -1429,7 +1429,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                 {isFullyBooked && (
 
-                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>₱{tour.price.toLocaleString()} per person</p>
+                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(tour.price)} per person</p>
 
                                 )}
 
@@ -1729,7 +1729,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
               <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.8 }}>Price per person</span>
 
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>{formatPeso(tour.price)}</span>
 
             </div>
 
@@ -1737,7 +1737,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
               <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A0A00' }}>Subtotal</span>
 
-              <span style={{ fontSize: 28, fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
+              <span style={{ fontSize: 28, fontWeight: 900, color: '#C45C26' }}>{formatPeso(subtotal)}</span>
 
             </div>
 
@@ -1848,7 +1848,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     </div>
 
-                    <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>₱{subtotal.toLocaleString()}</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>{formatPeso(subtotal)}</p>
 
                     <p style={{ fontSize: 11, opacity: 0.6, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
 
@@ -1877,7 +1877,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     </div>
 
-                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{downpaymentAmount.toLocaleString()}</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
                     <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
 

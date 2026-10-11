@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
+import { formatPeso, downpaymentFor } from './tourUtils';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
@@ -212,7 +213,7 @@ const BookingManagement = () => {
         }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
             <Wallet size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
-            <span><strong style={{ color: '#1A0A00' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: '#1A0A00' }}>₱{totalBalanceDue.toLocaleString()}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
+            <span><strong style={{ color: '#1A0A00' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: '#1A0A00' }}>{formatPeso(totalBalanceDue)}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
           </p>
           <button
             type="button"
@@ -464,11 +465,11 @@ const BookingRow = ({ booking, onView }) => {
       </div>
       <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontWeight: 900, color: '#C45C26', fontSize: 13, margin: 0 }}>
-          ₱{booking.total_price?.toLocaleString()}
+          {formatPeso(booking.total_price)}
         </p>
         {booking.payment_method === 'Downpayment' && (
           <p style={{ fontSize: 9, fontWeight: 800, color: booking.balance_settled ? '#C45C26' : '#9A5B1E', margin: '3px 0 0', letterSpacing: '0.04em' }}>
-            Paid: ₱{booking.amount_paid?.toLocaleString()}{booking.balance_settled ? ' (Full)' : ''}
+            Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}
       </div>
@@ -571,7 +572,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
  
   const subtotal = booking.total_price || 0;
   const amountPaid = balanceSettled ? subtotal : (booking.amount_paid || subtotal);
-  const downpaymentAmount = Math.round(subtotal * 0.4);
+  const downpaymentAmount = downpaymentFor(subtotal);
   const balance = booking.payment_method === 'Downpayment' ? subtotal - downpaymentAmount : 0;
   const isDownpayment = booking.payment_method === 'Downpayment';
  
@@ -616,13 +617,13 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           <div class="row"><span>Destination</span><span>${booking.tours?.destination || '—'}</span></div>
           <div class="row"><span>Pax</span><span>${booking.slots_booked}</span></div>
           <hr />
-          <div class="row"><span>Subtotal</span><span>₱${subtotal.toLocaleString()}</span></div>
+          <div class="row"><span>Subtotal</span><span>${formatPeso(subtotal)}</span></div>
           ${isDownpayment ? `
-            <div class="row"><span>Downpayment Paid</span><span>₱${downpaymentAmount.toLocaleString()}</span></div>
-            <div class="row"><span>Balance Settled</span><span>₱${balance.toLocaleString()}</span></div>
+            <div class="row"><span>Downpayment Paid</span><span>${formatPeso(downpaymentAmount)}</span></div>
+            <div class="row"><span>Balance Settled</span><span>${formatPeso(balance)}</span></div>
           ` : ''}
           <hr />
-          <div class="row total"><span>TOTAL PAID</span><span>₱${subtotal.toLocaleString()}</span></div>
+          <div class="row total"><span>TOTAL PAID</span><span>${formatPeso(subtotal)}</span></div>
           <div class="stamp">Payment Complete</div>
           <div class="footer">
             Printed: ${dateNow}${balanceSettledAt ? `<br/>Balance settled: ${new Date(balanceSettledAt).toLocaleString('en-PH')}` : ''}
@@ -747,22 +748,22 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: '#7A3A18', opacity: 0.7 }}>Quantity</span>
-                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × ₱{booking.tours?.price?.toLocaleString()}</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × {formatPeso(booking.tours?.price)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: '#7A3A18', opacity: 0.7 }}>Subtotal</span>
-                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{subtotal.toLocaleString()}</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{formatPeso(subtotal)}</span>
                 </div>
  
                 {booking.payment_method === 'Downpayment' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                       <span style={{ color: '#7A3A18', opacity: 0.7 }}>Downpayment (40%)</span>
-                      <span style={{ fontWeight: 700, color: '#9A5B1E' }}>₱{downpaymentAmount.toLocaleString()}</span>
+                      <span style={{ fontWeight: 700, color: '#9A5B1E' }}>{formatPeso(downpaymentAmount)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                       <span style={{ color: '#7A3A18', opacity: 0.7 }}>Remaining Balance</span>
-                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.8)' }}>₱{balance.toLocaleString()}</span>
+                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.8)' }}>{formatPeso(balance)}</span>
                     </div>
                   </>
                 )}
@@ -771,7 +772,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   <span style={{ fontWeight: 900, color: '#1A0A00', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
                     {booking.payment_method === 'Downpayment' ? 'Amount Paid (Due Now)' : 'Total Payment'}
                   </span>
-                  <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 22, letterSpacing: '-0.02em' }}>₱{amountPaid.toLocaleString()}</span>
+                  <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 22, letterSpacing: '-0.02em' }}>{formatPeso(amountPaid)}</span>
                 </div>
               </div>
  
@@ -927,7 +928,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                 <div style={{ flex: 1, minWidth: 200, background: 'rgba(140,47,28,0.08)', borderRadius: 16, padding: '14px 18px' }}>
                   <p style={{ ...labelStyle, color: '#8C2F1C' }}>Balance Due On Tour Day</p>
                   <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0', lineHeight: 1.5 }}>
-                    Remaining balance of ₱{balance.toLocaleString()} is still unpaid. Mark it as paid once the joiner settles it on the day of the tour.
+                    Remaining balance of {formatPeso(balance)} is still unpaid. Mark it as paid once the joiner settles it on the day of the tour.
                   </p>
                 </div>
                 <button
@@ -1003,7 +1004,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               Confirm Balance Payment
             </h3>
             <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '0 0 24px', lineHeight: 1.6 }}>
-              Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>₱{balance.toLocaleString()}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
+              Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>{formatPeso(balance)}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button

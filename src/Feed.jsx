@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { formatPeso } from './tourUtils';
 import {
   Image as ImageIcon, Send, Trash2, X, Loader2, MapPin,
   Compass, Rss, Video, ChevronDown, MessageCircle,
@@ -63,7 +64,6 @@ const Feed = ({ isAdmin = false }) => {
   const [expandedPostIds, setExpandedPostIds] = useState(new Set());
   const [reactingId, setReactingId] = useState(null);
   const [commentingId, setCommentingId] = useState(null);
-  const [deletingCommentId, setDeletingCommentId] = useState(null);
   const postIdsRef = useRef([]);
 
   const fetchReactions = useCallback(async (postIds) => {
@@ -282,20 +282,6 @@ const Feed = ({ isAdmin = false }) => {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Delete this comment?')) return;
-    setDeletingCommentId(commentId);
-    try {
-      const { error } = await supabase.from('feed_comments').delete().eq('id', commentId);
-      if (error) throw error;
-      fetchComments(postIdsRef.current);
-    } catch (err) {
-      alert('Error: ' + err.message);
-    } finally {
-      setDeletingCommentId(null);
-    }
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 680, margin: '0 auto' }}>
 
@@ -454,8 +440,6 @@ const Feed = ({ isAdmin = false }) => {
             onCommentDraftChange={(v) => handleCommentDraftChange(post.id, v)}
             onAddComment={() => handleAddComment(post.id)}
             commenting={commentingId === post.id}
-            onDeleteComment={handleDeleteComment}
-            deletingCommentId={deletingCommentId}
           />
         ))
       )}
@@ -468,7 +452,6 @@ const FeedPostCard = ({
   post, canDelete, deleting, onDelete,
   currentUserId, reactions, reacting, pickerOpen, onTogglePicker, onQuickLike, onPickReaction,
   comments, commentsExpanded, onToggleComments, commentDraft, onCommentDraftChange, onAddComment, commenting,
-  onDeleteComment, deletingCommentId,
 }) => {
   const isTourPost = post.post_type === 'tour';
   const tour = post.tours;
@@ -589,7 +572,7 @@ const FeedPostCard = ({
           </div>
           {tour.price != null && (
             <span style={{ fontSize: 14, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>
-              ₱{Number(tour.price).toLocaleString()}
+              {formatPeso(Number(tour.price))}
             </span>
           )}
         </div>
@@ -700,19 +683,8 @@ const FeedPostCard = ({
                   <div style={{ flex: 1, background: '#F2E4D0', borderRadius: 14, padding: '8px 12px', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                       <p style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
-                        {displayName(c.author, 'Joiner')}
+                        {c.user_id ? displayName(c.author, 'Joiner') : 'Deleted account'}
                       </p>
-                      {(canDelete || c.user_id === currentUserId) && (
-                        <button
-                          onClick={() => onDeleteComment(c.id)}
-                          disabled={deletingCommentId === c.id}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(140,47,28,0.5)', padding: 2, flexShrink: 0 }}
-                        >
-                          {deletingCommentId === c.id
-                            ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} />
-                            : <Trash2 size={11} />}
-                        </button>
-                      )}
                     </div>
                     <p style={{ fontSize: 12.5, color: '#1A0A00', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
                       {c.content}

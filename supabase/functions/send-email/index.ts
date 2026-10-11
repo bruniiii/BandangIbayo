@@ -7,6 +7,7 @@
 //        - { type: "booking-submitted", bookingId }  booking owner (or admin)
 //        - { type: "booking-status",    bookingId }  admin only; confirmed/rejected per payment_status
 //        - { type: "custom", userId, subject, message }  admin only (Joiner Accounts manual email)
+//        - { type: "login-code", to, name, code, minutes }  auth function only (service-role key)
 //        - { type: "waitlist-openings", tourId }  any logged-in user; emails the waitlisted joiners
 //        - { type: "delete-account", confirm: "DELETE" }  the logged-in joiner deletes their own
 //          account: personal data removed (purge_user_data), their files deleted, login deleted
@@ -51,7 +52,12 @@ const reply = (body: unknown, status = 200) =>
 const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
-const peso = (n: number) => `₱${Math.round(n || 0).toLocaleString("en-PH")}`;
+// "₱1,500" for whole amounts, "₱1,499.50" when there are centavos (same as the website).
+const peso = (n: number) => {
+  const v = Number(n) || 0;
+  const cents = Math.round(v * 100) % 100 !== 0;
+  return `₱${v.toLocaleString("en-PH", { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: 2 })}`;
+};
 
 // A day in Asia/Manila (UTC+8), as YYYY-MM-DD — matches tours.start_date
 const manilaDate = (daysFromToday: number) =>
@@ -237,7 +243,7 @@ const wrapper = (title: string, titleColor: string, bodyHtml: string) => `
 
 // What the joiner says they paid: the amount they submitted, else what their payment option requires.
 const amountSubmitted = (b: any) =>
-  b.amount_paid ?? (b.payment_method === "Downpayment" ? Math.round((b.total_price || 0) * 0.4) : b.total_price || 0);
+  b.amount_paid ?? (b.payment_method === "Downpayment" ? Math.round((b.total_price || 0) * 40) / 100 : b.total_price || 0);
 
 const bookingSubmittedEmail = (name: string, b: any, tour: any) => ({
   subject: `Booking Received — ${b.booking_number}`,
@@ -274,6 +280,16 @@ const customEmail = (name: string, subject: string, message: string) => ({
     <p>Hi ${esc(name)},</p>
     <p style="line-height:1.7; white-space:pre-wrap;">${esc(message)}</p>
     <p style="color:#7A3A18; font-size: 12px;">You can reply directly to this email.</p>
+  `),
+});
+
+const loginCodeEmail = (name: string, code: string, minutes: number) => ({
+  subject: "Your Bandang IBAYO verification code",
+  html: wrapper("Your verification code", "#C45C26", `
+    <p>Hi ${esc(name || "Traveler")},</p>
+    <p>Use this code to finish logging in to Bandang IBAYO:</p>
+    <p style="font-size: 32px; font-weight: 900; letter-spacing: 0.3em; color:#1A0A00; text-align:center; margin: 24px 0;">${esc(code)}</p>
+    <p style="color:#7A3A18;">It's valid for ${minutes} minutes. If you didn't try to log in, someone may know your password: please reset it.</p>
   `),
 });
 
@@ -343,6 +359,14 @@ async function buildNormalEmail(payload: any, callerId: string | null, trustedSe
     if (!profile) throw new HttpError(404, "Joiner not found");
     const to = await recipientFor(payload.userId, profile.email);
     return { to, ...customEmail(displayName(profile), subject, message) };
+  }
+
+  if (payload.type === "login-code") {
+    // Only the auth function (service-role key) sends login codes.
+    if (!trustedServer) throw new HttpError(403, "Not allowed");
+    const code = String(payload.code ?? "");
+    if (!usableEmail(payload.to) || !/^\d{6}$/.test(code)) throw new HttpError(400, "Missing recipient or code");
+    return { to: usableEmail(payload.to), ...loginCodeEmail(String(payload.name ?? ""), code, Number(payload.minutes) || 10) };
   }
 
   throw new HttpError(400, "Unknown email type");

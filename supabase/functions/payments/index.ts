@@ -206,7 +206,7 @@ async function createCheckout(userId: string, p: any) {
 
   const { data: tour } = await supabase.from("tours").select("id, title").eq("id", booking.tour_id).single();
   const full = p.paymentType === "full";
-  const amount = full ? Number(booking.total_price) : Math.round(Number(booking.total_price) * 0.4);
+  const amount = full ? Number(booking.total_price) : Math.round(Number(booking.total_price) * 40) / 100; // 40%, to the centavo
 
   try {
     const session = await createSession({
