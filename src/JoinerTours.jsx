@@ -1817,6 +1817,9 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '6px 0 0' }}>
                     You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for 30 minutes.
                 </p>
+                <p style={{ fontSize: 11, fontWeight: 800, color: '#8C2F1C', margin: '8px 0 0' }}>
+                    Payments are non-refundable. You can cancel up to 14 days before the tour, but the amount paid won't be returned.
+                </p>
 
             </div>
 

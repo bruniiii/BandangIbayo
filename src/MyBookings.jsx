@@ -531,7 +531,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </div>
                       <div>
                         <h4 style={{ fontSize: 13, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
-                        <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>This action cannot be undone. Payment is non-refundable.</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>This can't be undone, and the amount you paid won't be refunded.</p>
                       </div>
                     </div>
 
@@ -841,8 +841,6 @@ const StatusBadge = ({ booking }) => {
 
   if (booking.isActuallyCompleted) {
     bg = 'rgba(196,92,38,0.15)'; color = '#C45C26'; label = 'Completed';
-  } else if (booking.payment_status === 'Refund Needed') {
-    bg = 'rgba(140,47,28,0.1)'; color = '#8C2F1C'; label = 'Refund Pending';
   } else if (booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected') {
     bg = 'rgba(140,47,28,0.1)'; color = '#8C2F1C'; label = 'Cancelled';
   } else if (booking.payment_status === 'Awaiting Payment') {

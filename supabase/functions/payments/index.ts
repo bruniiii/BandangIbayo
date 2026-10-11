@@ -10,6 +10,13 @@
 //                                        the joiner comes back from PayMongo, and from My Bookings)
 //   - "cancel-checkout"  { bookingId }   joiner backed out: expires the checkout, frees the slots
 //
+// Scheduled (pg_cron, every 5 minutes; no login needed, it only touches lapsed holds):
+//   - "expire-holds"     closes each lapsed checkout at PayMongo first, so it can no longer
+//                        be paid, then releases the slots. If PayMongo can't be reached the
+//                        hold keeps its slots and is retried on the next run.
+//
+// Payments are non-refundable (Terms, section 2), so there is no refund path anywhere.
+//
 // PayMongo webhook (header Paymongo-Signature): checkout_session.payment.paid.
 //   Payment state is never taken from the request body: the session is always re-fetched
 //   from PayMongo's API with our secret key before anything is recorded. PayMongo doesn't
@@ -90,7 +97,7 @@ async function createSession(opts: {
           quantity: 1,
         }],
         payment_method_types: PAYMENT_METHODS,
-        description: `Bandang IBAYO booking ${booking.booking_number}`,
+        description: `Bandang IBAYO booking ${booking.booking_number}. Payments are non-refundable; bookings can be cancelled up to 14 days before the tour.`,
         reference_number: booking.booking_number,
         metadata: { booking_id: String(booking.id), kind },
         send_email_receipt: true,
@@ -254,29 +261,72 @@ async function verifyCheckout(userId: string, p: any) {
   return result;
 }
 
+// Close a checkout at PayMongo so it can't be paid any more. Returns the
+// payment status found first ("unpaid" when it was safe to close).
+async function closeCheckout(sessionId: string) {
+  const result = await processSession(sessionId);
+  if (result.status !== "unpaid") return result; // paid in the meantime: booking confirmed
+  await paymongo("POST", `/checkout_sessions/${encodeURIComponent(sessionId)}/expire`).catch(async (err) => {
+    // Already expired is fine; anything else means it may still be payable.
+    const check = await paymongo("GET", `/checkout_sessions/${encodeURIComponent(sessionId)}`);
+    if (check?.data?.attributes?.status !== "expired") throw err;
+  });
+  return result;
+}
+
+async function emailWaitlist(tourId: unknown) {
+  await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ type: "waitlist-openings", tourId }),
+  }).catch(() => {});
+}
+
 async function cancelCheckout(userId: string, p: any) {
   const booking = await loadOwnBooking(p.bookingId, userId);
   if (booking.payment_status !== "Awaiting Payment") return { status: booking.payment_status };
 
   if (booking.paymongo_checkout_id) {
-    // They may have paid after all.
-    const result = await processSession(booking.paymongo_checkout_id);
-    if (result.status !== "unpaid") return result;
-    await paymongo("POST", `/checkout_sessions/${encodeURIComponent(booking.paymongo_checkout_id)}/expire`)
-      .catch((err) => console.warn("payments: could not expire checkout", err?.message));
+    const result = await closeCheckout(booking.paymongo_checkout_id);
+    if (result.status !== "unpaid") return result; // they had paid after all
   }
-  await supabase.from("bookings")
-    .update({ booking_status: "Cancelled", payment_status: "Expired", cancellation_reason: "Online payment was cancelled." })
-    .eq("id", booking.id)
-    .eq("payment_status", "Awaiting Payment");
-
-  // Freed slots: email anyone on the waitlist.
-  await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "waitlist-openings", tourId: booking.tour_id }),
-  }).catch(() => {});
+  await supabase.rpc("release_payment_hold", {
+    p_booking_id: booking.id,
+    p_reason: "Online payment was cancelled.",
+    p_actor_name: "Joiner (cancelled checkout)",
+  });
+  await emailWaitlist(booking.tour_id);
   return { status: "cancelled" };
+}
+
+async function expireHolds() {
+  const { data: lapsed } = await supabase
+    .from("bookings")
+    .select("id, tour_id, paymongo_checkout_id")
+    .eq("payment_status", "Awaiting Payment")
+    .lt("hold_expires_at", new Date().toISOString());
+
+  let released = 0, confirmed = 0, retry = 0;
+  const tours = new Set<unknown>();
+  for (const b of (lapsed ?? []) as any[]) {
+    try {
+      if (b.paymongo_checkout_id) {
+        const result = await closeCheckout(b.paymongo_checkout_id);
+        if (result.status !== "unpaid") { confirmed++; continue; }
+      }
+      const { data: ok } = await supabase.rpc("release_payment_hold", {
+        p_booking_id: b.id,
+        p_reason: "Online payment was not completed in time.",
+      });
+      if (ok) { released++; tours.add(b.tour_id); }
+    } catch (err) {
+      retry++;
+      console.warn("payments[expire-holds]: will retry", b.id, (err as Error)?.message);
+    }
+  }
+  for (const t of tours) await emailWaitlist(t);
+  if (released || confirmed || retry) console.log("payments[expire-holds]:", { released, confirmed, retry });
+  return { released, confirmed, retry };
 }
 
 // ───────────── Request handler ─────────────
@@ -286,12 +336,14 @@ Deno.serve(async (req) => {
   try {
     if (req.headers.has("paymongo-signature")) return await handleWebhook(req);
 
+    const payload = await req.json().catch(() => ({}));
+    if (payload.action === "expire-holds") return reply(await expireHolds());
+
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     const { data: userData, error: authErr } = await supabase.auth.getUser(token);
     if (authErr || !userData?.user) return reply({ error: "Please log in again." }, 401);
     const userId = userData.user.id;
 
-    const payload = await req.json().catch(() => ({}));
     switch (payload.action) {
       case "create-checkout": return reply(await createCheckout(userId, payload));
       case "pay-balance": return reply(await payBalance(userId, payload));

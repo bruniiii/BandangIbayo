@@ -5,9 +5,13 @@
 -- minutes ("Awaiting Payment"), and opens a PayMongo checkout. When PayMongo
 -- reports the payment (webhook, or the joiner coming back to the site), the
 -- edge function re-checks it with PayMongo's API and calls
--- record_online_payment(), which confirms the booking. Unpaid holds expire.
--- The downpayment balance can later be paid online the same way, or in
--- person on the tour day (admin marks it paid).
+-- record_online_payment(), which confirms the booking. Unpaid holds expire:
+-- the payments function first closes the PayMongo checkout so it can no longer
+-- be paid, then releases the slots. The downpayment balance can later be paid
+-- online the same way, or in person on the tour day (admin marks it paid).
+--
+-- Payments are non-refundable (Terms, section 2): there is no refund path.
+-- A paid joiner can only cancel (up to 14 days before the tour).
 --
 -- Requires 20261010000000 … 20261015000000.
 
@@ -28,62 +32,60 @@ create index if not exists bookings_awaiting_payment_idx
 revoke execute on function public.create_booking from authenticated;
 
 -- ═════════════════════════════════════════════
--- Expired checkout holds free their slots.
+-- Releasing a hold (checkout expired, or the joiner backed out).
+-- Called by the payments function only after it has closed the PayMongo
+-- checkout, so a released hold can't be paid afterwards. Until then the hold
+-- keeps its slots, even past its 30 minutes.
 -- ═════════════════════════════════════════════
-create or replace function public.expire_payment_holds(p_tour_id public.tours.id%type default null)
-returns integer
+create or replace function public.release_payment_hold(
+  p_booking_id public.bookings.id%type,
+  p_reason     text,
+  p_actor_name text default 'System (checkout expired)'
+)
+returns boolean
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
   n integer;
-  v_prev text := current_setting('app.actor_name', true);
 begin
-  -- Credit these cancellations to the expiry, then restore whoever called us.
-  perform set_config('app.actor_name', 'System (checkout expired)', true);
+  perform set_config('app.actor_name', p_actor_name, true);
   update public.bookings
-  set booking_status = 'Cancelled',
-      payment_status = 'Expired',
-      cancellation_reason = 'Online payment was not completed in time.'
-  where payment_status = 'Awaiting Payment'
-    and booking_status not in ('Cancelled', 'Rejected')
-    and hold_expires_at < now()
-    and (p_tour_id is null or tour_id = p_tour_id);
+  set booking_status = 'Cancelled', payment_status = 'Expired', cancellation_reason = p_reason
+  where id = p_booking_id
+    and payment_status = 'Awaiting Payment'
+    and booking_status not in ('Cancelled', 'Rejected');
   get diagnostics n = row_count;
-  perform set_config('app.actor_name', coalesce(v_prev, ''), true);
-  return n;
+  perform set_config('app.actor_name', '', true);
+  return n > 0;
 end;
 $$;
 
-revoke all on function public.expire_payment_holds from public, anon, authenticated;
-grant execute on function public.expire_payment_holds to service_role;
+revoke all on function public.release_payment_hold from public, anon, authenticated;
+grant execute on function public.release_payment_hold to service_role;
 
--- Every 5 minutes, if pg_cron is enabled (it is for the tour reminders).
+-- Every 5 minutes, ask the payments function to close lapsed checkouts and
+-- release their slots. Needs pg_cron and pg_net (the tour reminders use both).
 do $$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     perform cron.unschedule(jobid) from cron.job where jobname = 'expire-payment-holds';
-    perform cron.schedule('expire-payment-holds', '*/5 * * * *', 'select public.expire_payment_holds()');
+    if exists (select 1 from pg_extension where extname = 'pg_net') then
+      perform cron.schedule(
+        'expire-payment-holds',
+        '*/5 * * * *',
+        $job$select net.http_post(
+          url := 'https://renugdlntgybazpikmbu.supabase.co/functions/v1/payments',
+          body := '{"action":"expire-holds"}'::jsonb,
+          headers := '{"Content-Type":"application/json"}'::jsonb
+        )$job$
+      );
+    else
+      raise notice 'pg_net is not enabled: enable it (Database → Extensions) and run this file again, so unpaid checkouts are released automatically.';
+    end if;
   end if;
 end;
-$$;
-
--- Slot counts ignore holds that have already run out (until the job cancels them).
-create or replace function public.tour_slots_booked()
-returns table (tour_id public.tours.id%type, slots_booked bigint)
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select b.tour_id, coalesce(sum(b.slots_booked), 0)::bigint
-  from public.bookings b
-  join public.tours t on t.id = b.tour_id
-  where not coalesce(t.is_archived, false)
-    and b.booking_status not in ('Cancelled', 'Rejected')
-    and not (b.payment_status = 'Awaiting Payment' and b.hold_expires_at < now())
-  group by b.tour_id;
 $$;
 
 -- ═════════════════════════════════════════════
@@ -144,8 +146,6 @@ begin
   if v_tour.start_date < (now() at time zone 'Asia/Manila')::date then
     raise exception 'This tour has already started.';
   end if;
-
-  perform public.expire_payment_holds(p_tour_id);
 
   -- Activity log: what happens from here is the joiner's doing, not "System".
   perform set_config('app.actor_id', p_user_id::text, true);
@@ -265,31 +265,21 @@ begin
     return jsonb_build_object('status', 'amount_mismatch');
   end if;
 
-  -- Paid after the 30-minute hold ran out: keep it if there's still room.
+  -- Paid even though the hold had been released (only possible in the moment
+  -- the checkout was being closed). Payments are non-refundable, so the booking
+  -- is confirmed anyway; if that puts the tour over capacity, admins are told.
   if v_b.booking_status = 'Cancelled' then
     select coalesce(sum(slots_booked), 0) into v_booked
     from public.bookings
     where tour_id = v_b.tour_id and id <> v_b.id and booking_status not in ('Cancelled', 'Rejected');
     if coalesce(v_tour.group_size, 15) - v_booked < v_b.slots_booked then
-      update public.bookings
-      set payment_status = 'Refund Needed', amount_paid = p_amount, paymongo_payment_id = p_payment_id,
-          paid_online_at = now(),
-          cancellation_reason = 'Paid after the checkout hold expired and the tour was full. Refund needed.'
-      where id = p_booking_id;
       insert into public.notifications (user_id, title, message, type, related_id)
-      select a.id, 'Refund Needed',
-             format('%s paid for %s (%s) after their checkout expired, and the tour is now full. Please refund them.',
-                    v_b.full_name, v_tour.title, v_b.booking_number),
-             'payment', null
+      select a.id, 'Tour Over Capacity',
+             format('%s paid for %s (%s, %s pax) just as their checkout was closing, so their booking was confirmed. The tour is now %s over its group size of %s.',
+                    v_b.full_name, v_tour.title, v_b.booking_number, v_b.slots_booked,
+                    v_booked + v_b.slots_booked - coalesce(v_tour.group_size, 15), coalesce(v_tour.group_size, 15)),
+             'booking', null
       from public.profiles a where a.role = 'admin';
-      if v_b.user_id is not null then
-        insert into public.notifications (user_id, title, message, type, related_id)
-        values (v_b.user_id, 'Payment received, but the tour filled up',
-                format('We received your payment for %s (%s), but the tour filled up after your checkout expired. We''ll contact you about a refund.',
-                       v_tour.title, v_b.booking_number),
-                'payment', null);
-      end if;
-      return jsonb_build_object('status', 'refund_needed');
     end if;
   end if;
 
@@ -375,7 +365,6 @@ begin
   v_action := case
     when v_changes ? 'payment_status' and new.payment_status = 'Complete' then 'Payment confirmed'
     when v_changes ? 'payment_status' and new.payment_status = 'Rejected' then 'Payment rejected'
-    when v_changes ? 'payment_status' and new.payment_status = 'Refund Needed' then 'Paid after checkout expired (refund needed)'
     when v_changes ? 'payment_status' and new.payment_status = 'Expired' then 'Checkout expired or cancelled'
     when v_changes ? 'booking_status' and new.booking_status = 'Cancelled' then 'Cancelled'
     when v_changes ? 'tour_id' then 'Moved to another date'

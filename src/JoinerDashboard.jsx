@@ -110,7 +110,6 @@ const JoinerDashboard = () => {
         const { ok, data, error } = await verifyCheckout({ bookingId });
         const status = kind === 'balance' ? data?.balance?.status : data?.booking?.status;
         if (!ok) notice = { type: 'error', text: `We couldn't check your payment yet (${error}). It will update automatically once PayMongo confirms it.` };
-        else if (status === 'refund_needed') notice = { type: 'error', text: 'We received your payment, but the tour filled up after your checkout expired. We\'ll contact you about a refund.' };
         else if (status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your payment yet. If you paid, it will show here once PayMongo confirms it.' };
         else if (kind === 'balance') notice = { type: 'success', text: 'Balance paid! Your booking is now fully paid.' };
         else notice = { type: 'success', text: 'Payment received! Your booking is confirmed. 🎉' };

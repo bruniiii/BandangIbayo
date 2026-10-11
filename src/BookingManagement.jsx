@@ -22,7 +22,6 @@ import {
 const getDerivedStatus = (b) => (
   (b.payment_status === 'Pending' || b.payment_status === 'Verification Pending') ? b.payment_status :
   b.payment_status === 'Rejected' ? 'Rejected' :
-  b.payment_status === 'Refund Needed' ? 'Refund Needed' :
   b.booking_status === 'Cancelled' ? 'Cancelled' :
   b.payment_status
 );
@@ -264,7 +263,6 @@ const BookingManagement = () => {
             <option value="Rejected">Rejected</option>
             <option value="Cancelled">Cancelled</option>
             <option value="Awaiting Payment">Awaiting Payment</option>
-            <option value="Refund Needed">Refund Needed</option>
             <option value="Balance Due">Balance Due</option>
           </select>
           <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
@@ -1210,7 +1208,6 @@ const STATUS_STYLES = {
   Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
   'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
   Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
-  'Refund Needed': { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
 };
  
 const StatusBadge = ({ status, large = false }) => {
