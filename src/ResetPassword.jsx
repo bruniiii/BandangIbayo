@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { passwordErrorMessage } from './passwordPolicy';
+import PasswordChecklist from './PasswordChecklist';
+import { clearLoginLock } from './authApi';
 import { Loader2, CheckCircle2, Lock } from 'lucide-react';
 import logoIcon from './assets/newIcon.png';
 
@@ -65,7 +68,8 @@ const ResetPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    const passwordError = passwordErrorMessage(password);
+    if (passwordError) { setError(passwordError); return; }
     if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
 
     setLoading(true);
@@ -74,6 +78,8 @@ const ResetPassword = () => {
 
     if (updateError) { setError(updateError.message); return; }
     setDone(true);
+    // A new password lifts a "too many wrong passwords" lock right away.
+    await clearLoginLock();
     await supabase.auth.signOut();
     setTimeout(() => navigate('/login'), 2000);
   };
@@ -81,7 +87,7 @@ const ResetPassword = () => {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#F2E4D0', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
+      background: '#FDF6EE', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
       padding: '3rem 1rem',
     }}>
       <div style={{
@@ -122,7 +128,9 @@ const ResetPassword = () => {
                 style={inputStyle}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
               />
+              <PasswordChecklist password={password} />
             </div>
             <div>
               <label style={labelStyle}>Confirm New Password</label>

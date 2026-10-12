@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { safeNextPath } from './tourUtils';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, MailCheck, ArrowLeft } from 'lucide-react';
+import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
  import logoIcon from './assets/newIcon.png';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -24,66 +25,86 @@ const JoinerLogin = () => {
   const [searchParams] = useSearchParams();
   const nextPath = safeNextPath(searchParams.get('next'));
  
+  // Step 2 (after the right password): the 6-digit code we emailed.
+  const [challenge, setChallenge] = useState(null); // { challengeId, sentTo, expiresInMinutes }
+  const [code, setCode] = useState('');
+  const [message, setMessage] = useState({ text: '', tone: 'error' });
+  const [resending, setResending] = useState(false);
+
+  const showError = (text) => setMessage({ text, tone: 'error' });
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
- 
+    setMessage({ text: '', tone: 'error' });
+
     const formData = new FormData(e.target);
     const identifier = formData.get('identifier').trim();
     const password = formData.get('password');
- 
-    try {
-      // ── Step 1: Resolve the identifier to an email ──
-      // If it looks like an email, use it directly.
-      // Otherwise, treat it as a username and look up the associated email.
-      let email = identifier;
- 
-      if (!identifier.includes('@')) {
-        // Logged-out visitors can't read profiles, so this database function returns just the email.
-        const { data: emailForUsername, error: usernameError } = await supabase
-          .rpc('email_for_login', { p_username: identifier });
 
-        if (usernameError || !emailForUsername) {
-          throw new Error('Username not found.');
-        }
-        email = emailForUsername;
-      }
- 
-      // ── Step 2: Authenticate ──
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
- 
-      if (authError) throw authError;
- 
-      // ── Step 3: Look up role to decide where to send them ──
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single();
- 
-      if (profileError || !profile) {
-        // No profile row at all — treat as invalid account rather than guessing.
-        await supabase.auth.signOut();
-        throw new Error('No profile found for this account.');
-      }
- 
-      const role = profile.role === 'admin' ? 'admin' : 'joiner';
-      setSuccessRole(role);
-      setIsSuccess(true);
- 
-      setTimeout(() => {
-        navigate(role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard');
-      }, 1500);
- 
-    } catch (error) {
-      alert('Login failed: ' + error.message);
-      setLoading(false);
+    // The server counts wrong passwords (3 → locked for 15 minutes) and emails a code.
+    const result = await loginStart(identifier, password);
+    setLoading(false);
+    if (!result.ok) {
+      showError(result.error);
+      return;
     }
+    setChallenge(result.data);
+    setCode('');
   };
- 
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ text: '', tone: 'error' });
+
+    const result = await verifyLoginCode(challenge.challengeId, code);
+    if (!result.ok) {
+      setLoading(false);
+      // An expired or used-up code means starting over from the password step.
+      if (/log in again/i.test(result.error || '')) setChallenge(null);
+      showError(result.error);
+      return;
+    }
+
+    // Look up role to decide where to send them
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', result.data.user.id)
+      .single();
+
+    if (profileError || !profile) {
+      // No profile row at all — treat as invalid account rather than guessing.
+      await supabase.auth.signOut();
+      setLoading(false);
+      setChallenge(null);
+      showError('No profile found for this account.');
+      return;
+    }
+
+    const role = profile.role === 'admin' ? 'admin' : 'joiner';
+    setSuccessRole(role);
+    setIsSuccess(true);
+
+    setTimeout(() => {
+      navigate(role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard');
+    }, 1500);
+  };
+
+  const handleResend = async () => {
+    setResending(true);
+    const result = await resendLoginCode(challenge.challengeId);
+    setResending(false);
+    if (!result.ok) {
+      if (/log in again/i.test(result.error || '')) setChallenge(null);
+      showError(result.error);
+      return;
+    }
+    setCode('');
+    setMessage({ text: `We sent a new code to ${result.data.sentTo}.`, tone: 'info' });
+  };
+
   const inputStyle = {
     width: '100%',
     padding: '12px 16px',
@@ -109,13 +130,41 @@ const JoinerLogin = () => {
     opacity: 0.85,
   };
  
+  const submitStyle = (disabled) => ({
+    width: '100%',
+    background: disabled ? 'rgba(196,92,38,0.55)' : '#C45C26',
+    color: '#FDF6EE',
+    fontWeight: 900,
+    fontSize: 13,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    padding: '16px',
+    borderRadius: 12,
+    border: 'none',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    boxShadow: disabled ? 'none' : '0 8px 24px rgba(196,92,38,0.38)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    transition: 'all 0.2s',
+    fontFamily: 'inherit',
+  });
+
+  const linkButton = {
+    display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0,
+    fontSize: 12, fontWeight: 800, color: '#C45C26', cursor: 'pointer', fontFamily: 'inherit',
+  };
+
+  const spinner = <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /><style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style></>;
+
   return (
     <div style={{
       minHeight: '100vh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#F2E4D0',
+      background: '#FDF6EE',
       fontFamily: "'Inter', system-ui, sans-serif",
       color: '#1A0A00',
       padding: '3rem 1rem',
@@ -213,11 +262,22 @@ const JoinerLogin = () => {
             Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
           </h1>
           <p style={{ fontSize: 14, color: '#7A3A18', opacity: 0.75, margin: 0, fontWeight: 500 }}>
-            Welcome back! Login to continue.
+            {challenge ? 'Check your email for your verification code.' : 'Welcome back! Login to continue.'}
           </p>
         </div>
  
+        {message.text && (
+          <p role={message.tone === 'error' ? 'alert' : 'status'} style={{
+            fontSize: 12, fontWeight: 700, lineHeight: 1.6, margin: '0 0 16px', padding: '10px 14px', borderRadius: 10,
+            color: message.tone === 'error' ? '#8C2F1C' : '#2D1B0E',
+            background: message.tone === 'error' ? 'rgba(140,47,28,0.08)' : 'rgba(232,162,101,0.2)',
+          }}>
+            {message.text}
+          </p>
+        )}
+
         {/* form */}
+        {!challenge && (
         <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleLogin}>
           <div>
             <label style={labelStyle}>Username or Email</label>
@@ -242,36 +302,51 @@ const JoinerLogin = () => {
           
           <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', marginTop: 4 }} />
  
-          <button
-            disabled={loading || isSuccess}
-            style={{
-              width: '100%',
-              background: (loading || isSuccess) ? 'rgba(196,92,38,0.55)' : '#C45C26',
-              color: '#FDF6EE',
-              fontWeight: 900,
-              fontSize: 13,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              padding: '16px',
-              borderRadius: 12,
-              border: 'none',
-              cursor: (loading || isSuccess) ? 'not-allowed' : 'pointer',
-              boxShadow: (loading || isSuccess) ? 'none' : '0 8px 24px rgba(196,92,38,0.38)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              transition: 'all 0.2s',
-              fontFamily: 'inherit',
-            }}
-          >
-            {loading
-              ? <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /><style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style></>
-              : 'Login'
-            }
+          <button disabled={loading || isSuccess} style={submitStyle(loading || isSuccess)}>
+            {loading ? spinner : 'Login'}
           </button>
         </form>
+        )}
  
+        {challenge && (
+          <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleVerify}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: '#7A3A18', lineHeight: 1.6 }}>
+              <MailCheck size={20} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
+              <span>
+                We sent a 6-digit code to <strong>{challenge.sentTo}</strong>. It's valid for {challenge.expiresInMinutes} minutes.
+              </span>
+            </div>
+            <div>
+              <label style={labelStyle} htmlFor="login-code">Verification Code</label>
+              <input
+                id="login-code"
+                name="code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                placeholder="123456"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                style={{ ...inputStyle, fontSize: 22, fontWeight: 900, letterSpacing: '0.4em', textAlign: 'center' }}
+                autoFocus
+                required
+              />
+            </div>
+            <button disabled={loading || isSuccess || code.length !== 6} style={submitStyle(loading || isSuccess || code.length !== 6)}>
+              {loading ? spinner : 'Verify & Login'}
+            </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+              <button type="button" onClick={() => { setChallenge(null); setMessage({ text: '', tone: 'error' }); }} style={linkButton}>
+                <ArrowLeft size={13} /> Back
+              </button>
+              <button type="button" onClick={handleResend} disabled={resending} style={linkButton}>
+                {resending ? 'Sending…' : 'Resend code'}
+              </button>
+            </div>
+          </form>
+        )}
+
         {/* register link */}
         <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.8 }}>
           Don't have an account?{' '}

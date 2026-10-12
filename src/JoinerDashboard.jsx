@@ -4,7 +4,8 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots } from './tourUtils';
+import { withAvailableSlots, formatPeso } from './tourUtils';
+import { verifyCheckout, cancelCheckout } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
 import JoinerTours, { DetailedTourModal } from './JoinerTours';
 import TourCalendar from './TourCalendar';
@@ -26,7 +27,7 @@ import Notification from './Notification';
 // #2D1B0E  deep brown (dark card)
 // #7A3A18  rust mid-tone
 // #F2E4D0  parchment (inset panels / secondary bg)
-// #EDEAE3  warm stone (page bg — provides contrast for cream cards)
+// #FDF6EE  cream (page bg, same as the public Tours page)
 // #3F5D62  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
@@ -47,7 +48,15 @@ const JoinerDashboard = () => {
   // A public tour page's "Book" button lands here as /dashboard?book=<tourId>.
   const [searchParams, setSearchParams] = useSearchParams();
   const [bookTourId, setBookTourId] = useState(() => searchParams.get('book'));
-  const [activeTab, setActiveTab] = useState(bookTourId ? 'Explore Tours' : 'HomePage');
+  // Coming back from PayMongo: /dashboard?payment=success|cancelled&booking=<id>
+  // (or ?balance=… after paying a downpayment's remaining balance).
+  const [paymentReturn] = useState(() => {
+    const kind = searchParams.has('payment') ? 'payment' : searchParams.has('balance') ? 'balance' : null;
+    return kind ? { kind, result: searchParams.get(kind), bookingId: searchParams.get('booking') } : null;
+  });
+  const [paymentNotice, setPaymentNotice] = useState(paymentReturn ? { type: 'info', text: 'Checking your payment…' } : null);
+  const [myBookingsKey, setMyBookingsKey] = useState(0);
+  const [activeTab, setActiveTab] = useState(paymentReturn ? 'My Bookings' : bookTourId ? 'Explore Tours' : 'HomePage');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -75,10 +84,42 @@ const JoinerDashboard = () => {
   const [featuredTours, setFeaturedTours] = useState([]);
   const [selectedTour, setSelectedTour] = useState(null);
 
-  // Drop ?book= from the URL so a refresh doesn't reopen the booking window.
+  // Drop ?book= / ?payment= from the URL so a refresh doesn't repeat them.
   useEffect(() => {
-    if (searchParams.has('book')) setSearchParams({}, { replace: true });
+    if (['book', 'payment', 'balance'].some((k) => searchParams.has(k))) setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  // Confirm (or release) the booking with PayMongo's answer, then show the result.
+  useEffect(() => {
+    if (!paymentReturn?.bookingId) return;
+    let active = true;
+    (async () => {
+      const { bookingId, kind, result } = paymentReturn;
+      let notice;
+      if (result === 'cancelled') {
+        if (kind === 'payment') {
+          const { ok, data } = await cancelCheckout({ bookingId });
+          // If they had actually paid before backing out, the booking is confirmed instead.
+          notice = ok && ['confirmed', 'already', 'Complete'].includes(data?.status)
+            ? { type: 'success', text: 'Payment received! Your booking is confirmed.' }
+            : { type: 'info', text: 'Payment cancelled. Your held slots were released.' };
+        } else {
+          notice = { type: 'info', text: 'Balance payment cancelled. You can pay online anytime from My Bookings, or in person on the tour day.' };
+        }
+      } else {
+        const { ok, data, error } = await verifyCheckout({ bookingId });
+        const status = kind === 'balance' ? data?.balance?.status : data?.booking?.status;
+        if (!ok) notice = { type: 'error', text: `We couldn't check your payment yet (${error}). It will update automatically once PayMongo confirms it.` };
+        else if (status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your payment yet. If you paid, it will show here once PayMongo confirms it.' };
+        else if (kind === 'balance') notice = { type: 'success', text: 'Balance paid! Your booking is now fully paid.' };
+        else notice = { type: 'success', text: 'Payment received! Your booking is confirmed. 🎉' };
+      }
+      if (!active) return;
+      setPaymentNotice(notice);
+      setMyBookingsKey((k) => k + 1);
+    })();
+    return () => { active = false; };
+  }, [paymentReturn]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -306,7 +347,7 @@ const JoinerDashboard = () => {
     <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100vh',
       fontFamily: "'Inter', system-ui, sans-serif",
-      background: '#EDEAE3',
+      background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
@@ -517,7 +558,22 @@ const JoinerDashboard = () => {
         </header>
 
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#EDEAE3' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
+
+          {paymentNotice && (
+            <div role="status" style={{
+              display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+              marginBottom: 20, padding: '14px 18px', borderRadius: 16, fontSize: 13, fontWeight: 700,
+              background: paymentNotice.type === 'success' ? 'rgba(196,92,38,0.12)' : paymentNotice.type === 'error' ? 'rgba(140,47,28,0.12)' : '#FDF6EE',
+              border: `1px solid ${paymentNotice.type === 'error' ? 'rgba(140,47,28,0.3)' : 'rgba(196,92,38,0.25)'}`,
+              color: paymentNotice.type === 'error' ? '#8C2F1C' : '#1A0A00',
+            }}>
+              <span>{paymentNotice.text}</span>
+              <button type="button" aria-label="Dismiss" onClick={() => setPaymentNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', flexShrink: 0 }}>
+                <X size={16} />
+              </button>
+            </div>
+          )}
 
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -555,7 +611,7 @@ const JoinerDashboard = () => {
                     Adventure Awaits with <span style={{ color: '#E8A265' }}>Bandang IBAYO</span>
                   </h2>
                   <p style={{ fontSize: 12.5, lineHeight: 1.5, fontWeight: 500, color: 'rgba(232,210,190,0.85)', margin: '0 0 16px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    Our mission is to make everyone witness the beauty of the Philippines without needing to spend lots of money. Focusing exclusively on budget-friendly land tours and overland road trips, accommodating hassle-free road trip adventures completely by land tailored for every joiner.
+                    Our mission is to make everyone witness the beauty of the Philippines. Focusing exclusively on budget-friendly land tours and overland road trips, accommodating hassle-free road trip adventures completely by land tailored for every joiner.
                   </p>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -614,8 +670,9 @@ const JoinerDashboard = () => {
                 </div>
               </div>
 
-              {/* SPLIT GRID */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
+              {/* SPLIT GRID: tours on the left, a narrow rail (calendar, tracking, reviews) on the right.
+                  Stacks into one column on tablets and phones. */}
+              <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }}>
 
                 {/* LEFT COL */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -670,7 +727,7 @@ const JoinerDashboard = () => {
                             <div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
                                 <h4 style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
-                                <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>₱{tour.price?.toLocaleString()}</span>
+                                <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>{formatPeso(tour.price)}</span>
                               </div>
                               <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}</p>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '9px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
@@ -767,7 +824,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Explore Tours' ? (
             <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
-            <MyBookings initialFilter={bookingsFilter} />
+            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} />
           ) : activeTab === 'Calendar' ? (
             <TourCalendar initialDate={calendarTarget} />
           ) : activeTab === 'Exclusive Tours' ? (
@@ -1053,12 +1110,12 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
   return (
     <div
       style={{
-        background: '#FDF6EE', borderRadius: 22, padding: '1.75rem',
+        background: '#FDF6EE', borderRadius: 20, padding: '1rem 1.1rem',
         border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         display: 'flex', flexDirection: 'column',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <div onClick={handleHeaderClick} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
           <CalendarIcon size={16} style={{ color: '#C45C26' }} />
           <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00' }}>
@@ -1092,13 +1149,13 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.25rem 0', color: 'rgba(122,58,24,0.4)' }}>
           <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px 4px', maxWidth: 280, width: '100%', margin: '0 auto' }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <span key={i} style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', color: 'rgba(122,58,24,0.4)', paddingBottom: 4 }}>{d}</span>
+            <span key={i} style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', color: 'rgba(122,58,24,0.4)', paddingBottom: 2 }}>{d}</span>
           ))}
           {cells.map(({ day, muted }, i) => {
             const isToday = isCurrentMonth && !muted && day === todayDate;
@@ -1110,8 +1167,8 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
                 onClick={() => handleCellClick(day, muted)}
                 style={{
                   position: 'relative',
-                  aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: 9,
+                  height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 8,
                   cursor: 'pointer',
                   background: isConfirmedTrip ? '#E8A265' : isToday ? '#1A0A00' : 'transparent',
                   color: muted ? 'rgba(122,58,24,0.25)' : isConfirmedTrip ? '#1A0A00' : isToday ? '#E8A265' : '#1A0A00',
@@ -1125,7 +1182,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
                 {day}
                 {hasDot && (
                   <span style={{
-                    position: 'absolute', bottom: 2, width: 4, height: 4, borderRadius: '50%', background: '#C45C26',
+                    position: 'absolute', bottom: 1, width: 4, height: 4, borderRadius: '50%', background: '#C45C26',
                   }} />
                 )}
               </div>
@@ -1134,7 +1191,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
         <span style={{ width: 9, height: 9, borderRadius: 3, background: '#E8A265', flexShrink: 0 }} />
         <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>Confirmed trip</span>
       </div>

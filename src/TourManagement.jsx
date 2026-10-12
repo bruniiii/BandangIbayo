@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
+import { formatPeso } from './tourUtils';
+import { moneyInputProps, blockSignKeys } from './moneyInput';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
   Loader2, CheckCircle2, AlertCircle, ImageIcon,
@@ -175,6 +177,10 @@ const TourManagement = () => {
     const formData  = new FormData(e.target);
     const startDate = formData.get('start_date');
     if (startDate < getMinStartDate()) { alert('Invalid Start Date. Must be at least 3 weeks in advance.'); return; }
+    // Prices can have centavos (e.g. 1499.50) but can't be negative.
+    const price = Number(formData.get('price'));
+    if (!Number.isFinite(price) || price < 0) { alert('Price must be zero or more.'); return; }
+    if (Math.abs(Math.round(price * 100) - price * 100) > 1e-6) { alert('Price can have at most 2 decimal places (centavos).'); return; }
     let finalGallery = [...tempGallery];
     if (newFiles.length > 0) { const newUrls = await uploadImages(newFiles); finalGallery = [...finalGallery, ...newUrls]; }
  
@@ -182,7 +188,7 @@ const TourManagement = () => {
       title:          formData.get('title'),
       description:    formData.get('description'),
       destination:    formData.get('destination'),
-      price:          parseFloat(formData.get('price')),
+      price:          Math.round(price * 100) / 100,
       duration:       calculatedDuration,
       group_size:     parseInt(formData.get('group_size')) || 18,
       difficulty:     formData.get('difficulty'),
@@ -565,7 +571,7 @@ const TourManagement = () => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" defaultValue={editingTour?.destination} required />
-                  <ModalInput label="Price (₱)" name="price" type="number" defaultValue={editingTour?.price} required />
+                  <ModalInput label="Price (₱)" name="price" {...moneyInputProps} placeholder="e.g. 1499.50" defaultValue={editingTour?.price} required />
                 </div>
  
                 {/* Dates */}
@@ -593,7 +599,7 @@ const TourManagement = () => {
                     <input type="text" value={calculatedDuration} readOnly
                       style={{ ...inputStyle, background: '#F2E4D0', opacity: 0.7, cursor: 'default' }} />
                   </div>
-                  <ModalInput label="Max Slots" name="group_size" type="number" defaultValue={editingTour?.group_size || 18} required />
+                  <ModalInput label="Max Slots" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} defaultValue={editingTour?.group_size || 18} required />
                   <div>
                     <label style={labelStyle}>Difficulty</label>
                     <select name="difficulty" defaultValue={editingTour?.difficulty || 'Easy'}
@@ -918,7 +924,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
               {/* Price */}
               <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
-                ₱{tour.price.toLocaleString()}
+                {formatPeso(tour.price)}
               </p>
               <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>per person</p>
  
@@ -1056,7 +1062,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDate
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>₱{tour.price.toLocaleString()}</span>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
           </div>
           <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
             <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}

@@ -98,8 +98,9 @@ const MyData = () => {
       {showDelete && (
         <div style={{ background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.6 }}>
-            This permanently deletes your account, profile, reviews, comments, requests and uploaded files.
+            This permanently deletes your account, profile, requests and uploaded files.
             Past booking records stay in our accounts without your name, contact details or receipts.
+            Your reviews and comments stay up but are shown as "Deleted account".
             You can't delete your account while you have an upcoming booking.
           </p>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>

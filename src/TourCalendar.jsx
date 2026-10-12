@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots } from './tourUtils';
+import { withAvailableSlots, formatPeso } from './tourUtils';
 import { DetailedTourModal } from './JoinerTours';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -260,7 +260,7 @@ const TourCalendar = ({ initialDate }) => {
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: '#E8A265' }}>₱{tour.price.toLocaleString()}</span>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: '#E8A265' }}>{formatPeso(tour.price)}</span>
                       <button
                         onClick={() => setSelectedTour(tour)}
                         style={{

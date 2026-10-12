@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { formatPeso } from './tourUtils';
+import { downloadReportCSV, downloadReportPDF } from './reportExport';
 import {
   Loader2, Calendar, Users, CheckCircle2, Clock, XCircle, AlertCircle,
   MapPin, ChevronDown, Wallet, TrendingUp, TrendingDown, ClipboardList,
   Star, Printer, Download, Filter, Bell, Sparkles, PieChart, Repeat,
-  Percent, ArrowRight, Trophy, ThumbsDown, X,
+  Percent, ArrowRight, Trophy, ThumbsDown, X, FileText,
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -29,7 +31,7 @@ const CHART_COLORS = {
   returning: '#1A0A00',
 };
 
-const peso = (n) => `₱${Math.round(n || 0).toLocaleString()}`;
+const peso = formatPeso;
 const pct = (n) => `${Number.isFinite(n) ? Math.round(n) : 0}%`;
 
 /* ─────────────────────────────────────────────
@@ -147,32 +149,6 @@ const displayJoiner = (profile, fallback) => {
   return combo || profile.username || fallback || 'Unknown';
 };
 
-/* Builds a CSV string from the filtered bookings and triggers a download. */
-const exportBookingsToCSV = (bookings) => {
-  const headers = ['Booking No.', 'Joiner', 'Tour', 'Destination', 'Pax', 'Total Price', 'Payment Method', 'Status', 'Date'];
-  const escape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
-  const rows = bookings.map((b) => [
-    b.booking_number || '',
-    b.full_name || '',
-    b.tours?.title || '',
-    b.tours?.destination || '',
-    b.slots_booked || 0,
-    b.total_price || 0,
-    b.payment_method || '',
-    getDerivedStatus(b),
-    new Date(b.created_at).toLocaleDateString('en-US'),
-  ].map(escape).join(','));
-  const csv = [headers.map(escape).join(','), ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `bandang-ibayo-bookings-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
 
 /* ─────────────────────────────────────────────
    REPORTS  (Business Reporting Dashboard)
@@ -596,6 +572,67 @@ const Reports = () => {
   }, [monthlyComparison, bestTour, stats, methodSegments, nearlyFullTours, soldOutTours]);
 
   // ── notifications ──
+  // ── downloadable report (CSV / PDF): exactly what's on screen for the chosen range and filters ──
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const buildReport = () => {
+    const filters = [
+      filterTour !== 'All Tours' && `Tour: ${filterTour}`,
+      filterDestination !== 'All Destinations' && `Destination: ${filterDestination}`,
+      filterMethod !== 'All Methods' && `Payment: ${filterMethod}`,
+      filterStatus !== 'All Status' && `Status: ${filterStatus}`,
+    ].filter(Boolean);
+    return {
+      rangeLabel: formatRangeLabel(start, end),
+      filtersLabel: filters.length ? filters.join(' · ') : 'None (all bookings)',
+      generatedAt: new Date().toLocaleString('en-PH', { dateStyle: 'long', timeStyle: 'short' }),
+      summary: [
+        ['Total bookings', stats.total],
+        ['Total joiners (pax)', stats.totalPax],
+        ['Confirmed', stats.complete],
+        ['Pending', stats.pending],
+        ['Cancelled', stats.cancelled],
+        ['Rejected', stats.rejected],
+        ['Confirmation rate', `${stats.conversionRate}%`],
+        ['Cancellation rate', `${stats.cancellationRate}%`],
+        ['Average group size', stats.avgPartySize],
+        ['Total revenue', stats.revenue, true],
+        ['Average booking value', stats.avgBookingValue, true],
+        [`Estimated profit (costs ${costPct}% of revenue)`, estimatedProfit, true],
+      ],
+      payments: [
+        ['Full payments received', paymentAnalytics.fullRevenue],
+        ['Downpayments received', paymentAnalytics.downRevenue],
+        ['Outstanding balances', outstandingBalance],
+      ],
+      tours: tourPerformance,
+      insights,
+      bookings: bookings.map((b) => {
+        const status = getDerivedStatus(b);
+        return {
+          number: b.booking_number || '',
+          date: b.created_at ? new Date(b.created_at).toLocaleDateString('en-PH') : '',
+          joiner: b.full_name || '',
+          tour: b.tours?.title || '',
+          destination: b.tours?.destination || '',
+          pax: b.slots_booked || 0,
+          total: b.total_price || 0,
+          paid: status === 'Complete' ? (b.balance_settled ? b.total_price : (b.amount_paid ?? b.total_price)) || 0 : 0,
+          method: b.payment_method || '',
+          status,
+        };
+      }),
+    };
+  };
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      await downloadReportPDF(buildReport());
+    } catch (err) {
+      alert('Could not create the PDF: ' + (err?.message || err));
+    }
+    setDownloadingPdf(false);
+  };
+
   const notifications = useMemo(() => {
     const list = [];
     if (revenueTrendVsPriorPeriod !== null && revenueTrendVsPriorPeriod < 0) {
@@ -651,8 +688,9 @@ const Reports = () => {
 
         {/* export controls */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <ExportButton icon={<Download size={13} />} label="Export CSV" onClick={() => exportBookingsToCSV(bookings)} />
-          <ExportButton icon={<Printer size={13} />} label="Print / Save PDF" onClick={() => window.print()} />
+          <ExportButton icon={<Download size={13} />} label="Download CSV" onClick={() => downloadReportCSV(buildReport())} disabled={loading} />
+          <ExportButton icon={<FileText size={13} />} label={downloadingPdf ? 'Preparing PDF…' : 'Download PDF'} onClick={handleDownloadPdf} disabled={loading || downloadingPdf} />
+          <ExportButton icon={<Printer size={13} />} label="Print" onClick={() => window.print()} />
         </div>
       </div>
 
@@ -1394,14 +1432,16 @@ const HighlightCard = ({ icon, label, title, sub, tone }) => (
   </div>
 );
 
-const ExportButton = ({ icon, label, onClick }) => (
+const ExportButton = ({ icon, label, onClick, disabled = false }) => (
   <button
     onClick={onClick}
+    disabled={disabled}
     style={{
+      opacity: disabled ? 0.55 : 1,
       display: 'flex', alignItems: 'center', gap: 7,
       background: '#1A0A00', color: '#E8A265', border: 'none', borderRadius: 999,
       padding: '10px 18px', fontFamily: 'inherit', fontWeight: 900,
-      fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+      fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: disabled ? 'not-allowed' : 'pointer',
       boxShadow: '0 4px 14px rgba(26,10,0,0.2)',
     }}
   >

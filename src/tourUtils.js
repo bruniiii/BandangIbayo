@@ -73,3 +73,10 @@ export const isWithinCancellationWindow = (startDate) => {
   const deadline = cancellationDeadline(startDate);
   return !!deadline && todayManila() > deadline;
 };
+
+// Money in pesos, always with centavos: "₱2,900.00", "₱1,499.50".
+export const formatPeso = (amount) =>
+  `₱${(Number(amount) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+// 40% downpayment, rounded to the centavo (same rule as the database and payments function).
+export const downpaymentFor = (total) => Math.round((Number(total) || 0) * 40) / 100;

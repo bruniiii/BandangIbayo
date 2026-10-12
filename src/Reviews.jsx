@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { todayManila } from './tourUtils';
-import { Star, Send, Trash2, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
+import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
 
 const displayName = (profile) => {
   if (!profile) return 'A Traveler';
@@ -73,7 +73,6 @@ const Reviews = ({ isAdmin = false }) => {
   const [comment, setComment] = useState('');
   const [mediaItems, setMediaItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const mediaInputRef = useRef(null);
 
@@ -198,14 +197,6 @@ const Reviews = ({ isAdmin = false }) => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this review? This cannot be undone.')) return;
-    setDeletingId(id);
-    const { error } = await supabase.from('reviews').delete().eq('id', id);
-    if (error) alert('Error: ' + error.message); else fetchReviews();
-    setDeletingId(null);
   };
 
   const avgRating = reviews.length
@@ -416,21 +407,16 @@ const Reviews = ({ isAdmin = false }) => {
         </div>
       ) : (
         reviews.map(review => (
-          <ReviewCard
-            key={review.id}
-            review={review}
-            canDelete={isAdmin || review.user_id === currentUserId}
-            deleting={deletingId === review.id}
-            onDelete={() => handleDelete(review.id)}
-          />
+          <ReviewCard key={review.id} review={review} />
         ))
       )}
     </div>
   );
 };
 
-/* ── REVIEW CARD ── */
-const ReviewCard = ({ review, canDelete, deleting, onDelete }) => (
+/* ── REVIEW CARD ──
+   Reviews can't be deleted, by the joiner or by an admin. */
+const ReviewCard = ({ review }) => (
   <div style={{
     background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
     border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
@@ -450,7 +436,7 @@ const ReviewCard = ({ review, canDelete, deleting, onDelete }) => (
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
-            {displayName(review.author)}
+            {review.user_id ? displayName(review.author) : 'Deleted account'}
           </p>
           <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '3px 0 0' }}>
             {formatDate(review.created_at)}
@@ -458,19 +444,6 @@ const ReviewCard = ({ review, canDelete, deleting, onDelete }) => (
         </div>
       </div>
 
-      {canDelete && (
-        <button
-          onClick={onDelete}
-          disabled={deleting}
-          title="Delete review"
-          style={{
-            background: 'none', border: 'none', cursor: deleting ? 'not-allowed' : 'pointer',
-            color: 'rgba(140,47,28,0.5)', padding: 6, flexShrink: 0,
-          }}
-        >
-          {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
-        </button>
-      )}
     </div>
 
     {review.tours && (

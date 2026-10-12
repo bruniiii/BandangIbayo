@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila, formatPeso } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
-import { downloadReceipt } from './paymentReceipt';
+import { downloadReceipt, balanceRemaining } from './paymentReceipt';
+import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
-  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown
+  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -119,6 +120,16 @@ const MyBookings = () => {
     setLoading(false);
   }, []);
  
+  // Checkouts still marked "Awaiting Payment": ask PayMongo once whether they were paid
+  // (covers a missed webhook or a joiner who closed the tab after paying).
+  const reconciledRef = useRef(false);
+  useEffect(() => {
+    const awaiting = bookings.filter((b) => b.payment_status === 'Awaiting Payment');
+    if (!awaiting.length || reconciledRef.current) return;
+    reconciledRef.current = true;
+    Promise.all(awaiting.map((b) => verifyCheckout({ bookingId: b.id }))).then(fetchMyBookings);
+  }, [bookings, fetchMyBookings]);
+
   useEffect(() => {
     const initFetch = async () => { await fetchMyBookings(); };
     initFetch();
@@ -293,7 +304,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         paddingTop: isMobile ? 14 : 0,
         flexShrink: 0,
       }}>
-        <p style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#C45C26', margin: 0 }}>₱{booking.total_price?.toLocaleString()}</p>
+        <p style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#C45C26', margin: 0 }}>{formatPeso(booking.total_price)}</p>
         <button
           onClick={onView}
           style={{
@@ -366,9 +377,13 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
     setDownloadingReceipt(false);
   };
 
+  const isAwaitingPayment = booking.payment_status === 'Awaiting Payment' &&
+                            booking.booking_status !== 'Cancelled' &&
+                            booking.booking_status !== 'Rejected';
   const isOpenBooking = booking.booking_status !== 'Cancelled' &&
                         booking.booking_status !== 'Rejected' &&
-                        !booking.isActuallyCompleted;
+                        !booking.isActuallyCompleted &&
+                        !isAwaitingPayment;
   // Terms, section 2: no cancellations within two weeks of the tour date.
   const cancellationClosed = isOpenBooking && isWithinCancellationWindow(tour.start_date);
   const canCancel = isOpenBooking && !cancellationClosed;
@@ -439,9 +454,9 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
               <div style={{ marginTop: 'auto' }}>
                 <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
-                  ₱{booking.total_price?.toLocaleString()}
+                  {formatPeso((isAwaitingPayment ? 0 : (booking.amount_paid ?? booking.total_price) ?? 0))}
                 </p>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>total paid</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAwaitingPayment ? 'not paid yet' : isPaymentConfirmed ? 'amount paid' : 'amount sent'}</p>
               </div>
             </div>
 
@@ -454,7 +469,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     <DetailItem label="Destination" value={tour.destination} />
                     <DetailItem label="Tour Date" value={formatDateRange(tour.start_date, tour.duration)} />
                     <DetailItem label="Pax Count" value={`${booking.slots_booked} persons`} />
-                    <DetailItem label="Total Price" value={`₱${booking.total_price?.toLocaleString()}`} />
+                    <DetailItem label="Total Price" value={`${formatPeso(booking.total_price)}`} />
                   </div>
                 </ViewSection>
 
@@ -470,6 +485,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     </div>
                   </ViewSection>
                 )}
+
+                <OnlinePaymentActions booking={booking} isAwaitingPayment={isAwaitingPayment} isPaymentConfirmed={isPaymentConfirmed} onChanged={onCancelSuccess} />
 
                 {canCancel && !showCancelConfirm && (
                   <RescheduleSection booking={booking} tour={tour} formatDateRange={formatDateRange} onMoved={onCancelSuccess} />
@@ -514,7 +531,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </div>
                       <div>
                         <h4 style={{ fontSize: 13, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
-                        <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>This action cannot be undone. Payment is non-refundable.</p>
+                        <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>This can't be undone, and the amount you paid won't be refunded.</p>
                       </div>
                     </div>
 
@@ -647,6 +664,71 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 };
 
 /* ─── Helpers ───────────────────────────────────────────────────── */
+/* ── PayMongo: finish an unfinished checkout, or pay a downpayment's balance online ── */
+const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, onChanged }) => {
+  const [busy, setBusy] = useState(null); // 'resume' | 'cancel' | 'balance'
+  const balance = balanceRemaining(booking);
+  const canPayBalance = isPaymentConfirmed && booking.payment_method === 'Downpayment' && balance > 0 && !booking.isActuallyCompleted;
+  if (!isAwaitingPayment && !canPayBalance) return null;
+
+  const holdUntil = booking.hold_expires_at
+    ? new Date(booking.hold_expires_at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })
+    : null;
+
+  const cancel = async () => {
+    if (!window.confirm('Cancel this unfinished booking and release the slots?')) return;
+    setBusy('cancel');
+    const { ok, error } = await cancelCheckout({ bookingId: booking.id });
+    setBusy(null);
+    if (!ok) { alert(error); return; }
+    onChanged();
+  };
+
+  const payBalance = async () => {
+    setBusy('balance');
+    const { ok, data, error } = await startBalanceCheckout({ bookingId: booking.id });
+    if (!ok) { alert(error); setBusy(null); return; }
+    if (data.alreadyPaid) { alert('Your balance is already paid. Thank you!'); setBusy(null); onChanged(); return; }
+    window.location.assign(data.checkoutUrl);
+  };
+
+  const buttonStyle = (primary) => ({
+    flex: 1, minWidth: 160, padding: '12px 0', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+    fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    background: primary ? '#C45C26' : '#FDF6EE', color: primary ? '#FDF6EE' : '#8C2F1C',
+    border: primary ? 'none' : '1px solid rgba(140,47,28,0.25)',
+  });
+
+  return (
+    <ViewSection title={isAwaitingPayment ? 'Payment Not Finished' : 'Remaining Balance'} icon={<CreditCard size={14} style={{ color: '#C45C26' }} />}>
+      <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.6 }}>
+        {isAwaitingPayment
+          ? `Your slots are held${holdUntil ? ` until ${holdUntil}` : ''}. Finish paying on PayMongo to confirm your booking.`
+          : `${formatPeso(balance)} is still due. Pay it online now, or in person on the day of the tour.`}
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        {isAwaitingPayment ? (
+          <>
+            {booking.paymongo_checkout_url && (
+              <button type="button" disabled={busy !== null} onClick={() => { setBusy('resume'); window.location.assign(booking.paymongo_checkout_url); }} style={buttonStyle(true)}>
+                {busy === 'resume' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Complete payment
+              </button>
+            )}
+            <button type="button" disabled={busy !== null} onClick={cancel} style={buttonStyle(false)}>
+              {busy === 'cancel' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <X size={14} />} Cancel booking
+            </button>
+          </>
+        ) : (
+          <button type="button" disabled={busy !== null} onClick={payBalance} style={buttonStyle(true)}>
+            {busy === 'balance' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(balance)} online
+          </button>
+        )}
+      </div>
+    </ViewSection>
+  );
+};
+
 /* ── Move to another date: same trip (destination) at the same price ── */
 const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
   const [options, setOptions] = useState(null); // null = not loaded yet
@@ -761,6 +843,8 @@ const StatusBadge = ({ booking }) => {
     bg = 'rgba(196,92,38,0.15)'; color = '#C45C26'; label = 'Completed';
   } else if (booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected') {
     bg = 'rgba(140,47,28,0.1)'; color = '#8C2F1C'; label = 'Cancelled';
+  } else if (booking.payment_status === 'Awaiting Payment') {
+    bg = 'rgba(232,162,101,0.25)'; color = '#C45C26'; label = 'Awaiting Payment';
   } else if (booking.payment_status === 'Complete' || booking.payment_status === 'Verified') {
     bg = 'rgba(63,93,98,0.15)'; color = '#3F5D62'; label = 'Confirmed Trip';
   } else if (booking.payment_status === 'Pending' || booking.payment_status === 'Verification Pending') {

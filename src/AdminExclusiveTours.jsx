@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyUser } from "./notifications";
+import { formatPeso } from './tourUtils';
+import { moneyInputProps, cleanMoney } from './moneyInput';
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
   Phone, Mail, Wallet, Home, ChevronDown, CheckCircle2, XCircle,
@@ -333,6 +335,10 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     setPackageForm(prev => ({ ...prev, [field]: e.target.value }));
 
   const handleSendPackage = async () => {
+    if (packageForm.price !== '' && packageForm.price != null && !(Number(packageForm.price) >= 0)) {
+      alert('Price must be zero or more.');
+      return;
+    }
     setSendingPackage(true);
     try {
       const sentAt = new Date().toISOString();
@@ -348,7 +354,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       const lines = [
         `📍 Destination: ${packageForm.destination || request.destination || '—'}`,
       ];
-      if (packageForm.price) lines.push(`💰 Price: ₱${Number(packageForm.price).toLocaleString()}`);
+      if (packageForm.price) lines.push(`💰 Price: ${formatPeso(Number(packageForm.price))}`);
       if (packageForm.accommodation) lines.push(`🏨 Accommodation: ${packageForm.accommodation}`);
       if (packageForm.itinerary) lines.push(`🗺️ Itinerary:\n${packageForm.itinerary}`);
       if (packageForm.inclusions) lines.push(`✅ Inclusions:\n${packageForm.inclusions}`);
@@ -490,7 +496,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             <DetailRow icon={<Calendar size={14} />} label="Preferred Date" value={formatDate(request.preferred_date)} />
             {isExclusive && <DetailRow icon={<Calendar size={14} />} label="Alternate Date" value={formatDate(request.alternate_date)} />}
             {isExclusive && <DetailRow icon={<Home size={14} />} label="Accommodation" value={request.accommodation} />}
-            {isExclusive && <DetailRow icon={<Wallet size={14} />} label="Budget" value={request.budget ? `₱${Number(request.budget).toLocaleString()}` : null} />}
+            {isExclusive && <DetailRow icon={<Wallet size={14} />} label="Budget" value={request.budget ? `${formatPeso(Number(request.budget))}` : null} />}
             {!isExclusive && <DetailRow icon={<ArrowRight size={14} />} label="Tour Type Preference" value={request.tour_type === 'joiner' ? 'Open to other joiners' : request.tour_type === 'exclusive' ? 'Exclusive for their group' : null} />}
           </div>
 
@@ -613,7 +619,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     <div>
                       <p style={labelStyle}>Final Price (₱)</p>
                       <input
-                        type="number" value={packageForm.price} onChange={setPkgField('price')}
+                        {...moneyInputProps} value={packageForm.price} onChange={(e) => setPackageForm((f) => ({ ...f, price: cleanMoney(e.target.value) }))}
                         placeholder="e.g. 55000"
                         style={packageInputStyle}
                       />

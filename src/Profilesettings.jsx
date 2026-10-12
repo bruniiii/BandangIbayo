@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import MyData from './MyData';
+import ChangePassword from './ChangePassword';
+import AddressFields from './AddressFields';
+import { composeAddress } from './phAddress';
 import {
   User, Mail, Phone, Calendar, MapPin, ShieldAlert,
   Loader2, CheckCircle2, Camera, Trash2,
@@ -88,6 +91,11 @@ const ProfileSettings = () => {
     phone_number: '',
     date_of_birth: '',
     address: '',
+    province: '',
+    city_municipality: '',
+    barangay: '',
+    street: '',
+    emergency_contact_name: '',
     emergency_contact_number: '',
   });
 
@@ -115,6 +123,11 @@ const ProfileSettings = () => {
           phone_number: data.phone_number || '',
           date_of_birth: data.date_of_birth || '',
           address: data.address || '',
+          province: data.province || '',
+          city_municipality: data.city_municipality || '',
+          barangay: data.barangay || '',
+          street: data.street || '',
+          emergency_contact_name: data.emergency_contact_name || '',
           emergency_contact_number: data.emergency_contact_number || '',
         });
       }
@@ -162,6 +175,12 @@ const ProfileSettings = () => {
 
   const handleSave = async () => {
     if (!userId) return;
+    // Address: province, city/municipality, barangay and street together (or none, to keep an older address as is).
+    const addressParts = [form.province, form.city_municipality, form.barangay, form.street.trim()];
+    if (addressParts.some(Boolean) && !addressParts.every(Boolean)) {
+      setToast({ type: 'error', message: 'Please choose your province, city/municipality and barangay, and enter your street.' });
+      return;
+    }
     setSaving(true);
 
     try {
@@ -202,7 +221,14 @@ const ProfileSettings = () => {
         last_name: form.last_name.trim(),
         phone_number: form.phone_number.trim(),
         date_of_birth: form.date_of_birth || null,
-        address: form.address.trim(),
+        ...(form.province ? {
+          province: form.province,
+          city_municipality: form.city_municipality,
+          barangay: form.barangay,
+          street: form.street.trim(),
+          address: composeAddress({ street: form.street, barangay: form.barangay, city: form.city_municipality, province: form.province }),
+        } : {}),
+        emergency_contact_name: form.emergency_contact_name.trim(),
         emergency_contact_number: form.emergency_contact_number.trim(),
         avatar_url: finalAvatarUrl,
       };
@@ -211,7 +237,7 @@ const ProfileSettings = () => {
         .from('profiles')
         .update(updatePayload)
         .eq('id', userId)
-        .select('id, avatar_url, first_name, last_name, phone_number, date_of_birth, address, emergency_contact_number')
+        .select('id, avatar_url, first_name, last_name, phone_number, date_of_birth, address, province, city_municipality, barangay, street, emergency_contact_name, emergency_contact_number')
         .single();
 
       if (updateError) throw updateError;
@@ -380,15 +406,34 @@ const ProfileSettings = () => {
           <Field label="Date of Birth" icon={<Calendar size={15} />}>
             <input type="date" style={inputStyle} value={form.date_of_birth || ''} onChange={handleChange('date_of_birth')} />
           </Field>
+        </div>
+
+        <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <Field label="Emergency Contact Name" icon={<User size={15} />}>
+            <input style={inputStyle} value={form.emergency_contact_name} onChange={handleChange('emergency_contact_name')} placeholder="Maria Dela Cruz" maxLength={120} />
+          </Field>
           <Field label="Emergency Contact Number" icon={<Phone size={15} />}>
             <input style={inputStyle} value={form.emergency_contact_number} onChange={handleChange('emergency_contact_number')} placeholder="+63 917 123 4567" />
           </Field>
         </div>
 
-        <div style={{ marginBottom: 8 }}>
-          <Field label="Address" icon={<MapPin size={15} />}>
-            <input style={inputStyle} value={form.address} onChange={handleChange('address')} placeholder="City, Province" />
-          </Field>
+        <div style={{ marginBottom: 20 }}>
+          <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+            <MapPin size={14} style={{ color: '#C45C26' }} /> Address
+          </p>
+          {!form.province && form.address && (
+            <p style={{ fontSize: 12, color: '#7A3A18', margin: '0 0 10px' }}>
+              Current address: <strong>{form.address}</strong>. Choose your province, city/municipality and barangay below to update it.
+            </p>
+          )}
+          <AddressFields
+            key={userId || 'address'}
+            defaultValue={{ province: form.province, city: form.city_municipality, barangay: form.barangay, street: form.street }}
+            onChange={({ province, city, barangay, street }) => setForm((f) => ({ ...f, province, city_municipality: city, barangay, street }))}
+            labelStyle={labelStyle}
+            selectStyle={{ ...inputStyle, paddingLeft: 14, cursor: 'pointer' }}
+            inputStyle={{ ...inputStyle, paddingLeft: 14 }}
+          />
         </div>
 
         <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
@@ -410,6 +455,8 @@ const ProfileSettings = () => {
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       </div>
+
+      <ChangePassword />
 
       {/* Data Privacy Act: download or delete your data (joiners only) */}
       {profile && profile.role !== 'admin' && <MyData />}
