@@ -27,7 +27,7 @@ import Notification from './Notification';
 // #2D1B0E  deep brown (dark card)
 // #7A3A18  rust mid-tone
 // #F2E4D0  parchment (inset panels / secondary bg)
-// #EDEAE3  warm stone (page bg — provides contrast for cream cards)
+// #FDF6EE  cream (page bg, same as the public Tours page)
 // #3F5D62  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
@@ -347,7 +347,7 @@ const JoinerDashboard = () => {
     <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100vh',
       fontFamily: "'Inter', system-ui, sans-serif",
-      background: '#EDEAE3',
+      background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
@@ -558,7 +558,7 @@ const JoinerDashboard = () => {
         </header>
 
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#EDEAE3' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
 
           {paymentNotice && (
             <div role="status" style={{

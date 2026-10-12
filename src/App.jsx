@@ -79,6 +79,7 @@ function LandingPage() {
           </span>
         </div>
         <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
+          <Link to="/tours" className="nav-tours btn-text-link" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none', letterSpacing: '0.04em' }}>Tours</Link>
           <Link to="/login" className="nav-login btn-text-link" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none', letterSpacing: '0.04em' }}>Log in</Link>
           <Link to="/register" className="nav-cta btn-primary" style={{
             fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
@@ -217,6 +218,10 @@ function LandingPage() {
           .nav-links { gap: 12px !important; }
           .nav-cta { padding: 8px 16px !important; font-size: 12px !important; }
         }
+        @media (max-width: 480px) {
+          /* The hero's "Browse Tours" button covers it on phones. */
+          .nav-tours { display: none !important; }
+        }
         @media (max-width: 380px) {
           .nav-login { display: none !important; }
         }
@@ -229,7 +234,7 @@ function LandingPage() {
       `}</style>
  
       {/* ── FEATURED TOURS ── */}
-      <section style={{ background: '#F2E4D0', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
+      <section style={{ background: '#FDF6EE', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: 16 }}>
             <div>
@@ -288,15 +293,16 @@ function LandingPage() {
                         ))}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 22, marginTop: 22, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
-                      <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, marginBottom: 2 }}>Starting at</div>
-                        <span style={{ fontSize: 28, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em' }}>{formatPeso(tour.price)}</span>
-                      </div>
+                    {/* Price on its own line, full-width button below, so long prices never squeeze the button. */}
+                    <div style={{ paddingTop: 20, marginTop: 22, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, marginBottom: 2 }}>Starting at</div>
+                      <div style={{ fontSize: 26, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>{formatPeso(tour.price)}</div>
                       <Link to={`/tours/${tour.id}`} className="btn-primary" style={{
+                        position: 'relative', zIndex: 2,
+                        display: 'block', textAlign: 'center', marginTop: 14,
                         fontWeight: 900, fontSize: 13, color: '#FDF6EE', textDecoration: 'none',
-                        background: '#1A0A00', borderRadius: 12, padding: '12px 22px',
-                        letterSpacing: '0.04em', boxShadow: '0 4px 14px rgba(26,10,0,0.22)',
+                        background: '#1A0A00', borderRadius: 12, padding: '13px 22px',
+                        letterSpacing: '0.04em', whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(26,10,0,0.22)',
                       }}>Book Now</Link>
                     </div>
                   </div>
@@ -327,7 +333,7 @@ function LandingPage() {
       </section>
  
       {/* ── TOUR TYPE GRID ── */}
-      <section style={{ background: '#F2E4D0', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
+      <section style={{ background: '#FDF6EE', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>           
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>

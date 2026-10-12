@@ -87,7 +87,7 @@ const ResetPassword = () => {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#F2E4D0', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
+      background: '#FDF6EE', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
       padding: '3rem 1rem',
     }}>
       <div style={{

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Search, MapPin, Calendar, Clock, Users, Loader2, CheckCircle2, X,
   AlertCircle, Share2, Check, ArrowLeft, Mountain,
@@ -39,7 +39,10 @@ const bookPathFor = (tourId, session) => {
   return session ? dashboardPath : `/login?next=${encodeURIComponent(dashboardPath)}`;
 };
 
-const PublicNav = ({ session }) => (
+const PublicNav = ({ session }) => {
+  const { pathname } = useLocation();
+  const onTourList = pathname === '/tours';
+  return (
   <nav className="site-nav" style={{
     position: 'sticky', top: 0, zIndex: 50,
     background: 'rgba(253,246,238,0.92)', backdropFilter: 'blur(12px)',
@@ -54,10 +57,19 @@ const PublicNav = ({ session }) => (
       </span>
     </Link>
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
-      <Link to="/tours" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none' }}>Tours</Link>
-      {session ? (
-        <Link to="/dashboard" style={navCta}>My Dashboard</Link>
-      ) : (
+      {/* Already on the list: go back to the top instead of doing nothing. */}
+      <Link
+        to="/tours"
+        aria-current={onTourList ? 'page' : undefined}
+        onClick={() => { if (onTourList) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        style={{
+          fontSize: 13, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#C45C26' : '#7A3A18', textDecoration: 'none',
+          borderBottom: onTourList ? '2px solid #C45C26' : '2px solid transparent', paddingBottom: 2,
+        }}
+      >
+        Tours
+      </Link>
+      {!session && (
         <>
           <Link to="/login" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none' }}>Log in</Link>
           <Link to="/register" style={navCta}>Join Now</Link>
@@ -65,7 +77,8 @@ const PublicNav = ({ session }) => (
       )}
     </div>
   </nav>
-);
+  );
+};
 
 const navCta = {
   fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
@@ -348,7 +361,7 @@ export const PublicTourDetail = () => {
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.6)' }}>Price per joiner</div>
               <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em' }}>{formatPeso(Number(tour.price || 0))}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.7)' }}>Pay in full or 40% downpayment via GCash</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.7)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

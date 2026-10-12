@@ -29,7 +29,7 @@ import { formatPeso } from './tourUtils';
 // #2D1B0E  deep brown (dark card)
 // #7A3A18  rust mid-tone
 // #F2E4D0  parchment (legacy section bg, still used for some inset panels)
-// #EDEAE3  warm stone (page bg — cooler/greyer than parchment so cream cards pop)
+// #FDF6EE  cream (page bg, same as the public Tours page)
 // #3F5D62  slate teal (secondary contrast accent, used sparingly)
 // ---------------------------------------------------------
  
@@ -343,7 +343,7 @@ const AdminDashboard = () => {
     <div className="admin-dashboard-container" style={{
       display: 'flex', height: '100vh',
       fontFamily: "'Inter', system-ui, sans-serif",
-      background: '#EDEAE3',
+      background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
@@ -573,7 +573,7 @@ const AdminDashboard = () => {
         </header>
  
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#EDEAE3' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
  
           {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
