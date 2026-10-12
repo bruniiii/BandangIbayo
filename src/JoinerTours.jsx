@@ -1626,7 +1626,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                     onProceed={() => setPaymentStep('choose')}
 
-                    onCancel={() => { setPaymentStep(null); onClose(); }}
+                    onCancel={() => setPaymentStep(null)}  // back to this tour's details, choices kept
 
                     formatDateRange={formatDateRange}
 
@@ -1701,7 +1701,9 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-            <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={22} /></button>
+            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+              <ArrowLeft size={14} /> Back
+            </button>
 
             <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 2</span>
 

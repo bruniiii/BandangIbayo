@@ -16,6 +16,16 @@ import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
 // #F2E4D0  parchment (section bg)
 // ---------------------------------------------------------
  
+const errorBorder = { borderColor: '#8C2F1C', background: 'rgba(140,47,28,0.04)' };
+
+// Red message right under a field, e.g. "Invalid code." + "4 tries left."
+const FieldError = ({ id, error }) => (
+  <p id={id} role="alert" style={{ margin: '6px 2px 0', fontSize: 12, fontWeight: 800, color: '#8C2F1C', lineHeight: 1.5 }}>
+    {error.text}
+    {error.hint && <span style={{ display: 'block', fontWeight: 600, opacity: 0.85 }}>{error.hint}</span>}
+  </p>
+);
+
 const JoinerLogin = () => {
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -32,11 +42,15 @@ const JoinerLogin = () => {
   const [resending, setResending] = useState(false);
 
   const showError = (text) => setMessage({ text, tone: 'error' });
+  // Shown right under the field: wrong username/password, or a wrong code.
+  const [credError, setCredError] = useState(null);   // { text, hint }
+  const [codeError, setCodeError] = useState(null);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage({ text: '', tone: 'error' });
+    setCredError(null);
 
     const formData = new FormData(e.target);
     const identifier = formData.get('identifier').trim();
@@ -46,21 +60,33 @@ const JoinerLogin = () => {
     const result = await loginStart(identifier, password);
     setLoading(false);
     if (!result.ok) {
-      showError(result.error);
+      if (result.attemptsLeft != null) {
+        const left = result.attemptsLeft;
+        setCredError({ text: 'Invalid Gmail/username or password.', hint: `${left} attempt${left === 1 ? '' : 's'} left before your account is locked for 15 minutes.` });
+      } else {
+        showError(result.error);   // locked, email not confirmed, no connection…
+      }
       return;
     }
     setChallenge(result.data);
     setCode('');
+    setCodeError(null);
   };
 
   const handleVerify = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage({ text: '', tone: 'error' });
+    setCodeError(null);
 
     const result = await verifyLoginCode(challenge.challengeId, code);
     if (!result.ok) {
       setLoading(false);
+      const tries = /(\d+) tr(?:y|ies) left/.exec(result.error || '');
+      if (tries) {
+        setCodeError({ text: 'Invalid code.', hint: `${tries[1]} ${tries[1] === '1' ? 'try' : 'tries'} left.` });
+        return;
+      }
       // An expired or used-up code means starting over from the password step.
       if (/log in again/i.test(result.error || '')) setChallenge(null);
       showError(result.error);
@@ -102,6 +128,7 @@ const JoinerLogin = () => {
       return;
     }
     setCode('');
+    setCodeError(null);
     setMessage({ text: `We sent a new code to ${result.data.sentTo}.`, tone: 'info' });
   };
 
@@ -285,13 +312,24 @@ const JoinerLogin = () => {
               name="identifier"
               type="text"
               placeholder="traveler_2026 or you@email.com"
-              style={inputStyle}
+              style={{ ...inputStyle, ...(credError ? errorBorder : null) }}
+              onChange={() => setCredError(null)}
               required
             />
           </div>
           <div>
             <label style={labelStyle}>Password</label>
-            <input name="password" type="password" placeholder="••••••••" style={inputStyle} required />
+            <input
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              style={{ ...inputStyle, ...(credError ? errorBorder : null) }}
+              aria-invalid={!!credError}
+              aria-describedby={credError ? 'cred-error' : undefined}
+              onChange={() => setCredError(null)}
+              required
+            />
+            {credError && <FieldError id="cred-error" error={credError} />}
           </div>
 
           <div style={{ textAlign: 'right' }}>
@@ -327,11 +365,14 @@ const JoinerLogin = () => {
                 maxLength={6}
                 placeholder="123456"
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                style={{ ...inputStyle, fontSize: 22, fontWeight: 900, letterSpacing: '0.4em', textAlign: 'center' }}
+                onChange={(e) => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setCodeError(null); }}
+                aria-invalid={!!codeError}
+                aria-describedby={codeError ? 'code-error' : undefined}
+                style={{ ...inputStyle, fontSize: 22, fontWeight: 900, letterSpacing: '0.4em', textAlign: 'center', ...(codeError ? errorBorder : null) }}
                 autoFocus
                 required
               />
+              {codeError && <FieldError id="code-error" error={codeError} />}
             </div>
             <button disabled={loading || isSuccess || code.length !== 6} style={submitStyle(loading || isSuccess || code.length !== 6)}>
               {loading ? spinner : 'Verify & Login'}

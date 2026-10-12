@@ -413,10 +413,18 @@ const JoinerDashboard = () => {
           alignItems: sidebarExpanded ? 'stretch' : 'center',
           overflow: 'hidden',
         }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
-            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
-          }}>
+          {/* Logo: back to the dashboard home */}
+          <button
+            type="button"
+            onClick={() => handleNavClick('HomePage')}
+            aria-label="Go to dashboard home"
+            title="Dashboard home"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
+              justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+            }}
+          >
             <img
               src={logoIcon}
               alt="BANDANG IBAYO"
@@ -433,7 +441,7 @@ const JoinerDashboard = () => {
                 Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
               </span>
             )}
-          </div>
+          </button>
           {sidebarExpanded && (
             <p style={{
               fontSize: 9, fontWeight: 800, letterSpacing: '0.22em',

@@ -210,7 +210,7 @@ const ProfileSettings = () => {
         setAvatarBusy(true);
         const rawExt = pendingAvatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
         const ext = rawExt.replace(/[^a-z0-9]/g, '') || 'jpg';
-        const filePath = `avatars/${userId}-${Date.now()}.${ext}`;
+        const filePath = `avatars/${userId}/${Date.now()}.${ext}`; // own folder: joiners may only upload into avatars/<their id>/
 
         // Use the same public bucket already used elsewhere in the app.
         // A unique path avoids browser/CDN caching an older profile photo.
