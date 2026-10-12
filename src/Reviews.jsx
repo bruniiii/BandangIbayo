@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { todayManila } from './tourUtils';
+import { mediaFileError } from './validation';
+
+const REVIEW_MAX = 1000;
 import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
 
 const displayName = (profile) => {
@@ -137,8 +140,13 @@ const Reviews = ({ isAdmin = false }) => {
   }, [fetchReviews]);
 
   const handleMediaSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
+    const picked = Array.from(e.target.files || []);
+    if (!picked.length) return;
+    // Skip files that aren't photos/videos or are too big to upload.
+    const problems = picked.map((f) => mediaFileError(f)).filter(Boolean);
+    if (problems.length) alert(`These files were skipped:\n\n${problems.join('\n')}`);
+    const files = picked.filter((f) => !mediaFileError(f));
+    if (!files.length) { if (mediaInputRef.current) mediaInputRef.current.value = ''; return; }
     const next = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
@@ -170,6 +178,9 @@ const Reviews = ({ isAdmin = false }) => {
 
   const handleSubmit = async () => {
     if (!selectedTourId || rating === 0) { alert('Please select a tour and give it a star rating.'); return; }
+    if (comment.trim().length > REVIEW_MAX) { alert(`Your review is too long (${REVIEW_MAX} characters at most).`); return; }
+    // Reviews can't be deleted, so a last look before it goes up.
+    if (!window.confirm(`Post your ${rating}-star review? Reviews can't be deleted after posting.`)) return;
     setSubmitting(true);
     try {
       const media = mediaItems.length ? await uploadReviewMedia() : [];
@@ -295,6 +306,7 @@ const Reviews = ({ isAdmin = false }) => {
 
               <textarea
                 value={comment}
+                maxLength={REVIEW_MAX}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Tell other joiners about your experience..."
                 rows={3}

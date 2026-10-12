@@ -559,6 +559,8 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
   };
  
   const handleReject = async () => {
+    // Rejecting by mistake would tell the joiner their payment failed, so confirm first.
+    if (!window.confirm(`Reject the payment for booking ${booking.booking_number}? The joiner will be notified and emailed.`)) return;
     setRejecting(true);
     await onStatusUpdate(booking.id, 'Rejected');
     setRejecting(false);

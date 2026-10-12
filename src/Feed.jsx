@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { mediaFileError } from './validation';
 import { formatPeso } from './tourUtils';
 import {
   Image as ImageIcon, Send, Trash2, X, Loader2, MapPin,
@@ -162,8 +163,13 @@ const Feed = ({ isAdmin = false }) => {
   }, [fetchReactions, fetchComments]);
 
   const handleMediaSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
+    const picked = Array.from(e.target.files || []);
+    if (!picked.length) return;
+    // Skip files that aren't photos/videos or are too big to upload.
+    const problems = picked.map((f) => mediaFileError(f)).filter(Boolean);
+    if (problems.length) alert(`These files were skipped:\n\n${problems.join('\n')}`);
+    const files = picked.filter((f) => !mediaFileError(f));
+    if (!files.length) { if (fileInputRef.current) fileInputRef.current.value = ''; return; }
     const next = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
@@ -311,6 +317,7 @@ const Feed = ({ isAdmin = false }) => {
         }}>
           <textarea
             value={content}
+            maxLength={3000}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share an announcement with your joiners..."
             rows={3}
@@ -701,6 +708,8 @@ const FeedPostCard = ({
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               value={commentDraft}
+              maxLength={500}
+              aria-describedby={`comment-note-${post.id}`}
               onChange={(e) => onCommentDraftChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onAddComment(); } }}
               placeholder="Write a comment..."
@@ -724,6 +733,9 @@ const FeedPostCard = ({
               {commenting ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
             </button>
           </div>
+          <p id={`comment-note-${post.id}`} style={{ fontSize: 9.5, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '6px 4px 0' }}>
+            Comments can't be edited or deleted after posting.
+          </p>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       )}

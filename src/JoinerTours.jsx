@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 
 import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor } from './tourUtils';
 import { startCheckout } from './payments';
+import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
 
 import { 
 
@@ -1112,6 +1113,19 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
             setCompanionError("Please enter the name and contact number of each person joining you.");
             return;
         }
+        // Typing mistakes in the companions' details (wrong number format, one-word names, the same person twice).
+        for (let i = 0; i < companions.length; i++) {
+            const c = companions[i];
+            const problem = fullNameError(c.full_name, `Person ${i + 2}'s name`)
+                || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
+            if (problem) { setCompanionError(problem); return; }
+        }
+        const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
+        const repeated = names.find((n, i) => names.indexOf(n) !== i);
+        if (repeated) {
+            setCompanionError(`"${companions[names.indexOf(repeated)].full_name.trim()}" is entered more than once. Each person joining needs their own details.`);
+            return;
+        }
         setIsBooking(true);
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
@@ -1169,7 +1183,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
             tourId: tour.id,
             slots: numPersons,
             paymentType: type,
-            companions,
+            companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
         });
         if (!ok) {
             alert(error);
@@ -1612,7 +1626,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                     onProceed={() => setPaymentStep('choose')}
 
-                    onCancel={() => { setPaymentStep(null); onClose(); }}
+                    onCancel={() => setPaymentStep(null)}  // back to this tour's details, choices kept
 
                     formatDateRange={formatDateRange}
 
@@ -1687,7 +1701,9 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-            <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={22} /></button>
+            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+              <ArrowLeft size={14} /> Back
+            </button>
 
             <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 2</span>
 
