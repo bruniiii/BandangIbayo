@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { Loader2, CheckCircle2, Mail } from 'lucide-react';
 import logoIcon from './assets/newIcon.png';
+import { emailError, emailSuggestion } from './validation';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00 espresso dark · #C45C26 burnt sienna · #FDF6EE cream
@@ -41,10 +42,19 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    const problem = emailError(email);
+    if (problem) { setError(problem); return; }
+    // A misspelled domain would send the reset link nowhere.
+    let target = email.trim().toLowerCase();
+    const suggested = emailSuggestion(target);
+    if (suggested && window.confirm(`Did you mean ${suggested}?\n\nOK = use ${suggested}\nCancel = keep ${target}`)) {
+      target = suggested;
+      setEmail(suggested);
+    }
+    setLoading(true);
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(target, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 

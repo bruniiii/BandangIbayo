@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import MyData from './MyData';
 import ChangePassword from './ChangePassword';
+import { nameError, phoneError, samePhone, normalizePhone, birthDateError, textError, cleanName, todayPH } from './validation';
 import AddressFields from './AddressFields';
 import { composeAddress } from './phAddress';
 import {
@@ -137,7 +138,7 @@ const ProfileSettings = () => {
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 3500);
+    const t = setTimeout(() => setToast(null), toast.type === 'error' ? 7000 : 3500); // errors stay up longer so they can be read
     return () => clearTimeout(t);
   }, [toast]);
 
@@ -181,6 +182,22 @@ const ProfileSettings = () => {
       setToast({ type: 'error', message: 'Please choose your province, city/municipality and barangay, and enter your street.' });
       return;
     }
+    // Typing mistakes: names with numbers, wrong phone formats, impossible birthdays.
+    const hasEmergency = !!(form.emergency_contact_name.trim() || form.emergency_contact_number.trim());
+    const problem = [
+      nameError(form.first_name, 'First name'),
+      nameError(form.last_name, 'Last name'),
+      phoneError(form.phone_number, 'Phone number', { required: false }),
+      birthDateError(form.date_of_birth),
+      hasEmergency ? nameError(form.emergency_contact_name, 'Emergency contact name', { max: 120 }) : '',
+      hasEmergency ? phoneError(form.emergency_contact_number, 'Emergency contact number') : '',
+      samePhone(form.emergency_contact_number, form.phone_number) ? 'Your emergency contact should be someone else, not your own phone number.' : '',
+      form.province ? textError(form.street, 'Street / house no.', { min: 2, max: 200 }) : '',
+    ].find(Boolean);
+    if (problem) {
+      setToast({ type: 'error', message: problem });
+      return;
+    }
     setSaving(true);
 
     try {
@@ -217,9 +234,9 @@ const ProfileSettings = () => {
 
       // 2. Update Database Record
       const updatePayload = {
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
-        phone_number: form.phone_number.trim(),
+        first_name: cleanName(form.first_name),
+        last_name: cleanName(form.last_name),
+        phone_number: form.phone_number.trim() ? normalizePhone(form.phone_number) : '',
         date_of_birth: form.date_of_birth || null,
         ...(form.province ? {
           province: form.province,
@@ -228,8 +245,8 @@ const ProfileSettings = () => {
           street: form.street.trim(),
           address: composeAddress({ street: form.street, barangay: form.barangay, city: form.city_municipality, province: form.province }),
         } : {}),
-        emergency_contact_name: form.emergency_contact_name.trim(),
-        emergency_contact_number: form.emergency_contact_number.trim(),
+        emergency_contact_name: cleanName(form.emergency_contact_name),
+        emergency_contact_number: form.emergency_contact_number.trim() ? normalizePhone(form.emergency_contact_number) : '',
         avatar_url: finalAvatarUrl,
       };
 
@@ -404,7 +421,7 @@ const ProfileSettings = () => {
 
         <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <Field label="Date of Birth" icon={<Calendar size={15} />}>
-            <input type="date" style={inputStyle} value={form.date_of_birth || ''} onChange={handleChange('date_of_birth')} />
+            <input type="date" max={todayPH()} style={inputStyle} value={form.date_of_birth || ''} onChange={handleChange('date_of_birth')} />
           </Field>
         </div>
 

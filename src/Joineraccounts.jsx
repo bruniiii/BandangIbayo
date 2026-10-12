@@ -501,6 +501,8 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
     if (!subject.trim() || !body.trim()) { setStatus({ type: 'error', text: 'Please enter both a subject and a message.' }); return; }
 
     const recipients = withEmail.filter((p) => picked.has(p.id));
+    // An email can't be taken back once sent, so confirm who it's going to.
+    if (!window.confirm(`Send "${subject.trim()}" to ${recipients.length} joiner${recipients.length === 1 ? '' : 's'}?`)) return;
     setSending(true);
     setStatus(null);
     setProgress(0);

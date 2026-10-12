@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
+import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH } from './validation';
 import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
@@ -48,6 +49,23 @@ const labelStyle = {
   display: 'block',
 };
 
+// Typing mistakes shared by both request forms: wrong phone format, past
+// dates, the same date twice, an impossible group size.
+const checkRequestFields = (formEl, form) => {
+  const size = Number(form.groupSize);
+  return checkFields(formEl, [
+    ['fullName', fullNameError(form.fullName, 'Full name')],
+    ['contact', phoneError(form.contact, 'Contact number')],
+    ['email', emailError(form.email)],
+    ['destination', textError(form.destination, 'Destination', { min: 2, max: 150 })],
+    ['groupSize', !Number.isInteger(size) || size < 1 ? 'Group size must be a whole number, at least 1.' : size > 100 ? 'For groups over 100, please contact us directly.' : ''],
+    ['preferredDate', !form.preferredDate ? 'Please choose a preferred date.' : form.preferredDate <= todayPH() ? 'The preferred date must be in the future.' : ''],
+    ['alternateDate', form.alternateDate && form.alternateDate <= todayPH() ? 'The alternate date must be in the future.' : ''],
+    ['alternateDate', form.alternateDate && form.alternateDate === form.preferredDate ? 'The alternate date is the same as the preferred date. Pick a different day, or leave it blank.' : ''],
+    ['notes', textError(form.notes, 'Notes', { required: false, max: 2000 })],
+  ]);
+};
+
 const InputField = ({ label, type = 'text', placeholder, value, onChange, required, ...rest }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <label style={labelStyle}>
@@ -73,12 +91,14 @@ const InputField = ({ label, type = 'text', placeholder, value, onChange, requir
   </div>
 );
  
-const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4 }) => (
+const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4, name, maxLength = 2000 }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <label style={labelStyle}>
       {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
     </label>
     <textarea
+      name={name}
+      maxLength={maxLength}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
@@ -215,8 +235,9 @@ const ExclusiveTourForm = () => {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.agreeTerms) { alert('Please accept the terms and conditions.'); return; }
+    if (!checkRequestFields(e.currentTarget, form)) return;
     if (form.budget !== '' && !(Number(form.budget) >= 0)) { alert('Budget must be zero or more.'); return; }
+    if (!form.agreeTerms) { alert('Please accept the terms and conditions.'); return; }
     setLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -286,9 +307,9 @@ const ExclusiveTourForm = () => {
           Contact Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
-          <InputField label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
+          <InputField name="fullName" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
+          <InputField name="contact" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>
  
@@ -299,10 +320,10 @@ const ExclusiveTourForm = () => {
           Trip Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
-          <InputField label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
-          <InputField label="Preferred Date" type="date" value={form.preferredDate} onChange={set('preferredDate')} required />
-          <InputField label="Alternate Date (optional)" type="date" value={form.alternateDate} onChange={set('alternateDate')} />
+          <InputField name="destination" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
+          <InputField name="groupSize" label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
+          <InputField name="preferredDate" label="Preferred Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
+          <InputField name="alternateDate" label="Alternate Date (optional)" type="date" min={addDaysPH(1)} value={form.alternateDate} onChange={set('alternateDate')} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <SelectField
@@ -320,6 +341,7 @@ const ExclusiveTourForm = () => {
             ]}
           />
           <InputField
+            name="budget"
             label="Budget for Exclusive Tour"
             {...moneyInputProps}
             placeholder="e.g. 50000"
@@ -328,7 +350,7 @@ const ExclusiveTourForm = () => {
             required
           />
         </div>
-        <TextAreaField
+        <TextAreaField name="notes"
           label="Special Notes / Requests"
           placeholder="Tell us more — specific spots you want to visit, activities, accommodation preferences, etc."
           value={form.notes}
@@ -410,6 +432,7 @@ const RequestTourForm = () => {
  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!checkRequestFields(e.currentTarget, form)) return;
     setLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -479,9 +502,9 @@ const RequestTourForm = () => {
           Your Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
-          <InputField label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
+          <InputField name="fullName" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
+          <InputField name="contact" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>
  
@@ -492,10 +515,10 @@ const RequestTourForm = () => {
           Destination &amp; Tour Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
-          <InputField label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
-          <InputField label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
-          <InputField label="Preferred Tour Date" type="date" value={form.preferredDate} onChange={set('preferredDate')} required />
+          <InputField name="destination" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
+          <InputField name="region" label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
+          <InputField name="groupSize" label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
+          <InputField name="preferredDate" label="Preferred Tour Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
         </div>
         <SelectField
           label="Tour Type Preference"
@@ -508,7 +531,7 @@ const RequestTourForm = () => {
             { value: 'exclusive', label: 'Exclusive for my group only' },
           ]}
         />
-        <TextAreaField
+        <TextAreaField name="notes"
           label="Additional Details / Preferences"
           placeholder="Tell us more — specific spots you want to visit, activities, accommodation preferences, budget range, etc."
           value={form.notes}

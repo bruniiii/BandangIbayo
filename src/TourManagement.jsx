@@ -4,6 +4,7 @@ import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
 import { formatPeso } from './tourUtils';
 import { moneyInputProps, blockSignKeys } from './moneyInput';
+import { checkFields, textError, mediaFileError } from './validation';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
   Loader2, CheckCircle2, AlertCircle, ImageIcon,
@@ -34,6 +35,9 @@ const TourManagement = () => {
   const [uploading, setUploading]               = useState(false);
   const [selectedImage, setSelectedImage]       = useState(null);
   const [calculatedDuration, setCalculatedDuration] = useState('');
+  const [savingTour, setSavingTour] = useState(false);
+  const savingRef = useRef(false);                       // stops a double click from creating the tour twice
+  const [formDirty, setFormDirty] = useState(false);     // unsaved edits in the tour form
   const [currentTab, setCurrentTab]             = useState('active');
   const [confirmAction, setConfirmAction]       = useState(null);
   const [searchQuery, setSearchQuery]           = useState('');
@@ -72,6 +76,13 @@ const TourManagement = () => {
     if (start && end) setCalculatedDuration(calculateDuration(start, end));
   };
  
+  // Closing the form with unsaved edits asks first, so a stray click doesn't lose them.
+  const closeTourModal = () => {
+    if (formDirty && !window.confirm('Discard your changes to this tour?')) return;
+    setFormDirty(false);
+    setShowModal(false);
+  };
+
   const getMinStartDate = () => {
     const date = new Date();
     date.setDate(date.getDate() + 21);
@@ -149,7 +160,11 @@ const TourManagement = () => {
   };
  
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
+    const picked = Array.from(e.target.files);
+    const problems = picked.map((f) => mediaFileError(f, { allowVideo: false })).filter(Boolean);
+    if (problems.length) alert(`These files were skipped:\n\n${problems.join('\n')}`);
+    const files = picked.filter((f) => !mediaFileError(f, { allowVideo: false }));
+    e.target.value = '';
     setNewFiles(prev => [...prev, ...files.map(file => ({ file, preview: URL.createObjectURL(file) }))]);
   };
  
@@ -174,23 +189,52 @@ const TourManagement = () => {
  
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const formData  = new FormData(e.target);
+    if (savingRef.current) return;
+    const formEl    = e.target;
+    const formData  = new FormData(formEl);
     const startDate = formData.get('start_date');
-    if (startDate < getMinStartDate()) { alert('Invalid Start Date. Must be at least 3 weeks in advance.'); return; }
-    // Prices can have centavos (e.g. 1499.50) but can't be negative.
-    const price = Number(formData.get('price'));
-    if (!Number.isFinite(price) || price < 0) { alert('Price must be zero or more.'); return; }
-    if (Math.abs(Math.round(price * 100) - price * 100) > 1e-6) { alert('Price can have at most 2 decimal places (centavos).'); return; }
+    const endDate   = formData.get('end_date');
+    const price     = Number(formData.get('price'));
+    const groupSize = Number(formData.get('group_size'));
+    const booked    = editingTour?.current_booked || 0;
+    // An existing tour may keep its date even if it's now less than 3 weeks away.
+    const dateChanged = !editingTour || startDate !== editingTour.start_date;
+    const tripDays  = (new Date(endDate) - new Date(startDate)) / 86400000 + 1;
+
+    // Typing mistakes, shown at the field: blank titles, an end date before the
+    // start, fewer slots than joiners already booked, price typos.
+    const ok = checkFields(formEl, [
+      ['title', textError(formData.get('title'), 'Tour title', { min: 3, max: 120 })],
+      ['destination', textError(formData.get('destination'), 'Destination', { min: 2, max: 120 })],
+      ['price', !Number.isFinite(price) || price < 0 ? 'Price must be zero or more.' : ''],
+      ['price', Math.abs(Math.round(price * 100) - price * 100) > 1e-6 ? 'Price can have at most 2 decimal places (centavos).' : ''],
+      ['price', price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
+      ['start_date', dateChanged && startDate < getMinStartDate() ? 'The start date must be at least 3 weeks from today.' : ''],
+      ['end_date', endDate < startDate ? "The end date can't be before the start date." : ''],
+      ['end_date', tripDays > 30 ? 'A tour longer than 30 days looks like a typo. Please check the dates.' : ''],
+      ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
+      ['group_size', groupSize > 200 ? 'Max slots looks too high. Please check the number.' : ''],
+      ['group_size', groupSize < booked ? `${booked} joiner${booked === 1 ? ' has' : 's have'} already booked this tour, so max slots can't be lower than ${booked}.` : ''],
+      ['description', textError(formData.get('description'), 'Description', { required: false, max: 5000 })],
+    ]);
+    if (!ok) return;
+    if (price === 0 && !window.confirm('The price is ₱0.00. Is this a free tour?')) return;
+    if (editingTour && booked > 0 && dateChanged
+      && !window.confirm(`${booked} joiner${booked === 1 ? ' has' : 's have'} already booked this tour. Changing the dates won't tell them automatically. Save the new dates anyway?`)) return;
+
+    savingRef.current = true;
+    setSavingTour(true);
+    try {
     let finalGallery = [...tempGallery];
     if (newFiles.length > 0) { const newUrls = await uploadImages(newFiles); finalGallery = [...finalGallery, ...newUrls]; }
  
     const tourData = {
-      title:          formData.get('title'),
       description:    formData.get('description'),
-      destination:    formData.get('destination'),
       price:          Math.round(price * 100) / 100,
-      duration:       calculatedDuration,
-      group_size:     parseInt(formData.get('group_size')) || 18,
+      title:          String(formData.get('title')).trim(),
+      destination:    String(formData.get('destination')).trim(),
+      duration:       calculateDuration(startDate, endDate) || calculatedDuration,
+      group_size:     groupSize,
       difficulty:     formData.get('difficulty'),
       inclusions:     formData.get('inclusions'),
       exclusions:     formData.get('exclusions'),
@@ -199,7 +243,7 @@ const TourManagement = () => {
       important_note: formData.get('important_note'),
       image_urls:     finalGallery,
       start_date:     startDate,
-      end_date:       formData.get('end_date'),
+      end_date:       endDate,
       is_archived:    false,
     };
  
@@ -209,6 +253,7 @@ const TourManagement = () => {
       : supabase.from('tours').insert([tourData]).select();
     const { data: tourResult, error } = await request;
     if (error) { alert('Error: ' + error.message); return; }
+    setFormDirty(false);
 
     // A bigger group size may open slots: email anyone on the waitlist (the database already notified them in-app).
     if (editingTour && (tourData.group_size || 0) > (editingTour.group_size || 0)) sendWaitlistOpeningsEmail({ tourId: editingTour.id });
@@ -231,6 +276,10 @@ const TourManagement = () => {
     setEditingTour(null);
     setShowModal(false);
     fetchTours();
+    } finally {
+      savingRef.current = false;
+      setSavingTour(false);
+    }
   };
  
   // ── shared input style ──
@@ -502,10 +551,11 @@ const TourManagement = () => {
         }}>
           <div
             style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.82)', backdropFilter: 'blur(4px)' }}
-            onClick={() => setShowModal(false)}
+            onClick={closeTourModal}
           />
           <form
             onSubmit={handleFormSubmit}
+            onInput={() => setFormDirty(true)}
             style={{
               position: 'relative', background: '#FDF6EE',
               width: '100%', maxWidth: 720,
@@ -517,7 +567,7 @@ const TourManagement = () => {
             }}
           >
             <button
-              type="button" onClick={() => setShowModal(false)}
+              type="button" onClick={closeTourModal}
               style={{
                 position: 'absolute', top: 20, right: 20, zIndex: 10,
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -583,12 +633,12 @@ const TourManagement = () => {
                 }} className="responsive-form-grid-2">
                   <div>
                     <label style={labelStyle}>Start Date</label>
-                    <input type="date" name="start_date" min={getMinStartDate()} defaultValue={editingTour?.start_date} onChange={handleDateChange}
+                    <input type="date" name="start_date" min={editingTour?.start_date && editingTour.start_date < getMinStartDate() ? editingTour.start_date : getMinStartDate()} defaultValue={editingTour?.start_date} onChange={handleDateChange}
                       style={{ ...inputStyle, background: '#FDF6EE' }} required />
                   </div>
                   <div>
                     <label style={labelStyle}>End Date</label>
-                    <input type="date" name="end_date" min={getMinStartDate()} defaultValue={editingTour?.end_date} onChange={handleDateChange}
+                    <input type="date" name="end_date" min={editingTour?.start_date && editingTour.start_date < getMinStartDate() ? editingTour.start_date : getMinStartDate()} defaultValue={editingTour?.end_date} onChange={handleDateChange}
                       style={{ ...inputStyle, background: '#FDF6EE' }} required />
                   </div>
                 </div>
@@ -658,14 +708,14 @@ const TourManagement = () => {
               borderTop: '1px solid rgba(196,92,38,0.12)',
               display: 'flex', gap: 12, flexShrink: 0,
             }}>
-              <button type="button" onClick={() => setShowModal(false)} style={{
+              <button type="button" onClick={closeTourModal} style={{
                 flex: 1, padding: '13px 0',
                 background: '#1A0A00', border: 'none', borderRadius: 999,
                 cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: '#FDF6EE',
               }}>Cancel</button>
-              <button type="submit" disabled={uploading} style={{
+              <button type="submit" disabled={uploading || savingTour} style={{
                 flex: 2, padding: '13px 0',
                 background: '#C45C26', border: 'none', borderRadius: 999,
                 cursor: 'pointer', fontFamily: 'inherit',
@@ -675,7 +725,7 @@ const TourManagement = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: uploading ? 0.7 : 1,
               }}>
-                {uploading ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : (editingTour ? 'Save Changes' : 'Create Tour')}
+                {(uploading || savingTour) ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : (editingTour ? 'Save Changes' : 'Create Tour')}
               </button>
             </div>
           </form>

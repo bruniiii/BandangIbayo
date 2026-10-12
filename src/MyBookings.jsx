@@ -333,7 +333,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
   const [reasonError, setReasonError] = useState(false);
 
   const handleCancelBooking = async () => {
-    if (!cancelReason.trim()) {
+    // At least a few words, so the agency knows why (e.g. not just "x").
+    if (cancelReason.trim().length < 5) {
       setReasonError(true);
       return;
     }
@@ -544,6 +545,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </label>
                       <textarea
                         value={cancelReason}
+                        maxLength={500}
                         onChange={(e) => { setCancelReason(e.target.value); setReasonError(false); }}
                         placeholder="Please tell us why you're cancelling this tour..."
                         rows={3}
@@ -556,7 +558,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       />
                       {reasonError && (
                         <p style={{ fontSize: 10, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 0' }}>
-                          ⚠ Please provide a reason before cancelling.
+                          ⚠ Please give a short reason (at least 5 characters) before cancelling.
                         </p>
                       )}
                     </div>

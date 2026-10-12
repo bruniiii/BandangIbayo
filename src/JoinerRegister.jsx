@@ -16,6 +16,10 @@ import {
 import { supabase } from './supabaseClient';
 import { safeNextPath } from './tourUtils';
 import { passwordErrorMessage } from './passwordPolicy';
+import {
+  checkFields, flagField, usernameError, nameError, suffixError, emailError, emailSuggestion,
+  phoneError, samePhone, normalizePhone, birthDateError, textError, cleanName, todayPH,
+} from './validation';
 import PasswordChecklist from './PasswordChecklist';
 import AddressFields from './AddressFields';
 import { composeAddress } from './phAddress';
@@ -88,6 +92,7 @@ const JoinerRegister = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    const form = e.currentTarget;
 
     if (!agreedToTerms) {
       setTermsError(true);
@@ -97,9 +102,9 @@ const JoinerRegister = () => {
     setLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(form);
 
-      const email = String(formData.get('email') || '').trim();
+      let email = String(formData.get('email') || '').trim().toLowerCase();
       const password = String(formData.get('password') || '');
       const confirmPassword = String(formData.get('confirmPassword') || '');
 
@@ -121,19 +126,43 @@ const JoinerRegister = () => {
       const street = String(formData.get('street') || '').trim();
       const address = composeAddress({ street, barangay, city, province });
 
-      if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
+      // Catch typing mistakes field by field; the first problem is shown at its field.
+      const hasEmergency = !!(emergencyContactName || emergencyContactNumber);
+      const ok = checkFields(form, [
+        ['username', usernameError(username)],
+        ['firstName', nameError(firstName, 'First name')],
+        ['middleName', nameError(middleName, 'Middle name', { required: false, min: 1 })],
+        ['lastName', nameError(lastName, 'Last name')],
+        ['suffix', suffixError(suffix)],
+        ['email', emailError(email)],
+        ['phone', phoneError(phone, 'Phone number')],
+        ['dateOfBirth', birthDateError(dateOfBirth)],
+        ['emergencyContactName', hasEmergency ? nameError(emergencyContactName, 'Emergency contact name', { max: 120 }) : ''],
+        ['emergencyContactNumber', hasEmergency ? phoneError(emergencyContactNumber, 'Emergency contact number') : ''],
+        ['emergencyContactNumber', samePhone(emergencyContactNumber, phone)
+          ? "Your emergency contact should be someone else. This is your own phone number." : ''],
+        ['province', province ? '' : 'Please choose your province.'],
+        ['city', city ? '' : 'Please choose your city or municipality.'],
+        ['barangay', barangay ? '' : 'Please choose your barangay.'],
+        ['street', textError(street, 'Street / house no.', { min: 2, max: 200 })],
+        ['password', passwordErrorMessage(password)],
+        ['confirmPassword', password !== confirmPassword ? 'The passwords do not match.' : ''],
+        ['password', username && password.toLowerCase().includes(username.toLowerCase()) ? "Your password shouldn't contain your username." : ''],
+      ]);
+      if (!ok) return;
+
+      // "juan@gmial.com" → offer "juan@gmail.com", since the confirmation link goes there.
+      const suggested = emailSuggestion(email);
+      if (suggested && window.confirm(`Did you mean ${suggested}?\n\nOK = use ${suggested}\nCancel = keep ${email}`)) {
+        email = suggested;
+        const emailInput = form.querySelector('[name="email"]');
+        if (emailInput) emailInput.value = suggested;
       }
 
-      const passwordError = passwordErrorMessage(password);
-      if (passwordError) {
-        alert(passwordError);
-        return;
-      }
-
-      if (!province || !city || !barangay || !street) {
-        alert('Please choose your province, city/municipality and barangay, and enter your street.');
+      // Usernames must be unique (checked without logging in).
+      const { data: takenBy } = await supabase.rpc('email_for_login', { p_username: username });
+      if (takenBy) {
+        flagField(form, 'username', 'This username is already taken. Please choose another one.');
         return;
       }
 
@@ -150,19 +179,19 @@ const JoinerRegister = () => {
         options: {
           data: {
             username,
-            first_name: firstName,
-            middle_name: middleName,
-            last_name: lastName,
+            first_name: cleanName(firstName),
+            middle_name: cleanName(middleName),
+            last_name: cleanName(lastName),
             suffix,
-            phone_number: phone,
+            phone_number: normalizePhone(phone),
             date_of_birth: dateOfBirth || null,
             address,
             province,
             city_municipality: city,
             barangay,
             street,
-            emergency_contact_name: emergencyContactName,
-            emergency_contact_number: emergencyContactNumber,
+            emergency_contact_name: cleanName(emergencyContactName),
+            emergency_contact_number: emergencyContactNumber ? normalizePhone(emergencyContactNumber) : '',
             terms_accepted: true,
           },
         },
@@ -175,6 +204,13 @@ const JoinerRegister = () => {
 
       if (!data.user) {
         alert('Registration could not be completed. Please try again.');
+        return;
+      }
+
+      // Supabase answers a sign-up for an email that's already registered with an
+      // empty identity list (so it doesn't reveal accounts to strangers).
+      if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        flagField(form, 'email', 'This email is already registered. Please log in, or use "Forgot password?" on the login page.');
         return;
       }
 
@@ -734,6 +770,7 @@ const JoinerRegister = () => {
                 <input
                   name="dateOfBirth"
                   type="date"
+                  max={todayPH()}
                   style={inputWithIconStyle}
                 />
               </div>

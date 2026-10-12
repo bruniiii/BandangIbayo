@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { nameError, phoneError, cleanName, normalizePhone } from './validation';
 import {
   MapPin, Plus, Trash2, Archive, RefreshCw, History, X, Calendar,
   Armchair, Compass, ImageIcon, Loader2, Truck, Check, CheckCircle2,
@@ -160,18 +161,23 @@ export const AdminTrackingControls = () => {
   const handleSaveVehicleInfo = async (e) => {
     e.preventDefault();
     if (!activeTour?.id) return;
-    if (!carType || !plateNumber || !driverName || !driverContact) {
+    if (!carType.trim() || !plateNumber.trim() || !driverName.trim() || !driverContact.trim()) {
       alert('Please fill in all driver and vehicle fields.');
       return;
     }
+    // Joiners use these to find the van and call the driver, so check the formats.
+    const problem = nameError(driverName, "Driver's name", { max: 80 })
+      || phoneError(driverContact, "Driver's contact number")
+      || (/^[A-Za-z0-9 -]{2,10}$/.test(plateNumber.trim()) ? '' : 'Plate number should be letters and numbers only, like NBT 8921 or NBT-8921.');
+    if (problem) { alert(problem); return; }
 
     setSavingLogistics(true);
     const { error } = await supabase.from('tour_vehicles').upsert([{
       tour_id: activeTour.id,
       car_type: carType,
-      plate_number: plateNumber,
-      driver_name: driverName,
-      driver_contact: driverContact,
+      plate_number: plateNumber.trim().toUpperCase(),
+      driver_name: cleanName(driverName),
+      driver_contact: normalizePhone(driverContact),
       updated_at: new Date().toISOString(),
     }], { onConflict: 'tour_id' });
 
@@ -186,7 +192,10 @@ export const AdminTrackingControls = () => {
   // Add Pickup Stop
   const handleAddPickupStop = async (e) => {
     e.preventDefault();
-    if (!newLocName || !newTime || !activeTour?.id) return;
+    if (!newLocName.trim() || !newTime.trim() || !activeTour?.id) {
+      alert('Please enter the pickup location and time.');
+      return;
+    }
 
     setSavingStop(true);
     const { data, error } = await supabase.from('tour_meetups').insert([{
