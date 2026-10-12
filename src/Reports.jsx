@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { formatPeso } from './tourUtils';
 import {
   Loader2, Calendar, Users, CheckCircle2, Clock, XCircle, AlertCircle,
   MapPin, ChevronDown, Wallet, TrendingUp, TrendingDown, ClipboardList,
@@ -29,7 +30,7 @@ const CHART_COLORS = {
   returning: '#1A0A00',
 };
 
-const peso = (n) => `₱${Math.round(n || 0).toLocaleString()}`;
+const peso = formatPeso;
 const pct = (n) => `${Number.isFinite(n) ? Math.round(n) : 0}%`;
 
 /* ─────────────────────────────────────────────

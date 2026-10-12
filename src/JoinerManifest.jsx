@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Download, Printer, X, Loader2, MapPin, Truck, Users } from 'lucide-react';
 import { supabase } from './supabaseClient';
-import { formatDateRange } from './tourUtils';
+import { formatDateRange, formatPeso } from './tourUtils';
 
 // ─────────────────────────────────────────────
 // JOINER LIST (manifest) for one tour, for drivers and guides.
@@ -16,7 +16,7 @@ const balanceDue = (b) =>
     ? Math.max(0, (b.total_price || 0) - (b.amount_paid || 0))
     : 0;
 
-const peso = (n) => `₱${Math.round(n || 0).toLocaleString('en-PH')}`;
+const peso = formatPeso;
 
 // One row per person.
 const toPeople = (bookings) => bookings.flatMap((b) => [

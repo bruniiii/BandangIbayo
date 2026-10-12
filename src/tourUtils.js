@@ -74,12 +74,9 @@ export const isWithinCancellationWindow = (startDate) => {
   return !!deadline && todayManila() > deadline;
 };
 
-// Money in pesos: "₱1,500" for whole amounts, "₱1,499.50" when there are centavos.
-export const formatPeso = (amount) => {
-  const n = Number(amount) || 0;
-  const cents = Math.round(n * 100) % 100 !== 0;
-  return `₱${n.toLocaleString('en-PH', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: 2 })}`;
-};
+// Money in pesos, always with centavos: "₱2,900.00", "₱1,499.50".
+export const formatPeso = (amount) =>
+  `₱${(Number(amount) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // 40% downpayment, rounded to the centavo (same rule as the database and payments function).
 export const downpaymentFor = (total) => Math.round((Number(total) || 0) * 40) / 100;

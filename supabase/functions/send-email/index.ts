@@ -52,12 +52,9 @@ const reply = (body: unknown, status = 200) =>
 const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 
-// "₱1,500" for whole amounts, "₱1,499.50" when there are centavos (same as the website).
-const peso = (n: number) => {
-  const v = Number(n) || 0;
-  const cents = Math.round(v * 100) % 100 !== 0;
-  return `₱${v.toLocaleString("en-PH", { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: 2 })}`;
-};
+// Always with centavos, same as the website: "₱2,900.00".
+const peso = (n: number) =>
+  `₱${(Number(n) || 0).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // A day in Asia/Manila (UTC+8), as YYYY-MM-DD — matches tours.start_date
 const manilaDate = (daysFromToday: number) =>
