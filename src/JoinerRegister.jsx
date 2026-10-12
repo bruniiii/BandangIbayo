@@ -114,10 +114,12 @@ const JoinerRegister = () => {
       const emergencyContactNumber = String(
         formData.get('emergencyContactNumber') || ''
       ).trim();
+      const emergencyContactName = String(formData.get('emergencyContactName') || '').trim();
       const province = String(formData.get('province') || '').trim();
       const city = String(formData.get('city') || '').trim();
+      const barangay = String(formData.get('barangay') || '').trim();
       const street = String(formData.get('street') || '').trim();
-      const address = composeAddress({ street, city, province });
+      const address = composeAddress({ street, barangay, city, province });
 
       if (password !== confirmPassword) {
         alert('Passwords do not match!');
@@ -130,8 +132,8 @@ const JoinerRegister = () => {
         return;
       }
 
-      if (!province || !city || !street) {
-        alert('Please choose your province and city/municipality, and enter your street.');
+      if (!province || !city || !barangay || !street) {
+        alert('Please choose your province, city/municipality and barangay, and enter your street.');
         return;
       }
 
@@ -157,7 +159,9 @@ const JoinerRegister = () => {
             address,
             province,
             city_municipality: city,
+            barangay,
             street,
+            emergency_contact_name: emergencyContactName,
             emergency_contact_number: emergencyContactNumber,
             terms_accepted: true,
           },
@@ -714,7 +718,7 @@ const JoinerRegister = () => {
             </div>
           </div>
 
-          {/* DATE OF BIRTH + EMERGENCY CONTACT */}
+          {/* DATE OF BIRTH */}
           <div
             style={{
               display: 'grid',
@@ -730,6 +734,33 @@ const JoinerRegister = () => {
                 <input
                   name="dateOfBirth"
                   type="date"
+                  style={inputWithIconStyle}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* EMERGENCY CONTACT: name + number */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns:
+                'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: 14,
+            }}
+          >
+            <div>
+              <label style={labelStyle}>
+                Emergency Contact Name
+              </label>
+              <div style={{ position: 'relative' }}>
+                <UserRound size={16} style={fieldIconStyle} />
+                <input
+                  name="emergencyContactName"
+                  type="text"
+                  placeholder="e.g. Maria Dela Cruz"
+                  maxLength={120}
+                  autoComplete="off"
                   style={inputWithIconStyle}
                 />
               </div>
@@ -751,7 +782,7 @@ const JoinerRegister = () => {
             </div>
           </div>
 
-          {/* ADDRESS: province → city/municipality dropdowns + street */}
+          {/* ADDRESS: province → city/municipality → barangay dropdowns + street */}
           <AddressFields
             labelStyle={labelStyle}
             selectStyle={{ ...inputStyle, cursor: 'pointer' }}

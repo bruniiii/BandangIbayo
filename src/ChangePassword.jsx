@@ -22,11 +22,43 @@ const labelStyle = {
   textTransform: 'uppercase', color: '#7A3A18', marginBottom: 7, opacity: 0.85,
 };
 
+// Password box with an eye button that shows or hides what's typed.
+const PasswordInput = ({ id, value, onChange, autoComplete, minLength }) => {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        id={id}
+        type={visible ? 'text' : 'password'}
+        autoComplete={autoComplete}
+        minLength={minLength}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ ...inputStyle, paddingRight: 44 }}
+        required
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-pressed={visible}
+        title={visible ? 'Hide password' : 'Show password'}
+        style={{
+          position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: '#7A3A18',
+        }}
+      >
+        {visible ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </div>
+  );
+};
+
 const ChangePassword = () => {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', tone: 'error' });
 
@@ -50,8 +82,6 @@ const ChangePassword = () => {
     setMessage({ text: 'Your password has been changed. Use the new one the next time you log in.', tone: 'success' });
   };
 
-  const type = show ? 'text' : 'password';
-
   return (
     <form onSubmit={handleSubmit} style={{
       background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
@@ -69,28 +99,23 @@ const ChangePassword = () => {
 
       <div>
         <label style={labelStyle} htmlFor="current-password">Current Password</label>
-        <input id="current-password" type={type} autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} style={inputStyle} required />
+        <PasswordInput id="current-password" autoComplete="current-password" value={current} onChange={setCurrent} />
       </div>
 
       <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div>
           <label style={labelStyle} htmlFor="new-password">New Password</label>
-          <input id="new-password" type={type} autoComplete="new-password" minLength={8} value={next} onChange={(e) => setNext(e.target.value)} style={inputStyle} required />
+          <PasswordInput id="new-password" autoComplete="new-password" minLength={8} value={next} onChange={setNext} />
           <PasswordChecklist password={next} />
         </div>
         <div>
           <label style={labelStyle} htmlFor="confirm-new-password">Confirm New Password</label>
-          <input id="confirm-new-password" type={type} autoComplete="new-password" minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} style={inputStyle} required />
+          <PasswordInput id="confirm-new-password" autoComplete="new-password" minLength={8} value={confirm} onChange={setConfirm} />
           {confirm && confirm !== next && (
             <p style={{ fontSize: 11, fontWeight: 700, color: '#8C2F1C', margin: '8px 0 0' }}>Passwords do not match.</p>
           )}
         </div>
       </div>
-
-      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#7A3A18', cursor: 'pointer', width: 'fit-content' }}>
-        <input type="checkbox" checked={show} onChange={(e) => setShow(e.target.checked)} />
-        {show ? <EyeOff size={13} /> : <Eye size={13} />} Show passwords
-      </label>
 
       {message.text && (
         <p role={message.tone === 'error' ? 'alert' : 'status'} style={{

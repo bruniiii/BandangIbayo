@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
+import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
   FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
@@ -47,7 +48,7 @@ const labelStyle = {
   display: 'block',
 };
 
-const InputField = ({ label, type = 'text', placeholder, value, onChange, required, min, step }) => (
+const InputField = ({ label, type = 'text', placeholder, value, onChange, required, ...rest }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <label style={labelStyle}>
       {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
@@ -58,8 +59,7 @@ const InputField = ({ label, type = 'text', placeholder, value, onChange, requir
       value={value}
       onChange={onChange}
       required={required}
-      min={min}
-      step={step}
+      {...rest}
       style={inputStyle}
       onFocus={e => {
         e.currentTarget.style.borderColor = '#C45C26';
@@ -300,7 +300,7 @@ const ExclusiveTourForm = () => {
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
-          <InputField label="Number of Participants" type="number" placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
+          <InputField label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField label="Preferred Date" type="date" value={form.preferredDate} onChange={set('preferredDate')} required />
           <InputField label="Alternate Date (optional)" type="date" value={form.alternateDate} onChange={set('alternateDate')} />
         </div>
@@ -321,12 +321,10 @@ const ExclusiveTourForm = () => {
           />
           <InputField
             label="Budget for Exclusive Tour"
-            type="number"
-            min="0"
-            step="0.01"
+            {...moneyInputProps}
             placeholder="e.g. 50000"
             value={form.budget}
-            onChange={set('budget')}
+            onChange={(e) => setForm(prev => ({ ...prev, budget: cleanMoney(e.target.value) }))}
             required
           />
         </div>
@@ -496,7 +494,7 @@ const RequestTourForm = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
           <InputField label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
-          <InputField label="Estimated Group Size" type="number" placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
+          <InputField label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField label="Preferred Tour Date" type="date" value={form.preferredDate} onChange={set('preferredDate')} required />
         </div>
         <SelectField

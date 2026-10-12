@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
 import { formatPeso } from './tourUtils';
+import { moneyInputProps, blockSignKeys } from './moneyInput';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
   Loader2, CheckCircle2, AlertCircle, ImageIcon,
@@ -570,7 +571,7 @@ const TourManagement = () => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" defaultValue={editingTour?.destination} required />
-                  <ModalInput label="Price (₱)" name="price" type="number" min="0" step="0.01" inputMode="decimal" placeholder="e.g. 1499.50" defaultValue={editingTour?.price} required />
+                  <ModalInput label="Price (₱)" name="price" {...moneyInputProps} placeholder="e.g. 1499.50" defaultValue={editingTour?.price} required />
                 </div>
  
                 {/* Dates */}
@@ -598,7 +599,7 @@ const TourManagement = () => {
                     <input type="text" value={calculatedDuration} readOnly
                       style={{ ...inputStyle, background: '#F2E4D0', opacity: 0.7, cursor: 'default' }} />
                   </div>
-                  <ModalInput label="Max Slots" name="group_size" type="number" defaultValue={editingTour?.group_size || 18} required />
+                  <ModalInput label="Max Slots" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} defaultValue={editingTour?.group_size || 18} required />
                   <div>
                     <label style={labelStyle}>Difficulty</label>
                     <select name="difficulty" defaultValue={editingTour?.difficulty || 'Easy'}

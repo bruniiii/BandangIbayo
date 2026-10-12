@@ -343,7 +343,7 @@ const JoinerAccounts = () => {
               <DetailRow icon={<Phone size={14} />} label="Phone Number" value={selected.phone_number} />
               <DetailRow icon={<Calendar size={14} />} label="Date of Birth" value={formatDate(selected.date_of_birth)} />
               <DetailRow icon={<MapPin size={14} />} label="Address" value={selected.address} />
-              <DetailRow icon={<ShieldAlert size={14} />} label="Emergency Contact" value={selected.emergency_contact_number} />
+              <DetailRow icon={<ShieldAlert size={14} />} label="Emergency Contact" value={[selected.emergency_contact_name, selected.emergency_contact_number].filter(Boolean).join(' · ') || null} />
               <DetailRow icon={<Compass size={14} />} label="Total Bookings" value={String(bookingCounts[selected.id] || 0)} />
               <DetailRow icon={<Calendar size={14} />} label="Registered On" value={formatDate(selected.created_at)} />
             </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { notifyUser } from "./notifications";
 import { formatPeso } from './tourUtils';
+import { moneyInputProps, cleanMoney } from './moneyInput';
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
   Phone, Mail, Wallet, Home, ChevronDown, CheckCircle2, XCircle,
@@ -618,7 +619,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     <div>
                       <p style={labelStyle}>Final Price (₱)</p>
                       <input
-                        type="number" min="0" step="0.01" value={packageForm.price} onChange={setPkgField('price')}
+                        {...moneyInputProps} value={packageForm.price} onChange={(e) => setPackageForm((f) => ({ ...f, price: cleanMoney(e.target.value) }))}
                         placeholder="e.g. 55000"
                         style={packageInputStyle}
                       />

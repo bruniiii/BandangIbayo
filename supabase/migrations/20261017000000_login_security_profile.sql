@@ -4,7 +4,8 @@
 --  1. Login lockout (3 wrong passwords → 15 minutes) and emailed login codes.
 --     Both tables are used only by the `auth` Edge Function (service role);
 --     RLS is on with no policies, so the website can't read or change them.
---  2. Address split into province, city/municipality and street.
+--  2. Address split into province, city/municipality, barangay and street;
+--     emergency contact name.
 --  3. Nobody (joiner or admin) can delete a review or a feed comment. Deleting
 --     an account keeps them, without the author.
 --  4. Prices: never negative, centavos allowed.
@@ -39,11 +40,14 @@ revoke all on public.login_challenges from anon, authenticated;
 -- 2. Address fields ────────────────────────────
 alter table public.profiles add column if not exists province text;
 alter table public.profiles add column if not exists city_municipality text;
+alter table public.profiles add column if not exists barangay text;
 alter table public.profiles add column if not exists street text;
+alter table public.profiles add column if not exists emergency_contact_name text;
 
 -- The sign-up form sends these in the account's metadata. Whatever trigger
 -- creates the profile row, this fills them in as the row is inserted (plus
--- the combined address, if that trigger didn't copy it).
+-- the combined address and the emergency contact name, if that trigger
+-- didn't copy them).
 create or replace function public.profiles_fill_address()
 returns trigger
 language plpgsql
@@ -59,9 +63,11 @@ begin
   end if;
   new.province          := coalesce(new.province, nullif(trim(v_meta ->> 'province'), ''));
   new.city_municipality := coalesce(new.city_municipality, nullif(trim(v_meta ->> 'city_municipality'), ''));
+  new.barangay          := coalesce(new.barangay, nullif(trim(v_meta ->> 'barangay'), ''));
   new.street            := coalesce(new.street, nullif(trim(v_meta ->> 'street'), ''));
+  new.emergency_contact_name := coalesce(new.emergency_contact_name, nullif(left(trim(v_meta ->> 'emergency_contact_name'), 120), ''));
   if coalesce(trim(new.address), '') = '' then
-    new.address := nullif(concat_ws(', ', new.street, new.city_municipality, new.province), '');
+    new.address := nullif(concat_ws(', ', new.street, new.barangay, new.city_municipality, new.province), '');
   end if;
   return new;
 end;

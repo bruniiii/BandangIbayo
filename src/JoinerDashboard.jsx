@@ -670,8 +670,9 @@ const JoinerDashboard = () => {
                 </div>
               </div>
 
-              {/* SPLIT GRID */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24, alignItems: 'start' }}>
+              {/* SPLIT GRID: tours on the left, a narrow rail (calendar, tracking, reviews) on the right.
+                  Stacks into one column on tablets and phones. */}
+              <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }}>
 
                 {/* LEFT COL */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -1109,7 +1110,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
   return (
     <div
       style={{
-        background: '#FDF6EE', borderRadius: 20, padding: '1.1rem 1.25rem',
+        background: '#FDF6EE', borderRadius: 20, padding: '1rem 1.1rem',
         border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         display: 'flex', flexDirection: 'column',
       }}
