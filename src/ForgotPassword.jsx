@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { Loader2, CheckCircle2, Mail } from 'lucide-react';
 import logoIcon from './assets/newIcon.png';
 import { emailError, emailSuggestion } from './validation';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00 espresso dark · #C45C26 burnt sienna · #FDF6EE cream
+// #1A0A00 espresso dark · #A8481A burnt sienna · #FDF6EE cream
 // #7A3A18 rust mid-tone · #F2E4D0 parchment · #8C2F1C error
 // ---------------------------------------------------------
 
@@ -14,7 +15,7 @@ const inputStyle = {
   width: '100%',
   padding: '12px 16px',
   borderRadius: 10,
-  border: '1.5px solid rgba(196,92,38,0.2)',
+  border: '1.5px solid rgba(180,81,30,0.2)',
   background: '#FDF6EE',
   fontSize: 14,
   color: '#1A0A00',
@@ -31,7 +32,7 @@ const labelStyle = {
   textTransform: 'uppercase',
   color: '#7A3A18',
   marginBottom: 6,
-  opacity: 0.85,
+  opacity: 0.9,
 };
 
 const ForgotPassword = () => {
@@ -48,7 +49,7 @@ const ForgotPassword = () => {
     // A misspelled domain would send the reset link nowhere.
     let target = email.trim().toLowerCase();
     const suggested = emailSuggestion(target);
-    if (suggested && window.confirm(`Did you mean ${suggested}?\n\nOK = use ${suggested}\nCancel = keep ${target}`)) {
+    if (suggested && await confirmDialog({ title: `Did you mean ${suggested}?`, message: 'The reset link will be sent to this address.', confirmLabel: `Use ${suggested.split('@')[1]}`, cancelLabel: `Keep ${target.split('@')[1]}` })) {
       target = suggested;
       setEmail(suggested);
     }
@@ -66,20 +67,20 @@ const ForgotPassword = () => {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#FDF6EE', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
+      background: '#FDF6EE', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#1A0A00',
       padding: '3rem 1rem',
     }}>
       <div style={{
         background: '#FDF6EE', padding: '2.5rem', borderRadius: 24,
         boxShadow: '0 20px 60px rgba(26,10,0,0.14)', width: '100%', maxWidth: 420,
-        borderTop: '7px solid #C45C26',
+        borderTop: '7px solid #B4511E',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 64, height: 64, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
           <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
             Reset Your Password
           </h1>
-          <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.75, margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {sent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}
           </p>
         </div>
@@ -87,15 +88,15 @@ const ForgotPassword = () => {
         {sent ? (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
             <div style={{
-              width: 64, height: 64, borderRadius: '50%', background: 'rgba(196,92,38,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#C45C26',
+              width: 64, height: 64, borderRadius: '50%', background: 'rgba(180,81,30,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#A8481A',
             }}>
               <CheckCircle2 size={30} />
             </div>
             <p style={{ fontSize: 13, color: '#7A3A18', margin: '0 0 20px', lineHeight: 1.6 }}>
               If an account exists for <strong style={{ color: '#1A0A00' }}>{email}</strong>, a password reset link is on its way. It may take a few minutes to arrive.
             </p>
-            <Link to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
+            <Link className="text-link" to="/login" style={{ color: '#A8481A', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
               ← Back to Login
             </Link>
           </div>
@@ -121,7 +122,7 @@ const ForgotPassword = () => {
               disabled={loading}
               style={{
                 width: '100%',
-                background: loading ? 'rgba(196,92,38,0.55)' : '#C45C26',
+                background: loading ? 'rgba(180,81,30,0.55)' : '#B4511E',
                 color: '#FDF6EE',
                 fontWeight: 900,
                 fontSize: 13,
@@ -148,9 +149,9 @@ const ForgotPassword = () => {
         )}
 
         {!sent && (
-          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.8 }}>
+          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.9 }}>
             Remembered it?{' '}
-            <Link to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
+            <Link className="text-link" to="/login" style={{ color: '#A8481A', fontWeight: 800, textDecoration: 'none' }}>
               Log in
             </Link>
           </p>

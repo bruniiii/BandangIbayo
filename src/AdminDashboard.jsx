@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
 import Feed from './Feed';
@@ -23,7 +24,7 @@ import { formatPeso } from './tourUtils';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #2D1B0E  deep brown (dark card)
@@ -187,7 +188,7 @@ const AdminDashboard = () => {
  
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) alert('Logout failed: ' + error.message);
+    if (error) toast.error('Logout failed', error.message);
     else navigate('/login');
   };
  
@@ -342,7 +343,7 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard-container" style={{
       display: 'flex', height: '100vh',
-      fontFamily: "'Inter', system-ui, sans-serif",
+      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
       background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
@@ -380,7 +381,7 @@ const AdminDashboard = () => {
               top: 26, right: -14,
               width: 28, height: 28,
               borderRadius: '50%',
-              background: '#C45C26',
+              background: '#B4511E',
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
@@ -390,7 +391,7 @@ const AdminDashboard = () => {
               transition: 'background 0.2s, transform 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
+            onMouseLeave={e => e.currentTarget.style.background = '#B4511E'}
           >
             <X size={16} strokeWidth={3} />
           </button>
@@ -429,14 +430,14 @@ const AdminDashboard = () => {
             />
             {sidebarExpanded && (
               <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
-                Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+                Bandang <span style={{ color: '#E8A265' }}>IBAYO</span>
               </span>
             )}
           </button>
           {sidebarExpanded && (
             <p style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '0.22em',
-              textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: 0,
+              fontSize: 11, fontWeight: 800, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: 0,
               whiteSpace: 'nowrap',
             }}>
               Admin Management
@@ -466,17 +467,17 @@ const AdminDashboard = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(232,210,190,0.4)',
+              color: 'rgba(232,210,190,0.85)',
               fontFamily: 'inherit',
               padding: 0,
               transition: 'color 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.4)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.85)'}
           >
             <LogOut size={16} style={{ flexShrink: 0 }} />
             {sidebarExpanded && (
-              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                 Logout System
               </span>
             )}
@@ -489,8 +490,10 @@ const AdminDashboard = () => {
  
         {/* header */}
         <header className="dashboard-header" style={{
-          background: '#FDF6EE',
-          borderBottom: '1px solid rgba(196,92,38,0.12)',
+          background: 'rgba(253,246,238,0.85)',
+          backdropFilter: 'saturate(160%) blur(14px)',
+          WebkitBackdropFilter: 'saturate(160%) blur(14px)',
+          borderBottom: '1px solid rgba(180,81,30,0.12)',
           height: 72,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 2.5rem',
@@ -525,7 +528,7 @@ const AdminDashboard = () => {
                 style={{
                   position: 'absolute', left: 14, top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'rgba(122,58,24,0.35)',
+                  color: 'rgba(122,58,24,0.85)',
                   pointerEvents: 'none',
                 }}
               />
@@ -536,7 +539,7 @@ const AdminDashboard = () => {
                   paddingLeft: 36, paddingRight: 16,
                   paddingTop: 9, paddingBottom: 9,
                   background: '#F2E4D0',
-                  border: '1px solid rgba(196,92,38,0.18)',
+                  border: '1px solid rgba(180,81,30,0.18)',
                   borderRadius: 999,
                   fontSize: 11, fontWeight: 600,
                   color: '#1A0A00',
@@ -558,13 +561,13 @@ const AdminDashboard = () => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 background: '#F2E4D0',
-                border: '1px solid rgba(196,92,38,0.18)',
+                border: '1px solid rgba(180,81,30,0.18)',
                 borderRadius: 14, padding: '8px 14px',
                 cursor: 'pointer',
               }}>
               <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
-                <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
+                <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
               </div>
               <div style={{
                 width: 38, height: 38, borderRadius: 11,
@@ -598,8 +601,8 @@ const AdminDashboard = () => {
               }}>
                 <div>
                   <p style={{
-                    fontSize: 9, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase',
-                    color: '#C45C26', margin: '0 0 6px',
+                    fontSize: 11, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase',
+                    color: '#E8A265', margin: '0 0 6px',
                   }}>
                     Operations Overview
                   </p>
@@ -629,7 +632,7 @@ const AdminDashboard = () => {
                   title="Revenue This Month"
                   value={loadingStats ? '…' : peso(stats.revenueThisMonth)}
                   icon={<Wallet size={18} />}
-                  iconColor="#C45C26"
+                  iconColor="#A8481A"
                   trend={loadingStats ? '' : (() => {
                     const last = stats.revenueLastMonth || 0;
                     if (last === 0) return 'No data for last month';
@@ -653,7 +656,7 @@ const AdminDashboard = () => {
                   title="Pending Verification"
                   value={loadingStats ? '…' : stats.pendingVerification}
                   icon={<AlertCircle size={18} />}
-                  iconColor="#C45C26"
+                  iconColor="#A8481A"
                   trend={loadingStats ? '' : 'Awaiting payment review'}
                 />
                 <StatCard
@@ -674,7 +677,7 @@ const AdminDashboard = () => {
                   }}>
                     Module Snapshots
                   </h3>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.55, margin: 0 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                     Live from Tours, Bookings, Joiners, Reviews &amp; Feed
                   </p>
                 </div>
@@ -692,21 +695,21 @@ const AdminDashboard = () => {
                     emptyText="No active tours yet."
                   >
                     {snippets.tours.map(t => (
-                      <div key={t.id} style={{ padding: '10px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={t.id} style={{ padding: '10px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                           <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {t.title}
                           </p>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, flexShrink: 0 }}>{shortDate(t.start_date)}</span>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>{shortDate(t.start_date)}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                          <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(196,92,38,0.14)', overflow: 'hidden' }}>
+                          <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(180,81,30,0.14)', overflow: 'hidden' }}>
                             <div style={{
                               height: '100%', borderRadius: 999, width: `${t.pct}%`,
-                              background: t.pct >= 100 ? '#C45C26' : t.pct >= 80 ? '#E8A265' : '#7A3A18',
+                              background: t.pct >= 100 ? '#B4511E' : t.pct >= 80 ? '#E8A265' : '#7A3A18',
                             }} />
                           </div>
-                          <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7A3A18', opacity: 0.7, flexShrink: 0 }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>
                             {t.booked}/{t.capacity}
                           </span>
                         </div>
@@ -725,16 +728,16 @@ const AdminDashboard = () => {
                     emptyText="Nothing awaiting verification."
                   >
                     {snippets.pendingBookings.map(b => (
-                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {personName(b.profiles, b.full_name)}
                           </p>
-                          <p style={{ fontSize: 10.5, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {b.tours?.title || 'Tour'}
                           </p>
                         </div>
-                        <span style={{ fontSize: 11.5, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>{peso(b.total_price)}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>{peso(b.total_price)}</span>
                       </div>
                     ))}
                   </ModuleCard>
@@ -750,7 +753,7 @@ const AdminDashboard = () => {
                     emptyText="No joiners registered yet."
                   >
                     {snippets.recentJoiners.map(p => (
-                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{
                           width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
                           background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -761,7 +764,7 @@ const AdminDashboard = () => {
                         <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {personName(p, 'Unnamed Joiner')}
                         </p>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.55, flexShrink: 0 }}>{shortDate(p.created_at)}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>{shortDate(p.created_at)}</span>
                       </div>
                     ))}
                   </ModuleCard>
@@ -777,19 +780,19 @@ const AdminDashboard = () => {
                     emptyText="Nothing awaiting review."
                   >
                     {snippets.pendingExclusiveRequests.map(r => (
-                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.full_name || 'Joiner'}
                           </p>
-                          <p style={{ fontSize: 10.5, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.destination || 'Destination TBD'}
                           </p>
                         </div>
                         <span style={{
-                          fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
-                          color: r.request_type === 'exclusive' ? '#1A0A00' : '#C45C26',
-                          background: r.request_type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(196,92,38,0.12)',
+                          fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+                          color: r.request_type === 'exclusive' ? '#1A0A00' : '#A8481A',
+                          background: r.request_type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
                           borderRadius: 999, padding: '3px 9px', flexShrink: 0,
                         }}>
                           {r.request_type === 'exclusive' ? 'Exclusive' : 'Request'}
@@ -816,17 +819,17 @@ const AdminDashboard = () => {
                           </p>
                           <div style={{ display: 'flex', gap: 1 }}>
                             {[1, 2, 3, 4, 5].map(n => (
-                              <Star key={n} size={11} fill={n <= snippets.latestReview.rating ? '#E8A265' : 'none'} color={n <= snippets.latestReview.rating ? '#E8A265' : 'rgba(122,58,24,0.25)'} />
+                              <Star key={n} size={11} fill={n <= snippets.latestReview.rating ? '#E8A265' : 'none'} color={n <= snippets.latestReview.rating ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
                             ))}
                           </div>
                         </div>
                         {snippets.latestReview.tours?.title && (
-                          <p style={{ fontSize: 10, fontWeight: 700, color: '#C45C26', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#A8481A', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
                             <MapPin size={10} /> {snippets.latestReview.tours.title}
                           </p>
                         )}
                         {snippets.latestReview.comment && (
-                          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, lineHeight: 1.5, margin: 0 }}>
+                          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.5, margin: 0 }}>
                             "{truncate(snippets.latestReview.comment, 96)}"
                           </p>
                         )}
@@ -855,7 +858,7 @@ const AdminDashboard = () => {
                             <div style={{
                               width: 52, height: 52, borderRadius: 12, flexShrink: 0,
                               background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: 'rgba(196,92,38,0.35)',
+                              color: '#A8481A',
                             }}>
                               <ImageIcon size={20} />
                             </div>
@@ -866,7 +869,7 @@ const AdminDashboard = () => {
                             {personName(snippets.latestPost.author, 'Bandang IBAYO')}
                           </p>
                           <p style={{
-                            fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, lineHeight: 1.5, margin: 0,
+                            fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.5, margin: 0,
                             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                           }}>
                             {snippets.latestPost.content || (snippets.latestPost.post_type === 'tour' ? 'New tour posted.' : 'Shared an update.')}
@@ -884,7 +887,7 @@ const AdminDashboard = () => {
                 background: '#FDF6EE',
                 borderRadius: 24,
                 padding: '2rem 2.5rem',
-                border: '1px solid rgba(196,92,38,0.12)',
+                border: '1px solid rgba(180,81,30,0.12)',
                 boxShadow: '0 4px 24px rgba(26,10,0,0.06)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
@@ -907,10 +910,10 @@ const AdminDashboard = () => {
                 {loadingStats ? (
                   <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '4rem 0', color: 'rgba(122,58,24,0.3)',
+                    padding: '4rem 0', color: 'rgba(122,58,24,0.85)',
                   }}>
                     <Clock size={22} style={{ marginRight: 10 }} />
-                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
                       Loading activity…
                     </span>
                   </div>
@@ -919,12 +922,12 @@ const AdminDashboard = () => {
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', justifyContent: 'center',
                     padding: '4rem 0',
-                    border: '2px dashed rgba(196,92,38,0.15)',
+                    border: '2px dashed rgba(180,81,30,0.15)',
                     borderRadius: 16,
-                    color: 'rgba(122,58,24,0.3)',
+                    color: 'rgba(122,58,24,0.85)',
                   }}>
                     <Users size={36} style={{ marginBottom: 10, opacity: 0.3 }} />
-                    <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
+                    <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
                       No recent activity
                     </p>
                   </div>
@@ -972,7 +975,7 @@ const AdminDashboard = () => {
               alignItems: 'center', justifyContent: 'center',
               background: '#FDF6EE',
               borderRadius: 24,
-              border: '1px solid rgba(196,92,38,0.12)',
+              border: '1px solid rgba(180,81,30,0.12)',
               boxShadow: '0 4px 24px rgba(26,10,0,0.06)',
               padding: '3rem',
               textAlign: 'center',
@@ -981,7 +984,7 @@ const AdminDashboard = () => {
                 width: 72, height: 72, borderRadius: 20,
                 background: '#F2E4D0',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(196,92,38,0.25)', marginBottom: 20,
+                color: '#A8481A', marginBottom: 20,
               }}>
                 <FileText size={36} />
               </div>
@@ -991,7 +994,7 @@ const AdminDashboard = () => {
               }}>
                 {activeTab} Module
               </h3>
-              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                 Coming soon — check back later.
               </p>
             </div>
@@ -1005,7 +1008,7 @@ const AdminDashboard = () => {
 // ─── Activity Item ────────────────────────────────────────────────────────────
  
 const ACTIVITY_COLORS = {
-  cancel:  { bg: 'rgba(196,92,38,0.10)',  color: '#C45C26' },
+  cancel:  { bg: 'rgba(180,81,30,0.10)',  color: '#A8481A' },
   payment: { bg: 'rgba(26,10,0,0.07)',    color: '#7A3A18' },
   booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
 };
@@ -1016,7 +1019,7 @@ const ActivityItem = ({ label, name, type, ts, Icon }) => { // Fixed destructure
     <li style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '14px 0',
-      borderBottom: '1px solid rgba(196,92,38,0.08)',
+      borderBottom: '1px solid rgba(180,81,30,0.08)',
       gap: 16,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -1031,12 +1034,12 @@ const ActivityItem = ({ label, name, type, ts, Icon }) => { // Fixed destructure
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{label}</p>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0' }}>{name}</p>
+          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>{name}</p>
         </div>
       </div>
       <span style={{
-        fontSize: 10, fontWeight: 700, color: '#7A3A18',
-        opacity: 0.5, whiteSpace: 'nowrap', flexShrink: 0,
+        fontSize: 11.5, fontWeight: 700, color: '#7A3A18',
+        opacity: 0.9, whiteSpace: 'nowrap', flexShrink: 0,
       }}>
         {timeAgo(ts)}
       </span>
@@ -1059,22 +1062,22 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
       borderRadius: 12,
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
-      background: active ? '#C45C26' : 'transparent',
-      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.45)',
+      background: active ? '#B4511E' : 'transparent',
+      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
-      boxShadow: active ? '0 6px 20px rgba(196,92,38,0.35)' : 'none',
+      boxShadow: active ? '0 6px 20px rgba(180,81,30,0.35)' : 'none',
       transition: 'all 0.2s',
       textAlign: 'left',
     }}
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.5)', flexShrink: 0 }}>
+    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0 }}>
       {icon}
     </span>
     {!collapsed && (
-      <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
       </span>
     )}
@@ -1088,7 +1091,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     background: '#FDF6EE',
     borderRadius: 20,
     padding: '1.75rem 2rem',
-    border: '1px solid rgba(196,92,38,0.12)',
+    border: '1px solid rgba(180,81,30,0.12)',
     boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
     display: 'flex', flexDirection: 'column', gap: 10,
     transition: 'transform 0.2s',
@@ -1099,8 +1102,8 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <p style={{
-        fontSize: 10, fontWeight: 800, letterSpacing: '0.18em',
-        textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0,
+        fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em',
+        textTransform: 'uppercase', color: '#7A3A18', margin: 0,
       }}>
         {title}
       </p>
@@ -1108,7 +1111,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
         width: 36, height: 36, borderRadius: 10,
         background: '#F1EEE8',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: iconColor || '#C45C26',
+        color: iconColor || '#A8481A',
         flexShrink: 0,
       }}>
         {icon}
@@ -1122,8 +1125,8 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     </p>
     {trend && (
       <p style={{
-        fontSize: 10, fontWeight: 700, fontStyle: 'italic',
-        color: '#7A3A18', opacity: 0.7, margin: 0,
+        fontSize: 11.5, fontWeight: 700, fontStyle: 'italic',
+        color: '#7A3A18', opacity: 0.9, margin: 0,
       }}>
         {trend}
       </p>
@@ -1140,14 +1143,14 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
   <div style={{
     background: '#FDF6EE',
     borderRadius: 20,
-    border: '1px solid rgba(196,92,38,0.12)',
+    border: '1px solid rgba(180,81,30,0.12)',
     boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
     display: 'flex', flexDirection: 'column',
     overflow: 'hidden',
   }}>
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '1.1rem 1.35rem', borderBottom: '1px solid rgba(196,92,38,0.1)',
+      padding: '1.1rem 1.35rem', borderBottom: '1px solid rgba(180,81,30,0.1)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         <div style={{
@@ -1162,7 +1165,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
             {title}
           </p>
           {metaLabel && (
-            <p style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
               {metaLabel}
             </p>
           )}
@@ -1174,8 +1177,8 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
         style={{
           display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#C45C26', fontFamily: 'inherit', fontWeight: 800,
-          fontSize: 10, letterSpacing: '0.06em', padding: 4,
+          color: '#A8481A', fontFamily: 'inherit', fontWeight: 800,
+          fontSize: 11.5, letterSpacing: '0.06em', padding: 4,
         }}
       >
         View <ArrowUpRight size={13} />
@@ -1184,16 +1187,26 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
 
     <div style={{ padding: '0.4rem 1.35rem 0.9rem', flex: 1 }}>
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '1.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
           <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 10.5, fontWeight: 700 }}>Loading…</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700 }}>Loading…</span>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       ) : empty ? (
-        <div style={{ padding: '1.5rem 0', textAlign: 'center' }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.55, margin: 0, fontStyle: 'italic' }}>
-            {emptyText}
-          </p>
+        // Small empty state: what's missing, plus a way to the full module.
+        <div style={{ padding: '1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+          <span aria-hidden="true" style={{
+            width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'linear-gradient(145deg, #F7E3CC, #F2D3B3)', color: '#A8481A',
+          }}>
+            {icon}
+          </span>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>{emptyText}</p>
+          {onViewAll && (
+            <button type="button" className="text-link" onClick={onViewAll} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 11.5 }}>
+              Open {title}
+            </button>
+          )}
         </div>
       ) : children}
     </div>

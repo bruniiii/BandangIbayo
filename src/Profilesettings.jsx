@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import MyData from './MyData';
 import ChangePassword from './ChangePassword';
 import { nameError, phoneError, samePhone, normalizePhone, birthDateError, textError, cleanName, todayPH } from './validation';
@@ -12,7 +13,7 @@ import {
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #7A3A18  rust mid-tone
@@ -23,7 +24,7 @@ const inputStyle = {
   width: '100%',
   padding: '11px 14px 11px 40px',
   borderRadius: 12,
-  border: '1px solid rgba(196,92,38,0.18)',
+  border: '1px solid rgba(180,81,30,0.18)',
   background: '#F2E4D0',
   fontSize: 13.5,
   fontWeight: 600,
@@ -48,7 +49,7 @@ const labelStyle = {
   textTransform: 'uppercase',
   color: '#7A3A18',
   marginBottom: 7,
-  opacity: 0.85,
+  opacity: 0.9,
 };
 
 const Field = ({ label, icon, children }) => (
@@ -57,7 +58,7 @@ const Field = ({ label, icon, children }) => (
     <div style={{ position: 'relative' }}>
       <span style={{
         position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
-        color: '#C45C26', opacity: 0.6, display: 'flex', pointerEvents: 'none',
+        color: '#A8481A', opacity: 0.9, display: 'flex', pointerEvents: 'none',
       }}>
         {icon}
       </span>
@@ -79,7 +80,6 @@ const ProfileSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarBusy, setAvatarBusy] = useState(false);
-  const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
 
   const [profile, setProfile] = useState(null);
@@ -114,7 +114,7 @@ const ProfileSettings = () => {
         .single();
 
       if (error) {
-        setToast({ type: 'error', message: 'Could not load profile: ' + error.message });
+        toast.error("Couldn't load your profile", error.message);
       } else if (data) {
         setProfile(data);
         setAvatarPreview(data.avatar_url || null);
@@ -136,12 +136,6 @@ const ProfileSettings = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), toast.type === 'error' ? 7000 : 3500); // errors stay up longer so they can be read
-    return () => clearTimeout(t);
-  }, [toast]);
-
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
   };
@@ -151,13 +145,13 @@ const ProfileSettings = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setToast({ type: 'error', message: 'Please choose a valid image file.' });
+      toast.error('Please check your details', 'Please choose a valid image file.');
       e.target.value = '';
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setToast({ type: 'error', message: 'Profile photo must be 5 MB or smaller.' });
+      toast.error('Please check your details', 'Profile photo must be 5 MB or smaller.');
       e.target.value = '';
       return;
     }
@@ -179,7 +173,7 @@ const ProfileSettings = () => {
     // Address: province, city/municipality, barangay and street together (or none, to keep an older address as is).
     const addressParts = [form.province, form.city_municipality, form.barangay, form.street.trim()];
     if (addressParts.some(Boolean) && !addressParts.every(Boolean)) {
-      setToast({ type: 'error', message: 'Please choose your province, city/municipality and barangay, and enter your street.' });
+      toast.error('Please check your details', 'Please choose your province, city/municipality and barangay, and enter your street.');
       return;
     }
     // Typing mistakes: names with numbers, wrong phone formats, impossible birthdays.
@@ -195,7 +189,7 @@ const ProfileSettings = () => {
       form.province ? textError(form.street, 'Street / house no.', { min: 2, max: 200 }) : '',
     ].find(Boolean);
     if (problem) {
-      setToast({ type: 'error', message: problem });
+      toast.error('Please check your details', problem);
       return;
     }
     setSaving(true);
@@ -273,9 +267,9 @@ const ProfileSettings = () => {
         }
       }));
 
-      setToast({ type: 'success', message: 'Profile and photo saved successfully!' });
+      toast.success('Profile saved', 'Your changes are up to date.');
     } catch (err) {
-      setToast({ type: 'error', message: 'Failed to save: ' + err.message });
+      toast.error("Couldn't save your profile", err.message);
     } finally {
       setSaving(false);
       setAvatarBusy(false);
@@ -286,9 +280,9 @@ const ProfileSettings = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
         <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading profile…</span>
+        <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading profile…</span>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -300,30 +294,16 @@ const ProfileSettings = () => {
         <h2 style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
           Profile Settings
         </h2>
-        <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.7, margin: '4px 0 0' }}>
+        <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
           Manage your account information and preferences
         </p>
       </div>
 
-      {toast && (
-        <div style={{
-          position: 'fixed', top: 24, right: 24, zIndex: 400,
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: toast.type === 'success' ? '#1A0A00' : '#7A2020',
-          color: toast.type === 'success' ? '#E8A265' : '#FDE8E8',
-          padding: '12px 18px', borderRadius: 12,
-          fontSize: 12.5, fontWeight: 700,
-          boxShadow: '0 12px 32px rgba(26,10,0,0.3)',
-        }}>
-          {toast.type === 'success' ? <CheckCircle2 size={16} /> : <ShieldAlert size={16} />}
-          {toast.message}
-        </div>
-      )}
 
       {/* avatar card */}
       <div style={{
         background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
       }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -351,7 +331,7 @@ const ProfileSettings = () => {
 
         <div style={{ flex: 1, minWidth: 180 }}>
           <p style={{ fontWeight: 900, fontSize: 17, color: '#1A0A00', margin: 0 }}>{fullName}</p>
-          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.7, margin: '3px 0 0' }}>{profile?.email}</p>
+          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>{profile?.email}</p>
 
           <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
             <button
@@ -372,12 +352,12 @@ const ProfileSettings = () => {
                 disabled={saving}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'none', color: '#7A3A18', border: '1px solid rgba(196,92,38,0.25)',
+                  background: 'rgba(192,54,44,0.06)', color: '#C0362C', border: '1px solid rgba(192,54,44,0.35)',
                   borderRadius: 10, padding: '9px 16px', fontSize: 11.5, fontWeight: 800,
                   cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 }}
               >
-                <Trash2 size={14} /> Remove
+                <Trash2 size={14} /> Remove Photo
               </button>
             )}
             <input
@@ -394,10 +374,10 @@ const ProfileSettings = () => {
       {/* personal information card */}
       <div style={{
         background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
       }}>
         <h3 style={{ fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>Personal Information</h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.65, margin: '4px 0 20px' }}>
+        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 20px' }}>
           Update your personal details and click Save Changes below.
         </p>
 
@@ -436,7 +416,7 @@ const ProfileSettings = () => {
 
         <div style={{ marginBottom: 20 }}>
           <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <MapPin size={14} style={{ color: '#C45C26' }} /> Address
+            <MapPin size={14} style={{ color: '#A8481A' }} /> Address
           </p>
           {!form.province && form.address && (
             <p style={{ fontSize: 12, color: '#7A3A18', margin: '0 0 10px' }}>
@@ -453,7 +433,7 @@ const ProfileSettings = () => {
           />
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
           <button
             onClick={handleSave}
             disabled={saving}

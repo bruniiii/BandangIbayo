@@ -21,7 +21,7 @@ import Notification from './Notification';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg / card bg)
 // #2D1B0E  deep brown (dark card)
@@ -63,6 +63,8 @@ const JoinerDashboard = () => {
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const tourScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const [bookingsFilter, setBookingsFilter] = useState(null);
   const [calendarTarget, setCalendarTarget] = useState(null);
   const navigate = useNavigate();
@@ -134,10 +136,41 @@ const JoinerDashboard = () => {
 
   const sidebarExpanded = isMobile ? true : sidebarHovered;
 
+  // Mouse wheel over the tour row scrolls it sideways (until it reaches an
+  // end, then the page scrolls as usual). Trackpads and touch already swipe.
+  useEffect(() => {
+    const row = tourScrollRef.current;
+    if (!row) return undefined;
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const max = row.scrollWidth - row.clientWidth;
+      if (max <= 0) return;
+      const atStart = row.scrollLeft <= 0 && e.deltaY < 0;
+      const atEnd = row.scrollLeft >= max - 1 && e.deltaY > 0;
+      if (atStart || atEnd) return;
+      e.preventDefault();
+      row.scrollLeft += e.deltaY;
+    };
+    // Show the side arrows only when there is more to see in that direction.
+    const updateArrows = () => {
+      const max = row.scrollWidth - row.clientWidth;
+      setCanScrollLeft(row.scrollLeft > 4);
+      setCanScrollRight(row.scrollLeft < max - 4);
+    };
+    updateArrows();
+    row.addEventListener('wheel', onWheel, { passive: false });
+    row.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    return () => {
+      row.removeEventListener('wheel', onWheel);
+      row.removeEventListener('scroll', updateArrows);
+      window.removeEventListener('resize', updateArrows);
+    };
+  }, [activeTab, featuredTours.length]);
+
   const scrollTours = (direction) => {
-    if (tourScrollRef.current) {
-      tourScrollRef.current.scrollBy({ left: direction * 250, behavior: 'smooth' });
-    }
+    const row = tourScrollRef.current;
+    if (row) row.scrollBy({ left: direction * row.clientWidth * 0.8, behavior: 'smooth' });
   };
 
   const handleNavClick = (label) => {
@@ -299,7 +332,7 @@ const JoinerDashboard = () => {
         .select('*')
         .eq('is_archived', false)
         .order('start_date', { ascending: true })
-        .limit(4);
+        .limit(12);
 
       const updatedTours = await withAvailableSlots(toursData);
 
@@ -346,7 +379,7 @@ const JoinerDashboard = () => {
   return (
     <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100vh',
-      fontFamily: "'Inter', system-ui, sans-serif",
+      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
       background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
@@ -389,7 +422,7 @@ const JoinerDashboard = () => {
               top: 26, right: -14,
               width: 28, height: 28,
               borderRadius: '50%',
-              background: '#C45C26',
+              background: '#B4511E',
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
@@ -399,7 +432,7 @@ const JoinerDashboard = () => {
               transition: 'background 0.2s, transform 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
+            onMouseLeave={e => e.currentTarget.style.background = '#B4511E'}
           >
             <X size={16} strokeWidth={3} />
           </button>
@@ -438,14 +471,14 @@ const JoinerDashboard = () => {
             />
             {sidebarExpanded && (
               <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
-                Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+                Bandang <span style={{ color: '#E8A265' }}>IBAYO</span>
               </span>
             )}
           </button>
           {sidebarExpanded && (
             <p style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '0.22em',
-              textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: 0,
+              fontSize: 11, fontWeight: 800, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: 0,
               whiteSpace: 'nowrap',
             }}>
               Joiners Portal
@@ -475,17 +508,17 @@ const JoinerDashboard = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(232,210,190,0.4)',
+              color: 'rgba(232,210,190,0.85)',
               fontFamily: 'inherit',
               padding: 0,
               transition: 'color 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.4)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.85)'}
           >
             <LogOut size={16} style={{ flexShrink: 0 }} />
             {sidebarExpanded && (
-              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                 Sign Out
               </span>
             )}
@@ -498,8 +531,10 @@ const JoinerDashboard = () => {
 
         {/* header */}
         <header className="dashboard-header" style={{
-          background: '#FDF6EE',
-          borderBottom: '1px solid rgba(196,92,38,0.12)',
+          background: 'rgba(253,246,238,0.85)',
+          backdropFilter: 'saturate(160%) blur(14px)',
+          WebkitBackdropFilter: 'saturate(160%) blur(14px)',
+          borderBottom: '1px solid rgba(180,81,30,0.12)',
           height: 72,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 2.5rem',
@@ -534,15 +569,15 @@ const JoinerDashboard = () => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 background: '#F2E4D0',
-                border: '1px solid rgba(196,92,38,0.18)',
+                border: '1px solid rgba(180,81,30,0.18)',
                 borderRadius: 14, padding: '8px 14px',
                 cursor: 'pointer'
               }}>
               <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
+                <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
                   {userProfile.name}
                 </p>
-                <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
                   Ready for Adventure
                 </p>
               </div>
@@ -572,8 +607,8 @@ const JoinerDashboard = () => {
             <div role="status" style={{
               display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
               marginBottom: 20, padding: '14px 18px', borderRadius: 16, fontSize: 13, fontWeight: 700,
-              background: paymentNotice.type === 'success' ? 'rgba(196,92,38,0.12)' : paymentNotice.type === 'error' ? 'rgba(140,47,28,0.12)' : '#FDF6EE',
-              border: `1px solid ${paymentNotice.type === 'error' ? 'rgba(140,47,28,0.3)' : 'rgba(196,92,38,0.25)'}`,
+              background: paymentNotice.type === 'success' ? 'rgba(180,81,30,0.12)' : paymentNotice.type === 'error' ? 'rgba(140,47,28,0.12)' : '#FDF6EE',
+              border: `1px solid ${paymentNotice.type === 'error' ? 'rgba(140,47,28,0.3)' : 'rgba(180,81,30,0.25)'}`,
               color: paymentNotice.type === 'error' ? '#8C2F1C' : '#1A0A00',
             }}>
               <span>{paymentNotice.text}</span>
@@ -594,12 +629,12 @@ const JoinerDashboard = () => {
                 padding: '3.5rem',
                 overflow: 'hidden',
                 boxShadow: '0 16px 40px rgba(26,10,0,0.22)',
-                borderBottom: '6px solid #C45C26',
+                borderBottom: '6px solid #B4511E',
               }} className="dashboard-hero-padding">
                 <div style={{
                   position: 'absolute', top: 0, right: 0,
                   width: '40%', height: '100%',
-                  background: 'radial-gradient(ellipse at top right, rgba(196,92,38,0.18) 0%, transparent 70%)',
+                  background: 'radial-gradient(ellipse at top right, rgba(180,81,30,0.18) 0%, transparent 70%)',
                   pointerEvents: 'none',
                 }} />
                 <Compass
@@ -612,13 +647,13 @@ const JoinerDashboard = () => {
                 />
 
                 <div style={{ position: 'relative', zIndex: 1, maxWidth: 650, display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', background: '#C45C26', borderRadius: 999, padding: '4px 12px', marginBottom: 10, width: 'fit-content' }}>
-                    <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#FDF6EE' }}>Your Budget Travel Partner</span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', background: '#B4511E', borderRadius: 999, padding: '4px 12px', marginBottom: 10, width: 'fit-content' }}>
+                    <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#FDF6EE' }}>Your Budget Travel Partner</span>
                   </div>
                   <h2 style={{ fontWeight: 900, fontSize: '1.8rem', letterSpacing: '-0.02em', lineHeight: 1.1, color: '#FDF6EE', margin: '0 0 10px' }}>
                     Adventure Awaits with <span style={{ color: '#E8A265' }}>Bandang IBAYO</span>
                   </h2>
-                  <p style={{ fontSize: 12.5, lineHeight: 1.5, fontWeight: 500, color: 'rgba(232,210,190,0.85)', margin: '0 0 16px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <p style={{ fontSize: 12.5, lineHeight: 1.5, fontWeight: 500, color: 'rgba(232,210,190,0.85)', margin: '0 0 16px', maxWidth: 620 }}>
                     Our mission is to make everyone witness the beauty of the Philippines. Focusing exclusively on budget-friendly land tours and overland road trips, accommodating hassle-free road trip adventures completely by land tailored for every joiner.
                   </p>
 
@@ -628,7 +663,7 @@ const JoinerDashboard = () => {
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: 5,
                         background: '#E8A265', color: '#1A0A00', fontWeight: 900,
-                        fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
+                        fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
                         border: 'none', cursor: 'pointer', borderRadius: 8, padding: '10px 18px',
                         fontFamily: 'inherit', transition: 'all 0.2s'
                       }}
@@ -646,16 +681,16 @@ const JoinerDashboard = () => {
                 position: 'relative',
                 background: '#1A0A00',
                 borderRadius: 24,
-                padding: '2rem 2.5rem',
+                padding: isMobile ? '1.5rem 1.5rem' : '2rem 2.5rem',
                 overflow: 'hidden',
-                borderBottom: '4px solid #C45C26',
+                borderBottom: '4px solid #B4511E',
                 boxShadow: '0 12px 32px rgba(26,10,0,0.18)',
               }}>
                 <Sparkles size={160} style={{
                   position: 'absolute', right: -20, top: -30,
                   color: 'rgba(255,255,255,0.03)', transform: 'rotate(-8deg)',
                 }} />
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex' }}>
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
                   <PulseStat
                     icon={<Compass size={20} />}
                     label="Upcoming Trips"
@@ -665,7 +700,7 @@ const JoinerDashboard = () => {
                       : 'Your next stamp is one tap away'}
                     onClick={() => { setBookingsFilter('upcoming'); setActiveTab('My Bookings'); }}
                   />
-                  <div style={{ width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 2.5rem' }} />
+                  <div style={isMobile ? { height: 1, background: 'rgba(255,255,255,0.08)', margin: '1rem 0' } : { width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 2.5rem' }} />
                   <PulseStat
                     icon={<Star size={20} />}
                     label="Completed Tours"
@@ -697,50 +732,43 @@ const JoinerDashboard = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>Latest Tour Packages</h3>
-                    {featuredTours.length > 1 && (
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          onClick={() => scrollTours(-1)}
-                          aria-label="Previous tours"
-                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(196,92,38,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <ChevronLeft size={14} />
-                        </button>
-                        <button
-                          onClick={() => scrollTours(1)}
-                          aria-label="Next tours"
-                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(196,92,38,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <ChevronRight size={14} />
-                        </button>
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        className="text-link"
+                        onClick={() => setActiveTab('Explore Tours')}
+                        style={{ background: 'none', border: 'none', padding: '4px 2px', fontFamily: 'inherit', fontSize: 13, whiteSpace: 'nowrap', flexShrink: 0 }}
+                      >
+                        See more
+                      </button>
+                    </div>
                   </div>
 
+                  <div style={{ position: 'relative' }}>
                   <div
                     ref={tourScrollRef}
                     className="tour-packages-scroll"
-                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: 4 }}
+                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', paddingBottom: 12 }}
                   >
                     {featuredTours.map((tour) => {
                       const isFull = tour.available_slots <= 0;
                       return (
-                        <div key={tour.id} style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
+                        <div key={tour.id} style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
                           <div style={{ height: 115, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={32} /></div>}
-                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? '#7A3A18' : '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 7, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
+                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={32} /></div>}
+                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
+                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? '#7A3A18' : '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
                           </div>
                           <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                             <div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
                                 <h4 style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
-                                <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>{formatPeso(tour.price)}</span>
+                                <span style={{ fontSize: 12, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>{formatPeso(tour.price)}</span>
                               </div>
-                              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}</p>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '9px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: '#C45C26' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
+                              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#A8481A' }} /> {tour.destination}</p>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '11px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: '#A8481A' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
                               </div>
                             </div>
                             <button
@@ -748,14 +776,14 @@ const JoinerDashboard = () => {
                               disabled={isFull}
                               style={{
                                 width: '100%', padding: '8px 0', border: 'none', borderRadius: 8,
-                                cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 9,
+                                cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 11,
                                 letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex',
                                 alignItems: 'center', justifyContent: 'center', gap: 4,
                                 background: isFull ? '#F2E4D0' : '#1A0A00',
                                 color: isFull ? '#7A3A18' : '#FDF6EE',
                                 transition: 'background 0.2s'
                               }}
-                              onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#C45C26'; }}
+                              onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#B4511E'; }}
                               onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = '#1A0A00'; }}
                             >
                               <Eye size={11} /> {isFull ? 'Closed' : 'View Details'}
@@ -765,41 +793,18 @@ const JoinerDashboard = () => {
                       );
                     })}
                   </div>
+                  {canScrollLeft && (
+                    <button type="button" aria-label="Scroll tours left" className="tour-row-arrow no-touch-size" style={{ left: -14 }} onClick={() => scrollTours(-1)}>
+                      <ChevronLeft size={20} />
+                    </button>
+                  )}
+                  {canScrollRight && (
+                    <button type="button" aria-label="Scroll tours right" className="tour-row-arrow no-touch-size" style={{ right: -14 }} onClick={() => scrollTours(1)}>
+                      <ChevronRight size={20} />
+                    </button>
+                  )}
+                  </div>
 
-                  <button
-                    onClick={() => setActiveTab('Explore Tours')}
-                    style={{
-                      width: '100%',
-                      padding: '12px 0',
-                      borderRadius: '12px',
-                      background: '#1A0A00',
-                      border: '1.5px solid #C45C26',
-                      color: '#FDF6EE',
-                      fontWeight: 900,
-                      fontSize: '11px',
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                      fontFamily: 'inherit',
-                      boxShadow: '0 4px 12px rgba(26,10,0,0.1)',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#C45C26';
-                      e.currentTarget.style.color = '#FDF6EE';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = '#1A0A00';
-                      e.currentTarget.style.color = '#FDF6EE';
-                    }}
-                  >
-                    <span>See More</span>
-                    <ArrowRight size={13} strokeWidth={2.5} />
-                  </button>
                 </div>
 
                 {/* RIGHT RAIL */}
@@ -832,37 +837,37 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Explore Tours' ? (
             <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
-            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} />
+            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Calendar' ? (
             <TourCalendar initialDate={calendarTarget} />
           ) : activeTab === 'Exclusive Tours' ? (
             <ExclusiveTour />
           ) : activeTab === 'Reviews' ? (
-            <Reviews isAdmin={false} />
+            <Reviews isAdmin={false} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Profile Settings' ? (
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
-            <JoinerTracking />
+            <JoinerTracking onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Notification' ? (
             <Notification isAdmin={false} onNavigate={handleNotificationNavigate} />
           ) : (
             <div style={{
               height: '100%', minHeight: 400, display: 'flex',
               flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              background: '#FDF6EE', borderRadius: 24, border: '1px solid rgba(196,92,38,0.12)',
+              background: '#FDF6EE', borderRadius: 24, border: '1px solid rgba(180,81,30,0.12)',
               boxShadow: '0 4px 24px rgba(26,10,0,0.06)', padding: '3rem', textAlign: 'center'
             }}>
               <div style={{
                 width: 72, height: 72, borderRadius: 20,
                 background: '#F2E4D0', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', color: 'rgba(196,92,38,0.25)', marginBottom: 20
+                justifyContent: 'center', color: '#A8481A', marginBottom: 20
               }}>
                 <Compass size={36} />
               </div>
               <h3 style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 8px' }}>
                 {activeTab} Section
               </h3>
-              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                 Coming soon — check back later.
               </p>
             </div>
@@ -897,22 +902,22 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
       borderRadius: 12,
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
-      background: active ? '#C45C26' : 'transparent',
-      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.45)',
+      background: active ? '#B4511E' : 'transparent',
+      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
-      boxShadow: active ? '0 6px 20px rgba(196,92,38,0.35)' : 'none',
+      boxShadow: active ? '0 6px 20px rgba(180,81,30,0.35)' : 'none',
       transition: 'all 0.2s',
       textAlign: 'left',
     }}
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.5)', flexShrink: 0 }}>
+    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0 }}>
       {icon}
     </span>
     {!collapsed && (
-      <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
       </span>
     )}
@@ -942,18 +947,18 @@ const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
       {icon}
     </div>
     <div style={{ flex: 1 }}>
-      <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 4px' }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 4px' }}>
         {label}
       </p>
       <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: '#FDF6EE', margin: '0 0 4px', lineHeight: 1 }}>
         {value}
       </p>
-      <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(232,210,190,0.55)', margin: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(232,210,190,0.85)', margin: 0 }}>
         {subcopy}
       </p>
     </div>
     {onClick && (
-      <ChevronRight size={16} style={{ color: 'rgba(232,210,190,0.3)', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: 'rgba(232,210,190,0.85)', flexShrink: 0 }} />
     )}
   </div>
 );
@@ -963,7 +968,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
   const cardStyle = {
     background: '#FDF6EE',
     borderRadius: 22,
-    border: '1px solid rgba(196,92,38,0.12)',
+    border: '1px solid rgba(180,81,30,0.12)',
     boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
     overflow: 'hidden',
   };
@@ -994,8 +999,8 @@ const NextTripCard = ({ trip, onViewBookings }) => {
       <div style={{ position: 'relative', zIndex: 1, padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
         <span style={{
           alignSelf: 'flex-start',
-          background: '#C45C26', color: '#FDF6EE',
-          fontSize: 9, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
+          background: '#B4511E', color: '#FDF6EE',
+          fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
           borderRadius: 999, padding: '5px 12px',
         }}>
           Next Trip
@@ -1007,7 +1012,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
           <p style={{ fontSize: 15, fontWeight: 800, color: '#E8A265', margin: '0 0 4px' }}>
             {trip.tours.title}
           </p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.7)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.85)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
             <MapPin size={13} /> {trip.tours.destination}
           </p>
         </div>
@@ -1023,13 +1028,13 @@ const TripReadinessCard = ({ trip, onClick }) => {
   const chip = (label, ok) => (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 8,
-      background: ok ? 'rgba(196,92,38,0.08)' : 'rgba(122,58,24,0.06)',
-      border: `1px solid ${ok ? 'rgba(196,92,38,0.22)' : 'rgba(122,58,24,0.14)'}`,
+      background: ok ? 'rgba(180,81,30,0.08)' : 'rgba(122,58,24,0.06)',
+      border: `1px solid ${ok ? 'rgba(180,81,30,0.22)' : 'rgba(122,58,24,0.14)'}`,
       borderRadius: 12, padding: '10px 14px', flex: 1,
     }}>
-      <CheckCircle2 size={16} style={{ color: ok ? '#C45C26' : 'rgba(122,58,24,0.3)', flexShrink: 0 }} />
+      <CheckCircle2 size={16} style={{ color: ok ? '#A8481A' : 'rgba(122,58,24,0.85)', flexShrink: 0 }} />
       <div>
-        <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, margin: '0 0 2px' }}>{label}</p>
+        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '0 0 2px' }}>{label}</p>
         <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{ok ? 'Confirmed' : 'Pending'}</p>
       </div>
     </div>
@@ -1040,25 +1045,25 @@ const TripReadinessCard = ({ trip, onClick }) => {
       onClick={onClick}
       style={{
         background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         cursor: 'pointer',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Wallet size={15} style={{ color: '#C45C26' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
+          <Wallet size={15} style={{ color: '#A8481A' }} />
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
             Trip Readiness
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: 'rgba(122,58,24,0.4)' }} />
+        <ChevronRight size={15} style={{ color: 'rgba(122,58,24,0.85)' }} />
       </div>
       <div style={{ display: 'flex', gap: 10 }}>
         {chip('Booking', trip.booking_status === 'Completed')}
         {chip('Payment', paymentVerified)}
       </div>
       {!paymentVerified && (
-        <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.65, margin: '12px 0 0' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '12px 0 0' }}>
           Settle your remaining balance before departure to lock in your seat.
         </p>
       )}
@@ -1119,13 +1124,13 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
     <div
       style={{
         background: '#FDF6EE', borderRadius: 20, padding: '1rem 1.1rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         display: 'flex', flexDirection: 'column',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <div onClick={handleHeaderClick} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-          <CalendarIcon size={16} style={{ color: '#C45C26' }} />
+          <CalendarIcon size={16} style={{ color: '#A8481A' }} />
           <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00' }}>
             {monthName} {year}
           </span>
@@ -1135,7 +1140,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
             onClick={() => setMonthOffset(o => o - 1)}
             aria-label="Previous month"
             style={{
-              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(196,92,38,0.18)',
+              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(180,81,30,0.18)',
               background: 'transparent', cursor: 'pointer', color: '#7A3A18',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -1146,7 +1151,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
             onClick={() => setMonthOffset(o => o + 1)}
             aria-label="Next month"
             style={{
-              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(196,92,38,0.18)',
+              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(180,81,30,0.18)',
               background: 'transparent', cursor: 'pointer', color: '#7A3A18',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -1157,13 +1162,13 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.25rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.25rem 0', color: 'rgba(122,58,24,0.85)' }}>
           <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px 4px', maxWidth: 280, width: '100%', margin: '0 auto' }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <span key={i} style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', color: 'rgba(122,58,24,0.4)', paddingBottom: 2 }}>{d}</span>
+            <span key={i} style={{ fontSize: 11, fontWeight: 800, textAlign: 'center', color: '#7A3A18', paddingBottom: 2 }}>{d}</span>
           ))}
           {cells.map(({ day, muted }, i) => {
             const isToday = isCurrentMonth && !muted && day === todayDate;
@@ -1172,6 +1177,11 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
             return (
               <div
                 key={i}
+                className="cal-day"
+                role="button"
+                tabIndex={0}
+                aria-label={muted ? 'Open calendar' : `${monthName} ${day}`}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCellClick(day, muted); } }}
                 onClick={() => handleCellClick(day, muted)}
                 style={{
                   position: 'relative',
@@ -1179,18 +1189,18 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
                   borderRadius: 8,
                   cursor: 'pointer',
                   background: isConfirmedTrip ? '#E8A265' : isToday ? '#1A0A00' : 'transparent',
-                  color: muted ? 'rgba(122,58,24,0.25)' : isConfirmedTrip ? '#1A0A00' : isToday ? '#E8A265' : '#1A0A00',
+                  color: muted ? 'rgba(122,58,24,0.85)' : isConfirmedTrip ? '#1A0A00' : isToday ? '#E8A265' : '#1A0A00',
                   fontSize: 11, fontWeight: (isToday || isConfirmedTrip) ? 900 : 600,
                   boxShadow: isConfirmedTrip ? '0 3px 10px rgba(232,162,101,0.5)' : 'none',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'rgba(196,92,38,0.08)'; }}
+                onMouseEnter={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'rgba(180,81,30,0.08)'; }}
                 onMouseLeave={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'transparent'; }}
               >
                 {day}
                 {hasDot && (
                   <span style={{
-                    position: 'absolute', bottom: 1, width: 4, height: 4, borderRadius: '50%', background: '#C45C26',
+                    position: 'absolute', bottom: 1, width: 4, height: 4, borderRadius: '50%', background: '#B4511E',
                   }} />
                 )}
               </div>
@@ -1199,9 +1209,9 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(180,81,30,0.1)' }}>
         <span style={{ width: 9, height: 9, borderRadius: 3, background: '#E8A265', flexShrink: 0 }} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>Confirmed trip</span>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Confirmed trip</span>
       </div>
     </div>
   );
@@ -1216,44 +1226,44 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
       onClick={onClick}
       style={{
         background: isActive ? '#1A0A00' : '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Clock size={15} style={{ color: isActive ? '#E8A265' : '#C45C26' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? '#FDF6EE' : '#1A0A00' }}>
+          <Clock size={15} style={{ color: isActive ? '#E8A265' : '#A8481A' }} />
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? '#FDF6EE' : '#1A0A00' }}>
             Tracking
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: isActive ? 'rgba(253,246,238,0.5)' : 'rgba(122,58,24,0.4)' }} />
+        <ChevronRight size={15} style={{ color: isActive ? 'rgba(253,246,238,0.85)' : 'rgba(122,58,24,0.85)' }} />
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
           <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : !hasTrip ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Tracking activates once you have a confirmed trip.
         </p>
       ) : !stop ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           No pickup route posted for your trip yet.
         </p>
       ) : (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <MapPin size={14} style={{ color: isActive ? '#E8A265' : '#C45C26' }} />
+            <MapPin size={14} style={{ color: isActive ? '#E8A265' : '#A8481A' }} />
             <span style={{ fontSize: 13, fontWeight: 900, color: isActive ? '#FDF6EE' : '#1A0A00' }}>
               {stop.location_name}
             </span>
           </div>
           <span style={{
-            display: 'inline-block', fontSize: 9, fontWeight: 800,
+            display: 'inline-block', fontSize: 11, fontWeight: 800,
             padding: '3px 10px', borderRadius: 999,
-            background: isActive ? '#C45C26' : 'rgba(196,92,38,0.12)',
+            background: isActive ? '#B4511E' : 'rgba(180,81,30,0.12)',
             color: isActive ? '#FDF6EE' : '#7A3A18',
           }}>
             {stop.status}
@@ -1273,26 +1283,26 @@ const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
       onClick={onClick}
       style={{
         background: hasCompleted ? '#1A0A00' : '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Star size={15} style={{ color: hasCompleted ? '#E8A265' : '#C45C26' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: hasCompleted ? '#FDF6EE' : '#1A0A00' }}>
+          <Star size={15} style={{ color: hasCompleted ? '#E8A265' : '#A8481A' }} />
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: hasCompleted ? '#FDF6EE' : '#1A0A00' }}>
             Reviews
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: hasCompleted ? 'rgba(253,246,238,0.5)' : 'rgba(122,58,24,0.4)' }} />
+        <ChevronRight size={15} style={{ color: hasCompleted ? 'rgba(253,246,238,0.85)' : 'rgba(122,58,24,0.85)' }} />
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
           <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : !hasCompleted ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Finish a tour to unlock your first review.
         </p>
       ) : (
@@ -1303,7 +1313,7 @@ const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
               {completedCount} tour{completedCount === 1 ? '' : 's'} to review
             </span>
           </div>
-          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(253,246,238,0.65)', margin: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(253,246,238,0.85)', margin: 0 }}>
             Tell other joiners how it went — it takes a minute.
           </p>
         </div>

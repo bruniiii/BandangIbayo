@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Trash2, Loader2, ShieldCheck } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { deleteMyAccount } from './Email';
 
 // ─────────────────────────────────────────────
@@ -70,16 +71,16 @@ const MyData = () => {
     // Leave the dashboard first, so signing out doesn't bounce to the login page.
     navigate('/', { replace: true });
     await supabase.auth.signOut();
-    alert('Your account has been deleted.');
+    toast.success('Your account has been deleted', 'Thank you for travelling with Bandang IBAYO.');
   };
 
   return (
-    <div style={{ background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.15)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
         <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0 }}>
-          <ShieldCheck size={18} style={{ color: '#C45C26' }} /> Your Data
+          <ShieldCheck size={18} style={{ color: '#A8481A' }} /> Your Data
         </h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.85, margin: '4px 0 0', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
           Under the Data Privacy Act of 2012 you can get a copy of your personal data or ask us to delete it.
         </p>
       </div>
@@ -112,11 +113,11 @@ const MyData = () => {
             />
           </label>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => { setShowDelete(false); setConfirmText(''); }} disabled={deleting} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(196,92,38,0.25)')}>
+            <button type="button" onClick={() => { setShowDelete(false); setConfirmText(''); }} disabled={deleting} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(168,72,26,0.25)')}>
               Keep my account
             </button>
-            <button type="button" onClick={handleDelete} disabled={confirmText !== 'DELETE' || deleting} style={{ ...button('#8C2F1C', '#FDF6EE'), opacity: confirmText === 'DELETE' ? 1 : 0.5 }}>
-              {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} Delete permanently
+            <button type="button" onClick={handleDelete} disabled={confirmText !== 'DELETE' || deleting} style={{ ...button('#C0362C', '#FFFFFF'), opacity: confirmText === 'DELETE' ? 1 : 0.5 }}>
+              {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} Delete My Account
             </button>
           </div>
         </div>
@@ -130,7 +131,7 @@ const MyData = () => {
 const button = (bg, color, border = 'none') => ({
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 16px',
   background: bg, color, border, borderRadius: 12, cursor: 'pointer',
-  fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+  fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
 });
 
 export default MyData;

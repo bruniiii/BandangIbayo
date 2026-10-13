@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
+import { confirmDialog } from './ui/ConfirmDialog';
+
+// The time picker gives "16:30"; joiners see "4:30 PM", like the older stops.
+const formatTime12h = (value) => {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(value);
+  if (!m) return value;
+  const h = Number(m[1]);
+  return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
+};
 import { nameError, phoneError, cleanName, normalizePhone } from './validation';
 import {
   MapPin, Plus, Trash2, Archive, RefreshCw, History, X, Calendar,
@@ -9,7 +19,7 @@ import {
 
 const PALETTE = {
   espresso: '#1A0A00',
-  burntSienna: '#C45C26',
+  burntSienna: '#A8481A',
   warmAmber: '#E8A265',
   cream: '#FDF6EE',
   rust: '#7A3A18',
@@ -17,17 +27,17 @@ const PALETTE = {
 };
 
 const STOP_STATUS_STYLES = {
-  DEPARTURE: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E', label: 'Pending Pickup' },
-  'CURRENTLY HERE': { bg: '#C45C26', color: '#FDF6EE', label: 'En Route / On The Way' },
+  DEPARTURE: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216', label: 'Pending Pickup' },
+  'CURRENTLY HERE': { bg: '#B4511E', color: '#FDF6EE', label: 'En Route / On The Way' },
   ARRIVED: { bg: '#1F8A5C', color: '#FDF6EE', label: 'Arrived at Stop' },
-  DEPARTED: { bg: 'rgba(26,10,0,0.1)', color: 'rgba(26,10,0,0.6)', label: 'Departed' },
+  DEPARTED: { bg: 'rgba(26,10,0,0.1)', color: 'rgba(26,10,0,0.8)', label: 'Departed' },
 };
 
 const inputStyle = {
   width: '100%',
   boxSizing: 'border-box',
   background: '#F2E4D0',
-  border: '1px solid rgba(196,92,38,0.18)',
+  border: '1px solid rgba(180,81,30,0.18)',
   borderRadius: 14,
   padding: '10px 14px',
   fontSize: 13,
@@ -150,7 +160,7 @@ export const AdminTrackingControls = () => {
     const { id, isArchived } = confirmAction;
     const { error } = await supabase.from('tours').update({ is_archived: !isArchived }).eq('id', id);
     if (error) {
-      alert('Error updating archive status: ' + error.message);
+      toast.error("Couldn't update archive status", error.message);
     } else {
       fetchTours();
       if (activeTour?.id === id) setActiveTour(null);
@@ -162,14 +172,14 @@ export const AdminTrackingControls = () => {
     e.preventDefault();
     if (!activeTour?.id) return;
     if (!carType.trim() || !plateNumber.trim() || !driverName.trim() || !driverContact.trim()) {
-      alert('Please fill in all driver and vehicle fields.');
+      toast.error('Missing details', 'Please fill in all driver and vehicle fields.');
       return;
     }
     // Joiners use these to find the van and call the driver, so check the formats.
     const problem = nameError(driverName, "Driver's name", { max: 80 })
       || phoneError(driverContact, "Driver's contact number")
       || (/^[A-Za-z0-9 -]{2,10}$/.test(plateNumber.trim()) ? '' : 'Plate number should be letters and numbers only, like NBT 8921 or NBT-8921.');
-    if (problem) { alert(problem); return; }
+    if (problem) { toast.error('Please check the details', problem); return; }
 
     setSavingLogistics(true);
     const { error } = await supabase.from('tour_vehicles').upsert([{
@@ -183,9 +193,10 @@ export const AdminTrackingControls = () => {
 
     setSavingLogistics(false);
     if (error) {
-      alert('Error saving fleet details: ' + error.message);
+      toast.error("Couldn't save fleet details", error.message);
       return;
     }
+    toast.success('Driver & vehicle saved', 'Joiners can now see them on the tracking page.');
     setIsLogisticsSaved(true);
   };
 
@@ -193,7 +204,7 @@ export const AdminTrackingControls = () => {
   const handleAddPickupStop = async (e) => {
     e.preventDefault();
     if (!newLocName.trim() || !newTime.trim() || !activeTour?.id) {
-      alert('Please enter the pickup location and time.');
+      toast.error('Missing details', 'Please enter the pickup location and time.');
       return;
     }
 
@@ -201,29 +212,30 @@ export const AdminTrackingControls = () => {
     const { data, error } = await supabase.from('tour_meetups').insert([{
       tour_id: activeTour.id,
       location_name: newLocName.trim(),
-      scheduled_time: newTime.trim(),
+      scheduled_time: formatTime12h(newTime.trim()),
       status: 'DEPARTURE',
       note: '',
     }]).select();
 
     setSavingStop(false);
     if (error) {
-      alert('Error adding checkpoint: ' + error.message);
+      toast.error("Couldn't add checkpoint", error.message);
       return;
     }
 
     setMeetupStops(prev => [...(prev || []), ...(data || [])]);
+    toast.success('Pickup stop added');
     setNewLocName('');
     setNewTime('');
   };
 
   // Delete Pickup Stop
   const handleDeleteStop = async (stopId) => {
-    if (!window.confirm('Delete this pickup stop?')) return;
+    if (!(await confirmDialog({ title: 'Delete this pickup stop?', message: "Joiners won't see it on the tracking page anymore.", confirmLabel: 'Delete Stop', cancelLabel: 'Keep Stop', tone: 'danger' }))) return;
 
     const { error } = await supabase.from('tour_meetups').delete().eq('id', stopId);
     if (error) {
-      alert('Error deleting stop: ' + error.message);
+      toast.error("Couldn't delete stop", error.message);
       return;
     }
     setMeetupStops(prev => (prev || []).filter(s => s.id !== stopId));
@@ -248,7 +260,7 @@ export const AdminTrackingControls = () => {
       .eq('id', stop.id);
 
     if (error) {
-      alert('Error updating stop: ' + error.message);
+      toast.error("Couldn't update stop", error.message);
       return;
     }
 
@@ -261,21 +273,21 @@ export const AdminTrackingControls = () => {
       note: stop.note || '',
     }]);
 
-    alert('ETA updated for joiners.');
+    toast.success('ETA updated', 'Joiners can see the new time on the tracking page.');
     fetchTrackingConsole(activeTour.id);
   };
 
   // Clear Live Tracking Activity Feed
   const handleClearTrackingFeed = async () => {
     if (!activeTour?.id) return;
-    if (!window.confirm('Clear all tracking activity logs for this tour? This cannot be undone.')) return;
+    if (!(await confirmDialog({ title: 'Clear the tracking feed?', message: "Every activity update for this tour will be removed. This can't be undone.", confirmLabel: 'Clear Feed', cancelLabel: 'Keep Feed', tone: 'danger' }))) return;
 
     setClearingFeed(true);
     const { error } = await supabase.from('tour_tracking_logs').delete().eq('tour_id', activeTour.id);
     setClearingFeed(false);
 
     if (error) {
-      alert('Error clearing feed: ' + error.message);
+      toast.error("Couldn't clear feed", error.message);
       return;
     }
     setTrackingLogs([]);
@@ -336,7 +348,7 @@ export const AdminTrackingControls = () => {
       }
       fetchTrackingConsole(activeTour.id);
     } catch (err) {
-      alert('Error advancing status: ' + err.message);
+      toast.error("Couldn't advance status", err.message);
     } finally {
       setAdvancing(false);
     }
@@ -347,7 +359,7 @@ export const AdminTrackingControls = () => {
       {/* ── Top Header Tabs ── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: '1px solid rgba(196,92,38,0.15)',
+        borderBottom: '1px solid rgba(180,81,30,0.15)',
         paddingBottom: 16, marginBottom: 20,
       }}>
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -357,12 +369,12 @@ export const AdminTrackingControls = () => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'active' ? '#1A0A00' : 'rgba(122,58,24,0.3)',
+              color: currentTab === 'active' ? '#1A0A00' : 'rgba(122,58,24,0.85)',
             }}
           >
             Active Trips
           </button>
-          <span style={{ color: 'rgba(196,92,38,0.25)', fontSize: 18 }}>|</span>
+          <span style={{ color: '#A8481A', fontSize: 18 }}>|</span>
           <button
             onClick={() => setCurrentTab('archive')}
             style={{
@@ -370,7 +382,7 @@ export const AdminTrackingControls = () => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'archive' ? '#1A0A00' : 'rgba(122,58,24,0.3)',
+              color: currentTab === 'archive' ? '#1A0A00' : 'rgba(122,58,24,0.85)',
             }}
           >
             <History size={18} /> Tracking Archive
@@ -381,13 +393,13 @@ export const AdminTrackingControls = () => {
       {/* ── Cards Grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
-          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.85)' }}>
             <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Tours…</p>
+            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Tours…</p>
           </div>
         ) : toursList.length === 0 ? (
-          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(196,92,38,0.2)' }}>
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)' }}>
+          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(180,81,30,0.2)' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A3A18' }}>
               No {currentTab === 'archive' ? 'archived' : 'active'} tours found.
             </p>
           </div>
@@ -443,11 +455,11 @@ export const AdminTrackingControls = () => {
             background: '#FDF6EE', padding: '3rem',
             borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
             textAlign: 'center', width: '100%', maxWidth: 420,
-            borderTop: `8px solid ${confirmAction.isArchived ? '#C45C26' : '#E8A265'}`,
+            borderTop: `8px solid ${confirmAction.isArchived ? '#B4511E' : '#E8A265'}`,
           }}>
             <div style={{
               width: 80, height: 80, borderRadius: '50%',
-              background: confirmAction.isArchived ? '#C45C26' : '#1A0A00',
+              background: confirmAction.isArchived ? '#B4511E' : '#1A0A00',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 20px', color: '#FDF6EE',
             }}>
@@ -456,17 +468,17 @@ export const AdminTrackingControls = () => {
             <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: '0 0 10px', textTransform: 'uppercase' }}>
               {confirmAction.isArchived ? 'Restore Tour?' : 'Archive Tour?'}
             </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.8, lineHeight: 1.6, margin: '0 0 24px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6, margin: '0 0 24px' }}>
               {confirmAction.isArchived
                 ? 'This tour will be moved back to the active listings.'
                 : 'This tour will be archived and hidden from the active list.'}
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmAction(null)} style={{ flex: 1, padding: '12px 0', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.2)', borderRadius: 999, fontWeight: 900, fontSize: 10, cursor: 'pointer', color: '#7A3A18', textTransform: 'uppercase' }}>
+              <button onClick={() => setConfirmAction(null)} style={{ flex: 1, padding: '12px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#7A3A18', textTransform: 'uppercase' }}>
                 Cancel
               </button>
-              <button onClick={executeToggleArchive} style={{ flex: 1, padding: '12px 0', background: confirmAction.isArchived ? '#C45C26' : '#1A0A00', border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 10, cursor: 'pointer', color: '#FDF6EE', textTransform: 'uppercase' }}>
-                Confirm
+              <button onClick={executeToggleArchive} style={{ flex: 1, padding: '12px 0', background: '#B4511E', border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#FDF6EE', textTransform: 'uppercase', boxShadow: '0 6px 20px rgba(180,81,30,0.3)' }}>
+                {confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}
               </button>
             </div>
           </div>
@@ -487,7 +499,7 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
       style={{
         background: '#FDF6EE',
         borderRadius: 22, overflow: 'hidden',
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
         boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.25s',
@@ -500,9 +512,9 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
         {displayImage ? (
           <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={44} /></div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
         )}
-        <span style={{ position: 'absolute', top: 12, right: 12, background: tour?.is_archived ? '#7A3A18' : PALETTE.burntSienna, color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ position: 'absolute', top: 12, right: 12, background: tour?.is_archived ? '#7A3A18' : PALETTE.burntSienna, color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Compass size={10} /> {tour?.is_archived ? 'Archived' : 'Tracking'}
         </span>
       </div>
@@ -511,10 +523,10 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
         <div>
           <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', margin: '0 0 8px' }}>{tour?.title || 'Untitled Tour'}</h3>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
-            <MapPin size={12} style={{ color: '#C45C26' }} /> {tour?.destination || 'Destination'}
+            <MapPin size={12} style={{ color: '#A8481A' }} /> {tour?.destination || 'Destination'}
           </p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
-            <Calendar size={11} style={{ color: '#C45C26' }} /> {tour?.start_date || tour?.date || 'Scheduled'}
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+            <Calendar size={11} style={{ color: '#A8481A' }} /> {tour?.start_date || tour?.date || 'Scheduled'}
           </p>
         </div>
 
@@ -523,7 +535,7 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
             onClick={onTrack}
             style={{
               padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
-              fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.1em',
+              fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em',
               textTransform: 'uppercase', background: '#1A0A00', color: '#FDF6EE',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
@@ -534,8 +546,8 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
             onClick={onConfirmArchive}
             style={{
               padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
-              fontFamily: 'inherit', fontWeight: 900, fontSize: 9, letterSpacing: '0.1em',
-              textTransform: 'uppercase', background: tour?.is_archived ? '#C45C26' : '#F2E4D0',
+              fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+              textTransform: 'uppercase', background: tour?.is_archived ? '#B4511E' : '#F2E4D0',
               color: tour?.is_archived ? '#FDF6EE' : '#7A3A18',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
             }}
@@ -596,9 +608,9 @@ const TrackingConsoleModal = ({
             title={tour?.is_archived ? 'Restore Tour' : 'Archive Tour'}
             style={{
               display: 'flex', alignItems: 'center', gap: 6, background: '#FDF6EE',
-              border: '1px solid rgba(196,92,38,0.3)', borderRadius: 999,
+              border: '1px solid rgba(180,81,30,0.3)', borderRadius: 999,
               padding: isMobile ? '8px' : '7px 14px',
-              cursor: 'pointer', color: '#7A3A18', fontWeight: 900, fontSize: 9, textTransform: 'uppercase',
+              cursor: 'pointer', color: '#7A3A18', fontWeight: 900, fontSize: 11, textTransform: 'uppercase',
             }}
           >
             {tour?.is_archived ? <RefreshCw size={12} /> : <Archive size={12} />}
@@ -608,7 +620,7 @@ const TrackingConsoleModal = ({
             type="button"
             onClick={onClose}
             style={{
-              background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.2)', borderRadius: '50%',
+              background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: '50%',
               width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer', color: '#1A0A00', flexShrink: 0,
             }}
@@ -623,17 +635,17 @@ const TrackingConsoleModal = ({
             <div style={{
               background: '#F2E4D0',
               padding: isMobile ? '4rem 1.25rem 1.5rem' : '2.2rem 2rem',
-              borderRight: isMobile ? 'none' : '1px solid rgba(196,92,38,0.12)',
-              borderBottom: isMobile ? '1px solid rgba(196,92,38,0.12)' : 'none',
+              borderRight: isMobile ? 'none' : '1px solid rgba(180,81,30,0.12)',
+              borderBottom: isMobile ? '1px solid rgba(180,81,30,0.12)' : 'none',
             }}>
               <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour?.title}</h2>
               <p style={{ margin: '0 0 18px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MapPin size={14} style={{ color: '#C45C26' }} /> {tour?.destination}
+                <MapPin size={14} style={{ color: '#A8481A' }} /> {tour?.destination}
               </p>
 
               {/* Fleet & Driver */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(180,81,30,0.1)' }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Truck size={14} /> Assigned Fleet & Driver Info
                 </h4>
 
@@ -648,8 +660,8 @@ const TrackingConsoleModal = ({
                       <input type="text" placeholder="Driver Contact No." value={driverContact} onChange={e => setDriverContact(e.target.value)} style={inputStyle} />
                     </div>
                     <button type="submit" disabled={savingLogistics} style={{
-                      padding: '10px 0', background: '#C45C26', color: '#FDF6EE',
-                      border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 10,
+                      padding: '10px 0', background: '#B4511E', color: '#FDF6EE',
+                      border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer',
                     }}>
                       {savingLogistics ? 'Saving…' : 'Save Driver & Vehicle'}
@@ -661,7 +673,7 @@ const TrackingConsoleModal = ({
                     <div><strong>Plate:</strong> {plateNumber}</div>
                     <div><strong>Driver:</strong> {driverName}</div>
                     <div><strong>Contact:</strong> {driverContact}</div>
-                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #C45C26', borderRadius: 999, padding: '6px', fontSize: 9, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
+                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #B4511E', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
                       Edit Driver & Vehicle
                     </button>
                   </div>
@@ -669,8 +681,8 @@ const TrackingConsoleModal = ({
               </div>
 
               {/* Manual Stops */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} /> Manual Pickup Stops & ETA Dispatch
                 </h4>
 
@@ -684,8 +696,9 @@ const TrackingConsoleModal = ({
                   />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
-                      type="text"
-                      placeholder="ETA (e.g. 04:30 AM)"
+                      type="time"
+                      aria-label="Pickup time (ETA)"
+                      title="Pickup time (ETA)"
                       value={newTime}
                       onChange={e => setNewTime(e.target.value)}
                       style={{ ...inputStyle, flex: 1 }}
@@ -701,7 +714,7 @@ const TrackingConsoleModal = ({
                 </form>
 
                 {safeStops.length === 0 ? (
-                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', opacity: 0.7, textAlign: 'center', margin: '14px 0' }}>
+                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', opacity: 0.9, textAlign: 'center', margin: '14px 0' }}>
                     No pickup stops added yet. Create one above.
                   </p>
                 ) : (
@@ -717,16 +730,16 @@ const TrackingConsoleModal = ({
                           key={stop.id || i}
                           style={{
                             padding: '12px', borderRadius: 14,
-                            background: isCurrent ? 'rgba(196,92,38,0.06)' : '#FDF6EE',
-                            border: isCurrent ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.14)',
+                            background: isCurrent ? 'rgba(180,81,30,0.06)' : '#FDF6EE',
+                            border: isCurrent ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.14)',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{
                                 width: 22, height: 22, borderRadius: '50%',
-                                background: isArrived ? '#1F8A5C' : isCurrent ? '#C45C26' : 'rgba(26,10,0,0.1)',
-                                color: '#FFF', fontSize: 10, fontWeight: 900,
+                                background: isArrived ? '#1F8A5C' : isCurrent ? '#B4511E' : 'rgba(26,10,0,0.1)',
+                                color: '#FFF', fontSize: 11.5, fontWeight: 900,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                               }}>
                                 {isArrived ? <Check size={12} /> : i + 1}
@@ -734,7 +747,7 @@ const TrackingConsoleModal = ({
                               <strong style={{ fontSize: 13, color: '#1A0A00' }}>{stop.location_name}</strong>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span style={{ background: badge.bg, color: badge.color, fontSize: 8, fontWeight: 900, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>
+                              <span style={{ background: badge.bg, color: badge.color, fontSize: 11, fontWeight: 900, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>
                                 {badge.label}
                               </span>
                               <button
@@ -750,6 +763,7 @@ const TrackingConsoleModal = ({
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}
                                 title="Delete stop"
+                                aria-label="Delete stop"
                               >
                                 <Trash2 size={13} />
                               </button>
@@ -781,7 +795,7 @@ const TrackingConsoleModal = ({
                               style={{
                                 background: '#7A3A18', color: '#FDF6EE', border: 'none',
                                 borderRadius: 10, padding: '7px 12px', cursor: 'pointer',
-                                fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center',
+                                fontSize: 11.5, fontWeight: 800, display: 'flex', alignItems: 'center',
                                 justifyContent: 'center', gap: 4, width: isMobile ? '100%' : 'auto',
                               }}
                             >
@@ -824,7 +838,7 @@ const TrackingConsoleModal = ({
             {/* Live Feed */}
             <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '4.5rem 2rem 2.2rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h4 style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Compass size={14} /> Live Tracking Activity Feed
                 </h4>
                 {safeLogs.length > 0 && (
@@ -836,10 +850,11 @@ const TrackingConsoleModal = ({
                       display: 'flex', alignItems: 'center', gap: 5,
                       background: 'rgba(140,47,28,0.08)', border: 'none',
                       borderRadius: 999, padding: '6px 12px', cursor: clearingFeed ? 'default' : 'pointer',
-                      color: '#8C2F1C', fontWeight: 900, fontSize: 9, letterSpacing: '0.1em',
+                      color: '#8C2F1C', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                       textTransform: 'uppercase', opacity: clearingFeed ? 0.6 : 1,
                     }}
                     title="Clear all tracking activity logs"
+                    aria-label="Reset tracking feed"
                   >
                     {clearingFeed ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={12} />}
                     Reset Feed
@@ -874,8 +889,8 @@ const TrackingTimeline = ({ logs = [] }) => {
   const safeLogs = Array.isArray(logs) ? logs : [];
   if (safeLogs.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FDF6EE', borderRadius: 16, border: '2px dashed rgba(196,92,38,0.2)' }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0 }}>No status updates dispatched yet.</p>
+      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FDF6EE', borderRadius: 16, border: '2px dashed rgba(180,81,30,0.2)' }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>No status updates dispatched yet.</p>
       </div>
     );
   }
@@ -890,18 +905,18 @@ const TrackingTimeline = ({ logs = [] }) => {
 
         return (
           <div key={log.id || index} style={{ display: 'flex', gap: 12, position: 'relative' }}>
-            <div style={{ width: 60, fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.7, paddingTop: 2 }}>
+            <div style={{ width: 60, fontSize: 11.5, fontWeight: 800, color: '#7A3A18', opacity: 0.9, paddingTop: 2 }}>
               {timeFormatted}
             </div>
             <div style={{ width: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: index === 0 ? '#C45C26' : 'rgba(26,10,0,0.3)', zIndex: 2 }} />
-              {index !== safeLogs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(196,92,38,0.2)', margin: '4px 0' }} />}
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: index === 0 ? '#B4511E' : 'rgba(26,10,0,0.3)', zIndex: 2 }} />
+              {index !== safeLogs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(180,81,30,0.2)', margin: '4px 0' }} />}
             </div>
             <div style={{ flex: 1 }}>
               <strong style={{ fontSize: 12, color: '#1A0A00' }}>{title}</strong>
               <p style={{ fontSize: 11, color: '#7A3A18', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(196,92,38,0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 10, fontWeight: 700, color: '#9A5B1E' }}>
+                <div style={{ background: 'rgba(180,81,30,0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 11.5, fontWeight: 700, color: '#8C5216' }}>
                   Note: {log.note}
                 </div>
               )}

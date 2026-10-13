@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
 import {
   MapPin, X, Calendar, Armchair, Compass, ChevronLeft,
   ChevronRight, ImageIcon, Loader2, Check, CheckCircle2, Truck, Phone, Navigation, Clock
 } from 'lucide-react';
 
-export const JoinerTracking = () => {
+export const JoinerTracking = ({ onExplore }) => {
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -109,13 +110,18 @@ export const JoinerTracking = () => {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
-          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.4)' }}>
-            <Loader2 size={30} style={{ marginBottom: 10, color: '#C45C26', animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Trips…</p>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.85)' }}>
+            <Loader2 size={30} style={{ marginBottom: 10, color: '#A8481A', animation: 'spin 1s linear infinite' }} />
+            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Trips…</p>
           </div>
         ) : toursList.length === 0 ? (
-          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(196,92,38,0.2)' }}>
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)' }}>No booked tours to track yet.</p>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <EmptyState
+              icon={Navigation}
+              title="No trips to track yet"
+              message="Once you book a tour and your payment is confirmed, you can follow the van, pickup stops and live updates here."
+              action={onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
+            />
           </div>
         ) : toursList.map(tour => (
           <TrackingTourCard key={tour.id} tour={tour} onTrack={() => setActiveTour(tour)} />
@@ -144,7 +150,7 @@ const TrackingTourCard = ({ tour, onTrack }) => {
     <div
       style={{
         background: '#FDF6EE', borderRadius: 22, overflow: 'hidden',
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
         boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.25s', display: 'flex', flexDirection: 'column',
@@ -156,9 +162,9 @@ const TrackingTourCard = ({ tour, onTrack }) => {
         {displayImage ? (
           <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={44} /></div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
         )}
-        <span style={{ position: 'absolute', top: 12, right: 12, background: '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 9, fontWeight: 800, textTransform: 'uppercase' }}>
+        <span style={{ position: 'absolute', top: 12, right: 12, background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
           Tracking
         </span>
       </div>
@@ -167,10 +173,10 @@ const TrackingTourCard = ({ tour, onTrack }) => {
         <div>
           <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', margin: '0 0 8px' }}>{tour.title}</h3>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
-            <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
+            <MapPin size={11} style={{ color: '#A8481A' }} /> {tour.destination}
           </p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
-            <Calendar size={11} style={{ color: '#C45C26' }} /> {tour.start_date || tour.date}
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+            <Calendar size={11} style={{ color: '#A8481A' }} /> {tour.start_date || tour.date}
           </p>
         </div>
 
@@ -179,7 +185,7 @@ const TrackingTourCard = ({ tour, onTrack }) => {
           style={{
             width: '100%', marginTop: 14, padding: '11px 0',
             border: 'none', borderRadius: 12, cursor: 'pointer',
-            fontFamily: 'inherit', fontWeight: 900, fontSize: 10,
+            fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
             textTransform: 'uppercase', background: '#1A0A00', color: '#FDF6EE',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}
@@ -216,7 +222,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 1100,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #C45C26',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E',
         overflow: 'hidden', maxHeight: '92vh', display: 'flex', flexDirection: 'column',
       }}>
         <button
@@ -224,7 +230,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
           style={{
             position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 50,
             background: isMobile ? '#FDF6EE' : 'none',
-            border: isMobile ? '1px solid rgba(196,92,38,0.2)' : 'none',
+            border: isMobile ? '1px solid rgba(180,81,30,0.2)' : 'none',
             borderRadius: isMobile ? '50%' : 0,
             width: isMobile ? 34 : 'auto', height: isMobile ? 34 : 'auto',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -240,22 +246,22 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
             <div style={{
               background: '#F2E4D0',
               padding: isMobile ? '3.5rem 1.25rem 1.5rem' : '2.5rem 2rem',
-              borderRight: isMobile ? 'none' : '1px solid rgba(196,92,38,0.12)',
-              borderBottom: isMobile ? '1px solid rgba(196,92,38,0.12)' : 'none',
+              borderRight: isMobile ? 'none' : '1px solid rgba(180,81,30,0.12)',
+              borderBottom: isMobile ? '1px solid rgba(180,81,30,0.12)' : 'none',
             }}>
               <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour.title}</h2>
               <p style={{ margin: '0 0 16px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MapPin size={14} style={{ color: '#C45C26' }} /> {tour.destination}
+                <MapPin size={14} style={{ color: '#A8481A' }} /> {tour.destination}
               </p>
 
               {/* Live Status Header Banner */}
               <div style={{
-                background: isCompleted ? '#1F8A5C' : activeStop?.status === 'CURRENTLY HERE' ? '#C45C26' : '#1A0A00',
+                background: isCompleted ? '#1F8A5C' : activeStop?.status === 'CURRENTLY HERE' ? '#B4511E' : '#1A0A00',
                 color: '#FDF6EE', padding: '14px 18px', borderRadius: 16, marginBottom: 16,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <Navigation size={16} />
-                  <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                     {isCompleted ? 'Route Completed' : activeStop?.status === 'CURRENTLY HERE' ? 'Van En Route' : 'Awaiting Departure'}
                   </span>
                 </div>
@@ -274,8 +280,8 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
               </div>
 
               {/* Fleet & Driver Information */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 16, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
+                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Truck size={14} /> Assigned Driver & Vehicle
                 </h4>
                 {vehicleInfo ? (
@@ -286,19 +292,19 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                     <div><strong style={{ color: '#7A3A18' }}>Contact:</strong> {vehicleInfo.driver_contact || 'N/A'}</div>
                   </div>
                 ) : (
-                  <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, margin: 0, fontStyle: 'italic' }}>
+                  <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: 0, fontStyle: 'italic' }}>
                     Organizer will post the driver and plate details prior to departure.
                   </p>
                 )}
               </div>
 
               {/* Delivery-Style Pickup Progress */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
+                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} /> Pickup Points & ETAs
                 </h4>
                 {meetupStops.length === 0 ? (
-                  <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, margin: 0, fontStyle: 'italic' }}>
+                  <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: 0, fontStyle: 'italic' }}>
                     Pickup schedule is currently being finalized.
                   </p>
                 ) : (
@@ -312,25 +318,25 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           flexWrap: 'wrap', gap: 8,
                           padding: '10px 12px', borderRadius: 12,
-                          background: isCurrent ? 'rgba(196,92,38,0.08)' : '#FDF6EE',
-                          border: isCurrent ? '1.5px solid #C45C26' : '1px solid rgba(196,92,38,0.1)',
+                          background: isCurrent ? 'rgba(180,81,30,0.08)' : '#FDF6EE',
+                          border: isCurrent ? '1.5px solid #B4511E' : '1px solid rgba(180,81,30,0.1)',
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{
                               width: 20, height: 20, borderRadius: '50%',
-                              background: isArrived ? '#1F8A5C' : isCurrent ? '#C45C26' : 'rgba(26,10,0,0.15)',
-                              color: '#FFF', fontSize: 10, fontWeight: 900,
+                              background: isArrived ? '#1F8A5C' : isCurrent ? '#B4511E' : 'rgba(26,10,0,0.15)',
+                              color: '#FFF', fontSize: 11.5, fontWeight: 900,
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}>
                               {isArrived ? <Check size={11} strokeWidth={3} /> : i + 1}
                             </div>
                             <div>
                               <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{stop.location_name}</p>
-                              {stop.note && <p style={{ fontSize: 10, color: '#C45C26', fontWeight: 700, margin: '2px 0 0' }}>{stop.note}</p>}
+                              {stop.note && <p style={{ fontSize: 11.5, color: '#A8481A', fontWeight: 700, margin: '2px 0 0' }}>{stop.note}</p>}
                             </div>
                           </div>
                           <div style={{ textAlign: 'right' }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, color: isCurrent ? '#C45C26' : '#7A3A18' }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: isCurrent ? '#A8481A' : '#7A3A18' }}>
                               ETA: {stop.scheduled_time}
                             </span>
                           </div>
@@ -344,13 +350,13 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
 
             {/* Right Side: Detailed Updates Feed */}
             <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '2.5rem 2rem', display: 'flex', flexDirection: 'column' }}>
-              <h4 style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Compass size={14} /> Live Departure Feed & Whereabouts
               </h4>
 
               {loadingConsole ? (
                 <div style={{ textAlign: 'center', padding: '3rem 0', color: '#7A3A18' }}>
-                  <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8, color: '#C45C26' }} />
+                  <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8, color: '#A8481A' }} />
                   <p style={{ fontSize: 12, fontWeight: 700 }}>Checking vehicle location…</p>
                 </div>
               ) : (
@@ -374,9 +380,9 @@ const splitLogText = (text) => {
 const LiveTimeline = ({ logs }) => {
   if (!logs || logs.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FDF6EE', borderRadius: 16, border: '2px dashed rgba(196,92,38,0.2)' }}>
-        <Compass size={22} style={{ color: 'rgba(122,58,24,0.3)', marginBottom: 8 }} />
-        <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(122,58,24,0.5)', margin: 0 }}>Waiting for departure day updates from driver/organizer…</p>
+      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FDF6EE', borderRadius: 16, border: '2px dashed rgba(180,81,30,0.2)' }}>
+        <Compass size={22} style={{ color: 'rgba(122,58,24,0.85)', marginBottom: 8 }} />
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Waiting for departure day updates from driver/organizer…</p>
       </div>
     );
   }
@@ -390,24 +396,24 @@ const LiveTimeline = ({ logs }) => {
 
         return (
           <div key={log.id || index} style={{ display: 'flex', gap: 12 }}>
-            <div style={{ width: 56, fontSize: 10, fontWeight: 800, color: '#7A3A18', opacity: 0.65, paddingTop: 2 }}>
+            <div style={{ width: 56, fontSize: 11.5, fontWeight: 800, color: '#7A3A18', opacity: 0.9, paddingTop: 2 }}>
               {timeFormatted}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{
                 width: 22, height: 22, borderRadius: '50%',
-                background: index === 0 ? '#C45C26' : '#1F8A5C',
+                background: index === 0 ? '#B4511E' : '#1F8A5C',
                 color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 {log.status === 'ARRIVED' ? <CheckCircle2 size={13} /> : <Check size={12} strokeWidth={3} />}
               </div>
-              {index !== logs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(196,92,38,0.2)', margin: '4px 0' }} />}
+              {index !== logs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(180,81,30,0.2)', margin: '4px 0' }} />}
             </div>
             <div style={{ flex: 1 }}>
               <strong style={{ fontSize: 13, color: '#1A0A00' }}>{title}</strong>
               <p style={{ fontSize: 12, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.5 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(196,92,38,0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: '#9A5B1E' }}>
+                <div style={{ background: 'rgba(180,81,30,0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: '#8C5216' }}>
                   Note from Driver: {log.note}
                 </div>
               )}

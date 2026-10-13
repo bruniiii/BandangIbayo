@@ -11,7 +11,7 @@ const inputStyle = {
   width: '100%',
   padding: '12px 16px',
   borderRadius: 10,
-  border: '1.5px solid rgba(196,92,38,0.2)',
+  border: '1.5px solid rgba(180,81,30,0.2)',
   background: '#FDF6EE',
   fontSize: 14,
   color: '#1A0A00',
@@ -28,7 +28,7 @@ const labelStyle = {
   textTransform: 'uppercase',
   color: '#7A3A18',
   marginBottom: 6,
-  opacity: 0.85,
+  opacity: 0.9,
 };
 
 // Reached via the link in the "reset password" email. Supabase puts a
@@ -87,13 +87,13 @@ const ResetPassword = () => {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#FDF6EE', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
+      background: '#FDF6EE', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#1A0A00',
       padding: '3rem 1rem',
     }}>
       <div style={{
         background: '#FDF6EE', padding: '2.5rem', borderRadius: 24,
         boxShadow: '0 20px 60px rgba(26,10,0,0.14)', width: '100%', maxWidth: 420,
-        borderTop: '7px solid #C45C26',
+        borderTop: '7px solid #B4511E',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 64, height: 64, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
@@ -103,19 +103,19 @@ const ResetPassword = () => {
         </div>
 
         {checking ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.5)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.85)' }}>
             <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
             <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : done ? (
           <div style={{ textAlign: 'center' }}>
-            <CheckCircle2 size={40} style={{ color: '#C45C26', marginBottom: 12 }} />
+            <CheckCircle2 size={40} style={{ color: '#A8481A', marginBottom: 12 }} />
             <p style={{ fontSize: 13, color: '#7A3A18' }}>Password updated! Redirecting you to login…</p>
           </div>
         ) : !ready ? (
           <p style={{ fontSize: 13, color: '#7A3A18', textAlign: 'center', lineHeight: 1.7 }}>
             This link is invalid or has expired. Please request a new one from the{' '}
-            <Link to="/forgot-password" style={{ color: '#C45C26', fontWeight: 800 }}>forgot password</Link> page.
+            <Link className="text-link" to="/forgot-password" style={{ color: '#A8481A', fontWeight: 800 }}>forgot password</Link> page.
           </p>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -152,7 +152,7 @@ const ResetPassword = () => {
               disabled={loading}
               style={{
                 width: '100%',
-                background: loading ? 'rgba(196,92,38,0.55)' : '#C45C26',
+                background: loading ? 'rgba(180,81,30,0.55)' : '#B4511E',
                 color: '#FDF6EE',
                 fontWeight: 900,
                 fontSize: 13,

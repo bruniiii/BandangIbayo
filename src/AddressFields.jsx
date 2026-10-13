@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { usePhLocations, useBarangays } from './phAddress';
+import SearchSelect from './ui/SearchSelect';
 
-// Province → City/Municipality → Barangay dropdowns plus a Street field.
+// Province → City/Municipality → Barangay (type to search, or scroll the list) plus a Street field.
 // Works inside a plain <form> (inputs are named province / city / barangay /
 // street) and, with onChange, as a controlled part of a page's state.
 const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, labelStyle, required = false }) => {
@@ -24,7 +25,7 @@ const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, l
   const cities = locations && value.province ? locations[value.province] || [] : [];
   const barangays = barangaysByCity && value.city ? barangaysByCity[value.city] || [] : [];
 
-  let barangayPlaceholder = 'Select barangay';
+  let barangayPlaceholder = 'Type or choose a barangay';
   if (!value.city) barangayPlaceholder = 'Select a city / municipality first';
   else if (!barangaysByCity) barangayPlaceholder = 'Loading…';
 
@@ -32,48 +33,45 @@ const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, l
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
       <div>
         <label style={labelStyle} htmlFor="address-province">Province</label>
-        <select
+        <SearchSelect
           id="address-province"
           name="province"
           value={value.province}
-          onChange={(e) => update({ province: e.target.value, city: '', barangay: '' })}
+          options={provinces}
+          onChange={(province) => update({ province, city: '', barangay: '' })}
+          placeholder={locations ? 'Type or choose a province' : 'Loading…'}
           style={selectStyle}
           required={required}
           disabled={!locations}
-        >
-          <option value="">{locations ? 'Select province' : 'Loading…'}</option>
-          {provinces.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
+        />
       </div>
       <div>
         <label style={labelStyle} htmlFor="address-city">City / Municipality</label>
-        <select
+        <SearchSelect
           id="address-city"
           name="city"
           value={value.city}
-          onChange={(e) => update({ city: e.target.value, barangay: '' })}
+          options={cities}
+          onChange={(city) => update({ city, barangay: '' })}
+          placeholder={value.province ? 'Type or choose a city / municipality' : 'Choose a province first'}
           style={selectStyle}
           required={required}
           disabled={!value.province}
-        >
-          <option value="">{value.province ? 'Select city / municipality' : 'Select a province first'}</option>
-          {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        />
       </div>
       <div>
         <label style={labelStyle} htmlFor="address-barangay">Barangay</label>
-        <select
+        <SearchSelect
           id="address-barangay"
           name="barangay"
           value={value.barangay}
-          onChange={(e) => update({ barangay: e.target.value })}
+          options={barangays}
+          onChange={(barangay) => update({ barangay })}
+          placeholder={barangayPlaceholder}
           style={selectStyle}
           required={required}
           disabled={!value.city || !barangaysByCity}
-        >
-          <option value="">{barangayPlaceholder}</option>
-          {barangays.map((b) => <option key={b} value={b}>{b}</option>)}
-        </select>
+        />
       </div>
       <div style={{ gridColumn: '1 / -1' }}>
         <label style={labelStyle} htmlFor="address-street">Street / House No.</label>

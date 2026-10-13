@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
 import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH } from './validation';
@@ -12,7 +13,7 @@ import {
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light card bg)
 // #2D1B0E  deep brown (dark card)
@@ -29,7 +30,7 @@ const inputStyle = {
   boxSizing: 'border-box',
   padding: '12px 16px',
   borderRadius: 14,
-  border: '1px solid rgba(196,92,38,0.18)',
+  border: '1px solid rgba(180,81,30,0.18)',
   background: '#F2E4D0',
   fontSize: 13,
   fontWeight: 600,
@@ -40,7 +41,7 @@ const inputStyle = {
 };
 
 const labelStyle = {
-  fontSize: 10,
+  fontSize: 11.5,
   fontWeight: 900,
   textTransform: 'uppercase',
   letterSpacing: '0.18em',
@@ -69,7 +70,7 @@ const checkRequestFields = (formEl, form) => {
 const InputField = ({ label, type = 'text', placeholder, value, onChange, required, ...rest }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <label style={labelStyle}>
-      {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
+      {label} {required && <span style={{ color: '#A8481A' }}>*</span>}
     </label>
     <input
       type={type}
@@ -80,11 +81,11 @@ const InputField = ({ label, type = 'text', placeholder, value, onChange, requir
       {...rest}
       style={inputStyle}
       onFocus={e => {
-        e.currentTarget.style.borderColor = '#C45C26';
+        e.currentTarget.style.borderColor = '#B4511E';
         e.currentTarget.style.background = '#FDF6EE';
       }}
       onBlur={e => {
-        e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)';
+        e.currentTarget.style.borderColor = 'rgba(180,81,30,0.18)';
         e.currentTarget.style.background = '#F2E4D0';
       }}
     />
@@ -94,7 +95,7 @@ const InputField = ({ label, type = 'text', placeholder, value, onChange, requir
 const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4, name, maxLength = 2000 }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <label style={labelStyle}>
-      {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
+      {label} {required && <span style={{ color: '#A8481A' }}>*</span>}
     </label>
     <textarea
       name={name}
@@ -106,11 +107,11 @@ const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4
       rows={rows}
       style={{ ...inputStyle, resize: 'none' }}
       onFocus={e => {
-        e.currentTarget.style.borderColor = '#C45C26';
+        e.currentTarget.style.borderColor = '#B4511E';
         e.currentTarget.style.background = '#FDF6EE';
       }}
       onBlur={e => {
-        e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)';
+        e.currentTarget.style.borderColor = 'rgba(180,81,30,0.18)';
         e.currentTarget.style.background = '#F2E4D0';
       }}
     />
@@ -120,7 +121,7 @@ const TextAreaField = ({ label, placeholder, value, onChange, required, rows = 4
 const SelectField = ({ label, value, onChange, options, required }) => (
   <div style={{ display: 'flex', flexDirection: 'column' }}>
     <label style={labelStyle}>
-      {label} {required && <span style={{ color: '#C45C26' }}>*</span>}
+      {label} {required && <span style={{ color: '#A8481A' }}>*</span>}
     </label>
     <select
       value={value}
@@ -128,11 +129,11 @@ const SelectField = ({ label, value, onChange, options, required }) => (
       required={required}
       style={{ ...inputStyle, cursor: 'pointer' }}
       onFocus={e => {
-        e.currentTarget.style.borderColor = '#C45C26';
+        e.currentTarget.style.borderColor = '#B4511E';
         e.currentTarget.style.background = '#FDF6EE';
       }}
       onBlur={e => {
-        e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)';
+        e.currentTarget.style.borderColor = 'rgba(180,81,30,0.18)';
         e.currentTarget.style.background = '#F2E4D0';
       }}
     >
@@ -173,8 +174,8 @@ const SuccessScreen = ({ type, onReset }) => (
     padding: '6rem 1.5rem', textAlign: 'center', gap: 24,
   }}>
     <div style={{
-      width: 80, height: 80, background: 'rgba(196,92,38,0.12)', borderRadius: '50%',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#C45C26',
+      width: 80, height: 80, background: 'rgba(180,81,30,0.12)', borderRadius: '50%',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A8481A',
     }}>
       <CheckCircle size={44} />
     </div>
@@ -182,7 +183,7 @@ const SuccessScreen = ({ type, onReset }) => (
       <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
         {type === 'exclusive' ? 'Exclusive Booking Submitted!' : 'Tour Request Sent!'}
       </h3>
-      <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 8, maxWidth: 420, lineHeight: 1.6 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, marginTop: 8, maxWidth: 420, lineHeight: 1.6 }}>
         {type === 'exclusive'
           ? "Our team will review your exclusive booking and reach out within 24 hours to confirm your itinerary and pricing. You'll also get a notification here once it's reviewed."
           : "Your destination request has been forwarded to the Bandang IBAYO team. You'll get a notification here once they've reviewed it."}
@@ -197,7 +198,7 @@ const SuccessScreen = ({ type, onReset }) => (
         transition: 'all 0.2s',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.background = '#C45C26';
+        e.currentTarget.style.background = '#B4511E';
         e.currentTarget.style.color = '#FDF6EE';
       }}
       onMouseLeave={e => {
@@ -236,13 +237,13 @@ const ExclusiveTourForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!checkRequestFields(e.currentTarget, form)) return;
-    if (form.budget !== '' && !(Number(form.budget) >= 0)) { alert('Budget must be zero or more.'); return; }
-    if (!form.agreeTerms) { alert('Please accept the terms and conditions.'); return; }
+    if (form.budget !== '' && !(Number(form.budget) >= 0)) { toast.error('Check the budget', 'Budget must be zero or more.'); return; }
+    if (!form.agreeTerms) { toast.info('Please accept the terms and conditions.'); return; }
     setLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert('Please log in to submit an exclusive booking request.');
+      toast.info('Please log in to submit an exclusive booking request.');
       setLoading(false);
       return;
     }
@@ -263,7 +264,7 @@ const ExclusiveTourForm = () => {
     }]).select();
 
     if (error) {
-      alert('Error submitting your request: ' + error.message);
+      toast.error("Couldn't submit your request", error.message);
       setLoading(false);
       return;
     }
@@ -285,15 +286,15 @@ const ExclusiveTourForm = () => {
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       {/* Info Banner */}
       <div style={{
-        background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.15)',
+        background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.15)',
         borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', gap: 14, alignItems: 'flex-start',
       }}>
-        <Shield size={20} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
+        <Shield size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
         <div>
           <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
             Private Group Booking
           </p>
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
             Exclusive tours reserve the entire vehicle and itinerary just for your group. No other joiners. 
             The agency handles all coordination — accommodation, van, guide. You pay all-in.
           </p>
@@ -302,8 +303,8 @@ const ExclusiveTourForm = () => {
  
       {/* Personal Info */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>1</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#B4511E', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>1</span>
           Contact Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -315,8 +316,8 @@ const ExclusiveTourForm = () => {
  
       {/* Trip Details */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>2</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#B4511E', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>2</span>
           Trip Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -360,10 +361,10 @@ const ExclusiveTourForm = () => {
  
       {/* Policy Reminder */}
       <div style={{
-        background: 'rgba(196,92,38,0.08)', border: '1px solid rgba(196,92,38,0.22)',
+        background: 'rgba(180,81,30,0.08)', border: '1px solid rgba(180,81,30,0.22)',
         borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 6,
       }}>
-        <p style={{ fontSize: 10, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
+        <p style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
           Policy Reminder
         </p>
         <ul style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
@@ -380,9 +381,9 @@ const ExclusiveTourForm = () => {
           type="checkbox"
           checked={form.agreeTerms}
           onChange={set('agreeTerms')}
-          style={{ marginTop: 3, accentColor: '#C45C26', width: 16, height: 16 }}
+          style={{ marginTop: 3, accentColor: '#B4511E', width: 16, height: 16 }}
         />
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.85, lineHeight: 1.6 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6 }}>
           I have read and agree to the <span style={{ color: '#1A0A00', fontWeight: 900, textDecoration: 'underline' }}>Terms & Conditions</span> and understand the 
           non-refundable payment policy. I also acknowledge the medical disclaimer applicable to overland travel.
         </span>
@@ -398,7 +399,7 @@ const ExclusiveTourForm = () => {
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           boxShadow: '0 6px 20px rgba(26,10,0,0.15)', transition: 'background 0.2s',
         }}
-        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#C45C26'; }}
+        onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#B4511E'; }}
         onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#1A0A00'; }}
       >
         {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={16} />}
@@ -437,7 +438,7 @@ const RequestTourForm = () => {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert('Please log in to submit a tour request.');
+      toast.info('Please log in to submit a tour request.');
       setLoading(false);
       return;
     }
@@ -457,7 +458,7 @@ const RequestTourForm = () => {
     }]).select();
 
     if (error) {
-      alert('Error submitting your request: ' + error.message);
+      toast.error("Couldn't submit your request", error.message);
       setLoading(false);
       return;
     }
@@ -479,15 +480,15 @@ const RequestTourForm = () => {
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       {/* Info Banner */}
       <div style={{
-        background: 'rgba(196,92,38,0.08)', border: '1px solid rgba(196,92,38,0.22)',
+        background: 'rgba(180,81,30,0.08)', border: '1px solid rgba(180,81,30,0.22)',
         borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', gap: 14, alignItems: 'flex-start',
       }}>
-        <Globe size={20} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
+        <Globe size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
         <div>
           <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
             Suggest a Destination
           </p>
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
             Don't see your dream destination listed? Request it here. The Bandang IBAYO team will review 
             your suggestion, check availability, and send you a <strong>customized price list</strong>. 
             Approved requests may be opened to other joiners.
@@ -497,8 +498,8 @@ const RequestTourForm = () => {
  
       {/* Personal Info */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>1</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#B4511E', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>1</span>
           Your Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -510,8 +511,8 @@ const RequestTourForm = () => {
  
       {/* Destination Details */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>2</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#B4511E', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>2</span>
           Destination &amp; Tour Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -542,10 +543,10 @@ const RequestTourForm = () => {
  
       {/* What happens next */}
       <div style={{
-        background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.14)',
+        background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.14)',
         borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12,
       }}>
-        <p style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
+        <p style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
           What Happens Next?
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -558,14 +559,14 @@ const RequestTourForm = () => {
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <span style={{
                 width: 20, height: 20, background: '#1A0A00', color: '#E8A265',
-                borderRadius: '50%', fontSize: 9, fontWeight: 900, display: 'flex',
+                borderRadius: '50%', fontSize: 11, fontWeight: 900, display: 'flex',
                 alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
               }}>
                 {i + 1}
               </span>
               <div>
                 <p style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{step}</p>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '2px 0 0' }}>{desc}</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{desc}</p>
               </div>
             </div>
           ))}
@@ -576,14 +577,14 @@ const RequestTourForm = () => {
         type="submit"
         disabled={loading}
         style={{
-          width: '100%', padding: '16px 0', background: '#C45C26', color: '#FDF6EE',
+          width: '100%', padding: '16px 0', background: '#B4511E', color: '#FDF6EE',
           borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11,
           letterSpacing: '0.18em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          boxShadow: '0 6px 20px rgba(196,92,38,0.25)', transition: 'background 0.2s',
+          boxShadow: '0 6px 20px rgba(180,81,30,0.25)', transition: 'background 0.2s',
         }}
         onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#1A0A00'; }}
-        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#C45C26'; }}
+        onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#B4511E'; }}
       >
         {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <ArrowRight size={16} />}
         {loading ? 'Sending Request…' : 'Send Tour Request'}
@@ -594,8 +595,8 @@ const RequestTourForm = () => {
  
 // ─── REQUEST STATUS + ADMIN UPDATES (shown to the joiner on this page) ─────────
 const STATUS_STYLES = {
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
-  Approved: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
+  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
 };
 
@@ -605,7 +606,7 @@ const RequestStatusBadge = ({ status }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center',
       background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 9, fontWeight: 900,
+      padding: '4px 12px', fontSize: 11, fontWeight: 900,
       letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
       {status}
@@ -623,11 +624,11 @@ const formatFullDateTime = (d) => {
 };
 
 // A single labeled block inside the dark "package" panel.
-const PackageDetail = ({ label, icon, color = 'rgba(232,210,190,0.5)', textColor = 'rgba(253,246,238,0.9)', children }) => (
+const PackageDetail = ({ label, icon, color = 'rgba(232,210,190,0.85)', textColor = 'rgba(253,246,238,0.9)', children }) => (
   <div>
     <p style={{
       display: 'flex', alignItems: 'center', gap: 5,
-      fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
+      fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
       color, margin: '0 0 4px',
     }}>
       {icon} {label}
@@ -647,7 +648,7 @@ const RequestHistoryCard = ({ request }) => {
   return (
     <div style={{
       background: '#FDF6EE', borderRadius: 18,
-      border: '1px solid rgba(196,92,38,0.12)',
+      border: '1px solid rgba(180,81,30,0.12)',
       boxShadow: '0 2px 10px rgba(26,10,0,0.04)',
       overflow: 'hidden',
     }}>
@@ -662,9 +663,9 @@ const RequestHistoryCard = ({ request }) => {
       >
         <span style={{
           display: 'inline-flex', alignItems: 'center', gap: 5,
-          background: isExclusive ? 'rgba(26,10,0,0.06)' : 'rgba(196,92,38,0.12)',
-          color: isExclusive ? '#1A0A00' : '#C45C26',
-          borderRadius: 999, padding: '4px 12px', fontSize: 9, fontWeight: 900,
+          background: isExclusive ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
+          color: isExclusive ? '#1A0A00' : '#A8481A',
+          borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
           letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0,
         }}>
           {isExclusive ? <Shield size={11} /> : <Globe size={11} />}
@@ -675,7 +676,7 @@ const RequestHistoryCard = ({ request }) => {
           <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {request.destination || 'Destination TBD'}
           </p>
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
             Submitted {formatShortDate(request.created_at)}
           </p>
         </div>
@@ -683,7 +684,7 @@ const RequestHistoryCard = ({ request }) => {
         {hasPackage && (
           <span style={{
             display: 'flex', alignItems: 'center', gap: 5,
-            fontSize: 9, fontWeight: 900, color: '#C45C26',
+            fontSize: 11, fontWeight: 900, color: '#A8481A',
             letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0,
           }}>
             <FileText size={11} /> Package Ready
@@ -695,7 +696,7 @@ const RequestHistoryCard = ({ request }) => {
         <ChevronDown
           size={16}
           style={{
-            color: 'rgba(122,58,24,0.5)', flexShrink: 0,
+            color: 'rgba(122,58,24,0.85)', flexShrink: 0,
             transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s',
           }}
         />
@@ -709,12 +710,12 @@ const RequestHistoryCard = ({ request }) => {
             <div style={{
               background: request.status === 'Rejected' ? 'rgba(140,47,28,0.06)' : '#F2E4D0',
               borderRadius: 14, padding: '12px 16px',
-              border: `1px solid ${request.status === 'Rejected' ? 'rgba(140,47,28,0.18)' : 'rgba(196,92,38,0.14)'}`,
+              border: `1px solid ${request.status === 'Rejected' ? 'rgba(140,47,28,0.18)' : 'rgba(180,81,30,0.14)'}`,
             }}>
               <p style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                fontSize: 9, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
-                color: request.status === 'Rejected' ? '#8C2F1C' : '#C45C26', margin: '0 0 6px',
+                fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
+                color: request.status === 'Rejected' ? '#8C2F1C' : '#A8481A', margin: '0 0 6px',
               }}>
                 <MessageSquare size={11} /> Note from Bandang IBAYO
               </p>
@@ -722,13 +723,13 @@ const RequestHistoryCard = ({ request }) => {
                 {request.admin_response}
               </p>
               {request.reviewed_at && (
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '8px 0 0' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '8px 0 0' }}>
                   Reviewed {formatFullDateTime(request.reviewed_at)}
                 </p>
               )}
             </div>
           ) : request.status === 'Pending' && (
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
               Still under review — you'll get a notification once our team responds.
             </p>
           )}
@@ -742,12 +743,12 @@ const RequestHistoryCard = ({ request }) => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                 <p style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
+                  fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
                   color: '#E8A265', margin: 0,
                 }}>
                   <FileText size={13} /> Tour Package Details
                 </p>
-                <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(232,210,190,0.5)' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.85)' }}>
                   Sent {formatFullDateTime(request.package_sent_at)}
                 </span>
               </div>
@@ -755,7 +756,7 @@ const RequestHistoryCard = ({ request }) => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 14 }}>
                 {pkg.price != null && pkg.price !== '' && (
                   <div>
-                    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 3px' }}>
+                    <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 3px' }}>
                       Price
                     </p>
                     <p style={{ fontSize: 19, fontWeight: 900, color: '#E8A265', margin: 0 }}>
@@ -765,7 +766,7 @@ const RequestHistoryCard = ({ request }) => {
                 )}
                 {pkg.accommodation && (
                   <div>
-                    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 3px' }}>
+                    <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 3px' }}>
                       Accommodation
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#FDF6EE', margin: 0 }}>{pkg.accommodation}</p>
@@ -779,7 +780,7 @@ const RequestHistoryCard = ({ request }) => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14 }}>
                 {pkg.inclusions && (
-                  <PackageDetail label="Inclusions" icon={<CheckCircle2 size={11} />} color="#C45C26">
+                  <PackageDetail label="Inclusions" icon={<CheckCircle2 size={11} />} color="#A8481A">
                     {pkg.inclusions}
                   </PackageDetail>
                 )}
@@ -844,9 +845,9 @@ const MyRequestsSection = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
         <Loader2 size={18} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading your requests…</span>
+        <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading your requests…</span>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -860,7 +861,7 @@ const MyRequestsSection = () => {
         <h3 style={{ fontSize: 15, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00', margin: '0 0 4px' }}>
           Your Submitted Requests
         </h3>
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Track the status of your exclusive tours and destination requests, plus any updates from our team.
         </p>
       </div>
@@ -895,9 +896,9 @@ const ExclusiveTour = () => {
       {/* Page Header */}
       <div>
         <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.15 }}>
-          Exclusive &amp; <span style={{ color: '#C45C26' }}>Requested</span> Tours
+          Exclusive &amp; <span style={{ color: '#A8481A' }}>Requested</span> Tours
         </h2>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.8, marginTop: 6, margin: '6px 0 0' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, marginTop: 6, margin: '6px 0 0' }}>
           Want privacy, a tailored itinerary, or a destination we don't offer yet? You're in the right place.
         </p>
       </div>
@@ -912,7 +913,7 @@ const ExclusiveTour = () => {
               onClick={() => setActiveTab(tab.id)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 16, padding: '1.25rem 1.5rem',
-                borderRadius: 20, border: active ? '2px solid #1A0A00' : '1px solid rgba(196,92,38,0.15)',
+                borderRadius: 20, border: active ? '2px solid #1A0A00' : '1px solid rgba(180,81,30,0.15)',
                 textAlign: 'left', cursor: 'pointer', transition: 'all 0.25s',
                 background: active ? '#1A0A00' : '#FDF6EE',
                 color: active ? '#FDF6EE' : '#7A3A18',
@@ -923,8 +924,8 @@ const ExclusiveTour = () => {
               <div style={{
                 width: 42, height: 42, borderRadius: 12, display: 'flex',
                 alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                background: active ? '#C45C26' : '#F2E4D0',
-                color: active ? '#FDF6EE' : '#C45C26',
+                background: active ? '#B4511E' : '#F2E4D0',
+                color: active ? '#FDF6EE' : '#A8481A',
               }}>
                 {tab.icon}
               </div>
@@ -935,13 +936,13 @@ const ExclusiveTour = () => {
                 }}>
                   {tab.label}
                 </p>
-                <p style={{ fontSize: 10.5, fontWeight: 600, margin: '3px 0 0', opacity: active ? 0.7 : 0.65 }}>
+                <p style={{ fontSize: 11.5, fontWeight: 600, margin: '3px 0 0', opacity: 0.9 }}>
                   {tab.sub}
                 </p>
               </div>
               <ChevronRight
                 size={16}
-                style={{ color: active ? '#E8A265' : 'rgba(196,92,38,0.3)', flexShrink: 0 }}
+                style={{ color: active ? '#E8A265' : '#A8481A', flexShrink: 0 }}
               />
             </button>
           );
@@ -951,14 +952,14 @@ const ExclusiveTour = () => {
       {/* Form Card */}
       <div style={{
         background: '#FDF6EE', borderRadius: 24, padding: '2rem 2.25rem',
-        border: '1px solid rgba(196,92,38,0.12)', borderTop: '8px solid #C45C26',
+        border: '1px solid rgba(180,81,30,0.12)', borderTop: '8px solid #B4511E',
         boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
       }}>
         {activeTab === 'exclusive' ? <ExclusiveTourForm /> : <RequestTourForm />}
       </div>
 
       {/* Your Submitted Requests — status + admin updates + tour package details */}
-      <div style={{ borderTop: '1px solid rgba(196,92,38,0.12)', paddingTop: 28 }}>
+      <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 28 }}>
         <MyRequestsSection />
       </div>
     </div>

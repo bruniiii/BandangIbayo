@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { SearchX, ClipboardList } from 'lucide-react';
+import { toast } from './ui/toast';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
@@ -12,7 +16,7 @@ import {
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent / confirm)
+// #A8481A  burnt sienna (accent / confirm)
 // #E8A265  warm amber (highlight / pending)
 // #FDF6EE  cream (light bg)
 // #F2E4D0  parchment (section bg)
@@ -161,7 +165,7 @@ const BookingManagement = () => {
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
     background: '#F2E4D0',
-    border: '1px solid rgba(196,92,38,0.18)',
+    border: '1px solid rgba(180,81,30,0.18)',
     borderRadius: 14,
     padding: '10px 14px',
     fontSize: 13, fontWeight: 600,
@@ -172,8 +176,8 @@ const BookingManagement = () => {
  
   const thStyle = {
     padding: '14px 20px',
-    fontSize: 9, fontWeight: 900, letterSpacing: '0.18em',
-    textTransform: 'uppercase', color: 'rgba(122,58,24,0.78)',
+    fontSize: 11, fontWeight: 900, letterSpacing: '0.18em',
+    textTransform: 'uppercase', color: 'rgba(122,58,24,0.85)',
     textAlign: 'left', whiteSpace: 'nowrap',
     background: '#F2E4D0',
     display: 'flex', alignItems: 'center',
@@ -191,14 +195,14 @@ const BookingManagement = () => {
       {/* ── Header ── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        borderBottom: '1px solid rgba(196,92,38,0.15)',
+        borderBottom: '1px solid rgba(180,81,30,0.15)',
         paddingBottom: 16, marginBottom: 20, gap: 20, flexWrap: 'wrap',
       }}>
         <div>
           <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
             Manage Booking Records
           </h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
             Verify GCash payments, track downpayments, and update booking status across all joiner reservations.
           </p>
         </div>
@@ -212,7 +216,7 @@ const BookingManagement = () => {
           display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
           <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
-            <Wallet size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+            <Wallet size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
             <span><strong style={{ color: '#1A0A00' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: '#1A0A00' }}>{formatPeso(totalBalanceDue)}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
           </p>
           <button
@@ -220,7 +224,7 @@ const BookingManagement = () => {
             onClick={() => setStatusFilter(statusFilter === 'Balance Due' ? 'All Status' : 'Balance Due')}
             style={{
               background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 12,
-              padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 10,
+              padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
               letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
             }}
           >
@@ -233,7 +237,7 @@ const BookingManagement = () => {
       <div style={{
         background: '#FDF6EE',
         borderRadius: 20, padding: '14px 18px',
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
         boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
@@ -243,7 +247,7 @@ const BookingManagement = () => {
           <Search size={15} style={{
             position: 'absolute', left: 13, top: '50%',
             transform: 'translateY(-50%)',
-            color: 'rgba(122,58,24,0.35)', pointerEvents: 'none',
+            color: 'rgba(122,58,24,0.85)', pointerEvents: 'none',
           }} />
           <input
             type="text" placeholder="Search joiner, tour, or booking no…"
@@ -266,7 +270,7 @@ const BookingManagement = () => {
             <option value="Awaiting Payment">Awaiting Payment</option>
             <option value="Balance Due">Balance Due</option>
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
         </div>
         {/* Payment method */}
         <div style={{ position: 'relative', minWidth: 175 }}>
@@ -278,7 +282,7 @@ const BookingManagement = () => {
             <option value="Full Payment">Full Payment</option>
             <option value="Downpayment">Downpayment</option>
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
         </div>
         {/* Tour */}
         <div style={{ position: 'relative', minWidth: 200 }}>
@@ -291,7 +295,7 @@ const BookingManagement = () => {
               <option key={t.id} value={t.id}>{t.title}</option>
             ))}
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
         </div>
         {/* Date */}
         <div style={{ position: 'relative', minWidth: 175 }}>
@@ -310,7 +314,7 @@ const BookingManagement = () => {
         flexShrink: 0,
         background: '#FDF6EE',
         borderRadius: 22,
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
         boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         overflow: 'hidden',
       }}>
@@ -318,10 +322,10 @@ const BookingManagement = () => {
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center',
-            padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
+            padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
           }}>
             <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
+            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
               Loading Records…
             </p>
           </div>
@@ -348,10 +352,17 @@ const BookingManagement = () => {
                   />
                 ))
               ) : (
-                <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-                    No booking records found.
-                  </p>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  {(searchTerm || statusFilter !== 'All Status' || methodFilter !== 'All Methods' || tourFilter !== 'All Tours' || dateFilter) ? (
+                    <EmptyState
+                      icon={SearchX}
+                      title="No bookings match your filters"
+                      message="Try another search, status, payment type, tour or date."
+                      action={{ label: 'Clear Filters', onClick: () => { setSearchTerm(''); setStatusFilter('All Status'); setMethodFilter('All Methods'); setTourFilter('All Tours'); setDateFilter(''); } }}
+                    />
+                  ) : (
+                    <EmptyState icon={ClipboardList} title="No bookings yet" message="When joiners book a tour, their bookings will show up here for you to manage." />
+                  )}
                 </div>
               )}
             </div>
@@ -387,10 +398,11 @@ const BookingManagement = () => {
                 related_id: selectedBooking.id,
               });
 
+              toast.success(status === 'Confirmed' ? 'Payment confirmed' : 'Payment rejected', `${selectedBooking.booking_number}: the joiner has been notified.`);
               setSelectedBooking(null);
               fetchBookings();
             } else {
-              alert('Error updating status: ' + error.message);
+              toast.error("Couldn't update status", error.message);
             }
           }}
           onSettleBalance={async (id, fullAmount) => {
@@ -404,6 +416,7 @@ const BookingManagement = () => {
             `).single();
  
             if (!error) {
+              toast.success('Balance marked as paid', `${selectedBooking.booking_number} is now paid in full.`);
               await fetchBookings();
               notifyUser(selectedBooking.user_id, {
                 title: 'Balance Payment Confirmed',
@@ -413,7 +426,7 @@ const BookingManagement = () => {
               });
               return data;
             } else {
-              alert('Error settling balance: ' + error.message);
+              toast.error("Couldn't settle balance", error.message);
               return null;
             }
           }}
@@ -430,8 +443,8 @@ const BookingRow = ({ booking, onView }) => {
   const [hovered, setHovered] = useState(false);
   const cellStyle = {
     padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    background: hovered ? 'rgba(196,92,38,0.04)' : 'transparent',
-    borderBottom: '1px solid rgba(196,92,38,0.08)',
+    background: hovered ? 'rgba(180,81,30,0.04)' : 'transparent',
+    borderBottom: '1px solid rgba(180,81,30,0.08)',
     transition: 'background 0.15s',
   };
   const rowHandlers = {
@@ -442,7 +455,7 @@ const BookingRow = ({ booking, onView }) => {
   return (
     <>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#C45C26', fontSize: 12, margin: 0 }}>
+        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12, margin: 0 }}>
           {booking.booking_number || '—'}
         </p>
       </div>
@@ -450,25 +463,25 @@ const BookingRow = ({ booking, onView }) => {
         <p style={{ fontWeight: 900, color: '#1A0A00', fontSize: 13, margin: 0 }}>
           {booking.profiles ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim() : booking.full_name || '—'}
         </p>
-        <p style={{ color: '#7A3A18', opacity: 0.75, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
+        <p style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
           {booking.profiles?.phone_number || booking.contact_number || '—'}
         </p>
       </div>
       <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontWeight: 800, color: '#1A0A00', fontSize: 13, margin: 0 }}>{booking.tours?.title || '—'}</p>
-        <p style={{ color: '#7A3A18', opacity: 0.75, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
-          <MapPin size={11} style={{ color: '#C45C26' }} /> {booking.tours?.destination}
+        <p style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
+          <MapPin size={11} style={{ color: '#A8481A' }} /> {booking.tours?.destination}
         </p>
       </div>
       <div style={{ ...cellStyle, alignItems: 'center', textAlign: 'center', fontWeight: 900, color: '#1A0A00', fontSize: 13 }} {...rowHandlers}>
         {booking.slots_booked}
       </div>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontWeight: 900, color: '#C45C26', fontSize: 13, margin: 0 }}>
+        <p style={{ fontWeight: 900, color: '#A8481A', fontSize: 13, margin: 0 }}>
           {formatPeso(booking.total_price)}
         </p>
         {booking.payment_method === 'Downpayment' && (
-          <p style={{ fontSize: 9, fontWeight: 800, color: booking.balance_settled ? '#C45C26' : '#9A5B1E', margin: '3px 0 0', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? '#A8481A' : '#8C5216', margin: '3px 0 0', letterSpacing: '0.04em' }}>
             Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}
@@ -490,7 +503,7 @@ const BookingRow = ({ booking, onView }) => {
             background: '#F2E4D0', color: '#1A0A00',
             border: 'none', borderRadius: 10, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
-            fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
             padding: '9px 16px',
           }}
         >
@@ -560,7 +573,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
  
   const handleReject = async () => {
     // Rejecting by mistake would tell the joiner their payment failed, so confirm first.
-    if (!window.confirm(`Reject the payment for booking ${booking.booking_number}? The joiner will be notified and emailed.`)) return;
+    if (!(await confirmDialog({ title: `Reject the payment for ${booking.booking_number}?`, message: 'The joiner will be notified and emailed that their payment was rejected.', confirmLabel: 'Reject Payment', cancelLabel: 'Go Back', tone: 'danger' }))) return;
     setRejecting(true);
     await onStatusUpdate(booking.id, 'Rejected');
     setRejecting(false);
@@ -603,7 +616,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
             body { font-family: 'Courier New', monospace; color: #1A0A00; padding: 32px; max-width: 380px; margin: 0 auto; }
             h1 { font-size: 16px; text-align: center; letter-spacing: 0.1em; margin: 0 0 2px; }
             .sub { text-align: center; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; margin-bottom: 18px; }
-            .stamp { text-align: center; border: 2px solid #C45C26; color: #C45C26; font-weight: bold; letter-spacing: 0.15em; padding: 6px; margin: 14px 0; text-transform: uppercase; font-size: 12px; }
+            .stamp { text-align: center; border: 2px solid #B4511E; color: #A8481A; font-weight: bold; letter-spacing: 0.15em; padding: 6px; margin: 14px 0; text-transform: uppercase; font-size: 12px; }
             .row { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; }
             hr { border: none; border-top: 1px dashed #999; margin: 12px 0; }
             .total { font-weight: bold; font-size: 14px; }
@@ -636,13 +649,13 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
     win.document.close();
   };
  
-  const accentColor = isRejected ? '#8C2F1C' : isCancelled ? '#1A0A00' : isComplete ? '#C45C26' : '#E8A265';
+  const accentColor = isRejected ? '#8C2F1C' : isCancelled ? '#1A0A00' : isComplete ? '#A8481A' : '#E8A265';
  
   const labelStyle = {
     display: 'block',
-    fontSize: 9, fontWeight: 800,
+    fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.7,
+    color: '#7A3A18', opacity: 0.9,
     marginBottom: 5,
   };
  
@@ -666,7 +679,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           flexShrink: 0, flexWrap: 'wrap', gap: 12,
         }}>
           <div>
-            <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 6px' }}>
               Booking Details
             </p>
             <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', color: '#FDF6EE', margin: 0 }}>
@@ -675,7 +688,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
             <StatusBadge status={derivedStatus} large />
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.5)', padding: 0 }}>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.85)', padding: 0 }}>
               <X size={24} />
             </button>
           </div>
@@ -738,7 +751,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                     <p style={labelStyle}>Balance Status</p>
                     <BalanceStatusBadge status={balanceSettled ? 'Fully Paid' : 'Balance Due'} />
                     {balanceSettled && balanceSettledAt && (
-                      <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '6px 0 0' }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
                         Settled {formatDateTime(balanceSettledAt)}
                       </p>
                     )}
@@ -747,50 +760,50 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               </div>
  
               {/* Payment Breakdown */}
-              <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: '#7A3A18', opacity: 0.7 }}>Quantity</span>
+                  <span style={{ color: '#7A3A18', opacity: 0.9 }}>Quantity</span>
                   <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × {formatPeso(booking.tours?.price)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: '#7A3A18', opacity: 0.7 }}>Subtotal</span>
+                  <span style={{ color: '#7A3A18', opacity: 0.9 }}>Subtotal</span>
                   <span style={{ fontWeight: 700, color: '#1A0A00' }}>{formatPeso(subtotal)}</span>
                 </div>
  
                 {booking.payment_method === 'Downpayment' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>Downpayment (40%)</span>
-                      <span style={{ fontWeight: 700, color: '#9A5B1E' }}>{formatPeso(downpaymentAmount)}</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Downpayment (40%)</span>
+                      <span style={{ fontWeight: 700, color: '#8C5216' }}>{formatPeso(downpaymentAmount)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>Remaining Balance</span>
-                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.8)' }}>{formatPeso(balance)}</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Remaining Balance</span>
+                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.85)' }}>{formatPeso(balance)}</span>
                     </div>
                   </>
                 )}
  
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid rgba(196,92,38,0.18)', paddingTop: 12, marginTop: 4 }}>
-                  <span style={{ fontWeight: 900, color: '#1A0A00', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid rgba(180,81,30,0.18)', paddingTop: 12, marginTop: 4 }}>
+                  <span style={{ fontWeight: 900, color: '#1A0A00', fontSize: 11.5, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
                     {booking.payment_method === 'Downpayment' ? 'Amount Paid (Due Now)' : 'Total Payment'}
                   </span>
-                  <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 22, letterSpacing: '-0.02em' }}>{formatPeso(amountPaid)}</span>
+                  <span style={{ fontWeight: 900, color: '#A8481A', fontSize: 22, letterSpacing: '-0.02em' }}>{formatPeso(amountPaid)}</span>
                 </div>
               </div>
  
               {/* GCash Details */}
               {(booking.gcash_number || booking.gcash_reference_no) && (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <p style={labelStyle}>GCash Details</p>
                   {booking.gcash_number && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>GCash Number</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>GCash Number</span>
                       <span style={{ fontWeight: 700, color: '#1A0A00', fontFamily: 'monospace' }}>{booking.gcash_number}</span>
                     </div>
                   )}
                   {booking.gcash_reference_no && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>Reference No.</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Reference No.</span>
                       <span style={{ fontWeight: 700, color: '#1A0A00', fontFamily: 'monospace' }}>{booking.gcash_reference_no}</span>
                     </div>
                   )}
@@ -799,7 +812,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
  
               {/* Paid online through PayMongo: no receipt to check */}
               {booking.paymongo_payment_id ? (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Online Payment (PayMongo)</p>
                   <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.7 }}>
                     Confirmed automatically{booking.paid_online_at ? ` on ${formatDateTime(booking.paid_online_at)}` : ''}.<br />
@@ -810,24 +823,24 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   </p>
                 </div>
               ) : booking.payment_status === 'Awaiting Payment' ? (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Online Payment (PayMongo)</p>
                   <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
                     The joiner hasn't finished paying yet. The slots are released automatically if they don't pay within 30 minutes.
                   </p>
                 </div>
               ) : booking.receipt_url ? (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
                   <ReceiptThumb src={receiptSrc} onClick={() => setShowReceiptPreview(true)} />
                 </div>
               ) : (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
                   <div style={{
-                    border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16,
+                    border: '2px dashed rgba(180,81,30,0.25)', borderRadius: 16,
                     padding: '1.5rem', display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.35)',
+                    alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)',
                   }}>
                     <ImageIcon size={26} style={{ marginBottom: 8 }} />
                     <p style={{ fontSize: 11, fontWeight: 700, margin: 0 }}>No receipt uploaded</p>
@@ -860,7 +873,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           {/* Confirmed Notice */}
           {isComplete && (
             <Notice
-              color="#C45C26" bg="rgba(196,92,38,0.08)"
+              color="#A8481A" bg="rgba(180,81,30,0.08)"
               icon={<CheckCircle2 size={20} />}
               title="Booking Confirmed"
               text="Payment has been verified and the booking is confirmed."
@@ -873,12 +886,12 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
         {/* Footer: Action Buttons */}
         {isPending && (
           <div style={{
-            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
             background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0, flexWrap: 'wrap',
           }}>
             <div style={{ flex: 1, minWidth: 200, background: '#F2E4D0', borderRadius: 16, padding: '14px 18px' }}>
               <p style={labelStyle}>Admin Action Required</p>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '4px 0 0', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
                 Verify the GCash reference number and receipt screenshot before confirming.
               </p>
             </div>
@@ -892,11 +905,11 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   background: 'rgba(140,47,28,0.1)', color: '#8C2F1C',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                   opacity: (rejecting || confirming) ? 0.5 : 1,
                 }}
               >
-                {rejecting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject
+                {rejecting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject Payment
               </button>
               <button
                 onClick={handleConfirm}
@@ -904,15 +917,15 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '13px 26px',
-                  background: '#C45C26', color: '#FDF6EE',
+                  background: '#B4511E', color: '#FDF6EE',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                  fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
                   opacity: (confirming || rejecting) ? 0.5 : 1,
                 }}
               >
-                {confirming ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Confirm
+                {confirming ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Confirm Payment
               </button>
             </div>
           </div>
@@ -921,7 +934,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
         {/* Footer: Balance settlement (Downpayment bookings) + Receipt printing */}
         {isComplete && (
           <div style={{
-            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
             background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0,
             flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
           }}>
@@ -929,7 +942,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               <>
                 <div style={{ flex: 1, minWidth: 200, background: 'rgba(140,47,28,0.08)', borderRadius: 16, padding: '14px 18px' }}>
                   <p style={{ ...labelStyle, color: '#8C2F1C' }}>Balance Due On Tour Day</p>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
                     Remaining balance of {formatPeso(balance)} is still unpaid. Mark it as paid once the joiner settles it on the day of the tour.
                   </p>
                 </div>
@@ -939,11 +952,11 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '13px 26px',
-                    background: '#C45C26', color: '#FDF6EE',
+                    background: '#B4511E', color: '#FDF6EE',
                     border: 'none', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900,
-                    fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-                    boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                    fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
+                    boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
                     opacity: settlingBalance ? 0.5 : 1, flexShrink: 0,
                   }}
                 >
@@ -954,7 +967,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               <>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <p style={labelStyle}>Payment Status</p>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#C45C26', margin: '4px 0 0' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '4px 0 0' }}>
                     {isDownpayment
                       ? `Full payment received${balanceSettledAt ? ' — balance settled ' + formatDateTime(balanceSettledAt) : ''}.`
                       : 'Payment received in full.'}
@@ -968,7 +981,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                     background: '#1A0A00', color: '#E8A265',
                     border: 'none', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900,
-                    fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                    fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                     boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
                   }}
                 >
@@ -991,21 +1004,21 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
             position: 'relative', background: '#FDF6EE',
             width: '100%', maxWidth: 420,
             borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-            borderTop: '7px solid #C45C26',
+            borderTop: '7px solid #B4511E',
             padding: '2rem',
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%',
-              background: 'rgba(196,92,38,0.12)',
+              background: 'rgba(180,81,30,0.12)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 18, color: '#C45C26',
+              marginBottom: 18, color: '#A8481A',
             }}>
               <Wallet size={26} />
             </div>
             <h3 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 10px' }}>
               Confirm Balance Payment
             </h3>
-            <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '0 0 24px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '0 0 24px', lineHeight: 1.6 }}>
               Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>{formatPeso(balance)}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
@@ -1016,7 +1029,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   background: 'rgba(122,58,24,0.1)', color: '#7A3A18',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                 }}
               >
                 Cancel
@@ -1026,14 +1039,14 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '12px 24px',
-                  background: '#C45C26', color: '#FDF6EE',
+                  background: '#B4511E', color: '#FDF6EE',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
-                  boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                  fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
                 }}
               >
-                <CheckCircle2 size={14} /> Confirm Payment
+                <CheckCircle2 size={14} /> Mark Balance as Paid
               </button>
             </div>
           </div>
@@ -1076,7 +1089,7 @@ const ReceiptThumb = ({ src, onClick }) => {
       onMouseLeave={() => setHovered(false)}
       style={{
         position: 'relative', borderRadius: 16, overflow: 'hidden',
-        cursor: 'pointer', border: '1px solid rgba(196,92,38,0.2)',
+        cursor: 'pointer', border: '1px solid rgba(180,81,30,0.2)',
         boxShadow: '0 4px 14px rgba(26,10,0,0.1)',
       }}
     >
@@ -1091,7 +1104,7 @@ const ReceiptThumb = ({ src, onClick }) => {
           <span style={{
             background: 'rgba(253,246,238,0.95)', borderRadius: 999,
             padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8,
-            fontSize: 9, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00',
           }}>
             <Eye size={12} /> View Full Receipt
           </span>
@@ -1107,12 +1120,12 @@ const ReceiptThumb = ({ src, onClick }) => {
 const ViewSection = ({ title, icon, children }) => (
   <section>
     <h4 style={{
-      fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
+      fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
       textTransform: 'uppercase', color: '#1A0A00',
       margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 8,
-      paddingBottom: 12, borderBottom: '1px solid rgba(196,92,38,0.12)',
+      paddingBottom: 12, borderBottom: '1px solid rgba(180,81,30,0.12)',
     }}>
-      <span style={{ color: '#C45C26' }}>{icon}</span> {title}
+      <span style={{ color: '#A8481A' }}>{icon}</span> {title}
     </h4>
     {children}
   </section>
@@ -1162,11 +1175,11 @@ const BookingActivity = ({ bookingId }) => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {entries.map((e) => (
-            <div key={e.id} style={{ borderLeft: '3px solid rgba(196,92,38,0.35)', paddingLeft: 12 }}>
+            <div key={e.id} style={{ borderLeft: '3px solid rgba(180,81,30,0.35)', paddingLeft: 12 }}>
               <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
                 {e.action} <span style={{ fontWeight: 600, color: '#7A3A18' }}>by {e.actor_name}</span>
               </p>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
                 {new Date(e.created_at).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
                 {describe(e.changes) && ` · ${describe(e.changes)}`}
               </p>
@@ -1180,10 +1193,10 @@ const BookingActivity = ({ bookingId }) => {
 
 const InfoItem = ({ label, value, mono = false }) => (
   <div>
-    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 5px' }}>
+    <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 4px' }}>
       {label}
     </p>
-    <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
+    <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
       {value || '—'}
     </p>
   </div>
@@ -1197,20 +1210,20 @@ const Notice = ({ color, bg, icon, title, text }) => (
     <span style={{ color, flexShrink: 0, marginTop: 1 }}>{icon}</span>
     <div>
       <p style={{ fontSize: 13, fontWeight: 900, color, margin: '0 0 4px' }}>{title}</p>
-      <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: 0, lineHeight: 1.6 }}>{text}</p>
+      <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, lineHeight: 1.6 }}>{text}</p>
     </div>
   </div>
 );
  
 const STATUS_STYLES = {
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
-  'Verification Pending': { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
-  Complete: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
-  Verified: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
+  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  'Verification Pending': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  Complete: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
+  Verified: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
+  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
   'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
-  Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
+  Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };
  
 const StatusBadge = ({ status, large = false }) => {
@@ -1232,7 +1245,7 @@ const StatusBadge = ({ status, large = false }) => {
 };
  
 const BALANCE_STATUS_STYLES = {
-  'Fully Paid': { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
+  'Fully Paid': { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   'Balance Due': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
 };
  
@@ -1242,7 +1255,7 @@ const BalanceStatusBadge = ({ status }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       background: bg, color, borderRadius: 999,
-      padding: '3px 10px', fontSize: 8,
+      padding: '3px 10px', fontSize: 11,
       fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
@@ -1253,16 +1266,16 @@ const BalanceStatusBadge = ({ status }) => {
  
 const PAYMENT_METHOD_STYLES = {
   'Full Payment': { bg: 'rgba(26,10,0,0.06)', color: '#1A0A00' },
-  Downpayment: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
+  Downpayment: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
 };
  
 const PaymentMethodBadge = ({ method }) => {
-  if (!method) return <span style={{ color: 'rgba(122,58,24,0.4)', fontSize: 11, fontWeight: 700 }}>—</span>;
-  const { bg, color } = PAYMENT_METHOD_STYLES[method] || { bg: 'rgba(196,92,38,0.1)', color: '#7A3A18' };
+  if (!method) return <span style={{ color: '#7A3A18', fontSize: 11, fontWeight: 700 }}>—</span>;
+  const { bg, color } = PAYMENT_METHOD_STYLES[method] || { bg: 'rgba(180,81,30,0.1)', color: '#7A3A18' };
   return (
     <span style={{
       background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 9, fontWeight: 900,
+      padding: '4px 12px', fontSize: 11, fontWeight: 900,
       letterSpacing: '0.16em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
       {method}

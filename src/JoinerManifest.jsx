@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Download, Printer, X, Loader2, MapPin, Truck, Users } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { formatDateRange, formatPeso } from './tourUtils';
+import EmptyState from './ui/EmptyState';
+import { UsersRound } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // JOINER LIST (manifest) for one tour, for drivers and guides.
@@ -90,7 +93,7 @@ const JoinerListModal = ({ tour, onClose }) => {
 
   const printList = () => {
     const w = window.open('', '_blank');
-    if (!w) { alert('Please allow pop-ups to print the joiner list.'); return; }
+    if (!w) { toast.error('Pop-up blocked', 'Please allow pop-ups for this site to print the joiner list.'); return; }
     const v = data.vehicle;
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(fileBase)}</title>
       <style>
@@ -115,10 +118,10 @@ const JoinerListModal = ({ tour, onClose }) => {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
-      <div style={{ position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 820, maxHeight: '90vh', borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '8px solid #C45C26' }}>
-        <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(196,92,38,0.15)' }}>
+      <div style={{ position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 820, maxHeight: '90vh', borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '8px solid #B4511E' }}>
+        <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(180,81,30,0.15)' }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: 0 }}>Joiner List</p>
+            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>Joiner List</p>
             <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', margin: '4px 0 2px', overflowWrap: 'anywhere' }}>{tour.title}</h3>
             <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{formatDateRange(tour.start_date, tour.duration)}</p>
           </div>
@@ -127,21 +130,21 @@ const JoinerListModal = ({ tour, onClose }) => {
 
         <div style={{ overflowY: 'auto', padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {!data ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 size={28} style={{ color: '#C45C26', animation: 'spin 1s linear infinite' }} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 size={28} style={{ color: '#A8481A', animation: 'spin 1s linear infinite' }} /></div>
           ) : (
             <>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 <button type="button" onClick={downloadCsv} style={actionButton('#1A0A00')}><Download size={14} /> Download CSV</button>
-                <button type="button" onClick={printList} style={actionButton('#C45C26')}><Printer size={14} /> Print / Save as PDF</button>
+                <button type="button" onClick={printList} style={actionButton('#A8481A')}><Printer size={14} /> Print / Save as PDF</button>
               </div>
 
               <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
-                <Users size={14} style={{ color: '#C45C26' }} /> {people.length} joiner{people.length === 1 ? '' : 's'} on {data.bookings.length} booking{data.bookings.length === 1 ? '' : 's'}
+                <Users size={14} style={{ color: '#A8481A' }} /> {people.length} joiner{people.length === 1 ? '' : 's'} on {data.bookings.length} booking{data.bookings.length === 1 ? '' : 's'}
               </p>
 
               {data.vehicle && (
                 <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
-                  <Truck size={14} style={{ color: '#C45C26' }} /> {data.vehicle.car_type} · {data.vehicle.plate_number} · {data.vehicle.driver_name} ({data.vehicle.driver_contact})
+                  <Truck size={14} style={{ color: '#A8481A' }} /> {data.vehicle.car_type} · {data.vehicle.plate_number} · {data.vehicle.driver_name} ({data.vehicle.driver_contact})
                 </p>
               )}
 
@@ -149,7 +152,7 @@ const JoinerListModal = ({ tour, onClose }) => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {data.stops.map((s, i) => (
                     <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
-                      <MapPin size={13} style={{ color: '#C45C26', flexShrink: 0 }} /> {s.location_name} · {s.scheduled_time}{s.note ? ` · ${s.note}` : ''}
+                      <MapPin size={13} style={{ color: '#A8481A', flexShrink: 0 }} /> {s.location_name} · {s.scheduled_time}{s.note ? ` · ${s.note}` : ''}
                     </p>
                   ))}
                 </div>
@@ -160,13 +163,13 @@ const JoinerListModal = ({ tour, onClose }) => {
                   <thead>
                     <tr>
                       {['#', 'Name', 'Contact', 'Booking', 'Booked / with', 'Payment', 'Balance'].map((h) => (
-                        <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: '#F2E4D0', color: '#7A3A18', fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: '#F2E4D0', color: '#7A3A18', fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {people.map((p, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid rgba(196,92,38,0.1)' }}>
+                      <tr key={i} style={{ borderBottom: '1px solid rgba(180,81,30,0.1)' }}>
                         <td style={cell}>{i + 1}</td>
                         <td style={{ ...cell, fontWeight: 800, color: '#1A0A00' }}>{p.name}</td>
                         <td style={cell}>{p.contact}</td>
@@ -179,7 +182,7 @@ const JoinerListModal = ({ tour, onClose }) => {
                   </tbody>
                 </table>
                 {people.length === 0 && (
-                  <p style={{ fontSize: 12, color: '#7A3A18', textAlign: 'center', padding: '1.5rem 0', margin: 0 }}>No joiners yet.</p>
+                  <EmptyState compact icon={UsersRound} title="No joiners yet" message="Confirmed joiners for this tour will be listed here." />
                 )}
               </div>
             </>
@@ -195,7 +198,7 @@ const cell = { padding: '8px 10px', color: '#7A3A18', fontWeight: 600, whiteSpac
 const actionButton = (bg) => ({
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px',
   background: bg, color: '#FDF6EE', border: 'none', borderRadius: 12, cursor: 'pointer',
-  fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+  fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
 });
 
 export default JoinerListModal;
