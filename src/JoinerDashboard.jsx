@@ -444,8 +444,8 @@ const JoinerDashboard = () => {
           </button>
           {sidebarExpanded && (
             <p style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '0.22em',
-              textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: 0,
+              fontSize: 11, fontWeight: 800, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: 0,
               whiteSpace: 'nowrap',
             }}>
               Joiners Portal
@@ -475,17 +475,17 @@ const JoinerDashboard = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(232,210,190,0.4)',
+              color: 'rgba(232,210,190,0.75)',
               fontFamily: 'inherit',
               padding: 0,
               transition: 'color 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.4)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.75)'}
           >
             <LogOut size={16} style={{ flexShrink: 0 }} />
             {sidebarExpanded && (
-              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                 Sign Out
               </span>
             )}
@@ -539,10 +539,10 @@ const JoinerDashboard = () => {
                 cursor: 'pointer'
               }}>
               <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
+                <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
                   {userProfile.name}
                 </p>
-                <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
                   Ready for Adventure
                 </p>
               </div>
@@ -613,7 +613,7 @@ const JoinerDashboard = () => {
 
                 <div style={{ position: 'relative', zIndex: 1, maxWidth: 650, display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', background: '#C45C26', borderRadius: 999, padding: '4px 12px', marginBottom: 10, width: 'fit-content' }}>
-                    <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#FDF6EE' }}>Your Budget Travel Partner</span>
+                    <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#FDF6EE' }}>Your Budget Travel Partner</span>
                   </div>
                   <h2 style={{ fontWeight: 900, fontSize: '1.8rem', letterSpacing: '-0.02em', lineHeight: 1.1, color: '#FDF6EE', margin: '0 0 10px' }}>
                     Adventure Awaits with <span style={{ color: '#E8A265' }}>Bandang IBAYO</span>
@@ -628,7 +628,7 @@ const JoinerDashboard = () => {
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: 5,
                         background: '#E8A265', color: '#1A0A00', fontWeight: 900,
-                        fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
+                        fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
                         border: 'none', cursor: 'pointer', borderRadius: 8, padding: '10px 18px',
                         fontFamily: 'inherit', transition: 'all 0.2s'
                       }}
@@ -646,7 +646,7 @@ const JoinerDashboard = () => {
                 position: 'relative',
                 background: '#1A0A00',
                 borderRadius: 24,
-                padding: '2rem 2.5rem',
+                padding: isMobile ? '1.5rem 1.5rem' : '2rem 2.5rem',
                 overflow: 'hidden',
                 borderBottom: '4px solid #C45C26',
                 boxShadow: '0 12px 32px rgba(26,10,0,0.18)',
@@ -655,7 +655,7 @@ const JoinerDashboard = () => {
                   position: 'absolute', right: -20, top: -30,
                   color: 'rgba(255,255,255,0.03)', transform: 'rotate(-8deg)',
                 }} />
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex' }}>
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
                   <PulseStat
                     icon={<Compass size={20} />}
                     label="Upcoming Trips"
@@ -665,7 +665,7 @@ const JoinerDashboard = () => {
                       : 'Your next stamp is one tap away'}
                     onClick={() => { setBookingsFilter('upcoming'); setActiveTab('My Bookings'); }}
                   />
-                  <div style={{ width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 2.5rem' }} />
+                  <div style={isMobile ? { height: 1, background: 'rgba(255,255,255,0.08)', margin: '1rem 0' } : { width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 2.5rem' }} />
                   <PulseStat
                     icon={<Star size={20} />}
                     label="Completed Tours"
@@ -697,6 +697,22 @@ const JoinerDashboard = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>Latest Tour Packages</h3>
+                    {/* "See More" sits with the ‹ › arrows */}
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('Explore Tours')}
+                        style={{
+                          height: 28, padding: '0 12px', borderRadius: 8, border: '1px solid #C45C26',
+                          background: '#1A0A00', color: '#FDF6EE', cursor: 'pointer', fontFamily: 'inherit',
+                          fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
+                          display: 'flex', alignItems: 'center', gap: 5, transition: 'background 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#C45C26'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#1A0A00'; }}
+                      >
+                        See More <ArrowRight size={12} strokeWidth={2.5} />
+                      </button>
                     {featuredTours.length > 1 && (
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button
@@ -715,6 +731,7 @@ const JoinerDashboard = () => {
                         </button>
                       </div>
                     )}
+                    </div>
                   </div>
 
                   <div
@@ -727,9 +744,9 @@ const JoinerDashboard = () => {
                       return (
                         <div key={tour.id} style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
                           <div style={{ height: 115, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={32} /></div>}
-                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? '#7A3A18' : '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 7, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
+                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ImageIcon size={32} /></div>}
+                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
+                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? '#7A3A18' : '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
                           </div>
                           <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                             <div>
@@ -737,8 +754,8 @@ const JoinerDashboard = () => {
                                 <h4 style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
                                 <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>{formatPeso(tour.price)}</span>
                               </div>
-                              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}</p>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '9px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
+                              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#C45C26' }} /> {tour.destination}</p>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '11px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: '#C45C26' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
                               </div>
@@ -748,7 +765,7 @@ const JoinerDashboard = () => {
                               disabled={isFull}
                               style={{
                                 width: '100%', padding: '8px 0', border: 'none', borderRadius: 8,
-                                cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 9,
+                                cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 11,
                                 letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex',
                                 alignItems: 'center', justifyContent: 'center', gap: 4,
                                 background: isFull ? '#F2E4D0' : '#1A0A00',
@@ -766,40 +783,6 @@ const JoinerDashboard = () => {
                     })}
                   </div>
 
-                  <button
-                    onClick={() => setActiveTab('Explore Tours')}
-                    style={{
-                      width: '100%',
-                      padding: '12px 0',
-                      borderRadius: '12px',
-                      background: '#1A0A00',
-                      border: '1.5px solid #C45C26',
-                      color: '#FDF6EE',
-                      fontWeight: 900,
-                      fontSize: '11px',
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
-                      fontFamily: 'inherit',
-                      boxShadow: '0 4px 12px rgba(26,10,0,0.1)',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.background = '#C45C26';
-                      e.currentTarget.style.color = '#FDF6EE';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.background = '#1A0A00';
-                      e.currentTarget.style.color = '#FDF6EE';
-                    }}
-                  >
-                    <span>See More</span>
-                    <ArrowRight size={13} strokeWidth={2.5} />
-                  </button>
                 </div>
 
                 {/* RIGHT RAIL */}
@@ -855,14 +838,14 @@ const JoinerDashboard = () => {
               <div style={{
                 width: 72, height: 72, borderRadius: 20,
                 background: '#F2E4D0', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', color: 'rgba(196,92,38,0.25)', marginBottom: 20
+                justifyContent: 'center', color: 'rgba(196,92,38,0.75)', marginBottom: 20
               }}>
                 <Compass size={36} />
               </div>
               <h3 style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 8px' }}>
                 {activeTab} Section
               </h3>
-              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                 Coming soon — check back later.
               </p>
             </div>
@@ -898,7 +881,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
       background: active ? '#C45C26' : 'transparent',
-      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.45)',
+      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.8)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
       boxShadow: active ? '0 6px 20px rgba(196,92,38,0.35)' : 'none',
@@ -908,11 +891,11 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.5)', flexShrink: 0 }}>
+    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0 }}>
       {icon}
     </span>
     {!collapsed && (
-      <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
       </span>
     )}
@@ -942,18 +925,18 @@ const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
       {icon}
     </div>
     <div style={{ flex: 1 }}>
-      <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 4px' }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 4px' }}>
         {label}
       </p>
       <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: '#FDF6EE', margin: '0 0 4px', lineHeight: 1 }}>
         {value}
       </p>
-      <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(232,210,190,0.55)', margin: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(232,210,190,0.85)', margin: 0 }}>
         {subcopy}
       </p>
     </div>
     {onClick && (
-      <ChevronRight size={16} style={{ color: 'rgba(232,210,190,0.3)', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: 'rgba(232,210,190,0.75)', flexShrink: 0 }} />
     )}
   </div>
 );
@@ -995,7 +978,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
         <span style={{
           alignSelf: 'flex-start',
           background: '#C45C26', color: '#FDF6EE',
-          fontSize: 9, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
+          fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
           borderRadius: 999, padding: '5px 12px',
         }}>
           Next Trip
@@ -1007,7 +990,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
           <p style={{ fontSize: 15, fontWeight: 800, color: '#E8A265', margin: '0 0 4px' }}>
             {trip.tours.title}
           </p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.7)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.85)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
             <MapPin size={13} /> {trip.tours.destination}
           </p>
         </div>
@@ -1027,9 +1010,9 @@ const TripReadinessCard = ({ trip, onClick }) => {
       border: `1px solid ${ok ? 'rgba(196,92,38,0.22)' : 'rgba(122,58,24,0.14)'}`,
       borderRadius: 12, padding: '10px 14px', flex: 1,
     }}>
-      <CheckCircle2 size={16} style={{ color: ok ? '#C45C26' : 'rgba(122,58,24,0.3)', flexShrink: 0 }} />
+      <CheckCircle2 size={16} style={{ color: ok ? '#C45C26' : 'rgba(122,58,24,0.8)', flexShrink: 0 }} />
       <div>
-        <p style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, margin: '0 0 2px' }}>{label}</p>
+        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '0 0 2px' }}>{label}</p>
         <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{ok ? 'Confirmed' : 'Pending'}</p>
       </div>
     </div>
@@ -1047,18 +1030,18 @@ const TripReadinessCard = ({ trip, onClick }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Wallet size={15} style={{ color: '#C45C26' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
             Trip Readiness
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: 'rgba(122,58,24,0.4)' }} />
+        <ChevronRight size={15} style={{ color: 'rgba(122,58,24,0.75)' }} />
       </div>
       <div style={{ display: 'flex', gap: 10 }}>
         {chip('Booking', trip.booking_status === 'Completed')}
         {chip('Payment', paymentVerified)}
       </div>
       {!paymentVerified && (
-        <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.65, margin: '12px 0 0' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '12px 0 0' }}>
           Settle your remaining balance before departure to lock in your seat.
         </p>
       )}
@@ -1157,13 +1140,13 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.25rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.25rem 0', color: 'rgba(122,58,24,0.75)' }}>
           <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px 4px', maxWidth: 280, width: '100%', margin: '0 auto' }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <span key={i} style={{ fontSize: 9, fontWeight: 800, textAlign: 'center', color: 'rgba(122,58,24,0.4)', paddingBottom: 2 }}>{d}</span>
+            <span key={i} style={{ fontSize: 11, fontWeight: 800, textAlign: 'center', color: '#7A3A18', paddingBottom: 2 }}>{d}</span>
           ))}
           {cells.map(({ day, muted }, i) => {
             const isToday = isCurrentMonth && !muted && day === todayDate;
@@ -1206,7 +1189,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
         <span style={{ width: 9, height: 9, borderRadius: 3, background: '#E8A265', flexShrink: 0 }} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>Confirmed trip</span>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Confirmed trip</span>
       </div>
     </div>
   );
@@ -1228,23 +1211,23 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Clock size={15} style={{ color: isActive ? '#E8A265' : '#C45C26' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? '#FDF6EE' : '#1A0A00' }}>
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? '#FDF6EE' : '#1A0A00' }}>
             Tracking
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: isActive ? 'rgba(253,246,238,0.5)' : 'rgba(122,58,24,0.4)' }} />
+        <ChevronRight size={15} style={{ color: isActive ? 'rgba(253,246,238,0.5)' : 'rgba(122,58,24,0.8)' }} />
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.75)' }}>
           <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : !hasTrip ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Tracking activates once you have a confirmed trip.
         </p>
       ) : !stop ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           No pickup route posted for your trip yet.
         </p>
       ) : (
@@ -1256,7 +1239,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
             </span>
           </div>
           <span style={{
-            display: 'inline-block', fontSize: 9, fontWeight: 800,
+            display: 'inline-block', fontSize: 11, fontWeight: 800,
             padding: '3px 10px', borderRadius: 999,
             background: isActive ? '#C45C26' : 'rgba(196,92,38,0.12)',
             color: isActive ? '#FDF6EE' : '#7A3A18',
@@ -1285,19 +1268,19 @@ const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Star size={15} style={{ color: hasCompleted ? '#E8A265' : '#C45C26' }} />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: hasCompleted ? '#FDF6EE' : '#1A0A00' }}>
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: hasCompleted ? '#FDF6EE' : '#1A0A00' }}>
             Reviews
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: hasCompleted ? 'rgba(253,246,238,0.5)' : 'rgba(122,58,24,0.4)' }} />
+        <ChevronRight size={15} style={{ color: hasCompleted ? 'rgba(253,246,238,0.5)' : 'rgba(122,58,24,0.8)' }} />
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.75)' }}>
           <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
         </div>
       ) : !hasCompleted ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Finish a tour to unlock your first review.
         </p>
       ) : (
@@ -1308,7 +1291,7 @@ const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
               {completedCount} tour{completedCount === 1 ? '' : 's'} to review
             </span>
           </div>
-          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(253,246,238,0.65)', margin: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(253,246,238,0.85)', margin: 0 }}>
             Tell other joiners how it went — it takes a minute.
           </p>
         </div>

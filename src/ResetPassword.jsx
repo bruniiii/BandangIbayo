@@ -28,7 +28,7 @@ const labelStyle = {
   textTransform: 'uppercase',
   color: '#7A3A18',
   marginBottom: 6,
-  opacity: 0.85,
+  opacity: 0.9,
 };
 
 // Reached via the link in the "reset password" email. Supabase puts a
@@ -103,7 +103,7 @@ const ResetPassword = () => {
         </div>
 
         {checking ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.5)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.75)' }}>
             <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
             <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
           </div>

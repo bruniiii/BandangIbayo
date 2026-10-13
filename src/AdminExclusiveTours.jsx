@@ -63,7 +63,7 @@ const TypeBadge = ({ type }) => (
     background: type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(196,92,38,0.12)',
     color: type === 'exclusive' ? '#1A0A00' : '#C45C26',
     borderRadius: 999, padding: '4px 12px',
-    fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
+    fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
   }}>
     {type === 'exclusive' ? <Shield size={11} /> : <Globe size={11} />}
     {type === 'exclusive' ? 'Exclusive' : 'Request'}
@@ -144,7 +144,7 @@ const AdminExclusiveTours = () => {
             <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
               Exclusive & Requested Tours
             </h2>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
               Review private-group booking requests and new destination suggestions submitted by joiners.
               {pendingCount > 0 && (
                 <span style={{ color: '#C45C26', fontWeight: 900 }}> {pendingCount} awaiting review.</span>
@@ -166,7 +166,7 @@ const AdminExclusiveTours = () => {
             <Search size={15} style={{
               position: 'absolute', left: 13, top: '50%',
               transform: 'translateY(-50%)',
-              color: 'rgba(122,58,24,0.35)', pointerEvents: 'none',
+              color: 'rgba(122,58,24,0.75)', pointerEvents: 'none',
             }} />
             <input
               type="text" placeholder="Search name, destination, email…"
@@ -184,7 +184,7 @@ const AdminExclusiveTours = () => {
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
             </select>
-            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
           </div>
           <div style={{ position: 'relative', minWidth: 175 }}>
             <select
@@ -195,7 +195,7 @@ const AdminExclusiveTours = () => {
               <option value="exclusive">Exclusive Tour</option>
               <option value="request">Requested Tour</option>
             </select>
-            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
           </div>
         </div>
 
@@ -205,10 +205,10 @@ const AdminExclusiveTours = () => {
             <div style={{
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-              padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
+              padding: '5rem 0', color: 'rgba(122,58,24,0.75)',
             }}>
               <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
+              <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
                 Loading Requests…
               </p>
             </div>
@@ -264,14 +264,14 @@ const RequestRow = ({ request, onView }) => {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
         <TypeBadge type={request.request_type} />
-        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>
           {formatDate(request.created_at)}
         </span>
       </div>
 
       <div style={{ flex: 1, minWidth: 200 }}>
         <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{request.full_name || '—'}</p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.8, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
           <MapPin size={12} style={{ color: '#C45C26' }} /> {request.destination || '—'}
         </p>
       </div>
@@ -298,7 +298,7 @@ const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
     <span style={{ color: '#C45C26', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.8, margin: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
         {label}
       </p>
       <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: '3px 0 0' }}>
@@ -447,9 +447,9 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
   const labelStyle = {
     display: 'block',
-    fontSize: 9, fontWeight: 800,
+    fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.8,
+    color: '#7A3A18', opacity: 0.9,
     marginBottom: 6,
   };
 
@@ -489,7 +489,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <StatusBadge status={request.status} large />
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.5)', padding: 0 }}>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.75)', padding: 0 }}>
               <X size={22} />
             </button>
           </div>
@@ -522,7 +522,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>
             <Clock size={13} /> Submitted {formatDateTime(request.created_at)}
             {request.reviewed_at && <> · Reviewed {formatDateTime(request.reviewed_at)}</>}
           </div>
@@ -586,7 +586,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 {packageSentAt && (
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: 6,
-                    fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
                     color: '#C45C26', background: 'rgba(196,92,38,0.12)', borderRadius: 999, padding: '4px 10px',
                   }}>
                     <CheckCircle2 size={12} /> Sent {formatDateTime(packageSentAt)}
@@ -596,7 +596,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
               {!showPackageForm ? (
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.85, margin: '0 0 14px', lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 14px', lineHeight: 1.6 }}>
                     {packageSentAt
                       ? "Send updated details if anything about the trip has changed since you last notified the joiner."
                       : "Once you've finalized the trip, send the joiner the confirmed destination, price, inclusions, exclusions, itinerary, and things to bring — delivered straight to their notifications."}
@@ -609,7 +609,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                       background: '#1A0A00', color: '#E8A265',
                       border: 'none', borderRadius: 999, cursor: 'pointer',
                       fontFamily: 'inherit', fontWeight: 900,
-                      fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                      fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                     }}
                   >
                     {packageSentAt ? <PencilLine size={14} /> : <Send size={14} />}
@@ -706,7 +706,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                         background: 'rgba(122,58,24,0.1)', color: '#7A3A18',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
-                        fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                        fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                       }}
                     >
                       Cancel
@@ -720,7 +720,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                         background: '#C45C26', color: '#FDF6EE',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
-                        fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                        fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                         boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
                         opacity: sendingPackage ? 0.6 : 1,
                       }}
@@ -752,7 +752,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 background: 'rgba(140,47,28,0.1)', color: '#8C2F1C',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
-                fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                 opacity: submitting !== null ? 0.5 : 1,
               }}
             >
@@ -767,7 +767,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 background: '#C45C26', color: '#FDF6EE',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
-                fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                 boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
                 opacity: submitting !== null ? 0.5 : 1,
               }}

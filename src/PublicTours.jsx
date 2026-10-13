@@ -154,7 +154,7 @@ export const PublicTourList = () => {
       <div className="public-main" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(2rem,5vw,4rem) clamp(1rem,5vw,4rem)' }}>
         <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C45C26' }}>Open for booking</span>
         <h1 style={{ fontWeight: 900, fontSize: 'clamp(2rem,4vw,3rem)', letterSpacing: '-0.03em', margin: '8px 0 6px' }}>Upcoming Tours</h1>
-        <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '0 0 28px' }}>
+        <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 28px' }}>
           Browse every joiner tour. Create a free account when you're ready to book.
         </p>
 
@@ -357,7 +357,7 @@ export const PublicTourDetail = () => {
               <div style={{ background: 'rgba(196,92,38,0.07)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(196,92,38,0.2)', display: 'flex', gap: 14 }}>
                 <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>Important Note</p>
+                  <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>Important Note</p>
                   <p style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0, overflowWrap: 'anywhere' }}>{tour.important_note}</p>
                 </div>
               </div>
@@ -371,9 +371,9 @@ export const PublicTourDetail = () => {
             boxShadow: '0 16px 40px rgba(26,10,0,0.18)',
           }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.6)' }}>Price per joiner</div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)' }}>Price per joiner</div>
               <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em' }}>{formatPeso(Number(tour.price || 0))}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.7)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -389,7 +389,7 @@ export const PublicTourDetail = () => {
                 <span style={{ color: isFull ? '#E8A265' : '#FDF6EE' }}>
                   {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
                 </span>
-                <span style={{ color: 'rgba(232,210,190,0.6)' }}>{tour.current_booked} / {capacity}</span>
+                <span style={{ color: 'rgba(232,210,190,0.75)' }}>{tour.current_booked} / {capacity}</span>
               </div>
               <div style={{ height: 6, borderRadius: 999, background: 'rgba(253,246,238,0.12)', overflow: 'hidden' }}>
                 <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? '#8C2F1C' : '#C45C26' }} />
@@ -405,13 +405,13 @@ export const PublicTourDetail = () => {
                 fontSize: 14, fontWeight: 900, letterSpacing: '0.04em',
                 cursor: canBook ? 'pointer' : 'not-allowed',
                 background: canBook ? '#C45C26' : 'rgba(253,246,238,0.12)',
-                color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
+                color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.8)',
               }}
             >
               {hasDeparted ? 'This tour has departed' : isFull ? (session ? 'Join the waitlist' : 'Log in to join the waitlist') : session ? 'Book this tour' : 'Log in to book'}
             </button>
             {canBook && !session && (
-              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.7)', margin: '-8px 0 0', textAlign: 'center' }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)', margin: '-8px 0 0', textAlign: 'center' }}>
                 New here? <Link className="text-link" to={`/register?next=${encodeURIComponent(`/dashboard?book=${tour.id}`)}`} style={{ color: '#E8A265', fontWeight: 800 }}>Create a free account</Link>
               </p>
             )}
@@ -440,7 +440,7 @@ export const PublicTourDetail = () => {
       }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 20, fontWeight: 900 }}>{formatPeso(Number(tour.price || 0))}</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.7)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.85)' }}>
             {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
           </div>
         </div>
@@ -453,7 +453,7 @@ export const PublicTourDetail = () => {
             fontSize: 13, fontWeight: 900, flexShrink: 0,
             cursor: canBook ? 'pointer' : 'not-allowed',
             background: canBook ? '#C45C26' : 'rgba(253,246,238,0.12)',
-            color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
+            color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.8)',
           }}
         >
           {hasDeparted ? 'Departed' : isFull ? 'Join waitlist' : session ? 'Book now' : 'Log in to book'}

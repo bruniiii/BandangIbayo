@@ -80,7 +80,7 @@ const MyData = () => {
         <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0 }}>
           <ShieldCheck size={18} style={{ color: '#C45C26' }} /> Your Data
         </h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.85, margin: '4px 0 0', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
           Under the Data Privacy Act of 2012 you can get a copy of your personal data or ask us to delete it.
         </p>
       </div>
@@ -131,7 +131,7 @@ const MyData = () => {
 const button = (bg, color, border = 'none') => ({
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 16px',
   background: bg, color, border, borderRadius: 12, cursor: 'pointer',
-  fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+  fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
 });
 
 export default MyData;

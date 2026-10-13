@@ -155,7 +155,7 @@ const JoinerLogin = () => {
     textTransform: 'uppercase',
     color: '#7A3A18',
     marginBottom: 6,
-    opacity: 0.85,
+    opacity: 0.9,
   };
  
   const submitStyle = (disabled) => ({
@@ -234,7 +234,7 @@ const JoinerLogin = () => {
             </h3>
             <p style={{
               fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
-              textTransform: 'uppercase', color: '#7A3A18', opacity: 0.65, margin: 0,
+              textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0,
             }}>
               {successRole === 'admin'
                 ? 'Redirecting to Administrator Portal...'
@@ -268,7 +268,7 @@ const JoinerLogin = () => {
         {/* close button */}
         <Link to="/" aria-label="Close and go to the home page" style={{
           position: 'absolute', top: 8, right: 8, width: 44, height: 44, justifyContent: 'center', borderRadius: 12,
-          color: 'rgba(122,58,24,0.6)',
+          color: 'rgba(122,58,24,0.75)',
           display: 'flex', alignItems: 'center',
           transition: 'color 0.2s',
         }}>
@@ -289,7 +289,7 @@ const JoinerLogin = () => {
           <h1 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
             Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
           </h1>
-          <p style={{ fontSize: 14, color: '#7A3A18', opacity: 0.75, margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 14, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {challenge ? 'Check your email for your verification code.' : 'Welcome back! Login to continue.'}
           </p>
         </div>
@@ -381,7 +381,7 @@ const JoinerLogin = () => {
         )}
 
         {/* register link */}
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.8 }}>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.9 }}>
           Don't have an account?{' '}
           <Link className="text-link" to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
             Register here

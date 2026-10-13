@@ -106,7 +106,7 @@ const NotificationBell = ({ onNotificationClick }) => {
             position: 'absolute', top: -4, right: -4,
             minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
             background: '#C45C26', color: '#FDF6EE',
-            fontSize: 9, fontWeight: 900,
+            fontSize: 11, fontWeight: 900,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(196,92,38,0.4)',
           }}>
@@ -137,7 +137,7 @@ const NotificationBell = ({ onNotificationClick }) => {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4,
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#C45C26', fontSize: 9.5, fontWeight: 800,
+                  color: '#C45C26', fontSize: 11, fontWeight: 800,
                   letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'inherit',
                 }}
               >
@@ -148,7 +148,7 @@ const NotificationBell = ({ onNotificationClick }) => {
 
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loading ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.75)' }}>
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : notifications.length === 0 ? (
@@ -178,12 +178,12 @@ const NotificationBell = ({ onNotificationClick }) => {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{n.title}</p>
                     <p style={{
-                      fontSize: 11.5, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '4px 0 0', lineHeight: 1.5,
+                      fontSize: 11.5, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5,
                       display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     }}>
                       {n.message}
                     </p>
-                    <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.5, margin: '6px 0 0' }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
                       {timeAgo(n.created_at)}
                     </p>
                   </div>
@@ -244,7 +244,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
       }}>
         <div style={{ minWidth: 0 }}>
           <p style={{
-            fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
             color: '#C45C26', margin: '0 0 8px',
           }}>
             Notification
@@ -257,7 +257,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
           onClick={onClose}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(122,58,24,0.5)', padding: 4, flexShrink: 0,
+            color: 'rgba(122,58,24,0.75)', padding: 4, flexShrink: 0,
           }}
         >
           <X size={22} />
@@ -274,7 +274,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, color: '#7A3A18', opacity: 0.6 }}>
           <Clock size={12} />
-          <span style={{ fontSize: 10.5, fontWeight: 700 }}>{fullDateTime(notification.created_at)}</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700 }}>{fullDateTime(notification.created_at)}</span>
         </div>
       </div>
 
@@ -290,7 +290,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
             background: 'transparent', color: '#7A3A18',
             border: '1px solid rgba(196,92,38,0.2)', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
-            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
           }}
         >
           Close
@@ -303,7 +303,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
             background: '#1A0A00', color: '#E8A265',
             border: 'none', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
-            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
             boxShadow: '0 6px 20px rgba(26,10,0,0.25)',
           }}
         >

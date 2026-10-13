@@ -234,7 +234,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
             <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
               Tour Reviews
             </h2>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
               {isAdmin ? 'What joiners are saying about your tours' : 'Share your experience & read what others say'}
             </p>
           </div>
@@ -244,7 +244,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 999, padding: '8px 16px' }}>
             <StarRow rating={Math.round(avgRating)} size={13} />
             <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{avgRating}</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78 }}>({reviews.length})</span>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>({reviews.length})</span>
           </div>
         )}
       </div>
@@ -256,14 +256,14 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
           border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
           {reviewableTours.length === 0 ? (
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
               Once you've completed a tour, it'll show up here so you can leave a review.
             </p>
           ) : (
             <>
               <label style={{
-                display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 6,
+                display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
+                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 6,
               }}>
                 Which tour would you like to review?
               </label>
@@ -292,7 +292,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                 return (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
-                    fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.75,
+                    fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9,
                   }}>
                     <Calendar size={12} /> Tour date: {formatTourDate(selectedTour.start_date, selectedTour.end_date)}
                   </div>
@@ -302,8 +302,8 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
               <div style={{ marginBottom: 16 }} />
 
               <label style={{
-                display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8,
+                display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
+                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 8,
               }}>
                 Your Rating
               </label>
@@ -363,8 +363,8 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                   onClick={() => mediaInputRef.current?.click()}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-                    fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: '#7A3A18', opacity: 0.75,
+                    fontSize: 11.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: '#7A3A18', opacity: 0.9,
                     background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
                   }}
                 >
@@ -403,9 +403,9 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
       {/* review list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.35)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
           <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading reviews…</span>
+          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading reviews…</span>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       ) : reviews.length === 0 ? (
@@ -454,7 +454,7 @@ const ReviewCard = ({ review }) => (
           <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
             {review.user_id ? displayName(review.author) : 'Deleted account'}
           </p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
             {formatDate(review.created_at)}
           </p>
         </div>
@@ -466,7 +466,7 @@ const ReviewCard = ({ review }) => (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         <span style={{
           background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
-          fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
+          fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
           color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
         }}>
           <MapPin size={10} /> {review.tours.title}
@@ -474,7 +474,7 @@ const ReviewCard = ({ review }) => (
         {review.tours.start_date && (
           <span style={{
             background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
-            fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
             color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
           }}>
             <Calendar size={10} /> {formatTourDate(review.tours.start_date, review.tours.end_date)}

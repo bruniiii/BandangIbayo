@@ -164,7 +164,7 @@ const MyBookings = ({ onExplore }) => {
         gap: 20, borderBottom: '1px solid rgba(196,92,38,0.12)', paddingBottom: 24,
       }}>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
             Track your adventures and manage your reservations.
           </p>
         </div>
@@ -175,7 +175,7 @@ const MyBookings = ({ onExplore }) => {
               onClick={() => setActiveTab(tab)}
               style={{
                 flex: 1, padding: '10px 16px', borderRadius: 12,
-                fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
+                fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
                 border: 'none', cursor: 'pointer', transition: 'all 0.2s',
                 background: activeTab === tab ? '#1A0A00' : 'transparent',
                 color: activeTab === tab ? '#FDF6EE' : '#7A3A18',
@@ -191,9 +191,9 @@ const MyBookings = ({ onExplore }) => {
       {/* ── Bookings List ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {loading ? (
-          <div style={{ padding: '5rem 0', textAlign: 'center', color: 'rgba(122,58,24,0.4)' }}>
+          <div style={{ padding: '5rem 0', textAlign: 'center', color: 'rgba(122,58,24,0.75)' }}>
             <Loader2 size={36} style={{ marginBottom: 14, color: '#C45C26', animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
+            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
               Retrieving your trips…
             </p>
           </div>
@@ -268,7 +268,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
       }}>
         {tour.image_urls?.[0]
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}><ShoppingBag size={28} /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ShoppingBag size={28} /></div>
         }
       </div>
 
@@ -276,17 +276,17 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <span style={{
             background: '#F2E4D0', borderRadius: 999, padding: '3px 12px',
-            fontSize: 9, fontWeight: 900, color: '#1A0A00', letterSpacing: '0.1em', fontFamily: 'monospace',
+            fontSize: 11, fontWeight: 900, color: '#1A0A00', letterSpacing: '0.1em', fontFamily: 'monospace',
             border: '1px solid rgba(196,92,38,0.15)',
           }}>{booking.booking_number}</span>
           <StatusBadge booking={booking} />
         </div>
         <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.25, margin: '0 0 10px' }}>{tour.title}</h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 10 : 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <MapPin size={13} style={{ color: '#C45C26' }} /> {tour.destination}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <Calendar size={13} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
           </div>
         </div>
@@ -311,7 +311,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
           style={{
             padding: isMobile ? '10px 18px' : '10px 22px', background: '#1A0A00', color: '#FDF6EE',
             border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-            fontWeight: 900, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
             transition: 'background 0.2s',
           }}
@@ -409,7 +409,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
         <button onClick={onClose} style={{
           position: 'absolute', top: 24, right: 24, zIndex: 50,
           background: 'none', border: 'none', cursor: 'pointer',
-          color: 'rgba(122,58,24,0.5)',
+          color: 'rgba(122,58,24,0.75)',
         }}><X size={28} /></button>
 
         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -427,18 +427,18 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
               }}>
                 {tour.image_urls?.[0]
                   ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}><ShoppingBag size={40} /></div>
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ShoppingBag size={40} /></div>
                 }
               </div>
 
               <p style={{
-                fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+                fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
                 color: '#C45C26', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6,
               }}>
                 <span style={{ display: 'inline-block', width: 16, height: 1, background: '#C45C26' }} /> Booking Confirmation
               </p>
               <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px', lineHeight: 1.2 }}>{tour.title}</h2>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', fontFamily: 'monospace', letterSpacing: '0.08em' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', fontFamily: 'monospace', letterSpacing: '0.08em' }}>
                 {booking.booking_number}
               </p>
 
@@ -459,7 +459,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
                   {formatPeso((isAwaitingPayment ? 0 : (booking.amount_paid ?? booking.total_price) ?? 0))}
                 </p>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAwaitingPayment ? 'not paid yet' : isPaymentConfirmed ? 'amount paid' : 'amount sent'}</p>
+                <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAwaitingPayment ? 'not paid yet' : isPaymentConfirmed ? 'amount paid' : 'amount sent'}</p>
               </div>
             </div>
 
@@ -534,13 +534,13 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </div>
                       <div>
                         <h4 style={{ fontSize: 13, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
-                        <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>This can't be undone, and the amount you paid won't be refunded.</p>
+                        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>This can't be undone, and the amount you paid won't be refunded.</p>
                       </div>
                     </div>
 
                     <div>
                       <label style={{
-                        display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, fontWeight: 900,
+                        display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900,
                         color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8,
                       }}>
                         <MessageSquare size={12} /> Reason for Cancellation <span style={{ color: '#8C2F1C' }}>*</span>
@@ -559,7 +559,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         }}
                       />
                       {reasonError && (
-                        <p style={{ fontSize: 10, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 0' }}>
+                        <p style={{ fontSize: 11.5, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 0' }}>
                           ⚠ Please give a short reason (at least 5 characters) before cancelling.
                         </p>
                       )}
@@ -571,7 +571,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         style={{
                           flex: 1, padding: '12px 0', background: '#F2E4D0', color: '#7A3A18',
                           border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14, cursor: 'pointer',
-                          fontFamily: 'inherit', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                          fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                           transition: 'background 0.2s',
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
@@ -585,7 +585,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         style={{
                           flex: 1, padding: '12px 0', background: '#C0362C', color: '#FFFFFF',
                           border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-                          fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                          fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           transition: 'background 0.2s',
                         }}
@@ -612,7 +612,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   style={{
                     flex: 1, padding: '14px 0', background: '#FDF6EE', color: '#1A0A00',
                     border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14, cursor: 'pointer',
-                    fontFamily: 'inherit', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                    fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                     transition: 'background 0.2s',
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
@@ -629,7 +629,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     style={{
                       flex: 1, padding: '14px 0', background: '#1A0A00', color: '#FDF6EE',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-                      fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                      fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}
                   >
@@ -642,7 +642,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     style={{
                       flex: 1, padding: '14px 0', background: 'rgba(140,47,28,0.08)', color: '#8C2F1C',
                       border: '1px solid rgba(140,47,28,0.2)', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-                      fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+                      fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       transition: 'all 0.2s',
                     }}
@@ -698,7 +698,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 
   const buttonStyle = (primary) => ({
     flex: 1, minWidth: 160, padding: '12px 0', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-    fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+    fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
     background: primary ? '#C45C26' : '#FDF6EE', color: primary ? '#FDF6EE' : '#8C2F1C',
     border: primary ? 'none' : '1px solid rgba(140,47,28,0.25)',
@@ -781,7 +781,7 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
           style={{
             width: '100%', padding: '12px 0', background: '#FDF6EE', color: '#1A0A00',
             border: '1px solid rgba(196,92,38,0.25)', borderRadius: 14, cursor: 'pointer',
-            fontFamily: 'inherit', fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
+            fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
           }}
         >
           {loadingOptions ? 'Checking dates…' : 'See other dates for this trip'}
@@ -812,7 +812,7 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
           ))}
         </div>
       )}
-      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '10px 0 0' }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '10px 0 0' }}>
         Same trip and price, so your payment carries over. Possible until the cancellation deadline.
       </p>
     </ViewSection>
@@ -822,7 +822,7 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
 const ViewSection = ({ title, titleColor, icon, children }) => (
   <section>
     <h4 style={{
-      fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
+      fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
       textTransform: 'uppercase', color: titleColor || '#7A3A18', opacity: titleColor ? 1 : 0.7,
       margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6,
       borderBottom: '1px solid rgba(196,92,38,0.12)', paddingBottom: 12,
@@ -835,7 +835,7 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 
 const DetailItem = ({ label, value }) => (
   <div>
-    <p style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.15em', margin: '0 0 5px' }}>{label}</p>
+    <p style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em', margin: '0 0 5px' }}>{label}</p>
     <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{value || '—'}</p>
   </div>
 );
@@ -858,7 +858,7 @@ const StatusBadge = ({ booking }) => {
   return (
     <span style={{
       display: 'inline-block', padding: '4px 14px', borderRadius: 999,
-      fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em',
+      fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em',
       background: bg, color,
     }}>
       {label}

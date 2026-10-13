@@ -682,7 +682,7 @@ const Reports = () => {
           <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
             Business Reports
           </h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
             {formatRangeLabel(start, end)} · {loading ? 'Loading…' : `${stats.total} booking${stats.total !== 1 ? 's' : ''} in range`}
             {lastUpdated && !loading && (
               <span style={{ opacity: 0.85 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -712,7 +712,7 @@ const Reports = () => {
             {fetchErrors.map((e, i) => (
               <p key={i} style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0', fontFamily: 'monospace' }}>{e}</p>
             ))}
-            <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '6px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
               The numbers below may be incomplete or zero until this is fixed.
             </p>
           </div>
@@ -722,10 +722,10 @@ const Reports = () => {
       {loading ? (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
+          padding: '5rem 0', color: 'rgba(122,58,24,0.75)',
         }}>
           <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-          <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
+          <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
             Crunching Numbers…
           </p>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -787,7 +787,7 @@ const Reports = () => {
                 style={{
                   padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
                   border: 'none', fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
                   background: preset === p.key ? '#1A0A00' : '#F2E4D0',
                   color: preset === p.key ? '#FDF6EE' : '#7A3A18',
                   transition: 'all 0.15s',
@@ -807,7 +807,7 @@ const Reports = () => {
                     fontFamily: 'inherit', outline: 'none',
                   }}
                 />
-                <span style={{ color: '#7A3A18', opacity: 0.65, fontSize: 11, fontWeight: 700 }}>to</span>
+                <span style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 700 }}>to</span>
                 <input
                   type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
                   style={{
@@ -826,7 +826,7 @@ const Reports = () => {
             border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
             display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
           }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginRight: 4 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginRight: 4 }}>
               <Filter size={13} /> Filters
             </span>
             {/* Tours and destinations can be long lists: type to search. Clearing the box means "all". */}
@@ -857,7 +857,7 @@ const Reports = () => {
                 onClick={resetAdvancedFilters}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#8C2F1C', fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  color: '#8C2F1C', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
                 }}
               >
                 <X size={12} /> Clear
@@ -923,7 +923,7 @@ const Reports = () => {
                 </div>
 
                 <div style={{ borderTop: '1px solid rgba(196,92,38,0.12)', paddingTop: 16, marginBottom: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.75, margin: '0 0 10px' }}>Revenue by Payment Method</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Revenue by Payment Method</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
                     <MiniMetric label="Full Payment" value={peso(paymentAnalytics.fullRevenue)} compact />
                     <MiniMetric label="Downpayment Collected" value={peso(paymentAnalytics.downRevenue)} compact />
@@ -937,12 +937,12 @@ const Reports = () => {
                       <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px' }}>
                         Estimated Profit
                       </p>
-                      <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: 0, maxWidth: 420 }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 420 }}>
                         Itemized tour costs aren't tracked yet, so this uses an adjustable cost assumption applied to revenue.
                       </p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <label style={{ fontSize: 10, fontWeight: 800, color: '#7A3A18' }}>Est. Cost %</label>
+                      <label style={{ fontSize: 11.5, fontWeight: 800, color: '#7A3A18' }}>Est. Cost %</label>
                       <input
                         type="number" min={0} max={95} value={costPct}
                         onChange={(e) => setCostPct(Math.min(95, Math.max(0, Number(e.target.value) || 0)))}
@@ -974,7 +974,7 @@ const Reports = () => {
                 border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '-8px 0 16px' }}>
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '-8px 0 16px' }}>
                   Based on a weighted average of the last three months.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
@@ -1023,7 +1023,7 @@ const Reports = () => {
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
                         {['Tour', 'Bookings', 'Revenue', 'Pax', 'Completion', 'Rating'].map((h) => (
-                          <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.78 }}>{h}</th>
+                          <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -1099,21 +1099,21 @@ const Reports = () => {
                 <SectionTitle icon={<Users size={14} />}>Customer Analytics</SectionTitle>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
                   <div>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.75, margin: '0 0 10px' }}>New vs. Returning Joiners</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>New vs. Returning Joiners</p>
                     <DonutChart segments={[
                       { label: 'New', value: customerAnalytics.newCount, color: CHART_COLORS.new },
                       { label: 'Returning', value: customerAnalytics.returningCount, color: CHART_COLORS.returning },
                     ].filter((s) => s.value > 0)} size={120} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.75, margin: '0 0 10px' }}>Top Customers</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Top Customers</p>
                     {customerAnalytics.topCustomers.length === 0 ? <EmptyChartNotice /> : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {customerAnalytics.topCustomers.map((c, i) => (
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '8px 14px' }}>
                             <div>
                               <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{c.name}</p>
-                              <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>{c.tours} tour{c.tours !== 1 ? 's' : ''}</p>
+                              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{c.tours} tour{c.tours !== 1 ? 's' : ''}</p>
                             </div>
                             <span style={{ fontSize: 13, fontWeight: 900, color: '#C45C26' }}>{peso(c.spend)}</span>
                           </div>
@@ -1122,11 +1122,11 @@ const Reports = () => {
                     )}
                   </div>
                   <div>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.75, margin: '0 0 10px' }}>Top Locations (from profile address)</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Top Locations (from profile address)</p>
                     {customerAnalytics.topLocations.length === 0 ? <EmptyChartNotice /> : (
                       <HorizontalBarChart data={customerAnalytics.topLocations.map((l) => ({ label: l.label, value: l.value }))} color="#7A3A18" />
                     )}
-                    <p style={{ fontSize: 9.5, fontWeight: 600, color: '#7A3A18', opacity: 0.72, margin: '10px 0 0' }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '10px 0 0' }}>
                       Age and gender aren't collected during registration, so those breakdowns aren't available yet.
                     </p>
                   </div>
@@ -1173,8 +1173,8 @@ const Reports = () => {
                       <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
                         {['Booking No.', 'Joiner', 'Tour', 'Pax', 'Status', 'Date'].map((h) => (
                           <th key={h} style={{
-                            textAlign: 'left', padding: '12px 20px', fontSize: 9, fontWeight: 800,
-                            letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.78,
+                            textAlign: 'left', padding: '12px 20px', fontSize: 11, fontWeight: 800,
+                            letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
                           }}>
                             {h}
                           </th>
@@ -1199,7 +1199,7 @@ const Reports = () => {
                           <td style={{ padding: '12px 20px' }}>
                             <MiniStatusBadge status={getDerivedStatus(b)} />
                           </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 600, color: '#7A3A18', opacity: 0.7, fontSize: 11.5, whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '12px 20px', fontWeight: 600, color: '#7A3A18', opacity: 0.9, fontSize: 11.5, whiteSpace: 'nowrap' }}>
                             {new Date(b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </td>
                         </tr>
@@ -1208,7 +1208,7 @@ const Reports = () => {
                   </table>
                 </div>
                 {bookings.length > recentBookings.length && (
-                  <p style={{ padding: '14px 20px', fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: 0 }}>
+                  <p style={{ padding: '14px 20px', fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                     Showing {recentBookings.length} most recent of {bookings.length} bookings matching current filters.
                   </p>
                 )}
@@ -1245,7 +1245,7 @@ const BarChart = ({ data, color = '#C45C26', height = 180 }) => {
             flex: 1, height: '100%',
           }}
         >
-          <span style={{ fontSize: 9, fontWeight: 800, color: '#1A0A00', opacity: d.value ? 0.7 : 0, marginBottom: 4 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#1A0A00', opacity: d.value ? 0.7 : 0, marginBottom: 4 }}>
             {d.value || ''}
           </span>
           <div style={{
@@ -1256,7 +1256,7 @@ const BarChart = ({ data, color = '#C45C26', height = 180 }) => {
             transition: 'height 0.3s',
           }} />
           <span style={{
-            fontSize: 8, fontWeight: 800, color: '#7A3A18', opacity: 0.68,
+            fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9,
             marginTop: 8, whiteSpace: 'nowrap',
           }}>
             {i % labelStep === 0 ? d.label : ''}
@@ -1320,7 +1320,7 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         }}>
           <span style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', lineHeight: 1 }}>{total}</span>
-          <span style={{ fontSize: 8, fontWeight: 800, color: '#7A3A18', opacity: 0.78, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
             Total
           </span>
         </div>
@@ -1360,7 +1360,7 @@ const FunnelChart = ({ steps }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
               <span style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>{s.label}</span>
               <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26' }}>
-                {s.value}{dropOff !== null && dropOff > 0 && <span style={{ color: '#8C2F1C', fontWeight: 700, marginLeft: 6, fontSize: 10 }}>-{dropOff}%</span>}
+                {s.value}{dropOff !== null && dropOff > 0 && <span style={{ color: '#8C2F1C', fontWeight: 700, marginLeft: 6, fontSize: 11.5 }}>-{dropOff}%</span>}
               </span>
             </div>
             <div style={{ width: `${widthPct}%`, minWidth: 60, height: 32, background: '#1A0A00', borderRadius: 10, opacity: 0.85 - i * 0.12, transition: 'width 0.4s' }} />
@@ -1374,7 +1374,7 @@ const FunnelChart = ({ steps }) => {
 const EmptyChartNotice = () => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: '2.5rem 0', color: 'rgba(122,58,24,0.35)',
+    padding: '2.5rem 0', color: '#7A3A18',
     fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
   }}>
     No data for this range
@@ -1386,8 +1386,8 @@ const EmptyChartNotice = () => (
 ───────────────────────────────────────────── */
 const SectionTitle = ({ icon, children }) => (
   <h4 style={{
-    fontSize: 9, fontWeight: 900, letterSpacing: '0.22em',
-    textTransform: 'uppercase', color: '#7A3A18', opacity: 0.75,
+    fontSize: 11, fontWeight: 900, letterSpacing: '0.22em',
+    textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
     margin: '0 0 18px', display: 'flex', alignItems: 'center', gap: 7,
   }}>
     <span style={{ color: '#C45C26' }}>{icon}</span> {children}
@@ -1401,7 +1401,7 @@ const StatCard = ({ title, value, icon, iconColor }) => (
     display: 'flex', flexDirection: 'column', gap: 8,
   }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
         {title}
       </p>
       <div style={{
@@ -1425,7 +1425,7 @@ const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValuel
       background: tone === 'warn' ? 'rgba(140,47,28,0.06)' : '#F2E4D0',
       borderRadius: 14, padding: compact ? '10px 14px' : '14px 18px',
     }}>
-      <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 6px' }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '0 0 6px' }}>
         {label}
       </p>
       {!showValueless && (
@@ -1454,9 +1454,9 @@ const HighlightCard = ({ icon, label, title, sub, tone }) => (
   }}>
     <span style={{ color: tone === 'good' ? '#C45C26' : '#8C2F1C', flexShrink: 0, marginTop: 2 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: tone === 'good' ? '#C45C26' : '#8C2F1C', margin: '0 0 4px' }}>{label}</p>
+      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: tone === 'good' ? '#C45C26' : '#8C2F1C', margin: '0 0 4px' }}>{label}</p>
       <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: '0 0 2px' }}>{title}</p>
-      <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>{sub}</p>
+      <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>{sub}</p>
     </div>
   </div>
 );
@@ -1470,7 +1470,7 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
       display: 'flex', alignItems: 'center', gap: 7,
       background: '#1A0A00', color: '#E8A265', border: 'none', borderRadius: 999,
       padding: '10px 18px', fontFamily: 'inherit', fontWeight: 900,
-      fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: disabled ? 'not-allowed' : 'pointer',
+      fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: disabled ? 'not-allowed' : 'pointer',
       boxShadow: '0 4px 14px rgba(26,10,0,0.2)',
     }}
   >
@@ -1497,7 +1497,7 @@ const FilterSelect = ({ value, onChange, options }) => (
     >
       {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
     </select>
-    <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.4)' }} />
+    <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
   </div>
 );
 
@@ -1505,7 +1505,7 @@ const STATUS_BADGE_STYLES = {
   Complete: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
   Pending: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
+  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.75)' },
 };
 
 const MiniStatusBadge = ({ status }) => {
@@ -1513,7 +1513,7 @@ const MiniStatusBadge = ({ status }) => {
   return (
     <span style={{
       display: 'inline-block', background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 9, fontWeight: 900,
+      padding: '4px 12px', fontSize: 11, fontWeight: 900,
       letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
       {status}

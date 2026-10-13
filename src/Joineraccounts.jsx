@@ -159,7 +159,7 @@ const JoinerAccounts = () => {
           <h2 style={{ fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
             Joiner Accounts
           </h2>
-          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.7, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
             {loading ? 'Loading registered joiners…' : `${joiners.length} registered joiner${joiners.length !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -172,7 +172,7 @@ const JoinerAccounts = () => {
             display: 'flex', alignItems: 'center', gap: 8,
             background: '#1A0A00', color: '#E8A265', border: 'none', borderRadius: 999,
             padding: '11px 20px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
-            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
             boxShadow: '0 6px 18px rgba(26,10,0,0.22)',
             opacity: (loading || joiners.length === 0) ? 0.5 : 1,
           }}
@@ -181,7 +181,7 @@ const JoinerAccounts = () => {
         </button>
 
         <div style={{ position: 'relative' }}>
-          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.4)' }} />
+          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.75)' }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -204,9 +204,9 @@ const JoinerAccounts = () => {
         overflow: 'hidden',
       }}>
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
             <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading joiners…</span>
+            <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading joiners…</span>
           </div>
         ) : filtered.length === 0 ? (
           query ? (
@@ -226,8 +226,8 @@ const JoinerAccounts = () => {
                 <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
                   {['Joiner', 'Contact', 'Address', 'Bookings', 'Joined', ''].map((h) => (
                     <th key={h} style={{
-                      textAlign: 'left', padding: '14px 20px', fontSize: 10, fontWeight: 800,
-                      letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7,
+                      textAlign: 'left', padding: '14px 20px', fontSize: 11.5, fontWeight: 800,
+                      letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
                     }}>
                       {h}
                     </th>
@@ -257,17 +257,17 @@ const JoinerAccounts = () => {
                         <div>
                           <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{fullName(p)}</p>
                           {p.username && (
-                            <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>@{p.username}</p>
+                            <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>@{p.username}</p>
                           )}
                         </div>
                       </div>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
                       <p style={{ fontSize: 12, color: '#1A0A00', margin: 0 }}>{p.email || '—'}</p>
-                      <p style={{ fontSize: 11.5, color: '#7A3A18', opacity: 0.7, margin: '2px 0 0' }}>{p.phone_number || '—'}</p>
+                      <p style={{ fontSize: 11.5, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{p.phone_number || '—'}</p>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <p style={{ fontSize: 12, color: '#1A0A00', opacity: 0.85, margin: 0 }}>{p.address || '—'}</p>
+                      <p style={{ fontSize: 12, color: '#1A0A00', opacity: 0.9, margin: 0 }}>{p.address || '—'}</p>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
                       <span style={{
@@ -279,7 +279,7 @@ const JoinerAccounts = () => {
                       </span>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                         {formatDate(p.created_at)}
                       </p>
                     </td>
@@ -318,7 +318,7 @@ const JoinerAccounts = () => {
               onClick={() => setSelected(null)}
               style={{
                 position: 'absolute', top: 18, right: 18, background: 'none', border: 'none',
-                cursor: 'pointer', color: 'rgba(122,58,24,0.5)',
+                cursor: 'pointer', color: 'rgba(122,58,24,0.75)',
               }}
             >
               <X size={20} />
@@ -337,7 +337,7 @@ const JoinerAccounts = () => {
               <div>
                 <p style={{ fontWeight: 900, fontSize: 17, color: '#1A0A00', margin: 0 }}>{fullName(selected)}</p>
                 {selected.username && (
-                  <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0' }}>@{selected.username}</p>
+                  <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>@{selected.username}</p>
                 )}
               </div>
             </div>
@@ -368,7 +368,7 @@ const JoinerAccounts = () => {
               )}
 
               {!selected.email ? (
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                   This joiner has no email address on file.
                 </p>
               ) : !composing ? (
@@ -378,14 +378,14 @@ const JoinerAccounts = () => {
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     background: '#1A0A00', color: '#E8A265', border: 'none', borderRadius: 12,
                     padding: '12px 0', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
-                    fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                   }}
                 >
                   <Mail size={14} /> Send Email to Joiner
                 </button>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>
                     Email to {selected.email}
                   </p>
                   <input
@@ -418,7 +418,7 @@ const JoinerAccounts = () => {
                     />
                     Also show it in their in-app notifications
                   </label>
-                  <p style={{ fontSize: 10.5, fontWeight: 600, color: '#7A3A18', opacity: 0.65, margin: 0 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                     Sent from bandangibayo@gmail.com — the joiner can reply directly to that address.
                   </p>
                   <div style={{ display: 'flex', gap: 10 }}>
@@ -428,7 +428,7 @@ const JoinerAccounts = () => {
                       style={{
                         flex: 1, padding: '12px 0', background: '#F2E4D0', color: '#7A3A18',
                         border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, cursor: 'pointer',
-                        fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                        fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                       }}
                     >
                       Cancel
@@ -440,7 +440,7 @@ const JoinerAccounts = () => {
                         flex: 1.6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         padding: '12px 0', background: '#C45C26', color: '#FDF6EE', border: 'none',
                         borderRadius: 999, cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
-                        fontWeight: 900, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                        fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                         boxShadow: '0 6px 20px rgba(196,92,38,0.35)', opacity: sending ? 0.6 : 1,
                       }}
                     >
@@ -554,8 +554,8 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
     fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
   };
   const labelStyle = {
-    display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em',
-    textTransform: 'uppercase', color: '#7A3A18', opacity: 0.8, marginBottom: 6,
+    display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
+    textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 6,
   };
 
   return (
@@ -583,12 +583,12 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
             </div>
             <div>
               <h3 style={{ fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0, letterSpacing: '-0.02em' }}>Email a Joiner</h3>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.75, margin: '2px 0 0' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
                 Choose who to message — sent from bandangibayo@gmail.com
               </p>
             </div>
           </div>
-          <button onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.5)' }}>
+          <button onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.75)' }}>
             <X size={20} />
           </button>
         </div>
@@ -615,14 +615,14 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               <button
                 onClick={toggleAllVisible}
                 disabled={sending || visible.length === 0}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C45C26', fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C45C26', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}
               >
                 {allVisiblePicked ? 'Clear shown' : 'Select all shown'}
               </button>
             </div>
 
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.4)' }} />
+              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.75)' }} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -633,7 +633,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
 
             <div style={{ maxHeight: 210, overflowY: 'auto', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 14, background: '#FFFBF6' }}>
               {visible.length === 0 ? (
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.6, textAlign: 'center', padding: '1.25rem 0', margin: 0 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, textAlign: 'center', padding: '1.25rem 0', margin: 0 }}>
                   No joiners found.
                 </p>
               ) : visible.map((p) => {
@@ -657,14 +657,14 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fullName(p)}</p>
-                      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '1px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.email}</p>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '1px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.email}</p>
                     </div>
                   </label>
                 );
               })}
             </div>
             {noEmailCount > 0 && (
-              <p style={{ fontSize: 10.5, fontWeight: 600, color: '#7A3A18', opacity: 0.65, margin: '6px 0 0' }}>
+              <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
                 {noEmailCount} joiner{noEmailCount !== 1 ? 's have' : ' has'} no email on file and can't be selected.
               </p>
             )}
@@ -700,7 +700,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
             style={{
               flex: 1, padding: '12px 0', background: '#FDF6EE', color: '#7A3A18',
               border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, cursor: 'pointer',
-              fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+              fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
             }}
           >
             Close
@@ -712,7 +712,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               flex: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               padding: '12px 0', background: '#C45C26', color: '#FDF6EE', border: 'none', borderRadius: 999,
               cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 900,
-              fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+              fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
               boxShadow: '0 6px 20px rgba(196,92,38,0.35)', opacity: sending ? 0.7 : 1,
             }}
           >
@@ -731,7 +731,7 @@ const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
     <span style={{ color: '#C45C26', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>
+      <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
         {label}
       </p>
       <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '3px 0 0' }}>

@@ -49,7 +49,7 @@ const labelStyle = {
   textTransform: 'uppercase',
   color: '#7A3A18',
   marginBottom: 7,
-  opacity: 0.85,
+  opacity: 0.9,
 };
 
 const Field = ({ label, icon, children }) => (
@@ -280,9 +280,9 @@ const ProfileSettings = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
         <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading profile…</span>
+        <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading profile…</span>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -294,7 +294,7 @@ const ProfileSettings = () => {
         <h2 style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
           Profile Settings
         </h2>
-        <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.7, margin: '4px 0 0' }}>
+        <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
           Manage your account information and preferences
         </p>
       </div>
@@ -331,7 +331,7 @@ const ProfileSettings = () => {
 
         <div style={{ flex: 1, minWidth: 180 }}>
           <p style={{ fontWeight: 900, fontSize: 17, color: '#1A0A00', margin: 0 }}>{fullName}</p>
-          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.7, margin: '3px 0 0' }}>{profile?.email}</p>
+          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>{profile?.email}</p>
 
           <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
             <button
@@ -377,7 +377,7 @@ const ProfileSettings = () => {
         border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
       }}>
         <h3 style={{ fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>Personal Information</h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.65, margin: '4px 0 20px' }}>
+        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 20px' }}>
           Update your personal details and click Save Changes below.
         </p>
 

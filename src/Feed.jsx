@@ -306,7 +306,7 @@ const Feed = ({ isAdmin = false }) => {
           <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
             Community Feed
           </h2>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
             Updates, announcements &amp; newly posted tours
           </p>
         </div>
@@ -372,8 +372,8 @@ const Feed = ({ isAdmin = false }) => {
               onClick={() => fileInputRef.current?.click()}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-                fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#7A3A18', opacity: 0.75,
+                fontSize: 11.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: '#7A3A18', opacity: 0.9,
                 background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
               }}
             >
@@ -410,9 +410,9 @@ const Feed = ({ isAdmin = false }) => {
 
       {/* feed list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.35)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
           <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading feed…</span>
+          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading feed…</span>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       ) : posts.length === 0 ? (
@@ -491,12 +491,12 @@ const FeedPostCard = ({
               {post.author?.role === 'admin' && (
                 <span style={{
                   marginLeft: 8, background: '#C45C26', color: '#FDF6EE',
-                  fontSize: 8, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
                   borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle',
                 }}>Admin</span>
               )}
             </p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '3px 0 0' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
               {timeAgo(post.created_at)} {isTourPost && '· New Tour Posted'}
             </p>
           </div>
@@ -571,7 +571,7 @@ const FeedPostCard = ({
             <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {tour.title}
             </p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
               <MapPin size={11} /> {tour.destination}
             </p>
           </div>
@@ -602,7 +602,7 @@ const FeedPostCard = ({
           {comments.length > 0 && (
             <button
               onClick={onToggleComments}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit', opacity: 0.8 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit', opacity: 0.9 }}
             >
               {comments.length} Comment{comments.length !== 1 ? 's' : ''}
             </button>
@@ -694,7 +694,7 @@ const FeedPostCard = ({
                     <p style={{ fontSize: 12.5, color: '#1A0A00', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
                       {c.content}
                     </p>
-                    <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.72, margin: '4px 0 0' }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
                       {timeAgo(c.created_at)}
                     </p>
                   </div>
@@ -731,7 +731,7 @@ const FeedPostCard = ({
               {commenting ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
             </button>
           </div>
-          <p id={`comment-note-${post.id}`} style={{ fontSize: 9.5, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '6px 4px 0' }}>
+          <p id={`comment-note-${post.id}`} style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 4px 0' }}>
             Comments can't be edited or deleted after posting.
           </p>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>

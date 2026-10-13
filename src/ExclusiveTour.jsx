@@ -41,7 +41,7 @@ const inputStyle = {
 };
 
 const labelStyle = {
-  fontSize: 10,
+  fontSize: 11.5,
   fontWeight: 900,
   textTransform: 'uppercase',
   letterSpacing: '0.18em',
@@ -183,7 +183,7 @@ const SuccessScreen = ({ type, onReset }) => (
       <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
         {type === 'exclusive' ? 'Exclusive Booking Submitted!' : 'Tour Request Sent!'}
       </h3>
-      <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 8, maxWidth: 420, lineHeight: 1.6 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, marginTop: 8, maxWidth: 420, lineHeight: 1.6 }}>
         {type === 'exclusive'
           ? "Our team will review your exclusive booking and reach out within 24 hours to confirm your itinerary and pricing. You'll also get a notification here once it's reviewed."
           : "Your destination request has been forwarded to the Bandang IBAYO team. You'll get a notification here once they've reviewed it."}
@@ -294,7 +294,7 @@ const ExclusiveTourForm = () => {
           <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
             Private Group Booking
           </p>
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
             Exclusive tours reserve the entire vehicle and itinerary just for your group. No other joiners. 
             The agency handles all coordination — accommodation, van, guide. You pay all-in.
           </p>
@@ -303,8 +303,8 @@ const ExclusiveTourForm = () => {
  
       {/* Personal Info */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>1</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>1</span>
           Contact Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -316,8 +316,8 @@ const ExclusiveTourForm = () => {
  
       {/* Trip Details */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>2</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>2</span>
           Trip Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -364,7 +364,7 @@ const ExclusiveTourForm = () => {
         background: 'rgba(196,92,38,0.08)', border: '1px solid rgba(196,92,38,0.22)',
         borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 6,
       }}>
-        <p style={{ fontSize: 10, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
+        <p style={{ fontSize: 11.5, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
           Policy Reminder
         </p>
         <ul style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
@@ -383,7 +383,7 @@ const ExclusiveTourForm = () => {
           onChange={set('agreeTerms')}
           style={{ marginTop: 3, accentColor: '#C45C26', width: 16, height: 16 }}
         />
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.85, lineHeight: 1.6 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6 }}>
           I have read and agree to the <span style={{ color: '#1A0A00', fontWeight: 900, textDecoration: 'underline' }}>Terms & Conditions</span> and understand the 
           non-refundable payment policy. I also acknowledge the medical disclaimer applicable to overland travel.
         </span>
@@ -488,7 +488,7 @@ const RequestTourForm = () => {
           <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
             Suggest a Destination
           </p>
-          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, marginTop: 4, lineHeight: 1.6, margin: '4px 0 0' }}>
             Don't see your dream destination listed? Request it here. The Bandang IBAYO team will review 
             your suggestion, check availability, and send you a <strong>customized price list</strong>. 
             Approved requests may be opened to other joiners.
@@ -498,8 +498,8 @@ const RequestTourForm = () => {
  
       {/* Personal Info */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>1</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>1</span>
           Your Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -511,8 +511,8 @@ const RequestTourForm = () => {
  
       {/* Destination Details */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <h3 style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>2</span>
+        <h3 style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+          <span style={{ width: 20, height: 20, background: '#C45C26', borderRadius: '50%', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>2</span>
           Destination &amp; Tour Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
@@ -546,7 +546,7 @@ const RequestTourForm = () => {
         background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.14)',
         borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12,
       }}>
-        <p style={{ fontSize: 10, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
+        <p style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>
           What Happens Next?
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -559,14 +559,14 @@ const RequestTourForm = () => {
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <span style={{
                 width: 20, height: 20, background: '#1A0A00', color: '#E8A265',
-                borderRadius: '50%', fontSize: 9, fontWeight: 900, display: 'flex',
+                borderRadius: '50%', fontSize: 11, fontWeight: 900, display: 'flex',
                 alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
               }}>
                 {i + 1}
               </span>
               <div>
                 <p style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{step}</p>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: '2px 0 0' }}>{desc}</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{desc}</p>
               </div>
             </div>
           ))}
@@ -606,7 +606,7 @@ const RequestStatusBadge = ({ status }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center',
       background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 9, fontWeight: 900,
+      padding: '4px 12px', fontSize: 11, fontWeight: 900,
       letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
       {status}
@@ -624,11 +624,11 @@ const formatFullDateTime = (d) => {
 };
 
 // A single labeled block inside the dark "package" panel.
-const PackageDetail = ({ label, icon, color = 'rgba(232,210,190,0.5)', textColor = 'rgba(253,246,238,0.9)', children }) => (
+const PackageDetail = ({ label, icon, color = 'rgba(232,210,190,0.75)', textColor = 'rgba(253,246,238,0.9)', children }) => (
   <div>
     <p style={{
       display: 'flex', alignItems: 'center', gap: 5,
-      fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
+      fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
       color, margin: '0 0 4px',
     }}>
       {icon} {label}
@@ -665,7 +665,7 @@ const RequestHistoryCard = ({ request }) => {
           display: 'inline-flex', alignItems: 'center', gap: 5,
           background: isExclusive ? 'rgba(26,10,0,0.06)' : 'rgba(196,92,38,0.12)',
           color: isExclusive ? '#1A0A00' : '#C45C26',
-          borderRadius: 999, padding: '4px 12px', fontSize: 9, fontWeight: 900,
+          borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
           letterSpacing: '0.12em', textTransform: 'uppercase', flexShrink: 0,
         }}>
           {isExclusive ? <Shield size={11} /> : <Globe size={11} />}
@@ -676,7 +676,7 @@ const RequestHistoryCard = ({ request }) => {
           <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {request.destination || 'Destination TBD'}
           </p>
-          <p style={{ fontSize: 10.5, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
             Submitted {formatShortDate(request.created_at)}
           </p>
         </div>
@@ -684,7 +684,7 @@ const RequestHistoryCard = ({ request }) => {
         {hasPackage && (
           <span style={{
             display: 'flex', alignItems: 'center', gap: 5,
-            fontSize: 9, fontWeight: 900, color: '#C45C26',
+            fontSize: 11, fontWeight: 900, color: '#C45C26',
             letterSpacing: '0.08em', textTransform: 'uppercase', flexShrink: 0,
           }}>
             <FileText size={11} /> Package Ready
@@ -696,7 +696,7 @@ const RequestHistoryCard = ({ request }) => {
         <ChevronDown
           size={16}
           style={{
-            color: 'rgba(122,58,24,0.5)', flexShrink: 0,
+            color: 'rgba(122,58,24,0.75)', flexShrink: 0,
             transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s',
           }}
         />
@@ -714,7 +714,7 @@ const RequestHistoryCard = ({ request }) => {
             }}>
               <p style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                fontSize: 9, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
+                fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
                 color: request.status === 'Rejected' ? '#8C2F1C' : '#C45C26', margin: '0 0 6px',
               }}>
                 <MessageSquare size={11} /> Note from Bandang IBAYO
@@ -723,13 +723,13 @@ const RequestHistoryCard = ({ request }) => {
                 {request.admin_response}
               </p>
               {request.reviewed_at && (
-                <p style={{ fontSize: 9.5, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '8px 0 0' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '8px 0 0' }}>
                   Reviewed {formatFullDateTime(request.reviewed_at)}
                 </p>
               )}
             </div>
           ) : request.status === 'Pending' && (
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
               Still under review — you'll get a notification once our team responds.
             </p>
           )}
@@ -743,12 +743,12 @@ const RequestHistoryCard = ({ request }) => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                 <p style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  fontSize: 10, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
+                  fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
                   color: '#E8A265', margin: 0,
                 }}>
                   <FileText size={13} /> Tour Package Details
                 </p>
-                <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(232,210,190,0.5)' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.85)' }}>
                   Sent {formatFullDateTime(request.package_sent_at)}
                 </span>
               </div>
@@ -756,7 +756,7 @@ const RequestHistoryCard = ({ request }) => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 14 }}>
                 {pkg.price != null && pkg.price !== '' && (
                   <div>
-                    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 3px' }}>
+                    <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 3px' }}>
                       Price
                     </p>
                     <p style={{ fontSize: 19, fontWeight: 900, color: '#E8A265', margin: 0 }}>
@@ -766,7 +766,7 @@ const RequestHistoryCard = ({ request }) => {
                 )}
                 {pkg.accommodation && (
                   <div>
-                    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.5)', margin: '0 0 3px' }}>
+                    <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 3px' }}>
                       Accommodation
                     </p>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#FDF6EE', margin: 0 }}>{pkg.accommodation}</p>
@@ -845,9 +845,9 @@ const MyRequestsSection = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.75)' }}>
         <Loader2 size={18} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading your requests…</span>
+        <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading your requests…</span>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -861,7 +861,7 @@ const MyRequestsSection = () => {
         <h3 style={{ fontSize: 15, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00', margin: '0 0 4px' }}>
           Your Submitted Requests
         </h3>
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Track the status of your exclusive tours and destination requests, plus any updates from our team.
         </p>
       </div>
@@ -898,7 +898,7 @@ const ExclusiveTour = () => {
         <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.15 }}>
           Exclusive &amp; <span style={{ color: '#C45C26' }}>Requested</span> Tours
         </h2>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.8, marginTop: 6, margin: '6px 0 0' }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, marginTop: 6, margin: '6px 0 0' }}>
           Want privacy, a tailored itinerary, or a destination we don't offer yet? You're in the right place.
         </p>
       </div>
@@ -936,13 +936,13 @@ const ExclusiveTour = () => {
                 }}>
                   {tab.label}
                 </p>
-                <p style={{ fontSize: 10.5, fontWeight: 600, margin: '3px 0 0', opacity: active ? 0.7 : 0.65 }}>
+                <p style={{ fontSize: 11.5, fontWeight: 600, margin: '3px 0 0', opacity: active ? 0.7 : 0.65 }}>
                   {tab.sub}
                 </p>
               </div>
               <ChevronRight
                 size={16}
-                style={{ color: active ? '#E8A265' : 'rgba(196,92,38,0.3)', flexShrink: 0 }}
+                style={{ color: active ? '#E8A265' : 'rgba(196,92,38,0.8)', flexShrink: 0 }}
               />
             </button>
           );

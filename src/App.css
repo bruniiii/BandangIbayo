@@ -314,7 +314,7 @@ main {
    tablet breakpoint (900px). */
 @media (max-width: 900px) {
   .responsive-section-grid-2 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
  

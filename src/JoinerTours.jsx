@@ -229,7 +229,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
             transform: 'translateY(-50%)',
 
-            color: 'rgba(122,58,24,0.35)', pointerEvents: 'none',
+            color: 'rgba(122,58,24,0.75)', pointerEvents: 'none',
 
           }} />
 
@@ -267,7 +267,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
           </select>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
 
         </div>
 
@@ -291,7 +291,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
           </select>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
 
         </div>
 
@@ -313,13 +313,13 @@ const JoinerTours = ({ initialTourId = null }) => {
 
             alignItems: 'center', justifyContent: 'center',
 
-            padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
+            padding: '5rem 0', color: 'rgba(122,58,24,0.75)',
 
           }}>
 
             <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
 
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
+            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
 
               Finding Adventures…
 
@@ -425,7 +425,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="" />
 
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={44} /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ImageIcon size={44} /></div>
 
         }
 
@@ -437,7 +437,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             background: 'rgba(253,246,238,0.92)', borderRadius: 999,
 
-            padding: '4px 12px', fontSize: 9, fontWeight: 900,
+            padding: '4px 12px', fontSize: 11, fontWeight: 900,
 
             letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00',
 
@@ -453,7 +453,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             borderRadius: 999, padding: '4px 10px',
 
-            fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
 
           }}>
 
@@ -481,7 +481,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           </div>
 
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
 
             <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
 
@@ -489,13 +489,13 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
               <Calendar size={12} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
 
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, fontWeight: 700, color: isFull ? '#8C2F1C' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? '#8C2F1C' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
               <Users size={12} style={{ color: '#C45C26' }} />
 
@@ -503,7 +503,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
               {isFull && (
 
-                <span style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', fontSize: 7, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
+                <span style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
 
               )}
 
@@ -549,7 +549,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             fontFamily: 'inherit', fontWeight: 900,
 
-            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
 
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
 
@@ -593,7 +593,7 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 
     <h4 style={{
 
-      fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
+      fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
 
       textTransform: 'uppercase', color: titleColor || '#1A0A00',
 
@@ -621,7 +621,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
   if (items.length === 0) {
 
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
 
   }
 
@@ -681,7 +681,7 @@ const ItineraryTimeline = ({ text }) => {
 
   if (rawLines.length === 0) {
 
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
 
   }
 
@@ -755,7 +755,7 @@ const ItineraryTimeline = ({ text }) => {
 
               display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
 
-              borderRadius: 999, padding: '4px 12px', fontSize: 9, fontWeight: 900,
+              borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
 
               letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
 
@@ -911,7 +911,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
         ) : (
 
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}>
 
             <ImageIcon size={40} />
 
@@ -1222,7 +1222,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                     background: 'none', border: 'none', cursor: 'pointer',
 
-                    color: 'rgba(122,58,24,0.5)',
+                    color: 'rgba(122,58,24,0.75)',
 
                 }}><X size={28} /></button>
 
@@ -1316,7 +1316,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                     borderRadius: 999, padding: '4px 14px',
 
-                                    fontSize: 9, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
+                                    fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
 
                                     color: '#1A0A00', width: 'fit-content',
 
@@ -1356,11 +1356,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                     <label style={{
 
-                                        display: 'block', fontSize: 9, fontWeight: 800,
+                                        display: 'block', fontSize: 11, fontWeight: 800,
 
                                         letterSpacing: '0.2em', textTransform: 'uppercase',
 
-                                        color: '#7A3A18', opacity: 0.7, marginBottom: 6,
+                                        color: '#7A3A18', opacity: 0.9, marginBottom: 6,
 
                                     }}>Number of Persons</label>
 
@@ -1400,7 +1400,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         </select>
 
-                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(196,92,38,0.5)' }} />
+                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(196,92,38,0.75)' }} />
 
                                     </div>
 
@@ -1430,7 +1430,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
 
-                                        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7 }}>Total</span>
+                                        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>Total</span>
 
                                         <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>{formatPeso(subtotal)}</span>
 
@@ -1440,7 +1440,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                 {isFullyBooked && (
 
-                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(tour.price)} per person</p>
+                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(tour.price)} per person</p>
 
                                 )}
 
@@ -1579,7 +1579,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         <div>
 
-                                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>
+                                            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>
 
                                                 Important Note
 
@@ -1698,17 +1698,17 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
               <ArrowLeft size={14} /> Back
             </button>
 
-            <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 2</span>
+            <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 1 of 2</span>
 
           </div>
 
           <div>
 
-            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 4px' }}>Booking Preview</p>
+            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 4px' }}>Booking Preview</p>
 
             <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
 
@@ -1740,7 +1740,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
 
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.8 }}>Price per person</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Price per person</span>
 
               <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>{formatPeso(tour.price)}</span>
 
@@ -1812,13 +1812,13 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
 
                     <ArrowLeft size={14} /> Back
 
                 </button>
 
-                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 2 of 2</span>
+                <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 2 of 2</span>
 
             </div>
 
@@ -1826,8 +1826,8 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                 <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
 
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '6px 0 0' }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
                     You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for 30 minutes.
                 </p>
                 <p style={{ fontSize: 11, fontWeight: 800, color: '#8C2F1C', margin: '8px 0 0' }}>
@@ -1855,7 +1855,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
 
                         <Check size={16} style={{ color: '#E8A265' }} />
 
@@ -1863,7 +1863,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>{formatPeso(subtotal)}</p>
 
-                    <p style={{ fontSize: 11, opacity: 0.6, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
+                    <p style={{ fontSize: 11, opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
 
                 </button>
 
@@ -1884,15 +1884,15 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
 
-                        <span style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
 
                     </div>
 
                     <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
+                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
 
@@ -1926,12 +1926,12 @@ const CompanionFields = ({ companions, onChange, error }) => {
     };
     return (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                 Who's joining you?
             </p>
             {companions.map((c, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: '#C45C26' }}>Person {i + 2}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: '#C45C26' }}>Person {i + 2}</span>
                     <input
                         aria-label={`Person ${i + 2} full name`}
                         placeholder="Full name"

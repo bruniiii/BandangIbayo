@@ -32,7 +32,7 @@ const labelStyle = {
   textTransform: 'uppercase',
   color: '#7A3A18',
   marginBottom: 6,
-  opacity: 0.85,
+  opacity: 0.9,
 };
 
 const ForgotPassword = () => {
@@ -80,7 +80,7 @@ const ForgotPassword = () => {
           <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
             Reset Your Password
           </h1>
-          <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.75, margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {sent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}
           </p>
         </div>
@@ -149,7 +149,7 @@ const ForgotPassword = () => {
         )}
 
         {!sent && (
-          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.8 }}>
+          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.9 }}>
             Remembered it?{' '}
             <Link className="text-link" to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
               Log in

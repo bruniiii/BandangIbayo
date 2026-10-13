@@ -291,7 +291,7 @@ const JoinerRegister = () => {
     textTransform: 'uppercase',
     color: '#7A3A18',
     marginBottom: 6,
-    opacity: 0.85,
+    opacity: 0.9,
   };
 
   const fieldIconStyle = {
@@ -390,7 +390,7 @@ const JoinerRegister = () => {
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
                 color: '#7A3A18',
-                opacity: 0.65,
+                opacity: 0.9,
               }}
             >
               {needsEmailConfirmation
@@ -477,7 +477,7 @@ const JoinerRegister = () => {
             height: 44,
             justifyContent: 'center',
             borderRadius: 12,
-            color: 'rgba(122,58,24,0.6)',
+            color: 'rgba(122,58,24,0.75)',
             display: 'flex',
             alignItems: 'center',
           }}
@@ -521,7 +521,7 @@ const JoinerRegister = () => {
             style={{
               fontSize: 14,
               color: '#7A3A18',
-              opacity: 0.75,
+              opacity: 0.9,
               margin: 0,
               fontWeight: 500,
             }}
@@ -603,7 +603,7 @@ const JoinerRegister = () => {
                     borderRadius: 10,
                     cursor: 'pointer',
                     fontWeight: 900,
-                    fontSize: 10,
+                    fontSize: 11.5,
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
                   }}
@@ -633,7 +633,7 @@ const JoinerRegister = () => {
                       borderRadius: 10,
                       cursor: 'pointer',
                       fontWeight: 800,
-                      fontSize: 10,
+                      fontSize: 11.5,
                       textTransform: 'uppercase',
                     }}
                   >
@@ -646,7 +646,7 @@ const JoinerRegister = () => {
                 style={{
                   fontSize: 11,
                   color: '#7A3A18',
-                  opacity: 0.65,
+                  opacity: 0.9,
                   margin: '8px 0 0',
                 }}
               >
@@ -1013,7 +1013,7 @@ const JoinerRegister = () => {
             marginTop: '1.5rem',
             fontSize: 13,
             color: '#7A3A18',
-            opacity: 0.8,
+            opacity: 0.9,
           }}
         >
           Already have an account?{' '}
@@ -1122,7 +1122,7 @@ const TermsModal = ({ onClose, onAgree }) => (
 
             <p
               style={{
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: 800,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
@@ -1141,7 +1141,7 @@ const TermsModal = ({ onClose, onAgree }) => (
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: 'rgba(232,210,190,0.5)',
+            color: 'rgba(232,210,190,0.75)',
           }}
         >
           <X size={22} />
@@ -1263,7 +1263,7 @@ const TermsModal = ({ onClose, onAgree }) => (
             cursor: 'pointer',
             fontFamily: 'inherit',
             fontWeight: 900,
-            fontSize: 10,
+            fontSize: 11.5,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: '#7A3A18',
@@ -1283,7 +1283,7 @@ const TermsModal = ({ onClose, onAgree }) => (
             cursor: 'pointer',
             fontFamily: 'inherit',
             fontWeight: 900,
-            fontSize: 10,
+            fontSize: 11.5,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
             color: '#FDF6EE',
@@ -1301,7 +1301,7 @@ const TermsSection = ({ title, children }) => (
   <div style={{ marginBottom: 22 }}>
     <h4
       style={{
-        fontSize: 10.5,
+        fontSize: 11.5,
         fontWeight: 900,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',

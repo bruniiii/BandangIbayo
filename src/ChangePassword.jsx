@@ -19,7 +19,7 @@ const inputStyle = {
 
 const labelStyle = {
   display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
-  textTransform: 'uppercase', color: '#7A3A18', marginBottom: 7, opacity: 0.85,
+  textTransform: 'uppercase', color: '#7A3A18', marginBottom: 7, opacity: 0.9,
 };
 
 // Password box with an eye button that shows or hides what's typed.
@@ -92,7 +92,7 @@ const ChangePassword = () => {
         <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>
           <KeyRound size={17} style={{ color: '#C45C26' }} /> Change Password
         </h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.65, margin: '4px 0 0' }}>
+        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
           Enter your current password, then choose a new one.
         </p>
       </div>

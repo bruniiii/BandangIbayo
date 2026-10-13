@@ -148,7 +148,7 @@ const TourCalendar = ({ initialDate }) => {
  
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 14, textAlign: 'center', borderBottom: '1px solid rgba(196,92,38,0.1)', paddingBottom: 12 }}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} style={{ fontSize: 10, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
+              <div key={day} style={{ fontSize: 11.5, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
             ))}
           </div>
  
@@ -188,7 +188,7 @@ const TourCalendar = ({ initialDate }) => {
                   {dayTours.length > 0 && !isPast && (
                     <div style={{ marginTop: 'auto' }}>
                       <div style={{
-                        fontSize: 8,
+                        fontSize: 11,
                         fontWeight: 900,
                         textTransform: 'uppercase',
                         padding: '2px 6px',
@@ -220,7 +220,7 @@ const TourCalendar = ({ initialDate }) => {
             flexDirection: 'column',
             textAlign: 'left'
           }}>
-            <p style={{ fontSize: 9, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
+            <p style={{ fontSize: 11, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
             <h3 style={{ fontSize: 24, fontWeight: 900, color: '#FDF6EE', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {loading ? (
@@ -235,16 +235,16 @@ const TourCalendar = ({ initialDate }) => {
                     transition: 'all 0.2s'
                   }}>
                     <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: '#FDF6EE', margin: '0 0 8px' }}>{tour.title}</h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, color: 'rgba(232,210,190,0.7)', marginBottom: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(232,210,190,0.85)', marginBottom: 4 }}>
                       <MapPin size={12} style={{ color: '#C45C26' }} /> {tour.destination}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 700, marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, marginBottom: 12 }}>
                       <Users size={12} style={{ color: '#C45C26' }} />
                       <span style={{ color: tour.available_slots > 0 ? '#FDF6EE' : '#8C2F1C' }}>
                         {tour.current_booked}/{tour.group_size} Booked
                       </span>
                       {tour.available_slots <= 0 && (
-                        <span style={{ background: '#8C2F1C', color: '#FDF6EE', fontSize: 7, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
+                        <span style={{ background: '#8C2F1C', color: '#FDF6EE', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
                       )}
                     </div>
                     {/* Slot bar */}
@@ -269,7 +269,7 @@ const TourCalendar = ({ initialDate }) => {
                           border: 'none',
                           padding: '7px 14px',
                           borderRadius: 10,
-                          fontSize: 9,
+                          fontSize: 11,
                           fontWeight: 900,
                           textTransform: 'uppercase',
                           letterSpacing: '0.1em',
@@ -289,7 +289,7 @@ const TourCalendar = ({ initialDate }) => {
                 ))
               ) : (
                 <div style={{
-                  padding: '3rem 1rem', textAlign: 'center', color: 'rgba(232,210,190,0.4)', fontStyle: 'italic',
+                  padding: '3rem 1rem', textAlign: 'center', color: 'rgba(232,210,190,0.85)', fontStyle: 'italic',
                   fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
                 }}>
                   No tours scheduled.

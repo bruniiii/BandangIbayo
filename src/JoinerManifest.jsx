@@ -121,7 +121,7 @@ const JoinerListModal = ({ tour, onClose }) => {
       <div style={{ position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 820, maxHeight: '90vh', borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '8px solid #C45C26' }}>
         <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(196,92,38,0.15)' }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: 0 }}>Joiner List</p>
+            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: 0 }}>Joiner List</p>
             <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', margin: '4px 0 2px', overflowWrap: 'anywhere' }}>{tour.title}</h3>
             <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{formatDateRange(tour.start_date, tour.duration)}</p>
           </div>
@@ -163,7 +163,7 @@ const JoinerListModal = ({ tour, onClose }) => {
                   <thead>
                     <tr>
                       {['#', 'Name', 'Contact', 'Booking', 'Booked / with', 'Payment', 'Balance'].map((h) => (
-                        <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: '#F2E4D0', color: '#7A3A18', fontSize: 9, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: '#F2E4D0', color: '#7A3A18', fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -198,7 +198,7 @@ const cell = { padding: '8px 10px', color: '#7A3A18', fontWeight: 600, whiteSpac
 const actionButton = (bg) => ({
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px',
   background: bg, color: '#FDF6EE', border: 'none', borderRadius: 12, cursor: 'pointer',
-  fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase',
+  fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
 });
 
 export default JoinerListModal;

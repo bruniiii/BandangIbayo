@@ -185,7 +185,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
               <span style={{
                 position: 'absolute', top: -4, right: -4,
                 minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-                background: '#C45C26', color: '#FDF6EE', fontSize: 9, fontWeight: 900,
+                background: '#C45C26', color: '#FDF6EE', fontSize: 11, fontWeight: 900,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 2px 8px rgba(196,92,38,0.4)',
               }}>
@@ -197,7 +197,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
             <h2 style={{ fontWeight: 900, fontSize: 18, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
               Notifications
             </h2>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
               {isAdmin ? 'Every activity across bookings, requests, reviews & more' : 'Updates on your bookings, requests & account'}
             </p>
           </div>
@@ -211,7 +211,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
                 display: 'flex', alignItems: 'center', gap: 6,
                 background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999,
                 padding: '9px 16px', cursor: 'pointer', color: '#7A3A18', fontFamily: 'inherit',
-                fontWeight: 900, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
+                fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
               }}
             >
               <CheckCheck size={13} /> Mark all read
@@ -225,7 +225,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'rgba(140,47,28,0.08)', border: 'none', borderRadius: 999,
               padding: '9px 12px', cursor: notifications.length ? 'pointer' : 'default',
-              color: '#8C2F1C', fontFamily: 'inherit', fontWeight: 900, fontSize: 10,
+              color: '#8C2F1C', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
               letterSpacing: '0.08em', textTransform: 'uppercase', opacity: notifications.length ? 1 : 0.4,
             }}
           >
@@ -243,7 +243,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
               onClick={() => setTab(key)}
               style={{
                 padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                fontFamily: 'inherit', fontWeight: 900, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
                 background: tab === key ? '#1A0A00' : 'transparent',
                 color: tab === key ? '#FDF6EE' : '#7A3A18',
                 transition: 'all 0.15s',
@@ -261,15 +261,15 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
               <option key={t} value={t}>{metaFor(t).label}</option>
             ))}
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.4)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
         </div>
       </div>
 
       {/* list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.4)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
           <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading notifications…</span>
+          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading notifications…</span>
         </div>
       ) : filtered.length === 0 ? (
         tab === 'unread' ? (
@@ -341,8 +341,8 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
 const NotificationSection = ({ title, items, menuOpenId, setMenuOpenId, menuRef, onOpen, onDelete }) => (
   <div>
     <h3 style={{
-      fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
-      color: '#7A3A18', opacity: 0.6, margin: '0 0 10px',
+      fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
+      color: '#7A3A18', opacity: 0.9, margin: '0 0 10px',
     }}>
       {title}
     </h3>
@@ -390,12 +390,12 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{notification.title}</p>
         <p style={{
-          fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '4px 0 0', lineHeight: 1.5,
+          fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
           {notification.message}
         </p>
-        <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.55, margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={10} /> {timeAgo(notification.created_at)}
         </p>
       </div>
@@ -406,7 +406,7 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleMenu(); }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.5)', padding: 4 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.75)', padding: 4 }}
         >
           <MoreHorizontal size={16} />
         </button>

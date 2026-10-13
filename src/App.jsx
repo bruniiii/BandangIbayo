@@ -122,7 +122,7 @@ function LandingPage() {
  
           <p style={{
             fontSize: 17, lineHeight: 1.75, fontWeight: 500, marginBottom: 44,
-            color: 'rgba(232,210,190,0.72)', maxWidth: 420,
+            color: 'rgba(232,210,190,0.85)', maxWidth: 420,
           }}>
             Join group tours across the Philippines. Share the ride, split the cost, and discover more places.
           </p>
@@ -240,7 +240,7 @@ function LandingPage() {
             <div>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C45C26' }}>Live Now</span>
               <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', margin: '8px 0 4px' }}>Upcoming Adventures</h2>
-              <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Verified joiner packages, updated in real time.</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>Verified joiner packages, updated in real time.</p>
             </div>
             <Link className="text-link" to="/tours" style={{ fontWeight: 900, fontSize: 14, color: '#C45C26', textDecoration: 'none', letterSpacing: '0.04em' }}>
               Explore All →
@@ -250,7 +250,7 @@ function LandingPage() {
           {loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: '#C45C26' }}>
               <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={36}/>
-              <p style={{ marginTop: 16, fontWeight: 800, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6 }}>Syncing Tours…</p>
+              <p style={{ marginTop: 16, fontWeight: 800, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>Syncing Tours…</p>
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : tours.length > 0 ? (
@@ -287,7 +287,7 @@ function LandingPage() {
                           [<Clock size={15}/>, tour.duration],
                           [<Users size={15}/>, `${tour.group_size} max pax`],
                         ].map(([icon, text], i) => (
-                          <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: '#7A3A18', margin: 0, opacity: 0.85 }}>
+                          <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: '#7A3A18', margin: 0, opacity: 0.9 }}>
                             <span style={{ color: '#C45C26' }}>{icon}</span>{text}
                           </p>
                         ))}
@@ -295,7 +295,7 @@ function LandingPage() {
                     </div>
                     {/* Price on its own line, full-width button below, so long prices never squeeze the button. */}
                     <div style={{ paddingTop: 20, marginTop: 22, borderTop: '1px solid rgba(196,92,38,0.1)' }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, marginBottom: 2 }}>Starting at</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 2 }}>Starting at</div>
                       <div style={{ fontSize: 26, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>{formatPeso(tour.price)}</div>
                       <Link to={`/tours/${tour.id}`} className="btn-primary" style={{
                         position: 'relative', zIndex: 2,
@@ -311,7 +311,7 @@ function LandingPage() {
             </div>
           ) : (
             <div style={{ padding: '5rem', textAlign: 'center', borderRadius: 24, border: '2px dashed rgba(196,92,38,0.25)', background: 'rgba(253,246,238,0.5)' }}>
-              <p style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', opacity: 0.6, margin: 0 }}>Check back soon for new dates!</p>
+              <p style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', opacity: 0.9, margin: 0 }}>Check back soon for new dates!</p>
             </div>
           )}
         </div>
@@ -326,7 +326,7 @@ function LandingPage() {
           <h2 style={{ fontWeight: 900, fontSize: 'clamp(2.2rem,4vw,3.5rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginBottom: 20, lineHeight: 1.1 }}>
             What is a Joiner Tour?
           </h2>
-          <p style={{ fontSize: 18, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', opacity: 0.85 }}>
+          <p style={{ fontSize: 18, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', opacity: 0.9 }}>
             A Joiner is a solo traveler or small group who shares a tour package with others — splitting transport and accommodation costs so you can explore more without spending more. Check live seat availability, full pricing, and itinerary details all in one place.
           </p>
         </div>
@@ -339,7 +339,7 @@ function LandingPage() {
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>
               Choose Your Tour Type
             </h2>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.7 }}>Solo, barkada, or custom — there's a fit for every kind of traveler.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9 }}>Solo, barkada, or custom — there's a fit for every kind of traveler.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px,1fr))', gap: 24 }}>
             {[
@@ -357,9 +357,9 @@ function LandingPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', margin: 0 }}>{t.title}</h3>
-                  <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: t.accent, background: `${t.accent}15`, padding: '3px 10px', borderRadius: 999 }}>{t.tag}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: t.accent, background: `${t.accent}15`, padding: '3px 10px', borderRadius: 999 }}>{t.tag}</span>
                 </div>
-                <p style={{ fontSize: 15, lineHeight: 1.7, color: '#7A3A18', margin: 0, opacity: 0.85 }}>{t.desc}</p>
+                <p style={{ fontSize: 15, lineHeight: 1.7, color: '#7A3A18', margin: 0, opacity: 0.9 }}>{t.desc}</p>
               </div>
             ))}
           </div>
@@ -372,7 +372,7 @@ function LandingPage() {
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C45C26' }}>Simple Process</span>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>How to Book</h2>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.7 }}>No more chaotic Facebook threads. Confirm your seat in minutes.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9 }}>No more chaotic Facebook threads. Confirm your seat in minutes.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 32 }}>
             {[
@@ -391,7 +391,7 @@ function LandingPage() {
                 <div>
                   <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', color: '#C45C26', textTransform: 'uppercase' }}>{s.num}</span>
                   <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', margin: '4px 0 8px' }}>{s.title}</h3>
-                  <p style={{ fontSize: 15, lineHeight: 1.7, color: '#7A3A18', margin: 0, opacity: 0.85 }}>{s.desc}</p>
+                  <p style={{ fontSize: 15, lineHeight: 1.7, color: '#7A3A18', margin: 0, opacity: 0.9 }}>{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -420,7 +420,7 @@ function LandingPage() {
                   </div>
                   <div>
                     <h4 style={{ fontWeight: 900, fontSize: 16, color: '#FDF6EE', margin: '0 0 4px' }}>{item.title}</h4>
-                    <p style={{ fontSize: 14, lineHeight: 1.65, color: 'rgba(232,210,190,0.55)', margin: 0 }}>{item.text}</p>
+                    <p style={{ fontSize: 14, lineHeight: 1.65, color: 'rgba(232,210,190,0.85)', margin: 0 }}>{item.text}</p>
                   </div>
                 </div>
               ))}
@@ -430,14 +430,14 @@ function LandingPage() {
           {/* safety card */}
           <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(232,162,101,0.14)', borderRadius: 28, padding: '40px 36px' }}>
             <h3 style={{ fontWeight: 900, fontSize: 24, color: '#E8A265', margin: '0 0 16px' }}>Safety & Transparency</h3>
-            <p style={{ fontSize: 15, lineHeight: 1.75, color: 'rgba(232,210,190,0.7)', marginBottom: 28 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.75, color: 'rgba(232,210,190,0.85)', marginBottom: 28 }}>
               Building trust is our priority, especially for solo travelers. Organizer accountability details are always visible, and medical term acceptance is required before every booking.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
               {['Non-refundable deposit policy protects both parties.', 'Automatic email reminder sent 24 hours before departure.'].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                   <CheckCircle size={17} style={{ color: '#E8A265', flexShrink: 0, marginTop: 2 }}/>
-                  <p style={{ fontSize: 14, lineHeight: 1.65, color: 'rgba(232,210,190,0.6)', margin: 0 }}>{item}</p>
+                  <p style={{ fontSize: 14, lineHeight: 1.65, color: 'rgba(232,210,190,0.85)', margin: 0 }}>{item}</p>
                 </div>
               ))}
             </div>
@@ -479,7 +479,7 @@ function LandingPage() {
             <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', margin: '0 0 20px' }}>Contact Our Coordinator</h3>
             <div style={{ background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.2)', borderRadius: 16, padding: '16px 20px', marginBottom: 24 }}>
               <p style={{ fontWeight: 800, fontSize: 13, color: '#C45C26', margin: '0 0 4px' }}>For Exclusive & Request Tours Only</p>
-              <p style={{ fontSize: 13, color: '#7A3A18', margin: 0, opacity: 0.8 }}>Joiner tours can be booked directly on the platform.</p>
+              <p style={{ fontSize: 13, color: '#7A3A18', margin: 0, opacity: 0.9 }}>Joiner tours can be booked directly on the platform.</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
@@ -503,7 +503,7 @@ function LandingPage() {
           />
           <span style={{ fontWeight: 900, fontSize: 13, color: '#1A0A00', letterSpacing: '-0.02em' }}>Bandang <span style={{ color: '#C45C26' }}>IBAYO</span></span>
         </div>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.5, margin: 0 }}>
+        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           © 2026 
         </p>
       </footer>
