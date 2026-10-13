@@ -77,3 +77,10 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
 @media (pointer: coarse) {
   .cal-day { height: 40px !important; min-width: 0 !important; }
 }
+
+/* Joiner homepage: the tour row scrolls sideways; keep a slim, visible bar. */
+.tour-packages-scroll { scrollbar-width: thin; scrollbar-color: rgba(180,81,30,0.45) transparent; }
+.tour-packages-scroll::-webkit-scrollbar { height: 8px; }
+.tour-packages-scroll::-webkit-scrollbar-track { background: rgba(180,81,30,0.08); border-radius: 999px; }
+.tour-packages-scroll::-webkit-scrollbar-thumb { background: rgba(180,81,30,0.45); border-radius: 999px; }
+.tour-packages-scroll::-webkit-scrollbar-thumb:hover { background: rgba(180,81,30,0.7); }

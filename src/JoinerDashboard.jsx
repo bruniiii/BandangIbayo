@@ -134,11 +134,24 @@ const JoinerDashboard = () => {
 
   const sidebarExpanded = isMobile ? true : sidebarHovered;
 
-  const scrollTours = (direction) => {
-    if (tourScrollRef.current) {
-      tourScrollRef.current.scrollBy({ left: direction * 250, behavior: 'smooth' });
-    }
-  };
+  // Mouse wheel over the tour row scrolls it sideways (until it reaches an
+  // end, then the page scrolls as usual). Trackpads and touch already swipe.
+  useEffect(() => {
+    const row = tourScrollRef.current;
+    if (!row) return undefined;
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const max = row.scrollWidth - row.clientWidth;
+      if (max <= 0) return;
+      const atStart = row.scrollLeft <= 0 && e.deltaY < 0;
+      const atEnd = row.scrollLeft >= max - 1 && e.deltaY > 0;
+      if (atStart || atEnd) return;
+      e.preventDefault();
+      row.scrollLeft += e.deltaY;
+    };
+    row.addEventListener('wheel', onWheel, { passive: false });
+    return () => row.removeEventListener('wheel', onWheel);
+  }, [activeTab, featuredTours.length]);
 
   const handleNavClick = (label) => {
     setBookTourId(null);
@@ -299,7 +312,7 @@ const JoinerDashboard = () => {
         .select('*')
         .eq('is_archived', false)
         .order('start_date', { ascending: true })
-        .limit(4);
+        .limit(12);
 
       const updatedTours = await withAvailableSlots(toursData);
 
@@ -699,7 +712,6 @@ const JoinerDashboard = () => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>Latest Tour Packages</h3>
-                    {/* "See More" sits with the ‹ › arrows */}
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <button
                         type="button"
@@ -709,31 +721,13 @@ const JoinerDashboard = () => {
                       >
                         See more
                       </button>
-                    {featuredTours.length > 1 && (
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          onClick={() => scrollTours(-1)}
-                          aria-label="Previous tours"
-                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(180,81,30,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <ChevronLeft size={14} />
-                        </button>
-                        <button
-                          onClick={() => scrollTours(1)}
-                          aria-label="Next tours"
-                          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid rgba(180,81,30,0.2)', background: '#FDF6EE', cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          <ChevronRight size={14} />
-                        </button>
-                      </div>
-                    )}
                     </div>
                   </div>
 
                   <div
                     ref={tourScrollRef}
                     className="tour-packages-scroll"
-                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: 4 }}
+                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', paddingBottom: 12 }}
                   >
                     {featuredTours.map((tour) => {
                       const isFull = tour.available_slots <= 0;
