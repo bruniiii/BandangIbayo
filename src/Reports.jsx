@@ -1401,7 +1401,7 @@ const StatCard = ({ title, value, icon, iconColor }) => (
     display: 'flex', flexDirection: 'column', gap: 8,
   }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
         {title}
       </p>
       <div style={{
@@ -1412,7 +1412,7 @@ const StatCard = ({ title, value, icon, iconColor }) => (
         {icon}
       </div>
     </div>
-    <p style={{ fontSize: 24, fontWeight: 900, letterSpacing: '-0.03em', color: '#1A0A00', margin: 0, lineHeight: 1.1, wordBreak: 'break-word' }}>
+    <p style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', color: '#1A0A00', margin: 0, lineHeight: 1.1, wordBreak: 'break-word' }}>
       {value}
     </p>
   </div>

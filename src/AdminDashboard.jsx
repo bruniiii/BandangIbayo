@@ -1100,8 +1100,8 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <p style={{
-        fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em',
-        textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0,
+        fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em',
+        textTransform: 'uppercase', color: '#7A3A18', margin: 0,
       }}>
         {title}
       </p>

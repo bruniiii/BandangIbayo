@@ -305,7 +305,10 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         paddingTop: isMobile ? 14 : 0,
         flexShrink: 0,
       }}>
-        <p style={{ fontSize: isMobile ? 18 : 20, fontWeight: 900, color: '#C45C26', margin: 0 }}>{formatPeso(booking.total_price)}</p>
+        <div style={{ textAlign: isMobile ? 'left' : 'center' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 2px' }}>Total price</p>
+          <p style={{ fontSize: isMobile ? 20 : 22, fontWeight: 900, color: '#1A0A00', margin: 0, lineHeight: 1.1 }}>{formatPeso(booking.total_price)}</p>
+        </div>
         <button
           onClick={onView}
           style={{
@@ -706,10 +709,16 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 
   return (
     <ViewSection title={isAwaitingPayment ? 'Payment Not Finished' : 'Remaining Balance'} icon={<CreditCard size={14} style={{ color: '#C45C26' }} />}>
-      <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.6 }}>
+      {!isAwaitingPayment && (
+        <div style={{ margin: '0 0 8px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 2px' }}>Balance due</p>
+          <p style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0, lineHeight: 1.1 }}>{formatPeso(balance)}</p>
+        </div>
+      )}
+      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.6 }}>
         {isAwaitingPayment
           ? `Your slots are held${holdUntil ? ` until ${holdUntil}` : ''}. Finish paying on PayMongo to confirm your booking.`
-          : `${formatPeso(balance)} is still due. Pay it online now, or in person on the day of the tour.`}
+          : 'Pay it online now, or in person on the day of the tour.'}
       </p>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
         {isAwaitingPayment ? (
@@ -835,8 +844,8 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 
 const DetailItem = ({ label, value }) => (
   <div>
-    <p style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em', margin: '0 0 5px' }}>{label}</p>
-    <p style={{ fontSize: 14, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{value || '—'}</p>
+    <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{label}</p>
+    <p style={{ fontSize: 16, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{value || '—'}</p>
   </div>
 );
 

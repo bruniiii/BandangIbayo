@@ -731,10 +731,10 @@ const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
     <span style={{ color: '#C45C26', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
         {label}
       </p>
-      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '3px 0 0' }}>
+      <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: '3px 0 0' }}>
         {value || '—'}
       </p>
     </div>

@@ -1193,10 +1193,10 @@ const BookingActivity = ({ bookingId }) => {
 
 const InfoItem = ({ label, value, mono = false }) => (
   <div>
-    <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '0 0 5px' }}>
+    <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 4px' }}>
       {label}
     </p>
-    <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
+    <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
       {value || '—'}
     </p>
   </div>
