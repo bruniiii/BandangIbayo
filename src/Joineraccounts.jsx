@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { SearchX } from 'lucide-react';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendCustomEmail } from './Email';
 import { notifyUser } from './notifications';
@@ -207,15 +209,16 @@ const JoinerAccounts = () => {
             <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading joiners…</span>
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            padding: '4rem 0', color: 'rgba(122,58,24,0.3)',
-          }}>
-            <Users size={36} style={{ marginBottom: 10, opacity: 0.3 }} />
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-              {query ? 'No matching joiners' : 'No joiners registered yet'}
-            </p>
-          </div>
+          query ? (
+            <EmptyState
+              icon={SearchX}
+              title="No matching joiners"
+              message={`No joiner's name, username or email matches "${query}".`}
+              action={{ label: 'Clear Search', onClick: () => setQuery('') }}
+            />
+          ) : (
+            <EmptyState icon={Users} title="No joiners registered yet" message="New joiner accounts will show up here as soon as they sign up." />
+          )
         ) : (
           <div className="responsive-table-wrapper">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>

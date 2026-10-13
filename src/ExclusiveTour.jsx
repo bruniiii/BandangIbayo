@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
 import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH } from './validation';
@@ -236,13 +237,13 @@ const ExclusiveTourForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!checkRequestFields(e.currentTarget, form)) return;
-    if (form.budget !== '' && !(Number(form.budget) >= 0)) { alert('Budget must be zero or more.'); return; }
-    if (!form.agreeTerms) { alert('Please accept the terms and conditions.'); return; }
+    if (form.budget !== '' && !(Number(form.budget) >= 0)) { toast.error('Check the budget', 'Budget must be zero or more.'); return; }
+    if (!form.agreeTerms) { toast.info('Please accept the terms and conditions.'); return; }
     setLoading(true);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert('Please log in to submit an exclusive booking request.');
+      toast.info('Please log in to submit an exclusive booking request.');
       setLoading(false);
       return;
     }
@@ -263,7 +264,7 @@ const ExclusiveTourForm = () => {
     }]).select();
 
     if (error) {
-      alert('Error submitting your request: ' + error.message);
+      toast.error("Couldn't submit your request", error.message);
       setLoading(false);
       return;
     }
@@ -437,7 +438,7 @@ const RequestTourForm = () => {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      alert('Please log in to submit a tour request.');
+      toast.info('Please log in to submit a tour request.');
       setLoading(false);
       return;
     }
@@ -457,7 +458,7 @@ const RequestTourForm = () => {
     }]).select();
 
     if (error) {
-      alert('Error submitting your request: ' + error.message);
+      toast.error("Couldn't submit your request", error.message);
       setLoading(false);
       return;
     }

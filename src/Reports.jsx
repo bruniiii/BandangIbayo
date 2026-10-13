@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { SearchX } from 'lucide-react';
+import { toast } from './ui/toast';
 import { formatPeso } from './tourUtils';
 import SearchSelect from './ui/SearchSelect';
 import { downloadReportCSV, downloadReportPDF } from './reportExport';
@@ -629,7 +632,7 @@ const Reports = () => {
     try {
       await downloadReportPDF(buildReport());
     } catch (err) {
-      alert('Could not create the PDF: ' + (err?.message || err));
+      toast.error("Couldn't create the PDF", String(err?.message || err));
     }
     setDownloadingPdf(false);
   };
@@ -863,15 +866,21 @@ const Reports = () => {
           </div>
 
           {stats.total === 0 ? (
-            <div style={{
-              padding: '5rem 0', textAlign: 'center', background: '#FDF6EE',
-              borderRadius: 20, border: '2px dashed rgba(196,92,38,0.2)',
-            }}>
-              <ClipboardList size={32} style={{ color: 'rgba(196,92,38,0.25)', marginBottom: 10 }} />
-              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-                No bookings match the current filters.
-              </p>
-            </div>
+            filtersActive ? (
+              <EmptyState
+                icon={SearchX}
+                title="No bookings match these filters"
+                message="Remove some filters to see the report for this period."
+                action={{ label: 'Reset Filters', onClick: resetAdvancedFilters }}
+              />
+            ) : (
+              <EmptyState
+                icon={ClipboardList}
+                title="No bookings in this period"
+                message="Try a longer date range to see how the business is doing."
+                action={preset !== 'all' ? { label: 'Show All Time', onClick: () => setPreset('all') } : null}
+              />
+            )
           ) : (
             <>
               {/* ── KPI Cards ── */}

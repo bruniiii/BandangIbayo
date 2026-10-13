@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 
 // The time picker gives "16:30"; joiners see "4:30 PM", like the older stops.
@@ -159,7 +160,7 @@ export const AdminTrackingControls = () => {
     const { id, isArchived } = confirmAction;
     const { error } = await supabase.from('tours').update({ is_archived: !isArchived }).eq('id', id);
     if (error) {
-      alert('Error updating archive status: ' + error.message);
+      toast.error("Couldn't update archive status", error.message);
     } else {
       fetchTours();
       if (activeTour?.id === id) setActiveTour(null);
@@ -171,14 +172,14 @@ export const AdminTrackingControls = () => {
     e.preventDefault();
     if (!activeTour?.id) return;
     if (!carType.trim() || !plateNumber.trim() || !driverName.trim() || !driverContact.trim()) {
-      alert('Please fill in all driver and vehicle fields.');
+      toast.error('Missing details', 'Please fill in all driver and vehicle fields.');
       return;
     }
     // Joiners use these to find the van and call the driver, so check the formats.
     const problem = nameError(driverName, "Driver's name", { max: 80 })
       || phoneError(driverContact, "Driver's contact number")
       || (/^[A-Za-z0-9 -]{2,10}$/.test(plateNumber.trim()) ? '' : 'Plate number should be letters and numbers only, like NBT 8921 or NBT-8921.');
-    if (problem) { alert(problem); return; }
+    if (problem) { toast.error('Please check the details', problem); return; }
 
     setSavingLogistics(true);
     const { error } = await supabase.from('tour_vehicles').upsert([{
@@ -192,9 +193,10 @@ export const AdminTrackingControls = () => {
 
     setSavingLogistics(false);
     if (error) {
-      alert('Error saving fleet details: ' + error.message);
+      toast.error("Couldn't save fleet details", error.message);
       return;
     }
+    toast.success('Driver & vehicle saved', 'Joiners can now see them on the tracking page.');
     setIsLogisticsSaved(true);
   };
 
@@ -202,7 +204,7 @@ export const AdminTrackingControls = () => {
   const handleAddPickupStop = async (e) => {
     e.preventDefault();
     if (!newLocName.trim() || !newTime.trim() || !activeTour?.id) {
-      alert('Please enter the pickup location and time.');
+      toast.error('Missing details', 'Please enter the pickup location and time.');
       return;
     }
 
@@ -217,11 +219,12 @@ export const AdminTrackingControls = () => {
 
     setSavingStop(false);
     if (error) {
-      alert('Error adding checkpoint: ' + error.message);
+      toast.error("Couldn't add checkpoint", error.message);
       return;
     }
 
     setMeetupStops(prev => [...(prev || []), ...(data || [])]);
+    toast.success('Pickup stop added');
     setNewLocName('');
     setNewTime('');
   };
@@ -232,7 +235,7 @@ export const AdminTrackingControls = () => {
 
     const { error } = await supabase.from('tour_meetups').delete().eq('id', stopId);
     if (error) {
-      alert('Error deleting stop: ' + error.message);
+      toast.error("Couldn't delete stop", error.message);
       return;
     }
     setMeetupStops(prev => (prev || []).filter(s => s.id !== stopId));
@@ -257,7 +260,7 @@ export const AdminTrackingControls = () => {
       .eq('id', stop.id);
 
     if (error) {
-      alert('Error updating stop: ' + error.message);
+      toast.error("Couldn't update stop", error.message);
       return;
     }
 
@@ -270,7 +273,7 @@ export const AdminTrackingControls = () => {
       note: stop.note || '',
     }]);
 
-    alert('ETA updated for joiners.');
+    toast.success('ETA updated', 'Joiners can see the new time on the tracking page.');
     fetchTrackingConsole(activeTour.id);
   };
 
@@ -284,7 +287,7 @@ export const AdminTrackingControls = () => {
     setClearingFeed(false);
 
     if (error) {
-      alert('Error clearing feed: ' + error.message);
+      toast.error("Couldn't clear feed", error.message);
       return;
     }
     setTrackingLogs([]);
@@ -345,7 +348,7 @@ export const AdminTrackingControls = () => {
       }
       fetchTrackingConsole(activeTour.id);
     } catch (err) {
-      alert('Error advancing status: ' + err.message);
+      toast.error("Couldn't advance status", err.message);
     } finally {
       setAdvancing(false);
     }

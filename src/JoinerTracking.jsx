@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
 import {
   MapPin, X, Calendar, Armchair, Compass, ChevronLeft,
   ChevronRight, ImageIcon, Loader2, Check, CheckCircle2, Truck, Phone, Navigation, Clock
 } from 'lucide-react';
 
-export const JoinerTracking = () => {
+export const JoinerTracking = ({ onExplore }) => {
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -114,8 +115,13 @@ export const JoinerTracking = () => {
             <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Trips…</p>
           </div>
         ) : toursList.length === 0 ? (
-          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(196,92,38,0.2)' }}>
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)' }}>No booked tours to track yet.</p>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <EmptyState
+              icon={Navigation}
+              title="No trips to track yet"
+              message="Once you book a tour and your payment is confirmed, you can follow the van, pickup stops and live updates here."
+              action={onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
+            />
           </div>
         ) : toursList.map(tour => (
           <TrackingTourCard key={tour.id} tour={tour} onTrack={() => setActiveTour(tour)} />

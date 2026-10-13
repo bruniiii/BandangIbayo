@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { SearchX, Map as MapIcon } from 'lucide-react';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
@@ -156,14 +159,14 @@ const TourManagement = () => {
   const executeToggleArchive = async () => {
     const { id, isArchived } = confirmAction;
     const { error } = await supabase.from('tours').update({ is_archived: !isArchived }).eq('id', id);
-    if (error) alert('Error: ' + error.message); else fetchTours();
+    if (error) toast.error("Couldn't update the tour", error.message); else { toast.success(isArchived ? 'Tour restored' : 'Tour archived'); fetchTours(); }
     setConfirmAction(null);
   };
  
   const handleFileChange = (e) => {
     const picked = Array.from(e.target.files);
     const problems = picked.map((f) => mediaFileError(f, { allowVideo: false })).filter(Boolean);
-    if (problems.length) alert(`These files were skipped:\n\n${problems.join('\n')}`);
+    if (problems.length) toast.error(`${problems.length} file${problems.length === 1 ? ' was' : 's were'} skipped`, problems.join('\n'));
     const files = picked.filter((f) => !mediaFileError(f, { allowVideo: false }));
     e.target.value = '';
     setNewFiles(prev => [...prev, ...files.map(file => ({ file, preview: URL.createObjectURL(file) }))]);
@@ -181,7 +184,7 @@ const TourManagement = () => {
         uploadedUrls.push(data.publicUrl);
       }
       return uploadedUrls;
-    } catch (error) { alert('Error uploading images: ' + error.message); return []; }
+    } catch (error) { toast.error("Couldn't upload images", error.message); return []; }
     finally { setUploading(false); }
   };
  
@@ -253,7 +256,7 @@ const TourManagement = () => {
       ? supabase.from('tours').update(tourData).eq('id', editingTour.id)
       : supabase.from('tours').insert([tourData]).select();
     const { data: tourResult, error } = await request;
-    if (error) { alert('Error: ' + error.message); return; }
+    if (error) { toast.error("Couldn't save the tour", error.message); return; }
     setFormDirty(false);
 
     // A bigger group size may open slots: email anyone on the waitlist (the database already notified them in-app).
@@ -274,6 +277,7 @@ const TourManagement = () => {
       }
     }
 
+    toast.success(isNewTour ? 'Tour created' : 'Tour saved', isNewTour ? 'It\'s now open for booking and posted to the feed.' : '');
     setEditingTour(null);
     setShowModal(false);
     fetchTours();
@@ -527,16 +531,24 @@ const TourManagement = () => {
               />
             ))
           ) : (
-            <div style={{
-              gridColumn: '1 / -1',
-              padding: '5rem 0', textAlign: 'center',
-              background: '#FDF6EE',
-              borderRadius: 20,
-              border: '2px dashed rgba(196,92,38,0.2)',
-            }}>
-              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-                No tours matching your filters.
-              </p>
+            <div style={{ gridColumn: '1 / -1' }}>
+              {(searchQuery || difficultyFilter !== 'All Difficulty') ? (
+                <EmptyState
+                  icon={SearchX}
+                  title="No tours match your filters"
+                  message="Try a different search or difficulty."
+                  action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); } }}
+                />
+              ) : currentTab === 'archive' ? (
+                <EmptyState icon={Archive} title="The archive is empty" message="Tours you archive will be kept here, and you can restore them anytime." />
+              ) : (
+                <EmptyState
+                  icon={MapIcon}
+                  title="No active tours yet"
+                  message="Create your first tour package so joiners can start booking."
+                  action={{ label: 'Create a Tour', onClick: () => { setEditingTour(null); setShowModal(true); } }}
+                />
+              )}
             </div>
           )}
       </div>

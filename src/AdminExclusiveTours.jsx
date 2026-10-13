@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { SearchX, Inbox } from 'lucide-react';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from "./notifications";
 import { formatPeso } from './tourUtils';
@@ -210,16 +213,16 @@ const AdminExclusiveTours = () => {
               </p>
             </div>
           ) : filtered.length === 0 ? (
-            <div style={{
-              padding: '5rem 0', textAlign: 'center',
-              background: '#FDF6EE',
-              borderRadius: 20,
-              border: '2px dashed rgba(196,92,38,0.2)',
-            }}>
-              <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.68)', margin: 0 }}>
-                No requests found.
-              </p>
-            </div>
+            (searchQuery || statusFilter !== 'All Status' || typeFilter !== 'All Types') ? (
+              <EmptyState
+                icon={SearchX}
+                title="No requests match your filters"
+                message="Try another search, status or request type."
+                action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setStatusFilter('All Status'); setTypeFilter('All Types'); } }}
+              />
+            ) : (
+              <EmptyState icon={Inbox} title="No requests yet" message="Exclusive tour and custom trip requests from joiners will show up here." />
+            )
           ) : (
             filtered.map(r => (
               <RequestRow key={r.id} request={r} onView={() => setSelected(r)} />
@@ -337,7 +340,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
   const handleSendPackage = async () => {
     if (packageForm.price !== '' && packageForm.price != null && !(Number(packageForm.price) >= 0)) {
-      alert('Price must be zero or more.');
+      toast.error('Check the price', 'Price must be zero or more.');
       return;
     }
     setSendingPackage(true);
@@ -374,8 +377,9 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
       setPackageSentAt(sentAt);
       setShowPackageForm(false);
+      toast.success('Package sent', 'The joiner was notified with the full package details.');
     } catch (err) {
-      alert('Error sending tour package: ' + err.message);
+      toast.error("Couldn't send tour package", err.message);
     } finally {
       setSendingPackage(false);
     }
@@ -432,9 +436,10 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         });
       }
 
+      toast.success(decision === 'approve' ? 'Request approved' : 'Request rejected', 'The joiner has been notified.');
       onResolved();
     } catch (err) {
-      alert('Error updating request: ' + err.message);
+      toast.error("Couldn't update request", err.message);
     } finally {
       setSubmitting(null);
     }

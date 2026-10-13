@@ -1,3 +1,5 @@
+import { toast } from './ui/toast';
+
 // ─────────────────────────────────────────────
 // INPUT CHECKS shared by the forms, to catch common typing mistakes before
 // anything is saved: wrong phone formats, numbers in names, misspelled email
@@ -144,7 +146,7 @@ export const mediaFileError = (file, { allowVideo = true } = {}) => {
 export const flagField = (form, name, message) => {
   const el = form?.querySelector?.(`[name="${name}"]`);
   if (!el || typeof el.setCustomValidity !== 'function') {
-    alert(message);
+    toast.error('Please check this field', message);
     return;
   }
   el.setCustomValidity(message);

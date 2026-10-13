@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import MyData from './MyData';
 import ChangePassword from './ChangePassword';
 import { nameError, phoneError, samePhone, normalizePhone, birthDateError, textError, cleanName, todayPH } from './validation';
@@ -79,7 +80,6 @@ const ProfileSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarBusy, setAvatarBusy] = useState(false);
-  const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
 
   const [profile, setProfile] = useState(null);
@@ -114,7 +114,7 @@ const ProfileSettings = () => {
         .single();
 
       if (error) {
-        setToast({ type: 'error', message: 'Could not load profile: ' + error.message });
+        toast.error("Couldn't load your profile", error.message);
       } else if (data) {
         setProfile(data);
         setAvatarPreview(data.avatar_url || null);
@@ -136,12 +136,6 @@ const ProfileSettings = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(null), toast.type === 'error' ? 7000 : 3500); // errors stay up longer so they can be read
-    return () => clearTimeout(t);
-  }, [toast]);
-
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
   };
@@ -151,13 +145,13 @@ const ProfileSettings = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setToast({ type: 'error', message: 'Please choose a valid image file.' });
+      toast.error('Please check your details', 'Please choose a valid image file.');
       e.target.value = '';
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setToast({ type: 'error', message: 'Profile photo must be 5 MB or smaller.' });
+      toast.error('Please check your details', 'Profile photo must be 5 MB or smaller.');
       e.target.value = '';
       return;
     }
@@ -179,7 +173,7 @@ const ProfileSettings = () => {
     // Address: province, city/municipality, barangay and street together (or none, to keep an older address as is).
     const addressParts = [form.province, form.city_municipality, form.barangay, form.street.trim()];
     if (addressParts.some(Boolean) && !addressParts.every(Boolean)) {
-      setToast({ type: 'error', message: 'Please choose your province, city/municipality and barangay, and enter your street.' });
+      toast.error('Please check your details', 'Please choose your province, city/municipality and barangay, and enter your street.');
       return;
     }
     // Typing mistakes: names with numbers, wrong phone formats, impossible birthdays.
@@ -195,7 +189,7 @@ const ProfileSettings = () => {
       form.province ? textError(form.street, 'Street / house no.', { min: 2, max: 200 }) : '',
     ].find(Boolean);
     if (problem) {
-      setToast({ type: 'error', message: problem });
+      toast.error('Please check your details', problem);
       return;
     }
     setSaving(true);
@@ -273,9 +267,9 @@ const ProfileSettings = () => {
         }
       }));
 
-      setToast({ type: 'success', message: 'Profile and photo saved successfully!' });
+      toast.success('Profile saved', 'Your changes are up to date.');
     } catch (err) {
-      setToast({ type: 'error', message: 'Failed to save: ' + err.message });
+      toast.error("Couldn't save your profile", err.message);
     } finally {
       setSaving(false);
       setAvatarBusy(false);
@@ -305,20 +299,6 @@ const ProfileSettings = () => {
         </p>
       </div>
 
-      {toast && (
-        <div style={{
-          position: 'fixed', top: 24, right: 24, zIndex: 400,
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: toast.type === 'success' ? '#1A0A00' : '#7A2020',
-          color: toast.type === 'success' ? '#E8A265' : '#FDE8E8',
-          padding: '12px 18px', borderRadius: 12,
-          fontSize: 12.5, fontWeight: 700,
-          boxShadow: '0 12px 32px rgba(26,10,0,0.3)',
-        }}>
-          {toast.type === 'success' ? <CheckCircle2 size={16} /> : <ShieldAlert size={16} />}
-          {toast.message}
-        </div>
-      )}
 
       {/* avatar card */}
       <div style={{

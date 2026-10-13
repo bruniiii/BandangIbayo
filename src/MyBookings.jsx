@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { Compass, Mountain, CalendarX2 } from 'lucide-react';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
 import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila, formatPeso } from './tourUtils';
@@ -39,7 +42,7 @@ const useIsMobile = (breakpoint = 640) => {
   return isMobile;
 };
 
-const MyBookings = () => {
+const MyBookings = ({ onExplore }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Upcoming'); 
@@ -195,20 +198,17 @@ const MyBookings = () => {
             </p>
           </div>
         ) : filteredBookings.length === 0 ? (
-          <div style={{
-            padding: '5rem 0', textAlign: 'center', background: '#FDF6EE',
-            borderRadius: 28, border: '2px dashed rgba(196,92,38,0.2)',
-          }}>
-            <div style={{
-              width: 80, height: 80, background: '#F2E4D0', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px',
-            }}>
-              <ShoppingBag size={32} style={{ color: 'rgba(196,92,38,0.35)' }} />
-            </div>
-            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
-              No {activeTab} Bookings
-            </h3>
-          </div>
+          <EmptyState
+            icon={activeTab === 'Upcoming' ? Compass : activeTab === 'Completed' ? Mountain : CalendarX2}
+            title={activeTab === 'Upcoming' ? 'No upcoming trips yet' : activeTab === 'Completed' ? 'No completed trips yet' : 'No cancelled bookings'}
+            message={activeTab === 'Upcoming'
+              ? 'Your next adventure is one booking away. Pick a tour and it will show up here.'
+              : activeTab === 'Completed'
+                ? 'Tours you have joined will show up here once they are done.'
+                : "Good news: you haven't cancelled any bookings."}
+            action={activeTab === 'Upcoming' && onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
+            secondaryAction={activeTab !== 'Upcoming' ? { label: 'View Upcoming Trips', onClick: () => setActiveTab('Upcoming') } : null}
+          />
         ) : (
           filteredBookings.map((booking) => (
             <BookingListItem
@@ -351,7 +351,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
       .eq('id', booking.id);
 
     if (error) {
-      alert("Error: " + error.message);
+      toast.error("Couldn't cancel your booking", error.message);
     } else {
       notifyAdmins({
         title: 'Booking Cancellation',
@@ -360,6 +360,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
         related_id: booking.id,
       });
       sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
+      toast.success('Booking cancelled', `${booking.booking_number} has been cancelled.`);
       onCancelSuccess();
     }
     setCancelling(false);
@@ -374,7 +375,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
     try {
       await downloadReceipt(booking, tour);
     } catch (err) {
-      alert('Could not create the receipt: ' + (err?.message || err));
+      toast.error("Couldn't create the receipt", String(err?.message || err));
     }
     setDownloadingReceipt(false);
   };
@@ -683,15 +684,15 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
     setBusy('cancel');
     const { ok, error } = await cancelCheckout({ bookingId: booking.id });
     setBusy(null);
-    if (!ok) { alert(error); return; }
+    if (!ok) { toast.error("Couldn't cancel the booking", error); return; }
     onChanged();
   };
 
   const payBalance = async () => {
     setBusy('balance');
     const { ok, data, error } = await startBalanceCheckout({ bookingId: booking.id });
-    if (!ok) { alert(error); setBusy(null); return; }
-    if (data.alreadyPaid) { alert('Your balance is already paid. Thank you!'); setBusy(null); onChanged(); return; }
+    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
+    if (data.alreadyPaid) { toast.success('Balance already paid', 'Thank you! Nothing more is due.'); setBusy(null); onChanged(); return; }
     window.location.assign(data.checkoutUrl);
   };
 
@@ -761,12 +762,12 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
     const { error } = await supabase.rpc('reschedule_booking', { p_booking_id: booking.id, p_new_tour_id: newTour.id });
     setMoving(null);
     if (error) {
-      alert(error.message);
+      toast.error("Couldn't move the booking", error.message);
       return;
     }
     // The old date now has free slots: email anyone waiting for them.
     sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
-    alert('Your booking has been moved. Your payment carries over to the new date.');
+    toast.success('Booking moved', 'Your payment carries over to the new date.');
     onMoved();
   };
 

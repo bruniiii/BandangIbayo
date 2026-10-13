@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Trash2, Loader2, ShieldCheck } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { deleteMyAccount } from './Email';
 
 // ─────────────────────────────────────────────
@@ -70,7 +71,7 @@ const MyData = () => {
     // Leave the dashboard first, so signing out doesn't bounce to the login page.
     navigate('/', { replace: true });
     await supabase.auth.signOut();
-    alert('Your account has been deleted.');
+    toast.success('Your account has been deleted', 'Thank you for travelling with Bandang IBAYO.');
   };
 
   return (

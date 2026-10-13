@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { mediaFileError } from './validation';
+import EmptyState from './ui/EmptyState';
 import { formatPeso } from './tourUtils';
 import {
   Image as ImageIcon, Send, Trash2, X, Loader2, MapPin,
@@ -168,7 +170,7 @@ const Feed = ({ isAdmin = false }) => {
     if (!picked.length) return;
     // Skip files that aren't photos/videos or are too big to upload.
     const problems = picked.map((f) => mediaFileError(f)).filter(Boolean);
-    if (problems.length) alert(`These files were skipped:\n\n${problems.join('\n')}`);
+    if (problems.length) toast.error(`${problems.length} file${problems.length === 1 ? ' was' : 's were'} skipped`, problems.join('\n'));
     const files = picked.filter((f) => !mediaFileError(f));
     if (!files.length) { if (fileInputRef.current) fileInputRef.current.value = ''; return; }
     const next = files.map(file => ({
@@ -219,7 +221,7 @@ const Feed = ({ isAdmin = false }) => {
       clearComposer();
       fetchPosts();
     } catch (err) {
-      alert('Error posting: ' + err.message);
+      toast.error("Couldn't publish the post", err.message);
     } finally {
       setPosting(false);
     }
@@ -229,12 +231,12 @@ const Feed = ({ isAdmin = false }) => {
     if (!(await confirmDialog({ title: 'Delete this post?', message: "It will be removed from everyone's feed. This can't be undone.", confirmLabel: 'Delete Post', cancelLabel: 'Keep Post', tone: 'danger' }))) return;
     setDeletingId(id);
     const { error } = await supabase.from('feed_posts').delete().eq('id', id);
-    if (error) alert('Error: ' + error.message); else fetchPosts();
+    if (error) toast.error("Couldn't delete the post", error.message); else { toast.success('Post deleted'); fetchPosts(); }
     setDeletingId(null);
   };
 
   const toggleReaction = async (postId, emoji) => {
-    if (!currentUserId) { alert('Please log in to react.'); return; }
+    if (!currentUserId) { toast.info('Please log in to react to posts.'); return; }
     setReactingId(postId);
     try {
       const mine = (reactionsMap[postId] || []).find(r => r.user_id === currentUserId);
@@ -250,7 +252,7 @@ const Feed = ({ isAdmin = false }) => {
       setOpenPickerId(null);
       fetchReactions(postIdsRef.current);
     } catch (err) {
-      alert('Error reacting: ' + err.message);
+      toast.error("Couldn't react to the post", err.message);
     } finally {
       setReactingId(null);
     }
@@ -283,7 +285,7 @@ const Feed = ({ isAdmin = false }) => {
       setCommentDrafts(prev => ({ ...prev, [postId]: '' }));
       fetchComments(postIdsRef.current);
     } catch (err) {
-      alert('Error posting comment: ' + err.message);
+      toast.error("Couldn't post comment", err.message);
     } finally {
       setCommentingId(null);
     }
@@ -317,6 +319,7 @@ const Feed = ({ isAdmin = false }) => {
           border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
           <textarea
+            id="feed-composer"
             value={content}
             maxLength={3000}
             onChange={(e) => setContent(e.target.value)}
@@ -413,19 +416,12 @@ const Feed = ({ isAdmin = false }) => {
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       ) : posts.length === 0 ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '4rem 2rem', border: '2px dashed rgba(196,92,38,0.18)', borderRadius: 20,
-          color: 'rgba(122,58,24,0.35)', textAlign: 'center',
-        }}>
-          <Compass size={36} style={{ marginBottom: 12, opacity: 0.5 }} />
-          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-            No posts yet
-          </p>
-          <p style={{ fontSize: 12, fontWeight: 600, margin: '6px 0 0', opacity: 0.85 }}>
-            {isAdmin ? 'Share your first update above.' : 'Check back soon for updates from Bandang IBAYO.'}
-          </p>
-        </div>
+        <EmptyState
+          icon={Rss}
+          title={isAdmin ? 'No posts yet' : 'Nothing in the feed yet'}
+          message={isAdmin ? 'Share announcements, tour updates or travel tips with your joiners.' : 'Updates, new tours and announcements from Bandang IBAYO will show up here.'}
+          action={isAdmin ? { label: 'Write a Post', onClick: () => document.getElementById('feed-composer')?.focus() } : null}
+        />
       ) : (
         posts.map(post => (
           <FeedPostCard

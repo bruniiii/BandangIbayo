@@ -10,6 +10,8 @@ import {
 } from './JoinerTours';
 import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, formatPeso } from './tourUtils';
 import logoIcon from './assets/newIcon.png';
+import EmptyState from './ui/EmptyState';
+import { SearchX, CalendarClock } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // PUBLIC TOUR PAGES (no login needed)
@@ -197,11 +199,21 @@ export const PublicTourList = () => {
             ))}
           </div>
         ) : (
-          <div style={{ padding: '4rem 1rem', textAlign: 'center', borderRadius: 24, border: '2px dashed rgba(196,92,38,0.25)' }}>
-            <p style={{ fontSize: 13, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', opacity: 0.7, margin: 0 }}>
-              {tours.length ? 'No tours match your search.' : 'Check back soon for new dates!'}
-            </p>
-          </div>
+          tours.length ? (
+            <EmptyState
+              icon={SearchX}
+              title="No tours match your search"
+              message="Try another destination or difficulty, or clear the filters to see every open tour."
+              action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); } }}
+            />
+          ) : (
+            <EmptyState
+              icon={CalendarClock}
+              title="No open tours right now"
+              message="New dates are posted regularly. Create a free account to get notified about new tours."
+              action={{ label: 'Create a Free Account', onClick: () => navigate('/register') }}
+            />
+          )
         )}
       </div>
       <style>{publicCss}</style>

@@ -832,17 +832,17 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Explore Tours' ? (
             <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
-            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} />
+            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Calendar' ? (
             <TourCalendar initialDate={calendarTarget} />
           ) : activeTab === 'Exclusive Tours' ? (
             <ExclusiveTour />
           ) : activeTab === 'Reviews' ? (
-            <Reviews isAdmin={false} />
+            <Reviews isAdmin={false} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Profile Settings' ? (
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
-            <JoinerTracking />
+            <JoinerTracking onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Notification' ? (
             <Notification isAdmin={false} onNavigate={handleNotificationNavigate} />
           ) : (

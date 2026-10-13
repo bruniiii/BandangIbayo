@@ -14,6 +14,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { safeNextPath } from './tourUtils';
 import { passwordErrorMessage } from './passwordPolicy';
@@ -50,12 +51,12 @@ const JoinerRegister = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file.');
+      toast.error('Not a photo', 'Please choose an image file (JPG, PNG or WebP).');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Profile picture must be 5 MB or smaller.');
+      toast.error('Photo is too big', 'Your profile picture must be 5 MB or smaller.');
       return;
     }
 
@@ -199,12 +200,12 @@ const JoinerRegister = () => {
       });
 
       if (authError) {
-        alert('Registration failed: ' + authError.message);
+        toast.error('Registration failed', authError.message);
         return;
       }
 
       if (!data.user) {
-        alert('Registration could not be completed. Please try again.');
+        toast.error('Registration could not be completed', 'Please try again.');
         return;
       }
 
@@ -240,16 +241,12 @@ const JoinerRegister = () => {
 
             if (avatarUpdateError) {
               console.error('Avatar database update failed:', avatarUpdateError);
-              alert(
-                'Your account was created, but the profile picture could not be saved. You can add it later in Profile Settings.'
-              );
+              toast.info('Account created, photo not saved', 'You can add your profile picture later in Profile Settings.');
             }
           }
         } catch (avatarError) {
           console.error('Avatar upload failed:', avatarError);
-          alert(
-            'Your account was created, but the profile picture could not be uploaded. You can add it later in Profile Settings.'
-          );
+          toast.info('Account created, photo not uploaded', 'You can add your profile picture later in Profile Settings.');
         }
       }
 
@@ -266,7 +263,7 @@ const JoinerRegister = () => {
       }
     } catch (err) {
       console.error('Registration error:', err);
-      alert('Registration failed: ' + (err?.message || 'Unknown error.'));
+      toast.error('Registration failed', err?.message || 'Please try again.');
     } finally {
       setLoading(false);
     }

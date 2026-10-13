@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Download, Printer, X, Loader2, MapPin, Truck, Users } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { formatDateRange, formatPeso } from './tourUtils';
+import EmptyState from './ui/EmptyState';
+import { UsersRound } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // JOINER LIST (manifest) for one tour, for drivers and guides.
@@ -90,7 +93,7 @@ const JoinerListModal = ({ tour, onClose }) => {
 
   const printList = () => {
     const w = window.open('', '_blank');
-    if (!w) { alert('Please allow pop-ups to print the joiner list.'); return; }
+    if (!w) { toast.error('Pop-up blocked', 'Please allow pop-ups for this site to print the joiner list.'); return; }
     const v = data.vehicle;
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(fileBase)}</title>
       <style>
@@ -179,7 +182,7 @@ const JoinerListModal = ({ tour, onClose }) => {
                   </tbody>
                 </table>
                 {people.length === 0 && (
-                  <p style={{ fontSize: 12, color: '#7A3A18', textAlign: 'center', padding: '1.5rem 0', margin: 0 }}>No joiners yet.</p>
+                  <EmptyState compact icon={UsersRound} title="No joiners yet" message="Confirmed joiners for this tour will be listed here." />
                 )}
               </div>
             </>

@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { SearchX, ClipboardList } from 'lucide-react';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
 import { notifyUser } from './notifications';
@@ -349,10 +352,17 @@ const BookingManagement = () => {
                   />
                 ))
               ) : (
-                <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-                    No booking records found.
-                  </p>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  {(searchTerm || statusFilter !== 'All Status' || methodFilter !== 'All Methods' || tourFilter !== 'All Tours' || dateFilter) ? (
+                    <EmptyState
+                      icon={SearchX}
+                      title="No bookings match your filters"
+                      message="Try another search, status, payment type, tour or date."
+                      action={{ label: 'Clear Filters', onClick: () => { setSearchTerm(''); setStatusFilter('All Status'); setMethodFilter('All Methods'); setTourFilter('All Tours'); setDateFilter(''); } }}
+                    />
+                  ) : (
+                    <EmptyState icon={ClipboardList} title="No bookings yet" message="When joiners book a tour, their bookings will show up here for you to manage." />
+                  )}
                 </div>
               )}
             </div>
@@ -388,10 +398,11 @@ const BookingManagement = () => {
                 related_id: selectedBooking.id,
               });
 
+              toast.success(status === 'Confirmed' ? 'Payment confirmed' : 'Payment rejected', `${selectedBooking.booking_number}: the joiner has been notified.`);
               setSelectedBooking(null);
               fetchBookings();
             } else {
-              alert('Error updating status: ' + error.message);
+              toast.error("Couldn't update status", error.message);
             }
           }}
           onSettleBalance={async (id, fullAmount) => {
@@ -405,6 +416,7 @@ const BookingManagement = () => {
             `).single();
  
             if (!error) {
+              toast.success('Balance marked as paid', `${selectedBooking.booking_number} is now paid in full.`);
               await fetchBookings();
               notifyUser(selectedBooking.user_id, {
                 title: 'Balance Payment Confirmed',
@@ -414,7 +426,7 @@ const BookingManagement = () => {
               });
               return data;
             } else {
-              alert('Error settling balance: ' + error.message);
+              toast.error("Couldn't settle balance", error.message);
               return null;
             }
           }}

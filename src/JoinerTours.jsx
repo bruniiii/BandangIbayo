@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 
 import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor } from './tourUtils';
 import { startCheckout } from './payments';
+import EmptyState from './ui/EmptyState';
+import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
 import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
 
 import { 
@@ -325,27 +328,21 @@ const JoinerTours = ({ initialTourId = null }) => {
           </div>
 
         ) : filteredTours.length === 0 ? (
-
-          <div style={{
-
-            gridColumn: '1 / -1',
-
-            padding: '5rem 0', textAlign: 'center',
-
-            background: '#FDF6EE',
-
-            borderRadius: 20,
-
-            border: '2px dashed rgba(196,92,38,0.2)',
-
-          }}>
-
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-
-              No tours found.
-
-            </p>
-
+          <div style={{ gridColumn: '1 / -1' }}>
+            {tours.length ? (
+              <EmptyState
+                icon={SearchX}
+                title="No tours match your search"
+                message="Try another destination or difficulty, or clear the filters to see every open tour."
+                action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); setPriceSort('default'); } }}
+              />
+            ) : (
+              <EmptyState
+                icon={CalendarClockIcon}
+                title="No open tours right now"
+                message="New tour dates are posted regularly. Check the feed for announcements, or request your own trip from Exclusive Tours."
+              />
+            )}
           </div>
 
         ) : filteredTours.map((tour) => (
@@ -1128,7 +1125,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
         }
         setIsBooking(true);
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
+        if (!user) { toast.info('Please log in to book a tour.'); setIsBooking(false); return; }
 
         const [fresh] = await withAvailableSlots([tour]);
         if (numPersons > fresh.available_slots) {
@@ -1163,16 +1160,16 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
             .insert([{ tour_id: tour.id, slots_wanted: waitlistSlots }])
             .select('id, slots_wanted, notified_at')
             .single();
-        if (error) alert("Couldn't join the waitlist: " + error.message);
-        else setMyWaitlist(data);
+        if (error) toast.error("Couldn't join the waitlist", error.message);
+        else { setMyWaitlist(data); toast.success("You're on the waitlist", "We'll notify and email you if a slot opens."); }
         setWaitlistBusy(false);
     };
 
     const handleLeaveWaitlist = async () => {
         setWaitlistBusy(true);
         const { error } = await supabase.from('tour_waitlist').delete().eq('id', myWaitlist.id);
-        if (error) alert("Couldn't leave the waitlist: " + error.message);
-        else setMyWaitlist(null);
+        if (error) toast.error("Couldn't leave the waitlist", error.message);
+        else { setMyWaitlist(null); toast.info('You left the waitlist.'); }
         setWaitlistBusy(false);
     };
 
@@ -1186,7 +1183,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
             companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
         });
         if (!ok) {
-            alert(error);
+            toast.error("Couldn't start the payment", error);
             setRedirectingToPayment(false);
             return;
         }

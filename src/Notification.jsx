@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { BellRing } from 'lucide-react';
 import { confirmDialog } from './ui/ConfirmDialog';
 import {
   Bell, CheckCheck, Compass, Loader2, ArrowRight, Clock, ChevronDown,
@@ -270,19 +272,16 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
           <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading notifications…</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '4rem 2rem', border: '2px dashed rgba(196,92,38,0.18)', borderRadius: 20,
-          color: 'rgba(122,58,24,0.35)', textAlign: 'center',
-        }}>
-          <Compass size={36} style={{ marginBottom: 12, opacity: 0.5 }} />
-          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-            {tab === 'unread' ? "You're all caught up" : 'Nothing here yet'}
-          </p>
-          <p style={{ fontSize: 12, fontWeight: 600, margin: '6px 0 0', opacity: 0.85 }}>
-            {tab === 'unread' ? 'No unread notifications right now.' : "Activity on your account will show up here."}
-          </p>
-        </div>
+        tab === 'unread' ? (
+          <EmptyState
+            icon={BellRing}
+            title="You're all caught up"
+            message="No unread notifications right now."
+            action={{ label: 'View All Notifications', onClick: () => setTab('all') }}
+          />
+        ) : (
+          <EmptyState icon={BellRing} title="No notifications yet" message="Booking updates, payment confirmations and tour reminders will show up here." />
+        )
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           {unread.length > 0 && (

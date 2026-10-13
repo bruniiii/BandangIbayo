@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { BellRing } from 'lucide-react';
 import { Bell, CheckCheck, Compass, Loader2, X, ArrowRight, Clock } from 'lucide-react';
 
 const timeAgo = (dateStr) => {
@@ -150,9 +152,8 @@ const NotificationBell = ({ onNotificationClick }) => {
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : notifications.length === 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem 1.5rem', color: 'rgba(122,58,24,0.4)', textAlign: 'center' }}>
-                <Compass size={26} style={{ marginBottom: 8, opacity: 0.5 }} />
-                <p style={{ fontSize: 11, fontWeight: 700, margin: 0 }}>You're all caught up.</p>
+              <div style={{ padding: 12 }}>
+                <EmptyState compact icon={BellRing} title="You're all caught up" message="New updates about your bookings will appear here." />
               </div>
             ) : (
               notifications.map(n => (

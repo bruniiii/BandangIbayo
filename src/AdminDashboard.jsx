@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
 import Feed from './Feed';
@@ -187,7 +188,7 @@ const AdminDashboard = () => {
  
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) alert('Logout failed: ' + error.message);
+    if (error) toast.error('Logout failed', error.message);
     else navigate('/login');
   };
  
@@ -1190,10 +1191,20 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       ) : empty ? (
-        <div style={{ padding: '1.5rem 0', textAlign: 'center' }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.55, margin: 0, fontStyle: 'italic' }}>
-            {emptyText}
-          </p>
+        // Small empty state: what's missing, plus a way to the full module.
+        <div style={{ padding: '1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+          <span aria-hidden="true" style={{
+            width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'linear-gradient(145deg, #F7E3CC, #F2D3B3)', color: '#C45C26',
+          }}>
+            {icon}
+          </span>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>{emptyText}</p>
+          {onViewAll && (
+            <button type="button" className="text-link" onClick={onViewAll} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 11.5 }}>
+              Open {title}
+            </button>
+          )}
         </div>
       ) : children}
     </div>

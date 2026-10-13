@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { todayManila } from './tourUtils';
 import { mediaFileError } from './validation';
+import EmptyState from './ui/EmptyState';
 
 const REVIEW_MAX = 1000;
 import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
@@ -68,7 +70,7 @@ const StarPicker = ({ value, onChange }) => {
   );
 };
 
-const Reviews = ({ isAdmin = false }) => {
+const Reviews = ({ isAdmin = false, onExplore }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewableTours, setReviewableTours] = useState([]);
@@ -145,7 +147,7 @@ const Reviews = ({ isAdmin = false }) => {
     if (!picked.length) return;
     // Skip files that aren't photos/videos or are too big to upload.
     const problems = picked.map((f) => mediaFileError(f)).filter(Boolean);
-    if (problems.length) alert(`These files were skipped:\n\n${problems.join('\n')}`);
+    if (problems.length) toast.error(`${problems.length} file${problems.length === 1 ? ' was' : 's were'} skipped`, problems.join('\n'));
     const files = picked.filter((f) => !mediaFileError(f));
     if (!files.length) { if (mediaInputRef.current) mediaInputRef.current.value = ''; return; }
     const next = files.map(file => ({
@@ -178,8 +180,8 @@ const Reviews = ({ isAdmin = false }) => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedTourId || rating === 0) { alert('Please select a tour and give it a star rating.'); return; }
-    if (comment.trim().length > REVIEW_MAX) { alert(`Your review is too long (${REVIEW_MAX} characters at most).`); return; }
+    if (!selectedTourId || rating === 0) { toast.info('Almost there', 'Please choose a tour and give it a star rating.'); return; }
+    if (comment.trim().length > REVIEW_MAX) { toast.error('Review is too long', `${REVIEW_MAX} characters at most.`); return; }
     // Reviews can't be deleted, so a last look before it goes up.
     if (!(await confirmDialog({ title: `Post your ${rating}-star review?`, message: "Reviews can't be edited or deleted after posting.", confirmLabel: 'Post Review', cancelLabel: 'Keep Editing' }))) return;
     setSubmitting(true);
@@ -200,12 +202,13 @@ const Reviews = ({ isAdmin = false }) => {
       setComment('');
       mediaItems.forEach(m => URL.revokeObjectURL(m.preview));
       setMediaItems([]);
+      toast.success('Review posted', 'Thank you for sharing your experience!');
       fetchReviews();
       const { data: myReviews } = await supabase.from('reviews').select('tour_id').eq('user_id', currentUserId);
       fetchReviewableTours(currentUserId, (myReviews || []).map(r => r.tour_id));
     } catch (err) {
       const msg = err.message?.includes('duplicate') ? "You've already reviewed this tour." : err.message;
-      alert('Error submitting review: ' + msg);
+      toast.error("Couldn't post your review", msg);
     } finally {
       setSubmitting(false);
     }
@@ -265,6 +268,7 @@ const Reviews = ({ isAdmin = false }) => {
                 Which tour would you like to review?
               </label>
               <select
+                id="review-tour"
                 value={selectedTourId}
                 onChange={(e) => setSelectedTourId(e.target.value)}
                 style={{
@@ -405,19 +409,18 @@ const Reviews = ({ isAdmin = false }) => {
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       ) : reviews.length === 0 ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '4rem 2rem', border: '2px dashed rgba(196,92,38,0.18)', borderRadius: 20,
-          color: 'rgba(122,58,24,0.35)', textAlign: 'center',
-        }}>
-          <Star size={36} style={{ marginBottom: 12, opacity: 0.5 }} />
-          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-            No reviews yet
-          </p>
-          <p style={{ fontSize: 12, fontWeight: 600, margin: '6px 0 0', opacity: 0.85 }}>
-            Reviews from joiners will appear here.
-          </p>
-        </div>
+        <EmptyState
+          icon={Star}
+          title="No reviews yet"
+          message={isAdmin
+            ? 'Reviews from joiners will show up here after their tours.'
+            : reviewableTours.length
+              ? 'Be the first to share how your trip went. It helps other joiners decide.'
+              : 'Join a tour and you can review it here once it\'s done.'}
+          action={!isAdmin && reviewableTours.length
+            ? { label: 'Write a Review', onClick: () => document.getElementById('review-tour')?.focus() }
+            : !isAdmin && onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
+        />
       ) : (
         reviews.map(review => (
           <ReviewCard key={review.id} review={review} />
