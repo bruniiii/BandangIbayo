@@ -8,8 +8,8 @@ import { subscribe, getToasts, dismiss } from './toast';
 const STYLES = {
   success: { icon: CheckCircle2, accent: '#2E7D4F', bg: '#FFFFFF', title: '#1A0A00' },
   error: { icon: XCircle, accent: '#C0362C', bg: '#FFF5F3', title: '#7A1E16' },
-  info: { icon: Info, accent: '#C45C26', bg: '#FFFFFF', title: '#1A0A00' },
-  loading: { icon: Loader2, accent: '#C45C26', bg: '#FFFFFF', title: '#1A0A00' },
+  info: { icon: Info, accent: '#A8481A', bg: '#FFFFFF', title: '#1A0A00' },
+  loading: { icon: Loader2, accent: '#A8481A', bg: '#FFFFFF', title: '#1A0A00' },
 };
 
 const Toaster = () => {
@@ -39,7 +39,7 @@ const Toaster = () => {
               pointerEvents: 'auto', width: 'min(380px, 100%)', boxSizing: 'border-box',
               display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px 12px 14px 16px',
               background: s.bg, borderRadius: 14, borderLeft: `5px solid ${s.accent}`,
-              boxShadow: '0 12px 32px rgba(26,10,0,0.18)', fontFamily: "'Inter', system-ui, sans-serif",
+              boxShadow: '0 12px 32px rgba(26,10,0,0.18)', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
               animation: 'toast-in 0.2s ease-out',
             }}
           >

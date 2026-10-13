@@ -75,10 +75,10 @@ const MyData = () => {
   };
 
   return (
-    <div style={{ background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.15)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
         <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0 }}>
-          <ShieldCheck size={18} style={{ color: '#C45C26' }} /> Your Data
+          <ShieldCheck size={18} style={{ color: '#A8481A' }} /> Your Data
         </h3>
         <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
           Under the Data Privacy Act of 2012 you can get a copy of your personal data or ask us to delete it.
@@ -113,7 +113,7 @@ const MyData = () => {
             />
           </label>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => { setShowDelete(false); setConfirmText(''); }} disabled={deleting} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(196,92,38,0.25)')}>
+            <button type="button" onClick={() => { setShowDelete(false); setConfirmText(''); }} disabled={deleting} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(168,72,26,0.25)')}>
               Keep my account
             </button>
             <button type="button" onClick={handleDelete} disabled={confirmText !== 'DELETE' || deleting} style={{ ...button('#C0362C', '#FFFFFF'), opacity: confirmText === 'DELETE' ? 1 : 0.5 }}>

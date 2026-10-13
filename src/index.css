@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/* Site typeface and base colours (espresso #1A0A00 on cream #FDF6EE). */
+html, body {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: #1A0A00;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button, input, select, textarea { font-family: inherit; }
+::placeholder { color: rgba(122,58,24,0.7); opacity: 1; }
+::selection { background: rgba(196,92,38,0.25); color: #1A0A00; }
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
@@ -17,14 +28,14 @@ select:-webkit-autofill:focus {
    Use className="text-link" on any <a>/<Link>/<button> that reads as text.
    ───────────────────────────────────────────── */
 .text-link {
-  color: #C45C26 !important;
+  color: #A8481A !important;
   text-decoration: underline !important;
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
   cursor: pointer;
   font-weight: 800;
 }
-.text-link:hover { color: #A84B1C !important; text-decoration-thickness: 2px; }
+.text-link:hover { color: #9E4316 !important; text-decoration-thickness: 2px; }
 
 /* Clickable cards lift a little on hover so they read as clickable. */
 .clickable-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
@@ -33,7 +44,7 @@ select:-webkit-autofill:focus {
 /* Keyboard users can always see where they are. */
 a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
 input:focus-visible, select:focus-visible, textarea:focus-visible, [role="option"]:focus-visible {
-  outline: 3px solid rgba(196,92,38,0.55);
+  outline: 3px solid rgba(180,81,30,0.55);
   outline-offset: 2px;
 }
 

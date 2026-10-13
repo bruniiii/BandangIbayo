@@ -9,7 +9,7 @@ import OtpInput from './ui/OtpInput';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #2D1B0E  deep brown (dark card)
@@ -137,7 +137,7 @@ const JoinerLogin = () => {
     width: '100%',
     padding: '12px 16px',
     borderRadius: 10,
-    border: '1.5px solid rgba(196,92,38,0.2)',
+    border: '1.5px solid rgba(180,81,30,0.2)',
     background: '#FDF6EE',
     fontSize: 14,
     color: '#1A0A00',
@@ -160,7 +160,7 @@ const JoinerLogin = () => {
  
   const submitStyle = (disabled) => ({
     width: '100%',
-    background: disabled ? 'rgba(196,92,38,0.55)' : '#C45C26',
+    background: disabled ? 'rgba(180,81,30,0.55)' : '#B4511E',
     color: '#FDF6EE',
     fontWeight: 900,
     fontSize: 13,
@@ -170,7 +170,7 @@ const JoinerLogin = () => {
     borderRadius: 12,
     border: 'none',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    boxShadow: disabled ? 'none' : '0 8px 24px rgba(196,92,38,0.38)',
+    boxShadow: disabled ? 'none' : '0 8px 24px rgba(180,81,30,0.38)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -181,7 +181,7 @@ const JoinerLogin = () => {
 
   const linkButton = {
     display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0,
-    fontSize: 12, fontWeight: 800, color: '#C45C26', cursor: 'pointer', fontFamily: 'inherit',
+    fontSize: 12, fontWeight: 800, color: '#A8481A', cursor: 'pointer', fontFamily: 'inherit',
   };
 
   const spinner = <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /><style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style></>;
@@ -193,7 +193,7 @@ const JoinerLogin = () => {
       alignItems: 'center',
       justifyContent: 'center',
       background: '#FDF6EE',
-      fontFamily: "'Inter', system-ui, sans-serif",
+      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
       color: '#1A0A00',
       padding: '3rem 1rem',
       position: 'relative',
@@ -213,15 +213,15 @@ const JoinerLogin = () => {
             borderRadius: 40,
             boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
             textAlign: 'center',
-            borderTop: '7px solid #C45C26',
+            borderTop: '7px solid #B4511E',
             maxWidth: 380,
           }}>
             <div style={{
               width: 80, height: 80, borderRadius: '50%',
-              background: '#C45C26',
+              background: '#B4511E',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 24px',
-              boxShadow: '0 12px 32px rgba(196,92,38,0.45)',
+              boxShadow: '0 12px 32px rgba(180,81,30,0.45)',
               color: '#FDF6EE',
             }}>
               <CheckCircle2 size={40} strokeWidth={2.5} />
@@ -243,7 +243,7 @@ const JoinerLogin = () => {
             <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 8 }}>
               {[0, 0.15, 0.3].map((delay, i) => (
                 <div key={i} style={{
-                  width: 8, height: 8, borderRadius: '50%', background: '#C45C26',
+                  width: 8, height: 8, borderRadius: '50%', background: '#B4511E',
                   animation: `bounce 0.9s ${delay}s infinite`,
                 }} />
               ))}
@@ -262,13 +262,13 @@ const JoinerLogin = () => {
         boxShadow: '0 20px 60px rgba(26,10,0,0.14)',
         width: '100%',
         maxWidth: 420,
-        borderTop: '7px solid #C45C26',
+        borderTop: '7px solid #B4511E',
       }}>
  
         {/* close button */}
         <Link to="/" aria-label="Close and go to the home page" style={{
           position: 'absolute', top: 8, right: 8, width: 44, height: 44, justifyContent: 'center', borderRadius: 12,
-          color: 'rgba(122,58,24,0.75)',
+          color: 'rgba(122,58,24,0.85)',
           display: 'flex', alignItems: 'center',
           transition: 'color 0.2s',
         }}>
@@ -287,7 +287,7 @@ const JoinerLogin = () => {
               />
           </div>
           <h1 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
-            Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+            Bandang <span style={{ color: '#A8481A' }}>IBAYO</span>
           </h1>
           <p style={{ fontSize: 14, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {challenge ? 'Check your email for your verification code.' : 'Welcome back! Login to continue.'}
@@ -339,7 +339,7 @@ const JoinerLogin = () => {
             </Link>
           </div>
           
-          <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', marginTop: 4 }} />
+          <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 4 }} />
  
           <button disabled={loading || isSuccess} style={submitStyle(loading || isSuccess)}>
             {loading ? spinner : 'Login'}
@@ -350,7 +350,7 @@ const JoinerLogin = () => {
         {challenge && (
           <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleVerify}>
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: '#7A3A18', lineHeight: 1.6 }}>
-              <MailCheck size={20} style={{ color: '#C45C26', flexShrink: 0, marginTop: 2 }} />
+              <MailCheck size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
               <span>
                 We sent a 6-digit code to <strong>{challenge.sentTo}</strong>. It's valid for {challenge.expiresInMinutes} minutes.
               </span>
@@ -383,7 +383,7 @@ const JoinerLogin = () => {
         {/* register link */}
         <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.9 }}>
           Don't have an account?{' '}
-          <Link className="text-link" to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
+          <Link className="text-link" to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: '#A8481A', fontWeight: 800, textDecoration: 'none' }}>
             Register here
           </Link>
         </p>

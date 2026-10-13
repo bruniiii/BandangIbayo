@@ -12,7 +12,7 @@ import { changePassword } from './authApi';
 
 const inputStyle = {
   width: '100%', padding: '11px 14px', borderRadius: 12,
-  border: '1px solid rgba(196,92,38,0.18)', background: '#F2E4D0',
+  border: '1px solid rgba(180,81,30,0.18)', background: '#F2E4D0',
   fontSize: 13.5, fontWeight: 600, color: '#1A0A00', outline: 'none',
   boxSizing: 'border-box', fontFamily: 'inherit',
 };
@@ -85,12 +85,12 @@ const ChangePassword = () => {
   return (
     <form onSubmit={handleSubmit} style={{
       background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-      border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
       display: 'flex', flexDirection: 'column', gap: 16,
     }}>
       <div>
         <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>
-          <KeyRound size={17} style={{ color: '#C45C26' }} /> Change Password
+          <KeyRound size={17} style={{ color: '#A8481A' }} /> Change Password
         </h3>
         <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
           Enter your current password, then choose a new one.
@@ -127,7 +127,7 @@ const ChangePassword = () => {
         </p>
       )}
 
-      <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
         <button type="submit" disabled={saving} style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: saving ? 'rgba(26,10,0,0.5)' : '#1A0A00',

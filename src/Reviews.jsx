@@ -45,7 +45,7 @@ const formatTourDate = (startStr, endStr) => {
 const StarRow = ({ rating, size = 14 }) => (
   <div style={{ display: 'flex', gap: 2 }}>
     {[1, 2, 3, 4, 5].map(n => (
-      <Star key={n} size={size} fill={n <= rating ? '#E8A265' : 'none'} color={n <= rating ? '#E8A265' : 'rgba(122,58,24,0.3)'} />
+      <Star key={n} size={size} fill={n <= rating ? '#E8A265' : 'none'} color={n <= rating ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
     ))}
   </div>
 );
@@ -63,7 +63,7 @@ const StarPicker = ({ value, onChange }) => {
           onMouseLeave={() => setHover(0)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}
         >
-          <Star size={26} fill={n <= (hover || value) ? '#E8A265' : 'none'} color={n <= (hover || value) ? '#E8A265' : 'rgba(122,58,24,0.3)'} />
+          <Star size={26} fill={n <= (hover || value) ? '#E8A265' : 'none'} color={n <= (hover || value) ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
         </button>
       ))}
     </div>
@@ -241,7 +241,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
         </div>
 
         {avgRating && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 999, padding: '8px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 999, padding: '8px 16px' }}>
             <StarRow rating={Math.round(avgRating)} size={13} />
             <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{avgRating}</span>
             <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>({reviews.length})</span>
@@ -253,7 +253,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
       {!isAdmin && (
         <div style={{
           background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
           {reviewableTours.length === 0 ? (
             <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
@@ -273,7 +273,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                 onChange={(e) => setSelectedTourId(e.target.value)}
                 style={{
                   width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-                  border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14,
+                  border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14,
                   padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00',
                   fontFamily: 'inherit', outline: 'none',
                 }}
@@ -317,7 +317,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                 rows={3}
                 style={{
                   width: '100%', boxSizing: 'border-box', resize: 'vertical', marginTop: 16,
-                  background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+                  background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
                   borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
                   color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
                 }}
@@ -384,11 +384,11 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                   disabled={submitting || !selectedTourId || rating === 0}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(196,92,38,0.4)' : '#C45C26',
+                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(180,81,30,0.4)' : '#B4511E',
                     color: '#FDF6EE', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
                     border: 'none', cursor: (submitting || !selectedTourId || rating === 0) ? 'not-allowed' : 'pointer',
-                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(196,92,38,0.3)',
+                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(180,81,30,0.3)',
                   }}
                 >
                   {submitting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -403,7 +403,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
       {/* review list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
           <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
           <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading reviews…</span>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -435,7 +435,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 const ReviewCard = ({ review }) => (
   <div style={{
     background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
-    border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+    border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
   }}>
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

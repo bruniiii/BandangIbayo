@@ -15,7 +15,7 @@ import {
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #7A3A18  rust mid-tone
@@ -24,14 +24,14 @@ import {
 // ---------------------------------------------------------
 
 const CHART_COLORS = {
-  complete: '#C45C26',
+  complete: '#A8481A',
   pending: '#E8A265',
   rejected: '#8C2F1C',
-  cancelled: 'rgba(26,10,0,0.35)',
+  cancelled: 'rgba(26,10,0,0.8)',
   full: '#1A0A00',
-  down: '#C45C26',
-  none: 'rgba(122,58,24,0.25)',
-  new: '#C45C26',
+  down: '#A8481A',
+  none: 'rgba(122,58,24,0.85)',
+  new: '#A8481A',
   returning: '#1A0A00',
 };
 
@@ -685,7 +685,7 @@ const Reports = () => {
           <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
             {formatRangeLabel(start, end)} · {loading ? 'Loading…' : `${stats.total} booking${stats.total !== 1 ? 's' : ''} in range`}
             {lastUpdated && !loading && (
-              <span style={{ opacity: 0.85 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span style={{ opacity: 0.95 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
             )}
           </p>
         </div>
@@ -722,7 +722,7 @@ const Reports = () => {
       {loading ? (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '5rem 0', color: 'rgba(122,58,24,0.75)',
+          padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
         }}>
           <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
           <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
@@ -756,7 +756,7 @@ const Reports = () => {
           {notifications.length > 0 && (
             <div style={{
               background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
-              border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+              border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
             }}>
               <SectionTitle icon={<Bell size={14} />}>Notifications</SectionTitle>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -766,7 +766,7 @@ const Reports = () => {
                     background: n.tone === 'warn' ? 'rgba(140,47,28,0.07)' : n.tone === 'action' ? 'rgba(232,162,101,0.18)' : '#F2E4D0',
                     borderRadius: 12,
                   }}>
-                    <span style={{ color: n.tone === 'warn' ? '#8C2F1C' : '#C45C26', flexShrink: 0 }}>{n.icon}</span>
+                    <span style={{ color: n.tone === 'warn' ? '#8C2F1C' : '#A8481A', flexShrink: 0 }}>{n.icon}</span>
                     <span style={{ fontSize: 12.5, fontWeight: 700, color: '#1A0A00' }}>{n.text}</span>
                   </div>
                 ))}
@@ -777,7 +777,7 @@ const Reports = () => {
           {/* ── Date Range Filter ── */}
           <div style={{
             background: '#FDF6EE', borderRadius: 20, padding: '14px 18px',
-            border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+            border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
             display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
           }}>
             {RANGE_PRESETS.map((p) => (
@@ -802,7 +802,7 @@ const Reports = () => {
                 <input
                   type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
                   style={{
-                    background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12,
+                    background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
                     padding: '9px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
                     fontFamily: 'inherit', outline: 'none',
                   }}
@@ -811,7 +811,7 @@ const Reports = () => {
                 <input
                   type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
                   style={{
-                    background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12,
+                    background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
                     padding: '9px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
                     fontFamily: 'inherit', outline: 'none',
                   }}
@@ -823,7 +823,7 @@ const Reports = () => {
           {/* ── Advanced Filters ── */}
           <div style={{
             background: '#FDF6EE', borderRadius: 20, padding: '14px 18px',
-            border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+            border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
             display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
           }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginRight: 4 }}>
@@ -885,17 +885,17 @@ const Reports = () => {
             <>
               {/* ── KPI Cards ── */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
-                <StatCard title="Total Revenue" value={peso(stats.revenue)} icon={<Wallet size={17} />} iconColor="#C45C26" />
-                <StatCard title="Estimated Profit" value={peso(estimatedProfit)} icon={<TrendingUp size={17} />} iconColor="#C45C26" />
+                <StatCard title="Total Revenue" value={peso(stats.revenue)} icon={<Wallet size={17} />} iconColor="#A8481A" />
+                <StatCard title="Estimated Profit" value={peso(estimatedProfit)} icon={<TrendingUp size={17} />} iconColor="#A8481A" />
                 <StatCard title="Avg. Booking Value" value={peso(stats.avgBookingValue)} icon={<Percent size={17} />} iconColor="#7A3A18" />
-                <StatCard title="Total Bookings" value={stats.total} icon={<ClipboardList size={17} />} iconColor="#C45C26" />
-                <StatCard title="Confirmed" value={stats.complete} icon={<CheckCircle2 size={17} />} iconColor="#C45C26" />
-                <StatCard title="Pending" value={stats.pending} icon={<Clock size={17} />} iconColor="#9A5B1E" />
+                <StatCard title="Total Bookings" value={stats.total} icon={<ClipboardList size={17} />} iconColor="#A8481A" />
+                <StatCard title="Confirmed" value={stats.complete} icon={<CheckCircle2 size={17} />} iconColor="#A8481A" />
+                <StatCard title="Pending" value={stats.pending} icon={<Clock size={17} />} iconColor="#8C5216" />
                 <StatCard title="Rejected / Cancelled" value={stats.rejected + stats.cancelled} icon={<XCircle size={17} />} iconColor="#8C2F1C" />
                 <StatCard title="Cancellation Rate" value={pct(stats.cancellationRate)} icon={<TrendingDown size={17} />} iconColor="#8C2F1C" />
                 <StatCard title="Total Pax" value={stats.totalPax} icon={<Users size={17} />} iconColor="#7A3A18" />
-                <StatCard title="Conversion Rate" value={pct(stats.conversionRate)} icon={<TrendingUp size={17} />} iconColor="#C45C26" />
-                <StatCard title="Outstanding Balance" value={peso(outstandingBalance)} icon={<Wallet size={17} />} iconColor="#9A5B1E" />
+                <StatCard title="Conversion Rate" value={pct(stats.conversionRate)} icon={<TrendingUp size={17} />} iconColor="#A8481A" />
+                <StatCard title="Outstanding Balance" value={peso(outstandingBalance)} icon={<Wallet size={17} />} iconColor="#8C5216" />
                 <StatCard
                   title="Repeat Customers"
                   value={pct((customerAnalytics.newCount + customerAnalytics.returningCount) ? (customerAnalytics.returningCount / (customerAnalytics.newCount + customerAnalytics.returningCount)) * 100 : 0)}
@@ -906,7 +906,7 @@ const Reports = () => {
               {/* ── Revenue & Profit ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Wallet size={14} />}>Revenue &amp; Profit Analytics</SectionTitle>
 
@@ -922,7 +922,7 @@ const Reports = () => {
                   <MiniMetric label="Outstanding Balance" value={peso(outstandingBalance)} tone="warn" />
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.12)', paddingTop: 16, marginBottom: 16 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 16, marginBottom: 16 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Revenue by Payment Method</p>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
                     <MiniMetric label="Full Payment" value={peso(paymentAnalytics.fullRevenue)} compact />
@@ -946,9 +946,9 @@ const Reports = () => {
                       <input
                         type="number" min={0} max={95} value={costPct}
                         onChange={(e) => setCostPct(Math.min(95, Math.max(0, Number(e.target.value) || 0)))}
-                        style={{ width: 60, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(196,92,38,0.25)', fontSize: 12, fontWeight: 700, textAlign: 'center' }}
+                        style={{ width: 60, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(180,81,30,0.25)', fontSize: 12, fontWeight: 700, textAlign: 'center' }}
                       />
-                      <span style={{ fontSize: 22, fontWeight: 900, color: '#C45C26' }}>{peso(estimatedProfit)}</span>
+                      <span style={{ fontSize: 22, fontWeight: 900, color: '#A8481A' }}>{peso(estimatedProfit)}</span>
                     </div>
                   </div>
                 </div>
@@ -957,7 +957,7 @@ const Reports = () => {
               {/* ── Monthly Comparison ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
@@ -971,7 +971,7 @@ const Reports = () => {
               {/* ── Forecast ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
                 <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '-8px 0 16px' }}>
@@ -986,24 +986,24 @@ const Reports = () => {
               {/* ── Trend Chart ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<TrendingUp size={14} />}>Bookings Over Time</SectionTitle>
-                <BarChart data={trendData} color="#C45C26" height={190} />
+                <BarChart data={trendData} color="#A8481A" height={190} />
               </div>
 
               {/* ── Donut charts row (clickable segments drill down into the table) ── */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
                 }}>
                   <SectionTitle icon={<AlertCircle size={14} />}>Booking Status Breakdown</SectionTitle>
                   <DonutChart segments={statusSegments} onSegmentClick={handleDonutClick} activeKey={filterStatus !== 'All Status' ? filterStatus : null} />
                 </div>
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
                 }}>
                   <SectionTitle icon={<PieChart size={14} />}>Payment Method Split</SectionTitle>
                   <DonutChart segments={methodSegments} />
@@ -1015,13 +1015,13 @@ const Reports = () => {
               {/* ── Tour Performance ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Trophy size={14} />}>Tour Performance</SectionTitle>
                 <div style={{ overflowX: 'auto', marginBottom: 20 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
+                      <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
                         {['Tour', 'Bookings', 'Revenue', 'Pax', 'Completion', 'Rating'].map((h) => (
                           <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>{h}</th>
                         ))}
@@ -1032,11 +1032,11 @@ const Reports = () => {
                         <tr
                           key={t.tourId || t.title}
                           onClick={() => handleTourBarClick(t.title)}
-                          style={{ borderBottom: '1px solid rgba(196,92,38,0.08)', cursor: 'pointer' }}
+                          style={{ borderBottom: '1px solid rgba(180,81,30,0.08)', cursor: 'pointer' }}
                         >
                           <td style={{ padding: '10px 16px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>{t.title}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.bookingsCount}</td>
-                          <td style={{ padding: '10px 16px', fontWeight: 900, color: '#C45C26', fontSize: 12.5 }}>{peso(t.revenue)}</td>
+                          <td style={{ padding: '10px 16px', fontWeight: 900, color: '#A8481A', fontSize: 12.5 }}>{peso(t.revenue)}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.pax}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.completionPct}%</td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>
@@ -1060,7 +1060,7 @@ const Reports = () => {
               {/* ── Tour Occupancy ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Users size={14} />}>Tour Occupancy (Active Tours)</SectionTitle>
                 {occupancy.length === 0 ? <EmptyChartNotice /> : (
@@ -1069,10 +1069,10 @@ const Reports = () => {
                       <div key={i}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
                           <span style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00' }}>{o.title}</span>
-                          <span style={{ fontSize: 12, fontWeight: 900, color: o.pctFull >= 100 ? '#8C2F1C' : '#C45C26' }}>{o.booked}/{o.capacity} ({o.pctFull}%)</span>
+                          <span style={{ fontSize: 12, fontWeight: 900, color: o.pctFull >= 100 ? '#8C2F1C' : '#A8481A' }}>{o.booked}/{o.capacity} ({o.pctFull}%)</span>
                         </div>
                         <div style={{ background: '#F2E4D0', borderRadius: 999, height: 10, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', borderRadius: 999, width: `${o.pctFull}%`, background: o.pctFull >= 100 ? '#8C2F1C' : o.pctFull >= 85 ? '#E8A265' : '#C45C26', transition: 'width 0.4s' }} />
+                          <div style={{ height: '100%', borderRadius: 999, width: `${o.pctFull}%`, background: o.pctFull >= 100 ? '#8C2F1C' : o.pctFull >= 85 ? '#E8A265' : '#B4511E', transition: 'width 0.4s' }} />
                         </div>
                       </div>
                     ))}
@@ -1084,7 +1084,7 @@ const Reports = () => {
               {cancellationReasons.total > 0 && (
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
                 }}>
                   <SectionTitle icon={<XCircle size={14} />}>Cancellation Analytics</SectionTitle>
                   <HorizontalBarChart data={cancellationReasons.breakdown} color="#8C2F1C" />
@@ -1094,7 +1094,7 @@ const Reports = () => {
               {/* ── Customer Analytics ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Users size={14} />}>Customer Analytics</SectionTitle>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
@@ -1115,7 +1115,7 @@ const Reports = () => {
                               <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{c.name}</p>
                               <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{c.tours} tour{c.tours !== 1 ? 's' : ''}</p>
                             </div>
-                            <span style={{ fontSize: 13, fontWeight: 900, color: '#C45C26' }}>{peso(c.spend)}</span>
+                            <span style={{ fontSize: 13, fontWeight: 900, color: '#A8481A' }}>{peso(c.spend)}</span>
                           </div>
                         ))}
                       </div>
@@ -1138,7 +1138,7 @@ const Reports = () => {
               {/* ── Seasonal Trends ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Calendar size={14} />}>Seasonal Trends (All-Time, by Calendar Month)</SectionTitle>
                 <BarChart data={seasonalTrends.data} color="#7A3A18" height={170} />
@@ -1151,16 +1151,16 @@ const Reports = () => {
               {/* ── Bookings by Tour ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<MapPin size={14} />}>Bookings by Tour</SectionTitle>
-                <HorizontalBarChart data={tourBreakdown} color="#C45C26" onBarClick={handleTourBarClick} activeLabel={filterTour !== 'All Tours' ? filterTour : null} />
+                <HorizontalBarChart data={tourBreakdown} color="#A8481A" onBarClick={handleTourBarClick} activeLabel={filterTour !== 'All Tours' ? filterTour : null} />
               </div>
 
               {/* ── Recent / Filtered Bookings Table ── */}
               <div ref={tableRef} style={{
                 background: '#FDF6EE', borderRadius: 20, overflow: 'hidden',
-                border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <div style={{ padding: '1.5rem 1.75rem 0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
                   <SectionTitle icon={<ClipboardList size={14} />}>
@@ -1170,7 +1170,7 @@ const Reports = () => {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
+                      <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
                         {['Booking No.', 'Joiner', 'Tour', 'Pax', 'Status', 'Date'].map((h) => (
                           <th key={h} style={{
                             textAlign: 'left', padding: '12px 20px', fontSize: 11, fontWeight: 800,
@@ -1183,8 +1183,8 @@ const Reports = () => {
                     </thead>
                     <tbody>
                       {recentBookings.map((b) => (
-                        <tr key={b.id} style={{ borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
-                          <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 700, color: '#C45C26', fontSize: 12 }}>
+                        <tr key={b.id} style={{ borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
+                          <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12 }}>
                             {b.booking_number || '—'}
                           </td>
                           <td style={{ padding: '12px 20px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>
@@ -1224,7 +1224,7 @@ const Reports = () => {
 /* ─────────────────────────────────────────────
    CHART PRIMITIVES  (hand-rolled, no external chart library)
 ───────────────────────────────────────────── */
-const BarChart = ({ data, color = '#C45C26', height = 180 }) => {
+const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
   const max = Math.max(1, ...data.map((d) => d.value));
   const showEveryLabel = data.length <= 14;
   const labelStep = showEveryLabel ? 1 : Math.ceil(data.length / 10);
@@ -1251,7 +1251,7 @@ const BarChart = ({ data, color = '#C45C26', height = 180 }) => {
           <div style={{
             width: '100%', maxWidth: 28,
             height: `${Math.max(2, (d.value / max) * (height - 46))}px`,
-            background: d.value === 0 ? 'rgba(196,92,38,0.12)' : color,
+            background: d.value === 0 ? 'rgba(180,81,30,0.12)' : color,
             borderRadius: '6px 6px 2px 2px',
             transition: 'height 0.3s',
           }} />
@@ -1267,7 +1267,7 @@ const BarChart = ({ data, color = '#C45C26', height = 180 }) => {
   );
 };
 
-const HorizontalBarChart = ({ data, color = '#C45C26', onBarClick, activeLabel }) => {
+const HorizontalBarChart = ({ data, color = '#A8481A', onBarClick, activeLabel }) => {
   const max = Math.max(1, ...data.map((d) => d.value));
   if (data.length === 0) return <EmptyChartNotice />;
   return (
@@ -1280,7 +1280,7 @@ const HorizontalBarChart = ({ data, color = '#C45C26', onBarClick, activeLabel }
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00' }}>{d.label}</span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26' }}>{d.value}</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: '#A8481A' }}>{d.value}</span>
           </div>
           <div style={{ background: '#F2E4D0', borderRadius: 999, height: 10, overflow: 'hidden' }}>
             <div style={{
@@ -1359,7 +1359,7 @@ const FunnelChart = ({ steps }) => {
           <div key={i}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
               <span style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>{s.label}</span>
-              <span style={{ fontSize: 12, fontWeight: 900, color: '#C45C26' }}>
+              <span style={{ fontSize: 12, fontWeight: 900, color: '#A8481A' }}>
                 {s.value}{dropOff !== null && dropOff > 0 && <span style={{ color: '#8C2F1C', fontWeight: 700, marginLeft: 6, fontSize: 11.5 }}>-{dropOff}%</span>}
               </span>
             </div>
@@ -1390,14 +1390,14 @@ const SectionTitle = ({ icon, children }) => (
     textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
     margin: '0 0 18px', display: 'flex', alignItems: 'center', gap: 7,
   }}>
-    <span style={{ color: '#C45C26' }}>{icon}</span> {children}
+    <span style={{ color: '#A8481A' }}>{icon}</span> {children}
   </h4>
 );
 
 const StatCard = ({ title, value, icon, iconColor }) => (
   <div style={{
     background: '#FDF6EE', borderRadius: 18, padding: '1.4rem 1.5rem',
-    border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+    border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
     display: 'flex', flexDirection: 'column', gap: 8,
   }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -1407,7 +1407,7 @@ const StatCard = ({ title, value, icon, iconColor }) => (
       <div style={{
         width: 32, height: 32, borderRadius: 9, background: '#F2E4D0',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: iconColor || '#C45C26', flexShrink: 0,
+        color: iconColor || '#A8481A', flexShrink: 0,
       }}>
         {icon}
       </div>
@@ -1436,7 +1436,7 @@ const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValuel
       {trend !== undefined && trend !== null && (
         <p style={{
           display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800,
-          color: trendGood ? '#C45C26' : '#8C2F1C', margin: showValueless ? 0 : '4px 0 0',
+          color: trendGood ? '#A8481A' : '#8C2F1C', margin: showValueless ? 0 : '4px 0 0',
         }}>
           {trendGood ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
           {trend >= 0 ? '+' : ''}{trend}% {trendLabel || ''}
@@ -1448,13 +1448,13 @@ const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValuel
 
 const HighlightCard = ({ icon, label, title, sub, tone }) => (
   <div style={{
-    background: tone === 'good' ? 'rgba(196,92,38,0.08)' : 'rgba(140,47,28,0.06)',
-    border: `1px solid ${tone === 'good' ? 'rgba(196,92,38,0.2)' : 'rgba(140,47,28,0.18)'}`,
+    background: tone === 'good' ? 'rgba(180,81,30,0.08)' : 'rgba(140,47,28,0.06)',
+    border: `1px solid ${tone === 'good' ? 'rgba(180,81,30,0.2)' : 'rgba(140,47,28,0.18)'}`,
     borderRadius: 16, padding: '1.1rem 1.3rem', display: 'flex', gap: 12, alignItems: 'flex-start',
   }}>
-    <span style={{ color: tone === 'good' ? '#C45C26' : '#8C2F1C', flexShrink: 0, marginTop: 2 }}>{icon}</span>
+    <span style={{ color: tone === 'good' ? '#A8481A' : '#8C2F1C', flexShrink: 0, marginTop: 2 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: tone === 'good' ? '#C45C26' : '#8C2F1C', margin: '0 0 4px' }}>{label}</p>
+      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: tone === 'good' ? '#A8481A' : '#8C2F1C', margin: '0 0 4px' }}>{label}</p>
       <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: '0 0 2px' }}>{title}</p>
       <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>{sub}</p>
     </div>
@@ -1479,7 +1479,7 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
 );
 
 const searchFilterStyle = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
   borderRadius: 12, padding: '0 14px', height: 40, fontSize: 11.5, fontWeight: 700,
   color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
 };
@@ -1490,22 +1490,22 @@ const FilterSelect = ({ value, onChange, options }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       style={{
-        appearance: 'none', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+        appearance: 'none', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
         borderRadius: 12, padding: '9px 30px 9px 14px', fontSize: 11.5, fontWeight: 700,
         color: '#1A0A00', fontFamily: 'inherit', outline: 'none', cursor: 'pointer', maxWidth: 190,
       }}
     >
       {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
     </select>
-    <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+    <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
   </div>
 );
 
 const STATUS_BADGE_STYLES = {
-  Complete: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
+  Complete: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
+  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.75)' },
+  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };
 
 const MiniStatusBadge = ({ status }) => {

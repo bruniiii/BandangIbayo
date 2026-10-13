@@ -48,14 +48,14 @@ const PublicNav = ({ session }) => {
   <nav className="site-nav" style={{
     position: 'sticky', top: 0, zIndex: 50,
     background: 'rgba(253,246,238,0.92)', backdropFilter: 'blur(12px)',
-    borderBottom: '1px solid rgba(196,92,38,0.12)',
+    borderBottom: '1px solid rgba(180,81,30,0.12)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '0 clamp(1rem,5vw,4rem)', height: 64, gap: 12,
   }}>
     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textDecoration: 'none' }}>
       <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }} />
       <span className="public-nav-brand" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap' }}>
-        Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+        Bandang <span style={{ color: '#A8481A' }}>IBAYO</span>
       </span>
     </Link>
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
@@ -65,8 +65,8 @@ const PublicNav = ({ session }) => {
         aria-current={onTourList ? 'page' : undefined}
         onClick={() => { if (onTourList) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         style={{
-          fontSize: 13, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#C45C26' : '#7A3A18', textDecoration: 'none',
-          borderBottom: onTourList ? '2px solid #C45C26' : '2px solid transparent', paddingBottom: 2,
+          fontSize: 13, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#A8481A' : '#7A3A18', textDecoration: 'none',
+          borderBottom: onTourList ? '2px solid #B4511E' : '2px solid transparent', paddingBottom: 2,
         }}
       >
         Tours
@@ -84,13 +84,13 @@ const PublicNav = ({ session }) => {
 
 const navCta = {
   fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
-  background: '#C45C26', borderRadius: 10, padding: '9px 16px',
+  background: '#B4511E', borderRadius: 10, padding: '9px 16px',
   letterSpacing: '0.04em', whiteSpace: 'nowrap',
 };
 
 const pageStyle = {
   background: '#FDF6EE', minHeight: '100vh',
-  fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden',
+  fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden',
 };
 
 const CenteredMessage = ({ children }) => (
@@ -143,7 +143,7 @@ export const PublicTourList = () => {
 
   const inputStyle = {
     width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-    border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14,
+    border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14,
     padding: '12px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00',
     fontFamily: 'inherit', outline: 'none',
   };
@@ -152,7 +152,7 @@ export const PublicTourList = () => {
     <div style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(2rem,5vw,4rem) clamp(1rem,5vw,4rem)' }}>
-        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C45C26' }}>Open for booking</span>
+        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Open for booking</span>
         <h1 style={{ fontWeight: 900, fontSize: 'clamp(2rem,4vw,3rem)', letterSpacing: '-0.03em', margin: '8px 0 6px' }}>Upcoming Tours</h1>
         <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 28px' }}>
           Browse every joiner tour. Create a free account when you're ready to book.
@@ -160,7 +160,7 @@ export const PublicTourList = () => {
 
         <div className="public-tour-filters" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 28 }}>
           <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#C45C26' }} />
+            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#A8481A' }} />
             <input
               type="search"
               aria-label="Search tours"
@@ -185,7 +185,7 @@ export const PublicTourList = () => {
 
         {loading ? (
           <CenteredMessage>
-            <Loader2 size={36} style={{ color: '#C45C26', animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={36} style={{ color: '#A8481A', animation: 'spin 1s linear infinite' }} />
           </CenteredMessage>
         ) : filteredTours.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
@@ -274,10 +274,10 @@ export const PublicTourDetail = () => {
         <PublicNav session={session} />
         <CenteredMessage>
           {status === 'loading' ? (
-            <Loader2 size={36} style={{ color: '#C45C26', animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={36} style={{ color: '#A8481A', animation: 'spin 1s linear infinite' }} />
           ) : (
             <>
-              <Mountain size={40} style={{ color: '#C45C26' }} />
+              <Mountain size={40} style={{ color: '#A8481A' }} />
               <h1 style={{ fontWeight: 900, fontSize: 24, margin: 0 }}>This tour isn't available</h1>
               <p style={{ fontWeight: 600, color: '#7A3A18', margin: 0 }}>It may have been removed or the link is wrong.</p>
               <Link to="/tours" style={{ ...navCta, padding: '12px 22px' }}>See open tours</Link>
@@ -316,10 +316,10 @@ export const PublicTourDetail = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <div>
               {tour.difficulty && (
-                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C45C26' }}>{tour.difficulty}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A' }}>{tour.difficulty}</span>
               )}
               <h1 style={{ fontWeight: 900, fontSize: 'clamp(1.8rem,4vw,2.8rem)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: '6px 0 8px', overflowWrap: 'anywhere' }}>{tour.title}</h1>
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: '#C45C26', margin: 0 }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: '#A8481A', margin: 0 }}>
                 <MapPin size={16} /> {tour.destination}
               </p>
             </div>
@@ -332,8 +332,8 @@ export const PublicTourDetail = () => {
               </p>
             </ViewSection>
 
-            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
-              <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
+            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
+              <ViewSection title="Inclusions" titleColor="#A8481A" icon={<CheckCircle2 size={14} />}>
                 <ChecklistGrid text={tour.inclusions} variant="include" />
               </ViewSection>
               <ViewSection title="Exclusions" titleColor="#8C2F1C" icon={<X size={14} />}>
@@ -341,23 +341,23 @@ export const PublicTourDetail = () => {
               </ViewSection>
             </div>
 
-            <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
-              <ViewSection title="Itinerary" titleColor="#C45C26" icon={<Clock size={14} />}>
+            <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
+              <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
                 <ItineraryTimeline text={tour.itinerary} />
               </ViewSection>
             </div>
 
-            <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+            <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
               <ViewSection title="Things to Bring">
                 <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
               </ViewSection>
             </div>
 
             {tour.important_note && (
-              <div style={{ background: 'rgba(196,92,38,0.07)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(196,92,38,0.2)', display: 'flex', gap: 14 }}>
-                <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
+              <div style={{ background: 'rgba(180,81,30,0.07)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.2)', display: 'flex', gap: 14 }}>
+                <AlertCircle size={22} style={{ color: '#A8481A', flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>Important Note</p>
+                  <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 8px' }}>Important Note</p>
                   <p style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0, overflowWrap: 'anywhere' }}>{tour.important_note}</p>
                 </div>
               </div>
@@ -389,10 +389,10 @@ export const PublicTourDetail = () => {
                 <span style={{ color: isFull ? '#E8A265' : '#FDF6EE' }}>
                   {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
                 </span>
-                <span style={{ color: 'rgba(232,210,190,0.75)' }}>{tour.current_booked} / {capacity}</span>
+                <span style={{ color: 'rgba(232,210,190,0.85)' }}>{tour.current_booked} / {capacity}</span>
               </div>
               <div style={{ height: 6, borderRadius: 999, background: 'rgba(253,246,238,0.12)', overflow: 'hidden' }}>
-                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? '#8C2F1C' : '#C45C26' }} />
+                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? '#8C2F1C' : '#B4511E' }} />
               </div>
             </div>
 
@@ -404,8 +404,8 @@ export const PublicTourDetail = () => {
                 border: 'none', borderRadius: 14, padding: '15px 18px', fontFamily: 'inherit',
                 fontSize: 14, fontWeight: 900, letterSpacing: '0.04em',
                 cursor: canBook ? 'pointer' : 'not-allowed',
-                background: canBook ? '#C45C26' : 'rgba(253,246,238,0.12)',
-                color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.8)',
+                background: canBook ? '#B4511E' : 'rgba(253,246,238,0.12)',
+                color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.85)',
               }}
             >
               {hasDeparted ? 'This tour has departed' : isFull ? (session ? 'Join the waitlist' : 'Log in to join the waitlist') : session ? 'Book this tour' : 'Log in to book'}
@@ -452,8 +452,8 @@ export const PublicTourDetail = () => {
             border: 'none', borderRadius: 12, padding: '12px 18px', fontFamily: 'inherit',
             fontSize: 13, fontWeight: 900, flexShrink: 0,
             cursor: canBook ? 'pointer' : 'not-allowed',
-            background: canBook ? '#C45C26' : 'rgba(253,246,238,0.12)',
-            color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.8)',
+            background: canBook ? '#B4511E' : 'rgba(253,246,238,0.12)',
+            color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.85)',
           }}
         >
           {hasDeparted ? 'Departed' : isFull ? 'Join waitlist' : session ? 'Book now' : 'Log in to book'}

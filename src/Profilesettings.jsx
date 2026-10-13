@@ -13,7 +13,7 @@ import {
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #7A3A18  rust mid-tone
@@ -24,7 +24,7 @@ const inputStyle = {
   width: '100%',
   padding: '11px 14px 11px 40px',
   borderRadius: 12,
-  border: '1px solid rgba(196,92,38,0.18)',
+  border: '1px solid rgba(180,81,30,0.18)',
   background: '#F2E4D0',
   fontSize: 13.5,
   fontWeight: 600,
@@ -58,7 +58,7 @@ const Field = ({ label, icon, children }) => (
     <div style={{ position: 'relative' }}>
       <span style={{
         position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
-        color: '#C45C26', opacity: 0.6, display: 'flex', pointerEvents: 'none',
+        color: '#A8481A', opacity: 0.9, display: 'flex', pointerEvents: 'none',
       }}>
         {icon}
       </span>
@@ -280,7 +280,7 @@ const ProfileSettings = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
         <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
         <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading profile…</span>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -303,7 +303,7 @@ const ProfileSettings = () => {
       {/* avatar card */}
       <div style={{
         background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
       }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -374,7 +374,7 @@ const ProfileSettings = () => {
       {/* personal information card */}
       <div style={{
         background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
       }}>
         <h3 style={{ fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>Personal Information</h3>
         <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 20px' }}>
@@ -416,7 +416,7 @@ const ProfileSettings = () => {
 
         <div style={{ marginBottom: 20 }}>
           <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <MapPin size={14} style={{ color: '#C45C26' }} /> Address
+            <MapPin size={14} style={{ color: '#A8481A' }} /> Address
           </p>
           {!form.province && form.address && (
             <p style={{ fontSize: 12, color: '#7A3A18', margin: '0 0 10px' }}>
@@ -433,7 +433,7 @@ const ProfileSettings = () => {
           />
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+        <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
           <button
             onClick={handleSave}
             disabled={saving}

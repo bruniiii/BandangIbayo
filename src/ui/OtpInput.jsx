@@ -31,7 +31,7 @@ const OtpInput = ({ length = 6, value, onChange, invalid = false, disabled = fal
     else if (e.key === 'ArrowRight' && i < length - 1) refs.current[i + 1]?.focus();
   };
 
-  const border = invalid ? '#8C2F1C' : 'rgba(196,92,38,0.3)';
+  const border = invalid ? '#8C2F1C' : 'rgba(168,72,26,0.3)';
   return (
     <div role="group" aria-label="Verification code" aria-describedby={describedBy} style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
       {digits.map((d, i) => (

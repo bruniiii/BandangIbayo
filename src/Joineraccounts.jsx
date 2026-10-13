@@ -12,7 +12,7 @@ import {
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #7A3A18  rust mid-tone
@@ -181,14 +181,14 @@ const JoinerAccounts = () => {
         </button>
 
         <div style={{ position: 'relative' }}>
-          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.75)' }} />
+          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.85)' }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, username, email, phone…"
             style={{
               paddingLeft: 38, paddingRight: 16, paddingTop: 10, paddingBottom: 10,
-              background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.18)',
+              background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.18)',
               borderRadius: 999, fontSize: 12.5, fontWeight: 600, color: '#1A0A00',
               fontFamily: 'inherit', outline: 'none', width: 280, boxSizing: 'border-box',
             }}
@@ -200,11 +200,11 @@ const JoinerAccounts = () => {
       {/* table */}
       <div style={{
         background: '#FDF6EE', borderRadius: 20,
-        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         overflow: 'hidden',
       }}>
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
             <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
             <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading joiners…</span>
           </div>
@@ -223,7 +223,7 @@ const JoinerAccounts = () => {
           <div className="responsive-table-wrapper">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
+                <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
                   {['Joiner', 'Contact', 'Address', 'Bookings', 'Joined', ''].map((h) => (
                     <th key={h} style={{
                       textAlign: 'left', padding: '14px 20px', fontSize: 11.5, fontWeight: 800,
@@ -239,8 +239,8 @@ const JoinerAccounts = () => {
                   <tr
                     key={p.id}
                     onClick={() => setSelected(p)}
-                    style={{ borderBottom: '1px solid rgba(196,92,38,0.08)', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(196,92,38,0.05)'}
+                    style={{ borderBottom: '1px solid rgba(180,81,30,0.08)', cursor: 'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(180,81,30,0.05)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     <td style={{ padding: '14px 20px' }}>
@@ -284,7 +284,7 @@ const JoinerAccounts = () => {
                       </p>
                     </td>
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <ChevronRight size={16} color="rgba(122,58,24,0.4)" />
+                      <ChevronRight size={16} color="rgba(122,58,24,0.85)" />
                     </td>
                   </tr>
                 ))}
@@ -311,14 +311,14 @@ const JoinerAccounts = () => {
             style={{
               background: '#FDF6EE', borderRadius: 24, padding: '2rem',
               width: '100%', maxWidth: 460, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-              borderTop: '6px solid #C45C26', position: 'relative', maxHeight: '85vh', overflowY: 'auto',
+              borderTop: '6px solid #B4511E', position: 'relative', maxHeight: '85vh', overflowY: 'auto',
             }}
           >
             <button
               onClick={() => setSelected(null)}
               style={{
                 position: 'absolute', top: 18, right: 18, background: 'none', border: 'none',
-                cursor: 'pointer', color: 'rgba(122,58,24,0.75)',
+                cursor: 'pointer', color: 'rgba(122,58,24,0.85)',
               }}
             >
               <X size={20} />
@@ -353,14 +353,14 @@ const JoinerAccounts = () => {
             </div>
 
             {/* ── Email joiner ── */}
-            <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', marginTop: 22, paddingTop: 18 }}>
+            <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 22, paddingTop: 18 }}>
               {emailStatus && (
                 <div style={{
                   display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12,
-                  background: emailStatus.type === 'success' ? 'rgba(196,92,38,0.08)' : 'rgba(140,47,28,0.08)',
-                  border: `1px solid ${emailStatus.type === 'success' ? 'rgba(196,92,38,0.22)' : 'rgba(140,47,28,0.22)'}`,
+                  background: emailStatus.type === 'success' ? 'rgba(180,81,30,0.08)' : 'rgba(140,47,28,0.08)',
+                  border: `1px solid ${emailStatus.type === 'success' ? 'rgba(180,81,30,0.22)' : 'rgba(140,47,28,0.22)'}`,
                   borderRadius: 12, padding: '10px 12px',
-                  color: emailStatus.type === 'success' ? '#C45C26' : '#8C2F1C',
+                  color: emailStatus.type === 'success' ? '#A8481A' : '#8C2F1C',
                 }}>
                   {emailStatus.type === 'success' ? <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} /> : <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />}
                   <p style={{ fontSize: 12, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{emailStatus.text}</p>
@@ -394,7 +394,7 @@ const JoinerAccounts = () => {
                     placeholder="Subject"
                     style={{
                       width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-                      border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 14px',
+                      border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '10px 14px',
                       fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
                     }}
                   />
@@ -405,7 +405,7 @@ const JoinerAccounts = () => {
                     rows={5}
                     style={{
                       width: '100%', boxSizing: 'border-box', background: '#F2E4D0', resize: 'vertical',
-                      border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 14px',
+                      border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '10px 14px',
                       fontSize: 13, fontWeight: 500, color: '#1A0A00', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6,
                     }}
                   />
@@ -414,7 +414,7 @@ const JoinerAccounts = () => {
                       type="checkbox"
                       checked={alsoNotify}
                       onChange={(e) => setAlsoNotify(e.target.checked)}
-                      style={{ accentColor: '#C45C26', width: 15, height: 15 }}
+                      style={{ accentColor: '#B4511E', width: 15, height: 15 }}
                     />
                     Also show it in their in-app notifications
                   </label>
@@ -427,7 +427,7 @@ const JoinerAccounts = () => {
                       disabled={sending}
                       style={{
                         flex: 1, padding: '12px 0', background: '#F2E4D0', color: '#7A3A18',
-                        border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, cursor: 'pointer',
+                        border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                       }}
                     >
@@ -438,10 +438,10 @@ const JoinerAccounts = () => {
                       disabled={sending}
                       style={{
                         flex: 1.6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        padding: '12px 0', background: '#C45C26', color: '#FDF6EE', border: 'none',
+                        padding: '12px 0', background: '#B4511E', color: '#FDF6EE', border: 'none',
                         borderRadius: 999, cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                         fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(196,92,38,0.35)', opacity: sending ? 0.6 : 1,
+                        boxShadow: '0 6px 20px rgba(180,81,30,0.35)', opacity: sending ? 0.6 : 1,
                       }}
                     >
                       {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -550,7 +550,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
 
   const fieldStyle = {
     width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-    border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 14px',
+    border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '10px 14px',
     fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
   };
   const labelStyle = {
@@ -572,11 +572,11 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
         style={{
           background: '#FDF6EE', borderRadius: 24, width: '100%', maxWidth: 560,
           maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '6px solid #C45C26',
+          boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '6px solid #B4511E',
         }}
       >
         {/* header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(196,92,38,0.12)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(180,81,30,0.12)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Mail size={17} />
@@ -588,7 +588,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               </p>
             </div>
           </div>
-          <button onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.75)' }}>
+          <button onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
             <X size={20} />
           </button>
         </div>
@@ -598,10 +598,10 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
           {status && (
             <div style={{
               display: 'flex', alignItems: 'flex-start', gap: 8,
-              background: status.type === 'success' ? 'rgba(196,92,38,0.08)' : 'rgba(140,47,28,0.08)',
-              border: `1px solid ${status.type === 'success' ? 'rgba(196,92,38,0.22)' : 'rgba(140,47,28,0.22)'}`,
+              background: status.type === 'success' ? 'rgba(180,81,30,0.08)' : 'rgba(140,47,28,0.08)',
+              border: `1px solid ${status.type === 'success' ? 'rgba(180,81,30,0.22)' : 'rgba(140,47,28,0.22)'}`,
               borderRadius: 12, padding: '10px 12px',
-              color: status.type === 'success' ? '#C45C26' : '#8C2F1C',
+              color: status.type === 'success' ? '#A8481A' : '#8C2F1C',
             }}>
               {status.type === 'success' ? <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} /> : <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />}
               <p style={{ fontSize: 12, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{status.text}</p>
@@ -615,14 +615,14 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               <button
                 onClick={toggleAllVisible}
                 disabled={sending || visible.length === 0}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C45C26', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}
               >
                 {allVisiblePicked ? 'Clear shown' : 'Select all shown'}
               </button>
             </div>
 
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.75)' }} />
+              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.85)' }} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -631,7 +631,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               />
             </div>
 
-            <div style={{ maxHeight: 210, overflowY: 'auto', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 14, background: '#FFFBF6' }}>
+            <div style={{ maxHeight: 210, overflowY: 'auto', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 14, background: '#FFFBF6' }}>
               {visible.length === 0 ? (
                 <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, textAlign: 'center', padding: '1.25rem 0', margin: 0 }}>
                   No joiners found.
@@ -643,11 +643,11 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
                     key={p.id}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', cursor: 'pointer',
-                      background: on ? 'rgba(196,92,38,0.09)' : 'transparent',
-                      borderBottom: '1px solid rgba(196,92,38,0.07)',
+                      background: on ? 'rgba(180,81,30,0.09)' : 'transparent',
+                      borderBottom: '1px solid rgba(180,81,30,0.07)',
                     }}
                   >
-                    <input type="checkbox" checked={on} onChange={() => toggle(p.id)} disabled={sending} style={{ accentColor: '#C45C26', width: 15, height: 15, flexShrink: 0 }} />
+                    <input type="checkbox" checked={on} onChange={() => toggle(p.id)} disabled={sending} style={{ accentColor: '#B4511E', width: 15, height: 15, flexShrink: 0 }} />
                     <div style={{
                       width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
                       background: '#1A0A00', color: '#E8A265', fontWeight: 900, fontSize: 11,
@@ -687,19 +687,19 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
             />
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
-            <input type="checkbox" checked={alsoNotify} onChange={(e) => setAlsoNotify(e.target.checked)} disabled={sending} style={{ accentColor: '#C45C26', width: 15, height: 15 }} />
+            <input type="checkbox" checked={alsoNotify} onChange={(e) => setAlsoNotify(e.target.checked)} disabled={sending} style={{ accentColor: '#B4511E', width: 15, height: 15 }} />
             Also show it in their in-app notifications
           </label>
         </div>
 
         {/* footer */}
-        <div style={{ display: 'flex', gap: 10, padding: '1rem 1.5rem', borderTop: '1px solid rgba(196,92,38,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 10, padding: '1rem 1.5rem', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
           <button
             onClick={onClose}
             disabled={sending}
             style={{
               flex: 1, padding: '12px 0', background: '#FDF6EE', color: '#7A3A18',
-              border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, cursor: 'pointer',
+              border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
             }}
           >
@@ -710,10 +710,10 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
             disabled={sending}
             style={{
               flex: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '12px 0', background: '#C45C26', color: '#FDF6EE', border: 'none', borderRadius: 999,
+              padding: '12px 0', background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 999,
               cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 900,
               fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-              boxShadow: '0 6px 20px rgba(196,92,38,0.35)', opacity: sending ? 0.7 : 1,
+              boxShadow: '0 6px 20px rgba(180,81,30,0.35)', opacity: sending ? 0.7 : 1,
             }}
           >
             {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -729,7 +729,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
 
 const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-    <span style={{ color: '#C45C26', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
+    <span style={{ color: '#A8481A', opacity: 0.9, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div>
       <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
         {label}

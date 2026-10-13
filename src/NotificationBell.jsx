@@ -95,7 +95,7 @@ const NotificationBell = ({ onNotificationClick }) => {
         style={{
           position: 'relative',
           width: 40, height: 40, borderRadius: 12,
-          background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+          background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: '#1A0A00',
         }}
@@ -105,10 +105,10 @@ const NotificationBell = ({ onNotificationClick }) => {
           <span style={{
             position: 'absolute', top: -4, right: -4,
             minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-            background: '#C45C26', color: '#FDF6EE',
+            background: '#B4511E', color: '#FDF6EE',
             fontSize: 11, fontWeight: 900,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(196,92,38,0.4)',
+            boxShadow: '0 2px 8px rgba(180,81,30,0.4)',
           }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
@@ -120,13 +120,13 @@ const NotificationBell = ({ onNotificationClick }) => {
           position: 'absolute', top: 'calc(100% + 10px)', right: 0, zIndex: 500,
           width: 340, maxHeight: 420,
           background: '#FDF6EE', borderRadius: 20,
-          border: '1px solid rgba(196,92,38,0.14)',
+          border: '1px solid rgba(180,81,30,0.14)',
           boxShadow: '0 20px 50px rgba(26,10,0,0.25)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 18px', borderBottom: '1px solid rgba(196,92,38,0.12)', flexShrink: 0,
+            padding: '14px 18px', borderBottom: '1px solid rgba(180,81,30,0.12)', flexShrink: 0,
           }}>
             <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>
               Notifications
@@ -137,7 +137,7 @@ const NotificationBell = ({ onNotificationClick }) => {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4,
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#C45C26', fontSize: 11, fontWeight: 800,
+                  color: '#A8481A', fontSize: 11, fontWeight: 800,
                   letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'inherit',
                 }}
               >
@@ -148,7 +148,7 @@ const NotificationBell = ({ onNotificationClick }) => {
 
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loading ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.75)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
                 <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : notifications.length === 0 ? (
@@ -166,14 +166,14 @@ const NotificationBell = ({ onNotificationClick }) => {
                   }}
                   style={{
                     padding: '12px 18px',
-                    borderBottom: '1px solid rgba(196,92,38,0.08)',
-                    background: n.is_read ? 'transparent' : 'rgba(196,92,38,0.06)',
+                    borderBottom: '1px solid rgba(180,81,30,0.08)',
+                    background: n.is_read ? 'transparent' : 'rgba(180,81,30,0.06)',
                     cursor: 'pointer',
                     display: 'flex', gap: 10, alignItems: 'flex-start',
                   }}
                 >
                   {!n.is_read && (
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#C45C26', marginTop: 5, flexShrink: 0 }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#B4511E', marginTop: 5, flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{n.title}</p>
@@ -232,7 +232,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
       position: 'relative', background: '#FDF6EE',
       width: '100%', maxWidth: 520,
       borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-      borderTop: '7px solid #C45C26',
+      borderTop: '7px solid #B4511E',
       overflow: 'hidden', maxHeight: '85vh',
       display: 'flex', flexDirection: 'column',
     }}>
@@ -240,12 +240,12 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
       <div style={{
         padding: '1.5rem 1.75rem 1.25rem', flexShrink: 0,
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
-        borderBottom: '1px solid rgba(196,92,38,0.12)',
+        borderBottom: '1px solid rgba(180,81,30,0.12)',
       }}>
         <div style={{ minWidth: 0 }}>
           <p style={{
             fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
-            color: '#C45C26', margin: '0 0 8px',
+            color: '#A8481A', margin: '0 0 8px',
           }}>
             Notification
           </p>
@@ -257,7 +257,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
           onClick={onClose}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(122,58,24,0.75)', padding: 4, flexShrink: 0,
+            color: 'rgba(122,58,24,0.85)', padding: 4, flexShrink: 0,
           }}
         >
           <X size={22} />
@@ -272,7 +272,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
         }}>
           {notification.message}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, color: '#7A3A18', opacity: 0.6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, color: '#7A3A18', opacity: 0.9 }}>
           <Clock size={12} />
           <span style={{ fontSize: 11.5, fontWeight: 700 }}>{fullDateTime(notification.created_at)}</span>
         </div>
@@ -280,7 +280,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
 
       {/* Footer */}
       <div style={{
-        padding: '1.25rem 1.75rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+        padding: '1.25rem 1.75rem', borderTop: '1px solid rgba(180,81,30,0.12)',
         background: '#F2E4D0', display: 'flex', gap: 10, flexShrink: 0, justifyContent: 'flex-end',
       }}>
         <button
@@ -288,7 +288,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
           style={{
             padding: '12px 20px',
             background: 'transparent', color: '#7A3A18',
-            border: '1px solid rgba(196,92,38,0.2)', borderRadius: 999, cursor: 'pointer',
+            border: '1px solid rgba(180,81,30,0.2)', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
           }}

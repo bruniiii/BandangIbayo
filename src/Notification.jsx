@@ -11,7 +11,7 @@ import {
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #7A3A18  rust mid-tone
@@ -38,11 +38,11 @@ const fullDateTime = (dateStr) =>
 // (see notifications.js, AdminExclusiveTours.jsx, BookingManagement.jsx, etc.)
 const TYPE_META = {
   booking:            { Icon: CreditCard,     color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Booking' },
-  payment:            { Icon: Wallet,         color: '#C45C26', bg: 'rgba(196,92,38,0.14)',  label: 'Payment' },
+  payment:            { Icon: Wallet,         color: '#A8481A', bg: 'rgba(180,81,30,0.14)',  label: 'Payment' },
   cancellation:       { Icon: XCircle,        color: '#8C2F1C', bg: 'rgba(140,47,28,0.12)',  label: 'Cancellation' },
   exclusive_request:  { Icon: Globe,          color: '#7A3A18', bg: 'rgba(122,58,24,0.12)',  label: 'Exclusive / Request' },
-  exclusive_package:  { Icon: Package,        color: '#C45C26', bg: 'rgba(196,92,38,0.14)',  label: 'Tour Package' },
-  review:             { Icon: Star,           color: '#9A5B1E', bg: 'rgba(232,162,101,0.25)',label: 'Review' },
+  exclusive_package:  { Icon: Package,        color: '#A8481A', bg: 'rgba(180,81,30,0.14)',  label: 'Tour Package' },
+  review:             { Icon: Star,           color: '#8C5216', bg: 'rgba(232,162,101,0.25)',label: 'Review' },
   account:            { Icon: Users,          color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Account' },
   tour:               { Icon: MapIconLucide,  color: '#1A0A00', bg: 'rgba(26,10,0,0.08)',    label: 'Tour' },
   default:            { Icon: Bell,           color: '#7A3A18', bg: 'rgba(122,58,24,0.1)',   label: 'Update' },
@@ -164,7 +164,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
 
   const selectStyle = {
     appearance: 'none', background: '#F2E4D0',
-    border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12,
+    border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
     padding: '9px 30px 9px 14px', fontSize: 11.5, fontWeight: 700,
     color: '#1A0A00', fontFamily: 'inherit', outline: 'none', cursor: 'pointer',
   };
@@ -185,9 +185,9 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
               <span style={{
                 position: 'absolute', top: -4, right: -4,
                 minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-                background: '#C45C26', color: '#FDF6EE', fontSize: 11, fontWeight: 900,
+                background: '#B4511E', color: '#FDF6EE', fontSize: 11, fontWeight: 900,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(196,92,38,0.4)',
+                boxShadow: '0 2px 8px rgba(180,81,30,0.4)',
               }}>
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
@@ -209,7 +209,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
               onClick={markAllRead}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999,
+                background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999,
                 padding: '9px 16px', cursor: 'pointer', color: '#7A3A18', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
               }}
@@ -236,7 +236,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
 
       {/* filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', background: '#F2E4D0', padding: 5, borderRadius: 14, border: '1px solid rgba(196,92,38,0.14)' }}>
+        <div style={{ display: 'flex', background: '#F2E4D0', padding: 5, borderRadius: 14, border: '1px solid rgba(180,81,30,0.14)' }}>
           {[['all', 'All'], ['unread', 'Unread']].map(([key, label]) => (
             <button
               key={key}
@@ -261,13 +261,13 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
               <option key={t} value={t}>{metaFor(t).label}</option>
             ))}
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
         </div>
       </div>
 
       {/* list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
           <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
           <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading notifications…</span>
         </div>
@@ -374,8 +374,8 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
       style={{
         position: 'relative', display: 'flex', alignItems: 'flex-start', gap: 12,
         padding: '14px 16px', borderRadius: 16, cursor: 'pointer',
-        background: notification.is_read ? (hovered ? '#F8F3EA' : '#FDF6EE') : (hovered ? 'rgba(196,92,38,0.1)' : 'rgba(196,92,38,0.07)'),
-        border: '1px solid rgba(196,92,38,0.1)',
+        background: notification.is_read ? (hovered ? '#F8F3EA' : '#FDF6EE') : (hovered ? 'rgba(180,81,30,0.1)' : 'rgba(180,81,30,0.07)'),
+        border: '1px solid rgba(180,81,30,0.1)',
         transition: 'background 0.15s',
       }}
       onClick={onOpen}
@@ -402,11 +402,11 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         {!notification.is_read && (
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#C45C26' }} />
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#B4511E' }} />
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleMenu(); }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.75)', padding: 4 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)', padding: 4 }}
         >
           <MoreHorizontal size={16} />
         </button>
@@ -418,7 +418,7 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
           onClick={(e) => e.stopPropagation()}
           style={{
             position: 'absolute', top: 44, right: 12, zIndex: 20,
-            background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12,
+            background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
             boxShadow: '0 12px 32px rgba(26,10,0,0.2)', overflow: 'hidden', minWidth: 150,
           }}
         >

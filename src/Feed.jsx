@@ -21,7 +21,7 @@ const REACTIONS = [
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #7A3A18  rust mid-tone
@@ -316,7 +316,7 @@ const Feed = ({ isAdmin = false }) => {
       {isAdmin && (
         <div style={{
           background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
           <textarea
             id="feed-composer"
@@ -327,7 +327,7 @@ const Feed = ({ isAdmin = false }) => {
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box', resize: 'vertical',
-              background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+              background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
               borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
               color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
             }}
@@ -410,7 +410,7 @@ const Feed = ({ isAdmin = false }) => {
 
       {/* feed list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
           <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
           <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading feed…</span>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -474,7 +474,7 @@ const FeedPostCard = ({
   return (
     <div style={{
       background: '#FDF6EE', borderRadius: 20, overflow: 'hidden',
-      border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
     }}>
       <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -490,7 +490,7 @@ const FeedPostCard = ({
               {displayName(post.author)}
               {post.author?.role === 'admin' && (
                 <span style={{
-                  marginLeft: 8, background: '#C45C26', color: '#FDF6EE',
+                  marginLeft: 8, background: '#B4511E', color: '#FDF6EE',
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
                   borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle',
                 }}>Admin</span>
@@ -576,7 +576,7 @@ const FeedPostCard = ({
             </p>
           </div>
           {tour.price != null && (
-            <span style={{ fontSize: 14, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>
+            <span style={{ fontSize: 14, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>
               {formatPeso(Number(tour.price))}
             </span>
           )}
@@ -610,7 +610,7 @@ const FeedPostCard = ({
         </div>
       )}
 
-      <div style={{ borderTop: '1px solid rgba(196,92,38,0.12)', margin: '0 1.5rem' }} />
+      <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', margin: '0 1.5rem' }} />
 
       {/* action row: like / comment toggle */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '4px 1rem', gap: 4 }}>
@@ -621,7 +621,7 @@ const FeedPostCard = ({
             style={{
               display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
               cursor: reacting ? 'not-allowed' : 'pointer', padding: '10px 10px', borderRadius: 10,
-              fontSize: 12, fontWeight: 800, color: mine ? '#C45C26' : '#7A3A18', fontFamily: 'inherit',
+              fontSize: 12, fontWeight: 800, color: mine ? '#A8481A' : '#7A3A18', fontFamily: 'inherit',
             }}
           >
             <span style={{ fontSize: 15 }}>{mine ? mine.emoji : '👍'}</span>
@@ -630,7 +630,7 @@ const FeedPostCard = ({
           <button
             onClick={onTogglePicker}
             title="Choose a reaction"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#7A3A18', opacity: 0.55 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#7A3A18', opacity: 0.9 }}
           >
             <ChevronDown size={13} />
           </button>
@@ -638,7 +638,7 @@ const FeedPostCard = ({
           {pickerOpen && (
             <div style={{
               position: 'absolute', bottom: '110%', left: 0, background: '#FDF6EE',
-              border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, padding: '6px 10px',
+              border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999, padding: '6px 10px',
               display: 'flex', gap: 6, boxShadow: '0 8px 24px rgba(26,10,0,0.18)', zIndex: 5,
             }}>
               {REACTIONS.map(r => (
@@ -713,7 +713,7 @@ const FeedPostCard = ({
               placeholder="Write a comment..."
               style={{
                 flex: 1, boxSizing: 'border-box', background: '#F2E4D0',
-                border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999,
+                border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999,
                 padding: '9px 14px', fontSize: 12.5, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
               }}
             />
@@ -722,7 +722,7 @@ const FeedPostCard = ({
               disabled={commenting || !commentDraft.trim()}
               style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                background: (commenting || !commentDraft.trim()) ? 'rgba(196,92,38,0.35)' : '#C45C26',
+                background: (commenting || !commentDraft.trim()) ? 'rgba(180,81,30,0.35)' : '#B4511E',
                 color: '#FDF6EE', border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: (commenting || !commentDraft.trim()) ? 'not-allowed' : 'pointer',

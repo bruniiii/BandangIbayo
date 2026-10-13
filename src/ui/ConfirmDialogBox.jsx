@@ -28,13 +28,13 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, onC
           position: 'relative', width: '100%', maxWidth: 420, background: COLORS.cream, borderRadius: 22,
           padding: '1.6rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)',
           borderTop: `6px solid ${danger ? COLORS.danger : COLORS.primary}`,
-          fontFamily: "'Inter', system-ui, sans-serif",
+          fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
         }}
       >
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <span style={{
             width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: danger ? 'rgba(192,54,44,0.1)' : 'rgba(196,92,38,0.12)', color: danger ? COLORS.danger : COLORS.primary,
+            background: danger ? 'rgba(192,54,44,0.1)' : 'rgba(180,81,30,0.12)', color: danger ? COLORS.danger : COLORS.primary,
           }}>
             <Icon size={20} />
           </span>

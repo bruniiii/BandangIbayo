@@ -8,8 +8,8 @@
 // ─────────────────────────────────────────────
 
 export const COLORS = {
-  primary: '#C45C26',
-  primaryDark: '#A84B1C',
+  primary: '#A8481A',
+  primaryDark: '#9E4316',
   dark: '#1A0A00',
   cream: '#FDF6EE',
   parchment: '#F2E4D0',
@@ -30,12 +30,12 @@ const disabledStyle = (disabled) => (disabled ? { opacity: 0.55, cursor: 'not-al
 
 export const primaryBtn = (disabled = false) => ({
   ...base, background: COLORS.primary, color: COLORS.cream,
-  boxShadow: '0 6px 18px rgba(196,92,38,0.32)', ...disabledStyle(disabled),
+  boxShadow: '0 6px 18px rgba(180,81,30,0.32)', ...disabledStyle(disabled),
 });
 
 export const secondaryBtn = (disabled = false) => ({
   ...base, background: COLORS.parchment, color: COLORS.dark,
-  border: '1px solid rgba(196,92,38,0.25)', ...disabledStyle(disabled),
+  border: '1px solid rgba(180,81,30,0.25)', ...disabledStyle(disabled),
 });
 
 export const dangerBtn = (disabled = false) => ({

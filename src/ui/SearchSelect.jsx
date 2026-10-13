@@ -143,7 +143,7 @@ const SearchSelect = ({
           style={{
             position: 'absolute', zIndex: 30, left: 0, right: 0, top: 'calc(100% + 4px)', margin: 0, padding: 4,
             listStyle: 'none', maxHeight: 260, overflowY: 'auto', background: '#FFFDF9',
-            border: '1px solid rgba(196,92,38,0.25)', borderRadius: 12, boxShadow: '0 12px 30px rgba(26,10,0,0.15)',
+            border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, boxShadow: '0 12px 30px rgba(26,10,0,0.15)',
           }}
         >
           {shown.length === 0 && <li style={{ padding: '12px', fontSize: 13, color: '#7A3A18' }}>{emptyText}</li>}
@@ -160,7 +160,7 @@ const SearchSelect = ({
               style={{
                 padding: '0 12px', minHeight: 44, display: 'flex', alignItems: 'center', borderRadius: 8, cursor: 'pointer',
                 fontSize: 14, fontWeight: o === value ? 800 : 600, color: '#1A0A00',
-                background: i === active ? 'rgba(196,92,38,0.12)' : 'transparent',
+                background: i === active ? 'rgba(180,81,30,0.12)' : 'transparent',
               }}
             >
               {o}
