@@ -1,9 +1,10 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // SEARCHABLE DROPDOWN for long lists (provinces, cities, barangays, tours…).
 // Type to filter ("bag" → Baguio City) or open the list and scroll.
+// Clicking into the box selects its text, so typing replaces the old choice.
 // Keyboard: ↑/↓ to move, Enter to pick, Esc to close.
 // The text box carries `name`, so it works inside plain <form>s; typing
 // something that isn't on the list blocks submitting until it's fixed.
@@ -102,25 +103,12 @@ const SearchSelect = ({
         disabled={disabled}
         required={required}
         onChange={(e) => { setQuery(e.target.value); setOpen(true); setActive(0); }}
-        onFocus={() => { setOpen(true); setActive(Math.max(0, matches.indexOf(value))); }}
+        onFocus={(e) => { e.target.select(); setOpen(true); setActive(Math.max(0, matches.indexOf(value))); }}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        style={{ ...style, paddingRight: 64, cursor: disabled ? 'not-allowed' : 'text' }}
+        style={{ ...style, paddingRight: 40, cursor: disabled ? 'not-allowed' : 'text' }}
       />
       <div style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
-        {query && !disabled && (
-          <button
-            type="button"
-            aria-label="Clear"
-            className="no-touch-size"
-            tabIndex={-1}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => { setQuery(''); onChange(''); setOpen(true); inputRef.current?.focus(); }}
-            style={iconBtn}
-          >
-            <X size={15} />
-          </button>
-        )}
         <button
           type="button"
           aria-label={open ? 'Close list' : 'Show all options'}
