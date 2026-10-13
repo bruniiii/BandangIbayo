@@ -700,20 +700,14 @@ const JoinerDashboard = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>Latest Tour Packages</h3>
                     {/* "See More" sits with the ‹ › arrows */}
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <button
                         type="button"
+                        className="text-link"
                         onClick={() => setActiveTab('Explore Tours')}
-                        style={{
-                          height: 28, padding: '0 12px', borderRadius: 8, border: '1px solid #B4511E',
-                          background: '#1A0A00', color: '#FDF6EE', cursor: 'pointer', fontFamily: 'inherit',
-                          fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', flexShrink: 0,
-                          display: 'flex', alignItems: 'center', gap: 5, transition: 'background 0.2s',
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#B4511E'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#1A0A00'; }}
+                        style={{ background: 'none', border: 'none', padding: '4px 2px', fontFamily: 'inherit', fontSize: 13, whiteSpace: 'nowrap', flexShrink: 0 }}
                       >
-                        See More <ArrowRight size={12} strokeWidth={2.5} />
+                        See more
                       </button>
                     {featuredTours.length > 1 && (
                       <div style={{ display: 'flex', gap: 6 }}>
