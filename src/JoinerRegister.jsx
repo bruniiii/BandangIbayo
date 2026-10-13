@@ -273,10 +273,10 @@ const JoinerRegister = () => {
     width: '100%',
     padding: '12px 16px',
     borderRadius: 10,
-    border: '1.5px solid rgba(196,92,38,0.2)',
-    background: '#FDF6EE',
+    border: '1.5px solid rgba(14,15,11,0.12)',
+    background: '#FFFFFF',
     fontSize: 14,
-    color: '#1A0A00',
+    color: '#0E0F0B',
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
@@ -289,7 +289,7 @@ const JoinerRegister = () => {
     fontWeight: 800,
     letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: '#7A3A18',
+    color: '#5E6A5A',
     marginBottom: 6,
     opacity: 0.9,
   };
@@ -299,7 +299,7 @@ const JoinerRegister = () => {
     left: 13,
     top: '50%',
     transform: 'translateY(-50%)',
-    color: '#C45C26',
+    color: '#B5511B',
     opacity: 0.65,
     pointerEvents: 'none',
   };
@@ -316,9 +316,9 @@ const JoinerRegister = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#FDF6EE',
-        fontFamily: "'Inter', system-ui, sans-serif",
-        color: '#1A0A00',
+        background: '#FFFFFF',
+        fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+        color: '#0E0F0B',
         padding: '3rem 1rem',
         position: 'relative',
         overflowX: 'hidden',
@@ -334,19 +334,19 @@ const JoinerRegister = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(26,10,0,0.88)',
+            background: 'rgba(14,15,11,0.88)',
             backdropFilter: 'blur(10px)',
             padding: 20,
           }}
         >
           <div
             style={{
-              background: '#FDF6EE',
+              background: '#FFFFFF',
               padding: '3.5rem',
               borderRadius: 40,
-              boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
+              boxShadow: '0 32px 80px rgba(14,15,11,0.45)',
               textAlign: 'center',
-              borderTop: '8px solid #C45C26',
+              borderTop: '8px solid #FE813C',
               maxWidth: 420,
               width: '100%',
             }}
@@ -356,13 +356,13 @@ const JoinerRegister = () => {
                 width: 88,
                 height: 88,
                 borderRadius: '50%',
-                background: '#C45C26',
+                background: '#FE813C',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 28px',
-                boxShadow: '0 12px 32px rgba(196,92,38,0.45)',
-                color: '#FDF6EE',
+                boxShadow: '0 12px 32px rgba(254,129,60,0.45)',
+                color: '#0E0F0B',
               }}
             >
               <CheckCircle2 size={44} strokeWidth={2.5} />
@@ -373,7 +373,7 @@ const JoinerRegister = () => {
                 fontWeight: 900,
                 fontSize: 26,
                 letterSpacing: '-0.03em',
-                color: '#1A0A00',
+                color: '#0E0F0B',
                 textTransform: 'uppercase',
                 margin: '0 0 10px',
               }}
@@ -389,7 +389,7 @@ const JoinerRegister = () => {
                 fontWeight: 800,
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: '#7A3A18',
+                color: '#5E6A5A',
                 opacity: 0.9,
               }}
             >
@@ -403,8 +403,8 @@ const JoinerRegister = () => {
                 onClick={() => navigate(loginPath)}
                 style={{
                   marginTop: 24,
-                  background: '#1A0A00',
-                  color: '#E8A265',
+                  background: '#0E0F0B',
+                  color: '#FE813C',
                   border: 'none',
                   borderRadius: 10,
                   padding: '12px 24px',
@@ -434,7 +434,7 @@ const JoinerRegister = () => {
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      background: '#C45C26',
+                      background: '#FE813C',
                       animation: `bounce 0.9s ${delay}s infinite`,
                     }}
                   />
@@ -456,13 +456,13 @@ const JoinerRegister = () => {
       <div
         style={{
           position: 'relative',
-          background: '#FDF6EE',
+          background: '#FFFFFF',
           padding: '2.5rem',
           borderRadius: 24,
-          boxShadow: '0 20px 60px rgba(26,10,0,0.14)',
+          boxShadow: '0 20px 60px rgba(14,15,11,0.14)',
           width: '100%',
           maxWidth: 760,
-          borderTop: '7px solid #C45C26',
+          borderTop: '7px solid #FE813C',
         }}
       >
         {/* CLOSE */}
@@ -477,7 +477,7 @@ const JoinerRegister = () => {
             height: 44,
             justifyContent: 'center',
             borderRadius: 12,
-            color: 'rgba(122,58,24,0.75)',
+            color: 'rgba(94,106,90,0.75)',
             display: 'flex',
             alignItems: 'center',
           }}
@@ -510,7 +510,7 @@ const JoinerRegister = () => {
               fontWeight: 900,
               fontSize: 28,
               letterSpacing: '-0.03em',
-              color: '#1A0A00',
+              color: '#0E0F0B',
               margin: '0 0 8px',
             }}
           >
@@ -520,7 +520,7 @@ const JoinerRegister = () => {
           <p
             style={{
               fontSize: 14,
-              color: '#7A3A18',
+              color: '#5E6A5A',
               opacity: 0.9,
               margin: 0,
               fontWeight: 500,
@@ -545,8 +545,8 @@ const JoinerRegister = () => {
               alignItems: 'center',
               gap: 18,
               padding: 18,
-              background: 'rgba(242,228,208,0.55)',
-              border: '1px solid rgba(196,92,38,0.15)',
+              background: 'rgba(241,242,238,0.55)',
+              border: '1px solid rgba(14,15,11,0.09)',
               borderRadius: 16,
             }}
           >
@@ -557,12 +557,12 @@ const JoinerRegister = () => {
                 borderRadius: '50%',
                 overflow: 'hidden',
                 flexShrink: 0,
-                background: '#1A0A00',
+                background: '#0E0F0B',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '2px solid rgba(196,92,38,0.2)',
-                boxShadow: '0 8px 20px rgba(26,10,0,0.12)',
+                border: '2px solid rgba(14,15,11,0.12)',
+                boxShadow: '0 8px 20px rgba(14,15,11,0.12)',
               }}
             >
               {avatarPreview ? (
@@ -576,7 +576,7 @@ const JoinerRegister = () => {
                   }}
                 />
               ) : (
-                <UserRound size={30} color="#E8A265" />
+                <UserRound size={30} color="#FE813C" />
               )}
             </div>
 
@@ -597,8 +597,8 @@ const JoinerRegister = () => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 7,
-                    background: '#1A0A00',
-                    color: '#E8A265',
+                    background: '#0E0F0B',
+                    color: '#FE813C',
                     padding: '10px 14px',
                     borderRadius: 10,
                     cursor: 'pointer',
@@ -627,8 +627,8 @@ const JoinerRegister = () => {
                     onClick={handleRemoveAvatar}
                     style={{
                       background: 'transparent',
-                      border: '1px solid rgba(196,92,38,0.25)',
-                      color: '#7A3A18',
+                      border: '1px solid rgba(14,15,11,0.15)',
+                      color: '#5E6A5A',
                       padding: '9px 13px',
                       borderRadius: 10,
                       cursor: 'pointer',
@@ -645,7 +645,7 @@ const JoinerRegister = () => {
               <p
                 style={{
                   fontSize: 11,
-                  color: '#7A3A18',
+                  color: '#5E6A5A',
                   opacity: 0.9,
                   margin: '8px 0 0',
                 }}
@@ -871,7 +871,7 @@ const JoinerRegister = () => {
 
           <div
             style={{
-              borderTop: '1px solid rgba(196,92,38,0.15)',
+              borderTop: '1px solid rgba(14,15,11,0.09)',
               marginTop: 4,
             }}
           />
@@ -899,7 +899,7 @@ const JoinerRegister = () => {
                   width: 16,
                   height: 16,
                   flexShrink: 0,
-                  accentColor: '#C45C26',
+                  accentColor: '#FE813C',
                   cursor: 'pointer',
                 }}
               />
@@ -907,7 +907,7 @@ const JoinerRegister = () => {
               <span
                 style={{
                   fontSize: 12.5,
-                  color: '#7A3A18',
+                  color: '#5E6A5A',
                   lineHeight: 1.6,
                   fontWeight: 500,
                 }}
@@ -921,7 +921,7 @@ const JoinerRegister = () => {
                     background: 'none',
                     border: 'none',
                     padding: 0,
-                    color: '#C45C26',
+                    color: '#B5511B',
                     fontWeight: 800,
                     textDecoration: 'underline',
                     cursor: 'pointer',
@@ -944,7 +944,7 @@ const JoinerRegister = () => {
                   gap: 6,
                   fontSize: 11,
                   fontWeight: 700,
-                  color: '#dc2626',
+                  color: '#B24F55',
                   margin: '8px 0 0 26px',
                 }}
               >
@@ -962,9 +962,9 @@ const JoinerRegister = () => {
             style={{
               width: '100%',
               background: loading
-                ? 'rgba(196,92,38,0.55)'
-                : '#C45C26',
-              color: '#FDF6EE',
+                ? 'rgba(181,81,27,0.55)'
+                : '#B5511B',
+              color: '#FFFFFF',
               fontWeight: 900,
               fontSize: 13,
               letterSpacing: '0.1em',
@@ -975,7 +975,7 @@ const JoinerRegister = () => {
               cursor: loading ? 'not-allowed' : 'pointer',
               boxShadow: loading
                 ? 'none'
-                : '0 8px 24px rgba(196,92,38,0.38)',
+                : '0 8px 24px rgba(181,81,27,0.38)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1012,7 +1012,7 @@ const JoinerRegister = () => {
             textAlign: 'center',
             marginTop: '1.5rem',
             fontSize: 13,
-            color: '#7A3A18',
+            color: '#5E6A5A',
             opacity: 0.9,
           }}
         >
@@ -1020,7 +1020,7 @@ const JoinerRegister = () => {
           <Link className="text-link"
             to={loginPath}
             style={{
-              color: '#C45C26',
+              color: '#B5511B',
               fontWeight: 800,
               textDecoration: 'none',
             }}
@@ -1055,7 +1055,7 @@ const TermsModal = ({ onClose, onAgree }) => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'rgba(26,10,0,0.88)',
+      background: 'rgba(14,15,11,0.88)',
       backdropFilter: 'blur(6px)',
       padding: 16,
     }}
@@ -1063,13 +1063,13 @@ const TermsModal = ({ onClose, onAgree }) => (
     <div
       style={{
         position: 'relative',
-        background: '#FDF6EE',
+        background: '#FFFFFF',
         width: '100%',
         maxWidth: 620,
         maxHeight: '85vh',
         borderRadius: 24,
-        boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
-        borderTop: '7px solid #C45C26',
+        boxShadow: '0 32px 80px rgba(14,15,11,0.45)',
+        borderTop: '7px solid #FE813C',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -1077,7 +1077,7 @@ const TermsModal = ({ onClose, onAgree }) => (
     >
       <div
         style={{
-          background: '#1A0A00',
+          background: '#0E0F0B',
           padding: '1.75rem 2rem',
           display: 'flex',
           alignItems: 'center',
@@ -1097,14 +1097,14 @@ const TermsModal = ({ onClose, onAgree }) => (
               width: 38,
               height: 38,
               borderRadius: 11,
-              background: '#C45C26',
+              background: '#FE813C',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            <ShieldCheck size={19} color="#FDF6EE" />
+            <ShieldCheck size={19} color="#FFFFFF" />
           </div>
 
           <div>
@@ -1113,7 +1113,7 @@ const TermsModal = ({ onClose, onAgree }) => (
                 fontSize: 15,
                 fontWeight: 900,
                 letterSpacing: '0.02em',
-                color: '#FDF6EE',
+                color: '#FFFFFF',
                 margin: 0,
               }}
             >
@@ -1126,7 +1126,7 @@ const TermsModal = ({ onClose, onAgree }) => (
                 fontWeight: 800,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'rgba(232,162,101,0.7)',
+                color: 'rgba(254,129,60,0.7)',
                 margin: '3px 0 0',
               }}
             >
@@ -1141,7 +1141,7 @@ const TermsModal = ({ onClose, onAgree }) => (
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: 'rgba(232,210,190,0.75)',
+            color: 'rgba(226,229,221,0.75)',
           }}
         >
           <X size={22} />
@@ -1207,8 +1207,8 @@ const TermsModal = ({ onClose, onAgree }) => (
 
         <div
           style={{
-            background: 'rgba(196,92,38,0.08)',
-            border: '1px solid rgba(196,92,38,0.18)',
+            background: 'rgba(254,129,60,0.08)',
+            border: '1px solid rgba(14,15,11,0.108)',
             borderRadius: 16,
             padding: '1rem 1.25rem',
             marginTop: 8,
@@ -1220,7 +1220,7 @@ const TermsModal = ({ onClose, onAgree }) => (
           <AlertTriangle
             size={16}
             style={{
-              color: '#C45C26',
+              color: '#B5511B',
               flexShrink: 0,
               marginTop: 1,
             }}
@@ -1230,7 +1230,7 @@ const TermsModal = ({ onClose, onAgree }) => (
             style={{
               fontSize: 11.5,
               fontWeight: 600,
-              color: '#7A3A18',
+              color: '#5E6A5A',
               lineHeight: 1.6,
               margin: 0,
             }}
@@ -1246,7 +1246,7 @@ const TermsModal = ({ onClose, onAgree }) => (
       <div
         style={{
           padding: '1.25rem 2rem',
-          borderTop: '1px solid rgba(196,92,38,0.15)',
+          borderTop: '1px solid rgba(14,15,11,0.09)',
           display: 'flex',
           gap: 12,
           flexShrink: 0,
@@ -1257,8 +1257,8 @@ const TermsModal = ({ onClose, onAgree }) => (
           style={{
             flex: 1,
             padding: '13px 0',
-            background: '#F2E4D0',
-            border: '1px solid rgba(196,92,38,0.18)',
+            background: '#F1F2EE',
+            border: '1px solid rgba(14,15,11,0.108)',
             borderRadius: 999,
             cursor: 'pointer',
             fontFamily: 'inherit',
@@ -1266,7 +1266,7 @@ const TermsModal = ({ onClose, onAgree }) => (
             fontSize: 11.5,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: '#7A3A18',
+            color: '#5E6A5A',
           }}
         >
           Close
@@ -1277,7 +1277,7 @@ const TermsModal = ({ onClose, onAgree }) => (
           style={{
             flex: 1.4,
             padding: '13px 0',
-            background: '#C45C26',
+            background: '#FE813C',
             border: 'none',
             borderRadius: 999,
             cursor: 'pointer',
@@ -1286,8 +1286,8 @@ const TermsModal = ({ onClose, onAgree }) => (
             fontSize: 11.5,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: '#FDF6EE',
-            boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+            color: '#0E0F0B',
+            boxShadow: '0 6px 20px rgba(254,129,60,0.35)',
           }}
         >
           I Agree to the Terms
@@ -1305,7 +1305,7 @@ const TermsSection = ({ title, children }) => (
         fontWeight: 900,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
-        color: '#C45C26',
+        color: '#B5511B',
         margin: '0 0 8px',
       }}
     >
@@ -1316,7 +1316,7 @@ const TermsSection = ({ title, children }) => (
       style={{
         fontSize: 12.5,
         fontWeight: 500,
-        color: '#7A3A18',
+        color: '#5E6A5A',
         lineHeight: 1.7,
         margin: 0,
       }}

@@ -6,10 +6,10 @@ import { subscribe, getToasts, dismiss } from './toast';
 // Screen readers announce them (polite for info/success, assertive for errors).
 
 const STYLES = {
-  success: { icon: CheckCircle2, accent: '#2E7D4F', bg: '#FFFFFF', title: '#1A0A00' },
-  error: { icon: XCircle, accent: '#C0362C', bg: '#FFF5F3', title: '#7A1E16' },
-  info: { icon: Info, accent: '#C45C26', bg: '#FFFFFF', title: '#1A0A00' },
-  loading: { icon: Loader2, accent: '#C45C26', bg: '#FFFFFF', title: '#1A0A00' },
+  success: { icon: CheckCircle2, accent: '#4E6B48', bg: '#FFFFFF', title: '#0E0F0B' },
+  error: { icon: XCircle, accent: '#B24F55', bg: '#FBEFEF', title: '#7A363C' },
+  info: { icon: Info, accent: '#B5511B', bg: '#FFFFFF', title: '#0E0F0B' },
+  loading: { icon: Loader2, accent: '#B5511B', bg: '#FFFFFF', title: '#0E0F0B' },
 };
 
 const Toaster = () => {
@@ -39,14 +39,14 @@ const Toaster = () => {
               pointerEvents: 'auto', width: 'min(380px, 100%)', boxSizing: 'border-box',
               display: 'flex', gap: 12, alignItems: 'flex-start', padding: '14px 12px 14px 16px',
               background: s.bg, borderRadius: 14, borderLeft: `5px solid ${s.accent}`,
-              boxShadow: '0 12px 32px rgba(26,10,0,0.18)', fontFamily: "'Inter', system-ui, sans-serif",
+              boxShadow: '0 12px 32px rgba(14,15,11,0.18)', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
               animation: 'toast-in 0.2s ease-out',
             }}
           >
             <Icon size={20} style={{ color: s.accent, flexShrink: 0, marginTop: 1, animation: t.type === 'loading' ? 'toast-spin 1s linear infinite' : 'none' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: s.title, lineHeight: 1.4 }}>{t.title}</p>
-              {t.message && <p style={{ margin: '3px 0 0', fontSize: 12.5, color: '#7A3A18', lineHeight: 1.5, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{t.message}</p>}
+              {t.message && <p style={{ margin: '3px 0 0', fontSize: 12.5, color: '#5E6A5A', lineHeight: 1.5, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{t.message}</p>}
               {t.action && (
                 <button
                   type="button"
@@ -63,7 +63,7 @@ const Toaster = () => {
                 type="button"
                 aria-label="Close notification"
                 onClick={() => dismiss(t.id)}
-                style={{ background: 'none', border: 'none', color: '#7A3A18', cursor: 'pointer', padding: 4, borderRadius: 8, display: 'flex' }}
+                style={{ background: 'none', border: 'none', color: '#5E6A5A', cursor: 'pointer', padding: 4, borderRadius: 8, display: 'flex' }}
               >
                 <X size={16} />
               </button>

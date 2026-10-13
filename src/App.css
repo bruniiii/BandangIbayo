@@ -202,7 +202,7 @@ main {
   height: 100vh !important;
   overflow-y: auto !important;
   flex: 1;
-  background-color: #f8fafc;
+  background-color: #F4F5F1;
 }
  
 /* Fix for the white line leaking from the bottom of overlays */
@@ -229,7 +229,7 @@ main {
   border: none;
   cursor: pointer;
   padding: 6px;
-  color: #1A0A00;
+  color: #0E0F0B;
   align-items: center;
   justify-content: center;
 }
@@ -246,7 +246,7 @@ main {
     height: 100vh !important;
     z-index: 100 !important;
     transform: translateX(-100%);
-    box-shadow: 8px 0 40px rgba(26,10,0,0.35) !important;
+    box-shadow: 8px 0 40px rgba(14,15,11,0.35) !important;
   }
  
   .dashboard-sidebar.is-open {
@@ -261,7 +261,7 @@ main {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(26,10,0,0.55);
+    background: rgba(14,15,11,0.55);
     backdrop-filter: blur(2px);
     z-index: 90;
   }

@@ -12,14 +12,14 @@ import { changePassword } from './authApi';
 
 const inputStyle = {
   width: '100%', padding: '11px 14px', borderRadius: 12,
-  border: '1px solid rgba(196,92,38,0.18)', background: '#F2E4D0',
-  fontSize: 13.5, fontWeight: 600, color: '#1A0A00', outline: 'none',
+  border: '1px solid rgba(14,15,11,0.108)', background: '#F1F2EE',
+  fontSize: 13.5, fontWeight: 600, color: '#0E0F0B', outline: 'none',
   boxSizing: 'border-box', fontFamily: 'inherit',
 };
 
 const labelStyle = {
   display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
-  textTransform: 'uppercase', color: '#7A3A18', marginBottom: 7, opacity: 0.9,
+  textTransform: 'uppercase', color: '#5E6A5A', marginBottom: 7, opacity: 0.9,
 };
 
 // Password box with an eye button that shows or hides what's typed.
@@ -46,7 +46,7 @@ const PasswordInput = ({ id, value, onChange, autoComplete, minLength }) => {
         style={{
           position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: '#7A3A18',
+          background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: '#5E6A5A',
         }}
       >
         {visible ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -84,15 +84,15 @@ const ChangePassword = () => {
 
   return (
     <form onSubmit={handleSubmit} style={{
-      background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-      border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      background: '#FFFFFF', borderRadius: 20, padding: '1.75rem',
+      border: '1px solid rgba(14,15,11,0.072)', boxShadow: '0 4px 20px rgba(14,15,11,0.06)',
       display: 'flex', flexDirection: 'column', gap: 16,
     }}>
       <div>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>
-          <KeyRound size={17} style={{ color: '#C45C26' }} /> Change Password
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: '#0E0F0B', margin: 0 }}>
+          <KeyRound size={17} style={{ color: '#B5511B' }} /> Change Password
         </h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
+        <p style={{ fontSize: 12, color: '#5E6A5A', opacity: 0.9, margin: '4px 0 0' }}>
           Enter your current password, then choose a new one.
         </p>
       </div>
@@ -112,7 +112,7 @@ const ChangePassword = () => {
           <label style={labelStyle} htmlFor="confirm-new-password">Confirm New Password</label>
           <PasswordInput id="confirm-new-password" autoComplete="new-password" minLength={8} value={confirm} onChange={setConfirm} />
           {confirm && confirm !== next && (
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#8C2F1C', margin: '8px 0 0' }}>Passwords do not match.</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#A9474E', margin: '8px 0 0' }}>Passwords do not match.</p>
           )}
         </div>
       </div>
@@ -120,18 +120,18 @@ const ChangePassword = () => {
       {message.text && (
         <p role={message.tone === 'error' ? 'alert' : 'status'} style={{
           fontSize: 12, fontWeight: 700, lineHeight: 1.6, margin: 0, padding: '10px 14px', borderRadius: 10,
-          color: message.tone === 'error' ? '#8C2F1C' : '#3F5D62',
-          background: message.tone === 'error' ? 'rgba(140,47,28,0.08)' : 'rgba(63,93,98,0.1)',
+          color: message.tone === 'error' ? '#A9474E' : '#4E6B48',
+          background: message.tone === 'error' ? 'rgba(169,71,78,0.08)' : 'rgba(78,107,72,0.1)',
         }}>
           {message.text}
         </p>
       )}
 
-      <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ borderTop: '1px solid rgba(14,15,11,0.09)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
         <button type="submit" disabled={saving} style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          background: saving ? 'rgba(26,10,0,0.5)' : '#1A0A00',
-          color: '#E8A265', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
+          background: saving ? 'rgba(14,15,11,0.5)' : '#0E0F0B',
+          color: '#FE813C', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
           textTransform: 'uppercase', border: 'none', borderRadius: 12,
           padding: '13px 26px', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
         }}>

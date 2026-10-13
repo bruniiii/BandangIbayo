@@ -45,7 +45,7 @@ const formatTourDate = (startStr, endStr) => {
 const StarRow = ({ rating, size = 14 }) => (
   <div style={{ display: 'flex', gap: 2 }}>
     {[1, 2, 3, 4, 5].map(n => (
-      <Star key={n} size={size} fill={n <= rating ? '#E8A265' : 'none'} color={n <= rating ? '#E8A265' : 'rgba(122,58,24,0.3)'} />
+      <Star key={n} size={size} fill={n <= rating ? '#FE813C' : 'none'} color={n <= rating ? '#FE813C' : 'rgba(94,106,90,0.3)'} />
     ))}
   </div>
 );
@@ -63,7 +63,7 @@ const StarPicker = ({ value, onChange }) => {
           onMouseLeave={() => setHover(0)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}
         >
-          <Star size={26} fill={n <= (hover || value) ? '#E8A265' : 'none'} color={n <= (hover || value) ? '#E8A265' : 'rgba(122,58,24,0.3)'} />
+          <Star size={26} fill={n <= (hover || value) ? '#FE813C' : 'none'} color={n <= (hover || value) ? '#FE813C' : 'rgba(94,106,90,0.3)'} />
         </button>
       ))}
     </div>
@@ -225,26 +225,26 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
-            width: 38, height: 38, borderRadius: 11, background: '#1A0A00',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265',
+            width: 38, height: 38, borderRadius: 11, background: '#0E0F0B',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FE813C',
           }}>
             <MessageSquare size={18} />
           </div>
           <div>
-            <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
+            <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#0E0F0B', margin: 0 }}>
               Tour Reviews
             </h2>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, margin: '2px 0 0' }}>
               {isAdmin ? 'What joiners are saying about your tours' : 'Share your experience & read what others say'}
             </p>
           </div>
         </div>
 
         {avgRating && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 999, padding: '8px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFFFFF', border: '1px solid rgba(14,15,11,0.084)', borderRadius: 999, padding: '8px 16px' }}>
             <StarRow rating={Math.round(avgRating)} size={13} />
-            <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{avgRating}</span>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>({reviews.length})</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: '#0E0F0B' }}>{avgRating}</span>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9 }}>({reviews.length})</span>
           </div>
         )}
       </div>
@@ -252,18 +252,18 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
       {/* composer — joiner only */}
       {!isAdmin && (
         <div style={{
-          background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          background: '#FFFFFF', borderRadius: 20, padding: '1.5rem',
+          border: '1px solid rgba(14,15,11,0.084)', boxShadow: '0 4px 20px rgba(14,15,11,0.06)',
         }}>
           {reviewableTours.length === 0 ? (
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>
               Once you've completed a tour, it'll show up here so you can leave a review.
             </p>
           ) : (
             <>
               <label style={{
                 display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 6,
+                textTransform: 'uppercase', color: '#5E6A5A', opacity: 0.9, marginBottom: 6,
               }}>
                 Which tour would you like to review?
               </label>
@@ -272,9 +272,9 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                 value={selectedTourId}
                 onChange={(e) => setSelectedTourId(e.target.value)}
                 style={{
-                  width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-                  border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14,
-                  padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00',
+                  width: '100%', boxSizing: 'border-box', background: '#F1F2EE',
+                  border: '1px solid rgba(14,15,11,0.108)', borderRadius: 14,
+                  padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#0E0F0B',
                   fontFamily: 'inherit', outline: 'none',
                 }}
               >
@@ -292,7 +292,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                 return (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
-                    fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9,
+                    fontSize: 11, fontWeight: 800, color: '#5E6A5A', opacity: 0.9,
                   }}>
                     <Calendar size={12} /> Tour date: {formatTourDate(selectedTour.start_date, selectedTour.end_date)}
                   </div>
@@ -303,7 +303,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
               <label style={{
                 display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 8,
+                textTransform: 'uppercase', color: '#5E6A5A', opacity: 0.9, marginBottom: 8,
               }}>
                 Your Rating
               </label>
@@ -317,9 +317,9 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                 rows={3}
                 style={{
                   width: '100%', boxSizing: 'border-box', resize: 'vertical', marginTop: 16,
-                  background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+                  background: '#F1F2EE', border: '1px solid rgba(14,15,11,0.108)',
                   borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
-                  color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+                  color: '#0E0F0B', fontFamily: 'inherit', outline: 'none',
                 }}
               />
 
@@ -334,10 +334,10 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                       )}
                       {item.type === 'video' && (
                         <div style={{
-                          position: 'absolute', bottom: 4, left: 4, background: 'rgba(26,10,0,0.7)',
+                          position: 'absolute', bottom: 4, left: 4, background: 'rgba(14,15,11,0.7)',
                           borderRadius: 6, padding: '2px 5px', display: 'flex', alignItems: 'center',
                         }}>
-                          <Video size={10} color="#FDF6EE" />
+                          <Video size={10} color="#FFFFFF" />
                         </div>
                       )}
                       <button
@@ -346,7 +346,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                         style={{
                           position: 'absolute', top: -6, right: -6,
                           width: 20, height: 20, borderRadius: '50%',
-                          background: '#1A0A00', color: '#FDF6EE', border: '2px solid #FDF6EE',
+                          background: '#0E0F0B', color: '#FFFFFF', border: '2px solid #FFFFFF',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                         }}
                       >
@@ -364,7 +364,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
                     fontSize: 11.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: '#7A3A18', opacity: 0.9,
+                    color: '#5E6A5A', opacity: 0.9,
                     background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
                   }}
                 >
@@ -384,11 +384,11 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
                   disabled={submitting || !selectedTourId || rating === 0}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(196,92,38,0.4)' : '#C45C26',
-                    color: '#FDF6EE', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(254,129,60,0.4)' : '#FE813C',
+                    color: '#0E0F0B', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
                     border: 'none', cursor: (submitting || !selectedTourId || rating === 0) ? 'not-allowed' : 'pointer',
-                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(196,92,38,0.3)',
+                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(254,129,60,0.3)',
                   }}
                 >
                   {submitting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -403,7 +403,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
       {/* review list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(94,106,90,0.75)' }}>
           <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
           <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading reviews…</span>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -434,15 +434,15 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
    Reviews can't be deleted, by the joiner or by an admin. */
 const ReviewCard = ({ review }) => (
   <div style={{
-    background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
-    border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+    background: '#FFFFFF', borderRadius: 20, padding: '1.25rem 1.5rem',
+    border: '1px solid rgba(14,15,11,0.072)', boxShadow: '0 4px 20px rgba(14,15,11,0.06)',
   }}>
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-          background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#E8A265', fontWeight: 900, fontSize: 15, overflow: 'hidden',
+          background: '#0E0F0B', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#FE813C', fontWeight: 900, fontSize: 15, overflow: 'hidden',
         }}>
           {review.author?.avatar_url ? (
             <img src={review.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -451,10 +451,10 @@ const ReviewCard = ({ review }) => (
           )}
         </div>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 900, color: '#0E0F0B', margin: 0 }}>
             {review.user_id ? displayName(review.author) : 'Deleted account'}
           </p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, margin: '3px 0 0' }}>
             {formatDate(review.created_at)}
           </p>
         </div>
@@ -465,17 +465,17 @@ const ReviewCard = ({ review }) => (
     {review.tours && (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         <span style={{
-          background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
+          background: '#F1F2EE', borderRadius: 999, padding: '4px 12px',
           fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
+          color: '#5E6A5A', display: 'flex', alignItems: 'center', gap: 5,
         }}>
           <MapPin size={10} /> {review.tours.title}
         </span>
         {review.tours.start_date && (
           <span style={{
-            background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
+            background: '#F1F2EE', borderRadius: 999, padding: '4px 12px',
             fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
+            color: '#5E6A5A', display: 'flex', alignItems: 'center', gap: 5,
           }}>
             <Calendar size={10} /> {formatTourDate(review.tours.start_date, review.tours.end_date)}
           </span>
@@ -488,7 +488,7 @@ const ReviewCard = ({ review }) => (
     </div>
 
     {review.comment && (
-      <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: '#0E0F0B', lineHeight: 1.6, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
         {review.comment}
       </p>
     )}

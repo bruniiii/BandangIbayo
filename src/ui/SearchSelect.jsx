@@ -142,11 +142,11 @@ const SearchSelect = ({
           role="listbox"
           style={{
             position: 'absolute', zIndex: 30, left: 0, right: 0, top: 'calc(100% + 4px)', margin: 0, padding: 4,
-            listStyle: 'none', maxHeight: 260, overflowY: 'auto', background: '#FFFDF9',
-            border: '1px solid rgba(196,92,38,0.25)', borderRadius: 12, boxShadow: '0 12px 30px rgba(26,10,0,0.15)',
+            listStyle: 'none', maxHeight: 260, overflowY: 'auto', background: '#FFFFFF',
+            border: '1px solid rgba(14,15,11,0.15)', borderRadius: 12, boxShadow: '0 12px 30px rgba(14,15,11,0.15)',
           }}
         >
-          {shown.length === 0 && <li style={{ padding: '12px', fontSize: 13, color: '#7A3A18' }}>{emptyText}</li>}
+          {shown.length === 0 && <li style={{ padding: '12px', fontSize: 13, color: '#5E6A5A' }}>{emptyText}</li>}
           {shown.map((o, i) => (
             <li
               key={o}
@@ -159,15 +159,15 @@ const SearchSelect = ({
               onMouseEnter={() => setActive(i)}
               style={{
                 padding: '0 12px', minHeight: 44, display: 'flex', alignItems: 'center', borderRadius: 8, cursor: 'pointer',
-                fontSize: 14, fontWeight: o === value ? 800 : 600, color: '#1A0A00',
-                background: i === active ? 'rgba(196,92,38,0.12)' : 'transparent',
+                fontSize: 14, fontWeight: o === value ? 800 : 600, color: '#0E0F0B',
+                background: i === active ? 'rgba(254,129,60,0.12)' : 'transparent',
               }}
             >
               {o}
             </li>
           ))}
           {matches.length > MAX_SHOWN && (
-            <li style={{ padding: '8px 12px', fontSize: 12, color: '#7A3A18' }}>Keep typing to narrow down {matches.length} results…</li>
+            <li style={{ padding: '8px 12px', fontSize: 12, color: '#5E6A5A' }}>Keep typing to narrow down {matches.length} results…</li>
           )}
         </ul>
       )}
@@ -177,7 +177,7 @@ const SearchSelect = ({
 
 const iconBtn = {
   width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-  background: 'none', border: 'none', color: '#7A3A18', cursor: 'pointer', borderRadius: 8, padding: 0,
+  background: 'none', border: 'none', color: '#5E6A5A', cursor: 'pointer', borderRadius: 8, padding: 0,
 };
 
 export default SearchSelect;

@@ -110,8 +110,8 @@ export const JoinerTracking = ({ onExplore }) => {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
-          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.75)' }}>
-            <Loader2 size={30} style={{ marginBottom: 10, color: '#C45C26', animation: 'spin 1s linear infinite' }} />
+          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(94,106,90,0.75)' }}>
+            <Loader2 size={30} style={{ marginBottom: 10, color: '#B5511B', animation: 'spin 1s linear infinite' }} />
             <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Trips…</p>
           </div>
         ) : toursList.length === 0 ? (
@@ -149,34 +149,34 @@ const TrackingTourCard = ({ tour, onTrack }) => {
   return (
     <div
       style={{
-        background: '#FDF6EE', borderRadius: 22, overflow: 'hidden',
-        border: '1px solid rgba(196,92,38,0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
+        background: '#FFFFFF', borderRadius: 22, overflow: 'hidden',
+        border: '1px solid rgba(14,15,11,0.072)',
+        boxShadow: hovered ? '0 12px 36px rgba(14,15,11,0.14)' : '0 4px 16px rgba(14,15,11,0.06)',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.25s', display: 'flex', flexDirection: 'column',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{ height: 186, background: '#F2E4D0', position: 'relative' }}>
+      <div style={{ height: 186, background: '#F1F2EE', position: 'relative' }}>
         {displayImage ? (
           <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ImageIcon size={44} /></div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(94,106,90,0.75)' }}><ImageIcon size={44} /></div>
         )}
-        <span style={{ position: 'absolute', top: 12, right: 12, background: '#C45C26', color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
+        <span style={{ position: 'absolute', top: 12, right: 12, background: '#FE813C', color: '#0E0F0B', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
           Tracking
         </span>
       </div>
 
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
-          <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', margin: '0 0 8px' }}>{tour.title}</h3>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
-            <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
+          <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0E0F0B', margin: '0 0 8px' }}>{tour.title}</h3>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#5E6A5A', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
+            <MapPin size={11} style={{ color: '#B5511B' }} /> {tour.destination}
           </p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
-            <Calendar size={11} style={{ color: '#C45C26' }} /> {tour.start_date || tour.date}
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+            <Calendar size={11} style={{ color: '#B5511B' }} /> {tour.start_date || tour.date}
           </p>
         </div>
 
@@ -186,7 +186,7 @@ const TrackingTourCard = ({ tour, onTrack }) => {
             width: '100%', marginTop: 14, padding: '11px 0',
             border: 'none', borderRadius: 12, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
-            textTransform: 'uppercase', background: '#1A0A00', color: '#FDF6EE',
+            textTransform: 'uppercase', background: '#0E0F0B', color: '#FFFFFF',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}
         >
@@ -219,22 +219,22 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
-        position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 1100,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #C45C26',
+        position: 'relative', background: '#FFFFFF', width: '100%', maxWidth: 1100,
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)', borderTop: '8px solid #FE813C',
         overflow: 'hidden', maxHeight: '92vh', display: 'flex', flexDirection: 'column',
       }}>
         <button
           onClick={onClose}
           style={{
             position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 50,
-            background: isMobile ? '#FDF6EE' : 'none',
-            border: isMobile ? '1px solid rgba(196,92,38,0.2)' : 'none',
+            background: isMobile ? '#FFFFFF' : 'none',
+            border: isMobile ? '1px solid rgba(14,15,11,0.12)' : 'none',
             borderRadius: isMobile ? '50%' : 0,
             width: isMobile ? 34 : 'auto', height: isMobile ? 34 : 'auto',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: '#7A3A18',
+            cursor: 'pointer', color: '#5E6A5A',
           }}
         >
           <X size={isMobile ? 18 : 26} />
@@ -244,20 +244,20 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.2fr', minHeight: 0 }}>
             {/* Left Side: Vehicle & Route Checkpoints */}
             <div style={{
-              background: '#F2E4D0',
+              background: '#F1F2EE',
               padding: isMobile ? '3.5rem 1.25rem 1.5rem' : '2.5rem 2rem',
-              borderRight: isMobile ? 'none' : '1px solid rgba(196,92,38,0.12)',
-              borderBottom: isMobile ? '1px solid rgba(196,92,38,0.12)' : 'none',
+              borderRight: isMobile ? 'none' : '1px solid rgba(14,15,11,0.072)',
+              borderBottom: isMobile ? '1px solid rgba(14,15,11,0.072)' : 'none',
             }}>
-              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour.title}</h2>
-              <p style={{ margin: '0 0 16px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MapPin size={14} style={{ color: '#C45C26' }} /> {tour.destination}
+              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#0E0F0B', margin: '0 0 6px' }}>{tour.title}</h2>
+              <p style={{ margin: '0 0 16px', fontSize: 12, fontWeight: 700, color: '#5E6A5A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <MapPin size={14} style={{ color: '#B5511B' }} /> {tour.destination}
               </p>
 
               {/* Live Status Header Banner */}
               <div style={{
-                background: isCompleted ? '#1F8A5C' : activeStop?.status === 'CURRENTLY HERE' ? '#C45C26' : '#1A0A00',
-                color: '#FDF6EE', padding: '14px 18px', borderRadius: 16, marginBottom: 16,
+                background: isCompleted ? '#4E6B48' : activeStop?.status === 'CURRENTLY HERE' ? '#FE813C' : '#0E0F0B',
+                color: !isCompleted && activeStop?.status === 'CURRENTLY HERE' ? '#0E0F0B' : '#FFFFFF', padding: '14px 18px', borderRadius: 16, marginBottom: 16,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <Navigation size={16} />
@@ -280,31 +280,31 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
               </div>
 
               {/* Fleet & Driver Information */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 16, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 16, border: '1px solid rgba(14,15,11,0.06)' }}>
+                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Truck size={14} /> Assigned Driver & Vehicle
                 </h4>
                 {vehicleInfo ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
-                    <div><strong style={{ color: '#7A3A18' }}>Vehicle:</strong> {vehicleInfo.car_type || 'Pending'}</div>
-                    <div><strong style={{ color: '#7A3A18' }}>Plate No:</strong> {vehicleInfo.plate_number || 'Pending'}</div>
-                    <div><strong style={{ color: '#7A3A18' }}>Driver:</strong> {vehicleInfo.driver_name || 'Assigned Staff'}</div>
-                    <div><strong style={{ color: '#7A3A18' }}>Contact:</strong> {vehicleInfo.driver_contact || 'N/A'}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#0E0F0B' }}>
+                    <div><strong style={{ color: '#5E6A5A' }}>Vehicle:</strong> {vehicleInfo.car_type || 'Pending'}</div>
+                    <div><strong style={{ color: '#5E6A5A' }}>Plate No:</strong> {vehicleInfo.plate_number || 'Pending'}</div>
+                    <div><strong style={{ color: '#5E6A5A' }}>Driver:</strong> {vehicleInfo.driver_name || 'Assigned Staff'}</div>
+                    <div><strong style={{ color: '#5E6A5A' }}>Contact:</strong> {vehicleInfo.driver_contact || 'N/A'}</div>
                   </div>
                 ) : (
-                  <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: 0, fontStyle: 'italic' }}>
+                  <p style={{ fontSize: 11, color: '#5E6A5A', opacity: 0.9, margin: 0, fontStyle: 'italic' }}>
                     Organizer will post the driver and plate details prior to departure.
                   </p>
                 )}
               </div>
 
               {/* Delivery-Style Pickup Progress */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(14,15,11,0.06)' }}>
+                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} /> Pickup Points & ETAs
                 </h4>
                 {meetupStops.length === 0 ? (
-                  <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: 0, fontStyle: 'italic' }}>
+                  <p style={{ fontSize: 11, color: '#5E6A5A', opacity: 0.9, margin: 0, fontStyle: 'italic' }}>
                     Pickup schedule is currently being finalized.
                   </p>
                 ) : (
@@ -318,25 +318,25 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                           flexWrap: 'wrap', gap: 8,
                           padding: '10px 12px', borderRadius: 12,
-                          background: isCurrent ? 'rgba(196,92,38,0.08)' : '#FDF6EE',
-                          border: isCurrent ? '1.5px solid #C45C26' : '1px solid rgba(196,92,38,0.1)',
+                          background: isCurrent ? 'rgba(254,129,60,0.08)' : '#FFFFFF',
+                          border: isCurrent ? '1.5px solid #FE813C' : '1px solid rgba(14,15,11,0.06)',
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{
                               width: 20, height: 20, borderRadius: '50%',
-                              background: isArrived ? '#1F8A5C' : isCurrent ? '#C45C26' : 'rgba(26,10,0,0.15)',
+                              background: isArrived ? '#4E6B48' : isCurrent ? '#FE813C' : 'rgba(14,15,11,0.15)',
                               color: '#FFF', fontSize: 11.5, fontWeight: 900,
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}>
                               {isArrived ? <Check size={11} strokeWidth={3} /> : i + 1}
                             </div>
                             <div>
-                              <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{stop.location_name}</p>
-                              {stop.note && <p style={{ fontSize: 11.5, color: '#C45C26', fontWeight: 700, margin: '2px 0 0' }}>{stop.note}</p>}
+                              <p style={{ fontSize: 12, fontWeight: 800, color: '#0E0F0B', margin: 0 }}>{stop.location_name}</p>
+                              {stop.note && <p style={{ fontSize: 11.5, color: '#B5511B', fontWeight: 700, margin: '2px 0 0' }}>{stop.note}</p>}
                             </div>
                           </div>
                           <div style={{ textAlign: 'right' }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, color: isCurrent ? '#C45C26' : '#7A3A18' }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: isCurrent ? '#B5511B' : '#5E6A5A' }}>
                               ETA: {stop.scheduled_time}
                             </span>
                           </div>
@@ -350,13 +350,13 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
 
             {/* Right Side: Detailed Updates Feed */}
             <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '2.5rem 2rem', display: 'flex', flexDirection: 'column' }}>
-              <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Compass size={14} /> Live Departure Feed & Whereabouts
               </h4>
 
               {loadingConsole ? (
-                <div style={{ textAlign: 'center', padding: '3rem 0', color: '#7A3A18' }}>
-                  <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8, color: '#C45C26' }} />
+                <div style={{ textAlign: 'center', padding: '3rem 0', color: '#5E6A5A' }}>
+                  <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8, color: '#B5511B' }} />
                   <p style={{ fontSize: 12, fontWeight: 700 }}>Checking vehicle location…</p>
                 </div>
               ) : (
@@ -380,9 +380,9 @@ const splitLogText = (text) => {
 const LiveTimeline = ({ logs }) => {
   if (!logs || logs.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FDF6EE', borderRadius: 16, border: '2px dashed rgba(196,92,38,0.2)' }}>
-        <Compass size={22} style={{ color: 'rgba(122,58,24,0.75)', marginBottom: 8 }} />
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Waiting for departure day updates from driver/organizer…</p>
+      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FFFFFF', borderRadius: 16, border: '2px dashed rgba(14,15,11,0.12)' }}>
+        <Compass size={22} style={{ color: 'rgba(94,106,90,0.75)', marginBottom: 8 }} />
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#5E6A5A', margin: 0 }}>Waiting for departure day updates from driver/organizer…</p>
       </div>
     );
   }
@@ -396,24 +396,24 @@ const LiveTimeline = ({ logs }) => {
 
         return (
           <div key={log.id || index} style={{ display: 'flex', gap: 12 }}>
-            <div style={{ width: 56, fontSize: 11.5, fontWeight: 800, color: '#7A3A18', opacity: 0.9, paddingTop: 2 }}>
+            <div style={{ width: 56, fontSize: 11.5, fontWeight: 800, color: '#5E6A5A', opacity: 0.9, paddingTop: 2 }}>
               {timeFormatted}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{
                 width: 22, height: 22, borderRadius: '50%',
-                background: index === 0 ? '#C45C26' : '#1F8A5C',
-                color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: index === 0 ? '#FE813C' : '#4E6B48',
+                color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 {log.status === 'ARRIVED' ? <CheckCircle2 size={13} /> : <Check size={12} strokeWidth={3} />}
               </div>
-              {index !== logs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(196,92,38,0.2)', margin: '4px 0' }} />}
+              {index !== logs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(254,129,60,0.2)', margin: '4px 0' }} />}
             </div>
             <div style={{ flex: 1 }}>
-              <strong style={{ fontSize: 13, color: '#1A0A00' }}>{title}</strong>
-              <p style={{ fontSize: 12, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.5 }}>{description}</p>
+              <strong style={{ fontSize: 13, color: '#0E0F0B' }}>{title}</strong>
+              <p style={{ fontSize: 12, color: '#5E6A5A', margin: '3px 0 0', lineHeight: 1.5 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(196,92,38,0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: '#9A5B1E' }}>
+                <div style={{ background: 'rgba(254,129,60,0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: '#9A5B1E' }}>
                   Note from Driver: {log.note}
                 </div>
               )}

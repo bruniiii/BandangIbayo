@@ -78,7 +78,7 @@ export const downloadReportPDF = async (report) => {
     const pages = doc.getNumberOfPages();
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
-      doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(122, 58, 24);
+      doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(94, 106, 90);
       doc.text(pdfText(`Bandang IBAYO · Business Report · ${report.rangeLabel}`), left, pageH - 24);
       doc.text(`Page ${i} of ${pages}`, right, pageH - 24, { align: 'right' });
     }
@@ -89,10 +89,10 @@ export const downloadReportPDF = async (report) => {
   const heading = (title) => {
     ensure(40);
     y += 8;
-    doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(196, 92, 38);
+    doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(181, 81, 27);
     doc.text(title.toUpperCase(), left, y);
     y += 6;
-    doc.setDrawColor(232, 210, 190).line(left, y, right, y);
+    doc.setDrawColor(226, 229, 221).line(left, y, right, y);
     y += 16;
   };
 
@@ -100,8 +100,8 @@ export const downloadReportPDF = async (report) => {
   const table = (columns, rows) => {
     const rowH = 16;
     const drawHeader = () => {
-      doc.setFillColor(242, 228, 208).rect(left, y - 11, right - left, rowH, 'F');
-      doc.setFont('helvetica', 'bold').setFontSize(8).setTextColor(122, 58, 24);
+      doc.setFillColor(241, 242, 238).rect(left, y - 11, right - left, rowH, 'F');
+      doc.setFont('helvetica', 'bold').setFontSize(8).setTextColor(94, 106, 90);
       let x = left + 4;
       columns.forEach((c) => {
         doc.text(c.label, c.align === 'right' ? x + c.width - 8 : x, y, c.align === 'right' ? { align: 'right' } : undefined);
@@ -111,13 +111,13 @@ export const downloadReportPDF = async (report) => {
     };
     ensure(rowH * 3);
     drawHeader();
-    doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(26, 10, 0);
+    doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(14, 15, 11);
     rows.forEach((row, ri) => {
       if (y + rowH > pageH - 48) {
         doc.addPage(); y = 52; drawHeader();
-        doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(26, 10, 0);
+        doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(14, 15, 11);
       }
-      if (ri % 2 === 1) doc.setFillColor(253, 246, 238).rect(left, y - 11, right - left, rowH, 'F');
+      if (ri % 2 === 1) doc.setFillColor(246, 247, 243).rect(left, y - 11, right - left, rowH, 'F');
       let x = left + 4;
       row.forEach((cell, ci) => {
         const c = columns[ci];
@@ -131,12 +131,12 @@ export const downloadReportPDF = async (report) => {
   };
 
   // Title block
-  doc.setFont('helvetica', 'bold').setFontSize(18).setTextColor(26, 10, 0);
+  doc.setFont('helvetica', 'bold').setFontSize(18).setTextColor(14, 15, 11);
   doc.text('Bandang IBAYO', left, y);
-  doc.setFontSize(11).setTextColor(196, 92, 38);
+  doc.setFontSize(11).setTextColor(181, 81, 27);
   doc.text('BUSINESS REPORT', right, y, { align: 'right' });
   y += 18;
-  doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(122, 58, 24);
+  doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(94, 106, 90);
   doc.text(pdfText(`Period: ${report.rangeLabel}`), left, y); y += 13;
   doc.text(doc.splitTextToSize(pdfText(`Filters: ${report.filtersLabel}`), right - left), left, y); y += 13;
   doc.text(pdfText(`Generated: ${report.generatedAt}`), left, y); y += 10;
@@ -171,7 +171,7 @@ export const downloadReportPDF = async (report) => {
 
   if (report.insights.length) {
     heading('Insights');
-    doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(26, 10, 0);
+    doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(14, 15, 11);
     report.insights.forEach((line) => {
       const wrapped = doc.splitTextToSize(pdfText(`- ${line}`), right - left);
       ensure(12 * wrapped.length + 4);

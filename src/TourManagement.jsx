@@ -17,12 +17,16 @@ import {
 } from 'lucide-react';
  
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #F2E4D0  parchment (section bg)
-// #7A3A18  rust mid-tone
+// #0E0F0B  ink (dark surfaces, main text)
+// #FE813C  orange (main accent: buttons, active states, highlights)
+// #B5511B  orange ink (orange text and links on light backgrounds)
+// #5E6A5A  sage ink (secondary text)
+// #727E6E  sage
+// #4E6B48  sage green (confirmed / success)
+// #BC656A  rose, with #A9474E / #B24F55 for errors and cancellations
+// #F1F2EE  soft stone (inset panels, chips, inputs)
+// #F4F5F1  page background
+// #FFFFFF  cards
 // ---------------------------------------------------------
  
 /* ─────────────────────────────────────────────
@@ -290,12 +294,12 @@ const TourManagement = () => {
   // ── shared input style ──
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
-    background: '#F2E4D0',
-    border: '1px solid rgba(196,92,38,0.18)',
+    background: '#F1F2EE',
+    border: '1px solid rgba(14,15,11,0.108)',
     borderRadius: 14,
     padding: '10px 14px',
     fontSize: 13, fontWeight: 600,
-    color: '#1A0A00',
+    color: '#0E0F0B',
     fontFamily: 'inherit',
     outline: 'none',
   };
@@ -304,7 +308,7 @@ const TourManagement = () => {
     display: 'block',
     fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.9,
+    color: '#5E6A5A', opacity: 0.9,
     marginBottom: 5,
   };
  
@@ -320,32 +324,32 @@ const TourManagement = () => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)',
+          background: 'rgba(14,15,11,0.88)', backdropFilter: 'blur(6px)',
           padding: 16,
         }}>
           <div style={{
-            background: '#FDF6EE', padding: '3rem',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            background: '#FFFFFF', padding: '3rem',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
             textAlign: 'center', width: '100%', maxWidth: 420,
-            borderTop: `8px solid ${confirmAction.isArchived ? '#C45C26' : '#E8A265'}`,
+            borderTop: `8px solid ${confirmAction.isArchived ? '#FE813C' : '#FE813C'}`,
           }}>
             <div style={{
               width: 88, height: 88, borderRadius: '50%',
-              background: confirmAction.isArchived ? '#C45C26' : '#1A0A00',
+              background: confirmAction.isArchived ? '#FE813C' : '#0E0F0B',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 28px',
-              color: '#FDF6EE',
-              boxShadow: '0 12px 32px rgba(26,10,0,0.25)',
+              color: '#FFFFFF',
+              boxShadow: '0 12px 32px rgba(14,15,11,0.25)',
             }}>
               {confirmAction.isArchived ? <RefreshCw size={38} /> : <Archive size={38} />}
             </div>
             <h3 style={{
               fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em',
-              textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 12px',
+              textTransform: 'uppercase', color: '#0E0F0B', margin: '0 0 12px',
             }}>
               {confirmAction.isArchived ? 'Restore Tour?' : 'Archive Tour?'}
             </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, lineHeight: 1.7, margin: '0 0 32px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, lineHeight: 1.7, margin: '0 0 32px' }}>
               {confirmAction.isArchived
                 ? 'This tour will be moved back to the active listings.'
                 : 'This tour will be moved to your private archives.'}
@@ -355,24 +359,24 @@ const TourManagement = () => {
                 onClick={() => setConfirmAction(null)}
                 style={{
                   flex: 1, padding: '13px 0',
-                  background: '#F2E4D0',
-                  border: '1px solid rgba(196,92,38,0.18)',
+                  background: '#F1F2EE',
+                  border: '1px solid rgba(14,15,11,0.108)',
                   borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: '#7A3A18',
+                  color: '#5E6A5A',
                 }}
               >Cancel</button>
               <button
                 onClick={executeToggleArchive}
                 style={{
                   flex: 1, padding: '13px 0',
-                  background: '#C45C26',
+                  background: '#FE813C',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: '#FDF6EE',
-                  boxShadow: '0 6px 20px rgba(196,92,38,0.3)',
+                  color: '#0E0F0B',
+                  boxShadow: '0 6px 20px rgba(254,129,60,0.3)',
                 }}
               >{confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}</button>
             </div>
@@ -393,7 +397,7 @@ const TourManagement = () => {
           <button style={{
             position: 'absolute', top: 32, right: 32,
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#FDF6EE',
+            color: '#FFFFFF',
           }}>
             <X size={40} />
           </button>
@@ -407,7 +411,7 @@ const TourManagement = () => {
       {/* ── Header Tabs ── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: '1px solid rgba(196,92,38,0.15)',
+        borderBottom: '1px solid rgba(14,15,11,0.09)',
         paddingBottom: 16, marginBottom: 20,
       }}>
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -417,11 +421,11 @@ const TourManagement = () => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'active' ? '#1A0A00' : 'rgba(122,58,24,0.7)',
+              color: currentTab === 'active' ? '#0E0F0B' : 'rgba(94,106,90,0.7)',
               transition: 'color 0.2s',
             }}
           >Manage Tour Postings</button>
-          <span style={{ color: '#C45C26', fontSize: 18 }}>|</span>
+          <span style={{ color: '#B5511B', fontSize: 18 }}>|</span>
           <button
             onClick={() => setCurrentTab('archive')}
             style={{
@@ -429,7 +433,7 @@ const TourManagement = () => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'archive' ? '#1A0A00' : 'rgba(122,58,24,0.7)',
+              color: currentTab === 'archive' ? '#0E0F0B' : 'rgba(94,106,90,0.7)',
               transition: 'color 0.2s',
             }}
           >
@@ -440,16 +444,16 @@ const TourManagement = () => {
           onClick={() => { setEditingTour(null); setShowModal(true); }}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: '#C45C26', color: '#FDF6EE',
+            background: '#FE813C', color: '#0E0F0B',
             border: 'none', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
             padding: '12px 22px',
-            boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+            boxShadow: '0 6px 20px rgba(254,129,60,0.35)',
             transition: 'all 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = '#a34d20'}
-          onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
+          onMouseEnter={e => e.currentTarget.style.background = '#E5692A'}
+          onMouseLeave={e => e.currentTarget.style.background = '#FE813C'}
         >
           <Plus size={16} strokeWidth={3} /> Create New Tour
         </button>
@@ -457,10 +461,10 @@ const TourManagement = () => {
  
       {/* ── Filters ── */}
       <div style={{
-        background: '#FDF6EE',
+        background: '#FFFFFF',
         borderRadius: 20, padding: '14px 18px',
-        border: '1px solid rgba(196,92,38,0.12)',
-        boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+        border: '1px solid rgba(14,15,11,0.072)',
+        boxShadow: '0 4px 16px rgba(14,15,11,0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
       }}>
@@ -469,7 +473,7 @@ const TourManagement = () => {
           <Search size={15} style={{
             position: 'absolute', left: 13, top: '50%',
             transform: 'translateY(-50%)',
-            color: 'rgba(122,58,24,0.75)', pointerEvents: 'none',
+            color: 'rgba(94,106,90,0.75)', pointerEvents: 'none',
           }} />
           <input
             type="text" placeholder="Search tours…"
@@ -488,7 +492,7 @@ const TourManagement = () => {
             <option value="Moderate">Moderate</option>
             <option value="Challenging">Challenging</option>
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(94,106,90,0.75)' }} />
         </div>
         {/* Price sort */}
         <div style={{ position: 'relative', minWidth: 175 }}>
@@ -500,7 +504,7 @@ const TourManagement = () => {
             <option value="highToLow">High to Low</option>
             <option value="lowToHigh">Low to High</option>
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(94,106,90,0.75)' }} />
         </div>
       </div>
  
@@ -511,7 +515,7 @@ const TourManagement = () => {
               gridColumn: '1 / -1',
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-              padding: '5rem 0', color: 'rgba(122,58,24,0.75)',
+              padding: '5rem 0', color: 'rgba(94,106,90,0.75)',
             }}>
               <Loader2 size={30} style={{ marginBottom: 10 }} />
               <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
@@ -563,18 +567,18 @@ const TourManagement = () => {
           padding: 16,
         }}>
           <div
-            style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.82)', backdropFilter: 'blur(4px)' }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.82)', backdropFilter: 'blur(4px)' }}
             onClick={closeTourModal}
           />
           <form
             onSubmit={handleFormSubmit}
             onInput={() => setFormDirty(true)}
             style={{
-              position: 'relative', background: '#FDF6EE',
+              position: 'relative', background: '#FFFFFF',
               width: '100%', maxWidth: 720,
-              borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+              borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
               overflow: 'hidden',
-              borderTop: '8px solid #C45C26',
+              borderTop: '8px solid #FE813C',
               maxHeight: '90vh',
               display: 'flex', flexDirection: 'column',
             }}
@@ -584,14 +588,14 @@ const TourManagement = () => {
               style={{
                 position: 'absolute', top: 20, right: 20, zIndex: 10,
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(122,58,24,0.75)',
+                color: 'rgba(94,106,90,0.75)',
               }}
             ><X size={22} /></button>
  
             <div className="responsive-modal-padding" style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
               <h2 style={{
                 fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em',
-                textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 28px',
+                textTransform: 'uppercase', color: '#0E0F0B', margin: '0 0 28px',
               }}>
                 {editingTour ? 'Edit Tour Posting' : 'Create New Tour'}
               </h2>
@@ -600,9 +604,9 @@ const TourManagement = () => {
  
                 {/* Gallery */}
                 <div style={{
-                  background: '#F2E4D0',
+                  background: '#F1F2EE',
                   borderRadius: 18, padding: '1.25rem',
-                  border: '2px dashed rgba(196,92,38,0.25)',
+                  border: '2px dashed rgba(14,15,11,0.15)',
                 }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Tour Gallery Management</label>
                   {(tempGallery.length > 0 || newFiles.length > 0) && (
@@ -617,11 +621,11 @@ const TourManagement = () => {
                   )}
                   <div style={{ position: 'relative', width: 'fit-content' }}>
                     <div style={{
-                      background: '#1A0A00', color: '#FDF6EE',
+                      background: '#0E0F0B', color: '#FFFFFF',
                       borderRadius: 999, padding: '10px 18px',
                       display: 'flex', alignItems: 'center', gap: 8,
                       fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
-                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(26,10,0,0.2)',
+                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(14,15,11,0.2)',
                     }}>
                       <UploadCloud size={14} /> Upload Images
                     </div>
@@ -639,20 +643,20 @@ const TourManagement = () => {
  
                 {/* Dates */}
                 <div style={{
-                  background: 'rgba(196,92,38,0.06)',
+                  background: 'rgba(254,129,60,0.06)',
                   borderRadius: 18, padding: '1.25rem',
-                  border: '1px solid rgba(196,92,38,0.18)',
+                  border: '1px solid rgba(14,15,11,0.108)',
                   display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14,
                 }} className="responsive-form-grid-2">
                   <div>
                     <label style={labelStyle}>Start Date</label>
                     <input type="date" name="start_date" min={editingTour?.start_date && editingTour.start_date < getMinStartDate() ? editingTour.start_date : getMinStartDate()} defaultValue={editingTour?.start_date} onChange={handleDateChange}
-                      style={{ ...inputStyle, background: '#FDF6EE' }} required />
+                      style={{ ...inputStyle, background: '#FFFFFF' }} required />
                   </div>
                   <div>
                     <label style={labelStyle}>End Date</label>
                     <input type="date" name="end_date" min={editingTour?.start_date && editingTour.start_date < getMinStartDate() ? editingTour.start_date : getMinStartDate()} defaultValue={editingTour?.end_date} onChange={handleDateChange}
-                      style={{ ...inputStyle, background: '#FDF6EE' }} required />
+                      style={{ ...inputStyle, background: '#FFFFFF' }} required />
                   </div>
                 </div>
  
@@ -660,7 +664,7 @@ const TourManagement = () => {
                   <div>
                     <label style={labelStyle}>Duration</label>
                     <input type="text" value={calculatedDuration} readOnly
-                      style={{ ...inputStyle, background: '#F2E4D0', opacity: 0.7, cursor: 'default' }} />
+                      style={{ ...inputStyle, background: '#F1F2EE', opacity: 0.7, cursor: 'default' }} />
                   </div>
                   <ModalInput label="Max Slots" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} defaultValue={editingTour?.group_size || 18} required />
                   <div>
@@ -680,7 +684,7 @@ const TourManagement = () => {
                     style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
                 </div>
  
-                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, borderTop: '1px solid rgba(196,92,38,0.12)', paddingTop: 16 }}>
+                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, borderTop: '1px solid rgba(14,15,11,0.072)', paddingTop: 16 }}>
                   <div>
                     <label style={labelStyle}>Inclusions</label>
                     <textarea name="inclusions" defaultValue={editingTour?.inclusions} rows="4"
@@ -707,9 +711,9 @@ const TourManagement = () => {
                 </div>
  
                 <div>
-                  <label style={{ ...labelStyle, color: '#C45C26', opacity: 1 }}>Important Notes</label>
+                  <label style={{ ...labelStyle, color: '#B5511B', opacity: 1 }}>Important Notes</label>
                   <textarea name="important_note" defaultValue={editingTour?.important_note} rows="2"
-                    style={{ ...inputStyle, background: 'rgba(196,92,38,0.07)', color: '#C45C26', fontWeight: 700, resize: 'vertical' }} />
+                    style={{ ...inputStyle, background: 'rgba(254,129,60,0.07)', color: '#B5511B', fontWeight: 700, resize: 'vertical' }} />
                 </div>
               </div>
             </div>
@@ -717,24 +721,24 @@ const TourManagement = () => {
             {/* Footer */}
             <div style={{
               padding: '1.5rem 2.5rem',
-              background: '#FDF6EE',
-              borderTop: '1px solid rgba(196,92,38,0.12)',
+              background: '#FFFFFF',
+              borderTop: '1px solid rgba(14,15,11,0.072)',
               display: 'flex', gap: 12, flexShrink: 0,
             }}>
               <button type="button" onClick={closeTourModal} style={{
                 flex: 1, padding: '13px 0',
-                background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.25)', borderRadius: 999,
+                background: '#F1F2EE', border: '1px solid rgba(14,15,11,0.15)', borderRadius: 999,
                 cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: '#1A0A00',
+                color: '#0E0F0B',
               }}>Cancel</button>
               <button type="submit" disabled={uploading || savingTour} style={{
                 flex: 2, padding: '13px 0',
-                background: '#C45C26', border: 'none', borderRadius: 999,
+                background: '#FE813C', border: 'none', borderRadius: 999,
                 cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: '#FDF6EE',
-                boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                color: '#0E0F0B',
+                boxShadow: '0 6px 20px rgba(254,129,60,0.35)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: uploading ? 0.7 : 1,
               }}>
@@ -769,8 +773,8 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
       style={{
         position: 'relative', aspectRatio: '1',
         borderRadius: 12, overflow: 'hidden',
-        border: isNew ? '2px solid #C45C26' : '2px solid rgba(196,92,38,0.2)',
-        boxShadow: '0 2px 8px rgba(26,10,0,0.1)',
+        border: isNew ? '2px solid #FE813C' : '2px solid rgba(14,15,11,0.12)',
+        boxShadow: '0 2px 8px rgba(14,15,11,0.1)',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -781,10 +785,10 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
           type="button" onClick={onRemove}
           style={{
             position: 'absolute', inset: 0,
-            background: 'rgba(196,92,38,0.82)',
+            background: 'rgba(254,129,60,0.82)',
             border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#FDF6EE',
+            color: '#FFFFFF',
           }}
         ><Trash2 size={18} /></button>
       )}
@@ -827,8 +831,8 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
         style={{
           position: 'relative', width: '100%', height: 190,
           borderRadius: 18, overflow: 'hidden',
-          background: '#E8D5BC', marginBottom: hasMultiple ? 12 : 20,
-          boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
+          background: '#E4E7E0', marginBottom: hasMultiple ? 12 : 20,
+          boxShadow: '0 8px 24px rgba(14,15,11,0.15)',
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
         }}
         onPointerDown={handleDragStart}
@@ -849,7 +853,7 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
             ))}
           </div>
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(94,106,90,0.75)' }}>
             <ImageIcon size={40} />
           </div>
         )}
@@ -860,18 +864,18 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
               type="button" onClick={prev}
               style={{
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(14,15,11,0.5)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: '#FDF6EE',
+                cursor: 'pointer', color: '#FFFFFF',
               }}
             ><ChevronLeft size={18} /></button>
             <button
               type="button" onClick={next}
               style={{
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(26,10,0,0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(14,15,11,0.5)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: '#FDF6EE',
+                cursor: 'pointer', color: '#FFFFFF',
               }}
             ><ChevronRight size={18} /></button>
             <div style={{ position: 'absolute', bottom: 10, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 5 }}>
@@ -881,7 +885,7 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
                   onClick={(e) => { e.stopPropagation(); goTo(i); }}
                   style={{
                     width: i === index ? 16 : 6, height: 6, borderRadius: 999,
-                    background: i === index ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
+                    background: i === index ? '#FFFFFF' : 'rgba(255,255,255,0.5)',
                     cursor: 'pointer', transition: 'width 0.2s',
                   }}
                 />
@@ -899,7 +903,7 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
               onClick={() => goTo(i)}
               style={{
                 aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
-                border: i === index ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.15)',
+                border: i === index ? '2px solid #FE813C' : '1px solid rgba(14,15,11,0.09)',
                 opacity: i === index ? 1 : 0.65, transition: 'opacity 0.2s, border-color 0.2s',
               }}
             >
@@ -919,11 +923,11 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
-        position: 'relative', background: '#FDF6EE',
+        position: 'relative', background: '#FFFFFF',
         width: '100%', maxWidth: 1100,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
         overflow: 'hidden',
         maxHeight: '92vh',
         display: 'flex', flexDirection: 'column',
@@ -931,7 +935,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
         <button onClick={onClose} style={{
           position: 'absolute', top: 24, right: 24, zIndex: 50,
           background: 'none', border: 'none', cursor: 'pointer',
-          color: 'rgba(122,58,24,0.75)',
+          color: 'rgba(94,106,90,0.75)',
         }}><X size={28} /></button>
  
         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -939,9 +943,9 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
             {/* Left panel */}
             <div className="responsive-modal-padding" style={{
-              background: '#F2E4D0',
+              background: '#F1F2EE',
               padding: '2.5rem 2rem',
-              borderRight: '1px solid rgba(196,92,38,0.12)',
+              borderRight: '1px solid rgba(14,15,11,0.072)',
               display: 'flex', flexDirection: 'column',
             }}>
               {/* Photo Gallery (slideable) */}
@@ -949,7 +953,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
               <h2 style={{
                 fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em',
-                color: '#1A0A00', margin: '0 0 18px', lineHeight: 1.15,
+                color: '#0E0F0B', margin: '0 0 18px', lineHeight: 1.15,
               }}>{tour.title}</h2>
  
               {/* Meta */}
@@ -958,49 +962,49 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
                   { icon: <Calendar size={16} />, text: formatDateRange(tour.start_date, tour.duration) },
                   { icon: <Clock size={16} />,    text: tour.duration },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
-                    <span style={{ color: '#C45C26' }}>{row.icon}</span> {row.text}
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#5E6A5A' }}>
+                    <span style={{ color: '#B5511B' }}>{row.icon}</span> {row.text}
                   </div>
                 ))}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFull ? '#C45C26' : '#7A3A18' }}>
-                  <span style={{ color: '#C45C26' }}><Users size={16} /></span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFull ? '#B5511B' : '#5E6A5A' }}>
+                  <span style={{ color: '#B5511B' }}><Users size={16} /></span>
                   {tour.current_booked ?? 0} / {tour.group_size || 18} Slots Booked
                 </div>
                 {/* Progress bar */}
-                <div style={{ background: 'rgba(196,92,38,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+                <div style={{ background: 'rgba(254,129,60,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
                   <div style={{
                     height: '100%', borderRadius: 999,
                     width: `${filledPct}%`,
-                    background: isFull ? '#C45C26' : isAlmost ? '#E8A265' : '#7A3A18',
+                    background: isFull ? '#FE813C' : isAlmost ? '#FE813C' : '#5E6A5A',
                     transition: 'width 0.4s',
                   }} />
                 </div>
                 <span style={{
                   display: 'inline-block',
-                  background: '#FDF6EE',
-                  border: '1px solid rgba(196,92,38,0.2)',
+                  background: '#FFFFFF',
+                  border: '1px solid rgba(14,15,11,0.12)',
                   borderRadius: 999, padding: '4px 14px',
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
-                  color: '#1A0A00', width: 'fit-content',
+                  color: '#0E0F0B', width: 'fit-content',
                 }}>{tour.difficulty}</span>
               </div>
  
               {/* Price */}
-              <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#C45C26', margin: '0 0 2px', lineHeight: 1 }}>
+              <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#B5511B', margin: '0 0 2px', lineHeight: 1 }}>
                 {formatPeso(tour.price)}
               </p>
-              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>per person</p>
+              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>per person</p>
  
               <button
                 onClick={onEdit}
                 style={{
                   width: '100%', padding: '12px 0',
-                  background: '#C45C26', color: '#FDF6EE',
+                  background: '#FE813C', color: '#0E0F0B',
                   border: 'none', borderRadius: 14, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  boxShadow: '0 6px 18px rgba(196,92,38,0.32)',
+                  boxShadow: '0 6px 18px rgba(254,129,60,0.32)',
                 }}
               >
                 <Edit size={13} /> Edit This Tour
@@ -1012,27 +1016,27 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
               <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
  
                 <ViewSection title="About the Tour">
-                  <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
+                  <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#5E6A5A', whiteSpace: 'pre-wrap', margin: 0 }}>
                     {tour.description || 'No description provided.'}
                   </p>
                 </ViewSection>
  
-                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
-                  <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
+                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
+                  <ViewSection title="Inclusions" titleColor="#B5511B" icon={<CheckCircle2 size={14} />}>
                     <ChecklistGrid text={tour.inclusions} variant="include" />
                   </ViewSection>
-                  <ViewSection title="Exclusions" titleColor="#C45C26" icon={<X size={14} />}>
+                  <ViewSection title="Exclusions" titleColor="#B5511B" icon={<X size={14} />}>
                     <ChecklistGrid text={tour.exclusions} variant="exclude" />
                   </ViewSection>
                 </div>
  
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
-                  <ViewSection title="Itinerary" titleColor="#C45C26" icon={<Clock size={14} />}>
+                <div style={{ borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
+                  <ViewSection title="Itinerary" titleColor="#B5511B" icon={<Clock size={14} />}>
                     <ItineraryTimeline text={tour.itinerary} />
                   </ViewSection>
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                <div style={{ borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
                   <ViewSection title="Things to Bring">
                     <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
                   </ViewSection>
@@ -1040,17 +1044,17 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
                 {tour.important_note && (
                   <div style={{
-                    background: 'rgba(196,92,38,0.07)',
+                    background: 'rgba(254,129,60,0.07)',
                     borderRadius: 18, padding: '1.5rem',
-                    border: '1px solid rgba(196,92,38,0.2)',
+                    border: '1px solid rgba(14,15,11,0.12)',
                     display: 'flex', gap: 16,
                   }}>
-                    <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
+                    <AlertCircle size={22} style={{ color: '#B5511B', flexShrink: 0 }} />
                     <div>
-                      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>
+                      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 8px' }}>
                         Important Note
                       </p>
-                      <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0 }}>
+                      <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: '#0E0F0B', whiteSpace: 'pre-wrap', margin: 0 }}>
                         {tour.important_note}
                       </pre>
                     </div>
@@ -1077,10 +1081,10 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDate
   return (
     <div
       style={{
-        background: '#FDF6EE',
+        background: '#FFFFFF',
         borderRadius: 22, overflow: 'hidden',
-        border: '1px solid rgba(196,92,38,0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(14,15,11,0.072)',
+        boxShadow: hovered ? '0 12px 36px rgba(14,15,11,0.14)' : '0 4px 16px rgba(14,15,11,0.06)',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.25s',
         display: 'flex', flexDirection: 'column',
@@ -1089,30 +1093,30 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDate
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
-      <div style={{ height: 186, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ height: 186, background: '#E4E7E0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         {tour.image_urls?.[0]
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="Primary" />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ImageIcon size={44} /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(94,106,90,0.75)' }}><ImageIcon size={44} /></div>
         }
         {/* badges */}
         <div style={{ position: 'absolute', top: 12, left: 12 }}>
           <span style={{
-            background: 'rgba(253,246,238,0.92)', borderRadius: 999,
+            background: 'rgba(255,255,255,0.92)', borderRadius: 999,
             padding: '4px 12px', fontSize: 11, fontWeight: 900,
-            letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00',
+            letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0E0F0B',
           }}>{tour.difficulty}</span>
         </div>
         <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
           {isLive && !tour.is_archived && (
             <span style={{
-              background: '#C45C26', color: '#FDF6EE',
+              background: '#FE813C', color: '#0E0F0B',
               borderRadius: 999, padding: '4px 10px',
               fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
             }}>● Live</span>
           )}
           {tour.is_archived && (
             <span style={{
-              background: 'rgba(26,10,0,0.6)', color: '#FDF6EE',
+              background: 'rgba(14,15,11,0.6)', color: '#FFFFFF',
               borderRadius: 999, padding: '4px 10px',
               fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
             }}>Archived</span>
@@ -1124,21 +1128,21 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDate
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0E0F0B', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#B5511B', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
           </div>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
-            <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
+            <MapPin size={11} style={{ color: '#B5511B' }} /> {tour.destination}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-              <Calendar size={12} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              <Calendar size={12} style={{ color: '#B5511B' }} /> {formatDateRange(tour.start_date, tour.duration)}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? '#C45C26' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-              <Users size={12} style={{ color: '#C45C26' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? '#B5511B' : '#5E6A5A', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+              <Users size={12} style={{ color: '#B5511B' }} />
               {tour.current_booked ?? 0} / {tour.group_size || 18} Booked
               {isFull && (
-                <span style={{ background: 'rgba(196,92,38,0.12)', color: '#C45C26', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
+                <span style={{ background: 'rgba(254,129,60,0.12)', color: '#B5511B', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
               )}
             </div>
           </div>
@@ -1147,15 +1151,15 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDate
         {/* Action buttons */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingTop: 8 }}>
           {[
-            { label: 'View', icon: <Eye size={11} />, onClick: onView, style: { background: '#F2E4D0', color: '#1A0A00' } },
-            { label: 'Joiners', icon: <Users size={11} />, onClick: onJoiners, style: { background: '#F2E4D0', color: '#1A0A00' } },
-            { label: 'Edit', icon: <Edit size={11} />, onClick: onEdit, style: { background: '#F2E4D0', color: '#1A0A00' } },
+            { label: 'View', icon: <Eye size={11} />, onClick: onView, style: { background: '#F1F2EE', color: '#0E0F0B' } },
+            { label: 'Joiners', icon: <Users size={11} />, onClick: onJoiners, style: { background: '#F1F2EE', color: '#0E0F0B' } },
+            { label: 'Edit', icon: <Edit size={11} />, onClick: onEdit, style: { background: '#F1F2EE', color: '#0E0F0B' } },
             {
               label: tour.is_archived ? 'Restore' : 'Archive',
               icon: tour.is_archived ? <RefreshCw size={11} /> : <Archive size={11} />,
               onClick: onConfirmAction,
               // A rarely used action: outlined, so it doesn't compete with View/Edit.
-              style: { background: 'transparent', color: '#7A3A18', border: '1px solid rgba(122,58,24,0.3)' },
+              style: { background: 'transparent', color: '#5E6A5A', border: '1px solid rgba(94,106,90,0.3)' },
             },
           ].map(({ label, icon, onClick, style: btnStyle }) => (
             <button
@@ -1187,7 +1191,7 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
   <section>
     <h4 style={{
       fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
-      textTransform: 'uppercase', color: titleColor || '#1A0A00',
+      textTransform: 'uppercase', color: titleColor || '#0E0F0B',
       margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6,
     }}>
       {icon} {title}
@@ -1202,11 +1206,11 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
   const items = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
  
   if (items.length === 0) {
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>N/A</p>;
   }
  
-  const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#C45C26' : '#7A3A18';
-  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(196,92,38,0.07)' : 'rgba(122,58,24,0.06)';
+  const iconColor = variant === 'exclude' ? '#A9474E' : variant === 'include' ? '#B5511B' : '#5E6A5A';
+  const itemBg = variant === 'exclude' ? 'rgba(169,71,78,0.06)' : variant === 'include' ? 'rgba(181,81,27,0.07)' : 'rgba(94,106,90,0.06)';
   const Icon = variant === 'exclude' ? X : CheckCircle2;
  
   return (
@@ -1218,7 +1222,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
           flex: '0 1 auto', maxWidth: '100%',
         }}>
           <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#0E0F0B', lineHeight: 1.4 }}>{item}</span>
         </div>
       ))}
     </div>
@@ -1233,7 +1237,7 @@ const ItineraryTimeline = ({ text }) => {
   const rawLines = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
 
   if (rawLines.length === 0) {
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>N/A</p>;
   }
 
   // Matches a leading time or time-range (e.g. "04:00 AM" or "08:15 AM – 11:00 AM"),
@@ -1268,7 +1272,7 @@ const ItineraryTimeline = ({ text }) => {
         <div key={di}>
           {day.label && (
             <span style={{
-              display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
+              display: 'inline-block', background: '#0E0F0B', color: '#FFFFFF',
               borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
               letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
             }}>{day.label}</span>
@@ -1277,17 +1281,17 @@ const ItineraryTimeline = ({ text }) => {
             {day.items.map((item, ii) => (
               <div key={ii} style={{
                 display: 'flex', alignItems: 'flex-start', gap: 10,
-                background: 'rgba(196,92,38,0.06)', borderRadius: 12, padding: '9px 12px',
+                background: 'rgba(254,129,60,0.06)', borderRadius: 12, padding: '9px 12px',
                 maxWidth: '100%',
               }}>
                 {item.time && (
                   <span style={{
-                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#C45C26',
-                    background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.25)',
+                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#B5511B',
+                    background: '#FFFFFF', border: '1px solid rgba(14,15,11,0.15)',
                     borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
                   }}>{item.time}</span>
                 )}
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#0E0F0B', lineHeight: 1.4 }}>{item.activity}</span>
               </div>
             ))}
           </div>
@@ -1303,7 +1307,7 @@ const ModalInput = ({ label, name, defaultValue, ...props }) => (
     <label style={{
       display: 'block', fontSize: 11, fontWeight: 800,
       letterSpacing: '0.2em', textTransform: 'uppercase',
-      color: '#7A3A18', opacity: 0.9, marginBottom: 5,
+      color: '#5E6A5A', opacity: 0.9, marginBottom: 5,
     }}>{label}</label>
     <input
       name={name}
@@ -1311,11 +1315,11 @@ const ModalInput = ({ label, name, defaultValue, ...props }) => (
       {...props}
       style={{
         width: '100%', boxSizing: 'border-box',
-        background: '#F2E4D0',
-        border: '1px solid rgba(196,92,38,0.18)',
+        background: '#F1F2EE',
+        border: '1px solid rgba(14,15,11,0.108)',
         borderRadius: 14, padding: '10px 14px',
         fontSize: 13, fontWeight: 600,
-        color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+        color: '#0E0F0B', fontFamily: 'inherit', outline: 'none',
       }}
     />
   </div>

@@ -23,25 +23,34 @@ import {
 
 // ── PALETTE ──────────────────────────────────────────────
 
-// #1A0A00  espresso dark
+// #0E0F0B  ink (dark surfaces, main text)
+// #FE813C  orange (main accent: buttons, active states, highlights)
+// #B5511B  orange ink (orange text and links on light backgrounds)
+// #5E6A5A  sage ink (secondary text)
+// #727E6E  sage
+// #4E6B48  sage green (confirmed / success)
+// #BC656A  rose, with #A9474E / #B24F55 for errors and cancellations
+// #F1F2EE  soft stone (inset panels, chips, inputs)
+// #F4F5F1  page background
+// #FFFFFF  cards
 
-// #C45C26  burnt sienna (accent)
+// #B5511B  burnt sienna (accent)
 
-// #E8A265  warm amber (highlight)
+// #FE813C  warm amber (highlight)
 
-// #FDF6EE  cream (light card bg)
+// #FFFFFF  cream (light card bg)
 
-// #2D1B0E  deep brown (dark card)
+// #1E201B  deep brown (dark card)
 
-// #7A3A18  rust mid-tone
+// #5E6A5A  rust mid-tone
 
-// #8C2F1C  deep rust red (error / full / alert)
+// #A9474E  deep rust red (error / full / alert)
 
-// #F2E4D0  parchment (inset panel bg)
+// #F1F2EE  parchment (inset panel bg)
 
-// #EDEAE3  warm stone (page bg)
+// #F1F2EE  warm stone (page bg)
 
-// #3F5D62  slate teal (secondary contrast accent)
+// #4E6B48  slate teal (secondary contrast accent)
 
 // ---------------------------------------------------------
 
@@ -175,9 +184,9 @@ const JoinerTours = ({ initialTourId = null }) => {
 
     width: '100%', boxSizing: 'border-box',
 
-    background: '#F2E4D0',
+    background: '#F1F2EE',
 
-    border: '1px solid rgba(196,92,38,0.18)',
+    border: '1px solid rgba(14,15,11,0.108)',
 
     borderRadius: 14,
 
@@ -185,7 +194,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
     fontSize: 13, fontWeight: 600,
 
-    color: '#1A0A00',
+    color: '#0E0F0B',
 
     fontFamily: 'inherit',
 
@@ -205,13 +214,13 @@ const JoinerTours = ({ initialTourId = null }) => {
 
       <div style={{
 
-        background: '#FDF6EE',
+        background: '#FFFFFF',
 
         borderRadius: 20, padding: '14px 18px',
 
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(14,15,11,0.072)',
 
-        boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+        boxShadow: '0 4px 16px rgba(14,15,11,0.05)',
 
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
 
@@ -229,7 +238,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
             transform: 'translateY(-50%)',
 
-            color: 'rgba(122,58,24,0.75)', pointerEvents: 'none',
+            color: 'rgba(94,106,90,0.75)', pointerEvents: 'none',
 
           }} />
 
@@ -267,7 +276,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
           </select>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(94,106,90,0.75)' }} />
 
         </div>
 
@@ -291,7 +300,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
           </select>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(94,106,90,0.75)' }} />
 
         </div>
 
@@ -313,7 +322,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
             alignItems: 'center', justifyContent: 'center',
 
-            padding: '5rem 0', color: 'rgba(122,58,24,0.75)',
+            padding: '5rem 0', color: 'rgba(94,106,90,0.75)',
 
           }}>
 
@@ -395,13 +404,13 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
       style={{
 
-        background: '#FDF6EE',
+        background: '#FFFFFF',
 
         borderRadius: 22, overflow: 'hidden',
 
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(14,15,11,0.072)',
 
-        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
+        boxShadow: hovered ? '0 12px 36px rgba(14,15,11,0.14)' : '0 4px 16px rgba(14,15,11,0.06)',
 
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
 
@@ -419,13 +428,13 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
       {/* Image */}
 
-      <div style={{ height: 186, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ height: 186, background: '#F1F2EE', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
 
         {tour.image_urls?.[0]
 
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="" />
 
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ImageIcon size={44} /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(94,106,90,0.75)' }}><ImageIcon size={44} /></div>
 
         }
 
@@ -435,11 +444,11 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           <span style={{
 
-            background: 'rgba(253,246,238,0.92)', borderRadius: 999,
+            background: 'rgba(255,255,255,0.92)', borderRadius: 999,
 
             padding: '4px 12px', fontSize: 11, fontWeight: 900,
 
-            letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00',
+            letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0E0F0B',
 
           }}>{tour.difficulty}</span>
 
@@ -449,7 +458,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           <span style={{
 
-            background: isFull ? '#8C2F1C' : '#C45C26', color: '#FDF6EE',
+            background: isFull ? '#A9474E' : '#FE813C', color: isFull ? '#FFFFFF' : '#0E0F0B',
 
             borderRadius: 999, padding: '4px 10px',
 
@@ -475,35 +484,35 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
 
-            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0E0F0B', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
 
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#B5511B', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
 
           </div>
 
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
 
-            <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
+            <MapPin size={11} style={{ color: '#B5511B' }} /> {tour.destination}
 
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
-              <Calendar size={12} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
+              <Calendar size={12} style={{ color: '#B5511B' }} /> {formatDateRange(tour.start_date, tour.duration)}
 
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? '#8C2F1C' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? '#A9474E' : '#5E6A5A', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
-              <Users size={12} style={{ color: '#C45C26' }} />
+              <Users size={12} style={{ color: '#B5511B' }} />
 
               {tour.current_booked} / {tour.group_size} Booked
 
               {isFull && (
 
-                <span style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
+                <span style={{ background: 'rgba(169,71,78,0.1)', color: '#A9474E', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
 
               )}
 
@@ -511,7 +520,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           </div>
 
-          <div style={{ width: '100%', background: '#F2E4D0', borderRadius: 999, height: 6, overflow: 'hidden', marginBottom: 4 }}>
+          <div style={{ width: '100%', background: '#F1F2EE', borderRadius: 999, height: 6, overflow: 'hidden', marginBottom: 4 }}>
 
             <div
 
@@ -519,7 +528,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
                 height: 6, borderRadius: 999, transition: 'all 0.3s',
 
-                background: isFull ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#C45C26',
+                background: isFull ? '#A9474E' : tour.available_slots <= 3 ? '#FE813C' : '#FE813C',
 
                 width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`,
 
@@ -555,15 +564,15 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             transition: 'all 0.2s',
 
-            background: isFull ? '#F2E4D0' : '#1A0A00',
+            background: isFull ? '#F1F2EE' : '#0E0F0B',
 
-            color: isFull ? 'rgba(122,58,24,0.5)' : '#FDF6EE',
+            color: isFull ? 'rgba(94,106,90,0.5)' : '#FFFFFF',
 
           }}
 
-          onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#C45C26'; }}
+          onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#2A2C26'; }}
 
-          onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = '#1A0A00'; }}
+          onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = '#0E0F0B'; }}
 
         >
 
@@ -595,7 +604,7 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 
       fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
 
-      textTransform: 'uppercase', color: titleColor || '#1A0A00',
+      textTransform: 'uppercase', color: titleColor || '#0E0F0B',
 
       margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6,
 
@@ -621,15 +630,15 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
   if (items.length === 0) {
 
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>N/A</p>;
 
   }
 
 
 
-  const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#C45C26' : '#7A3A18';
+  const iconColor = variant === 'exclude' ? '#A9474E' : variant === 'include' ? '#B5511B' : '#5E6A5A';
 
-  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(196,92,38,0.07)' : 'rgba(122,58,24,0.06)';
+  const itemBg = variant === 'exclude' ? 'rgba(169,71,78,0.06)' : variant === 'include' ? 'rgba(181,81,27,0.07)' : 'rgba(94,106,90,0.06)';
 
   const Icon = variant === 'exclude' ? X : CheckCircle2;
 
@@ -653,7 +662,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
           <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
 
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#0E0F0B', lineHeight: 1.4 }}>{item}</span>
 
         </div>
 
@@ -681,7 +690,7 @@ const ItineraryTimeline = ({ text }) => {
 
   if (rawLines.length === 0) {
 
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>N/A</p>;
 
   }
 
@@ -753,7 +762,7 @@ const ItineraryTimeline = ({ text }) => {
 
             <span style={{
 
-              display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
+              display: 'inline-block', background: '#0E0F0B', color: '#FFFFFF',
 
               borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
 
@@ -771,7 +780,7 @@ const ItineraryTimeline = ({ text }) => {
 
                 display: 'flex', alignItems: 'flex-start', gap: 10,
 
-                background: 'rgba(196,92,38,0.06)', borderRadius: 12, padding: '9px 12px',
+                background: 'rgba(254,129,60,0.06)', borderRadius: 12, padding: '9px 12px',
 
                 maxWidth: '100%',
 
@@ -781,9 +790,9 @@ const ItineraryTimeline = ({ text }) => {
 
                   <span style={{
 
-                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#C45C26',
+                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#B5511B',
 
-                    background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.25)',
+                    background: '#FFFFFF', border: '1px solid rgba(14,15,11,0.15)',
 
                     borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
 
@@ -791,7 +800,7 @@ const ItineraryTimeline = ({ text }) => {
 
                 )}
 
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#0E0F0B', lineHeight: 1.4 }}>{item.activity}</span>
 
               </div>
 
@@ -869,9 +878,9 @@ const TourImageCarousel = ({ images = [] }) => {
 
           borderRadius: 18, overflow: 'hidden',
 
-          background: '#F2E4D0', marginBottom: hasMultiple ? 12 : 20,
+          background: '#F1F2EE', marginBottom: hasMultiple ? 12 : 20,
 
-          boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
+          boxShadow: '0 8px 24px rgba(14,15,11,0.15)',
 
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
 
@@ -911,7 +920,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
         ) : (
 
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(94,106,90,0.75)' }}>
 
             <ImageIcon size={40} />
 
@@ -933,11 +942,11 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
 
-                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
+                background: 'rgba(14,15,11,0.65)', border: 'none', borderRadius: '50%',
 
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
 
-                cursor: 'pointer', color: '#FDF6EE',
+                cursor: 'pointer', color: '#FFFFFF',
 
               }}
 
@@ -951,11 +960,11 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
 
-                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
+                background: 'rgba(14,15,11,0.65)', border: 'none', borderRadius: '50%',
 
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
 
-                cursor: 'pointer', color: '#FDF6EE',
+                cursor: 'pointer', color: '#FFFFFF',
 
               }}
 
@@ -975,7 +984,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
                     width: i === index ? 16 : 6, height: 6, borderRadius: 999,
 
-                    background: i === index ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
+                    background: i === index ? '#FFFFFF' : 'rgba(255,255,255,0.5)',
 
                     cursor: 'pointer', transition: 'width 0.2s',
 
@@ -1011,7 +1020,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
 
-                border: i === index ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.15)',
+                border: i === index ? '2px solid #FE813C' : '1px solid rgba(14,15,11,0.09)',
 
                 opacity: i === index ? 1 : 0.65, transition: 'opacity 0.2s, border-color 0.2s',
 
@@ -1196,17 +1205,17 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
 
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
 
             <div style={{
 
-                position: 'relative', background: '#FDF6EE',
+                position: 'relative', background: '#FFFFFF',
 
                 width: '100%', maxWidth: 1100,
 
-                borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+                borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
 
-                borderTop: '8px solid #C45C26',
+                borderTop: '8px solid #FE813C',
 
                 overflow: 'hidden',
 
@@ -1222,7 +1231,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                     background: 'none', border: 'none', cursor: 'pointer',
 
-                    color: 'rgba(122,58,24,0.75)',
+                    color: 'rgba(94,106,90,0.75)',
 
                 }}><X size={28} /></button>
 
@@ -1238,11 +1247,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                         <div className="responsive-modal-padding" style={{
 
-                            background: '#F2E4D0',
+                            background: '#F1F2EE',
 
                             padding: '2.5rem 2rem',
 
-                            borderRight: '1px solid rgba(196,92,38,0.12)',
+                            borderRight: '1px solid rgba(14,15,11,0.072)',
 
                             display: 'flex', flexDirection: 'column',
 
@@ -1256,7 +1265,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                 fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em',
 
-                                color: '#1A0A00', margin: '0 0 18px', lineHeight: 1.15,
+                                color: '#0E0F0B', margin: '0 0 18px', lineHeight: 1.15,
 
                             }}>{tour.title}</h2>
 
@@ -1274,23 +1283,23 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                 ].map((row, i) => (
 
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#5E6A5A' }}>
 
-                                        <span style={{ color: '#C45C26' }}>{row.icon}</span> {row.text}
+                                        <span style={{ color: '#B5511B' }}>{row.icon}</span> {row.text}
 
                                     </div>
 
                                 ))}
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#8C2F1C' : '#7A3A18' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#A9474E' : '#5E6A5A' }}>
 
-                                    <span style={{ color: '#C45C26' }}><Users size={16} /></span>
+                                    <span style={{ color: '#B5511B' }}><Users size={16} /></span>
 
                                     {tour.current_booked} / {tour.group_size} Slots Booked
 
                                 </div>
 
-                                <div style={{ background: 'rgba(196,92,38,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+                                <div style={{ background: 'rgba(254,129,60,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
 
                                     <div style={{
 
@@ -1298,7 +1307,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         width: `${filledPct}%`,
 
-                                        background: isFullyBooked ? '#8C2F1C' : isAlmostFull ? '#E8A265' : '#7A3A18',
+                                        background: isFullyBooked ? '#A9474E' : isAlmostFull ? '#FE813C' : '#5E6A5A',
 
                                         transition: 'width 0.4s',
 
@@ -1310,15 +1319,15 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                     display: 'inline-block',
 
-                                    background: '#FDF6EE',
+                                    background: '#FFFFFF',
 
-                                    border: '1px solid rgba(196,92,38,0.2)',
+                                    border: '1px solid rgba(14,15,11,0.12)',
 
                                     borderRadius: 999, padding: '4px 14px',
 
                                     fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
 
-                                    color: '#1A0A00', width: 'fit-content',
+                                    color: '#0E0F0B', width: 'fit-content',
 
                                 }}>{tour.difficulty}</span>
 
@@ -1326,21 +1335,21 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                 {isFullyBooked ? (
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(140,47,28,0.1)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '10px 14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(169,71,78,0.1)', border: '1px solid rgba(169,71,78,0.25)', borderRadius: 14, padding: '10px 14px' }}>
 
-                                        <AlertCircle size={16} style={{ color: '#8C2F1C', flexShrink: 0 }} />
+                                        <AlertCircle size={16} style={{ color: '#A9474E', flexShrink: 0 }} />
 
-                                        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8C2F1C', margin: 0 }}>Fully Booked</p>
+                                        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#A9474E', margin: 0 }}>Fully Booked</p>
 
                                     </div>
 
                                 ) : isAlmostFull ? (
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(254,129,60,0.18)', border: '1px solid rgba(254,129,60,0.4)', borderRadius: 14, padding: '10px 14px' }}>
 
-                                        <AlertCircle size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <AlertCircle size={16} style={{ color: '#B5511B', flexShrink: 0 }} />
 
-                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
+                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#5E6A5A', margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
 
                                     </div>
 
@@ -1360,7 +1369,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         letterSpacing: '0.2em', textTransform: 'uppercase',
 
-                                        color: '#7A3A18', opacity: 0.9, marginBottom: 6,
+                                        color: '#5E6A5A', opacity: 0.9, marginBottom: 6,
 
                                     }}>Number of Persons</label>
 
@@ -1376,15 +1385,15 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                                 width: '100%', boxSizing: 'border-box',
 
-                                                background: '#FDF6EE',
+                                                background: '#FFFFFF',
 
-                                                border: '1px solid rgba(196,92,38,0.18)',
+                                                border: '1px solid rgba(14,15,11,0.108)',
 
                                                 borderRadius: 14, padding: '12px 14px',
 
                                                 fontSize: 13, fontWeight: 700,
 
-                                                color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+                                                color: '#0E0F0B', fontFamily: 'inherit', outline: 'none',
 
                                                 appearance: 'none', cursor: 'pointer', paddingRight: 34,
 
@@ -1400,13 +1409,13 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         </select>
 
-                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(196,92,38,0.75)' }} />
+                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(181,81,27,0.75)' }} />
 
                                     </div>
 
                                     {slotError && (
 
-                                        <p style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#8C2F1C', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <p style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#A9474E', display: 'flex', alignItems: 'center', gap: 6 }}>
 
                                             <AlertCircle size={13} /> {slotError}
 
@@ -1430,9 +1439,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
 
-                                        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>Total</span>
+                                        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#5E6A5A', opacity: 0.9 }}>Total</span>
 
-                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>{formatPeso(subtotal)}</span>
+                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#B5511B' }}>{formatPeso(subtotal)}</span>
 
                                     </div>
 
@@ -1440,7 +1449,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                 {isFullyBooked && (
 
-                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(tour.price)} per person</p>
+                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(tour.price)} per person</p>
 
                                 )}
 
@@ -1465,9 +1474,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         width: '100%', padding: '14px 0',
 
-                                        background: isFullyBooked ? '#EDEAE3' : '#C45C26',
+                                        background: isFullyBooked ? '#F1F2EE' : '#FE813C',
 
-                                        color: isFullyBooked ? '#7A3A18' : '#FDF6EE',
+                                        color: isFullyBooked ? '#5E6A5A' : '#0E0F0B',
 
                                         border: 'none', borderRadius: 14, cursor: isFullyBooked ? 'not-allowed' : 'pointer',
 
@@ -1477,15 +1486,15 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
 
-                                        boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(196,92,38,0.32)',
+                                        boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(254,129,60,0.32)',
 
                                         transition: 'background 0.2s',
 
                                     }}
 
-                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#1A0A00'; }}
+                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#0E0F0B'; }}
 
-                                    onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#C45C26'; }}
+                                    onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#FE813C'; }}
 
                                 >
 
@@ -1509,7 +1518,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                 <ViewSection title="About the Tour">
 
-                                    <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                    <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#5E6A5A', whiteSpace: 'pre-wrap', margin: 0 }}>
 
                                         {tour.description || 'No description provided.'}
 
@@ -1519,15 +1528,15 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
 
 
-                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
 
-                                    <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
+                                    <ViewSection title="Inclusions" titleColor="#B5511B" icon={<CheckCircle2 size={14} />}>
 
                                         <ChecklistGrid text={tour.inclusions} variant="include" />
 
                                     </ViewSection>
 
-                                    <ViewSection title="Exclusions" titleColor="#8C2F1C" icon={<X size={14} />}>
+                                    <ViewSection title="Exclusions" titleColor="#A9474E" icon={<X size={14} />}>
 
                                         <ChecklistGrid text={tour.exclusions} variant="exclude" />
 
@@ -1537,9 +1546,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
 
 
-                                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                <div style={{ borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
 
-                                    <ViewSection title="Itinerary" titleColor="#C45C26" icon={<Clock size={14} />}>
+                                    <ViewSection title="Itinerary" titleColor="#B5511B" icon={<Clock size={14} />}>
 
                                         <ItineraryTimeline text={tour.itinerary} />
 
@@ -1549,7 +1558,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
 
 
-                                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                <div style={{ borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
 
                                     <ViewSection title="Things to Bring">
 
@@ -1565,27 +1574,27 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                                     <div style={{
 
-                                        background: 'rgba(196,92,38,0.07)',
+                                        background: 'rgba(254,129,60,0.07)',
 
                                         borderRadius: 18, padding: '1.5rem',
 
-                                        border: '1px solid rgba(196,92,38,0.2)',
+                                        border: '1px solid rgba(14,15,11,0.12)',
 
                                         display: 'flex', gap: 16,
 
                                     }}>
 
-                                        <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <AlertCircle size={22} style={{ color: '#B5511B', flexShrink: 0 }} />
 
                                         <div>
 
-                                            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>
+                                            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 8px' }}>
 
                                                 Important Note
 
                                             </p>
 
-                                            <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                            <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: '#0E0F0B', whiteSpace: 'pre-wrap', margin: 0 }}>
 
                                                 {tour.important_note}
 
@@ -1674,7 +1683,7 @@ const overlayBackdrop = {
 
     alignItems: 'center', justifyContent: 'center', padding: 16,
 
-    background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)',
+    background: 'rgba(14,15,11,0.8)', backdropFilter: 'blur(4px)',
 
 };
 
@@ -1688,9 +1697,9 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
       <div style={{
 
-        background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
+        background: '#FFFFFF', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
 
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #C45C26',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)', borderTop: '8px solid #FE813C',
 
       }}>
 
@@ -1698,59 +1707,59 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#5E6A5A', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
               <ArrowLeft size={14} /> Back
             </button>
 
-            <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 1 of 2</span>
+            <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5E6A5A' }}>Step 1 of 2</span>
 
           </div>
 
           <div>
 
-            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 4px' }}>Booking Preview</p>
+            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 4px' }}>Booking Preview</p>
 
-            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
-
-          </div>
-
-          <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
-
-              <MapPin size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {tour.destination}
-
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
-
-              <Calendar size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
-
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
-
-              <Users size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
-
-            </div>
+            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#0E0F0B', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
 
           </div>
 
-          <div style={{ borderTop: '2px solid rgba(196,92,38,0.12)', paddingTop: 18 }}>
+          <div style={{ background: '#F1F2EE', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#5E6A5A' }}>
+
+              <MapPin size={15} style={{ color: '#B5511B', flexShrink: 0 }} /> {tour.destination}
+
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#5E6A5A' }}>
+
+              <Calendar size={15} style={{ color: '#B5511B', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
+
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#5E6A5A' }}>
+
+              <Users size={15} style={{ color: '#B5511B', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
+
+            </div>
+
+          </div>
+
+          <div style={{ borderTop: '2px solid rgba(14,15,11,0.072)', paddingTop: 18 }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
 
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Price per person</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#5E6A5A', opacity: 0.9 }}>Price per person</span>
 
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>{formatPeso(tour.price)}</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#0E0F0B' }}>{formatPeso(tour.price)}</span>
 
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
-              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A0A00' }}>Subtotal</span>
+              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0E0F0B' }}>Subtotal</span>
 
-              <span style={{ fontSize: 28, fontWeight: 900, color: '#C45C26' }}>{formatPeso(subtotal)}</span>
+              <span style={{ fontSize: 28, fontWeight: 900, color: '#B5511B' }}>{formatPeso(subtotal)}</span>
 
             </div>
 
@@ -1760,7 +1769,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
             style={{
 
-              width: '100%', padding: '15px 0', background: '#1A0A00', color: '#FDF6EE',
+              width: '100%', padding: '15px 0', background: '#0E0F0B', color: '#FFFFFF',
 
               border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
 
@@ -1772,9 +1781,9 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
             }}
 
-            onMouseEnter={e => e.currentTarget.style.background = '#C45C26'}
+            onMouseEnter={e => e.currentTarget.style.background = '#2A2C26'}
 
-            onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
+            onMouseLeave={e => e.currentTarget.style.background = '#0E0F0B'}
 
           >
 
@@ -1800,37 +1809,37 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
         <div style={{
 
-            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
+            background: '#FFFFFF', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
 
-            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
 
             textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
 
-            borderTop: '8px solid #C45C26',
+            borderTop: '8px solid #FE813C',
 
         }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#5E6A5A', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
 
                     <ArrowLeft size={14} /> Back
 
                 </button>
 
-                <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 2 of 2</span>
+                <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5E6A5A' }}>Step 2 of 2</span>
 
             </div>
 
             <div>
 
-                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0E0F0B', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
 
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#5E6A5A', opacity: 0.9, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: '6px 0 0' }}>
                     You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for 30 minutes.
                 </p>
-                <p style={{ fontSize: 11, fontWeight: 800, color: '#8C2F1C', margin: '8px 0 0' }}>
+                <p style={{ fontSize: 11, fontWeight: 800, color: '#A9474E', margin: '8px 0 0' }}>
                     Payments are non-refundable. You can cancel up to 14 days before the tour, but the amount paid won't be returned.
                 </p>
 
@@ -1845,19 +1854,19 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                     onClick={() => onChoose('full')}
                     disabled={busy}
 
-                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s' }}
+                    style={{ width: '100%', background: '#0E0F0B', color: '#FFFFFF', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(14,15,11,0.25)', transition: 'background 0.2s' }}
 
-                    onMouseEnter={e => e.currentTarget.style.background = '#2D1B0E'}
+                    onMouseEnter={e => e.currentTarget.style.background = '#1E201B'}
 
-                    onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#0E0F0B'}
 
                 >
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#FE813C' }}>Full Payment</span>
 
-                        <Check size={16} style={{ color: '#E8A265' }} />
+                        <Check size={16} style={{ color: '#FE813C' }} />
 
                     </div>
 
@@ -1874,31 +1883,31 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                     onClick={() => onChoose('down')}
                     disabled={busy}
 
-                    style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                    style={{ width: '100%', background: '#F1F2EE', border: '2px solid rgba(14,15,11,0.108)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.2s' }}
 
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#C45C26'}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#FE813C'}
 
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(14,15,11,0.108)'}
 
                 >
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B' }}>Downpayment (40%)</span>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: '#5E6A5A', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
 
                     </div>
 
-                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, color: '#0E0F0B', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
+                    <p style={{ fontSize: 11, color: '#5E6A5A', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
 
             </div>
             {busy && (
-                <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#C45C26', margin: 0 }}>
+                <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#B5511B', margin: 0 }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Opening secure checkout…
                 </p>
             )}
@@ -1919,19 +1928,19 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 ───────────────────────────────────────────── */
 const CompanionFields = ({ companions, onChange, error }) => {
     const inputStyle = {
-        width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
-        border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12,
-        padding: '10px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
+        width: '100%', boxSizing: 'border-box', background: '#FFFFFF',
+        border: '1px solid rgba(14,15,11,0.108)', borderRadius: 12,
+        padding: '10px 12px', fontSize: 12, fontWeight: 600, color: '#0E0F0B',
         fontFamily: 'inherit', outline: 'none',
     };
     return (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5E6A5A', opacity: 0.9, margin: 0 }}>
                 Who's joining you?
             </p>
             {companions.map((c, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 800, color: '#C45C26' }}>Person {i + 2}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: '#B5511B' }}>Person {i + 2}</span>
                     <input
                         aria-label={`Person ${i + 2} full name`}
                         placeholder="Full name"
@@ -1950,7 +1959,7 @@ const CompanionFields = ({ companions, onChange, error }) => {
                 </div>
             ))}
             {error && (
-                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#8C2F1C', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#A9474E', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <AlertCircle size={13} /> {error}
                 </p>
             )}
@@ -1962,10 +1971,10 @@ const CompanionFields = ({ companions, onChange, error }) => {
    WAITLIST (fully booked tours)
 ───────────────────────────────────────────── */
 const WaitlistPanel = ({ entry, slots, onSlotsChange, busy, onJoin, onLeave }) => (
-    <div style={{ background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.2)', borderRadius: 16, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ background: '#FFFFFF', border: '1px solid rgba(14,15,11,0.12)', borderRadius: 16, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {entry ? (
             <>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#0E0F0B', margin: 0, lineHeight: 1.5 }}>
                     {entry.notified_at
                         ? `A slot opened up! Slots go to whoever books first, so book soon if it's still open.`
                         : `You're on the waitlist for ${entry.slots_wanted} slot${entry.slots_wanted > 1 ? 's' : ''}. We'll notify you and email you if a slot opens.`}
@@ -1976,14 +1985,14 @@ const WaitlistPanel = ({ entry, slots, onSlotsChange, busy, onJoin, onLeave }) =
             </>
         ) : (
             <>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#5E6A5A', margin: 0, lineHeight: 1.5 }}>
                     This tour is full. Join the waitlist and we'll let you know if a slot opens.
                 </p>
                 <select
                     aria-label="Slots needed"
                     value={slots}
                     onChange={(e) => onSlotsChange(parseInt(e.target.value))}
-                    style={{ width: '100%', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 12px', fontSize: 12, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit' }}
+                    style={{ width: '100%', background: '#F1F2EE', border: '1px solid rgba(14,15,11,0.108)', borderRadius: 12, padding: '10px 12px', fontSize: 12, fontWeight: 700, color: '#0E0F0B', fontFamily: 'inherit' }}
                 >
                     {[...Array(10)].map((_, i) => (
                         <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'Person' : 'Persons'}</option>
@@ -2000,9 +2009,9 @@ const WaitlistPanel = ({ entry, slots, onSlotsChange, busy, onJoin, onLeave }) =
 const waitlistButton = (primary) => ({
     width: '100%', padding: '12px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
     fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
-    border: primary ? 'none' : '1px solid rgba(140,47,28,0.25)',
-    background: primary ? '#1A0A00' : 'transparent',
-    color: primary ? '#FDF6EE' : '#8C2F1C',
+    border: primary ? 'none' : '1px solid rgba(169,71,78,0.25)',
+    background: primary ? '#0E0F0B' : 'transparent',
+    color: primary ? '#FFFFFF' : '#A9474E',
 });
 
 

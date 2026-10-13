@@ -11,16 +11,16 @@ import {
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────  
-// #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light card bg)
-// #2D1B0E  deep brown (dark card)
-// #7A3A18  rust mid-tone
-// #8C2F1C  deep rust red (error / full / alert)
-// #F2E4D0  parchment (inset panel bg)
-// #EDEAE3  warm stone (page bg)
-// #3F5D62  slate teal (secondary contrast accent)
+// #0E0F0B  ink (dark surfaces, main text)
+// #FE813C  orange (main accent: buttons, active states, highlights)
+// #B5511B  orange ink (orange text and links on light backgrounds)
+// #5E6A5A  sage ink (secondary text)
+// #727E6E  sage
+// #4E6B48  sage green (confirmed / success)
+// #BC656A  rose, with #A9474E / #B24F55 for errors and cancellations
+// #F1F2EE  soft stone (inset panels, chips, inputs)
+// #F4F5F1  page background
+// #FFFFFF  cards
 // ---------------------------------------------------------
  
 /* ─────────────────────────────────────────────
@@ -113,23 +113,23 @@ const TourCalendar = ({ initialDate }) => {
  
         {/* ── Calendar Grid ── */}
         <div style={{
-          background: '#FDF6EE',
+          background: '#FFFFFF',
           padding: '2rem',
           borderRadius: 28,
-          border: '1px solid rgba(196,92,38,0.12)',
-          boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          border: '1px solid rgba(14,15,11,0.072)',
+          boxShadow: '0 4px 20px rgba(14,15,11,0.06)',
           textAlign: 'left'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#0E0F0B', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
                 style={{
-                  padding: 8, background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.15)',
-                  borderRadius: 12, cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  padding: 8, background: '#F1F2EE', border: '1px solid rgba(14,15,11,0.09)',
+                  borderRadius: 12, cursor: 'pointer', color: '#5E6A5A', display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
                 <ChevronLeft size={18} />
@@ -137,8 +137,8 @@ const TourCalendar = ({ initialDate }) => {
               <button
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
                 style={{
-                  padding: 8, background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.15)',
-                  borderRadius: 12, cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  padding: 8, background: '#F1F2EE', border: '1px solid rgba(14,15,11,0.09)',
+                  borderRadius: 12, cursor: 'pointer', color: '#5E6A5A', display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
                 <ChevronRight size={18} />
@@ -146,9 +146,9 @@ const TourCalendar = ({ initialDate }) => {
             </div>
           </div>
  
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 14, textAlign: 'center', borderBottom: '1px solid rgba(196,92,38,0.1)', paddingBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 14, textAlign: 'center', borderBottom: '1px solid rgba(14,15,11,0.06)', paddingBottom: 12 }}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} style={{ fontSize: 11.5, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
+              <div key={day} style={{ fontSize: 11.5, fontWeight: 900, color: '#5E6A5A', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
             ))}
           </div>
  
@@ -171,8 +171,8 @@ const TourCalendar = ({ initialDate }) => {
                     transition: 'all 0.2s',
                     display: 'flex',
                     flexDirection: 'column',
-                    border: isSelected && !isPast ? '2px solid #C45C26' : '1px solid transparent',
-                    background: isPast ? 'rgba(242,228,208,0.2)' : isSelected ? 'rgba(196,92,38,0.08)' : '#F2E4D0',
+                    border: isSelected && !isPast ? '2px solid #FE813C' : '1px solid transparent',
+                    background: isPast ? 'rgba(241,242,238,0.2)' : isSelected ? 'rgba(254,129,60,0.08)' : '#F1F2EE',
                     cursor: isPast ? 'not-allowed' : 'pointer',
                     opacity: isPast ? 0.35 : 1,
                     textAlign: 'left'
@@ -181,7 +181,7 @@ const TourCalendar = ({ initialDate }) => {
                   <span style={{
                     fontSize: 13,
                     fontWeight: 900,
-                    color: isPast ? '#7A3A18' : isSelected ? '#C45C26' : isCurrentMonth ? '#1A0A00' : 'rgba(122,58,24,0.45)'
+                    color: isPast ? '#5E6A5A' : isSelected ? '#B5511B' : isCurrentMonth ? '#0E0F0B' : 'rgba(94,106,90,0.45)'
                   }}>
                     {format(day, 'd')}
                   </span>
@@ -194,8 +194,8 @@ const TourCalendar = ({ initialDate }) => {
                         padding: '2px 6px',
                         borderRadius: 6,
                         display: 'inline-block',
-                        color: '#1A0A00',
-                        background: '#E8A265'
+                        color: '#0E0F0B',
+                        background: '#FE813C'
                       }}>
                         {dayTours.length} {dayTours.length === 1 ? 'Tour' : 'Tours'}
                       </div>
@@ -210,41 +210,41 @@ const TourCalendar = ({ initialDate }) => {
         {/* ── Daily Sidebar ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%', textAlign: 'left' }}>
           <div style={{
-            background: '#1A0A00',
+            background: '#0E0F0B',
             padding: '2rem',
             borderRadius: 28,
-            color: '#FDF6EE',
-            boxShadow: '0 16px 40px rgba(26,10,0,0.22)',
+            color: '#FFFFFF',
+            boxShadow: '0 16px 40px rgba(14,15,11,0.22)',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             textAlign: 'left'
           }}>
-            <p style={{ fontSize: 11, fontWeight: 900, color: '#C45C26', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
-            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#FDF6EE', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
+            <p style={{ fontSize: 11, fontWeight: 900, color: '#FE813C', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
+            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#FFFFFF', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '2.5rem 0' }}><Loader2 style={{ animation: 'spin 1s linear infinite', color: '#E8A265' }} size={28} /></div>
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '2.5rem 0' }}><Loader2 style={{ animation: 'spin 1s linear infinite', color: '#FE813C' }} size={28} /></div>
               ) : selectedDayTours.length > 0 ? (
                 selectedDayTours.map(tour => (
                   <div key={tour.id} style={{
-                    background: 'rgba(253,246,238,0.06)',
+                    background: 'rgba(255,255,255,0.06)',
                     padding: '1.25rem',
                     borderRadius: 20,
                     border: '1px solid rgba(255,255,255,0.08)',
                     transition: 'all 0.2s'
                   }}>
-                    <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: '#FDF6EE', margin: '0 0 8px' }}>{tour.title}</h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(232,210,190,0.85)', marginBottom: 4 }}>
-                      <MapPin size={12} style={{ color: '#C45C26' }} /> {tour.destination}
+                    <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: '#FFFFFF', margin: '0 0 8px' }}>{tour.title}</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(226,229,221,0.85)', marginBottom: 4 }}>
+                      <MapPin size={12} style={{ color: '#B5511B' }} /> {tour.destination}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, marginBottom: 12 }}>
-                      <Users size={12} style={{ color: '#C45C26' }} />
-                      <span style={{ color: tour.available_slots > 0 ? '#FDF6EE' : '#8C2F1C' }}>
+                      <Users size={12} style={{ color: '#B5511B' }} />
+                      <span style={{ color: tour.available_slots > 0 ? '#FFFFFF' : '#A9474E' }}>
                         {tour.current_booked}/{tour.group_size} Booked
                       </span>
                       {tour.available_slots <= 0 && (
-                        <span style={{ background: '#8C2F1C', color: '#FDF6EE', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
+                        <span style={{ background: '#A9474E', color: '#FFFFFF', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
                       )}
                     </div>
                     {/* Slot bar */}
@@ -254,18 +254,18 @@ const TourCalendar = ({ initialDate }) => {
                           height: '100%',
                           borderRadius: 999,
                           transition: 'all 0.3s',
-                          background: tour.available_slots <= 0 ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#C45C26',
+                          background: tour.available_slots <= 0 ? '#A9474E' : tour.available_slots <= 3 ? '#FE813C' : '#FE813C',
                           width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`
                         }}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: '#E8A265' }}>{formatPeso(tour.price)}</span>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: '#FE813C' }}>{formatPeso(tour.price)}</span>
                       <button
                         onClick={() => setSelectedTour(tour)}
                         style={{
-                          background: '#FDF6EE',
-                          color: '#1A0A00',
+                          background: '#FFFFFF',
+                          color: '#0E0F0B',
                           border: 'none',
                           padding: '7px 14px',
                           borderRadius: 10,
@@ -279,8 +279,8 @@ const TourCalendar = ({ initialDate }) => {
                           gap: 6,
                           transition: 'all 0.2s'
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#C45C26'; e.currentTarget.style.color = '#FDF6EE'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#FDF6EE'; e.currentTarget.style.color = '#1A0A00'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#2A2C26'; e.currentTarget.style.color = '#FFFFFF'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#0E0F0B'; }}
                       >
                         Details
                       </button>
@@ -289,7 +289,7 @@ const TourCalendar = ({ initialDate }) => {
                 ))
               ) : (
                 <div style={{
-                  padding: '3rem 1rem', textAlign: 'center', color: 'rgba(232,210,190,0.85)', fontStyle: 'italic',
+                  padding: '3rem 1rem', textAlign: 'center', color: 'rgba(226,229,221,0.85)', fontStyle: 'italic',
                   fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
                 }}>
                   No tours scheduled.

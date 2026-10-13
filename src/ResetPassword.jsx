@@ -11,10 +11,10 @@ const inputStyle = {
   width: '100%',
   padding: '12px 16px',
   borderRadius: 10,
-  border: '1.5px solid rgba(196,92,38,0.2)',
-  background: '#FDF6EE',
+  border: '1.5px solid rgba(14,15,11,0.12)',
+  background: '#FFFFFF',
   fontSize: 14,
-  color: '#1A0A00',
+  color: '#0E0F0B',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -26,7 +26,7 @@ const labelStyle = {
   fontWeight: 800,
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
-  color: '#7A3A18',
+  color: '#5E6A5A',
   marginBottom: 6,
   opacity: 0.9,
 };
@@ -87,35 +87,35 @@ const ResetPassword = () => {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#FDF6EE', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
+      background: '#FFFFFF', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#0E0F0B',
       padding: '3rem 1rem',
     }}>
       <div style={{
-        background: '#FDF6EE', padding: '2.5rem', borderRadius: 24,
-        boxShadow: '0 20px 60px rgba(26,10,0,0.14)', width: '100%', maxWidth: 420,
-        borderTop: '7px solid #C45C26',
+        background: '#FFFFFF', padding: '2.5rem', borderRadius: 24,
+        boxShadow: '0 20px 60px rgba(14,15,11,0.14)', width: '100%', maxWidth: 420,
+        borderTop: '7px solid #FE813C',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 64, height: 64, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
-          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
+          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#0E0F0B', margin: '0 0 8px' }}>
             Set a New Password
           </h1>
         </div>
 
         {checking ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.75)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(94,106,90,0.75)' }}>
             <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
             <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : done ? (
           <div style={{ textAlign: 'center' }}>
-            <CheckCircle2 size={40} style={{ color: '#C45C26', marginBottom: 12 }} />
-            <p style={{ fontSize: 13, color: '#7A3A18' }}>Password updated! Redirecting you to login…</p>
+            <CheckCircle2 size={40} style={{ color: '#B5511B', marginBottom: 12 }} />
+            <p style={{ fontSize: 13, color: '#5E6A5A' }}>Password updated! Redirecting you to login…</p>
           </div>
         ) : !ready ? (
-          <p style={{ fontSize: 13, color: '#7A3A18', textAlign: 'center', lineHeight: 1.7 }}>
+          <p style={{ fontSize: 13, color: '#5E6A5A', textAlign: 'center', lineHeight: 1.7 }}>
             This link is invalid or has expired. Please request a new one from the{' '}
-            <Link className="text-link" to="/forgot-password" style={{ color: '#C45C26', fontWeight: 800 }}>forgot password</Link> page.
+            <Link className="text-link" to="/forgot-password" style={{ color: '#B5511B', fontWeight: 800 }}>forgot password</Link> page.
           </p>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -145,15 +145,15 @@ const ResetPassword = () => {
             </div>
 
             {error && (
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{error}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#A9474E', margin: 0 }}>{error}</p>
             )}
 
             <button
               disabled={loading}
               style={{
                 width: '100%',
-                background: loading ? 'rgba(196,92,38,0.55)' : '#C45C26',
-                color: '#FDF6EE',
+                background: loading ? 'rgba(254,129,60,0.55)' : '#FE813C',
+                color: '#0E0F0B',
                 fontWeight: 900,
                 fontSize: 13,
                 letterSpacing: '0.1em',

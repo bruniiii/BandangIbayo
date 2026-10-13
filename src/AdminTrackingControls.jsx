@@ -18,31 +18,31 @@ import {
 } from 'lucide-react';
 
 const PALETTE = {
-  espresso: '#1A0A00',
-  burntSienna: '#C45C26',
-  warmAmber: '#E8A265',
-  cream: '#FDF6EE',
-  rust: '#7A3A18',
-  parchment: '#F2E4D0',
+  espresso: '#0E0F0B',
+  burntSienna: '#B5511B',
+  warmAmber: '#FE813C',
+  cream: '#FFFFFF',
+  rust: '#5E6A5A',
+  parchment: '#F1F2EE',
 };
 
 const STOP_STATUS_STYLES = {
-  DEPARTURE: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E', label: 'Pending Pickup' },
-  'CURRENTLY HERE': { bg: '#C45C26', color: '#FDF6EE', label: 'En Route / On The Way' },
-  ARRIVED: { bg: '#1F8A5C', color: '#FDF6EE', label: 'Arrived at Stop' },
-  DEPARTED: { bg: 'rgba(26,10,0,0.1)', color: 'rgba(26,10,0,0.75)', label: 'Departed' },
+  DEPARTURE: { bg: 'rgba(254,129,60,0.25)', color: '#9A5B1E', label: 'Pending Pickup' },
+  'CURRENTLY HERE': { bg: '#FE813C', color: '#0E0F0B', label: 'En Route / On The Way' },
+  ARRIVED: { bg: '#4E6B48', color: '#FFFFFF', label: 'Arrived at Stop' },
+  DEPARTED: { bg: 'rgba(14,15,11,0.1)', color: 'rgba(14,15,11,0.75)', label: 'Departed' },
 };
 
 const inputStyle = {
   width: '100%',
   boxSizing: 'border-box',
-  background: '#F2E4D0',
-  border: '1px solid rgba(196,92,38,0.18)',
+  background: '#F1F2EE',
+  border: '1px solid rgba(14,15,11,0.108)',
   borderRadius: 14,
   padding: '10px 14px',
   fontSize: 13,
   fontWeight: 600,
-  color: '#1A0A00',
+  color: '#0E0F0B',
   fontFamily: 'inherit',
   outline: 'none',
 };
@@ -359,7 +359,7 @@ export const AdminTrackingControls = () => {
       {/* ── Top Header Tabs ── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: '1px solid rgba(196,92,38,0.15)',
+        borderBottom: '1px solid rgba(14,15,11,0.09)',
         paddingBottom: 16, marginBottom: 20,
       }}>
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -369,12 +369,12 @@ export const AdminTrackingControls = () => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'active' ? '#1A0A00' : 'rgba(122,58,24,0.7)',
+              color: currentTab === 'active' ? '#0E0F0B' : 'rgba(94,106,90,0.7)',
             }}
           >
             Active Trips
           </button>
-          <span style={{ color: '#C45C26', fontSize: 18 }}>|</span>
+          <span style={{ color: '#B5511B', fontSize: 18 }}>|</span>
           <button
             onClick={() => setCurrentTab('archive')}
             style={{
@@ -382,7 +382,7 @@ export const AdminTrackingControls = () => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'archive' ? '#1A0A00' : 'rgba(122,58,24,0.7)',
+              color: currentTab === 'archive' ? '#0E0F0B' : 'rgba(94,106,90,0.7)',
             }}
           >
             <History size={18} /> Tracking Archive
@@ -393,13 +393,13 @@ export const AdminTrackingControls = () => {
       {/* ── Cards Grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
-          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.75)' }}>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(94,106,90,0.75)' }}>
             <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
             <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Tours…</p>
           </div>
         ) : toursList.length === 0 ? (
-          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(196,92,38,0.2)' }}>
-            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A3A18' }}>
+          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FFFFFF', borderRadius: 20, border: '2px dashed rgba(14,15,11,0.12)' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#5E6A5A' }}>
               No {currentTab === 'archive' ? 'archived' : 'active'} tours found.
             </p>
           </div>
@@ -449,35 +449,35 @@ export const AdminTrackingControls = () => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 10050,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)', padding: 16,
+          background: 'rgba(14,15,11,0.88)', backdropFilter: 'blur(6px)', padding: 16,
         }}>
           <div style={{
-            background: '#FDF6EE', padding: '3rem',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            background: '#FFFFFF', padding: '3rem',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
             textAlign: 'center', width: '100%', maxWidth: 420,
-            borderTop: `8px solid ${confirmAction.isArchived ? '#C45C26' : '#E8A265'}`,
+            borderTop: `8px solid ${confirmAction.isArchived ? '#FE813C' : '#FE813C'}`,
           }}>
             <div style={{
               width: 80, height: 80, borderRadius: '50%',
-              background: confirmAction.isArchived ? '#C45C26' : '#1A0A00',
+              background: confirmAction.isArchived ? '#FE813C' : '#0E0F0B',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px', color: '#FDF6EE',
+              margin: '0 auto 20px', color: '#FFFFFF',
             }}>
               {confirmAction.isArchived ? <RefreshCw size={36} /> : <Archive size={36} />}
             </div>
-            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: '0 0 10px', textTransform: 'uppercase' }}>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0E0F0B', margin: '0 0 10px', textTransform: 'uppercase' }}>
               {confirmAction.isArchived ? 'Restore Tour?' : 'Archive Tour?'}
             </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6, margin: '0 0 24px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, lineHeight: 1.6, margin: '0 0 24px' }}>
               {confirmAction.isArchived
                 ? 'This tour will be moved back to the active listings.'
                 : 'This tour will be archived and hidden from the active list.'}
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmAction(null)} style={{ flex: 1, padding: '12px 0', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.2)', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#7A3A18', textTransform: 'uppercase' }}>
+              <button onClick={() => setConfirmAction(null)} style={{ flex: 1, padding: '12px 0', background: '#F1F2EE', border: '1px solid rgba(14,15,11,0.12)', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#5E6A5A', textTransform: 'uppercase' }}>
                 Cancel
               </button>
-              <button onClick={executeToggleArchive} style={{ flex: 1, padding: '12px 0', background: '#C45C26', border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#FDF6EE', textTransform: 'uppercase', boxShadow: '0 6px 20px rgba(196,92,38,0.3)' }}>
+              <button onClick={executeToggleArchive} style={{ flex: 1, padding: '12px 0', background: '#FE813C', border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#0E0F0B', textTransform: 'uppercase', boxShadow: '0 6px 20px rgba(254,129,60,0.3)' }}>
                 {confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}
               </button>
             </div>
@@ -497,10 +497,10 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
   return (
     <div
       style={{
-        background: '#FDF6EE',
+        background: '#FFFFFF',
         borderRadius: 22, overflow: 'hidden',
-        border: '1px solid rgba(196,92,38,0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(14,15,11,0.072)',
+        boxShadow: hovered ? '0 12px 36px rgba(14,15,11,0.14)' : '0 4px 16px rgba(14,15,11,0.06)',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.25s',
         display: 'flex', flexDirection: 'column',
@@ -508,25 +508,25 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{ height: 186, background: '#E8D5BC', position: 'relative' }}>
+      <div style={{ height: 186, background: '#E4E7E0', position: 'relative' }}>
         {displayImage ? (
           <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.75)' }}><ImageIcon size={44} /></div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(94,106,90,0.75)' }}><ImageIcon size={44} /></div>
         )}
-        <span style={{ position: 'absolute', top: 12, right: 12, background: tour?.is_archived ? '#7A3A18' : PALETTE.burntSienna, color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ position: 'absolute', top: 12, right: 12, background: tour?.is_archived ? '#5E6A5A' : PALETTE.burntSienna, color: '#FFFFFF', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Compass size={10} /> {tour?.is_archived ? 'Archived' : 'Tracking'}
         </span>
       </div>
 
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
-          <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', margin: '0 0 8px' }}>{tour?.title || 'Untitled Tour'}</h3>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
-            <MapPin size={12} style={{ color: '#C45C26' }} /> {tour?.destination || 'Destination'}
+          <h3 style={{ fontSize: 16, fontWeight: 900, color: '#0E0F0B', margin: '0 0 8px' }}>{tour?.title || 'Untitled Tour'}</h3>
+          <p style={{ fontSize: 11, fontWeight: 700, color: '#5E6A5A', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
+            <MapPin size={12} style={{ color: '#B5511B' }} /> {tour?.destination || 'Destination'}
           </p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
-            <Calendar size={11} style={{ color: '#C45C26' }} /> {tour?.start_date || tour?.date || 'Scheduled'}
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+            <Calendar size={11} style={{ color: '#B5511B' }} /> {tour?.start_date || tour?.date || 'Scheduled'}
           </p>
         </div>
 
@@ -536,7 +536,7 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
             style={{
               padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em',
-              textTransform: 'uppercase', background: '#1A0A00', color: '#FDF6EE',
+              textTransform: 'uppercase', background: '#0E0F0B', color: '#FFFFFF',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >
@@ -547,8 +547,8 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
             style={{
               padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
-              textTransform: 'uppercase', background: tour?.is_archived ? '#C45C26' : '#F2E4D0',
-              color: tour?.is_archived ? '#FDF6EE' : '#7A3A18',
+              textTransform: 'uppercase', background: tour?.is_archived ? '#FE813C' : '#F1F2EE',
+              color: tour?.is_archived ? '#0E0F0B' : '#5E6A5A',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
             }}
           >
@@ -593,11 +593,11 @@ const TrackingConsoleModal = ({
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
-        position: 'relative', background: '#FDF6EE',
+        position: 'relative', background: '#FFFFFF',
         width: '100%', maxWidth: 1150, borderRadius: 28,
-        boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden',
+        boxShadow: '0 32px 80px rgba(14,15,11,0.4)', overflow: 'hidden',
         maxHeight: '92vh', display: 'flex', flexDirection: 'column',
       }}>
         {/* Top Controls */}
@@ -607,10 +607,10 @@ const TrackingConsoleModal = ({
             onClick={onRequestArchive}
             title={tour?.is_archived ? 'Restore Tour' : 'Archive Tour'}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, background: '#FDF6EE',
-              border: '1px solid rgba(196,92,38,0.3)', borderRadius: 999,
+              display: 'flex', alignItems: 'center', gap: 6, background: '#FFFFFF',
+              border: '1px solid rgba(14,15,11,0.18)', borderRadius: 999,
               padding: isMobile ? '8px' : '7px 14px',
-              cursor: 'pointer', color: '#7A3A18', fontWeight: 900, fontSize: 11, textTransform: 'uppercase',
+              cursor: 'pointer', color: '#5E6A5A', fontWeight: 900, fontSize: 11, textTransform: 'uppercase',
             }}
           >
             {tour?.is_archived ? <RefreshCw size={12} /> : <Archive size={12} />}
@@ -620,9 +620,9 @@ const TrackingConsoleModal = ({
             type="button"
             onClick={onClose}
             style={{
-              background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.2)', borderRadius: '50%',
+              background: '#FFFFFF', border: '1px solid rgba(14,15,11,0.12)', borderRadius: '50%',
               width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#1A0A00', flexShrink: 0,
+              cursor: 'pointer', color: '#0E0F0B', flexShrink: 0,
             }}
           >
             <X size={18} />
@@ -633,19 +633,19 @@ const TrackingConsoleModal = ({
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', minHeight: 0 }}>
             {/* Left Console */}
             <div style={{
-              background: '#F2E4D0',
+              background: '#F1F2EE',
               padding: isMobile ? '4rem 1.25rem 1.5rem' : '2.2rem 2rem',
-              borderRight: isMobile ? 'none' : '1px solid rgba(196,92,38,0.12)',
-              borderBottom: isMobile ? '1px solid rgba(196,92,38,0.12)' : 'none',
+              borderRight: isMobile ? 'none' : '1px solid rgba(14,15,11,0.072)',
+              borderBottom: isMobile ? '1px solid rgba(14,15,11,0.072)' : 'none',
             }}>
-              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour?.title}</h2>
-              <p style={{ margin: '0 0 18px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MapPin size={14} style={{ color: '#C45C26' }} /> {tour?.destination}
+              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#0E0F0B', margin: '0 0 6px' }}>{tour?.title}</h2>
+              <p style={{ margin: '0 0 18px', fontSize: 12, fontWeight: 700, color: '#5E6A5A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <MapPin size={14} style={{ color: '#B5511B' }} /> {tour?.destination}
               </p>
 
               {/* Fleet & Driver */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(14,15,11,0.06)' }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Truck size={14} /> Assigned Fleet & Driver Info
                 </h4>
 
@@ -660,7 +660,7 @@ const TrackingConsoleModal = ({
                       <input type="text" placeholder="Driver Contact No." value={driverContact} onChange={e => setDriverContact(e.target.value)} style={inputStyle} />
                     </div>
                     <button type="submit" disabled={savingLogistics} style={{
-                      padding: '10px 0', background: '#C45C26', color: '#FDF6EE',
+                      padding: '10px 0', background: '#FE813C', color: '#0E0F0B',
                       border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer',
                     }}>
@@ -668,12 +668,12 @@ const TrackingConsoleModal = ({
                     </button>
                   </form>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#0E0F0B' }}>
                     <div><strong>Vehicle:</strong> {carType}</div>
                     <div><strong>Plate:</strong> {plateNumber}</div>
                     <div><strong>Driver:</strong> {driverName}</div>
                     <div><strong>Contact:</strong> {driverContact}</div>
-                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #C45C26', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
+                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #FE813C', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: '#5E6A5A', cursor: 'pointer', textTransform: 'uppercase' }}>
                       Edit Driver & Vehicle
                     </button>
                   </div>
@@ -681,8 +681,8 @@ const TrackingConsoleModal = ({
               </div>
 
               {/* Manual Stops */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(196,92,38,0.1)' }}>
-                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(14,15,11,0.06)' }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} /> Manual Pickup Stops & ETA Dispatch
                 </h4>
 
@@ -704,7 +704,7 @@ const TrackingConsoleModal = ({
                       style={{ ...inputStyle, flex: 1 }}
                     />
                     <button type="submit" disabled={savingStop} style={{
-                      width: 44, flexShrink: 0, background: '#1A0A00', color: '#FDF6EE',
+                      width: 44, flexShrink: 0, background: '#0E0F0B', color: '#FFFFFF',
                       border: 'none', borderRadius: 12, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
@@ -714,7 +714,7 @@ const TrackingConsoleModal = ({
                 </form>
 
                 {safeStops.length === 0 ? (
-                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', opacity: 0.9, textAlign: 'center', margin: '14px 0' }}>
+                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#5E6A5A', opacity: 0.9, textAlign: 'center', margin: '14px 0' }}>
                     No pickup stops added yet. Create one above.
                   </p>
                 ) : (
@@ -730,21 +730,21 @@ const TrackingConsoleModal = ({
                           key={stop.id || i}
                           style={{
                             padding: '12px', borderRadius: 14,
-                            background: isCurrent ? 'rgba(196,92,38,0.06)' : '#FDF6EE',
-                            border: isCurrent ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.14)',
+                            background: isCurrent ? 'rgba(254,129,60,0.06)' : '#FFFFFF',
+                            border: isCurrent ? '2px solid #FE813C' : '1px solid rgba(14,15,11,0.084)',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{
                                 width: 22, height: 22, borderRadius: '50%',
-                                background: isArrived ? '#1F8A5C' : isCurrent ? '#C45C26' : 'rgba(26,10,0,0.1)',
+                                background: isArrived ? '#4E6B48' : isCurrent ? '#FE813C' : 'rgba(14,15,11,0.1)',
                                 color: '#FFF', fontSize: 11.5, fontWeight: 900,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                               }}>
                                 {isArrived ? <Check size={12} /> : i + 1}
                               </span>
-                              <strong style={{ fontSize: 13, color: '#1A0A00' }}>{stop.location_name}</strong>
+                              <strong style={{ fontSize: 13, color: '#0E0F0B' }}>{stop.location_name}</strong>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{ background: badge.bg, color: badge.color, fontSize: 11, fontWeight: 900, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>
@@ -758,8 +758,8 @@ const TrackingConsoleModal = ({
                                   onDeleteStop(stop.id);
                                 }}
                                 style={{
-                                  background: 'rgba(140,47,28,0.1)', border: 'none',
-                                  borderRadius: 6, padding: '4px 6px', cursor: 'pointer', color: '#8C2F1C',
+                                  background: 'rgba(169,71,78,0.1)', border: 'none',
+                                  borderRadius: 6, padding: '4px 6px', cursor: 'pointer', color: '#A9474E',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}
                                 title="Delete stop"
@@ -793,7 +793,7 @@ const TrackingConsoleModal = ({
                                 onUpdateStopDetails(stop);
                               }}
                               style={{
-                                background: '#7A3A18', color: '#FDF6EE', border: 'none',
+                                background: '#5E6A5A', color: '#FFFFFF', border: 'none',
                                 borderRadius: 10, padding: '7px 12px', cursor: 'pointer',
                                 fontSize: 11.5, fontWeight: 800, display: 'flex', alignItems: 'center',
                                 justifyContent: 'center', gap: 4, width: isMobile ? '100%' : 'auto',
@@ -807,7 +807,7 @@ const TrackingConsoleModal = ({
                     })}
 
                     {allArrived ? (
-                      <div style={{ background: 'rgba(31,138,92,0.1)', padding: 12, borderRadius: 12, color: '#1F8A5C', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
+                      <div style={{ background: 'rgba(78,107,72,0.1)', padding: 12, borderRadius: 12, color: '#4E6B48', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
                         All joiner pickup checkpoints completed!
                       </div>
                     ) : currentActiveStop && (
@@ -817,8 +817,8 @@ const TrackingConsoleModal = ({
                         disabled={advancing}
                         style={{
                           marginTop: 6, width: '100%', padding: '13px 0',
-                          background: currentActiveStop.status === 'CURRENTLY HERE' ? '#1F8A5C' : '#1A0A00',
-                          color: '#FDF6EE', border: 'none', borderRadius: 999,
+                          background: currentActiveStop.status === 'CURRENTLY HERE' ? '#4E6B48' : '#0E0F0B',
+                          color: '#FFFFFF', border: 'none', borderRadius: 999,
                           fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                           textTransform: 'uppercase', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -838,7 +838,7 @@ const TrackingConsoleModal = ({
             {/* Live Feed */}
             <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '4.5rem 2rem 2.2rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Compass size={14} /> Live Tracking Activity Feed
                 </h4>
                 {safeLogs.length > 0 && (
@@ -848,9 +848,9 @@ const TrackingConsoleModal = ({
                     disabled={clearingFeed}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
-                      background: 'rgba(140,47,28,0.08)', border: 'none',
+                      background: 'rgba(169,71,78,0.08)', border: 'none',
                       borderRadius: 999, padding: '6px 12px', cursor: clearingFeed ? 'default' : 'pointer',
-                      color: '#8C2F1C', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                      color: '#A9474E', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                       textTransform: 'uppercase', opacity: clearingFeed ? 0.6 : 1,
                     }}
                     title="Clear all tracking activity logs"
@@ -863,7 +863,7 @@ const TrackingConsoleModal = ({
               </div>
 
               {loadingConsole ? (
-                <div style={{ textAlign: 'center', padding: '3rem 0', color: '#7A3A18' }}>
+                <div style={{ textAlign: 'center', padding: '3rem 0', color: '#5E6A5A' }}>
                   <Loader2 size={22} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} />
                   <p style={{ fontSize: 11 }}>Loading tracking logs…</p>
                 </div>
@@ -889,8 +889,8 @@ const TrackingTimeline = ({ logs = [] }) => {
   const safeLogs = Array.isArray(logs) ? logs : [];
   if (safeLogs.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FDF6EE', borderRadius: 16, border: '2px dashed rgba(196,92,38,0.2)' }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>No status updates dispatched yet.</p>
+      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FFFFFF', borderRadius: 16, border: '2px dashed rgba(14,15,11,0.12)' }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>No status updates dispatched yet.</p>
       </div>
     );
   }
@@ -905,18 +905,18 @@ const TrackingTimeline = ({ logs = [] }) => {
 
         return (
           <div key={log.id || index} style={{ display: 'flex', gap: 12, position: 'relative' }}>
-            <div style={{ width: 60, fontSize: 11.5, fontWeight: 800, color: '#7A3A18', opacity: 0.9, paddingTop: 2 }}>
+            <div style={{ width: 60, fontSize: 11.5, fontWeight: 800, color: '#5E6A5A', opacity: 0.9, paddingTop: 2 }}>
               {timeFormatted}
             </div>
             <div style={{ width: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: index === 0 ? '#C45C26' : 'rgba(26,10,0,0.3)', zIndex: 2 }} />
-              {index !== safeLogs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(196,92,38,0.2)', margin: '4px 0' }} />}
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: index === 0 ? '#FE813C' : 'rgba(14,15,11,0.3)', zIndex: 2 }} />
+              {index !== safeLogs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(254,129,60,0.2)', margin: '4px 0' }} />}
             </div>
             <div style={{ flex: 1 }}>
-              <strong style={{ fontSize: 12, color: '#1A0A00' }}>{title}</strong>
-              <p style={{ fontSize: 11, color: '#7A3A18', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>
+              <strong style={{ fontSize: 12, color: '#0E0F0B' }}>{title}</strong>
+              <p style={{ fontSize: 11, color: '#5E6A5A', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(196,92,38,0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 11.5, fontWeight: 700, color: '#9A5B1E' }}>
+                <div style={{ background: 'rgba(254,129,60,0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 11.5, fontWeight: 700, color: '#9A5B1E' }}>
                   Note: {log.note}
                 </div>
               )}

@@ -14,13 +14,16 @@ import {
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
-// #8C2F1C  oxblood (reject / danger)
+// #0E0F0B  ink (dark surfaces, main text)
+// #FE813C  orange (main accent: buttons, active states, highlights)
+// #B5511B  orange ink (orange text and links on light backgrounds)
+// #5E6A5A  sage ink (secondary text)
+// #727E6E  sage
+// #4E6B48  sage green (confirmed / success)
+// #BC656A  rose, with #A9474E / #B24F55 for errors and cancellations
+// #F1F2EE  soft stone (inset panels, chips, inputs)
+// #F4F5F1  page background
+// #FFFFFF  cards
 // ---------------------------------------------------------
 
 const formatDate = (d) => {
@@ -34,9 +37,9 @@ const formatDateTime = (d) => {
 };
 
 const STATUS_STYLES = {
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
-  Approved: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
+  Pending: { bg: 'rgba(254,129,60,0.25)', color: '#9A5B1E' },
+  Approved: { bg: 'rgba(254,129,60,0.14)', color: '#B5511B' },
+  Rejected: { bg: 'rgba(169,71,78,0.14)', color: '#A9474E' },
 };
 
 const StatusBadge = ({ status, large = false }) => {
@@ -45,7 +48,7 @@ const StatusBadge = ({ status, large = false }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center',
       background: large ? color : bg,
-      color: large ? '#FDF6EE' : color,
+      color: large ? '#FFFFFF' : color,
       borderRadius: 999,
       padding: large ? '7px 18px' : '4px 12px',
       fontSize: large ? 11 : 9,
@@ -60,8 +63,8 @@ const StatusBadge = ({ status, large = false }) => {
 const TypeBadge = ({ type }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', gap: 5,
-    background: type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(196,92,38,0.12)',
-    color: type === 'exclusive' ? '#1A0A00' : '#C45C26',
+    background: type === 'exclusive' ? 'rgba(14,15,11,0.06)' : 'rgba(254,129,60,0.12)',
+    color: type === 'exclusive' ? '#0E0F0B' : '#B5511B',
     borderRadius: 999, padding: '4px 12px',
     fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
   }}>
@@ -73,12 +76,12 @@ const TypeBadge = ({ type }) => (
 // ── shared input style ──
 const inputStyle = {
   width: '100%', boxSizing: 'border-box',
-  background: '#F2E4D0',
-  border: '1px solid rgba(196,92,38,0.18)',
+  background: '#F1F2EE',
+  border: '1px solid rgba(14,15,11,0.108)',
   borderRadius: 14,
   padding: '10px 14px',
   fontSize: 13, fontWeight: 600,
-  color: '#1A0A00',
+  color: '#0E0F0B',
   fontFamily: 'inherit',
   outline: 'none',
 };
@@ -137,17 +140,17 @@ const AdminExclusiveTours = () => {
         {/* ── Header ── */}
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-          borderBottom: '1px solid rgba(196,92,38,0.15)',
+          borderBottom: '1px solid rgba(14,15,11,0.09)',
           paddingBottom: 16, marginBottom: 20, gap: 20, flexWrap: 'wrap',
         }}>
           <div>
-            <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
+            <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#0E0F0B', margin: '0 0 6px' }}>
               Exclusive & Requested Tours
             </h2>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
               Review private-group booking requests and new destination suggestions submitted by joiners.
               {pendingCount > 0 && (
-                <span style={{ color: '#C45C26', fontWeight: 900 }}> {pendingCount} awaiting review.</span>
+                <span style={{ color: '#B5511B', fontWeight: 900 }}> {pendingCount} awaiting review.</span>
               )}
             </p>
           </div>
@@ -155,10 +158,10 @@ const AdminExclusiveTours = () => {
 
         {/* ── Filters ── */}
         <div style={{
-          background: '#FDF6EE',
+          background: '#FFFFFF',
           borderRadius: 20, padding: '14px 18px',
-          border: '1px solid rgba(196,92,38,0.12)',
-          boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+          border: '1px solid rgba(14,15,11,0.072)',
+          boxShadow: '0 4px 16px rgba(14,15,11,0.05)',
           display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
           marginBottom: 24,
         }}>
@@ -166,7 +169,7 @@ const AdminExclusiveTours = () => {
             <Search size={15} style={{
               position: 'absolute', left: 13, top: '50%',
               transform: 'translateY(-50%)',
-              color: 'rgba(122,58,24,0.75)', pointerEvents: 'none',
+              color: 'rgba(94,106,90,0.75)', pointerEvents: 'none',
             }} />
             <input
               type="text" placeholder="Search name, destination, email…"
@@ -184,7 +187,7 @@ const AdminExclusiveTours = () => {
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
             </select>
-            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(94,106,90,0.75)' }} />
           </div>
           <div style={{ position: 'relative', minWidth: 175 }}>
             <select
@@ -195,7 +198,7 @@ const AdminExclusiveTours = () => {
               <option value="exclusive">Exclusive Tour</option>
               <option value="request">Requested Tour</option>
             </select>
-            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.75)' }} />
+            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(94,106,90,0.75)' }} />
           </div>
         </div>
 
@@ -205,7 +208,7 @@ const AdminExclusiveTours = () => {
             <div style={{
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-              padding: '5rem 0', color: 'rgba(122,58,24,0.75)',
+              padding: '5rem 0', color: 'rgba(94,106,90,0.75)',
             }}>
               <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
               <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
@@ -255,33 +258,33 @@ const RequestRow = ({ request, onView }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#FDF6EE', borderRadius: 18, padding: '1.1rem 1.4rem',
-        border: '1px solid rgba(196,92,38,0.12)',
-        boxShadow: hovered ? '0 8px 24px rgba(26,10,0,0.1)' : '0 2px 10px rgba(26,10,0,0.04)',
+        background: '#FFFFFF', borderRadius: 18, padding: '1.1rem 1.4rem',
+        border: '1px solid rgba(14,15,11,0.072)',
+        boxShadow: hovered ? '0 8px 24px rgba(14,15,11,0.1)' : '0 2px 10px rgba(14,15,11,0.04)',
         cursor: 'pointer', transition: 'all 0.2s',
         display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap',
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
         <TypeBadge type={request.request_type} />
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9 }}>
           {formatDate(request.created_at)}
         </span>
       </div>
 
       <div style={{ flex: 1, minWidth: 200 }}>
-        <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{request.full_name || '—'}</p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
-          <MapPin size={12} style={{ color: '#C45C26' }} /> {request.destination || '—'}
+        <p style={{ fontSize: 14, fontWeight: 900, color: '#0E0F0B', margin: 0 }}>{request.full_name || '—'}</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
+          <MapPin size={12} style={{ color: '#B5511B' }} /> {request.destination || '—'}
         </p>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', minWidth: 130 }}>
-        <Users size={13} style={{ color: '#C45C26' }} /> {request.group_size || '—'} pax
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', minWidth: 130 }}>
+        <Users size={13} style={{ color: '#B5511B' }} /> {request.group_size || '—'} pax
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', minWidth: 150 }}>
-        <Calendar size={13} style={{ color: '#C45C26' }} /> {formatDate(request.preferred_date)}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', minWidth: 150 }}>
+        <Calendar size={13} style={{ color: '#B5511B' }} /> {formatDate(request.preferred_date)}
       </div>
 
       <div style={{ marginLeft: 'auto' }}>
@@ -296,12 +299,12 @@ const RequestRow = ({ request, onView }) => {
 ───────────────────────────────────────────── */
 const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-    <span style={{ color: '#C45C26', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
+    <span style={{ color: '#B5511B', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
+      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#5E6A5A', margin: 0 }}>
         {label}
       </p>
-      <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: '3px 0 0' }}>
+      <p style={{ fontSize: 15, fontWeight: 800, color: '#0E0F0B', margin: '3px 0 0' }}>
         {value || '—'}
       </p>
     </div>
@@ -449,47 +452,47 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     display: 'block',
     fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.9,
+    color: '#5E6A5A', opacity: 0.9,
     marginBottom: 6,
   };
 
   const packageInputStyle = {
     width: '100%', boxSizing: 'border-box',
-    background: '#FDF6EE',
-    border: '1px solid rgba(196,92,38,0.2)',
+    background: '#FFFFFF',
+    border: '1px solid rgba(14,15,11,0.12)',
     borderRadius: 14, padding: '10px 14px',
-    fontSize: 13, fontWeight: 500, color: '#1A0A00',
+    fontSize: 13, fontWeight: 500, color: '#0E0F0B',
     fontFamily: 'inherit', outline: 'none',
   };
 
-  const accentColor = request.status === 'Approved' ? '#C45C26' : request.status === 'Rejected' ? '#8C2F1C' : '#E8A265';
+  const accentColor = request.status === 'Approved' ? '#B5511B' : request.status === 'Rejected' ? '#A9474E' : '#FE813C';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
-        position: 'relative', background: '#FDF6EE',
+        position: 'relative', background: '#FFFFFF',
         width: '100%', maxWidth: 680,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
         overflow: 'hidden', maxHeight: '92vh',
         display: 'flex', flexDirection: 'column',
         borderTop: `8px solid ${accentColor}`,
       }}>
         {/* Header */}
         <div style={{
-          background: '#1A0A00', padding: '1.75rem 2.25rem',
+          background: '#0E0F0B', padding: '1.75rem 2.25rem',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexShrink: 0, flexWrap: 'wrap', gap: 12,
         }}>
           <div>
             <div style={{ marginBottom: 8 }}><TypeBadge type={request.request_type} /></div>
-            <h2 style={{ fontSize: 19, fontWeight: 900, letterSpacing: '-0.02em', color: '#FDF6EE', margin: 0 }}>
+            <h2 style={{ fontSize: 19, fontWeight: 900, letterSpacing: '-0.02em', color: '#FFFFFF', margin: 0 }}>
               {request.full_name || 'Joiner'}
             </h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <StatusBadge status={request.status} large />
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.75)', padding: 0 }}>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(226,229,221,0.75)', padding: 0 }}>
               <X size={22} />
             </button>
           </div>
@@ -514,15 +517,15 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
           {request.notes && (
             <div>
               <p style={labelStyle}>Notes / Special Requests</p>
-              <div style={{ background: '#F2E4D0', borderRadius: 16, padding: '1rem 1.25rem' }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
+              <div style={{ background: '#F1F2EE', borderRadius: 16, padding: '1rem 1.25rem' }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#0E0F0B', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
                   {request.notes}
                 </p>
               </div>
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#5E6A5A', opacity: 0.9 }}>
             <Clock size={13} /> Submitted {formatDateTime(request.created_at)}
             {request.reviewed_at && <> · Reviewed {formatDateTime(request.reviewed_at)}</>}
           </div>
@@ -540,10 +543,10 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               rows={3}
               style={{
                 width: '100%', boxSizing: 'border-box',
-                background: isPending ? '#F2E4D0' : 'rgba(122,58,24,0.06)',
-                border: '1px solid rgba(196,92,38,0.18)',
+                background: isPending ? '#F1F2EE' : 'rgba(94,106,90,0.06)',
+                border: '1px solid rgba(14,15,11,0.108)',
                 borderRadius: 14, padding: '12px 14px',
-                fontSize: 13, fontWeight: 500, color: '#1A0A00',
+                fontSize: 13, fontWeight: 500, color: '#0E0F0B',
                 fontFamily: 'inherit', outline: 'none', resize: 'vertical',
               }}
             />
@@ -551,15 +554,15 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
           {!isPending && (
             <div style={{
-              background: request.status === 'Approved' ? 'rgba(196,92,38,0.08)' : 'rgba(140,47,28,0.07)',
+              background: request.status === 'Approved' ? 'rgba(254,129,60,0.08)' : 'rgba(169,71,78,0.07)',
               borderRadius: 16, padding: '1rem 1.25rem',
-              border: `1px solid ${request.status === 'Approved' ? 'rgba(196,92,38,0.2)' : 'rgba(140,47,28,0.2)'}`,
+              border: `1px solid ${request.status === 'Approved' ? 'rgba(14,15,11,0.12)' : 'rgba(169,71,78,0.2)'}`,
               display: 'flex', gap: 12, alignItems: 'flex-start',
             }}>
               {request.status === 'Approved'
-                ? <CheckCircle2 size={18} style={{ color: '#C45C26', flexShrink: 0, marginTop: 1 }} />
-                : <XCircle size={18} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />}
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
+                ? <CheckCircle2 size={18} style={{ color: '#B5511B', flexShrink: 0, marginTop: 1 }} />
+                : <XCircle size={18} style={{ color: '#A9474E', flexShrink: 0, marginTop: 1 }} />}
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#5E6A5A', margin: 0, lineHeight: 1.6 }}>
                 This request has already been {request.status.toLowerCase()} and the joiner has been notified.
                 {request.request_type === 'request' && request.status === 'Approved' && request.tour_type === 'joiner' && (
                   <> Remember to create the actual listing in <strong>Tour Management</strong> so joiners can book it.</>
@@ -571,23 +574,23 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
           {/* Tour Package Details — send full trip info to the joiner once approved */}
           {isApproved && (
             <div style={{
-              background: '#F2E4D0', borderRadius: 18, padding: '1.5rem',
-              border: '1px solid rgba(196,92,38,0.18)',
+              background: '#F1F2EE', borderRadius: 18, padding: '1.5rem',
+              border: '1px solid rgba(14,15,11,0.108)',
               display: 'flex', flexDirection: 'column', gap: 16,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                 <p style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
-                  color: '#1A0A00', margin: 0,
+                  color: '#0E0F0B', margin: 0,
                 }}>
-                  <Package size={14} style={{ color: '#C45C26' }} /> Tour Package Details
+                  <Package size={14} style={{ color: '#B5511B' }} /> Tour Package Details
                 </p>
                 {packageSentAt && (
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: 6,
                     fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: '#C45C26', background: 'rgba(196,92,38,0.12)', borderRadius: 999, padding: '4px 10px',
+                    color: '#B5511B', background: 'rgba(254,129,60,0.12)', borderRadius: 999, padding: '4px 10px',
                   }}>
                     <CheckCircle2 size={12} /> Sent {formatDateTime(packageSentAt)}
                   </span>
@@ -596,7 +599,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
               {!showPackageForm ? (
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 14px', lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: '0 0 14px', lineHeight: 1.6 }}>
                     {packageSentAt
                       ? "Send updated details if anything about the trip has changed since you last notified the joiner."
                       : "Once you've finalized the trip, send the joiner the confirmed destination, price, inclusions, exclusions, itinerary, and things to bring — delivered straight to their notifications."}
@@ -606,7 +609,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 8,
                       padding: '12px 22px',
-                      background: '#1A0A00', color: '#E8A265',
+                      background: '#0E0F0B', color: '#FE813C',
                       border: 'none', borderRadius: 999, cursor: 'pointer',
                       fontFamily: 'inherit', fontWeight: 900,
                       fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -703,7 +706,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                       disabled={sendingPackage}
                       style={{
                         padding: '12px 20px',
-                        background: 'rgba(122,58,24,0.1)', color: '#7A3A18',
+                        background: 'rgba(94,106,90,0.1)', color: '#5E6A5A',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
                         fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -717,11 +720,11 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '12px 24px',
-                        background: '#C45C26', color: '#FDF6EE',
+                        background: '#FE813C', color: '#0E0F0B',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
                         fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                        boxShadow: '0 6px 20px rgba(254,129,60,0.35)',
                         opacity: sendingPackage ? 0.6 : 1,
                       }}
                     >
@@ -740,8 +743,8 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         {/* Footer actions */}
         {isPending && (
           <div style={{
-            padding: '1.5rem 2.25rem', borderTop: '1px solid rgba(196,92,38,0.12)',
-            background: '#FDF6EE', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end',
+            padding: '1.5rem 2.25rem', borderTop: '1px solid rgba(14,15,11,0.072)',
+            background: '#FFFFFF', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end',
           }}>
             <button
               onClick={() => resolveRequest('reject')}
@@ -749,7 +752,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '13px 22px',
-                background: 'rgba(140,47,28,0.1)', color: '#8C2F1C',
+                background: 'rgba(169,71,78,0.1)', color: '#A9474E',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
                 fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -764,11 +767,11 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '13px 26px',
-                background: '#C45C26', color: '#FDF6EE',
+                background: '#FE813C', color: '#0E0F0B',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
                 fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                boxShadow: '0 6px 20px rgba(254,129,60,0.35)',
                 opacity: submitting !== null ? 0.5 : 1,
               }}
             >

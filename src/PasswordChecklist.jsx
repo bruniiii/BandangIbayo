@@ -7,7 +7,7 @@ const PasswordChecklist = ({ password }) => (
     {PASSWORD_RULES.map((rule) => {
       const ok = rule.test(password || '');
       return (
-        <li key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: ok ? '#3F5D62' : '#8C2F1C' }}>
+        <li key={rule.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: ok ? '#4E6B48' : '#A9474E' }}>
           {ok ? <Check size={12} /> : <X size={12} />} {rule.label}
         </li>
       );
