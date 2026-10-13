@@ -14,6 +14,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { safeNextPath } from './tourUtils';
 import { passwordErrorMessage } from './passwordPolicy';
 import {
@@ -153,7 +154,7 @@ const JoinerRegister = () => {
 
       // "juan@gmial.com" → offer "juan@gmail.com", since the confirmation link goes there.
       const suggested = emailSuggestion(email);
-      if (suggested && window.confirm(`Did you mean ${suggested}?\n\nOK = use ${suggested}\nCancel = keep ${email}`)) {
+      if (suggested && await confirmDialog({ title: `Did you mean ${suggested}?`, message: 'Your confirmation link will be sent to this address.', confirmLabel: `Use ${suggested.split('@')[1]}`, cancelLabel: `Keep ${email.split('@')[1]}` })) {
         email = suggested;
         const emailInput = form.querySelector('[name="email"]');
         if (emailInput) emailInput.value = suggested;
@@ -470,11 +471,16 @@ const JoinerRegister = () => {
         {/* CLOSE */}
         <Link
           to="/"
+          aria-label="Close and go to the home page"
           style={{
             position: 'absolute',
-            top: 18,
-            right: 18,
-            color: 'rgba(122,58,24,0.45)',
+            top: 8,
+            right: 8,
+            width: 44,
+            height: 44,
+            justifyContent: 'center',
+            borderRadius: 12,
+            color: 'rgba(122,58,24,0.6)',
             display: 'flex',
             alignItems: 'center',
           }}
@@ -912,6 +918,7 @@ const JoinerRegister = () => {
                 I have read and agree to the{' '}
                 <button
                   type="button"
+                  className="no-touch-size"
                   onClick={() => setShowTerms(true)}
                   style={{
                     background: 'none',
@@ -1013,7 +1020,7 @@ const JoinerRegister = () => {
           }}
         >
           Already have an account?{' '}
-          <Link
+          <Link className="text-link"
             to={loginPath}
             style={{
               color: '#C45C26',

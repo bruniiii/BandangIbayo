@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
 import { formatPeso } from './tourUtils';
@@ -77,8 +78,8 @@ const TourManagement = () => {
   };
  
   // Closing the form with unsaved edits asks first, so a stray click doesn't lose them.
-  const closeTourModal = () => {
-    if (formDirty && !window.confirm('Discard your changes to this tour?')) return;
+  const closeTourModal = async () => {
+    if (formDirty && !(await confirmDialog({ title: 'Discard your changes?', message: "The changes you made to this tour won't be saved.", confirmLabel: 'Discard Changes', cancelLabel: 'Keep Editing', tone: 'danger' }))) return;
     setFormDirty(false);
     setShowModal(false);
   };
@@ -218,9 +219,9 @@ const TourManagement = () => {
       ['description', textError(formData.get('description'), 'Description', { required: false, max: 5000 })],
     ]);
     if (!ok) return;
-    if (price === 0 && !window.confirm('The price is ₱0.00. Is this a free tour?')) return;
+    if (price === 0 && !(await confirmDialog({ title: 'Make this a free tour?', message: 'The price is ₱0.00.', confirmLabel: 'Save as Free Tour', cancelLabel: 'Change Price' }))) return;
     if (editingTour && booked > 0 && dateChanged
-      && !window.confirm(`${booked} joiner${booked === 1 ? ' has' : 's have'} already booked this tour. Changing the dates won't tell them automatically. Save the new dates anyway?`)) return;
+      && !(await confirmDialog({ title: 'Change the dates of a booked tour?', message: `${booked} joiner${booked === 1 ? ' has' : 's have'} already booked this tour. Changing the dates won't tell them automatically.`, confirmLabel: 'Save New Dates', cancelLabel: 'Keep Old Dates' }))) return;
 
     savingRef.current = true;
     setSavingTour(true);
@@ -362,14 +363,14 @@ const TourManagement = () => {
                 onClick={executeToggleArchive}
                 style={{
                   flex: 1, padding: '13px 0',
-                  background: confirmAction.isArchived ? '#C45C26' : '#1A0A00',
+                  background: '#C45C26',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
                   color: '#FDF6EE',
-                  boxShadow: '0 6px 20px rgba(26,10,0,0.22)',
+                  boxShadow: '0 6px 20px rgba(196,92,38,0.3)',
                 }}
-              >Confirm</button>
+              >{confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}</button>
             </div>
           </div>
         </div>
@@ -710,10 +711,10 @@ const TourManagement = () => {
             }}>
               <button type="button" onClick={closeTourModal} style={{
                 flex: 1, padding: '13px 0',
-                background: '#1A0A00', border: 'none', borderRadius: 999,
+                background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.25)', borderRadius: 999,
                 cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: '#FDF6EE',
+                color: '#1A0A00',
               }}>Cancel</button>
               <button type="submit" disabled={uploading || savingTour} style={{
                 flex: 2, padding: '13px 0',
@@ -1141,17 +1142,18 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDate
               label: tour.is_archived ? 'Restore' : 'Archive',
               icon: tour.is_archived ? <RefreshCw size={11} /> : <Archive size={11} />,
               onClick: onConfirmAction,
-              style: { background: tour.is_archived ? '#C45C26' : '#1A0A00', color: '#FDF6EE' },
+              // A rarely used action: outlined, so it doesn't compete with View/Edit.
+              style: { background: 'transparent', color: '#7A3A18', border: '1px solid rgba(122,58,24,0.3)' },
             },
           ].map(({ label, icon, onClick, style: btnStyle }) => (
             <button
               key={label}
               onClick={onClick}
               style={{
-                padding: '8px 0',
+                minHeight: 40, padding: '0 4px',
                 border: 'none', borderRadius: 10, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
-                fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase',
+                fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                 transition: 'opacity 0.15s',
                 ...btnStyle,

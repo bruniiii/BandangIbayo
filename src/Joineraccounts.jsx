@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { sendCustomEmail } from './Email';
 import { notifyUser } from './notifications';
 import {
@@ -502,7 +503,12 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
 
     const recipients = withEmail.filter((p) => picked.has(p.id));
     // An email can't be taken back once sent, so confirm who it's going to.
-    if (!window.confirm(`Send "${subject.trim()}" to ${recipients.length} joiner${recipients.length === 1 ? '' : 's'}?`)) return;
+    if (!(await confirmDialog({
+      title: `Send this email to ${recipients.length} joiner${recipients.length === 1 ? '' : 's'}?`,
+      message: `"${subject.trim()}"\nEmails can't be taken back once sent.`,
+      confirmLabel: `Send to ${recipients.length}`,
+      cancelLabel: 'Keep Editing',
+    }))) return;
     setSending(true);
     setStatus(null);
     setProgress(0);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
+import SearchSelect from './ui/SearchSelect';
 import { downloadReportCSV, downloadReportPDF } from './reportExport';
 import {
   Loader2, Calendar, Users, CheckCircle2, Clock, XCircle, AlertCircle,
@@ -825,8 +826,27 @@ const Reports = () => {
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginRight: 4 }}>
               <Filter size={13} /> Filters
             </span>
-            <FilterSelect value={filterTour} onChange={setFilterTour} options={['All Tours', ...tourOptions]} />
-            <FilterSelect value={filterDestination} onChange={setFilterDestination} options={['All Destinations', ...destinationOptions]} />
+            {/* Tours and destinations can be long lists: type to search. Clearing the box means "all". */}
+            <div style={{ width: 220 }}>
+              <SearchSelect
+                ariaLabel="Filter by tour"
+                value={filterTour === 'All Tours' ? '' : filterTour}
+                options={tourOptions}
+                onChange={(v) => setFilterTour(v || 'All Tours')}
+                placeholder="All tours (type to search)"
+                style={searchFilterStyle}
+              />
+            </div>
+            <div style={{ width: 220 }}>
+              <SearchSelect
+                ariaLabel="Filter by destination"
+                value={filterDestination === 'All Destinations' ? '' : filterDestination}
+                options={destinationOptions}
+                onChange={(v) => setFilterDestination(v || 'All Destinations')}
+                placeholder="All destinations (type to search)"
+                style={searchFilterStyle}
+              />
+            </div>
             <FilterSelect value={filterMethod} onChange={setFilterMethod} options={['All Methods', 'Full Payment', 'Downpayment']} />
             <FilterSelect value={filterStatus} onChange={setFilterStatus} options={['All Status', 'Complete', 'Pending', 'Rejected', 'Cancelled']} />
             {filtersActive && (
@@ -1448,6 +1468,12 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
     {icon} {label}
   </button>
 );
+
+const searchFilterStyle = {
+  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+  borderRadius: 12, padding: '0 14px', height: 40, fontSize: 11.5, fontWeight: 700,
+  color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+};
 
 const FilterSelect = ({ value, onChange, options }) => (
   <div style={{ position: 'relative' }}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
@@ -560,7 +561,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
  
   const handleReject = async () => {
     // Rejecting by mistake would tell the joiner their payment failed, so confirm first.
-    if (!window.confirm(`Reject the payment for booking ${booking.booking_number}? The joiner will be notified and emailed.`)) return;
+    if (!(await confirmDialog({ title: `Reject the payment for ${booking.booking_number}?`, message: 'The joiner will be notified and emailed that their payment was rejected.', confirmLabel: 'Reject Payment', cancelLabel: 'Go Back', tone: 'danger' }))) return;
     setRejecting(true);
     await onStatusUpdate(booking.id, 'Rejected');
     setRejecting(false);
@@ -896,7 +897,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   opacity: (rejecting || confirming) ? 0.5 : 1,
                 }}
               >
-                {rejecting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject
+                {rejecting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject Payment
               </button>
               <button
                 onClick={handleConfirm}
@@ -912,7 +913,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   opacity: (confirming || rejecting) ? 0.5 : 1,
                 }}
               >
-                {confirming ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Confirm
+                {confirming ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Confirm Payment
               </button>
             </div>
           </div>
@@ -1033,7 +1034,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
                 }}
               >
-                <CheckCircle2 size={14} /> Confirm Payment
+                <CheckCircle2 size={14} /> Mark Balance as Paid
               </button>
             </div>
           </div>

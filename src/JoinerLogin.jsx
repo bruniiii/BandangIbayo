@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 import { safeNextPath } from './tourUtils';
 import { Loader2, CheckCircle2, MailCheck, ArrowLeft } from 'lucide-react';
 import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
+import OtpInput from './ui/OtpInput';
  import logoIcon from './assets/newIcon.png';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -265,9 +266,9 @@ const JoinerLogin = () => {
       }}>
  
         {/* close button */}
-        <Link to="/" style={{
-          position: 'absolute', top: 18, right: 18,
-          color: 'rgba(122,58,24,0.45)',
+        <Link to="/" aria-label="Close and go to the home page" style={{
+          position: 'absolute', top: 8, right: 8, width: 44, height: 44, justifyContent: 'center', borderRadius: 12,
+          color: 'rgba(122,58,24,0.6)',
           display: 'flex', alignItems: 'center',
           transition: 'color 0.2s',
         }}>
@@ -333,7 +334,7 @@ const JoinerLogin = () => {
           </div>
 
           <div style={{ textAlign: 'right' }}>
-            <Link to="/forgot-password" style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, textDecoration: 'none' }}>
+            <Link className="text-link" to="/forgot-password" style={{ fontSize: 12 }}>
               Forgot password?
             </Link>
           </div>
@@ -355,22 +356,13 @@ const JoinerLogin = () => {
               </span>
             </div>
             <div>
-              <label style={labelStyle} htmlFor="login-code">Verification Code</label>
-              <input
-                id="login-code"
-                name="code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                placeholder="123456"
+              <p style={{ ...labelStyle, textAlign: 'center' }}>Verification Code</p>
+              <OtpInput
                 value={code}
-                onChange={(e) => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setCodeError(null); }}
-                aria-invalid={!!codeError}
-                aria-describedby={codeError ? 'code-error' : undefined}
-                style={{ ...inputStyle, fontSize: 22, fontWeight: 900, letterSpacing: '0.4em', textAlign: 'center', ...(codeError ? errorBorder : null) }}
+                onChange={(v) => { setCode(v); setCodeError(null); }}
+                invalid={!!codeError}
+                describedBy={codeError ? 'code-error' : undefined}
                 autoFocus
-                required
               />
               {codeError && <FieldError id="code-error" error={codeError} />}
             </div>
@@ -378,10 +370,10 @@ const JoinerLogin = () => {
               {loading ? spinner : 'Verify & Login'}
             </button>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-              <button type="button" onClick={() => { setChallenge(null); setMessage({ text: '', tone: 'error' }); }} style={linkButton}>
+              <button type="button" onClick={() => { setChallenge(null); setMessage({ text: '', tone: 'error' }); }} className="text-link" style={linkButton}>
                 <ArrowLeft size={13} /> Back
               </button>
-              <button type="button" onClick={handleResend} disabled={resending} style={linkButton}>
+              <button type="button" onClick={handleResend} disabled={resending} className="text-link" style={linkButton}>
                 {resending ? 'Sending…' : 'Resend code'}
               </button>
             </div>
@@ -391,7 +383,7 @@ const JoinerLogin = () => {
         {/* register link */}
         <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.8 }}>
           Don't have an account?{' '}
-          <Link to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
+          <Link className="text-link" to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
             Register here
           </Link>
         </p>

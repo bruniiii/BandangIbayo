@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from "./notifications";
 import { formatPeso } from './tourUtils';
 import { moneyInputProps, cleanMoney } from './moneyInput';
@@ -381,6 +382,11 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
   };
 
   const resolveRequest = async (decision) => {
+    if (decision === 'reject' && !(await confirmDialog({
+      title: 'Reject this request?',
+      message: 'The joiner will be notified that their request was declined.',
+      confirmLabel: 'Reject Request', cancelLabel: 'Go Back', tone: 'danger',
+    }))) return;
     setSubmitting(decision);
     try {
       const { data: { user: adminUser } } = await supabase.auth.getUser();
@@ -745,7 +751,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 opacity: submitting !== null ? 0.5 : 1,
               }}
             >
-              {submitting === 'reject' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject &amp; Notify
+              {submitting === 'reject' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject Request
             </button>
             <button
               onClick={() => resolveRequest('approve')}
@@ -761,7 +767,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 opacity: submitting !== null ? 0.5 : 1,
               }}
             >
-              {submitting === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve &amp; Notify
+              {submitting === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve Request
             </button>
           </div>
         )}

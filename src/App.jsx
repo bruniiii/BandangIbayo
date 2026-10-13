@@ -242,7 +242,7 @@ function LandingPage() {
               <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', margin: '8px 0 4px' }}>Upcoming Adventures</h2>
               <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Verified joiner packages, updated in real time.</p>
             </div>
-            <Link to="/tours" style={{ fontWeight: 900, fontSize: 14, color: '#C45C26', textDecoration: 'none', letterSpacing: '0.04em' }}>
+            <Link className="text-link" to="/tours" style={{ fontWeight: 900, fontSize: 14, color: '#C45C26', textDecoration: 'none', letterSpacing: '0.04em' }}>
               Explore All →
             </Link>
           </div>

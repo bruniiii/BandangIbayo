@@ -1172,6 +1172,11 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
             return (
               <div
                 key={i}
+                className="cal-day"
+                role="button"
+                tabIndex={0}
+                aria-label={muted ? 'Open calendar' : `${monthName} ${day}`}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCellClick(day, muted); } }}
                 onClick={() => handleCellClick(day, muted)}
                 style={{
                   position: 'relative',

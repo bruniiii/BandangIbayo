@@ -372,12 +372,12 @@ const ProfileSettings = () => {
                 disabled={saving}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'none', color: '#7A3A18', border: '1px solid rgba(196,92,38,0.25)',
+                  background: 'rgba(192,54,44,0.06)', color: '#C0362C', border: '1px solid rgba(192,54,44,0.35)',
                   borderRadius: 10, padding: '9px 16px', fontSize: 11.5, fontWeight: 800,
                   cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 }}
               >
-                <Trash2 size={14} /> Remove
+                <Trash2 size={14} /> Remove Photo
               </button>
             )}
             <input

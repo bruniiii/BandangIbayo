@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
 import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila, formatPeso } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
@@ -575,24 +576,24 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
                         onMouseLeave={e => e.currentTarget.style.background = '#F2E4D0'}
                       >
-                        Cancel
+                        Keep Booking
                       </button>
                       <button
                         onClick={handleCancelBooking}
                         disabled={cancelling}
                         style={{
-                          flex: 1, padding: '12px 0', background: '#8C2F1C', color: '#FDF6EE',
+                          flex: 1, padding: '12px 0', background: '#C0362C', color: '#FFFFFF',
                           border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                           fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           transition: 'background 0.2s',
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#1A0A00'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#8C2F1C'}
+                        onMouseEnter={e => e.currentTarget.style.background = '#9E2B23'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#C0362C'}
                       >
                         {cancelling
                           ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                          : <><Trash2 size={13} /> Yes, Cancel Tour</>
+                          : <><Trash2 size={13} /> Cancel My Booking</>
                         }
                       </button>
                     </div>
@@ -631,7 +632,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}
                   >
-                    {downloadingReceipt ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={14} />} Receipt
+                    {downloadingReceipt ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={14} />} Download Receipt
                   </button>
                 )}
                 {canCancel && !showCancelConfirm && (
@@ -645,15 +646,15 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       transition: 'all 0.2s',
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.background = '#8C2F1C';
-                      e.currentTarget.style.color = '#FDF6EE';
+                      e.currentTarget.style.background = '#C0362C';
+                      e.currentTarget.style.color = '#FFFFFF';
                     }}
                     onMouseLeave={e => {
                       e.currentTarget.style.background = 'rgba(140,47,28,0.08)';
                       e.currentTarget.style.color = '#8C2F1C';
                     }}
                   >
-                    <Trash2 size={14} /> Cancel Tour
+                    <Trash2 size={14} /> Cancel Booking
                   </button>
                 )}
               </div>
@@ -678,7 +679,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
     : null;
 
   const cancel = async () => {
-    if (!window.confirm('Cancel this unfinished booking and release the slots?')) return;
+    if (!(await confirmDialog({ title: 'Cancel this unfinished booking?', message: 'Your held slots will be released so others can book them.', confirmLabel: 'Cancel Booking', cancelLabel: 'Keep Booking', tone: 'danger' }))) return;
     setBusy('cancel');
     const { ok, error } = await cancelCheckout({ bookingId: booking.id });
     setBusy(null);
@@ -755,7 +756,7 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
   };
 
   const moveTo = async (newTour) => {
-    if (!window.confirm(`Move booking ${booking.booking_number} to ${formatDateRange(newTour.start_date, newTour.duration)}?`)) return;
+    if (!(await confirmDialog({ title: `Move booking ${booking.booking_number}?`, message: `New date: ${formatDateRange(newTour.start_date, newTour.duration)}.`, confirmLabel: 'Move Booking', cancelLabel: 'Keep Current Date' }))) return;
     setMoving(newTour.id);
     const { error } = await supabase.rpc('reschedule_booking', { p_booking_id: booking.id, p_new_tour_id: newTour.id });
     setMoving(null);

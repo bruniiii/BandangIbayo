@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import {
   Bell, CheckCheck, Compass, Loader2, ArrowRight, Clock, ChevronDown,
   CreditCard, Wallet, Globe, Package, Star, Users, Map as MapIconLucide,
@@ -127,7 +128,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
 
   const clearAll = async () => {
     if (!userId || notifications.length === 0) return;
-    if (!window.confirm('Clear all notifications? This cannot be undone.')) return;
+    if (!(await confirmDialog({ title: 'Clear all notifications?', message: "This can't be undone.", confirmLabel: 'Clear All', cancelLabel: 'Keep Them', tone: 'danger' }))) return;
     setClearing(true);
     const ids = notifications.map((n) => n.id);
     setNotifications([]);

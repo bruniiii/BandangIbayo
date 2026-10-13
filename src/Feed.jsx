@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { mediaFileError } from './validation';
 import { formatPeso } from './tourUtils';
 import {
@@ -225,7 +226,7 @@ const Feed = ({ isAdmin = false }) => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this post? This cannot be undone.')) return;
+    if (!(await confirmDialog({ title: 'Delete this post?', message: "It will be removed from everyone's feed. This can't be undone.", confirmLabel: 'Delete Post', cancelLabel: 'Keep Post', tone: 'danger' }))) return;
     setDeletingId(id);
     const { error } = await supabase.from('feed_posts').delete().eq('id', id);
     if (error) alert('Error: ' + error.message); else fetchPosts();
@@ -510,9 +511,10 @@ const FeedPostCard = ({
             onClick={onDelete}
             disabled={deleting}
             title="Delete post"
+            aria-label="Delete post"
             style={{
               background: 'none', border: 'none', cursor: deleting ? 'not-allowed' : 'pointer',
-              color: 'rgba(140,47,28,0.5)', padding: 6, flexShrink: 0,
+              color: '#C0362C', padding: 8, flexShrink: 0, borderRadius: 8,
             }}
           >
             {deleting ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={15} />}

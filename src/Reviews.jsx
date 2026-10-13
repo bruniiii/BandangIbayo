@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { todayManila } from './tourUtils';
 import { mediaFileError } from './validation';
 
@@ -180,7 +181,7 @@ const Reviews = ({ isAdmin = false }) => {
     if (!selectedTourId || rating === 0) { alert('Please select a tour and give it a star rating.'); return; }
     if (comment.trim().length > REVIEW_MAX) { alert(`Your review is too long (${REVIEW_MAX} characters at most).`); return; }
     // Reviews can't be deleted, so a last look before it goes up.
-    if (!window.confirm(`Post your ${rating}-star review? Reviews can't be deleted after posting.`)) return;
+    if (!(await confirmDialog({ title: `Post your ${rating}-star review?`, message: "Reviews can't be edited or deleted after posting.", confirmLabel: 'Post Review', cancelLabel: 'Keep Editing' }))) return;
     setSubmitting(true);
     try {
       const media = mediaItems.length ? await uploadReviewMedia() : [];

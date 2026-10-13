@@ -115,7 +115,7 @@ const ResetPassword = () => {
         ) : !ready ? (
           <p style={{ fontSize: 13, color: '#7A3A18', textAlign: 'center', lineHeight: 1.7 }}>
             This link is invalid or has expired. Please request a new one from the{' '}
-            <Link to="/forgot-password" style={{ color: '#C45C26', fontWeight: 800 }}>forgot password</Link> page.
+            <Link className="text-link" to="/forgot-password" style={{ color: '#C45C26', fontWeight: 800 }}>forgot password</Link> page.
           </p>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>

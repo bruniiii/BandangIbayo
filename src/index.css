@@ -12,3 +12,57 @@ select:-webkit-autofill:focus {
   -webkit-text-fill-color: #003d5b !important; /* Keeps your dark blue text color */
   -webkit-box-shadow: 0 0 0px 1000px white inset !important; /* Forces background to white */
   transition: background-color 5000s ease-in-out 0s;}
+/* ─────────────────────────────────────────────
+   Clickable text looks clickable: accent color + underline.
+   Use className="text-link" on any <a>/<Link>/<button> that reads as text.
+   ───────────────────────────────────────────── */
+.text-link {
+  color: #C45C26 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  cursor: pointer;
+  font-weight: 800;
+}
+.text-link:hover { color: #A84B1C !important; text-decoration-thickness: 2px; }
+
+/* Clickable cards lift a little on hover so they read as clickable. */
+.clickable-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(26,10,0,0.12) !important; }
+
+/* Keyboard users can always see where they are. */
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible, [role="option"]:focus-visible {
+  outline: 3px solid rgba(196,92,38,0.55);
+  outline-offset: 2px;
+}
+
+button:not(:disabled), [role="button"], a { cursor: pointer; }
+
+/* ─────────────────────────────────────────────
+   Touch screens: every tap target is at least 44×44px, form fields use
+   16px text (so phones don't zoom in), checkboxes are bigger.
+   Small inline icon buttons that sit inside a field opt out with
+   className="no-touch-size".
+   ───────────────────────────────────────────── */
+@media (pointer: coarse) {
+  button:not(.no-touch-size), a.btn-primary, [role="button"]:not(.no-touch-size) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+  select, textarea {
+    min-height: 44px;
+    font-size: max(16px, 1em) !important;
+  }
+  input[type="checkbox"], input[type="radio"] {
+    width: 22px;
+    height: 22px;
+  }
+  .text-link { display: inline-flex; align-items: center; min-height: 44px; }
+}
+
+/* Calendar days are bigger tap targets on touch screens. */
+@media (pointer: coarse) {
+  .cal-day { height: 40px !important; min-width: 0 !important; }
+}

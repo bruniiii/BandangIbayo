@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { Loader2, CheckCircle2, Mail } from 'lucide-react';
 import logoIcon from './assets/newIcon.png';
 import { emailError, emailSuggestion } from './validation';
@@ -48,7 +49,7 @@ const ForgotPassword = () => {
     // A misspelled domain would send the reset link nowhere.
     let target = email.trim().toLowerCase();
     const suggested = emailSuggestion(target);
-    if (suggested && window.confirm(`Did you mean ${suggested}?\n\nOK = use ${suggested}\nCancel = keep ${target}`)) {
+    if (suggested && await confirmDialog({ title: `Did you mean ${suggested}?`, message: 'The reset link will be sent to this address.', confirmLabel: `Use ${suggested.split('@')[1]}`, cancelLabel: `Keep ${target.split('@')[1]}` })) {
       target = suggested;
       setEmail(suggested);
     }
@@ -95,7 +96,7 @@ const ForgotPassword = () => {
             <p style={{ fontSize: 13, color: '#7A3A18', margin: '0 0 20px', lineHeight: 1.6 }}>
               If an account exists for <strong style={{ color: '#1A0A00' }}>{email}</strong>, a password reset link is on its way. It may take a few minutes to arrive.
             </p>
-            <Link to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
+            <Link className="text-link" to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
               ← Back to Login
             </Link>
           </div>
@@ -150,7 +151,7 @@ const ForgotPassword = () => {
         {!sent && (
           <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.8 }}>
             Remembered it?{' '}
-            <Link to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
+            <Link className="text-link" to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
               Log in
             </Link>
           </p>

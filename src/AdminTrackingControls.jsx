@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { confirmDialog } from './ui/ConfirmDialog';
+
+// The time picker gives "16:30"; joiners see "4:30 PM", like the older stops.
+const formatTime12h = (value) => {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(value);
+  if (!m) return value;
+  const h = Number(m[1]);
+  return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
+};
 import { nameError, phoneError, cleanName, normalizePhone } from './validation';
 import {
   MapPin, Plus, Trash2, Archive, RefreshCw, History, X, Calendar,
@@ -201,7 +210,7 @@ export const AdminTrackingControls = () => {
     const { data, error } = await supabase.from('tour_meetups').insert([{
       tour_id: activeTour.id,
       location_name: newLocName.trim(),
-      scheduled_time: newTime.trim(),
+      scheduled_time: formatTime12h(newTime.trim()),
       status: 'DEPARTURE',
       note: '',
     }]).select();
@@ -219,7 +228,7 @@ export const AdminTrackingControls = () => {
 
   // Delete Pickup Stop
   const handleDeleteStop = async (stopId) => {
-    if (!window.confirm('Delete this pickup stop?')) return;
+    if (!(await confirmDialog({ title: 'Delete this pickup stop?', message: "Joiners won't see it on the tracking page anymore.", confirmLabel: 'Delete Stop', cancelLabel: 'Keep Stop', tone: 'danger' }))) return;
 
     const { error } = await supabase.from('tour_meetups').delete().eq('id', stopId);
     if (error) {
@@ -268,7 +277,7 @@ export const AdminTrackingControls = () => {
   // Clear Live Tracking Activity Feed
   const handleClearTrackingFeed = async () => {
     if (!activeTour?.id) return;
-    if (!window.confirm('Clear all tracking activity logs for this tour? This cannot be undone.')) return;
+    if (!(await confirmDialog({ title: 'Clear the tracking feed?', message: "Every activity update for this tour will be removed. This can't be undone.", confirmLabel: 'Clear Feed', cancelLabel: 'Keep Feed', tone: 'danger' }))) return;
 
     setClearingFeed(true);
     const { error } = await supabase.from('tour_tracking_logs').delete().eq('tour_id', activeTour.id);
@@ -465,8 +474,8 @@ export const AdminTrackingControls = () => {
               <button onClick={() => setConfirmAction(null)} style={{ flex: 1, padding: '12px 0', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.2)', borderRadius: 999, fontWeight: 900, fontSize: 10, cursor: 'pointer', color: '#7A3A18', textTransform: 'uppercase' }}>
                 Cancel
               </button>
-              <button onClick={executeToggleArchive} style={{ flex: 1, padding: '12px 0', background: confirmAction.isArchived ? '#C45C26' : '#1A0A00', border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 10, cursor: 'pointer', color: '#FDF6EE', textTransform: 'uppercase' }}>
-                Confirm
+              <button onClick={executeToggleArchive} style={{ flex: 1, padding: '12px 0', background: '#C45C26', border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 10, cursor: 'pointer', color: '#FDF6EE', textTransform: 'uppercase', boxShadow: '0 6px 20px rgba(196,92,38,0.3)' }}>
+                {confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}
               </button>
             </div>
           </div>
@@ -684,8 +693,9 @@ const TrackingConsoleModal = ({
                   />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input
-                      type="text"
-                      placeholder="ETA (e.g. 04:30 AM)"
+                      type="time"
+                      aria-label="Pickup time (ETA)"
+                      title="Pickup time (ETA)"
                       value={newTime}
                       onChange={e => setNewTime(e.target.value)}
                       style={{ ...inputStyle, flex: 1 }}
@@ -750,6 +760,7 @@ const TrackingConsoleModal = ({
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}
                                 title="Delete stop"
+                                aria-label="Delete stop"
                               >
                                 <Trash2 size={13} />
                               </button>
@@ -840,6 +851,7 @@ const TrackingConsoleModal = ({
                       textTransform: 'uppercase', opacity: clearingFeed ? 0.6 : 1,
                     }}
                     title="Clear all tracking activity logs"
+                    aria-label="Reset tracking feed"
                   >
                     {clearingFeed ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={12} />}
                     Reset Feed

@@ -115,8 +115,8 @@ const MyData = () => {
             <button type="button" onClick={() => { setShowDelete(false); setConfirmText(''); }} disabled={deleting} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(196,92,38,0.25)')}>
               Keep my account
             </button>
-            <button type="button" onClick={handleDelete} disabled={confirmText !== 'DELETE' || deleting} style={{ ...button('#8C2F1C', '#FDF6EE'), opacity: confirmText === 'DELETE' ? 1 : 0.5 }}>
-              {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} Delete permanently
+            <button type="button" onClick={handleDelete} disabled={confirmText !== 'DELETE' || deleting} style={{ ...button('#C0362C', '#FFFFFF'), opacity: confirmText === 'DELETE' ? 1 : 0.5 }}>
+              {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} Delete My Account
             </button>
           </div>
         </div>
