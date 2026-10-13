@@ -63,6 +63,8 @@ const JoinerDashboard = () => {
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const tourScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const [bookingsFilter, setBookingsFilter] = useState(null);
   const [calendarTarget, setCalendarTarget] = useState(null);
   const navigate = useNavigate();
@@ -149,9 +151,27 @@ const JoinerDashboard = () => {
       e.preventDefault();
       row.scrollLeft += e.deltaY;
     };
+    // Show the side arrows only when there is more to see in that direction.
+    const updateArrows = () => {
+      const max = row.scrollWidth - row.clientWidth;
+      setCanScrollLeft(row.scrollLeft > 4);
+      setCanScrollRight(row.scrollLeft < max - 4);
+    };
+    updateArrows();
     row.addEventListener('wheel', onWheel, { passive: false });
-    return () => row.removeEventListener('wheel', onWheel);
+    row.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    return () => {
+      row.removeEventListener('wheel', onWheel);
+      row.removeEventListener('scroll', updateArrows);
+      window.removeEventListener('resize', updateArrows);
+    };
   }, [activeTab, featuredTours.length]);
+
+  const scrollTours = (direction) => {
+    const row = tourScrollRef.current;
+    if (row) row.scrollBy({ left: direction * row.clientWidth * 0.8, behavior: 'smooth' });
+  };
 
   const handleNavClick = (label) => {
     setBookTourId(null);
@@ -724,6 +744,7 @@ const JoinerDashboard = () => {
                     </div>
                   </div>
 
+                  <div style={{ position: 'relative' }}>
                   <div
                     ref={tourScrollRef}
                     className="tour-packages-scroll"
@@ -771,6 +792,17 @@ const JoinerDashboard = () => {
                         </div>
                       );
                     })}
+                  </div>
+                  {canScrollLeft && (
+                    <button type="button" aria-label="Scroll tours left" className="tour-row-arrow no-touch-size" style={{ left: -14 }} onClick={() => scrollTours(-1)}>
+                      <ChevronLeft size={20} />
+                    </button>
+                  )}
+                  {canScrollRight && (
+                    <button type="button" aria-label="Scroll tours right" className="tour-row-arrow no-touch-size" style={{ right: -14 }} onClick={() => scrollTours(1)}>
+                      <ChevronRight size={20} />
+                    </button>
+                  )}
                   </div>
 
                 </div>
