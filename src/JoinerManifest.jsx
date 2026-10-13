@@ -97,10 +97,10 @@ const JoinerListModal = ({ tour, onClose }) => {
     const v = data.vehicle;
     w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(fileBase)}</title>
       <style>
-        body { font-family: Arial, sans-serif; color: #0E0F0B; margin: 24px; font-size: 12px; }
+        body { font-family: Arial, sans-serif; color: #1A0A00; margin: 24px; font-size: 12px; }
         h1 { font-size: 20px; margin: 0 0 4px; } h2 { font-size: 13px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .08em; }
         table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
-        th { background: #F1F2EE; } .muted { color: #5E6A5A; } .box { width: 16px; }
+        th { background: #F2E4D0; } .muted { color: #7A3A18; } .box { width: 16px; }
       </style></head><body>
       <h1>${esc(tour.title)}</h1>
       <div class="muted">${esc(formatDateRange(tour.start_date, tour.duration))} · ${esc(tour.destination)} · ${people.length} joiner${people.length === 1 ? '' : 's'}</div>
@@ -117,42 +117,42 @@ const JoinerListModal = ({ tour, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.8)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
-      <div style={{ position: 'relative', background: '#FFFFFF', width: '100%', maxWidth: 820, maxHeight: '90vh', borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '8px solid #FE813C' }}>
-        <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(14,15,11,0.09)' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div style={{ position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 820, maxHeight: '90vh', borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '8px solid #C45C26' }}>
+        <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(196,92,38,0.15)' }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: 0 }}>Joiner List</p>
-            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#0E0F0B', margin: '4px 0 2px', overflowWrap: 'anywhere' }}>{tour.title}</h3>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#5E6A5A', margin: 0 }}>{formatDateRange(tour.start_date, tour.duration)}</p>
+            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: 0 }}>Joiner List</p>
+            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', margin: '4px 0 2px', overflowWrap: 'anywhere' }}>{tour.title}</h3>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{formatDateRange(tour.start_date, tour.duration)}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5E6A5A' }}><X size={22} /></button>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={22} /></button>
         </div>
 
         <div style={{ overflowY: 'auto', padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {!data ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 size={28} style={{ color: '#B5511B', animation: 'spin 1s linear infinite' }} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 size={28} style={{ color: '#C45C26', animation: 'spin 1s linear infinite' }} /></div>
           ) : (
             <>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                <button type="button" onClick={downloadCsv} style={actionButton('#0E0F0B')}><Download size={14} /> Download CSV</button>
-                <button type="button" onClick={printList} style={actionButton('#B5511B')}><Printer size={14} /> Print / Save as PDF</button>
+                <button type="button" onClick={downloadCsv} style={actionButton('#1A0A00')}><Download size={14} /> Download CSV</button>
+                <button type="button" onClick={printList} style={actionButton('#C45C26')}><Printer size={14} /> Print / Save as PDF</button>
               </div>
 
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#0E0F0B', margin: 0 }}>
-                <Users size={14} style={{ color: '#B5511B' }} /> {people.length} joiner{people.length === 1 ? '' : 's'} on {data.bookings.length} booking{data.bookings.length === 1 ? '' : 's'}
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
+                <Users size={14} style={{ color: '#C45C26' }} /> {people.length} joiner{people.length === 1 ? '' : 's'} on {data.bookings.length} booking{data.bookings.length === 1 ? '' : 's'}
               </p>
 
               {data.vehicle && (
-                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#5E6A5A', margin: 0 }}>
-                  <Truck size={14} style={{ color: '#B5511B' }} /> {data.vehicle.car_type} · {data.vehicle.plate_number} · {data.vehicle.driver_name} ({data.vehicle.driver_contact})
+                <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+                  <Truck size={14} style={{ color: '#C45C26' }} /> {data.vehicle.car_type} · {data.vehicle.plate_number} · {data.vehicle.driver_name} ({data.vehicle.driver_contact})
                 </p>
               )}
 
               {data.stops.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {data.stops.map((s, i) => (
-                    <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#5E6A5A', margin: 0 }}>
-                      <MapPin size={13} style={{ color: '#B5511B', flexShrink: 0 }} /> {s.location_name} · {s.scheduled_time}{s.note ? ` · ${s.note}` : ''}
+                    <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+                      <MapPin size={13} style={{ color: '#C45C26', flexShrink: 0 }} /> {s.location_name} · {s.scheduled_time}{s.note ? ` · ${s.note}` : ''}
                     </p>
                   ))}
                 </div>
@@ -163,15 +163,15 @@ const JoinerListModal = ({ tour, onClose }) => {
                   <thead>
                     <tr>
                       {['#', 'Name', 'Contact', 'Booking', 'Booked / with', 'Payment', 'Balance'].map((h) => (
-                        <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: '#F1F2EE', color: '#5E6A5A', fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ textAlign: 'left', padding: '8px 10px', background: '#F2E4D0', color: '#7A3A18', fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {people.map((p, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid rgba(14,15,11,0.06)' }}>
+                      <tr key={i} style={{ borderBottom: '1px solid rgba(196,92,38,0.1)' }}>
                         <td style={cell}>{i + 1}</td>
-                        <td style={{ ...cell, fontWeight: 800, color: '#0E0F0B' }}>{p.name}</td>
+                        <td style={{ ...cell, fontWeight: 800, color: '#1A0A00' }}>{p.name}</td>
                         <td style={cell}>{p.contact}</td>
                         <td style={{ ...cell, fontFamily: 'monospace' }}>{p.booking}</td>
                         <td style={cell}>{p.role}</td>
@@ -193,11 +193,11 @@ const JoinerListModal = ({ tour, onClose }) => {
   );
 };
 
-const cell = { padding: '8px 10px', color: '#5E6A5A', fontWeight: 600, whiteSpace: 'nowrap' };
+const cell = { padding: '8px 10px', color: '#7A3A18', fontWeight: 600, whiteSpace: 'nowrap' };
 
 const actionButton = (bg) => ({
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px',
-  background: bg, color: '#FFFFFF', border: 'none', borderRadius: 12, cursor: 'pointer',
+  background: bg, color: '#FDF6EE', border: 'none', borderRadius: 12, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
 });
 

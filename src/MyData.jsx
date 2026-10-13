@@ -75,55 +75,55 @@ const MyData = () => {
   };
 
   return (
-    <div style={{ background: '#FFFFFF', border: '1px solid rgba(14,15,11,0.09)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.15)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 16, color: '#0E0F0B', margin: 0 }}>
-          <ShieldCheck size={18} style={{ color: '#B5511B' }} /> Your Data
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0 }}>
+          <ShieldCheck size={18} style={{ color: '#C45C26' }} /> Your Data
         </h3>
-        <p style={{ fontSize: 12, color: '#5E6A5A', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
           Under the Data Privacy Act of 2012 you can get a copy of your personal data or ask us to delete it.
         </p>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-        <button type="button" onClick={handleDownload} disabled={exporting} style={button('#0E0F0B', '#FFFFFF')}>
+        <button type="button" onClick={handleDownload} disabled={exporting} style={button('#1A0A00', '#FDF6EE')}>
           {exporting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Download size={14} />} Download my data
         </button>
         {!showDelete && (
-          <button type="button" onClick={() => setShowDelete(true)} style={button('rgba(169,71,78,0.08)', '#A9474E', '1px solid rgba(169,71,78,0.25)')}>
+          <button type="button" onClick={() => setShowDelete(true)} style={button('rgba(140,47,28,0.08)', '#8C2F1C', '1px solid rgba(140,47,28,0.25)')}>
             <Trash2 size={14} /> Delete my account
           </button>
         )}
       </div>
 
       {showDelete && (
-        <div style={{ background: 'rgba(169,71,78,0.06)', border: '1px solid rgba(169,71,78,0.2)', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#0E0F0B', margin: 0, lineHeight: 1.6 }}>
+        <div style={{ background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.6 }}>
             This permanently deletes your account, profile, requests and uploaded files.
             Past booking records stay in our accounts without your name, contact details or receipts.
             Your reviews and comments stay up but are shown as "Deleted account".
             You can't delete your account while you have an upcoming booking.
           </p>
-          <label style={{ fontSize: 11, fontWeight: 700, color: '#5E6A5A' }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>
             Type <strong>DELETE</strong> to confirm
             <input
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 6, background: '#FFFFFF', border: '1px solid rgba(169,71,78,0.25)', borderRadius: 10, padding: '10px 12px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700 }}
+              style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 6, background: '#FDF6EE', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 10, padding: '10px 12px', fontFamily: 'inherit', fontSize: 13, fontWeight: 700 }}
             />
           </label>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => { setShowDelete(false); setConfirmText(''); }} disabled={deleting} style={button('#FFFFFF', '#0E0F0B', '1px solid rgba(181,81,27,0.25)')}>
+            <button type="button" onClick={() => { setShowDelete(false); setConfirmText(''); }} disabled={deleting} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(196,92,38,0.25)')}>
               Keep my account
             </button>
-            <button type="button" onClick={handleDelete} disabled={confirmText !== 'DELETE' || deleting} style={{ ...button('#B24F55', '#FFFFFF'), opacity: confirmText === 'DELETE' ? 1 : 0.5 }}>
+            <button type="button" onClick={handleDelete} disabled={confirmText !== 'DELETE' || deleting} style={{ ...button('#C0362C', '#FFFFFF'), opacity: confirmText === 'DELETE' ? 1 : 0.5 }}>
               {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />} Delete My Account
             </button>
           </div>
         </div>
       )}
 
-      {error && <p style={{ fontSize: 12, fontWeight: 700, color: '#A9474E', margin: 0 }}>{error}</p>}
+      {error && <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{error}</p>}
     </div>
   );
 };

@@ -18,7 +18,7 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, onC
   const Icon = danger ? AlertTriangle : HelpCircle;
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={() => onClose(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(14,15,11,0.6)', backdropFilter: 'blur(3px)' }} />
+      <div onClick={() => onClose(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} />
       <div
         role="alertdialog"
         aria-modal="true"
@@ -26,15 +26,15 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, onC
         aria-describedby={message ? 'confirm-message' : undefined}
         style={{
           position: 'relative', width: '100%', maxWidth: 420, background: COLORS.cream, borderRadius: 22,
-          padding: '1.6rem', boxShadow: '0 24px 60px rgba(14,15,11,0.35)',
+          padding: '1.6rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)',
           borderTop: `6px solid ${danger ? COLORS.danger : COLORS.primary}`,
-          fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+          fontFamily: "'Inter', system-ui, sans-serif",
         }}
       >
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <span style={{
             width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: danger ? 'rgba(178,79,85,0.1)' : 'rgba(254,129,60,0.12)', color: danger ? COLORS.danger : COLORS.primary,
+            background: danger ? 'rgba(192,54,44,0.1)' : 'rgba(196,92,38,0.12)', color: danger ? COLORS.danger : COLORS.primary,
           }}>
             <Icon size={20} />
           </span>

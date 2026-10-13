@@ -24,29 +24,29 @@ export const downloadReceipt = async (booking, tour) => {
   let y = 64;
 
   const line = (label, value, opts = {}) => {
-    doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(94, 106, 90);
+    doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(122, 58, 24);
     doc.text(label, left, y);
-    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal').setFontSize(opts.size || 10).setTextColor(14, 15, 11);
+    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal').setFontSize(opts.size || 10).setTextColor(26, 10, 0);
     const lines = doc.splitTextToSize(String(value ?? '—'), right - left - 160);
     doc.text(lines, left + 160, y);
     y += 16 * lines.length + (opts.gap || 4);
   };
   const section = (title) => {
     y += 10;
-    doc.setDrawColor(226, 229, 221).line(left, y, right, y);
+    doc.setDrawColor(232, 210, 190).line(left, y, right, y);
     y += 20;
-    doc.setFont('helvetica', 'bold').setFontSize(9).setTextColor(181, 81, 27);
+    doc.setFont('helvetica', 'bold').setFontSize(9).setTextColor(196, 92, 38);
     doc.text(title.toUpperCase(), left, y);
     y += 18;
   };
 
   // Header
-  doc.setFont('helvetica', 'bold').setFontSize(20).setTextColor(14, 15, 11);
+  doc.setFont('helvetica', 'bold').setFontSize(20).setTextColor(26, 10, 0);
   doc.text('Bandang IBAYO', left, y);
-  doc.setFontSize(12).setTextColor(181, 81, 27);
+  doc.setFontSize(12).setTextColor(196, 92, 38);
   doc.text('PAYMENT RECEIPT', right, y, { align: 'right' });
   y += 18;
-  doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(94, 106, 90);
+  doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(122, 58, 24);
   doc.text('Joiner tours across the Philippines · bandangibayo@gmail.com', left, y);
   y += 14;
 
@@ -85,7 +85,7 @@ export const downloadReceipt = async (booking, tour) => {
   line('Balance', balance > 0 ? `${php(balance)} (due on or before the tour date)` : 'Paid in full', { bold: balance === 0 });
 
   y += 24;
-  doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(94, 106, 90);
+  doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(122, 58, 24);
   doc.text(doc.splitTextToSize(
     'This receipt acknowledges payment received for the booking above, verified by Bandang IBAYO. '
     + 'All payments are non-refundable per our Terms & Conditions. This is not a BIR-registered official receipt.',

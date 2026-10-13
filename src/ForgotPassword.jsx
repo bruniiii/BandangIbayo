@@ -7,26 +7,18 @@ import logoIcon from './assets/newIcon.png';
 import { emailError, emailSuggestion } from './validation';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #0E0F0B  ink (dark surfaces, main text)
-// #FE813C  orange (main accent: buttons, active states, highlights)
-// #B5511B  orange ink (orange text and links on light backgrounds)
-// #5E6A5A  sage ink (secondary text)
-// #727E6E  sage
-// #4E6B48  sage green (confirmed / success)
-// #BC656A  rose, with #A9474E / #B24F55 for errors and cancellations
-// #F1F2EE  soft stone (inset panels, chips, inputs)
-// #F4F5F1  page background
-// #FFFFFF  cards
+// #1A0A00 espresso dark · #C45C26 burnt sienna · #FDF6EE cream
+// #7A3A18 rust mid-tone · #F2E4D0 parchment · #8C2F1C error
 // ---------------------------------------------------------
 
 const inputStyle = {
   width: '100%',
   padding: '12px 16px',
   borderRadius: 10,
-  border: '1.5px solid rgba(14,15,11,0.12)',
-  background: '#FFFFFF',
+  border: '1.5px solid rgba(196,92,38,0.2)',
+  background: '#FDF6EE',
   fontSize: 14,
-  color: '#0E0F0B',
+  color: '#1A0A00',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -38,7 +30,7 @@ const labelStyle = {
   fontWeight: 800,
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
-  color: '#5E6A5A',
+  color: '#7A3A18',
   marginBottom: 6,
   opacity: 0.9,
 };
@@ -75,20 +67,20 @@ const ForgotPassword = () => {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#FFFFFF', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#0E0F0B',
+      background: '#FDF6EE', fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00',
       padding: '3rem 1rem',
     }}>
       <div style={{
-        background: '#FFFFFF', padding: '2.5rem', borderRadius: 24,
-        boxShadow: '0 20px 60px rgba(14,15,11,0.14)', width: '100%', maxWidth: 420,
-        borderTop: '7px solid #FE813C',
+        background: '#FDF6EE', padding: '2.5rem', borderRadius: 24,
+        boxShadow: '0 20px 60px rgba(26,10,0,0.14)', width: '100%', maxWidth: 420,
+        borderTop: '7px solid #C45C26',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 64, height: 64, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
-          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#0E0F0B', margin: '0 0 8px' }}>
+          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
             Reset Your Password
           </h1>
-          <p style={{ fontSize: 13, color: '#5E6A5A', opacity: 0.9, margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {sent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}
           </p>
         </div>
@@ -96,15 +88,15 @@ const ForgotPassword = () => {
         {sent ? (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
             <div style={{
-              width: 64, height: 64, borderRadius: '50%', background: 'rgba(254,129,60,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#B5511B',
+              width: 64, height: 64, borderRadius: '50%', background: 'rgba(196,92,38,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#C45C26',
             }}>
               <CheckCircle2 size={30} />
             </div>
-            <p style={{ fontSize: 13, color: '#5E6A5A', margin: '0 0 20px', lineHeight: 1.6 }}>
-              If an account exists for <strong style={{ color: '#0E0F0B' }}>{email}</strong>, a password reset link is on its way. It may take a few minutes to arrive.
+            <p style={{ fontSize: 13, color: '#7A3A18', margin: '0 0 20px', lineHeight: 1.6 }}>
+              If an account exists for <strong style={{ color: '#1A0A00' }}>{email}</strong>, a password reset link is on its way. It may take a few minutes to arrive.
             </p>
-            <Link className="text-link" to="/login" style={{ color: '#B5511B', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
+            <Link className="text-link" to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
               ← Back to Login
             </Link>
           </div>
@@ -123,15 +115,15 @@ const ForgotPassword = () => {
             </div>
 
             {error && (
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#A9474E', margin: 0 }}>{error}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{error}</p>
             )}
 
             <button
               disabled={loading}
               style={{
                 width: '100%',
-                background: loading ? 'rgba(254,129,60,0.55)' : '#FE813C',
-                color: '#0E0F0B',
+                background: loading ? 'rgba(196,92,38,0.55)' : '#C45C26',
+                color: '#FDF6EE',
                 fontWeight: 900,
                 fontSize: 13,
                 letterSpacing: '0.1em',
@@ -157,9 +149,9 @@ const ForgotPassword = () => {
         )}
 
         {!sent && (
-          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#5E6A5A', opacity: 0.9 }}>
+          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.9 }}>
             Remembered it?{' '}
-            <Link className="text-link" to="/login" style={{ color: '#B5511B', fontWeight: 800, textDecoration: 'none' }}>
+            <Link className="text-link" to="/login" style={{ color: '#C45C26', fontWeight: 800, textDecoration: 'none' }}>
               Log in
             </Link>
           </p>

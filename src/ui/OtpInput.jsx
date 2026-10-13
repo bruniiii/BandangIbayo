@@ -31,7 +31,7 @@ const OtpInput = ({ length = 6, value, onChange, invalid = false, disabled = fal
     else if (e.key === 'ArrowRight' && i < length - 1) refs.current[i + 1]?.focus();
   };
 
-  const border = invalid ? '#A9474E' : 'rgba(181,81,27,0.3)';
+  const border = invalid ? '#8C2F1C' : 'rgba(196,92,38,0.3)';
   return (
     <div role="group" aria-label="Verification code" aria-describedby={describedBy} style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
       {digits.map((d, i) => (
@@ -58,7 +58,7 @@ const OtpInput = ({ length = 6, value, onChange, invalid = false, disabled = fal
           }}
           style={{
             width: 'min(48px, 13vw)', height: 56, textAlign: 'center', fontSize: 24, fontWeight: 900,
-            color: '#0E0F0B', background: invalid ? 'rgba(169,71,78,0.04)' : '#FFFFFF',
+            color: '#1A0A00', background: invalid ? 'rgba(140,47,28,0.04)' : '#FDF6EE',
             border: `1.5px solid ${border}`, borderRadius: 12, outline: 'none', fontFamily: 'inherit', padding: 0,
           }}
         />

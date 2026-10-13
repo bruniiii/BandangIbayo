@@ -11,16 +11,12 @@ import {
 } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #0E0F0B  ink (dark surfaces, main text)
-// #FE813C  orange (main accent: buttons, active states, highlights)
-// #B5511B  orange ink (orange text and links on light backgrounds)
-// #5E6A5A  sage ink (secondary text)
-// #727E6E  sage
-// #4E6B48  sage green (confirmed / success)
-// #BC656A  rose, with #A9474E / #B24F55 for errors and cancellations
-// #F1F2EE  soft stone (inset panels, chips, inputs)
-// #F4F5F1  page background
-// #FFFFFF  cards
+// #1A0A00  espresso dark
+// #C45C26  burnt sienna (accent)
+// #E8A265  warm amber (highlight)
+// #FDF6EE  cream (light bg)
+// #7A3A18  rust mid-tone
+// #F2E4D0  parchment (section bg)
 // ---------------------------------------------------------
 
 const fullName = (p) => {
@@ -160,10 +156,10 @@ const JoinerAccounts = () => {
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
         <div>
-          <h2 style={{ fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em', color: '#0E0F0B', margin: 0 }}>
+          <h2 style={{ fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
             Joiner Accounts
           </h2>
-          <p style={{ fontSize: 12.5, color: '#5E6A5A', opacity: 0.9, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
             {loading ? 'Loading registered joiners…' : `${joiners.length} registered joiner${joiners.length !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -174,10 +170,10 @@ const JoinerAccounts = () => {
           disabled={loading || joiners.length === 0}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: '#0E0F0B', color: '#FE813C', border: 'none', borderRadius: 999,
+            background: '#1A0A00', color: '#E8A265', border: 'none', borderRadius: 999,
             padding: '11px 20px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-            boxShadow: '0 6px 18px rgba(14,15,11,0.22)',
+            boxShadow: '0 6px 18px rgba(26,10,0,0.22)',
             opacity: (loading || joiners.length === 0) ? 0.5 : 1,
           }}
         >
@@ -185,15 +181,15 @@ const JoinerAccounts = () => {
         </button>
 
         <div style={{ position: 'relative' }}>
-          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(94,106,90,0.75)' }} />
+          <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.75)' }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, username, email, phone…"
             style={{
               paddingLeft: 38, paddingRight: 16, paddingTop: 10, paddingBottom: 10,
-              background: '#FFFFFF', border: '1px solid rgba(14,15,11,0.108)',
-              borderRadius: 999, fontSize: 12.5, fontWeight: 600, color: '#0E0F0B',
+              background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.18)',
+              borderRadius: 999, fontSize: 12.5, fontWeight: 600, color: '#1A0A00',
               fontFamily: 'inherit', outline: 'none', width: 280, boxSizing: 'border-box',
             }}
           />
@@ -203,12 +199,12 @@ const JoinerAccounts = () => {
 
       {/* table */}
       <div style={{
-        background: '#FFFFFF', borderRadius: 20,
-        border: '1px solid rgba(14,15,11,0.072)', boxShadow: '0 4px 20px rgba(14,15,11,0.06)',
+        background: '#FDF6EE', borderRadius: 20,
+        border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         overflow: 'hidden',
       }}>
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(94,106,90,0.75)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.75)' }}>
             <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
             <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading joiners…</span>
           </div>
@@ -227,11 +223,11 @@ const JoinerAccounts = () => {
           <div className="responsive-table-wrapper">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(14,15,11,0.084)' }}>
+                <tr style={{ borderBottom: '1px solid rgba(196,92,38,0.14)' }}>
                   {['Joiner', 'Contact', 'Address', 'Bookings', 'Joined', ''].map((h) => (
                     <th key={h} style={{
                       textAlign: 'left', padding: '14px 20px', fontSize: 11.5, fontWeight: 800,
-                      letterSpacing: '0.14em', textTransform: 'uppercase', color: '#5E6A5A', opacity: 0.9,
+                      letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
                     }}>
                       {h}
                     </th>
@@ -243,52 +239,52 @@ const JoinerAccounts = () => {
                   <tr
                     key={p.id}
                     onClick={() => setSelected(p)}
-                    style={{ borderBottom: '1px solid rgba(14,15,11,0.048)', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(254,129,60,0.05)'}
+                    style={{ borderBottom: '1px solid rgba(196,92,38,0.08)', cursor: 'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(196,92,38,0.05)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     <td style={{ padding: '14px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{
                           width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                          background: '#0E0F0B', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#FE813C', fontWeight: 900, fontSize: 13,
+                          background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#E8A265', fontWeight: 900, fontSize: 13,
                         }}>
                           {p.avatar_url ? (
                             <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : initialsOf(p)}
                         </div>
                         <div>
-                          <p style={{ fontSize: 13, fontWeight: 800, color: '#0E0F0B', margin: 0 }}>{fullName(p)}</p>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{fullName(p)}</p>
                           {p.username && (
-                            <p style={{ fontSize: 11, color: '#5E6A5A', opacity: 0.9, margin: '2px 0 0' }}>@{p.username}</p>
+                            <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>@{p.username}</p>
                           )}
                         </div>
                       </div>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <p style={{ fontSize: 12, color: '#0E0F0B', margin: 0 }}>{p.email || '—'}</p>
-                      <p style={{ fontSize: 11.5, color: '#5E6A5A', opacity: 0.9, margin: '2px 0 0' }}>{p.phone_number || '—'}</p>
+                      <p style={{ fontSize: 12, color: '#1A0A00', margin: 0 }}>{p.email || '—'}</p>
+                      <p style={{ fontSize: 11.5, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{p.phone_number || '—'}</p>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <p style={{ fontSize: 12, color: '#0E0F0B', opacity: 0.9, margin: 0 }}>{p.address || '—'}</p>
+                      <p style={{ fontSize: 12, color: '#1A0A00', opacity: 0.9, margin: 0 }}>{p.address || '—'}</p>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         minWidth: 26, height: 26, padding: '0 8px', borderRadius: 999,
-                        background: '#F1F2EE', color: '#5E6A5A', fontSize: 12, fontWeight: 800,
+                        background: '#F2E4D0', color: '#7A3A18', fontSize: 12, fontWeight: 800,
                       }}>
                         {bookingCounts[p.id] || 0}
                       </span>
                     </td>
                     <td style={{ padding: '14px 20px' }}>
-                      <p style={{ fontSize: 11.5, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                         {formatDate(p.created_at)}
                       </p>
                     </td>
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <ChevronRight size={16} color="rgba(94,106,90,0.4)" />
+                      <ChevronRight size={16} color="rgba(122,58,24,0.4)" />
                     </td>
                   </tr>
                 ))}
@@ -304,7 +300,7 @@ const JoinerAccounts = () => {
           onClick={() => setSelected(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(14,15,11,0.6)', backdropFilter: 'blur(4px)',
+            background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '2rem',
           }}
@@ -313,16 +309,16 @@ const JoinerAccounts = () => {
             onClick={(e) => e.stopPropagation()}
             className="responsive-modal-padding"
             style={{
-              background: '#FFFFFF', borderRadius: 24, padding: '2rem',
-              width: '100%', maxWidth: 460, boxShadow: '0 32px 80px rgba(14,15,11,0.4)',
-              borderTop: '6px solid #FE813C', position: 'relative', maxHeight: '85vh', overflowY: 'auto',
+              background: '#FDF6EE', borderRadius: 24, padding: '2rem',
+              width: '100%', maxWidth: 460, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+              borderTop: '6px solid #C45C26', position: 'relative', maxHeight: '85vh', overflowY: 'auto',
             }}
           >
             <button
               onClick={() => setSelected(null)}
               style={{
                 position: 'absolute', top: 18, right: 18, background: 'none', border: 'none',
-                cursor: 'pointer', color: 'rgba(94,106,90,0.75)',
+                cursor: 'pointer', color: 'rgba(122,58,24,0.75)',
               }}
             >
               <X size={20} />
@@ -331,17 +327,17 @@ const JoinerAccounts = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
               <div style={{
                 width: 64, height: 64, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                background: '#0E0F0B', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#FE813C', fontWeight: 900, fontSize: 22,
+                background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#E8A265', fontWeight: 900, fontSize: 22,
               }}>
                 {selected.avatar_url ? (
                   <img src={selected.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : initialsOf(selected)}
               </div>
               <div>
-                <p style={{ fontWeight: 900, fontSize: 17, color: '#0E0F0B', margin: 0 }}>{fullName(selected)}</p>
+                <p style={{ fontWeight: 900, fontSize: 17, color: '#1A0A00', margin: 0 }}>{fullName(selected)}</p>
                 {selected.username && (
-                  <p style={{ fontSize: 12, color: '#5E6A5A', opacity: 0.9, margin: '3px 0 0' }}>@{selected.username}</p>
+                  <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>@{selected.username}</p>
                 )}
               </div>
             </div>
@@ -357,14 +353,14 @@ const JoinerAccounts = () => {
             </div>
 
             {/* ── Email joiner ── */}
-            <div style={{ borderTop: '1px solid rgba(14,15,11,0.09)', marginTop: 22, paddingTop: 18 }}>
+            <div style={{ borderTop: '1px solid rgba(196,92,38,0.15)', marginTop: 22, paddingTop: 18 }}>
               {emailStatus && (
                 <div style={{
                   display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12,
-                  background: emailStatus.type === 'success' ? 'rgba(254,129,60,0.08)' : 'rgba(169,71,78,0.08)',
-                  border: `1px solid ${emailStatus.type === 'success' ? 'rgba(14,15,11,0.132)' : 'rgba(169,71,78,0.22)'}`,
+                  background: emailStatus.type === 'success' ? 'rgba(196,92,38,0.08)' : 'rgba(140,47,28,0.08)',
+                  border: `1px solid ${emailStatus.type === 'success' ? 'rgba(196,92,38,0.22)' : 'rgba(140,47,28,0.22)'}`,
                   borderRadius: 12, padding: '10px 12px',
-                  color: emailStatus.type === 'success' ? '#B5511B' : '#A9474E',
+                  color: emailStatus.type === 'success' ? '#C45C26' : '#8C2F1C',
                 }}>
                   {emailStatus.type === 'success' ? <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} /> : <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />}
                   <p style={{ fontSize: 12, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{emailStatus.text}</p>
@@ -372,7 +368,7 @@ const JoinerAccounts = () => {
               )}
 
               {!selected.email ? (
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                   This joiner has no email address on file.
                 </p>
               ) : !composing ? (
@@ -380,7 +376,7 @@ const JoinerAccounts = () => {
                   onClick={() => { setComposing(true); setEmailStatus(null); }}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    background: '#0E0F0B', color: '#FE813C', border: 'none', borderRadius: 12,
+                    background: '#1A0A00', color: '#E8A265', border: 'none', borderRadius: 12,
                     padding: '12px 0', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
                     fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                   }}
@@ -389,7 +385,7 @@ const JoinerAccounts = () => {
                 </button>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#0E0F0B', margin: 0 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>
                     Email to {selected.email}
                   </p>
                   <input
@@ -397,9 +393,9 @@ const JoinerAccounts = () => {
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Subject"
                     style={{
-                      width: '100%', boxSizing: 'border-box', background: '#F1F2EE',
-                      border: '1px solid rgba(14,15,11,0.108)', borderRadius: 12, padding: '10px 14px',
-                      fontSize: 13, fontWeight: 600, color: '#0E0F0B', fontFamily: 'inherit', outline: 'none',
+                      width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
+                      border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 14px',
+                      fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
                     }}
                   />
                   <textarea
@@ -408,21 +404,21 @@ const JoinerAccounts = () => {
                     placeholder="Write your message…"
                     rows={5}
                     style={{
-                      width: '100%', boxSizing: 'border-box', background: '#F1F2EE', resize: 'vertical',
-                      border: '1px solid rgba(14,15,11,0.108)', borderRadius: 12, padding: '10px 14px',
-                      fontSize: 13, fontWeight: 500, color: '#0E0F0B', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6,
+                      width: '100%', boxSizing: 'border-box', background: '#F2E4D0', resize: 'vertical',
+                      border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 14px',
+                      fontSize: 13, fontWeight: 500, color: '#1A0A00', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6,
                     }}
                   />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#5E6A5A' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
                     <input
                       type="checkbox"
                       checked={alsoNotify}
                       onChange={(e) => setAlsoNotify(e.target.checked)}
-                      style={{ accentColor: '#FE813C', width: 15, height: 15 }}
+                      style={{ accentColor: '#C45C26', width: 15, height: 15 }}
                     />
                     Also show it in their in-app notifications
                   </label>
-                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: 0 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                     Sent from bandangibayo@gmail.com — the joiner can reply directly to that address.
                   </p>
                   <div style={{ display: 'flex', gap: 10 }}>
@@ -430,8 +426,8 @@ const JoinerAccounts = () => {
                       onClick={() => { setComposing(false); setEmailStatus(null); }}
                       disabled={sending}
                       style={{
-                        flex: 1, padding: '12px 0', background: '#F1F2EE', color: '#5E6A5A',
-                        border: '1px solid rgba(14,15,11,0.108)', borderRadius: 999, cursor: 'pointer',
+                        flex: 1, padding: '12px 0', background: '#F2E4D0', color: '#7A3A18',
+                        border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                       }}
                     >
@@ -442,10 +438,10 @@ const JoinerAccounts = () => {
                       disabled={sending}
                       style={{
                         flex: 1.6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        padding: '12px 0', background: '#FE813C', color: '#0E0F0B', border: 'none',
+                        padding: '12px 0', background: '#C45C26', color: '#FDF6EE', border: 'none',
                         borderRadius: 999, cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                         fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(254,129,60,0.35)', opacity: sending ? 0.6 : 1,
+                        boxShadow: '0 6px 20px rgba(196,92,38,0.35)', opacity: sending ? 0.6 : 1,
                       }}
                     >
                       {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -553,13 +549,13 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
   };
 
   const fieldStyle = {
-    width: '100%', boxSizing: 'border-box', background: '#F1F2EE',
-    border: '1px solid rgba(14,15,11,0.108)', borderRadius: 12, padding: '10px 14px',
-    fontSize: 13, fontWeight: 600, color: '#0E0F0B', fontFamily: 'inherit', outline: 'none',
+    width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
+    border: '1px solid rgba(196,92,38,0.18)', borderRadius: 12, padding: '10px 14px',
+    fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
   };
   const labelStyle = {
     display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
-    textTransform: 'uppercase', color: '#5E6A5A', opacity: 0.9, marginBottom: 6,
+    textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 6,
   };
 
   return (
@@ -567,32 +563,32 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
       onClick={() => { if (!sending) onClose(); }}
       style={{
         position: 'fixed', inset: 0, zIndex: 300,
-        background: 'rgba(14,15,11,0.6)', backdropFilter: 'blur(4px)',
+        background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: '#FFFFFF', borderRadius: 24, width: '100%', maxWidth: 560,
+          background: '#FDF6EE', borderRadius: 24, width: '100%', maxWidth: 560,
           maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          boxShadow: '0 32px 80px rgba(14,15,11,0.4)', borderTop: '6px solid #FE813C',
+          boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '6px solid #C45C26',
         }}
       >
         {/* header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(14,15,11,0.072)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(196,92,38,0.12)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: '#0E0F0B', color: '#FE813C', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 38, height: 38, borderRadius: 11, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Mail size={17} />
             </div>
             <div>
-              <h3 style={{ fontWeight: 900, fontSize: 16, color: '#0E0F0B', margin: 0, letterSpacing: '-0.02em' }}>Email a Joiner</h3>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#5E6A5A', opacity: 0.9, margin: '2px 0 0' }}>
+              <h3 style={{ fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0, letterSpacing: '-0.02em' }}>Email a Joiner</h3>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
                 Choose who to message — sent from bandangibayo@gmail.com
               </p>
             </div>
           </div>
-          <button onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(94,106,90,0.75)' }}>
+          <button onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.75)' }}>
             <X size={20} />
           </button>
         </div>
@@ -602,10 +598,10 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
           {status && (
             <div style={{
               display: 'flex', alignItems: 'flex-start', gap: 8,
-              background: status.type === 'success' ? 'rgba(254,129,60,0.08)' : 'rgba(169,71,78,0.08)',
-              border: `1px solid ${status.type === 'success' ? 'rgba(14,15,11,0.132)' : 'rgba(169,71,78,0.22)'}`,
+              background: status.type === 'success' ? 'rgba(196,92,38,0.08)' : 'rgba(140,47,28,0.08)',
+              border: `1px solid ${status.type === 'success' ? 'rgba(196,92,38,0.22)' : 'rgba(140,47,28,0.22)'}`,
               borderRadius: 12, padding: '10px 12px',
-              color: status.type === 'success' ? '#B5511B' : '#A9474E',
+              color: status.type === 'success' ? '#C45C26' : '#8C2F1C',
             }}>
               {status.type === 'success' ? <CheckCircle2 size={15} style={{ flexShrink: 0, marginTop: 1 }} /> : <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />}
               <p style={{ fontSize: 12, fontWeight: 700, margin: 0, lineHeight: 1.5 }}>{status.text}</p>
@@ -619,14 +615,14 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               <button
                 onClick={toggleAllVisible}
                 disabled={sending || visible.length === 0}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5511B', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C45C26', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}
               >
                 {allVisiblePicked ? 'Clear shown' : 'Select all shown'}
               </button>
             </div>
 
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(94,106,90,0.75)' }} />
+              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.75)' }} />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -635,9 +631,9 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               />
             </div>
 
-            <div style={{ maxHeight: 210, overflowY: 'auto', border: '1px solid rgba(14,15,11,0.084)', borderRadius: 14, background: '#FFFFFF' }}>
+            <div style={{ maxHeight: 210, overflowY: 'auto', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 14, background: '#FFFBF6' }}>
               {visible.length === 0 ? (
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, textAlign: 'center', padding: '1.25rem 0', margin: 0 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, textAlign: 'center', padding: '1.25rem 0', margin: 0 }}>
                   No joiners found.
                 </p>
               ) : visible.map((p) => {
@@ -647,28 +643,28 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
                     key={p.id}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', cursor: 'pointer',
-                      background: on ? 'rgba(254,129,60,0.09)' : 'transparent',
-                      borderBottom: '1px solid rgba(14,15,11,0.042)',
+                      background: on ? 'rgba(196,92,38,0.09)' : 'transparent',
+                      borderBottom: '1px solid rgba(196,92,38,0.07)',
                     }}
                   >
-                    <input type="checkbox" checked={on} onChange={() => toggle(p.id)} disabled={sending} style={{ accentColor: '#FE813C', width: 15, height: 15, flexShrink: 0 }} />
+                    <input type="checkbox" checked={on} onChange={() => toggle(p.id)} disabled={sending} style={{ accentColor: '#C45C26', width: 15, height: 15, flexShrink: 0 }} />
                     <div style={{
                       width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                      background: '#0E0F0B', color: '#FE813C', fontWeight: 900, fontSize: 11,
+                      background: '#1A0A00', color: '#E8A265', fontWeight: 900, fontSize: 11,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {p.avatar_url ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ fontSize: 12.5, fontWeight: 800, color: '#0E0F0B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fullName(p)}</p>
-                      <p style={{ fontSize: 11, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: '1px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.email}</p>
+                      <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{fullName(p)}</p>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '1px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.email}</p>
                     </div>
                   </label>
                 );
               })}
             </div>
             {noEmailCount > 0 && (
-              <p style={{ fontSize: 11.5, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: '6px 0 0' }}>
+              <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
                 {noEmailCount} joiner{noEmailCount !== 1 ? 's have' : ' has'} no email on file and can't be selected.
               </p>
             )}
@@ -690,20 +686,20 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               style={{ ...fieldStyle, fontWeight: 500, resize: 'vertical', lineHeight: 1.6 }}
             />
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#5E6A5A' }}>
-            <input type="checkbox" checked={alsoNotify} onChange={(e) => setAlsoNotify(e.target.checked)} disabled={sending} style={{ accentColor: '#FE813C', width: 15, height: 15 }} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
+            <input type="checkbox" checked={alsoNotify} onChange={(e) => setAlsoNotify(e.target.checked)} disabled={sending} style={{ accentColor: '#C45C26', width: 15, height: 15 }} />
             Also show it in their in-app notifications
           </label>
         </div>
 
         {/* footer */}
-        <div style={{ display: 'flex', gap: 10, padding: '1rem 1.5rem', borderTop: '1px solid rgba(14,15,11,0.072)', background: '#F1F2EE', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 10, padding: '1rem 1.5rem', borderTop: '1px solid rgba(196,92,38,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
           <button
             onClick={onClose}
             disabled={sending}
             style={{
-              flex: 1, padding: '12px 0', background: '#FFFFFF', color: '#5E6A5A',
-              border: '1px solid rgba(14,15,11,0.108)', borderRadius: 999, cursor: 'pointer',
+              flex: 1, padding: '12px 0', background: '#FDF6EE', color: '#7A3A18',
+              border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
             }}
           >
@@ -714,10 +710,10 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
             disabled={sending}
             style={{
               flex: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '12px 0', background: '#FE813C', color: '#0E0F0B', border: 'none', borderRadius: 999,
+              padding: '12px 0', background: '#C45C26', color: '#FDF6EE', border: 'none', borderRadius: 999,
               cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 900,
               fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-              boxShadow: '0 6px 20px rgba(254,129,60,0.35)', opacity: sending ? 0.7 : 1,
+              boxShadow: '0 6px 20px rgba(196,92,38,0.35)', opacity: sending ? 0.7 : 1,
             }}
           >
             {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -733,12 +729,12 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
 
 const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-    <span style={{ color: '#B5511B', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
+    <span style={{ color: '#C45C26', opacity: 0.7, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#5E6A5A', margin: 0 }}>
+      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
         {label}
       </p>
-      <p style={{ fontSize: 15, fontWeight: 800, color: '#0E0F0B', margin: '3px 0 0' }}>
+      <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: '3px 0 0' }}>
         {value || '—'}
       </p>
     </div>

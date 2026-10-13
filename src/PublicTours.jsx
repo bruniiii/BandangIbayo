@@ -47,15 +47,15 @@ const PublicNav = ({ session }) => {
   return (
   <nav className="site-nav" style={{
     position: 'sticky', top: 0, zIndex: 50,
-    background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-    borderBottom: '1px solid rgba(14,15,11,0.072)',
+    background: 'rgba(253,246,238,0.92)', backdropFilter: 'blur(12px)',
+    borderBottom: '1px solid rgba(196,92,38,0.12)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '0 clamp(1rem,5vw,4rem)', height: 64, gap: 12,
   }}>
     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textDecoration: 'none' }}>
       <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }} />
-      <span className="public-nav-brand" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#0E0F0B', whiteSpace: 'nowrap' }}>
-        Bandang <span style={{ color: '#B5511B' }}>IBAYO</span>
+      <span className="public-nav-brand" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap' }}>
+        Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
       </span>
     </Link>
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
@@ -65,15 +65,15 @@ const PublicNav = ({ session }) => {
         aria-current={onTourList ? 'page' : undefined}
         onClick={() => { if (onTourList) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         style={{
-          fontSize: 13, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#B5511B' : '#5E6A5A', textDecoration: 'none',
-          borderBottom: onTourList ? '2px solid #FE813C' : '2px solid transparent', paddingBottom: 2,
+          fontSize: 13, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#C45C26' : '#7A3A18', textDecoration: 'none',
+          borderBottom: onTourList ? '2px solid #C45C26' : '2px solid transparent', paddingBottom: 2,
         }}
       >
         Tours
       </Link>
       {!session && (
         <>
-          <Link to="/login" style={{ fontSize: 13, fontWeight: 700, color: '#5E6A5A', textDecoration: 'none' }}>Log in</Link>
+          <Link to="/login" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none' }}>Log in</Link>
           <Link to="/register" style={navCta}>Join Now</Link>
         </>
       )}
@@ -83,15 +83,14 @@ const PublicNav = ({ session }) => {
 };
 
 const navCta = {
-  fontSize: 13, fontWeight: 900, color: '#0E0F0B', textDecoration: 'none',
-  background: '#FE813C', borderRadius: 10, padding: '9px 16px',
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
+  background: '#C45C26', borderRadius: 10, padding: '9px 16px',
   letterSpacing: '0.04em', whiteSpace: 'nowrap',
 };
 
 const pageStyle = {
-  background: '#F4F5F1', minHeight: '100vh',
-  fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#0E0F0B', overflowX: 'hidden',
+  background: '#FDF6EE', minHeight: '100vh',
+  fontFamily: "'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden',
 };
 
 const CenteredMessage = ({ children }) => (
@@ -143,9 +142,9 @@ export const PublicTourList = () => {
   });
 
   const inputStyle = {
-    width: '100%', boxSizing: 'border-box', background: '#F1F2EE',
-    border: '1px solid rgba(14,15,11,0.108)', borderRadius: 14,
-    padding: '12px 14px', fontSize: 13, fontWeight: 600, color: '#0E0F0B',
+    width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
+    border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14,
+    padding: '12px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00',
     fontFamily: 'inherit', outline: 'none',
   };
 
@@ -153,15 +152,15 @@ export const PublicTourList = () => {
     <div style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(2rem,5vw,4rem) clamp(1rem,5vw,4rem)' }}>
-        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#B5511B' }}>Open for booking</span>
+        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C45C26' }}>Open for booking</span>
         <h1 style={{ fontWeight: 900, fontSize: 'clamp(2rem,4vw,3rem)', letterSpacing: '-0.03em', margin: '8px 0 6px' }}>Upcoming Tours</h1>
-        <p style={{ fontSize: 15, fontWeight: 600, color: '#5E6A5A', opacity: 0.9, margin: '0 0 28px' }}>
+        <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 28px' }}>
           Browse every joiner tour. Create a free account when you're ready to book.
         </p>
 
         <div className="public-tour-filters" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 28 }}>
           <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#B5511B' }} />
+            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#C45C26' }} />
             <input
               type="search"
               aria-label="Search tours"
@@ -186,7 +185,7 @@ export const PublicTourList = () => {
 
         {loading ? (
           <CenteredMessage>
-            <Loader2 size={36} style={{ color: '#B5511B', animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={36} style={{ color: '#C45C26', animation: 'spin 1s linear infinite' }} />
           </CenteredMessage>
         ) : filteredTours.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
@@ -275,12 +274,12 @@ export const PublicTourDetail = () => {
         <PublicNav session={session} />
         <CenteredMessage>
           {status === 'loading' ? (
-            <Loader2 size={36} style={{ color: '#B5511B', animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={36} style={{ color: '#C45C26', animation: 'spin 1s linear infinite' }} />
           ) : (
             <>
-              <Mountain size={40} style={{ color: '#B5511B' }} />
+              <Mountain size={40} style={{ color: '#C45C26' }} />
               <h1 style={{ fontWeight: 900, fontSize: 24, margin: 0 }}>This tour isn't available</h1>
-              <p style={{ fontWeight: 600, color: '#5E6A5A', margin: 0 }}>It may have been removed or the link is wrong.</p>
+              <p style={{ fontWeight: 600, color: '#7A3A18', margin: 0 }}>It may have been removed or the link is wrong.</p>
               <Link to="/tours" style={{ ...navCta, padding: '12px 22px' }}>See open tours</Link>
             </>
           )}
@@ -308,7 +307,7 @@ export const PublicTourDetail = () => {
     <div className="public-tour-page" style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(1.25rem,4vw,3rem) clamp(1rem,5vw,4rem) 4rem' }}>
-        <Link className="text-link" to="/tours" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#5E6A5A', textDecoration: 'none', marginBottom: 18 }}>
+        <Link className="text-link" to="/tours" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#7A3A18', textDecoration: 'none', marginBottom: 18 }}>
           <ArrowLeft size={15} /> All tours
         </Link>
 
@@ -317,10 +316,10 @@ export const PublicTourDetail = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <div>
               {tour.difficulty && (
-                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#B5511B' }}>{tour.difficulty}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C45C26' }}>{tour.difficulty}</span>
               )}
               <h1 style={{ fontWeight: 900, fontSize: 'clamp(1.8rem,4vw,2.8rem)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: '6px 0 8px', overflowWrap: 'anywhere' }}>{tour.title}</h1>
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: '#B5511B', margin: 0 }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: '#C45C26', margin: 0 }}>
                 <MapPin size={16} /> {tour.destination}
               </p>
             </div>
@@ -328,38 +327,38 @@ export const PublicTourDetail = () => {
             <TourImageCarousel images={tour.image_urls || []} />
 
             <ViewSection title="About the Tour">
-              <p style={{ fontSize: 15, lineHeight: 1.8, fontWeight: 500, color: '#5E6A5A', whiteSpace: 'pre-wrap', margin: 0 }}>
+              <p style={{ fontSize: 15, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
                 {tour.description || 'No description provided.'}
               </p>
             </ViewSection>
 
-            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
-              <ViewSection title="Inclusions" titleColor="#B5511B" icon={<CheckCircle2 size={14} />}>
+            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+              <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
                 <ChecklistGrid text={tour.inclusions} variant="include" />
               </ViewSection>
-              <ViewSection title="Exclusions" titleColor="#A9474E" icon={<X size={14} />}>
+              <ViewSection title="Exclusions" titleColor="#8C2F1C" icon={<X size={14} />}>
                 <ChecklistGrid text={tour.exclusions} variant="exclude" />
               </ViewSection>
             </div>
 
-            <div style={{ borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
-              <ViewSection title="Itinerary" titleColor="#B5511B" icon={<Clock size={14} />}>
+            <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+              <ViewSection title="Itinerary" titleColor="#C45C26" icon={<Clock size={14} />}>
                 <ItineraryTimeline text={tour.itinerary} />
               </ViewSection>
             </div>
 
-            <div style={{ borderTop: '1px solid rgba(14,15,11,0.06)', paddingTop: 24 }}>
+            <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
               <ViewSection title="Things to Bring">
                 <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
               </ViewSection>
             </div>
 
             {tour.important_note && (
-              <div style={{ background: 'rgba(254,129,60,0.07)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(14,15,11,0.12)', display: 'flex', gap: 14 }}>
-                <AlertCircle size={22} style={{ color: '#B5511B', flexShrink: 0 }} />
+              <div style={{ background: 'rgba(196,92,38,0.07)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(196,92,38,0.2)', display: 'flex', gap: 14 }}>
+                <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#B5511B', margin: '0 0 8px' }}>Important Note</p>
-                  <p style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.7, color: '#0E0F0B', whiteSpace: 'pre-wrap', margin: 0, overflowWrap: 'anywhere' }}>{tour.important_note}</p>
+                  <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>Important Note</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0, overflowWrap: 'anywhere' }}>{tour.important_note}</p>
                 </div>
               </div>
             )}
@@ -367,33 +366,33 @@ export const PublicTourDetail = () => {
 
           {/* ── Right: price and booking ── */}
           <aside className="public-tour-aside" style={{
-            position: 'sticky', top: 88, background: '#0E0F0B', color: '#FFFFFF',
+            position: 'sticky', top: 88, background: '#1A0A00', color: '#FDF6EE',
             borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 18,
-            boxShadow: '0 16px 40px rgba(14,15,11,0.18)',
+            boxShadow: '0 16px 40px rgba(26,10,0,0.18)',
           }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(226,229,221,0.85)' }}>Price per joiner</div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)' }}>Price per joiner</div>
               <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em' }}>{formatPeso(Number(tour.price || 0))}</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(226,229,221,0.85)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {facts.map(([icon, text], i) => (
-                <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(255,255,255,0.9)' }}>
-                  <span style={{ color: '#FE813C', display: 'flex' }}>{icon}</span>{text}
+                <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(253,246,238,0.9)' }}>
+                  <span style={{ color: '#E8A265', display: 'flex' }}>{icon}</span>{text}
                 </p>
               ))}
             </div>
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 800, marginBottom: 6 }}>
-                <span style={{ color: isFull ? '#FE813C' : '#FFFFFF' }}>
+                <span style={{ color: isFull ? '#E8A265' : '#FDF6EE' }}>
                   {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
                 </span>
-                <span style={{ color: 'rgba(226,229,221,0.75)' }}>{tour.current_booked} / {capacity}</span>
+                <span style={{ color: 'rgba(232,210,190,0.75)' }}>{tour.current_booked} / {capacity}</span>
               </div>
-              <div style={{ height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.12)', overflow: 'hidden' }}>
-                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? '#A9474E' : '#FE813C' }} />
+              <div style={{ height: 6, borderRadius: 999, background: 'rgba(253,246,238,0.12)', overflow: 'hidden' }}>
+                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? '#8C2F1C' : '#C45C26' }} />
               </div>
             </div>
 
@@ -405,15 +404,15 @@ export const PublicTourDetail = () => {
                 border: 'none', borderRadius: 14, padding: '15px 18px', fontFamily: 'inherit',
                 fontSize: 14, fontWeight: 900, letterSpacing: '0.04em',
                 cursor: canBook ? 'pointer' : 'not-allowed',
-                background: canBook ? '#FE813C' : 'rgba(255,255,255,0.12)',
-                color: canBook ? '#0E0F0B' : 'rgba(255,255,255,0.8)',
+                background: canBook ? '#C45C26' : 'rgba(253,246,238,0.12)',
+                color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.8)',
               }}
             >
               {hasDeparted ? 'This tour has departed' : isFull ? (session ? 'Join the waitlist' : 'Log in to join the waitlist') : session ? 'Book this tour' : 'Log in to book'}
             </button>
             {canBook && !session && (
-              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(226,229,221,0.85)', margin: '-8px 0 0', textAlign: 'center' }}>
-                New here? <Link className="text-link" to={`/register?next=${encodeURIComponent(`/dashboard?book=${tour.id}`)}`} style={{ color: '#FE813C', fontWeight: 800 }}>Create a free account</Link>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)', margin: '-8px 0 0', textAlign: 'center' }}>
+                New here? <Link className="text-link" to={`/register?next=${encodeURIComponent(`/dashboard?book=${tour.id}`)}`} style={{ color: '#E8A265', fontWeight: 800 }}>Create a free account</Link>
               </p>
             )}
 
@@ -422,7 +421,7 @@ export const PublicTourDetail = () => {
               onClick={handleShare}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                border: '1.5px solid rgba(226,229,221,0.25)', background: 'transparent', color: '#FFFFFF',
+                border: '1.5px solid rgba(232,210,190,0.25)', background: 'transparent', color: '#FDF6EE',
                 borderRadius: 14, padding: '12px 18px', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer',
               }}
             >
@@ -435,13 +434,13 @@ export const PublicTourDetail = () => {
       {/* Phones: the booking card sits below the itinerary, so keep Book reachable. */}
       <div className="public-tour-mobilebar" style={{
         display: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40,
-        background: '#0E0F0B', color: '#FFFFFF', padding: '12px 16px',
+        background: '#1A0A00', color: '#FDF6EE', padding: '12px 16px',
         alignItems: 'center', justifyContent: 'space-between', gap: 12,
-        boxShadow: '0 -8px 24px rgba(14,15,11,0.2)',
+        boxShadow: '0 -8px 24px rgba(26,10,0,0.2)',
       }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 20, fontWeight: 900 }}>{formatPeso(Number(tour.price || 0))}</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(226,229,221,0.85)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.85)' }}>
             {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
           </div>
         </div>
@@ -453,8 +452,8 @@ export const PublicTourDetail = () => {
             border: 'none', borderRadius: 12, padding: '12px 18px', fontFamily: 'inherit',
             fontSize: 13, fontWeight: 900, flexShrink: 0,
             cursor: canBook ? 'pointer' : 'not-allowed',
-            background: canBook ? '#FE813C' : 'rgba(255,255,255,0.12)',
-            color: canBook ? '#0E0F0B' : 'rgba(255,255,255,0.8)',
+            background: canBook ? '#C45C26' : 'rgba(253,246,238,0.12)',
+            color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.8)',
           }}
         >
           {hasDeparted ? 'Departed' : isFull ? 'Join waitlist' : session ? 'Book now' : 'Log in to book'}
