@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
-import { Compass, Mountain, CalendarX2 } from 'lucide-react';
+import { Compass, Mountain, CalendarX2, QrCode } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
@@ -9,6 +9,7 @@ import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_D
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
+import CheckInQr from './ui/CheckInQr';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
@@ -323,6 +324,12 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         >
           View Details <ChevronRight size={13} />
         </button>
+        {booking.payment_status === 'Complete' && !booking.isActuallyCompleted
+          && booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
+          <button type="button" className="text-link" onClick={onView} style={{ background: 'none', border: 'none', padding: '4px 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+            <QrCode size={13} /> Check-in QR
+          </button>
+        )}
       </div>
     </div>
   );
@@ -478,6 +485,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     <DetailItem label="Total Price" value={`${formatPeso(booking.total_price)}`} />
                   </div>
                 </ViewSection>
+
+                {!booking.isActuallyCompleted && booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
+                  <ViewSection title="Check-in QR" icon={<QrCode size={14} style={{ color: '#A8481A' }} />}>
+                    <CheckInQr booking={booking} tourTitle={tour.title} isPaymentConfirmed={isPaymentConfirmed} tourEnded={booking.isActuallyCompleted} />
+                  </ViewSection>
+                )}
 
                 {booking.companions?.length > 0 && (
                   <ViewSection title="Joining You" icon={<Users size={14} style={{ color: '#A8481A' }} />}>

@@ -3,13 +3,14 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
-import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH } from './validation';
+import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH, normalizePhone, formatPhPhone } from './validation';
 import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
   FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
   Phone, Globe, Loader2
 } from 'lucide-react';
+import { phoneFieldProps } from './ui/phoneField';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -159,7 +160,7 @@ const usePrefilledContact = () => {
       const fullName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '';
       setContact({
         fullName,
-        contact: profile?.phone_number || '',
+        contact: formatPhPhone(profile?.phone_number || ''),
         email: profile?.email || user.email || '',
       });
     })();
@@ -252,7 +253,7 @@ const ExclusiveTourForm = () => {
       user_id: user.id,
       request_type: 'exclusive',
       full_name: form.fullName,
-      contact_number: form.contact,
+      contact_number: normalizePhone(form.contact) || form.contact.trim(),
       email: form.email,
       destination: form.destination,
       group_size: parseInt(form.groupSize) || null,
@@ -308,8 +309,8 @@ const ExclusiveTourForm = () => {
           Contact Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="fullName" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField name="contact" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
+          <InputField name="contact" label="Contact Number" {...phoneFieldProps(form.contact, (v) => setForm((prev) => ({ ...prev, contact: v })))} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>
@@ -321,7 +322,7 @@ const ExclusiveTourForm = () => {
           Trip Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="destination" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
+          <InputField name="destination" data-allow="place" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
           <InputField name="groupSize" label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField name="preferredDate" label="Preferred Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
           <InputField name="alternateDate" label="Alternate Date (optional)" type="date" min={addDaysPH(1)} value={form.alternateDate} onChange={set('alternateDate')} />
@@ -447,7 +448,7 @@ const RequestTourForm = () => {
       user_id: user.id,
       request_type: 'request',
       full_name: form.fullName,
-      contact_number: form.contact,
+      contact_number: normalizePhone(form.contact) || form.contact.trim(),
       email: form.email,
       destination: form.destination,
       region: form.region,
@@ -503,8 +504,8 @@ const RequestTourForm = () => {
           Your Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="fullName" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField name="contact" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
+          <InputField name="contact" label="Contact Number" {...phoneFieldProps(form.contact, (v) => setForm((prev) => ({ ...prev, contact: v })))} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>
@@ -516,8 +517,8 @@ const RequestTourForm = () => {
           Destination &amp; Tour Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="destination" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
-          <InputField name="region" label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
+          <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
+          <InputField name="region" data-allow="place" label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
           <InputField name="groupSize" label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField name="preferredDate" label="Preferred Tour Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
         </div>

@@ -1,5 +1,25 @@
 import { supabase } from './supabaseClient';
 
+// Archives tours whose end date has passed (archive_past_tours() in the
+// database, which also runs nightly). Called before tour lists load; runs
+// at most once per page load and never blocks the list if it fails.
+let archiveRun = null;
+export const archivePastTours = () => {
+  if (!archiveRun) {
+    archiveRun = Promise.resolve(supabase.rpc('archive_past_tours')).then(() => {}, () => {});
+  }
+  return archiveRun;
+};
+
+// Filter for .or(): tours that haven't ended yet (end date, or start date
+// when a tour has no end date, is today or later in Philippine time).
+// Joiner-facing lists use it so a finished tour disappears even before
+// it's archived.
+export const notEndedFilter = () => {
+  const today = todayManila();
+  return `end_date.gte.${today},and(end_date.is.null,start_date.gte.${today})`;
+};
+
 // Same fallback the create_booking database function uses when a tour has no group_size.
 export const DEFAULT_GROUP_SIZE = 15;
 

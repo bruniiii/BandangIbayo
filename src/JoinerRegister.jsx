@@ -26,6 +26,9 @@ import PasswordChecklist from './PasswordChecklist';
 import AddressFields from './AddressFields';
 import { composeAddress } from './phAddress';
 import logoIcon from './assets/newIcon.png';
+import PasswordField from './ui/PasswordField';
+import RequiredMark from './ui/RequiredMark';
+import { phoneInputProps } from './ui/phoneField';
 
 const JoinerRegister = () => {
   const [loading, setLoading] = useState(false);
@@ -133,7 +136,7 @@ const JoinerRegister = () => {
       const ok = checkFields(form, [
         ['username', usernameError(username)],
         ['firstName', nameError(firstName, 'First name')],
-        ['middleName', nameError(middleName, 'Middle name', { required: false, min: 1 })],
+        ['middleName', nameError(middleName, 'Middle initial', { required: false, min: 1 })],
         ['lastName', nameError(lastName, 'Last name')],
         ['suffix', suffixError(suffix)],
         ['email', emailError(email)],
@@ -528,6 +531,9 @@ const JoinerRegister = () => {
           >
             Create your traveler profile for Bandang Ibayo.
           </p>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>
+            Fields marked <RequiredMark /> are required.
+          </p>
         </div>
 
         <form
@@ -650,14 +656,14 @@ const JoinerRegister = () => {
                   margin: '8px 0 0',
                 }}
               >
-                Optional • JPG, PNG, or WebP • Maximum 5 MB
+                JPG, PNG, or WebP • Maximum 5 MB
               </p>
             </div>
           </div>
 
           {/* USERNAME */}
           <div>
-            <label style={labelStyle}>Username</label>
+            <label style={labelStyle}>Username <RequiredMark /></label>
             <input
               name="username"
               type="text"
@@ -677,9 +683,10 @@ const JoinerRegister = () => {
             }}
           >
             <div>
-              <label style={labelStyle}>First Name</label>
+              <label style={labelStyle}>First Name <RequiredMark /></label>
               <input
                 name="firstName"
+                data-allow="name"
                 type="text"
                 placeholder="Juan"
                 style={inputStyle}
@@ -688,9 +695,10 @@ const JoinerRegister = () => {
             </div>
 
             <div>
-              <label style={labelStyle}>Middle Name</label>
+              <label style={labelStyle}>Middle Initial</label>
               <input
                 name="middleName"
+                data-allow="name"
                 type="text"
                 placeholder="D."
                 style={inputStyle}
@@ -698,9 +706,10 @@ const JoinerRegister = () => {
             </div>
 
             <div>
-              <label style={labelStyle}>Last Name</label>
+              <label style={labelStyle}>Last Name <RequiredMark /></label>
               <input
                 name="lastName"
+                data-allow="name"
                 type="text"
                 placeholder="Dela Cruz"
                 style={inputStyle}
@@ -712,6 +721,7 @@ const JoinerRegister = () => {
               <label style={labelStyle}>Suffix</label>
               <input
                 name="suffix"
+                data-allow="name"
                 type="text"
                 placeholder="Jr."
                 style={inputStyle}
@@ -729,7 +739,7 @@ const JoinerRegister = () => {
             }}
           >
             <div>
-              <label style={labelStyle}>Email Address</label>
+              <label style={labelStyle}>Email Address <RequiredMark /></label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={fieldIconStyle} />
                 <input
@@ -743,13 +753,12 @@ const JoinerRegister = () => {
             </div>
 
             <div>
-              <label style={labelStyle}>Phone Number</label>
+              <label style={labelStyle}>Phone Number <RequiredMark /></label>
               <div style={{ position: 'relative' }}>
                 <Phone size={16} style={fieldIconStyle} />
                 <input
                   name="phone"
-                  type="tel"
-                  placeholder="0912 345 6789"
+                  {...phoneInputProps}
                   style={inputWithIconStyle}
                   required
                 />
@@ -797,6 +806,7 @@ const JoinerRegister = () => {
                 <UserRound size={16} style={fieldIconStyle} />
                 <input
                   name="emergencyContactName"
+                data-allow="name"
                   type="text"
                   placeholder="e.g. Maria Dela Cruz"
                   maxLength={120}
@@ -814,8 +824,7 @@ const JoinerRegister = () => {
                 <Phone size={16} style={fieldIconStyle} />
                 <input
                   name="emergencyContactNumber"
-                  type="tel"
-                  placeholder="+63 917 123 4567"
+                  {...phoneInputProps}
                   style={inputWithIconStyle}
                 />
               </div>
@@ -823,7 +832,7 @@ const JoinerRegister = () => {
           </div>
 
           {/* ADDRESS: province → city/municipality → barangay dropdowns + street */}
-          <AddressFields
+          <AddressFields markRequired
             labelStyle={labelStyle}
             selectStyle={{ ...inputStyle, cursor: 'pointer' }}
             inputStyle={inputStyle}
@@ -840,10 +849,9 @@ const JoinerRegister = () => {
             }}
           >
             <div>
-              <label style={labelStyle}>Password</label>
-              <input
+              <label style={labelStyle}>Password <RequiredMark /></label>
+              <PasswordField
                 name="password"
-                type="password"
                 placeholder="••••••••"
                 style={inputStyle}
                 minLength={8}
@@ -856,10 +864,9 @@ const JoinerRegister = () => {
             </div>
 
             <div>
-              <label style={labelStyle}>Confirm Password</label>
-              <input
+              <label style={labelStyle}>Confirm Password <RequiredMark /></label>
+              <PasswordField
                 name="confirmPassword"
-                type="password"
                 placeholder="••••••••"
                 style={inputStyle}
                 minLength={8}

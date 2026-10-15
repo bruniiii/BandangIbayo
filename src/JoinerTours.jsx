@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 
-import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor } from './tourUtils';
+import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter } from './tourUtils';
 import { startCheckout } from './payments';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
@@ -18,6 +18,7 @@ import {
   CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
 
 } from 'lucide-react';
+import { phoneFieldProps } from './ui/phoneField';
 
 
 
@@ -84,6 +85,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
     setLoading(true);
 
+    await archivePastTours();
     const { data: toursData } = await supabase
 
       .from('tours')
@@ -91,6 +93,8 @@ const JoinerTours = ({ initialTourId = null }) => {
       .select('*')
 
       .eq('is_archived', false)
+
+      .or(notEndedFilter())
 
       .order('start_date', { ascending: true });
 
@@ -1934,6 +1938,7 @@ const CompanionFields = ({ companions, onChange, error }) => {
                     <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>
                     <input
                         aria-label={`Person ${i + 2} full name`}
+                        data-allow="name"
                         placeholder="Full name"
                         value={c.full_name}
                         onChange={(e) => onChange(i, 'full_name', e.target.value)}
@@ -1941,10 +1946,7 @@ const CompanionFields = ({ companions, onChange, error }) => {
                     />
                     <input
                         aria-label={`Person ${i + 2} contact number`}
-                        placeholder="Contact number"
-                        inputMode="tel"
-                        value={c.contact_number}
-                        onChange={(e) => onChange(i, 'contact_number', e.target.value)}
+                        {...phoneFieldProps(c.contact_number, (v) => onChange(i, 'contact_number', v))}
                         style={inputStyle}
                     />
                 </div>

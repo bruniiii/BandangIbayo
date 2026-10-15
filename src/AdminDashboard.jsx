@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Map, Calendar, Users,
   FileText, Bell, CreditCard, LogOut, Search, TrendingUp, AlertCircle,
   CheckCircle2, XCircle, Clock, Menu, X, Rss, Star, Globe,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2
+  ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2, ScanLine
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -15,12 +15,14 @@ import ProfileSettings from './Profilesettings.jsx';
 import Reviews from './Reviews';
 import JoinerAccounts from './Joineraccounts';
 import Reports from './Reports';
+import AdminCheckIn from './AdminCheckIn';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
-import { formatPeso } from './tourUtils';
+import { formatPeso, archivePastTours } from './tourUtils';
+import { confirmDialog } from './ui/ConfirmDialog';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -93,6 +95,7 @@ const NAV_ITEMS = [
   { icon: <Users size={18} strokeWidth={2} />,           label: 'Joiner Accounts' },
   { icon: <Globe size={18} strokeWidth={2} />,           label: 'Exclusive Requests' },
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
+  { icon: <ScanLine size={18} strokeWidth={2} />,        label: 'Check-in' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
   { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
@@ -187,6 +190,13 @@ const AdminDashboard = () => {
   });
  
   const handleLogout = async () => {
+    const ok = await confirmDialog({
+      title: 'Sign out?',
+      message: "You'll need to log in again to manage tours and bookings.",
+      confirmLabel: 'Sign Out',
+      cancelLabel: 'Stay Signed In',
+    });
+    if (!ok) return;
     const { error } = await supabase.auth.signOut();
     if (error) toast.error('Logout failed', error.message);
     else navigate('/login');
@@ -201,6 +211,7 @@ const AdminDashboard = () => {
     const nextMonthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 1).toISOString();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
+    await archivePastTours();
     const [
       { count: totalBookings },
       { count: bookingsThisMonth },
@@ -950,6 +961,7 @@ const AdminDashboard = () => {
           {activeTab === 'Exclusive Requests' && <AdminExclusiveTours />}
           {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
           {activeTab === 'Reports' && <Reports />}
+          {activeTab === 'Check-in' && <AdminCheckIn />}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
@@ -967,6 +979,7 @@ const AdminDashboard = () => {
            activeTab !== 'Exclusive Requests' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
+           activeTab !== 'Check-in' &&
            activeTab !== 'Profile Settings' &&
            activeTab !== 'Notification' && (
             <div style={{

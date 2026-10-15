@@ -622,7 +622,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     <div>
                       <p style={labelStyle}>Confirmed Destination</p>
                       <input
-                        type="text" value={packageForm.destination} onChange={setPkgField('destination')}
+                        type="text" data-allow="place" value={packageForm.destination} onChange={setPkgField('destination')}
                         placeholder="e.g. Sagada, Mountain Province"
                         style={packageInputStyle}
                       />

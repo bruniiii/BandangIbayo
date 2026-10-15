@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
+import { archivePastTours } from './tourUtils';
 
 // The time picker gives "16:30"; joiners see "4:30 PM", like the older stops.
 const formatTime12h = (value) => {
@@ -10,12 +11,13 @@ const formatTime12h = (value) => {
   const h = Number(m[1]);
   return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
 };
-import { nameError, phoneError, cleanName, normalizePhone } from './validation';
+import { nameError, phoneError, cleanName, normalizePhone, formatPhPhone } from './validation';
 import {
   MapPin, Plus, Trash2, Archive, RefreshCw, History, X, Calendar,
   Armchair, Compass, ImageIcon, Loader2, Truck, Check, CheckCircle2,
   Navigation, Clock, Send, ChevronLeft, ChevronRight
 } from 'lucide-react';
+import { phoneFieldProps } from './ui/phoneField';
 
 const PALETTE = {
   espresso: '#1A0A00',
@@ -76,6 +78,7 @@ export const AdminTrackingControls = () => {
   const fetchTours = useCallback(async () => {
     try {
       setLoading(true);
+      await archivePastTours();
       const { data, error } = await supabase
         .from('tours')
         .select('*')
@@ -111,7 +114,7 @@ export const AdminTrackingControls = () => {
         setCarType(vehicle.car_type || '');
         setPlateNumber(vehicle.plate_number || '');
         setDriverName(vehicle.driver_name || '');
-        setDriverContact(vehicle.driver_contact || '');
+        setDriverContact(formatPhPhone(vehicle.driver_contact || ''));
         setIsLogisticsSaved(true);
       } else {
         setCarType('');
@@ -656,8 +659,8 @@ const TrackingConsoleModal = ({
                       <input type="text" placeholder="Plate Number (e.g. NBT-8921)" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} style={inputStyle} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-                      <input type="text" placeholder="Driver Name" value={driverName} onChange={e => setDriverName(e.target.value)} style={inputStyle} />
-                      <input type="text" placeholder="Driver Contact No." value={driverContact} onChange={e => setDriverContact(e.target.value)} style={inputStyle} />
+                      <input type="text" data-allow="name" placeholder="Driver Name" value={driverName} onChange={e => setDriverName(e.target.value)} style={inputStyle} />
+                      <input {...phoneFieldProps(driverContact, setDriverContact)} aria-label="Driver contact number" style={inputStyle} />
                     </div>
                     <button type="submit" disabled={savingLogistics} style={{
                       padding: '10px 0', background: '#B4511E', color: '#FDF6EE',
