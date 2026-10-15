@@ -383,10 +383,10 @@ const ProfileSettings = () => {
 
         <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <Field label="First Name" icon={<User size={15} />}>
-            <input style={inputStyle} value={form.first_name} onChange={handleChange('first_name')} placeholder="Juan" />
+            <input style={inputStyle} data-allow="name" value={form.first_name} onChange={handleChange('first_name')} placeholder="Juan" />
           </Field>
           <Field label="Last Name" icon={<User size={15} />}>
-            <input style={inputStyle} value={form.last_name} onChange={handleChange('last_name')} placeholder="Dela Cruz" />
+            <input style={inputStyle} data-allow="name" value={form.last_name} onChange={handleChange('last_name')} placeholder="Dela Cruz" />
           </Field>
         </div>
 
@@ -395,7 +395,7 @@ const ProfileSettings = () => {
             <input style={readOnlyInputStyle} value={profile?.email || ''} readOnly title="Contact support to change your login email" />
           </Field>
           <Field label="Phone Number" icon={<Phone size={15} />}>
-            <input style={inputStyle} value={form.phone_number} onChange={handleChange('phone_number')} placeholder="+63 912 345 6789" />
+            <input style={inputStyle} data-allow="phone" value={form.phone_number} onChange={handleChange('phone_number')} placeholder="+63 912 345 6789" />
           </Field>
         </div>
 
@@ -407,10 +407,10 @@ const ProfileSettings = () => {
 
         <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <Field label="Emergency Contact Name" icon={<User size={15} />}>
-            <input style={inputStyle} value={form.emergency_contact_name} onChange={handleChange('emergency_contact_name')} placeholder="Maria Dela Cruz" maxLength={120} />
+            <input style={inputStyle} data-allow="name" value={form.emergency_contact_name} onChange={handleChange('emergency_contact_name')} placeholder="Maria Dela Cruz" maxLength={120} />
           </Field>
           <Field label="Emergency Contact Number" icon={<Phone size={15} />}>
-            <input style={inputStyle} value={form.emergency_contact_number} onChange={handleChange('emergency_contact_number')} placeholder="+63 917 123 4567" />
+            <input style={inputStyle} data-allow="phone" value={form.emergency_contact_number} onChange={handleChange('emergency_contact_number')} placeholder="+63 917 123 4567" />
           </Field>
         </div>
 

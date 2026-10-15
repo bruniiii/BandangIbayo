@@ -79,7 +79,6 @@ function LandingPage() {
           </span>
         </div>
         <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
-          <Link to="/tours" className="nav-tours btn-text-link" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none', letterSpacing: '0.04em' }}>Tours</Link>
           <Link to="/login" className="nav-login btn-text-link" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none', letterSpacing: '0.04em' }}>Log in</Link>
           <Link to="/register" className="nav-cta btn-primary" style={{
             fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
@@ -220,7 +219,6 @@ function LandingPage() {
         }
         @media (max-width: 480px) {
           /* The hero's "Browse Tours" button covers it on phones. */
-          .nav-tours { display: none !important; }
         }
         @media (max-width: 380px) {
           .nav-login { display: none !important; }

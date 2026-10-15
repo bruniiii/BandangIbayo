@@ -133,7 +133,7 @@ const JoinerRegister = () => {
       const ok = checkFields(form, [
         ['username', usernameError(username)],
         ['firstName', nameError(firstName, 'First name')],
-        ['middleName', nameError(middleName, 'Middle name', { required: false, min: 1 })],
+        ['middleName', nameError(middleName, 'Middle initial', { required: false, min: 1 })],
         ['lastName', nameError(lastName, 'Last name')],
         ['suffix', suffixError(suffix)],
         ['email', emailError(email)],
@@ -293,6 +293,9 @@ const JoinerRegister = () => {
     marginBottom: 6,
     opacity: 0.9,
   };
+
+  // "(optional)" next to a label, in normal case so it reads as a note.
+  const optionalTag = { textTransform: 'none', letterSpacing: 0, fontWeight: 600, opacity: 0.85 };
 
   const fieldIconStyle = {
     position: 'absolute',
@@ -680,6 +683,7 @@ const JoinerRegister = () => {
               <label style={labelStyle}>First Name</label>
               <input
                 name="firstName"
+                data-allow="name"
                 type="text"
                 placeholder="Juan"
                 style={inputStyle}
@@ -688,9 +692,10 @@ const JoinerRegister = () => {
             </div>
 
             <div>
-              <label style={labelStyle}>Middle Name</label>
+              <label style={labelStyle}>Middle Initial <span style={optionalTag}>(optional)</span></label>
               <input
                 name="middleName"
+                data-allow="name"
                 type="text"
                 placeholder="D."
                 style={inputStyle}
@@ -701,6 +706,7 @@ const JoinerRegister = () => {
               <label style={labelStyle}>Last Name</label>
               <input
                 name="lastName"
+                data-allow="name"
                 type="text"
                 placeholder="Dela Cruz"
                 style={inputStyle}
@@ -709,9 +715,10 @@ const JoinerRegister = () => {
             </div>
 
             <div>
-              <label style={labelStyle}>Suffix</label>
+              <label style={labelStyle}>Suffix <span style={optionalTag}>(optional)</span></label>
               <input
                 name="suffix"
+                data-allow="name"
                 type="text"
                 placeholder="Jr."
                 style={inputStyle}
@@ -748,6 +755,7 @@ const JoinerRegister = () => {
                 <Phone size={16} style={fieldIconStyle} />
                 <input
                   name="phone"
+                data-allow="phone"
                   type="tel"
                   placeholder="0912 345 6789"
                   style={inputWithIconStyle}
@@ -797,6 +805,7 @@ const JoinerRegister = () => {
                 <UserRound size={16} style={fieldIconStyle} />
                 <input
                   name="emergencyContactName"
+                data-allow="name"
                   type="text"
                   placeholder="e.g. Maria Dela Cruz"
                   maxLength={120}
@@ -814,6 +823,7 @@ const JoinerRegister = () => {
                 <Phone size={16} style={fieldIconStyle} />
                 <input
                   name="emergencyContactNumber"
+                data-allow="phone"
                   type="tel"
                   placeholder="+63 917 123 4567"
                   style={inputWithIconStyle}

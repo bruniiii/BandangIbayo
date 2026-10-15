@@ -22,6 +22,7 @@ export const blockSignKeys = (e) => {
 export const moneyInputProps = {
   type: 'text',
   inputMode: 'decimal',
+  'data-allow': 'decimal',
   autoComplete: 'off',
   pattern: '[0-9]+(\\.[0-9]{1,2})?',
   title: 'Numbers only, e.g. 1500 or 1499.50 (no negative amounts)',

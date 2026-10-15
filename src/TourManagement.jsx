@@ -6,7 +6,7 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso } from './tourUtils';
+import { formatPeso, archivePastTours } from './tourUtils';
 import { moneyInputProps, blockSignKeys } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import {
@@ -95,6 +95,7 @@ const TourManagement = () => {
  
   const fetchTours = useCallback(async () => {
     setLoading(true);
+    await archivePastTours();
     const { data, error } = await supabase
       .from('tours')
       .select('*')
@@ -633,7 +634,7 @@ const TourManagement = () => {
                 <ModalInput label="Tour Title" name="title" defaultValue={editingTour?.title} placeholder="e.g., Mt. Pulag" required />
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <ModalInput label="Destination" name="destination" defaultValue={editingTour?.destination} required />
+                  <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={editingTour?.destination} required />
                   <ModalInput label="Price (₱)" name="price" {...moneyInputProps} placeholder="e.g. 1499.50" defaultValue={editingTour?.price} required />
                 </div>
  

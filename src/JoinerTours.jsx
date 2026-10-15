@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 
-import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor } from './tourUtils';
+import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours } from './tourUtils';
 import { startCheckout } from './payments';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
@@ -84,6 +84,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
     setLoading(true);
 
+    await archivePastTours();
     const { data: toursData } = await supabase
 
       .from('tours')
@@ -1934,6 +1935,7 @@ const CompanionFields = ({ companions, onChange, error }) => {
                     <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>
                     <input
                         aria-label={`Person ${i + 2} full name`}
+                        data-allow="name"
                         placeholder="Full name"
                         value={c.full_name}
                         onChange={(e) => onChange(i, 'full_name', e.target.value)}
@@ -1941,6 +1943,7 @@ const CompanionFields = ({ companions, onChange, error }) => {
                     />
                     <input
                         aria-label={`Person ${i + 2} contact number`}
+                        data-allow="phone"
                         placeholder="Contact number"
                         inputMode="tel"
                         value={c.contact_number}

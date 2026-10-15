@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots, formatPeso } from './tourUtils';
+import { withAvailableSlots, formatPeso, archivePastTours } from './tourUtils';
 import { verifyCheckout, cancelCheckout } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
 import JoinerTours, { DetailedTourModal } from './JoinerTours';
@@ -327,6 +327,7 @@ const JoinerDashboard = () => {
         }
       }
 
+      await archivePastTours();
       const { data: toursData } = await supabase
         .from('tours')
         .select('*')

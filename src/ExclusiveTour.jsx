@@ -308,8 +308,8 @@ const ExclusiveTourForm = () => {
           Contact Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="fullName" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField name="contact" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
+          <InputField name="contact" data-allow="phone" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>
@@ -321,7 +321,7 @@ const ExclusiveTourForm = () => {
           Trip Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="destination" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
+          <InputField name="destination" data-allow="place" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
           <InputField name="groupSize" label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField name="preferredDate" label="Preferred Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
           <InputField name="alternateDate" label="Alternate Date (optional)" type="date" min={addDaysPH(1)} value={form.alternateDate} onChange={set('alternateDate')} />
@@ -503,8 +503,8 @@ const RequestTourForm = () => {
           Your Information
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="fullName" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField name="contact" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
+          <InputField name="contact" data-allow="phone" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>
@@ -516,8 +516,8 @@ const RequestTourForm = () => {
           Destination &amp; Tour Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="destination" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
-          <InputField name="region" label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
+          <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
+          <InputField name="region" data-allow="place" label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
           <InputField name="groupSize" label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField name="preferredDate" label="Preferred Tour Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
         </div>
