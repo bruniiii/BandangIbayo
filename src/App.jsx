@@ -18,6 +18,8 @@ import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import { PublicTourList, PublicTourDetail } from './PublicTours';
 import { todayManila, formatPeso } from './tourUtils';
+import { ReviewCard } from './ui/ReviewCards';
+import { usePublicReviews } from './publicReviews';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -29,6 +31,28 @@ import { todayManila, formatPeso } from './tourUtils';
 // #F2E4D0  parchment (section bg)
 // ---------------------------------------------------------
  
+
+// What joiners say: recent 4–5★ reviews with a comment. Hidden until there
+// are reviews to show.
+const LandingReviews = () => {
+  const reviews = usePublicReviews(6);
+  if (!reviews || reviews.length === 0) return null;
+  return (
+    <section style={{ background: '#FDF6EE', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Joiner Stories</span>
+          <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>What Our Joiners Say</h2>
+          <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18' }}>Reviews from joiners who have finished a tour with us.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+          {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 function LandingPage() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -448,6 +472,9 @@ function LandingPage() {
         </div>
       </section>
  
+      {/* ── JOINER REVIEWS ── */}
+      <LandingReviews />
+
       {/* ── ABOUT & CONTACT ── */}
       <section style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 56, alignItems: 'start' }}>

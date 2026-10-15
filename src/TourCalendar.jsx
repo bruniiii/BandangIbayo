@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots, formatPeso, archivePastTours } from './tourUtils';
+import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter } from './tourUtils';
 import { DetailedTourModal } from './JoinerTours';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -40,7 +40,7 @@ const TourCalendar = ({ initialDate }) => {
   const fetchToursWithAvailability = useCallback(async () => {
     setLoading(true);
     await archivePastTours();
-    const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false);
+    const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false).or(notEndedFilter());
     // Joiners can only read their own bookings, so slot totals come from tour_slots_booked().
     const updatedTours = await withAvailableSlots(toursData);
  

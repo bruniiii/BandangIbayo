@@ -30,6 +30,18 @@ export const phoneError = (raw, label = 'Phone number', { required = true } = {}
   return '';
 };
 
+// Shows a mobile number as "+63 917 123 4567" while it's typed. Accepts
+// 09…, 639…, +63… or just the 10 digits; anything past 10 digits is dropped.
+export const formatPhPhone = (raw) => {
+  const text = String(raw ?? '');
+  let digits = text.replace(/\D/g, '');
+  if (text.trim().startsWith('+63') || (digits.startsWith('63') && digits.length > 10)) digits = digits.slice(2);
+  else if (digits.startsWith('0')) digits = digits.slice(1);
+  digits = digits.slice(0, 10);
+  if (!digits) return text.startsWith('+63 ') ? '+63 ' : '';
+  return '+63 ' + [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6)].filter(Boolean).join(' ');
+};
+
 export const samePhone = (a, b) => {
   const x = normalizePhone(a);
   return !!x && x === normalizePhone(b);

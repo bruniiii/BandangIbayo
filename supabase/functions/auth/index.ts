@@ -114,14 +114,22 @@ async function sendCode(email: string, userId: string, code: string) {
   if (!res.ok) throw new HttpError(502, "We couldn't email your verification code. Please try again.");
 }
 
-async function resolveEmail(identifier: string) {
-  const id = identifier.trim();
-  if (id.includes("@")) return id.toLowerCase();
-  // Usernames match exactly, ignoring case (wildcards in what was typed are escaped, then re-checked).
-  const pattern = id.replace(/[\\%_*]/g, (c) => "\\" + c);
-  const { data } = await admin.from("profiles").select("username, email").ilike("username", pattern).limit(10);
-  const match = (data ?? []).find((p: { username?: string }) => String(p.username ?? "").toLowerCase() === id.toLowerCase());
+// Exact, case-insensitive match on one profile column (wildcards in what was
+// typed are escaped, then the result is re-checked).
+async function findProfileEmail(column: "username" | "email", value: string) {
+  const pattern = value.replace(/[\\%_*]/g, (c) => "\\" + c);
+  const { data } = await admin.from("profiles").select(`${column}, email`).ilike(column, pattern).limit(10);
+  const match = (data ?? []).find((p: Record<string, unknown>) => String(p[column] ?? "").toLowerCase() === value.toLowerCase());
   return match?.email ? String(match.email).toLowerCase() : null;
+}
+
+async function resolveEmail(identifier: string) {
+  let id = identifier.trim();
+  // "juan@gmail" → "juan@gmail.com"
+  if (/@gmail$/i.test(id)) id += ".com";
+  if (id.includes("@")) return id.toLowerCase();
+  // A username, or a Gmail address typed without "@gmail.com".
+  return (await findProfileEmail("username", id)) ?? (await findProfileEmail("email", `${id}@gmail.com`));
 }
 
 async function login(p: any) {

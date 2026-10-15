@@ -3,13 +3,14 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import MyData from './MyData';
 import ChangePassword from './ChangePassword';
-import { nameError, phoneError, samePhone, normalizePhone, birthDateError, textError, cleanName, todayPH } from './validation';
+import { nameError, phoneError, samePhone, normalizePhone, birthDateError, textError, cleanName, todayPH, formatPhPhone } from './validation';
 import AddressFields from './AddressFields';
 import { composeAddress } from './phAddress';
 import {
   User, Mail, Phone, Calendar, MapPin, ShieldAlert,
   Loader2, CheckCircle2, Camera, Trash2,
 } from 'lucide-react';
+import { phoneFieldProps } from './ui/phoneField';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -121,7 +122,7 @@ const ProfileSettings = () => {
         setForm({
           first_name: data.first_name || '',
           last_name: data.last_name || '',
-          phone_number: data.phone_number || '',
+          phone_number: formatPhPhone(data.phone_number || ''),
           date_of_birth: data.date_of_birth || '',
           address: data.address || '',
           province: data.province || '',
@@ -129,7 +130,7 @@ const ProfileSettings = () => {
           barangay: data.barangay || '',
           street: data.street || '',
           emergency_contact_name: data.emergency_contact_name || '',
-          emergency_contact_number: data.emergency_contact_number || '',
+          emergency_contact_number: formatPhPhone(data.emergency_contact_number || ''),
         });
       }
       setLoading(false);
@@ -395,7 +396,7 @@ const ProfileSettings = () => {
             <input style={readOnlyInputStyle} value={profile?.email || ''} readOnly title="Contact support to change your login email" />
           </Field>
           <Field label="Phone Number" icon={<Phone size={15} />}>
-            <input style={inputStyle} data-allow="phone" value={form.phone_number} onChange={handleChange('phone_number')} placeholder="+63 912 345 6789" />
+            <input style={inputStyle} {...phoneFieldProps(form.phone_number, (v) => setForm((prev) => ({ ...prev, phone_number: v })))} />
           </Field>
         </div>
 
@@ -410,7 +411,7 @@ const ProfileSettings = () => {
             <input style={inputStyle} data-allow="name" value={form.emergency_contact_name} onChange={handleChange('emergency_contact_name')} placeholder="Maria Dela Cruz" maxLength={120} />
           </Field>
           <Field label="Emergency Contact Number" icon={<Phone size={15} />}>
-            <input style={inputStyle} data-allow="phone" value={form.emergency_contact_number} onChange={handleChange('emergency_contact_number')} placeholder="+63 917 123 4567" />
+            <input style={inputStyle} {...phoneFieldProps(form.emergency_contact_number, (v) => setForm((prev) => ({ ...prev, emergency_contact_number: v })))} />
           </Field>
         </div>
 

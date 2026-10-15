@@ -324,6 +324,12 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         >
           View Details <ChevronRight size={13} />
         </button>
+        {booking.payment_status === 'Complete' && !booking.isActuallyCompleted
+          && booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
+          <button type="button" className="text-link" onClick={onView} style={{ background: 'none', border: 'none', padding: '4px 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+            <QrCode size={13} /> Check-in QR
+          </button>
+        )}
       </div>
     </div>
   );
@@ -480,7 +486,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   </div>
                 </ViewSection>
 
-                {booking.checkin_code && !booking.isActuallyCompleted && booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
+                {!booking.isActuallyCompleted && booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
                   <ViewSection title="Check-in QR" icon={<QrCode size={14} style={{ color: '#A8481A' }} />}>
                     <CheckInQr booking={booking} tourTitle={tour.title} isPaymentConfirmed={isPaymentConfirmed} tourEnded={booking.isActuallyCompleted} />
                   </ViewSection>

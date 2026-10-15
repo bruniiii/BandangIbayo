@@ -25,12 +25,21 @@ const CheckInQr = ({ booking, tourTitle, isPaymentConfirmed, tourEnded }) => {
     return () => { cancelled = true; };
   }, [show, code]);
 
-  if (!code || tourEnded) return null;
+  if (tourEnded) return null;
 
   if (!isPaymentConfirmed) {
     return (
       <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
         Your check-in QR will appear here once your payment is confirmed.
+      </p>
+    );
+  }
+
+  // Bookings get their code from the database update that adds check-in.
+  if (!code) {
+    return (
+      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
+        Your check-in QR isn't ready yet. Please check back later, or show your booking number <strong style={{ fontFamily: 'monospace', color: '#1A0A00' }}>{booking.booking_number}</strong> on the day of the tour.
       </p>
     );
   }

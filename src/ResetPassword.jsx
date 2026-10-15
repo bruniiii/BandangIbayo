@@ -6,6 +6,7 @@ import PasswordChecklist from './PasswordChecklist';
 import { clearLoginLock } from './authApi';
 import { Loader2, CheckCircle2, Lock } from 'lucide-react';
 import logoIcon from './assets/newIcon.png';
+import PasswordField from './ui/PasswordField';
 
 const inputStyle = {
   width: '100%',
@@ -121,8 +122,7 @@ const ResetPassword = () => {
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <div>
               <label style={labelStyle}>New Password</label>
-              <input
-                type="password"
+              <PasswordField
                 required
                 placeholder="••••••••"
                 style={inputStyle}
@@ -134,8 +134,7 @@ const ResetPassword = () => {
             </div>
             <div>
               <label style={labelStyle}>Confirm New Password</label>
-              <input
-                type="password"
+              <PasswordField
                 required
                 placeholder="••••••••"
                 style={inputStyle}

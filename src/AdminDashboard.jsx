@@ -971,6 +971,7 @@ const AdminDashboard = () => {
            activeTab !== 'Exclusive Requests' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
+           activeTab !== 'Check-in' &&
            activeTab !== 'Profile Settings' &&
            activeTab !== 'Notification' && (
             <div style={{

@@ -3,13 +3,14 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
-import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH } from './validation';
+import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH, normalizePhone, formatPhPhone } from './validation';
 import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
   FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
   Phone, Globe, Loader2
 } from 'lucide-react';
+import { phoneFieldProps } from './ui/phoneField';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -159,7 +160,7 @@ const usePrefilledContact = () => {
       const fullName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : '';
       setContact({
         fullName,
-        contact: profile?.phone_number || '',
+        contact: formatPhPhone(profile?.phone_number || ''),
         email: profile?.email || user.email || '',
       });
     })();
@@ -252,7 +253,7 @@ const ExclusiveTourForm = () => {
       user_id: user.id,
       request_type: 'exclusive',
       full_name: form.fullName,
-      contact_number: form.contact,
+      contact_number: normalizePhone(form.contact) || form.contact.trim(),
       email: form.email,
       destination: form.destination,
       group_size: parseInt(form.groupSize) || null,
@@ -309,7 +310,7 @@ const ExclusiveTourForm = () => {
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField name="contact" data-allow="phone" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="contact" label="Contact Number" {...phoneFieldProps(form.contact, (v) => setForm((prev) => ({ ...prev, contact: v })))} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>
@@ -447,7 +448,7 @@ const RequestTourForm = () => {
       user_id: user.id,
       request_type: 'request',
       full_name: form.fullName,
-      contact_number: form.contact,
+      contact_number: normalizePhone(form.contact) || form.contact.trim(),
       email: form.email,
       destination: form.destination,
       region: form.region,
@@ -504,7 +505,7 @@ const RequestTourForm = () => {
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
-          <InputField name="contact" data-allow="phone" label="Contact Number" type="tel" placeholder="09XXXXXXXXX" value={form.contact} onChange={set('contact')} required />
+          <InputField name="contact" label="Contact Number" {...phoneFieldProps(form.contact, (v) => setForm((prev) => ({ ...prev, contact: v })))} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
         </div>
       </section>

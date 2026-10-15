@@ -5,6 +5,7 @@ import { safeNextPath } from './tourUtils';
 import { Loader2, CheckCircle2, MailCheck, ArrowLeft } from 'lucide-react';
 import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
 import OtpInput from './ui/OtpInput';
+import PasswordField from './ui/PasswordField';
  import logoIcon from './assets/newIcon.png';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -320,9 +321,8 @@ const JoinerLogin = () => {
           </div>
           <div>
             <label style={labelStyle}>Password</label>
-            <input
+            <PasswordField
               name="password"
-              type="password"
               placeholder="••••••••"
               style={{ ...inputStyle, ...(credError ? errorBorder : null) }}
               aria-invalid={!!credError}

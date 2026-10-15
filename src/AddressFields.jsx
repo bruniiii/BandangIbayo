@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { usePhLocations, useBarangays } from './phAddress';
 import SearchSelect from './ui/SearchSelect';
+import RequiredMark from './ui/RequiredMark';
 
 // Province → City/Municipality → Barangay (type to search, or scroll the list) plus a Street field.
 // Works inside a plain <form> (inputs are named province / city / barangay /
 // street) and, with onChange, as a controlled part of a page's state.
-const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, labelStyle, required = false }) => {
+const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, labelStyle, required = false, markRequired = false }) => {
+  const star = markRequired ? <RequiredMark /> : null;
   const locations = usePhLocations();
   const [value, setValue] = useState({
     province: defaultValue.province || '',
@@ -32,7 +34,7 @@ const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, l
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
       <div>
-        <label style={labelStyle} htmlFor="address-province">Province</label>
+        <label style={labelStyle} htmlFor="address-province">Province {star}</label>
         <SearchSelect
           id="address-province"
           name="province"
@@ -46,7 +48,7 @@ const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, l
         />
       </div>
       <div>
-        <label style={labelStyle} htmlFor="address-city">City / Municipality</label>
+        <label style={labelStyle} htmlFor="address-city">City / Municipality {star}</label>
         <SearchSelect
           id="address-city"
           name="city"
@@ -60,7 +62,7 @@ const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, l
         />
       </div>
       <div>
-        <label style={labelStyle} htmlFor="address-barangay">Barangay</label>
+        <label style={labelStyle} htmlFor="address-barangay">Barangay {star}</label>
         <SearchSelect
           id="address-barangay"
           name="barangay"
@@ -74,7 +76,7 @@ const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, l
         />
       </div>
       <div style={{ gridColumn: '1 / -1' }}>
-        <label style={labelStyle} htmlFor="address-street">Street / House No.</label>
+        <label style={labelStyle} htmlFor="address-street">Street / House No. {star}</label>
         <input
           id="address-street"
           name="street"

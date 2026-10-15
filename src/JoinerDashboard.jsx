@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots, formatPeso, archivePastTours } from './tourUtils';
+import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter } from './tourUtils';
 import { verifyCheckout, cancelCheckout } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
 import JoinerTours, { DetailedTourModal } from './JoinerTours';
@@ -18,6 +18,8 @@ import logoIcon from './assets/newIcon.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
+import { ReviewCard } from './ui/ReviewCards';
+import { usePublicReviews } from './publicReviews';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -332,6 +334,7 @@ const JoinerDashboard = () => {
         .from('tours')
         .select('*')
         .eq('is_archived', false)
+        .or(notEndedFilter())
         .order('start_date', { ascending: true })
         .limit(12);
 
@@ -806,6 +809,12 @@ const JoinerDashboard = () => {
                   )}
                   </div>
 
+                  {/* Reviews: other joiners' recent reviews, plus a nudge to write one */}
+                  <HomeReviews
+                    loading={loadingHome}
+                    completedCount={completedCount}
+                    onOpen={() => setActiveTab('Reviews')}
+                  />
                 </div>
 
                 {/* RIGHT RAIL */}
@@ -822,11 +831,6 @@ const JoinerDashboard = () => {
                     hasTrip={!!nextTrip}
                     stop={trackingStop}
                     onClick={() => setActiveTab('Tracking')}
-                  />
-                  <ReviewPromptCard
-                    loading={loadingHome}
-                    completedCount={completedCount}
-                    onClick={() => setActiveTab('Reviews')}
                   />
                 </div>
               </div>
@@ -1276,47 +1280,57 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
 };
 
 /* ── REVIEW PROMPT CARD ── */
-const ReviewPromptCard = ({ loading, completedCount, onClick }) => {
-  const hasCompleted = completedCount > 0;
-
+// Homepage reviews block (under Latest Tour Packages): a few recent 4–5★
+// reviews from other joiners, and a prompt to write one after a finished tour.
+const HomeReviews = ({ loading, completedCount, onOpen }) => {
+  const reviews = usePublicReviews(3);
   return (
-    <div
-      onClick={onClick}
-      style={{
-        background: hasCompleted ? '#1A0A00' : '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-        cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Star size={15} style={{ color: hasCompleted ? '#E8A265' : '#A8481A' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: hasCompleted ? '#FDF6EE' : '#1A0A00' }}>
-            Reviews
-          </span>
-        </div>
-        <ChevronRight size={15} style={{ color: hasCompleted ? 'rgba(253,246,238,0.85)' : 'rgba(122,58,24,0.85)' }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Star size={15} style={{ color: '#A8481A' }} /> Reviews
+        </h3>
+        <button type="button" className="text-link" onClick={onOpen} style={{ background: 'none', border: 'none', padding: '4px 2px', fontSize: 13, whiteSpace: 'nowrap' }}>
+          See all reviews
+        </button>
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
-      ) : !hasCompleted ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
-          Finish a tour to unlock your first review.
-        </p>
-      ) : (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <Star size={14} style={{ color: '#E8A265' }} />
-            <span style={{ fontSize: 13, fontWeight: 900, color: '#FDF6EE' }}>
+      {!loading && completedCount > 0 && (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="clickable-card"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', textAlign: 'left',
+            background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 18, padding: '1rem 1.25rem', fontFamily: 'inherit',
+          }}
+        >
+          <span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 900 }}>
+              <Star size={15} fill="#E8A265" style={{ color: '#E8A265' }} />
               {completedCount} tour{completedCount === 1 ? '' : 's'} to review
             </span>
-          </div>
-          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(253,246,238,0.85)', margin: 0 }}>
-            Tell other joiners how it went — it takes a minute.
-          </p>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.85)', marginTop: 3 }}>
+              Tell other joiners how it went — it takes a minute.
+            </span>
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#E8A265', whiteSpace: 'nowrap' }}>
+            Write a review <ChevronRight size={14} />
+          </span>
+        </button>
+      )}
+
+      {reviews === null ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: '#7A3A18' }}>
+          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      ) : reviews.length === 0 ? (
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+          No reviews yet. Joiners can review a tour once it's finished.
+        </p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+          {reviews.map((r) => <ReviewCard key={r.id} review={r} compact />)}
         </div>
       )}
     </div>
