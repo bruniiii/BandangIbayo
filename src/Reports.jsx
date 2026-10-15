@@ -27,10 +27,10 @@ const CHART_COLORS = {
   complete: '#A8481A',
   pending: '#E8A265',
   rejected: '#8C2F1C',
-  cancelled: 'rgba(26,10,0,0.8)',
+  cancelled: 'rgba(26,10,0,0.35)',
   full: '#1A0A00',
   down: '#A8481A',
-  none: 'rgba(122,58,24,0.85)',
+  none: 'rgba(122,58,24,0.25)',
   new: '#A8481A',
   returning: '#1A0A00',
 };

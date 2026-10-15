@@ -1206,8 +1206,8 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
     return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
   }
  
-  const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#A8481A' : '#7A3A18';
-  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(168,72,26,0.07)' : 'rgba(122,58,24,0.85)';
+  const iconColor = variant === 'exclude' ? '#8C2F1C' : '#A8481A';
+  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(168,72,26,0.07)' : 'rgba(180,81,30,0.06)';
   const Icon = variant === 'exclude' ? X : CheckCircle2;
  
   return (
