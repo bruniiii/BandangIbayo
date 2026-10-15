@@ -20,6 +20,7 @@ import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
+import { confirmDialog } from './ui/ConfirmDialog';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -207,6 +208,13 @@ const JoinerDashboard = () => {
   };
 
   const handleLogout = async () => {
+    const ok = await confirmDialog({
+      title: 'Sign out?',
+      message: "You'll need to log in again to see your bookings and account.",
+      confirmLabel: 'Sign Out',
+      cancelLabel: 'Stay Signed In',
+    });
+    if (!ok) return;
     await supabase.auth.signOut();
     navigate('/login');
   };
