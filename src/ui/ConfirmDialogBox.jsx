@@ -28,7 +28,7 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, onC
           position: 'relative', width: '100%', maxWidth: 420, background: COLORS.cream, borderRadius: 22,
           padding: '1.6rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)',
           borderTop: `6px solid ${danger ? COLORS.danger : COLORS.primary}`,
-          fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+          fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
         }}
       >
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>

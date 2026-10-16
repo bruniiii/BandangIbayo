@@ -54,8 +54,8 @@ const PublicNav = ({ session }) => {
   }}>
     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textDecoration: 'none' }}>
       <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }} />
-      <span className="public-nav-brand" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap' }}>
-        Bandang <span style={{ color: '#A8481A' }}>IBAYO</span>
+      <span className="public-nav-brand font-display" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap' }}>
+        Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span>
       </span>
     </Link>
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
@@ -90,7 +90,7 @@ const navCta = {
 
 const pageStyle = {
   background: '#FDF6EE', minHeight: '100vh',
-  fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden',
+  fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden',
 };
 
 const CenteredMessage = ({ children }) => (

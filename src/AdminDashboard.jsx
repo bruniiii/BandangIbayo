@@ -354,7 +354,7 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard-container" style={{
       display: 'flex', height: '100vh',
-      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+      fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
       background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
@@ -440,8 +440,8 @@ const AdminDashboard = () => {
               }}
             />
             {sidebarExpanded && (
-              <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
-                Bandang <span style={{ color: '#E8A265' }}>IBAYO</span>
+              <span className="font-display" style={{ fontSize: 19, color: '#FDF6EE', whiteSpace: 'nowrap' }}>
+                Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span>
               </span>
             )}
           </button>
