@@ -24,6 +24,7 @@ import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
+import AdminAttention from './AdminAttention';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -46,20 +47,6 @@ const timeAgo = (dateStr) => {
   if (diff < 3600) return `${Math.floor(diff / 60)} minute${Math.floor(diff / 60) !== 1 ? 's' : ''} ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) !== 1 ? 's' : ''} ago`;
   return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? 's' : ''} ago`;
-};
- 
-const deriveActivity = (booking) => {
-  const name = booking.profiles
-    ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim()
-    : booking.full_name || 'Unknown';
- 
-  if (booking.booking_status === 'Cancelled') {
-    return { label: 'Booking cancelled', name, type: 'cancel', Icon: XCircle, ts: booking.updated_at || booking.created_at };
-  }
-  if (booking.payment_status === 'Complete' || booking.payment_status === 'Verified') {
-    return { label: 'Payment confirmed via GCash', name, type: 'payment', Icon: CreditCard, ts: booking.updated_at || booking.created_at };
-  }
-  return { label: 'New booking created', name, type: 'booking', Icon: CheckCircle2, ts: booking.created_at };
 };
  
 const peso = formatPeso;
@@ -132,8 +119,14 @@ const AdminDashboard = () => {
   const sidebarExpanded = isMobile ? true : sidebarHovered;
  
   const handleNavClick = (label) => {
+    setBookingStatus('All Status');
     setActiveTab(label);
     if (isMobile) setMobileNavOpen(false);
+  };
+
+  const openFromAttention = (label, { status } = {}) => {
+    handleNavClick(label);
+    if (status) setBookingStatus(status);
   };
 
   // Routes a clicked notification to the module it's about — a new
@@ -173,7 +166,8 @@ const AdminDashboard = () => {
     revenueThisMonth: 0,
     revenueLastMonth: 0,
   });
-  const [activities, setActivities] = useState([]);
+  // Booking Management's starting filter when opened from "Needs Your Attention".
+  const [bookingStatus, setBookingStatus] = useState('All Status');
   const [loadingStats, setLoadingStats] = useState(true);
 
   // Per-module snapshot data surfaced on the Overview tab so admins don't
@@ -223,7 +217,6 @@ const AdminDashboard = () => {
       { count: pendingVerification },
       { count: totalJoiners },
       { count: joinersThisWeek },
-      { data: recentBookingsRaw },
       { data: revenueThisMonthRaw },
       { data: revenueLastMonthRaw },
       { data: upcomingToursRaw },
@@ -243,7 +236,6 @@ const AdminDashboard = () => {
       supabase.from('bookings').select('*', { count: 'exact', head: true }).in('payment_status', ['Pending', 'Verification Pending']),
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
-      supabase.from('bookings').select('id, full_name, user_id, payment_status, booking_status, created_at, updated_at').order('updated_at', { ascending: false }).limit(10),
       supabase.from('bookings').select('total_price').eq('payment_status', 'Complete').gte('created_at', monthStart).lt('created_at', monthEnd),
       supabase.from('bookings').select('total_price').eq('payment_status', 'Complete').gte('created_at', lastMonthStart).lt('created_at', monthStart),
       supabase.from('tours').select('id, title, destination, start_date, group_size, image_urls').eq('is_archived', false).order('start_date', { ascending: true }).limit(3),
@@ -270,16 +262,6 @@ const AdminDashboard = () => {
       revenueThisMonth,
       revenueLastMonth,
     });
-
-    if (recentBookingsRaw && recentBookingsRaw.length > 0) {
-      const userIds = [...new Set(recentBookingsRaw.map(b => b.user_id).filter(Boolean))];
-      const { data: profilesData } = await supabase.from('profiles').select('id, first_name, last_name').in('id', userIds);
-      const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
-      const enriched = recentBookingsRaw.map(b => ({ ...b, profiles: profileMap[b.user_id] || null }));
-      setActivities(enriched.map(deriveActivity));
-    } else {
-      setActivities([]);
-    }
 
     // ── Tour Management snippet: live booked/capacity for the next 3 tours ──
     let toursWithCounts = [];
@@ -851,62 +833,15 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* recent activity */}
-              <div style={{
-                background: '#FDF6EE',
-                borderRadius: 24,
-                padding: '2rem 2.5rem',
-                border: '1px solid rgba(180,81,30,0.12)',
-                boxShadow: '0 4px 24px rgba(26,10,0,0.06)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                    background: '#1A0A00', color: '#E8A265',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Clock size={15} />
-                  </div>
-                  <h3 style={{
-                    fontWeight: 900, fontSize: 13, letterSpacing: '0.18em',
-                    textTransform: 'uppercase', color: '#1A0A00',
-                    margin: 0,
-                  }}>
-                    Recent System Activity
-                  </h3>
-                </div>
- 
-                {loadingStats ? (
-                  <SkeletonRows count={5} boxed={false} label="Loading activity" />
-                ) : activities.length === 0 ? (
-                  <div style={{
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center',
-                    padding: '4rem 0',
-                    border: '2px dashed rgba(180,81,30,0.15)',
-                    borderRadius: 16,
-                    color: 'rgba(122,58,24,0.85)',
-                  }}>
-                    <Users size={36} style={{ marginBottom: 10, opacity: 0.3 }} />
-                    <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-                      No recent activity
-                    </p>
-                  </div>
-                ) : (
-                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {activities.map((item, i) => (
-                      <ActivityItem key={i} {...item} />
-                    ))}
-                  </ul>
-                )}
-              </div>
+              {/* to-do list: payments, balances, requests, tours leaving soon */}
+              <AdminAttention onOpen={openFromAttention} />
             </div>
           )}
  
           {/* ROUTED CONTENT VIEWS */}
           {activeTab === 'Feed' && <Feed isAdmin={true} />}
           {activeTab === 'Tour Management' && <TourManagement />}
-          {activeTab === 'Booking Management' && <BookingManagement />}
+          {activeTab === 'Booking Management' && <BookingManagement key={bookingStatus} initialStatus={bookingStatus} />}
           {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
           {activeTab === 'Exclusive Requests' && <AdminExclusiveTours />}
           {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
@@ -985,48 +920,6 @@ const PAGE_INFO = {
   'Profile Settings':    { icon: User,            title: 'Profile Settings',    subtitle: 'Manage your account information and preferences' },
 };
 
-// ─── Activity Item ────────────────────────────────────────────────────────────
- 
-const ACTIVITY_COLORS = {
-  cancel:  { bg: 'rgba(180,81,30,0.10)',  color: '#A8481A' },
-  payment: { bg: 'rgba(26,10,0,0.07)',    color: '#7A3A18' },
-  booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
-};
- 
-const ActivityItem = ({ label, name, type, ts, Icon }) => { // Fixed destructured Icon prop bug
-  const { bg, color } = ACTIVITY_COLORS[type] || ACTIVITY_COLORS.booking;
-  return (
-    <li style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '14px 0',
-      borderBottom: '1px solid rgba(180,81,30,0.08)',
-      gap: 16,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: '50%',
-          background: bg,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-          color,
-        }}>
-          {Icon && <Icon size={17} />}
-        </div>
-        <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{label}</p>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>{name}</p>
-        </div>
-      </div>
-      <span style={{
-        fontSize: 11.5, fontWeight: 700, color: '#7A3A18',
-        opacity: 0.9, whiteSpace: 'nowrap', flexShrink: 0,
-      }}>
-        {timeAgo(ts)}
-      </span>
-    </li>
-  );
-};
- 
 // ─── Nav Item ────────────────────────────────────────────────────────────────
  
 const NavItem = ({ icon, label, active, onClick, collapsed }) => (

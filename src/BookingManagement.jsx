@@ -49,11 +49,12 @@ const owesBalance = (b) =>
 /* ─────────────────────────────────────────────
    BOOKING MANAGEMENT  (Admin)
 ───────────────────────────────────────────── */
-const BookingManagement = () => {
+// initialStatus: opens with that status filter (from the Overview's "Needs Your Attention").
+const BookingManagement = ({ initialStatus = 'All Status' }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [methodFilter, setMethodFilter] = useState('All Methods');
   const [tourFilter, setTourFilter] = useState('All Tours');
   const [dateFilter, setDateFilter] = useState('');
@@ -149,7 +150,8 @@ const BookingManagement = () => {
       (b.booking_number || '').toLowerCase().includes(searchTerm.toLowerCase());
     const derived = getDerivedStatus(b);
     const matchesStatus = statusFilter === 'All Status' || derived === statusFilter
-      || (statusFilter === 'Balance Due' && owesBalance(b));
+      || (statusFilter === 'Balance Due' && owesBalance(b))
+      || (statusFilter === 'Needs Review' && (derived === 'Pending' || derived === 'Verification Pending'));
     const matchesMethod = methodFilter === 'All Methods' || b.payment_method === methodFilter;
     const matchesTour = tourFilter === 'All Tours' || String(b.tour_id) === String(tourFilter);
     const matchesDate = !dateFilter || b.tours?.start_date === dateFilter;
@@ -249,6 +251,7 @@ const BookingManagement = () => {
             <option value="All Status">All Status</option>
             <option value="Pending">Pending</option>
             <option value="Verification Pending">Verification Pending</option>
+            <option value="Needs Review">Needs Review (all pending)</option>
             <option value="Complete">Complete</option>
             <option value="Rejected">Rejected</option>
             <option value="Cancelled">Cancelled</option>
