@@ -562,14 +562,6 @@ const JoinerDashboard = () => {
             >
               <Menu size={22} />
             </button>
-
-            <h2 className="dashboard-header-title" style={{
-              fontWeight: 900, fontSize: 15, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: '#1A0A00', margin: 0,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>
-              {activeTab}
-            </h2>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>

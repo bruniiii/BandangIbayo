@@ -285,11 +285,6 @@ main {
 }
  
 @media (max-width: 560px) {
-  .dashboard-header-title {
-    font-size: 12px !important;
-    letter-spacing: 0.04em !important;
-  }
- 
   .dashboard-hero-padding {
     padding: 1.75rem 1.5rem !important;
   }
