@@ -21,6 +21,7 @@ import Notification from './Notification';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';
+import PageHeader from './ui/PageHeader';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -46,6 +47,20 @@ const NAV_ITEMS = [
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
   { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
 ];
+
+// Title and one-line description shown at the top of each page.
+const PAGE_INFO = {
+  'HomePage':         { icon: Home,         title: 'Homepage',         subtitle: 'Your trips, new tours and reviews at a glance' },
+  'Feed':             { icon: Rss,          title: 'Community Feed',   subtitle: 'Updates, announcements & newly posted tours' },
+  'Explore Tours':    { icon: Compass,      title: 'Explore Tours',    subtitle: 'Find your next adventure and pick a date' },
+  'My Bookings':      { icon: ShoppingBag,  title: 'My Bookings',      subtitle: 'Track your adventures and manage your reservations' },
+  'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
+  'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
+  'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: "Book a private group trip, or suggest a destination we don't offer yet" },
+  'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
+  'Profile Settings': { icon: User,         title: 'Profile Settings', subtitle: 'Manage your account information and preferences' },
+  'Notification':     { icon: Bell,         title: 'Notifications',    subtitle: 'Updates on your bookings, requests & account' },
+};
 
 const JoinerDashboard = () => {
   // A public tour page's "Book" button lands here as /dashboard?book=<tourId>.
@@ -622,6 +637,8 @@ const JoinerDashboard = () => {
               </button>
             </div>
           )}
+
+          {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
 
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

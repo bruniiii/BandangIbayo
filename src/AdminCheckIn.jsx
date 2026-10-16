@@ -219,12 +219,6 @@ const AdminCheckIn = () => {
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px' }}>Tour-day check-in</h2>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
-          Scan each joiner's QR from My Bookings to confirm they're on this tour's list. One QR covers their whole group.
-        </p>
-      </div>
 
       {!toursLoaded ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 40, color: '#7A3A18' }}><Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} /></div>

@@ -894,16 +894,6 @@ const ExclusiveTour = () => {
  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
-      {/* Page Header */}
-      <div>
-        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.15 }}>
-          Exclusive &amp; <span style={{ color: '#A8481A' }}>Requested</span> Tours
-        </h2>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, marginTop: 6, margin: '6px 0 0' }}>
-          Want privacy, a tailored itinerary, or a destination we don't offer yet? You're in the right place.
-        </p>
-      </div>
- 
       {/* Tab Switcher */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
         {tabs.map(tab => {

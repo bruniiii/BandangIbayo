@@ -164,11 +164,6 @@ const MyBookings = ({ onExplore }) => {
         display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
         gap: 20, borderBottom: '1px solid rgba(180,81,30,0.12)', paddingBottom: 24,
       }}>
-        <div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
-            Track your adventures and manage your reservations.
-          </p>
-        </div>
         <div style={{ display: 'flex', background: '#F2E4D0', padding: 6, borderRadius: 16, width: '100%', maxWidth: 380, border: '1px solid rgba(180,81,30,0.14)' }}>
           {['Upcoming', 'Completed', 'Cancelled'].map((tab) => (
             <button

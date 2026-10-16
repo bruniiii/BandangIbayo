@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Map, Calendar, Users,
   FileText, Bell, CreditCard, LogOut, Search, TrendingUp, AlertCircle,
   CheckCircle2, XCircle, Clock, Menu, X, Rss, Star, Globe,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2, ScanLine
+  ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2, ScanLine, User
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -23,6 +23,7 @@ import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
+import PageHeader from './ui/PageHeader';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -587,7 +588,10 @@ const AdminDashboard = () => {
         </header>
  
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE', display: 'flex', flexDirection: 'column' }}>
+          {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
+          {/* Pages that fill the screen (height: 100%) get the space under the title. */}
+          <div style={{ flex: 1, minHeight: 0 }}>
  
           {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
@@ -1004,12 +1008,29 @@ const AdminDashboard = () => {
               </p>
             </div>
           )}
+          </div>
         </div>
       </main>
     </div>
   );
 };
  
+// Title and one-line description shown at the top of each page.
+const PAGE_INFO = {
+  'Overview':            { icon: LayoutDashboard, title: 'Overview',            subtitle: "Today's bookings, payments and tours at a glance" },
+  'Feed':                { icon: Rss,             title: 'Community Feed',      subtitle: 'Updates, announcements & newly posted tours' },
+  'Tour Management':     { icon: Map,             title: 'Tour Management',     subtitle: 'Create tours, add dates and manage your postings' },
+  'Booking Management':  { icon: Calendar,        title: 'Booking Management',  subtitle: 'Verify payments, track downpayments and update booking status' },
+  'Joiner Accounts':     { icon: Users,           title: 'Joiner Accounts',     subtitle: 'Everyone registered as a joiner' },
+  'Exclusive Requests':  { icon: Globe,           title: 'Exclusive Requests',  subtitle: 'Private-group requests and new destination suggestions from joiners' },
+  'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners" },
+  'Check-in':            { icon: ScanLine,        title: 'Check-in',            subtitle: "Scan each joiner's QR on the day of the tour. One QR covers their whole group." },
+  'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
+  'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
+  'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
+  'Profile Settings':    { icon: User,            title: 'Profile Settings',    subtitle: 'Manage your account information and preferences' },
+};
+
 // ─── Activity Item ────────────────────────────────────────────────────────────
  
 const ACTIVITY_COLORS = {

@@ -134,24 +134,11 @@ const AdminExclusiveTours = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
 
-        {/* ── Header ── */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-          borderBottom: '1px solid rgba(180,81,30,0.15)',
-          paddingBottom: 16, marginBottom: 20, gap: 20, flexWrap: 'wrap',
-        }}>
-          <div>
-            <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
-              Exclusive & Requested Tours
-            </h2>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
-              Review private-group booking requests and new destination suggestions submitted by joiners.
-              {pendingCount > 0 && (
-                <span style={{ color: '#A8481A', fontWeight: 900 }}> {pendingCount} awaiting review.</span>
-              )}
-            </p>
-          </div>
-        </div>
+        {pendingCount > 0 && (
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#A8481A', margin: '0 0 16px' }}>
+            {pendingCount} request{pendingCount === 1 ? '' : 's'} awaiting review.
+          </p>
+        )}
 
         {/* ── Filters ── */}
         <div style={{

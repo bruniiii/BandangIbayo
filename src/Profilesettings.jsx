@@ -291,14 +291,6 @@ const ProfileSettings = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 780, margin: '0 auto', position: 'relative' }}>
-      <div>
-        <h2 style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-          Profile Settings
-        </h2>
-        <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
-          Manage your account information and preferences
-        </p>
-      </div>
 
 
       {/* avatar card */}

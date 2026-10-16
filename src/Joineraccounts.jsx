@@ -156,10 +156,7 @@ const JoinerAccounts = () => {
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
         <div>
-          <h2 style={{ fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-            Joiner Accounts
-          </h2>
-          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
             {loading ? 'Loading registered joiners…' : `${joiners.length} registered joiner${joiners.length !== 1 ? 's' : ''}`}
           </p>
         </div>

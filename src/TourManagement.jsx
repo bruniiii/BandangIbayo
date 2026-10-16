@@ -452,7 +452,7 @@ const TourManagement = () => {
               color: currentTab === 'active' ? '#1A0A00' : 'rgba(122,58,24,0.85)',
               transition: 'color 0.2s',
             }}
-          >Manage Tour Postings</button>
+          >Active Tours</button>
           <span style={{ color: '#A8481A', fontSize: 18 }}>|</span>
           <button
             onClick={() => setCurrentTab('archive')}

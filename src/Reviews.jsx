@@ -221,33 +221,14 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 780, margin: '0 auto' }}>
 
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 11, background: '#1A0A00',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265',
-          }}>
-            <MessageSquare size={18} />
-          </div>
-          <div>
-            <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-              Tour Reviews
-            </h2>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
-              {isAdmin ? 'What joiners are saying about your tours' : 'Share your experience & read what others say'}
-            </p>
-          </div>
-        </div>
-
+      {/* average rating */}
         {avgRating && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 999, padding: '8px 16px' }}>
+          <div style={{ alignSelf: 'flex-end', display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 999, padding: '8px 16px' }}>
             <StarRow rating={Math.round(avgRating)} size={13} />
             <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{avgRating}</span>
             <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>({reviews.length})</span>
           </div>
         )}
-      </div>
 
       {/* composer — joiner only */}
       {!isAdmin && (

@@ -192,22 +192,6 @@ const BookingManagement = () => {
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
       <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
  
-      {/* ── Header ── */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        borderBottom: '1px solid rgba(180,81,30,0.15)',
-        paddingBottom: 16, marginBottom: 20, gap: 20, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
-            Manage Booking Records
-          </h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
-            Verify GCash payments, track downpayments, and update booking status across all joiner reservations.
-          </p>
-        </div>
-      </div>
- 
       {/* ── Balances still owed (downpayment bookings) ── */}
       {balancesDue.length > 0 && (
         <div style={{
