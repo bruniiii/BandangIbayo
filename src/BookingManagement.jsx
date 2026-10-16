@@ -188,10 +188,10 @@ const BookingManagement = () => {
   const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 150px 140px';
  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
-      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Balances still owed (downpayment bookings) ── */}
       {balancesDue.length > 0 && (
@@ -1241,20 +1241,23 @@ const BalanceStatusBadge = ({ status }) => {
 };
  
 const PAYMENT_METHOD_STYLES = {
-  'Full Payment': { bg: 'rgba(26,10,0,0.06)', color: '#1A0A00' },
+  'Full Payment': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
   Downpayment: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
 };
  
 const PaymentMethodBadge = ({ method }) => {
   if (!method) return <span style={{ color: '#7A3A18', fontSize: 11, fontWeight: 700 }}>—</span>;
   const { bg, color } = PAYMENT_METHOD_STYLES[method] || { bg: 'rgba(180,81,30,0.1)', color: '#7A3A18' };
+  const Icon = method === 'Downpayment' ? Wallet : CreditCard;
   return (
+    // Sized to its text (not stretched to the column), like the status badges beside it.
     <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start', width: 'fit-content',
       background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 11, fontWeight: 900,
-      letterSpacing: '0.16em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+      padding: '4px 11px', fontSize: 10, fontWeight: 900,
+      letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
-      {method}
+      <Icon size={11} /> {method}
     </span>
   );
 };

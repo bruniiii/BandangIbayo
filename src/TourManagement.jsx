@@ -342,7 +342,7 @@ const TourManagement = () => {
   };
  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {joinerListTour && (
         <JoinerListModal tour={joinerListTour} onClose={() => setJoinerListTour(null)} />
@@ -435,7 +435,7 @@ const TourManagement = () => {
       )}
  
       {/* ── Scrollable Content (header + filters + grid scroll together) ── */}
-      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4 }}>
+      <div>
 
       {/* ── Header Tabs ── */}
       <div style={{

@@ -552,7 +552,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Pages that fill the screen (height: 100%) get the space under the title. */}
+          {/* The page content under the title row */}
           <div style={{ flex: 1, minHeight: 0 }}>
  
           {/* OVERVIEW TAB CONTENT */}

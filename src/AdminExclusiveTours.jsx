@@ -132,8 +132,8 @@ const AdminExclusiveTours = () => {
   const pendingCount = requests.filter(r => r.status === 'Pending').length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
 
         {pendingCount > 0 && (
           <p style={{ fontSize: 12.5, fontWeight: 800, color: '#A8481A', margin: '0 0 16px' }}>
