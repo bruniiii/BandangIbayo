@@ -84,6 +84,8 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
     min-height: 44px;
     min-width: 44px;
   }
+  /* A taller link button keeps its label in the middle. */
+  a.btn-primary { display: inline-flex; align-items: center; justify-content: center; }
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
   select, textarea {
     min-height: 44px;
@@ -139,3 +141,16 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
 }
 /* Button spinners ("Saving…") use this */
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Phones: the notification list drops down across the screen, below the
+   title row, instead of off the left edge from the bell. */
+@media (max-width: 560px) {
+  .notif-panel {
+    position: fixed !important;
+    top: 76px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-height: calc(100dvh - 100px) !important;
+  }
+}

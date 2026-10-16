@@ -644,7 +644,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
         overflow: 'hidden',
         borderTop: `8px solid ${accentColor}`,
-        maxHeight: '92vh',
+        maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
  
@@ -1046,7 +1046,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           }}>
             <X size={40} />
           </button>
-          <img src={receiptSrc} style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Receipt" />
+          <img src={receiptSrc} style={{ maxWidth: '100%', maxHeight: '90dvh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Receipt" />
         </div>
       )}
     </div>

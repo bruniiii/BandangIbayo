@@ -221,7 +221,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
       <div style={{
         position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 1100,
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E',
-        overflow: 'hidden', maxHeight: '92vh', display: 'flex', flexDirection: 'column',
+        overflow: 'hidden', maxHeight: '92dvh', display: 'flex', flexDirection: 'column',
       }}>
         <button
           onClick={onClose}

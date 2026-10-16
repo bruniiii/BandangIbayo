@@ -1215,7 +1215,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                 overflow: 'hidden',
 
-                maxHeight: '92vh',
+                maxHeight: '92dvh',
 
                 display: 'flex', flexDirection: 'column',
 
@@ -1697,7 +1697,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
       <div style={{
 
-        background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
+        background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
 
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E',
 
@@ -1809,7 +1809,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
         <div style={{
 
-            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
+            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92dvh', overflowY: 'auto',
 
             padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
 

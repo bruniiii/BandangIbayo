@@ -315,7 +315,7 @@ const JoinerRegister = () => {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -1073,7 +1073,7 @@ const TermsModal = ({ onClose, onAgree }) => (
         background: '#FDF6EE',
         width: '100%',
         maxWidth: 620,
-        maxHeight: '85vh',
+        maxHeight: '85dvh',
         borderRadius: 24,
         boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
         borderTop: '7px solid #B4511E',

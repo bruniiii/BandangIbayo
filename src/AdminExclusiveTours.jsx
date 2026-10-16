@@ -450,7 +450,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         position: 'relative', background: '#FDF6EE',
         width: '100%', maxWidth: 680,
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-        overflow: 'hidden', maxHeight: '92vh',
+        overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
         borderTop: `8px solid ${accentColor}`,
       }}>

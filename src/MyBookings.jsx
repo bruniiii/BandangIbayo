@@ -414,7 +414,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
         width: '100%', maxWidth: 900,
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
         borderTop: '8px solid #B4511E',
-        overflow: 'hidden', maxHeight: '92vh',
+        overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
         <button onClick={onClose} style={{

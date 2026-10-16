@@ -106,6 +106,7 @@ function LandingPage() {
         <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
           <Link to="/login" className="nav-login btn-text-link" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none', letterSpacing: '0.04em' }}>Log in</Link>
           <Link to="/register" className="nav-cta btn-primary" style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap',
             fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
             background: '#B4511E', borderRadius: 10, padding: '9px 20px',
             letterSpacing: '0.04em', boxShadow: '0 4px 16px rgba(180,81,30,0.35)',
@@ -115,7 +116,7 @@ function LandingPage() {
  
       {/* ── HERO ── */}
       <section style={{
-        minHeight: '92vh', display: 'grid',
+        minHeight: '92dvh', display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         background: '#1A0A00',
         position: 'relative', overflow: 'hidden',
@@ -245,7 +246,8 @@ function LandingPage() {
         @media (max-width: 480px) {
           /* The hero's "Browse Tours" button covers it on phones. */
         }
-        @media (max-width: 380px) {
+        /* Phones: the hero already has a big Log In button, so the nav keeps just Join Now. */
+        @media (max-width: 480px) {
           .nav-login { display: none !important; }
         }
 
