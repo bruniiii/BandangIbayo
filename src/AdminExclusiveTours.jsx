@@ -12,6 +12,7 @@ import {
   Phone, Mail, Wallet, Home, ChevronDown, CheckCircle2, XCircle,
   Clock, MessageSquare, ArrowRight, FileText, Send, PencilLine, Package,
 } from 'lucide-react';
+import { SkeletonRows } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -131,27 +132,14 @@ const AdminExclusiveTours = () => {
   const pendingCount = requests.filter(r => r.status === 'Pending').length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
 
-        {/* ── Header ── */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-          borderBottom: '1px solid rgba(180,81,30,0.15)',
-          paddingBottom: 16, marginBottom: 20, gap: 20, flexWrap: 'wrap',
-        }}>
-          <div>
-            <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
-              Exclusive & Requested Tours
-            </h2>
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
-              Review private-group booking requests and new destination suggestions submitted by joiners.
-              {pendingCount > 0 && (
-                <span style={{ color: '#A8481A', fontWeight: 900 }}> {pendingCount} awaiting review.</span>
-              )}
-            </p>
-          </div>
-        </div>
+        {pendingCount > 0 && (
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#A8481A', margin: '0 0 16px' }}>
+            {pendingCount} request{pendingCount === 1 ? '' : 's'} awaiting review.
+          </p>
+        )}
 
         {/* ── Filters ── */}
         <div style={{
@@ -202,16 +190,7 @@ const AdminExclusiveTours = () => {
         {/* ── List ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {loading ? (
-            <div style={{
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
-            }}>
-              <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-              <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-                Loading Requests…
-              </p>
-            </div>
+            <SkeletonRows count={5} label="Loading requests" />
           ) : filtered.length === 0 ? (
             (searchQuery || statusFilter !== 'All Status' || typeFilter !== 'All Types') ? (
               <EmptyState

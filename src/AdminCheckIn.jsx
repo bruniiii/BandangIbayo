@@ -7,6 +7,7 @@ import { formatDateRange, todayManila } from './tourUtils';
 import {
   ScanLine, Camera, CameraOff, CheckCircle2, AlertTriangle, XCircle, Users, Undo2, Loader2, Search,
 } from 'lucide-react';
+import { SkeletonLines, SkeletonRows } from './ui/Skeleton';
 
 // ─────────────────────────────────────────────
 // CHECK-IN (admin)
@@ -219,15 +220,9 @@ const AdminCheckIn = () => {
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px' }}>Tour-day check-in</h2>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
-          Scan each joiner's QR from My Bookings to confirm they're on this tour's list. One QR covers their whole group.
-        </p>
-      </div>
 
       {!toursLoaded ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 40, color: '#7A3A18' }}><Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} /></div>
+        <SkeletonLines lines={4} label="Loading tours" style={{ maxWidth: 420 }} />
       ) : tours.length === 0 ? (
         <EmptyState icon={ScanLine} title="No tours to check in" message="Upcoming and ongoing tours will appear here." />
       ) : (
@@ -316,7 +311,7 @@ const AdminCheckIn = () => {
               </p>
             </div>
             {loadingRoster ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 30, color: '#7A3A18' }}><Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /></div>
+              <SkeletonRows count={4} boxed={false} label="Loading joiner list" />
             ) : roster.length === 0 ? (
               <EmptyState compact icon={Users} title="No confirmed joiners yet" message="Paid bookings for this tour will appear here." />
             ) : (

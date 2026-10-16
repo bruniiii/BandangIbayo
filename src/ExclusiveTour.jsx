@@ -11,6 +11,7 @@ import {
   Phone, Globe, Loader2
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
+import { SkeletonRows } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -846,11 +847,7 @@ const MyRequestsSection = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-        <Loader2 size={18} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading your requests…</span>
-        <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-      </div>
+      <SkeletonRows count={3} label="Loading your requests" />
     );
   }
 
@@ -894,16 +891,6 @@ const ExclusiveTour = () => {
  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
-      {/* Page Header */}
-      <div>
-        <h2 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0, lineHeight: 1.15 }}>
-          Exclusive &amp; <span style={{ color: '#A8481A' }}>Requested</span> Tours
-        </h2>
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, marginTop: 6, margin: '6px 0 0' }}>
-          Want privacy, a tailored itinerary, or a destination we don't offer yet? You're in the right place.
-        </p>
-      </div>
- 
       {/* Tab Switcher */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
         {tabs.map(tab => {

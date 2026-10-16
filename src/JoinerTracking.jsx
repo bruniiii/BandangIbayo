@@ -5,6 +5,7 @@ import {
   MapPin, X, Calendar, Armchair, Compass, ChevronLeft,
   ChevronRight, ImageIcon, Loader2, Check, CheckCircle2, Truck, Phone, Navigation, Clock
 } from 'lucide-react';
+import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 
 export const JoinerTracking = ({ onExplore }) => {
   const [activeTour, setActiveTour] = useState(null);
@@ -110,10 +111,7 @@ export const JoinerTracking = ({ onExplore }) => {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
-          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-            <Loader2 size={30} style={{ marginBottom: 10, color: '#A8481A', animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Trips…</p>
-          </div>
+          <SkeletonTourCards count={3} label="Loading trips" />
         ) : toursList.length === 0 ? (
           <div style={{ gridColumn: '1 / -1' }}>
             <EmptyState
@@ -355,10 +353,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
               </h4>
 
               {loadingConsole ? (
-                <div style={{ textAlign: 'center', padding: '3rem 0', color: '#7A3A18' }}>
-                  <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', marginBottom: 8, color: '#A8481A' }} />
-                  <p style={{ fontSize: 12, fontWeight: 700 }}>Checking vehicle location…</p>
-                </div>
+                <SkeletonRows count={4} boxed={false} label="Checking vehicle location" />
               ) : (
                 <LiveTimeline logs={logs} />
               )}

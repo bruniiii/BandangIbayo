@@ -12,6 +12,7 @@ import {
   Star, Printer, Download, Filter, Bell, Sparkles, PieChart, Repeat,
   Percent, ArrowRight, Trophy, ThumbsDown, X, FileText,
 } from 'lucide-react';
+import { Skel, SkeletonRegion } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -679,11 +680,8 @@ const Reports = () => {
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
-            Business Reports
-          </h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
-            {formatRangeLabel(start, end)} · {loading ? 'Loading…' : `${stats.total} booking${stats.total !== 1 ? 's' : ''} in range`}
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+            {formatRangeLabel(start, end)} · {loading ? <Skel w={110} h={10} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : `${stats.total} booking${stats.total !== 1 ? 's' : ''} in range`}
             {lastUpdated && !loading && (
               <span style={{ opacity: 0.95 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
             )}
@@ -720,16 +718,22 @@ const Reports = () => {
       )}
 
       {loading ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
-        }}>
-          <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-          <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-            Crunching Numbers…
-          </p>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonRegion label="Loading reports" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} style={{ background: '#FDF6EE', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <Skel w="50%" h={10} /><Skel w="70%" h={26} /><Skel w="40%" h={10} />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+            {[0, 1].map((i) => (
+              <div key={i} style={{ background: '#FDF6EE', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Skel w="35%" h={12} /><Skel h={200} r={14} />
+              </div>
+            ))}
+          </div>
+        </SkeletonRegion>
       ) : (
         <>
           {/* ── Insights Panel ── */}

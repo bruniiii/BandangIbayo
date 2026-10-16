@@ -9,6 +9,7 @@ import {
 import {
   ChevronLeft, ChevronRight, MapPin, Users, Loader2
 } from 'lucide-react';
+import { Skel, SkeletonRegion } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────  
 // #1A0A00  espresso dark
@@ -225,7 +226,13 @@ const TourCalendar = ({ initialDate }) => {
             <h3 style={{ fontSize: 24, fontWeight: 900, color: '#FDF6EE', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '2.5rem 0' }}><Loader2 style={{ animation: 'spin 1s linear infinite', color: '#E8A265' }} size={28} /></div>
+                <SkeletonRegion label="Loading tours" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {[0, 1].map((i) => (
+                    <div key={i} style={{ background: 'rgba(253,246,238,0.06)', borderRadius: 18, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 9 }}>
+                      <Skel dark w="65%" h={14} /><Skel dark w="45%" h={10} /><Skel dark h={34} r={10} />
+                    </div>
+                  ))}
+                </SkeletonRegion>
               ) : selectedDayTours.length > 0 ? (
                 selectedDayTours.map(tour => (
                   <div key={tour.id} style={{

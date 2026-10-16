@@ -17,9 +17,10 @@ import JoinerDashboard from './JoinerDashboard';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import { PublicTourList, PublicTourDetail } from './PublicTours';
-import { todayManila, formatPeso } from './tourUtils';
+import { todayManila, formatPeso, groupTripDates } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
+import { SkeletonTourCards } from './ui/Skeleton';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -73,7 +74,7 @@ function LandingPage() {
         .gte('start_date', todayManila())
         .order('start_date', { ascending: true });
       if (error) console.error('Error fetching tours:', error.message);
-      else setTours(data);
+      else setTours(groupTripDates(data, { openFirst: false })); // one card per trip, however many dates it has
       setLoading(false);
     };
     fetchPublicTours();
@@ -270,11 +271,7 @@ function LandingPage() {
           </div>
  
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: '#A8481A' }}>
-              <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={36}/>
-              <p style={{ marginTop: 16, fontWeight: 800, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>Syncing Tours…</p>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
+            <SkeletonTourCards count={3} imageHeight={220} />
           ) : tours.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 28 }}>
               {tours.map((tour) => (
@@ -305,7 +302,7 @@ function LandingPage() {
                       </p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {[
-                          [<Calendar size={15}/>, formatDate(tour.start_date)],
+                          [<Calendar size={15}/>, formatDate(tour.start_date) + (tour.dates?.length > 1 ? `  +${tour.dates.length - 1} more date${tour.dates.length > 2 ? 's' : ''}` : '')],
                           [<Clock size={15}/>, tour.duration],
                           [<Users size={15}/>, `${tour.group_size} max pax`],
                         ].map(([icon, text], i) => (

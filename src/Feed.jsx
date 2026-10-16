@@ -9,6 +9,7 @@ import {
   Image as ImageIcon, Send, Trash2, X, Loader2, MapPin,
   Compass, Rss, Video, ChevronDown, MessageCircle,
 } from 'lucide-react';
+import { SkeletonPosts } from './ui/Skeleton';
 
 const REACTIONS = [
   { emoji: '👍', label: 'Like' },
@@ -294,24 +295,6 @@ const Feed = ({ isAdmin = false }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 680, margin: '0 auto' }}>
 
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 38, height: 38, borderRadius: 11, background: '#1A0A00',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265',
-        }}>
-          <Rss size={18} />
-        </div>
-        <div>
-          <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-            Community Feed
-          </h2>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
-            Updates, announcements &amp; newly posted tours
-          </p>
-        </div>
-      </div>
-
       {/* composer — admin only */}
       {isAdmin && (
         <div style={{
@@ -410,11 +393,7 @@ const Feed = ({ isAdmin = false }) => {
 
       {/* feed list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading feed…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonPosts count={3} label="Loading feed" />
       ) : posts.length === 0 ? (
         <EmptyState
           icon={Rss}

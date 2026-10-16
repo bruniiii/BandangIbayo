@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Map, Calendar, Users,
-  FileText, Bell, CreditCard, LogOut, Search, TrendingUp, AlertCircle,
-  CheckCircle2, XCircle, Clock, Menu, X, Rss, Star, Globe,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2, ScanLine
+  LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
+  LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe,
+  ArrowUpRight, MapPin, Wallet, ImageIcon, ScanLine, User
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -23,6 +22,8 @@ import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
+import PageHeader from './ui/PageHeader';
+import { SkeletonRows, Skel } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -46,19 +47,6 @@ const timeAgo = (dateStr) => {
   return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? 's' : ''} ago`;
 };
  
-const deriveActivity = (booking) => {
-  const name = booking.profiles
-    ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim()
-    : booking.full_name || 'Unknown';
- 
-  if (booking.booking_status === 'Cancelled') {
-    return { label: 'Booking cancelled', name, type: 'cancel', Icon: XCircle, ts: booking.updated_at || booking.created_at };
-  }
-  if (booking.payment_status === 'Complete' || booking.payment_status === 'Verified') {
-    return { label: 'Payment confirmed via GCash', name, type: 'payment', Icon: CreditCard, ts: booking.updated_at || booking.created_at };
-  }
-  return { label: 'New booking created', name, type: 'booking', Icon: CheckCircle2, ts: booking.created_at };
-};
  
 const peso = formatPeso;
 
@@ -171,7 +159,6 @@ const AdminDashboard = () => {
     revenueThisMonth: 0,
     revenueLastMonth: 0,
   });
-  const [activities, setActivities] = useState([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
   // Per-module snapshot data surfaced on the Overview tab so admins don't
@@ -221,7 +208,6 @@ const AdminDashboard = () => {
       { count: pendingVerification },
       { count: totalJoiners },
       { count: joinersThisWeek },
-      { data: recentBookingsRaw },
       { data: revenueThisMonthRaw },
       { data: revenueLastMonthRaw },
       { data: upcomingToursRaw },
@@ -241,7 +227,6 @@ const AdminDashboard = () => {
       supabase.from('bookings').select('*', { count: 'exact', head: true }).in('payment_status', ['Pending', 'Verification Pending']),
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
-      supabase.from('bookings').select('id, full_name, user_id, payment_status, booking_status, created_at, updated_at').order('updated_at', { ascending: false }).limit(10),
       supabase.from('bookings').select('total_price').eq('payment_status', 'Complete').gte('created_at', monthStart).lt('created_at', monthEnd),
       supabase.from('bookings').select('total_price').eq('payment_status', 'Complete').gte('created_at', lastMonthStart).lt('created_at', monthStart),
       supabase.from('tours').select('id, title, destination, start_date, group_size, image_urls').eq('is_archived', false).order('start_date', { ascending: true }).limit(3),
@@ -268,16 +253,6 @@ const AdminDashboard = () => {
       revenueThisMonth,
       revenueLastMonth,
     });
-
-    if (recentBookingsRaw && recentBookingsRaw.length > 0) {
-      const userIds = [...new Set(recentBookingsRaw.map(b => b.user_id).filter(Boolean))];
-      const { data: profilesData } = await supabase.from('profiles').select('id, first_name, last_name').in('id', userIds);
-      const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
-      const enriched = recentBookingsRaw.map(b => ({ ...b, profiles: profileMap[b.user_id] || null }));
-      setActivities(enriched.map(deriveActivity));
-    } else {
-      setActivities([]);
-    }
 
     // ── Tour Management snippet: live booked/capacity for the next 3 tours ──
     let toursWithCounts = [];
@@ -500,102 +475,58 @@ const AdminDashboard = () => {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
  
         {/* header */}
-        <header className="dashboard-header" style={{
-          background: 'rgba(253,246,238,0.85)',
-          backdropFilter: 'saturate(160%) blur(14px)',
-          WebkitBackdropFilter: 'saturate(160%) blur(14px)',
-          borderBottom: '1px solid rgba(180,81,30,0.12)',
-          height: 72,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 2.5rem',
-          position: 'sticky', top: 0, zIndex: 10,
-          boxShadow: '0 2px 16px rgba(26,10,0,0.06)',
-          gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-            {/* hamburger - hidden on desktop via CSS, shown <=900px */}
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu size={22} />
-            </button>
+        {/* content */}
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE', display: 'flex', flexDirection: 'column' }}>
+          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+              {/* hamburger - hidden on desktop via CSS, shown <=900px */}
+              <button
+                className="mobile-menu-btn"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu size={22} />
+              </button>
+              {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
+            </div>
  
-            <h2 className="dashboard-header-title" style={{
-              fontWeight: 900, fontSize: 15, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: '#1A0A00', margin: 0,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>
-              {activeTab}
-            </h2>
-          </div>
- 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* search */}
-            <div className="dashboard-header-search" style={{ position: 'relative' }}>
-              <Search
-                size={15}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {/* notification bell — live from the `notifications` table,
+                  surfaces joiner-side activity: new bookings, payment
+                  submissions, cancellations, reviews, requests, registrations */}
+              <NotificationBell onNotificationClick={handleNotificationNavigate} />
+
+              {/* admin chip */}
+              <div
+                onClick={() => handleNavClick('Profile Settings')}
                 style={{
-                  position: 'absolute', left: 14, top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'rgba(122,58,24,0.85)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search system..."
-                style={{
-                  paddingLeft: 36, paddingRight: 16,
-                  paddingTop: 9, paddingBottom: 9,
+                  display: 'flex', alignItems: 'center', gap: 12,
                   background: '#F2E4D0',
                   border: '1px solid rgba(180,81,30,0.18)',
-                  borderRadius: 999,
-                  fontSize: 11, fontWeight: 600,
-                  color: '#1A0A00',
-                  fontFamily: 'inherit',
-                  width: 220,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            {/* notification bell — live from the `notifications` table,
-                surfaces joiner-side activity: new bookings, payment
-                submissions, cancellations, reviews, requests, registrations */}
-            <NotificationBell onNotificationClick={handleNotificationNavigate} />
-
-            {/* admin chip */}
-            <div
-              onClick={() => handleNavClick('Profile Settings')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: '#F2E4D0',
-                border: '1px solid rgba(180,81,30,0.18)',
-                borderRadius: 14, padding: '8px 14px',
-                cursor: 'pointer',
-              }}>
-              <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
-              </div>
-              <div style={{
-                width: 38, height: 38, borderRadius: 11,
-                background: '#1A0A00',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#E8A265', fontWeight: 900, fontSize: 15,
-                boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
-                flexShrink: 0,
-              }}>
-                A
+                  borderRadius: 14, padding: '8px 14px',
+                  cursor: 'pointer',
+                }}>
+                <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
+                </div>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 11,
+                  background: '#1A0A00',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#E8A265', fontWeight: 900, fontSize: 15,
+                  boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                  flexShrink: 0,
+                }}>
+                  A
+                </div>
               </div>
             </div>
           </div>
-        </header>
- 
-        {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
+
+          {/* The page content under the title row */}
+          <div style={{ flex: 1, minHeight: 0 }}>
  
           {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
@@ -632,7 +563,7 @@ const AdminDashboard = () => {
                     color: '#E8A265', letterSpacing: '0.04em',
                   }}>
                     <AlertCircle size={13} />
-                    {loadingStats ? '…' : stats.pendingVerification} awaiting verification
+                    {loadingStats ? <Skel dark w={22} h={11} style={{ display: 'inline-block' }} /> : stats.pendingVerification} awaiting verification
                   </span>
                 </div>
               </div>
@@ -641,7 +572,7 @@ const AdminDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
                 <StatCard
                   title="Revenue This Month"
-                  value={loadingStats ? '…' : peso(stats.revenueThisMonth)}
+                  value={loadingStats ? <Skel w={140} h={34} style={{ display: 'inline-block' }} /> : peso(stats.revenueThisMonth)}
                   icon={<Wallet size={18} />}
                   iconColor="#A8481A"
                   trend={loadingStats ? '' : (() => {
@@ -653,7 +584,7 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                   title="Total Bookings"
-                  value={loadingStats ? '…' : stats.totalBookings}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalBookings}
                   icon={<TrendingUp size={18} />}
                   iconColor="#3F5D62"
                   trend={loadingStats ? '' : (() => {
@@ -665,14 +596,14 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                   title="Pending Verification"
-                  value={loadingStats ? '…' : stats.pendingVerification}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.pendingVerification}
                   icon={<AlertCircle size={18} />}
                   iconColor="#A8481A"
                   trend={loadingStats ? '' : 'Awaiting payment review'}
                 />
                 <StatCard
                   title="Total Joiners"
-                  value={loadingStats ? '…' : stats.totalJoiners}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalJoiners}
                   icon={<Users size={18} />}
                   iconColor="#3F5D62"
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
@@ -892,64 +823,6 @@ const AdminDashboard = () => {
 
                 </div>
               </div>
-
-              {/* recent activity */}
-              <div style={{
-                background: '#FDF6EE',
-                borderRadius: 24,
-                padding: '2rem 2.5rem',
-                border: '1px solid rgba(180,81,30,0.12)',
-                boxShadow: '0 4px 24px rgba(26,10,0,0.06)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                    background: '#1A0A00', color: '#E8A265',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Clock size={15} />
-                  </div>
-                  <h3 style={{
-                    fontWeight: 900, fontSize: 13, letterSpacing: '0.18em',
-                    textTransform: 'uppercase', color: '#1A0A00',
-                    margin: 0,
-                  }}>
-                    Recent System Activity
-                  </h3>
-                </div>
- 
-                {loadingStats ? (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '4rem 0', color: 'rgba(122,58,24,0.85)',
-                  }}>
-                    <Clock size={22} style={{ marginRight: 10 }} />
-                    <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-                      Loading activity…
-                    </span>
-                  </div>
-                ) : activities.length === 0 ? (
-                  <div style={{
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center',
-                    padding: '4rem 0',
-                    border: '2px dashed rgba(180,81,30,0.15)',
-                    borderRadius: 16,
-                    color: 'rgba(122,58,24,0.85)',
-                  }}>
-                    <Users size={36} style={{ marginBottom: 10, opacity: 0.3 }} />
-                    <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-                      No recent activity
-                    </p>
-                  </div>
-                ) : (
-                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {activities.map((item, i) => (
-                      <ActivityItem key={i} {...item} />
-                    ))}
-                  </ul>
-                )}
-              </div>
             </div>
           )}
  
@@ -1012,54 +885,29 @@ const AdminDashboard = () => {
               </p>
             </div>
           )}
+          </div>
         </div>
       </main>
     </div>
   );
 };
  
-// ─── Activity Item ────────────────────────────────────────────────────────────
- 
-const ACTIVITY_COLORS = {
-  cancel:  { bg: 'rgba(180,81,30,0.10)',  color: '#A8481A' },
-  payment: { bg: 'rgba(26,10,0,0.07)',    color: '#7A3A18' },
-  booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
+// Title and one-line description shown at the top of each page.
+const PAGE_INFO = {
+  'Overview':            { icon: LayoutDashboard, title: 'Overview',            subtitle: "Today's bookings, payments and tours at a glance" },
+  'Feed':                { icon: Rss,             title: 'Community Feed',      subtitle: 'Updates, announcements & newly posted tours' },
+  'Tour Management':     { icon: Map,             title: 'Tour Management',     subtitle: 'Create tours, add dates and manage your postings' },
+  'Booking Management':  { icon: Calendar,        title: 'Booking Management',  subtitle: 'Verify payments, track downpayments and update booking status' },
+  'Joiner Accounts':     { icon: Users,           title: 'Joiner Accounts',     subtitle: 'Everyone registered as a joiner' },
+  'Exclusive Requests':  { icon: Globe,           title: 'Exclusive Requests',  subtitle: 'Private-group requests and new destination suggestions from joiners' },
+  'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners" },
+  'Check-in':            { icon: ScanLine,        title: 'Check-in',            subtitle: "Scan each joiner's QR on the day of the tour. One QR covers their whole group." },
+  'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
+  'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
+  'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
+  'Profile Settings':    { icon: User,            title: 'Profile Settings',    subtitle: 'Manage your account information and preferences' },
 };
- 
-const ActivityItem = ({ label, name, type, ts, Icon }) => { // Fixed destructured Icon prop bug
-  const { bg, color } = ACTIVITY_COLORS[type] || ACTIVITY_COLORS.booking;
-  return (
-    <li style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '14px 0',
-      borderBottom: '1px solid rgba(180,81,30,0.08)',
-      gap: 16,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: '50%',
-          background: bg,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-          color,
-        }}>
-          {Icon && <Icon size={17} />}
-        </div>
-        <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{label}</p>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>{name}</p>
-        </div>
-      </div>
-      <span style={{
-        fontSize: 11.5, fontWeight: 700, color: '#7A3A18',
-        opacity: 0.9, whiteSpace: 'nowrap', flexShrink: 0,
-      }}>
-        {timeAgo(ts)}
-      </span>
-    </li>
-  );
-};
- 
+
 // ─── Nav Item ────────────────────────────────────────────────────────────────
  
 const NavItem = ({ icon, label, active, onClick, collapsed }) => (
@@ -1200,11 +1048,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
 
     <div style={{ padding: '0.4rem 1.35rem 0.9rem', flex: 1 }}>
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 700 }}>Loading…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonRows count={3} avatar={false} boxed={false} />
       ) : empty ? (
         // Small empty state: what's missing, plus a way to the full module.
         <div style={{ padding: '1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>

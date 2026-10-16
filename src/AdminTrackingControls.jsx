@@ -18,6 +18,7 @@ import {
   Navigation, Clock, Send, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
+import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 
 const PALETTE = {
   espresso: '#1A0A00',
@@ -396,10 +397,7 @@ export const AdminTrackingControls = () => {
       {/* ── Cards Grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
         {loading ? (
-          <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-            <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading Tours…</p>
-          </div>
+          <SkeletonTourCards count={3} />
         ) : toursList.length === 0 ? (
           <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(180,81,30,0.2)' }}>
             <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A3A18' }}>
@@ -866,10 +864,7 @@ const TrackingConsoleModal = ({
               </div>
 
               {loadingConsole ? (
-                <div style={{ textAlign: 'center', padding: '3rem 0', color: '#7A3A18' }}>
-                  <Loader2 size={22} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} />
-                  <p style={{ fontSize: 11 }}>Loading tracking logs…</p>
-                </div>
+                <SkeletonRows count={4} boxed={false} label="Loading tracking logs" />
               ) : (
                 <TrackingTimeline logs={safeLogs} />
               )}

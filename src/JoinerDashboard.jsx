@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter } from './tourUtils';
+import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, groupTripDates } from './tourUtils';
 import { verifyCheckout, cancelCheckout } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
 import JoinerTours, { DetailedTourModal } from './JoinerTours';
@@ -21,6 +21,8 @@ import Notification from './Notification';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';
+import PageHeader from './ui/PageHeader';
+import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -46,6 +48,20 @@ const NAV_ITEMS = [
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
   { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
 ];
+
+// Title and one-line description shown at the top of each page.
+const PAGE_INFO = {
+  'HomePage':         { icon: Home,         title: 'Homepage',         subtitle: 'Your trips, new tours and reviews at a glance' },
+  'Feed':             { icon: Rss,          title: 'Community Feed',   subtitle: 'Updates, announcements & newly posted tours' },
+  'Explore Tours':    { icon: Compass,      title: 'Explore Tours',    subtitle: 'Find your next adventure and pick a date' },
+  'My Bookings':      { icon: ShoppingBag,  title: 'My Bookings',      subtitle: 'Track your adventures and manage your reservations' },
+  'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
+  'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
+  'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: "Book a private group trip, or suggest a destination we don't offer yet" },
+  'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
+  'Profile Settings': { icon: User,         title: 'Profile Settings', subtitle: 'Manage your account information and preferences' },
+  'Notification':     { icon: Bell,         title: 'Notifications',    subtitle: 'Updates on your bookings, requests & account' },
+};
 
 const JoinerDashboard = () => {
   // A public tour page's "Book" button lands here as /dashboard?book=<tourId>.
@@ -346,7 +362,8 @@ const JoinerDashboard = () => {
         .order('start_date', { ascending: true })
         .limit(12);
 
-      const updatedTours = await withAvailableSlots(toursData);
+      // One card per trip; its other dates are picked in the booking window.
+      const updatedTours = groupTripDates(await withAvailableSlots(toursData));
 
       setFeaturedTours(updatedTours);
     } catch (err) {
@@ -542,78 +559,62 @@ const JoinerDashboard = () => {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
         {/* header */}
-        <header className="dashboard-header" style={{
-          background: 'rgba(253,246,238,0.85)',
-          backdropFilter: 'saturate(160%) blur(14px)',
-          WebkitBackdropFilter: 'saturate(160%) blur(14px)',
-          borderBottom: '1px solid rgba(180,81,30,0.12)',
-          height: 72,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 2.5rem',
-          position: 'sticky', top: 0, zIndex: 10,
-          boxShadow: '0 2px 16px rgba(26,10,0,0.06)',
-          gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu size={22} />
-            </button>
-
-            <h2 className="dashboard-header-title" style={{
-              fontWeight: 900, fontSize: 15, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: '#1A0A00', margin: 0,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>
-              {activeTab}
-            </h2>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <NotificationBell onNotificationClick={handleNotificationNavigate} />
-
-            {/* dynamic user chip matching the Reviews identity */}
-            <div
-              onClick={() => handleNavClick('Profile Settings')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: '#F2E4D0',
-                border: '1px solid rgba(180,81,30,0.18)',
-                borderRadius: 14, padding: '8px 14px',
-                cursor: 'pointer'
-              }}>
-              <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
-                  {userProfile.name}
-                </p>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
-                  Ready for Adventure
-                </p>
-              </div>
-              <div style={{
-                width: 38, height: 38, borderRadius: '50%',
-                background: '#1A0A00',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#E8A265', fontWeight: 900, fontSize: 15,
-                boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
-                overflow: 'hidden',
-                flexShrink: 0,
-              }}>
-                {userProfile.avatarUrl ? (
-                  <img src={userProfile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  userProfile.initial
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
 
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
+          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+              <button
+                className="mobile-menu-btn"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu size={22} />
+              </button>
+              {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <NotificationBell onNotificationClick={handleNotificationNavigate} />
+
+              {/* dynamic user chip matching the Reviews identity */}
+              <div
+                onClick={() => handleNavClick('Profile Settings')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: '#F2E4D0',
+                  border: '1px solid rgba(180,81,30,0.18)',
+                  borderRadius: 14, padding: '8px 14px',
+                  cursor: 'pointer'
+                }}>
+                <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
+                    {userProfile.name}
+                  </p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
+                    Ready for Adventure
+                  </p>
+                </div>
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: '#1A0A00',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#E8A265', fontWeight: 900, fontSize: 15,
+                  boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}>
+                  {userProfile.avatarUrl ? (
+                    <img src={userProfile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    userProfile.initial
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
 
           {paymentNotice && (
             <div role="status" style={{
@@ -706,7 +707,7 @@ const JoinerDashboard = () => {
                   <PulseStat
                     icon={<Compass size={20} />}
                     label="Upcoming Trips"
-                    value={loadingHome ? '—' : upcomingCount}
+                    value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : upcomingCount}
                     subcopy={upcomingCount > 0
                       ? "You've got something to look forward to"
                       : 'Your next stamp is one tap away'}
@@ -716,7 +717,7 @@ const JoinerDashboard = () => {
                   <PulseStat
                     icon={<Star size={20} />}
                     label="Completed Tours"
-                    value={loadingHome ? '—' : completedCount}
+                    value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : completedCount}
                     subcopy={completedCount > 0
                       ? 'Adventures logged and loved'
                       : 'First stories start with first trips'}
@@ -762,8 +763,17 @@ const JoinerDashboard = () => {
                     className="tour-packages-scroll"
                     style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', paddingBottom: 12 }}
                   >
+                    {loadingHome && featuredTours.length === 0 && [0, 1, 2, 3].map((i) => (
+                      <div key={`skel-${i}`} aria-hidden="true" style={{ flex: '0 0 220px', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)' }}>
+                        <Skel h={115} r={0} />
+                        <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <Skel w="75%" h={13} /><Skel w="50%" h={10} /><Skel w="60%" h={10} /><Skel h={30} r={8} style={{ marginTop: 4 }} />
+                        </div>
+                      </div>
+                    ))}
                     {featuredTours.map((tour) => {
-                      const isFull = tour.available_slots <= 0;
+                      const dates = tour.dates || [tour];
+                      const isFull = dates.every((d) => d.available_slots <= 0);
                       return (
                         <div key={tour.id} style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
                           <div style={{ height: 115, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
@@ -780,6 +790,7 @@ const JoinerDashboard = () => {
                               <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#A8481A' }} /> {tour.destination}</p>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '11px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
+                                {dates.length > 1 && <div style={{ color: '#A8481A', fontWeight: 800, paddingLeft: 16 }}>+{dates.length - 1} more date{dates.length > 2 ? 's' : ''}</div>}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: '#A8481A' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
                               </div>
                             </div>
@@ -1175,9 +1186,9 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.25rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
+        <SkeletonRegion label="Loading calendar" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, maxWidth: 280, width: '100%', margin: '0 auto' }}>
+          {Array.from({ length: 35 }, (_, i) => <Skel key={i} h={22} r={7} />)}
+        </SkeletonRegion>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px 4px', maxWidth: 280, width: '100%', margin: '0 auto' }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
@@ -1254,9 +1265,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
+        <SkeletonLines lines={3} label="Loading tracking" />
       ) : !hasTrip ? (
         <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Tracking activates once you have a confirmed trip.
@@ -1329,9 +1338,14 @@ const HomeReviews = ({ loading, completedCount, onOpen }) => {
       )}
 
       {reviews === null ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: '#7A3A18' }}>
-          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
+        <SkeletonRegion label="Loading reviews" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{ background: '#FDF6EE', borderRadius: 18, padding: '1.1rem 1.2rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <Skel w="40%" h={12} /><Skel w="95%" h={10} /><Skel w="80%" h={10} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}><Skel w={36} h={36} r={999} /><Skel w="45%" h={11} /></div>
+            </div>
+          ))}
+        </SkeletonRegion>
       ) : reviews.length === 0 ? (
         <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
           No reviews yet. Joiners can review a tour once it's finished.

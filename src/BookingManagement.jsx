@@ -13,6 +13,7 @@ import {
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
   Wallet, Printer, Users, History,
 } from 'lucide-react';
+import { SkeletonTable, SkeletonLines } from './ui/Skeleton';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -187,26 +188,10 @@ const BookingManagement = () => {
   const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 150px 140px';
  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
-      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
- 
-      {/* ── Header ── */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        borderBottom: '1px solid rgba(180,81,30,0.15)',
-        paddingBottom: 16, marginBottom: 20, gap: 20, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
-            Manage Booking Records
-          </h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
-            Verify GCash payments, track downpayments, and update booking status across all joiner reservations.
-          </p>
-        </div>
-      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Balances still owed (downpayment bookings) ── */}
       {balancesDue.length > 0 && (
@@ -319,16 +304,7 @@ const BookingManagement = () => {
         overflow: 'hidden',
       }}>
         {loading ? (
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
-          }}>
-            <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-              Loading Records…
-            </p>
-          </div>
+          <div style={{ padding: '0 0.25rem' }}><SkeletonTable rows={7} cols={6} label="Loading bookings" /></div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: bookingGridCols, minWidth: 980 }}>
@@ -1169,7 +1145,7 @@ const BookingActivity = ({ bookingId }) => {
   return (
     <ViewSection title="Activity" icon={<History size={14} />}>
       {entries === null ? (
-        <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>Loading…</p>
+        <SkeletonLines lines={3} label="Loading activity" />
       ) : entries.length === 0 ? (
         <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>No activity recorded yet.</p>
       ) : (
@@ -1265,20 +1241,23 @@ const BalanceStatusBadge = ({ status }) => {
 };
  
 const PAYMENT_METHOD_STYLES = {
-  'Full Payment': { bg: 'rgba(26,10,0,0.06)', color: '#1A0A00' },
+  'Full Payment': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
   Downpayment: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
 };
  
 const PaymentMethodBadge = ({ method }) => {
   if (!method) return <span style={{ color: '#7A3A18', fontSize: 11, fontWeight: 700 }}>—</span>;
   const { bg, color } = PAYMENT_METHOD_STYLES[method] || { bg: 'rgba(180,81,30,0.1)', color: '#7A3A18' };
+  const Icon = method === 'Downpayment' ? Wallet : CreditCard;
   return (
+    // Sized to its text (not stretched to the column), like the status badges beside it.
     <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start', width: 'fit-content',
       background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 11, fontWeight: 900,
-      letterSpacing: '0.16em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+      padding: '4px 11px', fontSize: 10, fontWeight: 900,
+      letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
-      {method}
+      <Icon size={11} /> {method}
     </span>
   );
 };

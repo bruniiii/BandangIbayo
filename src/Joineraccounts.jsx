@@ -9,6 +9,7 @@ import {
   Search, Loader2, Users, Mail, Phone, Calendar, MapPin,
   ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle,
 } from 'lucide-react';
+import { SkeletonRows, Skel } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -156,11 +157,8 @@ const JoinerAccounts = () => {
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
         <div>
-          <h2 style={{ fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-            Joiner Accounts
-          </h2>
-          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
-            {loading ? 'Loading registered joiners…' : `${joiners.length} registered joiner${joiners.length !== 1 ? 's' : ''}`}
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+            {loading ? <Skel w={140} h={11} /> : `${joiners.length} registered joiner${joiners.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
@@ -204,10 +202,7 @@ const JoinerAccounts = () => {
         overflow: 'hidden',
       }}>
         {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
-            <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-            <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading joiners…</span>
-          </div>
+          <div style={{ padding: '0.5rem 1.25rem' }}><SkeletonRows count={6} boxed={false} label="Loading joiners" /></div>
         ) : filtered.length === 0 ? (
           query ? (
             <EmptyState

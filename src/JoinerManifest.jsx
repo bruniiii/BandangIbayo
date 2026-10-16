@@ -5,6 +5,7 @@ import { toast } from './ui/toast';
 import { formatDateRange, formatPeso } from './tourUtils';
 import EmptyState from './ui/EmptyState';
 import { UsersRound } from 'lucide-react';
+import { SkeletonRows } from './ui/Skeleton';
 
 // ─────────────────────────────────────────────
 // JOINER LIST (manifest) for one tour, for drivers and guides.
@@ -130,7 +131,7 @@ const JoinerListModal = ({ tour, onClose }) => {
 
         <div style={{ overflowY: 'auto', padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
           {!data ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 size={28} style={{ color: '#A8481A', animation: 'spin 1s linear infinite' }} /></div>
+            <SkeletonRows count={5} boxed={false} label="Loading joiner list" />
           ) : (
             <>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>

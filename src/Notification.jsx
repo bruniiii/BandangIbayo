@@ -8,6 +8,7 @@ import {
   CreditCard, Wallet, Globe, Package, Star, Users, Map as MapIconLucide,
   MoreHorizontal, Trash2, X, XCircle,
 } from 'lucide-react';
+import { SkeletonRows } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -54,11 +55,11 @@ const FILTERABLE_TYPES = Object.keys(TYPE_META).filter((t) => t !== 'default');
 
 /* ─────────────────────────────────────────────
    NOTIFICATIONS  (full-page module — shared by AdminDashboard & JoinerDashboard)
-   isAdmin only changes copy, not data: every row is scoped server-side
-   by `user_id = auth.uid()`, so admins and joiners each just see their own
+   Every row is scoped server-side by `user_id = auth.uid()`, so admins
+   and joiners each just see their own
    feed of everything that's happened to their account, Facebook-style.
 ───────────────────────────────────────────── */
-const Notifications = ({ isAdmin = false, onNavigate }) => {
+const Notifications = ({ onNavigate }) => {
   const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -172,37 +173,8 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 720, margin: '0 auto' }}>
 
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 42, height: 42, borderRadius: 12, flexShrink: 0,
-            background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265',
-            position: 'relative',
-          }}>
-            <Bell size={19} />
-            {unreadCount > 0 && (
-              <span style={{
-                position: 'absolute', top: -4, right: -4,
-                minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-                background: '#B4511E', color: '#FDF6EE', fontSize: 11, fontWeight: 900,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(180,81,30,0.4)',
-              }}>
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </div>
-          <div>
-            <h2 style={{ fontWeight: 900, fontSize: 18, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-              Notifications
-            </h2>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
-              {isAdmin ? 'Every activity across bookings, requests, reviews & more' : 'Updates on your bookings, requests & account'}
-            </p>
-          </div>
-        </div>
-
+      {/* actions */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {unreadCount > 0 && (
             <button
@@ -267,10 +239,7 @@ const Notifications = ({ isAdmin = false, onNavigate }) => {
 
       {/* list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading notifications…</span>
-        </div>
+        <SkeletonRows count={6} label="Loading notifications" />
       ) : filtered.length === 0 ? (
         tab === 'unread' ? (
           <EmptyState
