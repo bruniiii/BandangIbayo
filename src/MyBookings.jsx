@@ -757,26 +757,29 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 
 /* ── Move to another date: same trip (destination) at the same price ── */
 const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
-  const [options, setOptions] = useState(null); // null = not loaded yet
-  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [options, setOptions] = useState(null); // null = still checking
   const [moving, setMoving] = useState(null);
 
-  const loadOptions = async () => {
-    setLoadingOptions(true);
-    const { data, error } = await supabase
-      .from('tours')
-      .select('*')
-      .eq('is_archived', false)
-      .eq('price', tour.price)
-      .ilike('destination', (tour.destination || '').trim())
-      .gt('start_date', todayManila())
-      .neq('id', booking.tour_id)
-      .order('start_date', { ascending: true });
-    if (error) console.error('Error loading other dates:', error.message);
-    const withSlots = await withAvailableSlots(data || []);
-    setOptions(withSlots.filter((t) => t.available_slots >= booking.slots_booked));
-    setLoadingOptions(false);
-  };
+  // Other dates of the same trip: same destination and price, still upcoming,
+  // with room for this group. The section only shows when there is one.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from('tours')
+        .select('*')
+        .eq('is_archived', false)
+        .eq('price', tour.price)
+        .ilike('destination', (tour.destination || '').trim())
+        .gt('start_date', todayManila())
+        .neq('id', booking.tour_id)
+        .order('start_date', { ascending: true });
+      if (error) console.error('Error loading other dates:', error.message);
+      const withSlots = await withAvailableSlots(data || []);
+      if (!cancelled) setOptions(withSlots.filter((t) => t.available_slots >= booking.slots_booked));
+    })();
+    return () => { cancelled = true; };
+  }, [tour.price, tour.destination, booking.tour_id, booking.slots_booked]);
 
   const moveTo = async (newTour) => {
     if (!(await confirmDialog({ title: `Move booking ${booking.booking_number}?`, message: `New date: ${formatDateRange(newTour.start_date, newTour.duration)}.`, confirmLabel: 'Move Booking', cancelLabel: 'Keep Current Date' }))) return;
@@ -793,26 +796,13 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
     onMoved();
   };
 
+  if (!options || options.length === 0) return null;
+
   return (
     <ViewSection title="Move to Another Date" icon={<CalendarClock size={14} style={{ color: '#A8481A' }} />}>
-      {options === null ? (
-        <button
-          type="button"
-          onClick={loadOptions}
-          disabled={loadingOptions}
-          style={{
-            width: '100%', padding: '12px 0', background: '#FDF6EE', color: '#1A0A00',
-            border: '1px solid rgba(180,81,30,0.25)', borderRadius: 14, cursor: 'pointer',
-            fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
-          }}
-        >
-          {loadingOptions ? 'Checking dates…' : 'See other dates for this trip'}
-        </button>
-      ) : options.length === 0 ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
-          No other dates of this trip at the same price have room for {booking.slots_booked} right now.
-        </p>
-      ) : (
+      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 10px' }}>
+        This trip also runs on {options.length === 1 ? 'this date' : 'these dates'}. Tap one to move your booking.
+      </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {options.map((t) => (
             <button
@@ -833,7 +823,6 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
             </button>
           ))}
         </div>
-      )}
       <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '10px 0 0' }}>
         Same trip and price, so your payment carries over. Possible until the cancellation deadline.
       </p>

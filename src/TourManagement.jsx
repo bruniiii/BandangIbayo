@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
-import { SearchX, Map as MapIcon } from 'lucide-react';
+import { SearchX, Map as MapIcon, CalendarPlus } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
@@ -32,6 +32,11 @@ const TourManagement = () => {
   const [showModal, setShowModal]               = useState(false);
   const [viewTour, setViewTour]                 = useState(null);
   const [editingTour, setEditingTour]           = useState(null);
+  // "Add Another Date": the form is filled in from this tour (except the
+  // dates) and saved as a new tour, which joiners then see under
+  // "See other dates" because it has the same destination and price.
+  const [templateTour, setTemplateTour]         = useState(null);
+  const formTour = editingTour || templateTour;
   const [joinerListTour, setJoinerListTour]     = useState(null);
   const [tours, setTours]                       = useState([]);
   const [filteredTours, setFilteredTours]       = useState([]);
@@ -85,6 +90,7 @@ const TourManagement = () => {
     if (formDirty && !(await confirmDialog({ title: 'Discard your changes?', message: "The changes you made to this tour won't be saved.", confirmLabel: 'Discard Changes', cancelLabel: 'Keep Editing', tone: 'danger' }))) return;
     setFormDirty(false);
     setShowModal(false);
+    setTemplateTour(null);
   };
 
   const getMinStartDate = () => {
@@ -153,9 +159,10 @@ const TourManagement = () => {
  
   useEffect(() => {
     if (editingTour) { setTempGallery(editingTour.image_urls || []); setCalculatedDuration(editingTour.duration || ''); }
+    else if (templateTour) { setTempGallery(templateTour.image_urls || []); setCalculatedDuration(''); }
     else { setTempGallery([]); setCalculatedDuration(''); }
     setNewFiles([]);
-  }, [editingTour, showModal]);
+  }, [editingTour, templateTour, showModal]);
  
   const executeToggleArchive = async () => {
     const { id, isArchived } = confirmAction;
@@ -215,6 +222,7 @@ const TourManagement = () => {
       ['price', Math.abs(Math.round(price * 100) - price * 100) > 1e-6 ? 'Price can have at most 2 decimal places (centavos).' : ''],
       ['price', price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
       ['start_date', dateChanged && startDate < getMinStartDate() ? 'The start date must be at least 3 weeks from today.' : ''],
+      ['start_date', templateTour && startDate === templateTour.start_date ? `${templateTour.title} already runs on this date. Pick a different start date.` : ''],
       ['end_date', endDate < startDate ? "The end date can't be before the start date." : ''],
       ['end_date', tripDays > 30 ? 'A tour longer than 30 days looks like a typo. Please check the dates.' : ''],
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
@@ -280,6 +288,7 @@ const TourManagement = () => {
 
     toast.success(isNewTour ? 'Tour created' : 'Tour saved', isNewTour ? 'It\'s now open for booking and posted to the feed.' : '');
     setEditingTour(null);
+    setTemplateTour(null);
     setShowModal(false);
     fetchTours();
     } finally {
@@ -438,7 +447,7 @@ const TourManagement = () => {
           </button>
         </div>
         <button
-          onClick={() => { setEditingTour(null); setShowModal(true); }}
+          onClick={() => { setEditingTour(null); setTemplateTour(null); setShowModal(true); }}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
             background: '#B4511E', color: '#FDF6EE',
@@ -526,7 +535,8 @@ const TourManagement = () => {
                 tour={tour}
                 onConfirmAction={() => setConfirmAction({ id: tour.id, isArchived: tour.is_archived })}
                 onView={() => setViewTour(tour)}
-                onEdit={() => { setEditingTour(tour); setShowModal(true); }}
+                onEdit={() => { setTemplateTour(null); setEditingTour(tour); setShowModal(true); }}
+                onAddDate={() => { setEditingTour(null); setTemplateTour(tour); setShowModal(true); }}
                 onJoiners={() => setJoinerListTour(tour)}
                 formatDateRange={formatDateRange}
               />
@@ -547,7 +557,7 @@ const TourManagement = () => {
                   icon={MapIcon}
                   title="No active tours yet"
                   message="Create your first tour package so joiners can start booking."
-                  action={{ label: 'Create a Tour', onClick: () => { setEditingTour(null); setShowModal(true); } }}
+                  action={{ label: 'Create a Tour', onClick: () => { setEditingTour(null); setTemplateTour(null); setShowModal(true); } }}
                 />
               )}
             </div>
@@ -594,8 +604,13 @@ const TourManagement = () => {
                 fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em',
                 textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 28px',
               }}>
-                {editingTour ? 'Edit Tour Posting' : 'Create New Tour'}
+                {editingTour ? 'Edit Tour Posting' : templateTour ? 'Add Another Date' : 'Create New Tour'}
               </h2>
+              {templateTour && (
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', margin: '-18px 0 24px', lineHeight: 1.6 }}>
+                  Everything is copied from <strong style={{ color: '#1A0A00' }}>{templateTour.title}</strong>. Pick the new start and end dates, adjust anything else, then save. Joiners of the other date can move to this one under "See other dates" as long as the destination and price stay the same.
+                </p>
+              )}
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
  
@@ -631,11 +646,11 @@ const TourManagement = () => {
                   </div>
                 </div>
  
-                <ModalInput label="Tour Title" name="title" defaultValue={editingTour?.title} placeholder="e.g., Mt. Pulag" required />
+                <ModalInput label="Tour Title" name="title" defaultValue={formTour?.title} placeholder="e.g., Mt. Pulag" required />
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={editingTour?.destination} required />
-                  <ModalInput label="Price (₱)" name="price" {...moneyInputProps} placeholder="e.g. 1499.50" defaultValue={editingTour?.price} required />
+                  <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} required />
+                  <ModalInput label="Price (₱)" name="price" {...moneyInputProps} placeholder="e.g. 1499.50" defaultValue={formTour?.price} required />
                 </div>
  
                 {/* Dates */}
@@ -663,10 +678,10 @@ const TourManagement = () => {
                     <input type="text" value={calculatedDuration} readOnly
                       style={{ ...inputStyle, background: '#F2E4D0', opacity: 0.7, cursor: 'default' }} />
                   </div>
-                  <ModalInput label="Max Slots" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} defaultValue={editingTour?.group_size || 18} required />
+                  <ModalInput label="Max Slots" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} defaultValue={formTour?.group_size || 18} required />
                   <div>
                     <label style={labelStyle}>Difficulty</label>
-                    <select name="difficulty" defaultValue={editingTour?.difficulty || 'Easy'}
+                    <select name="difficulty" defaultValue={formTour?.difficulty || 'Easy'}
                       style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
                       <option value="Easy">Easy</option>
                       <option value="Moderate">Moderate</option>
@@ -677,19 +692,19 @@ const TourManagement = () => {
  
                 <div>
                   <label style={labelStyle}>Tour Description</label>
-                  <textarea name="description" defaultValue={editingTour?.description}
+                  <textarea name="description" defaultValue={formTour?.description}
                     style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
                 </div>
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 16 }}>
                   <div>
                     <label style={labelStyle}>Inclusions</label>
-                    <textarea name="inclusions" defaultValue={editingTour?.inclusions} rows="4"
+                    <textarea name="inclusions" defaultValue={formTour?.inclusions} rows="4"
                       style={{ ...inputStyle, resize: 'vertical' }} />
                   </div>
                   <div>
                     <label style={labelStyle}>Exclusions</label>
-                    <textarea name="exclusions" defaultValue={editingTour?.exclusions} rows="4"
+                    <textarea name="exclusions" defaultValue={formTour?.exclusions} rows="4"
                       style={{ ...inputStyle, resize: 'vertical' }} />
                   </div>
                 </div>
@@ -697,19 +712,19 @@ const TourManagement = () => {
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
                     <label style={labelStyle}>Things to Bring</label>
-                    <textarea name="things_to_bring" defaultValue={editingTour?.things_to_bring} rows="3"
+                    <textarea name="things_to_bring" defaultValue={formTour?.things_to_bring} rows="3"
                       style={{ ...inputStyle, resize: 'vertical' }} />
                   </div>
                   <div>
                     <label style={labelStyle}>Itinerary</label>
-                    <textarea name="itinerary" defaultValue={editingTour?.itinerary} rows="3"
+                    <textarea name="itinerary" defaultValue={formTour?.itinerary} rows="3"
                       style={{ ...inputStyle, resize: 'vertical' }} />
                   </div>
                 </div>
  
                 <div>
                   <label style={{ ...labelStyle, color: '#A8481A', opacity: 1 }}>Important Notes</label>
-                  <textarea name="important_note" defaultValue={editingTour?.important_note} rows="2"
+                  <textarea name="important_note" defaultValue={formTour?.important_note} rows="2"
                     style={{ ...inputStyle, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
                 </div>
               </div>
@@ -739,7 +754,7 @@ const TourManagement = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: uploading ? 0.7 : 1,
               }}>
-                {(uploading || savingTour) ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : (editingTour ? 'Save Changes' : 'Create Tour')}
+                {(uploading || savingTour) ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : (editingTour ? 'Save Changes' : templateTour ? 'Add This Date' : 'Create Tour')}
               </button>
             </div>
           </form>
@@ -751,7 +766,7 @@ const TourManagement = () => {
         <TourViewModal
           tour={viewTour}
           onClose={() => setViewTour(null)}
-          onEdit={() => { setViewTour(null); setEditingTour(viewTour); setShowModal(true); }}
+          onEdit={() => { setViewTour(null); setTemplateTour(null); setEditingTour(viewTour); setShowModal(true); }}
           setSelectedImage={setSelectedImage}
           formatDateRange={formatDateRange}
         />
@@ -1069,7 +1084,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
 /* ─────────────────────────────────────────────
    TOUR CARD
 ───────────────────────────────────────────── */
-const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDateRange }) => {
+const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners, formatDateRange }) => {
   const [hovered, setHovered] = useState(false);
   const today  = new Date().toISOString().split('T')[0];
   const isLive = today >= tour.start_date && today <= tour.end_date;
@@ -1175,6 +1190,21 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, formatDate
               {icon} {label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={onAddDate}
+            title="Copy this tour to a new date"
+            style={{
+              gridColumn: '1 / -1', minHeight: 40, padding: '0 4px',
+              border: '1px dashed rgba(180,81,30,0.45)', borderRadius: 10, cursor: 'pointer',
+              background: 'rgba(180,81,30,0.06)', color: '#A8481A',
+              fontFamily: 'inherit', fontWeight: 900,
+              fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <CalendarPlus size={12} /> Add Another Date
+          </button>
         </div>
       </div>
     </div>
