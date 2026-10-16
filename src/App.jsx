@@ -80,7 +80,7 @@ function LandingPage() {
   }, []);
  
   return (
-    <div style={{ background: '#FDF6EE', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
+    <div style={{ background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
  
       {/* ── NAV ── */}
       <nav className="site-nav" style={{
@@ -98,8 +98,8 @@ function LandingPage() {
             className="nav-brand-logo"
             style={{ width: 68, height: 68, objectFit: 'contain', flexShrink: 0 }} 
           />
-          <span className="nav-brand-text" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            Bandang <span style={{ color: '#A8481A' }}>IBAYO</span>
+          <span className="nav-brand-text font-display" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span>
           </span>
         </div>
         <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
@@ -139,8 +139,8 @@ function LandingPage() {
             color: '#FDF6EE', marginBottom: 28, letterSpacing: '-0.03em',
           }}>
             Explore<br/>
-            <span style={{ color: '#A8481A' }}>More</span><br/>
-            <span style={{ color: '#E8A265', fontStyle: 'italic', fontSize: '0.72em', fontWeight: 700 }}>Adventures.</span>
+            <span className="font-accent" style={{ color: '#E8A265' }}>More</span><br/>
+            <span className="font-accent" style={{ color: '#FDF6EE', fontSize: '0.8em' }}>Adventures.</span>
           </h1>
  
           <p style={{
@@ -526,7 +526,7 @@ function LandingPage() {
             alt="BANDANG IBAYO" 
             style={{ width: 68, height: 68, objectFit: 'contain' }} 
           />
-          <span style={{ fontWeight: 900, fontSize: 13, color: '#1A0A00', letterSpacing: '-0.02em' }}>Bandang <span style={{ color: '#A8481A' }}>IBAYO</span></span>
+          <span className="font-display" style={{ fontSize: 15, color: '#1A0A00' }}>Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span></span>
         </div>
         <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           © 2026 

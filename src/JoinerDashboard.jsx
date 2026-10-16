@@ -391,7 +391,7 @@ const JoinerDashboard = () => {
   return (
     <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100vh',
-      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+      fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
       background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
@@ -482,8 +482,8 @@ const JoinerDashboard = () => {
               }}
             />
             {sidebarExpanded && (
-              <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
-                Bandang <span style={{ color: '#E8A265' }}>IBAYO</span>
+              <span className="font-display" style={{ fontSize: 19, color: '#FDF6EE', whiteSpace: 'nowrap' }}>
+                Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span>
               </span>
             )}
           </button>
@@ -663,7 +663,7 @@ const JoinerDashboard = () => {
                     <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#FDF6EE' }}>Your Budget Travel Partner</span>
                   </div>
                   <h2 style={{ fontWeight: 900, fontSize: '1.8rem', letterSpacing: '-0.02em', lineHeight: 1.1, color: '#FDF6EE', margin: '0 0 10px' }}>
-                    Adventure Awaits with <span style={{ color: '#E8A265' }}>Bandang IBAYO</span>
+                    Adventure Awaits with <span className="font-accent" style={{ color: '#E8A265' }}>Bandang IBAYO</span>
                   </h2>
                   <p style={{ fontSize: 12.5, lineHeight: 1.5, fontWeight: 500, color: 'rgba(232,210,190,0.85)', margin: '0 0 16px', maxWidth: 620 }}>
                     Our mission is to make everyone witness the beauty of the Philippines. Focusing exclusively on budget-friendly land tours and overland road trips, accommodating hassle-free road trip adventures completely by land tailored for every joiner.

@@ -194,7 +194,7 @@ const JoinerLogin = () => {
       alignItems: 'center',
       justifyContent: 'center',
       background: '#FDF6EE',
-      fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+      fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
       color: '#1A0A00',
       padding: '3rem 1rem',
       position: 'relative',
@@ -288,7 +288,7 @@ const JoinerLogin = () => {
               />
           </div>
           <h1 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
-            Bandang <span style={{ color: '#A8481A' }}>IBAYO</span>
+            Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span>
           </h1>
           <p style={{ fontSize: 14, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {challenge ? 'Check your email for your verification code.' : 'Welcome back! Login to continue.'}

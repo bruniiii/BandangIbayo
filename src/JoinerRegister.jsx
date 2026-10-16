@@ -320,7 +320,7 @@ const JoinerRegister = () => {
         alignItems: 'center',
         justifyContent: 'center',
         background: '#FDF6EE',
-        fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+        fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
         color: '#1A0A00',
         padding: '3rem 1rem',
         position: 'relative',
