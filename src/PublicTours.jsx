@@ -85,13 +85,14 @@ const PublicNav = ({ session }) => {
 };
 
 const navCta = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
   background: '#B4511E', borderRadius: 10, padding: '9px 16px',
   letterSpacing: '0.04em', whiteSpace: 'nowrap',
 };
 
 const pageStyle = {
-  background: '#FDF6EE', minHeight: '100vh',
+  background: '#FDF6EE', minHeight: '100dvh',
   fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden',
 };
 

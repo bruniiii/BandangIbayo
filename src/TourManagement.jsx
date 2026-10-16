@@ -430,7 +430,7 @@ const TourManagement = () => {
           }}>
             <X size={40} />
           </button>
-          <img src={selectedImage} style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Preview" />
+          <img src={selectedImage} style={{ maxWidth: '100%', maxHeight: '90dvh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Preview" />
         </div>
       )}
  
@@ -599,7 +599,7 @@ const TourManagement = () => {
               borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
               overflow: 'hidden',
               borderTop: '8px solid #B4511E',
-              maxHeight: '90vh',
+              maxHeight: '90dvh',
               display: 'flex', flexDirection: 'column',
             }}
           >
@@ -981,7 +981,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
         width: '100%', maxWidth: 1100,
         borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
         overflow: 'hidden',
-        maxHeight: '92vh',
+        maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
         <button onClick={onClose} style={{

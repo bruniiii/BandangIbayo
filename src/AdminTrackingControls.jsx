@@ -599,7 +599,7 @@ const TrackingConsoleModal = ({
         position: 'relative', background: '#FDF6EE',
         width: '100%', maxWidth: 1150, borderRadius: 28,
         boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden',
-        maxHeight: '92vh', display: 'flex', flexDirection: 'column',
+        maxHeight: '92dvh', display: 'flex', flexDirection: 'column',
       }}>
         {/* Top Controls */}
         <div style={{ position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 50, display: 'flex', gap: isMobile ? 8 : 12 }}>

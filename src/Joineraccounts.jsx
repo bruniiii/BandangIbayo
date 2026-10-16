@@ -306,7 +306,7 @@ const JoinerAccounts = () => {
             style={{
               background: '#FDF6EE', borderRadius: 24, padding: '2rem',
               width: '100%', maxWidth: 460, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-              borderTop: '6px solid #B4511E', position: 'relative', maxHeight: '85vh', overflowY: 'auto',
+              borderTop: '6px solid #B4511E', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
             }}
           >
             <button
@@ -566,7 +566,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: '#FDF6EE', borderRadius: 24, width: '100%', maxWidth: 560,
-          maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          maxHeight: '92dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '6px solid #B4511E',
         }}
       >

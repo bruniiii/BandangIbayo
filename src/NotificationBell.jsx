@@ -117,7 +117,7 @@ const NotificationBell = ({ onNotificationClick }) => {
       </button>
 
       {open && (
-        <div style={{
+        <div className="notif-panel" style={{
           position: 'absolute', top: 'calc(100% + 10px)', right: 0, zIndex: 500,
           width: 340, maxHeight: 420,
           background: '#FDF6EE', borderRadius: 20,
@@ -232,7 +232,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
       width: '100%', maxWidth: 520,
       borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
       borderTop: '7px solid #B4511E',
-      overflow: 'hidden', maxHeight: '85vh',
+      overflow: 'hidden', maxHeight: '85dvh',
       display: 'flex', flexDirection: 'column',
     }}>
       {/* Header */}

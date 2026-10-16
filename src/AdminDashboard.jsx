@@ -328,7 +328,7 @@ const AdminDashboard = () => {
  
   return (
     <div className="admin-dashboard-container" style={{
-      display: 'flex', height: '100vh',
+      display: 'flex', height: '100dvh',
       fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
       background: '#FDF6EE',
       color: '#1A0A00',
