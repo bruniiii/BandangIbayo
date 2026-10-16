@@ -100,3 +100,34 @@ export const formatPeso = (amount) =>
 
 // 40% downpayment, rounded to the centavo (same rule as the database and payments function).
 export const downpaymentFor = (total) => Math.round((Number(total) || 0) * 40) / 100;
+
+// One trip, many dates: tours with the same title, destination and price are
+// the same trip on different dates. Each date is still its own tour row (so
+// bookings, slots, waitlists and check-in stay per date), but lists show the
+// trip once and the joiner picks the date.
+export const tripKey = (t) =>
+  [t.title, t.destination].map((s) => String(s ?? '').trim().toLowerCase()).concat(Number(t.price || 0).toFixed(2)).join('|');
+
+// Groups a date-ordered tour list into trips, keeping the list's order. Each
+// trip is one of its dates (the first with slots left, or the first date when
+// openFirst is false) plus `dates`: all of the trip's dates, earliest first.
+export const groupTripDates = (tours, { openFirst = true } = {}) => {
+  const trips = new Map();
+  for (const t of tours || []) {
+    const key = tripKey(t);
+    if (!trips.has(key)) trips.set(key, []);
+    trips.get(key).push(t);
+  }
+  return [...trips.values()].map((dates) => {
+    dates.sort((a, b) => String(a.start_date).localeCompare(String(b.start_date)));
+    const shown = (openFirst && dates.find((d) => (d.available_slots ?? 1) > 0)) || dates[0];
+    return { ...shown, dates };
+  });
+};
+
+// The trip a tour id belongs to, shown on that date (for shared /tours/:id links).
+export const tripForDate = (trips, id) => {
+  const trip = trips.find((t) => t.dates.some((d) => String(d.id) === String(id)));
+  if (!trip) return null;
+  return { ...trip.dates.find((d) => String(d.id) === String(id)), dates: trip.dates };
+};

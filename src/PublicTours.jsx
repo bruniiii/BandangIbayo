@@ -8,7 +8,8 @@ import { supabase } from './supabaseClient';
 import {
   JoinerTourCard, ViewSection, ChecklistGrid, ItineraryTimeline, TourImageCarousel,
 } from './JoinerTours';
-import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, formatPeso } from './tourUtils';
+import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, formatPeso, groupTripDates, tripForDate } from './tourUtils';
+import { TripDatePicker } from './ui/TripDates';
 import logoIcon from './assets/newIcon.png';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock } from 'lucide-react';
@@ -123,7 +124,7 @@ export const PublicTourList = () => {
     const load = async () => {
       const { data, error } = await fetchOpenTours();
       if (error) console.error('Error fetching tours:', error.message);
-      setTours(await withAvailableSlots(data));
+      setTours(groupTripDates(await withAvailableSlots(data)));
       setLoading(false);
     };
     load();
@@ -242,9 +243,11 @@ export const PublicTourDetail = () => {
         document.title = `Tour not found | ${SITE_TITLE}`;
         return;
       }
-      const [withSlots] = await withAvailableSlots([data]);
+      // The trip's other open dates, so the visitor can pick one here.
+      const { data: open } = await fetchOpenTours();
+      const withSlots = await withAvailableSlots([data, ...(open || []).filter((t) => t.id !== data.id)]);
       if (!active) return;
-      setTour(withSlots);
+      setTour(tripForDate(groupTripDates(withSlots), data.id));
       setStatus('ready');
       document.title = `${data.title} — ${data.destination} | ${SITE_TITLE}`;
     };
@@ -375,6 +378,15 @@ export const PublicTourDetail = () => {
               <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em' }}>{formatPeso(Number(tour.price || 0))}</div>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
             </div>
+
+            {tour.dates.length > 1 && (
+              <TripDatePicker
+                dark
+                dates={tour.dates}
+                activeId={tour.id}
+                onPick={(dateId) => { setTour(tripForDate([tour], dateId)); navigate(`/tours/${dateId}`, { replace: true }); }}
+              />
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {facts.map(([icon, text], i) => (

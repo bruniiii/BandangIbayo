@@ -17,7 +17,7 @@ import JoinerDashboard from './JoinerDashboard';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import { PublicTourList, PublicTourDetail } from './PublicTours';
-import { todayManila, formatPeso } from './tourUtils';
+import { todayManila, formatPeso, groupTripDates } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
  
@@ -73,7 +73,7 @@ function LandingPage() {
         .gte('start_date', todayManila())
         .order('start_date', { ascending: true });
       if (error) console.error('Error fetching tours:', error.message);
-      else setTours(data);
+      else setTours(groupTripDates(data, { openFirst: false })); // one card per trip, however many dates it has
       setLoading(false);
     };
     fetchPublicTours();
@@ -305,7 +305,7 @@ function LandingPage() {
                       </p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {[
-                          [<Calendar size={15}/>, formatDate(tour.start_date)],
+                          [<Calendar size={15}/>, formatDate(tour.start_date) + (tour.dates?.length > 1 ? `  +${tour.dates.length - 1} more date${tour.dates.length > 2 ? 's' : ''}` : '')],
                           [<Clock size={15}/>, tour.duration],
                           [<Users size={15}/>, `${tour.group_size} max pax`],
                         ].map(([icon, text], i) => (

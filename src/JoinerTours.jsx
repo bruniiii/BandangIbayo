@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 
-import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter } from './tourUtils';
+import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter, groupTripDates, tripForDate } from './tourUtils';
+import { TripDatePicker, TripDateLines } from './ui/TripDates';
 import { startCheckout } from './payments';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
@@ -100,7 +101,8 @@ const JoinerTours = ({ initialTourId = null }) => {
 
  
 
-    const updatedTours = await withAvailableSlots(toursData);
+    // One card per trip; the joiner picks the date in the booking window.
+    const updatedTours = groupTripDates(await withAvailableSlots(toursData));
 
 
 
@@ -108,7 +110,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
     // Opened from a shared tour link (/dashboard?book=<id>): show that tour's booking window once.
     if (pendingTourId.current) {
-      const target = updatedTours.find((t) => String(t.id) === String(pendingTourId.current));
+      const target = tripForDate(updatedTours, pendingTourId.current);
       pendingTourId.current = null;
       if (target) setSelectedTour(target);
     }
@@ -389,7 +391,10 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
   const [hovered, setHovered] = useState(false);
 
-  const isFull = tour.available_slots <= 0;
+  // A trip with several dates lists them; it's full only when every date is.
+  const dates = tour.dates || [tour];
+  const manyDates = dates.length > 1;
+  const isFull = dates.every((d) => d.available_slots <= 0);
 
 
 
@@ -461,7 +466,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           }}>
 
-            {isFull ? 'Fully Booked' : `${tour.available_slots} Slots Left`}
+            {isFull ? 'Fully Booked' : manyDates ? `${dates.length} Dates` : `${tour.available_slots} Slots Left`}
 
           </span>
 
@@ -491,6 +496,9 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           </p>
 
+          {manyDates ? (
+            <div style={{ marginBottom: 4 }}><TripDateLines dates={dates} /></div>
+          ) : (<>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
@@ -533,6 +541,8 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           </div>
 
+          </>)}
+
         </div>
 
 
@@ -571,7 +581,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
         >
 
-          <Eye size={13} /> {isFull ? 'Join Waitlist' : 'View Details'}
+          <Eye size={13} /> {isFull ? 'Join Waitlist' : manyDates ? 'Pick a Date' : 'View Details'}
 
         </button>
 
@@ -1047,7 +1057,17 @@ const TourImageCarousel = ({ images = [] }) => {
 
 ───────────────────────────────────────────── */
 
-const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
+// Booking window. A trip with several dates (tour.dates, from groupTripDates)
+// shows a date picker; each date is its own tour, so picking one swaps the
+// window over to that date's slots, waitlist and booking.
+const DetailedTourModal = ({ tour, ...props }) => {
+    const dates = tour.dates?.length ? tour.dates : [tour];
+    const [activeId, setActiveId] = useState(tour.id);
+    const active = dates.find((d) => d.id === activeId) || dates[0];
+    return <TourBookingWindow key={active.id} {...props} tour={active} dates={dates} onPickDate={setActiveId} />;
+};
+
+const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }) => {
 
     const images = tour.image_urls || [];
 
@@ -1264,7 +1284,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange }) => {
 
                             }}>{tour.title}</h2>
 
-
+                            {dates.length > 1 && (
+                                <div style={{ marginBottom: 18 }}>
+                                    <TripDatePicker dates={dates} activeId={tour.id} onPick={onPickDate} disabled={Boolean(paymentStep)} />
+                                </div>
+                            )}
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
 
