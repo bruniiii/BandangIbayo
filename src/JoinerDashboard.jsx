@@ -558,70 +558,62 @@ const JoinerDashboard = () => {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
         {/* header */}
-        <header className="dashboard-header" style={{
-          background: 'rgba(253,246,238,0.85)',
-          backdropFilter: 'saturate(160%) blur(14px)',
-          WebkitBackdropFilter: 'saturate(160%) blur(14px)',
-          borderBottom: '1px solid rgba(180,81,30,0.12)',
-          height: 72,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 2.5rem',
-          position: 'sticky', top: 0, zIndex: 10,
-          boxShadow: '0 2px 16px rgba(26,10,0,0.06)',
-          gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu size={22} />
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <NotificationBell onNotificationClick={handleNotificationNavigate} />
-
-            {/* dynamic user chip matching the Reviews identity */}
-            <div
-              onClick={() => handleNavClick('Profile Settings')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: '#F2E4D0',
-                border: '1px solid rgba(180,81,30,0.18)',
-                borderRadius: 14, padding: '8px 14px',
-                cursor: 'pointer'
-              }}>
-              <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
-                  {userProfile.name}
-                </p>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
-                  Ready for Adventure
-                </p>
-              </div>
-              <div style={{
-                width: 38, height: 38, borderRadius: '50%',
-                background: '#1A0A00',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#E8A265', fontWeight: 900, fontSize: 15,
-                boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
-                overflow: 'hidden',
-                flexShrink: 0,
-              }}>
-                {userProfile.avatarUrl ? (
-                  <img src={userProfile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  userProfile.initial
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
 
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
+          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+              <button
+                className="mobile-menu-btn"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu size={22} />
+              </button>
+              {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <NotificationBell onNotificationClick={handleNotificationNavigate} />
+
+              {/* dynamic user chip matching the Reviews identity */}
+              <div
+                onClick={() => handleNavClick('Profile Settings')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: '#F2E4D0',
+                  border: '1px solid rgba(180,81,30,0.18)',
+                  borderRadius: 14, padding: '8px 14px',
+                  cursor: 'pointer'
+                }}>
+                <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
+                    {userProfile.name}
+                  </p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
+                    Ready for Adventure
+                  </p>
+                </div>
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: '#1A0A00',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#E8A265', fontWeight: 900, fontSize: 15,
+                  boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}>
+                  {userProfile.avatarUrl ? (
+                    <img src={userProfile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    userProfile.initial
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
 
           {paymentNotice && (
             <div role="status" style={{
@@ -637,8 +629,6 @@ const JoinerDashboard = () => {
               </button>
             </div>
           )}
-
-          {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
 
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

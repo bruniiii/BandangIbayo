@@ -266,15 +266,6 @@ main {
     z-index: 90;
   }
  
-  .dashboard-header {
-    padding-left: 1.25rem !important;
-    padding-right: 1.25rem !important;
-  }
- 
-  .dashboard-header-search {
-    display: none !important;
-  }
- 
   .dashboard-user-chip-text {
     display: none !important;
   }
@@ -291,6 +282,11 @@ main {
  
   .dashboard-content {
     padding: 1rem !important;
+  }
+
+  /* Phones: page name only, so the bell and account fit beside it */
+  .page-header-subtitle {
+    display: none;
   }
 }
  

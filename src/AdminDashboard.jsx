@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Calendar, Users,
-  FileText, Bell, CreditCard, LogOut, Search, TrendingUp, AlertCircle,
+  FileText, Bell, CreditCard, LogOut, TrendingUp, AlertCircle,
   CheckCircle2, XCircle, Clock, Menu, X, Rss, Star, Globe,
   ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2, ScanLine, User
 } from 'lucide-react';
@@ -501,95 +501,56 @@ const AdminDashboard = () => {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
  
         {/* header */}
-        <header className="dashboard-header" style={{
-          background: 'rgba(253,246,238,0.85)',
-          backdropFilter: 'saturate(160%) blur(14px)',
-          WebkitBackdropFilter: 'saturate(160%) blur(14px)',
-          borderBottom: '1px solid rgba(180,81,30,0.12)',
-          height: 72,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 2.5rem',
-          position: 'sticky', top: 0, zIndex: 10,
-          boxShadow: '0 2px 16px rgba(26,10,0,0.06)',
-          gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-            {/* hamburger - hidden on desktop via CSS, shown <=900px */}
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu size={22} />
-            </button>
-          </div>
- 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* search */}
-            <div className="dashboard-header-search" style={{ position: 'relative' }}>
-              <Search
-                size={15}
-                style={{
-                  position: 'absolute', left: 14, top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'rgba(122,58,24,0.85)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search system..."
-                style={{
-                  paddingLeft: 36, paddingRight: 16,
-                  paddingTop: 9, paddingBottom: 9,
-                  background: '#F2E4D0',
-                  border: '1px solid rgba(180,81,30,0.18)',
-                  borderRadius: 999,
-                  fontSize: 11, fontWeight: 600,
-                  color: '#1A0A00',
-                  fontFamily: 'inherit',
-                  width: 220,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            {/* notification bell — live from the `notifications` table,
-                surfaces joiner-side activity: new bookings, payment
-                submissions, cancellations, reviews, requests, registrations */}
-            <NotificationBell onNotificationClick={handleNotificationNavigate} />
-
-            {/* admin chip */}
-            <div
-              onClick={() => handleNavClick('Profile Settings')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: '#F2E4D0',
-                border: '1px solid rgba(180,81,30,0.18)',
-                borderRadius: 14, padding: '8px 14px',
-                cursor: 'pointer',
-              }}>
-              <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
-              </div>
-              <div style={{
-                width: 38, height: 38, borderRadius: 11,
-                background: '#1A0A00',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#E8A265', fontWeight: 900, fontSize: 15,
-                boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
-                flexShrink: 0,
-              }}>
-                A
-              </div>
-            </div>
-          </div>
-        </header>
- 
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE', display: 'flex', flexDirection: 'column' }}>
-          {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
+          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+              {/* hamburger - hidden on desktop via CSS, shown <=900px */}
+              <button
+                className="mobile-menu-btn"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu size={22} />
+              </button>
+              {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
+            </div>
+ 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {/* notification bell — live from the `notifications` table,
+                  surfaces joiner-side activity: new bookings, payment
+                  submissions, cancellations, reviews, requests, registrations */}
+              <NotificationBell onNotificationClick={handleNotificationNavigate} />
+
+              {/* admin chip */}
+              <div
+                onClick={() => handleNavClick('Profile Settings')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: '#F2E4D0',
+                  border: '1px solid rgba(180,81,30,0.18)',
+                  borderRadius: 14, padding: '8px 14px',
+                  cursor: 'pointer',
+                }}>
+                <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
+                </div>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 11,
+                  background: '#1A0A00',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#E8A265', fontWeight: 900, fontSize: 15,
+                  boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                  flexShrink: 0,
+                }}>
+                  A
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Pages that fill the screen (height: 100%) get the space under the title. */}
           <div style={{ flex: 1, minHeight: 0 }}>
  
