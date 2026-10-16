@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Map, Calendar, Users,
-  FileText, Bell, CreditCard, LogOut, TrendingUp, AlertCircle,
-  CheckCircle2, XCircle, Clock, Menu, X, Rss, Star, Globe,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2, ScanLine, User
+  LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
+  LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe,
+  ArrowUpRight, MapPin, Wallet, ImageIcon, ScanLine, User
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -24,7 +23,6 @@ import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
-import AdminAttention from './AdminAttention';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -48,6 +46,7 @@ const timeAgo = (dateStr) => {
   if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) !== 1 ? 's' : ''} ago`;
   return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? 's' : ''} ago`;
 };
+ 
  
 const peso = formatPeso;
 
@@ -119,14 +118,8 @@ const AdminDashboard = () => {
   const sidebarExpanded = isMobile ? true : sidebarHovered;
  
   const handleNavClick = (label) => {
-    setBookingStatus('All Status');
     setActiveTab(label);
     if (isMobile) setMobileNavOpen(false);
-  };
-
-  const openFromAttention = (label, { status } = {}) => {
-    handleNavClick(label);
-    if (status) setBookingStatus(status);
   };
 
   // Routes a clicked notification to the module it's about — a new
@@ -166,8 +159,6 @@ const AdminDashboard = () => {
     revenueThisMonth: 0,
     revenueLastMonth: 0,
   });
-  // Booking Management's starting filter when opened from "Needs Your Attention".
-  const [bookingStatus, setBookingStatus] = useState('All Status');
   const [loadingStats, setLoadingStats] = useState(true);
 
   // Per-module snapshot data surfaced on the Overview tab so admins don't
@@ -832,16 +823,13 @@ const AdminDashboard = () => {
 
                 </div>
               </div>
-
-              {/* to-do list: payments, balances, requests, tours leaving soon */}
-              <AdminAttention onOpen={openFromAttention} />
             </div>
           )}
  
           {/* ROUTED CONTENT VIEWS */}
           {activeTab === 'Feed' && <Feed isAdmin={true} />}
           {activeTab === 'Tour Management' && <TourManagement />}
-          {activeTab === 'Booking Management' && <BookingManagement key={bookingStatus} initialStatus={bookingStatus} />}
+          {activeTab === 'Booking Management' && <BookingManagement />}
           {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
           {activeTab === 'Exclusive Requests' && <AdminExclusiveTours />}
           {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
