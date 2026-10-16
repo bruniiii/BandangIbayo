@@ -15,6 +15,7 @@ import {
   Trash2, UploadCloud, Calendar, RefreshCw, History, ChevronDown,
   CreditCard, CheckCircle, XCircle, AlertTriangle, ChevronLeft, ChevronRight,
 } from 'lucide-react';
+import { SkeletonTourCards } from './ui/Skeleton';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -539,17 +540,7 @@ const TourManagement = () => {
       {/* ── Tour Grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
           {loading ? (
-            <div style={{
-              gridColumn: '1 / -1',
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
-            }}>
-              <Loader2 size={30} style={{ marginBottom: 10 }} />
-              <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-                Syncing Database…
-              </p>
-            </div>
+            <SkeletonTourCards count={6} />
           ) : filteredTours.length > 0 ? (
             filteredTours.map(tour => (
               <TourCard

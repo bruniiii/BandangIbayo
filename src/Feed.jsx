@@ -9,6 +9,7 @@ import {
   Image as ImageIcon, Send, Trash2, X, Loader2, MapPin,
   Compass, Rss, Video, ChevronDown, MessageCircle,
 } from 'lucide-react';
+import { SkeletonPosts } from './ui/Skeleton';
 
 const REACTIONS = [
   { emoji: '👍', label: 'Like' },
@@ -392,11 +393,7 @@ const Feed = ({ isAdmin = false }) => {
 
       {/* feed list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading feed…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonPosts count={3} label="Loading feed" />
       ) : posts.length === 0 ? (
         <EmptyState
           icon={Rss}

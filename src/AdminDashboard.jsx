@@ -24,6 +24,7 @@ import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
+import { SkeletonRows, Skel } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -589,7 +590,7 @@ const AdminDashboard = () => {
                     color: '#E8A265', letterSpacing: '0.04em',
                   }}>
                     <AlertCircle size={13} />
-                    {loadingStats ? '…' : stats.pendingVerification} awaiting verification
+                    {loadingStats ? <Skel dark w={22} h={11} style={{ display: 'inline-block' }} /> : stats.pendingVerification} awaiting verification
                   </span>
                 </div>
               </div>
@@ -598,7 +599,7 @@ const AdminDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
                 <StatCard
                   title="Revenue This Month"
-                  value={loadingStats ? '…' : peso(stats.revenueThisMonth)}
+                  value={loadingStats ? <Skel w={140} h={34} style={{ display: 'inline-block' }} /> : peso(stats.revenueThisMonth)}
                   icon={<Wallet size={18} />}
                   iconColor="#A8481A"
                   trend={loadingStats ? '' : (() => {
@@ -610,7 +611,7 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                   title="Total Bookings"
-                  value={loadingStats ? '…' : stats.totalBookings}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalBookings}
                   icon={<TrendingUp size={18} />}
                   iconColor="#3F5D62"
                   trend={loadingStats ? '' : (() => {
@@ -622,14 +623,14 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                   title="Pending Verification"
-                  value={loadingStats ? '…' : stats.pendingVerification}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.pendingVerification}
                   icon={<AlertCircle size={18} />}
                   iconColor="#A8481A"
                   trend={loadingStats ? '' : 'Awaiting payment review'}
                 />
                 <StatCard
                   title="Total Joiners"
-                  value={loadingStats ? '…' : stats.totalJoiners}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalJoiners}
                   icon={<Users size={18} />}
                   iconColor="#3F5D62"
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
@@ -876,15 +877,7 @@ const AdminDashboard = () => {
                 </div>
  
                 {loadingStats ? (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '4rem 0', color: 'rgba(122,58,24,0.85)',
-                  }}>
-                    <Clock size={22} style={{ marginRight: 10 }} />
-                    <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-                      Loading activity…
-                    </span>
-                  </div>
+                  <SkeletonRows count={5} boxed={false} label="Loading activity" />
                 ) : activities.length === 0 ? (
                   <div style={{
                     display: 'flex', flexDirection: 'column',
@@ -1174,11 +1167,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
 
     <div style={{ padding: '0.4rem 1.35rem 0.9rem', flex: 1 }}>
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 700 }}>Loading…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonRows count={3} avatar={false} boxed={false} />
       ) : empty ? (
         // Small empty state: what's missing, plus a way to the full module.
         <div style={{ padding: '1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>

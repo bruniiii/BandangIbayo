@@ -11,6 +11,7 @@ import {
   Phone, Globe, Loader2
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
+import { SkeletonRows } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -846,11 +847,7 @@ const MyRequestsSection = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-        <Loader2 size={18} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading your requests…</span>
-        <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-      </div>
+      <SkeletonRows count={3} label="Loading your requests" />
     );
   }
 

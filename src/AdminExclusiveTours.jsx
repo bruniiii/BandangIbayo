@@ -12,6 +12,7 @@ import {
   Phone, Mail, Wallet, Home, ChevronDown, CheckCircle2, XCircle,
   Clock, MessageSquare, ArrowRight, FileText, Send, PencilLine, Package,
 } from 'lucide-react';
+import { SkeletonRows } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -189,16 +190,7 @@ const AdminExclusiveTours = () => {
         {/* ── List ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {loading ? (
-            <div style={{
-              display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center',
-              padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
-            }}>
-              <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-              <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-                Loading Requests…
-              </p>
-            </div>
+            <SkeletonRows count={5} label="Loading requests" />
           ) : filtered.length === 0 ? (
             (searchQuery || statusFilter !== 'All Status' || typeFilter !== 'All Types') ? (
               <EmptyState

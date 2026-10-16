@@ -13,6 +13,7 @@ import { TripDatePicker } from './ui/TripDates';
 import logoIcon from './assets/newIcon.png';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock } from 'lucide-react';
+import { SkeletonTourCards, SkeletonRegion, Skel } from './ui/Skeleton';
 
 // ─────────────────────────────────────────────
 // PUBLIC TOUR PAGES (no login needed)
@@ -185,9 +186,7 @@ export const PublicTourList = () => {
         </div>
 
         {loading ? (
-          <CenteredMessage>
-            <Loader2 size={36} style={{ color: '#A8481A', animation: 'spin 1s linear infinite' }} />
-          </CenteredMessage>
+          <SkeletonTourCards count={6} />
         ) : filteredTours.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
             {filteredTours.map((tour) => (
@@ -275,10 +274,26 @@ export const PublicTourDetail = () => {
     return (
       <div style={pageStyle}>
         <PublicNav session={session} />
+        {status === 'loading' ? (
+          <SkeletonRegion label="Loading tour" style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(1.25rem,4vw,3rem) clamp(1rem,5vw,4rem) 4rem' }}>
+            <Skel w={90} h={12} style={{ marginBottom: 22 }} />
+            <div className="public-tour-layout" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 32, alignItems: 'start' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <Skel w={80} h={10} /><Skel w="65%" h={36} r={10} /><Skel w="30%" h={13} />
+                <Skel h={300} r={18} style={{ marginTop: 12 }} />
+                <Skel w="25%" h={10} style={{ marginTop: 12 }} /><Skel w="95%" h={12} /><Skel w="85%" h={12} /><Skel w="60%" h={12} />
+              </div>
+              <div style={{ background: '#1A0A00', borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <Skel dark w="40%" h={10} /><Skel dark w="60%" h={30} /><Skel dark w="85%" h={10} />
+                <Skel dark h={44} r={12} /><Skel dark h={44} r={12} />
+                <Skel dark w="70%" h={12} /><Skel dark w="55%" h={12} />
+                <Skel dark h={48} r={14} />
+              </div>
+            </div>
+          </SkeletonRegion>
+        ) : (
         <CenteredMessage>
-          {status === 'loading' ? (
-            <Loader2 size={36} style={{ color: '#A8481A', animation: 'spin 1s linear infinite' }} />
-          ) : (
+          {(
             <>
               <Mountain size={40} style={{ color: '#A8481A' }} />
               <h1 style={{ fontWeight: 900, fontSize: 24, margin: 0 }}>This tour isn't available</h1>
@@ -287,6 +302,7 @@ export const PublicTourDetail = () => {
             </>
           )}
         </CenteredMessage>
+        )}
         <style>{publicCss}</style>
       </div>
     );

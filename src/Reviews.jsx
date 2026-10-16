@@ -8,6 +8,7 @@ import EmptyState from './ui/EmptyState';
 
 const REVIEW_MAX = 1000;
 import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
+import { SkeletonPosts } from './ui/Skeleton';
 
 const displayName = (profile) => {
   if (!profile) return 'A Traveler';
@@ -384,11 +385,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
       {/* review list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading reviews…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonPosts count={3} withImage={false} label="Loading reviews" />
       ) : reviews.length === 0 ? (
         <EmptyState
           icon={Star}

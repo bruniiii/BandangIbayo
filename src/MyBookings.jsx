@@ -15,6 +15,7 @@ import {
   ChevronRight, Loader2, X,
   History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard
 } from 'lucide-react';
+import { Skel, SkeletonRegion } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -187,12 +188,17 @@ const MyBookings = ({ onExplore }) => {
       {/* ── Bookings List ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {loading ? (
-          <div style={{ padding: '5rem 0', textAlign: 'center', color: 'rgba(122,58,24,0.85)' }}>
-            <Loader2 size={36} style={{ marginBottom: 14, color: '#A8481A', animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-              Retrieving your trips…
-            </p>
-          </div>
+          <SkeletonRegion label="Loading your trips" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{ display: 'flex', gap: 18, background: '#FDF6EE', borderRadius: 22, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', flexWrap: 'wrap' }}>
+                <Skel w={160} h={120} r={16} />
+                <div style={{ flex: '1 1 220px', display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center' }}>
+                  <Skel w="25%" h={10} /><Skel w="55%" h={16} /><Skel w="40%" h={11} /><Skel w="30%" h={11} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center', alignItems: 'flex-end' }}><Skel w={90} h={16} /><Skel w={120} h={36} r={12} /></div>
+              </div>
+            ))}
+          </SkeletonRegion>
         ) : filteredBookings.length === 0 ? (
           <EmptyState
             icon={activeTab === 'Upcoming' ? Compass : activeTab === 'Completed' ? Mountain : CalendarX2}

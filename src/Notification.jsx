@@ -8,6 +8,7 @@ import {
   CreditCard, Wallet, Globe, Package, Star, Users, Map as MapIconLucide,
   MoreHorizontal, Trash2, X, XCircle,
 } from 'lucide-react';
+import { SkeletonRows } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -238,10 +239,7 @@ const Notifications = ({ onNavigate }) => {
 
       {/* list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading notifications…</span>
-        </div>
+        <SkeletonRows count={6} label="Loading notifications" />
       ) : filtered.length === 0 ? (
         tab === 'unread' ? (
           <EmptyState

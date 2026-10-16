@@ -22,6 +22,7 @@ import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
+import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -706,7 +707,7 @@ const JoinerDashboard = () => {
                   <PulseStat
                     icon={<Compass size={20} />}
                     label="Upcoming Trips"
-                    value={loadingHome ? '—' : upcomingCount}
+                    value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : upcomingCount}
                     subcopy={upcomingCount > 0
                       ? "You've got something to look forward to"
                       : 'Your next stamp is one tap away'}
@@ -716,7 +717,7 @@ const JoinerDashboard = () => {
                   <PulseStat
                     icon={<Star size={20} />}
                     label="Completed Tours"
-                    value={loadingHome ? '—' : completedCount}
+                    value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : completedCount}
                     subcopy={completedCount > 0
                       ? 'Adventures logged and loved'
                       : 'First stories start with first trips'}
@@ -762,6 +763,14 @@ const JoinerDashboard = () => {
                     className="tour-packages-scroll"
                     style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', paddingBottom: 12 }}
                   >
+                    {loadingHome && featuredTours.length === 0 && [0, 1, 2, 3].map((i) => (
+                      <div key={`skel-${i}`} aria-hidden="true" style={{ flex: '0 0 220px', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)' }}>
+                        <Skel h={115} r={0} />
+                        <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <Skel w="75%" h={13} /><Skel w="50%" h={10} /><Skel w="60%" h={10} /><Skel h={30} r={8} style={{ marginTop: 4 }} />
+                        </div>
+                      </div>
+                    ))}
                     {featuredTours.map((tour) => {
                       const dates = tour.dates || [tour];
                       const isFull = dates.every((d) => d.available_slots <= 0);
@@ -1177,9 +1186,9 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.25rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
+        <SkeletonRegion label="Loading calendar" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, maxWidth: 280, width: '100%', margin: '0 auto' }}>
+          {Array.from({ length: 35 }, (_, i) => <Skel key={i} h={22} r={7} />)}
+        </SkeletonRegion>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px 4px', maxWidth: 280, width: '100%', margin: '0 auto' }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
@@ -1256,9 +1265,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
+        <SkeletonLines lines={3} label="Loading tracking" />
       ) : !hasTrip ? (
         <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
           Tracking activates once you have a confirmed trip.
@@ -1331,9 +1338,14 @@ const HomeReviews = ({ loading, completedCount, onOpen }) => {
       )}
 
       {reviews === null ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem 0', color: '#7A3A18' }}>
-          <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-        </div>
+        <SkeletonRegion label="Loading reviews" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{ background: '#FDF6EE', borderRadius: 18, padding: '1.1rem 1.2rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <Skel w="40%" h={12} /><Skel w="95%" h={10} /><Skel w="80%" h={10} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}><Skel w={36} h={36} r={999} /><Skel w="45%" h={11} /></div>
+            </div>
+          ))}
+        </SkeletonRegion>
       ) : reviews.length === 0 ? (
         <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
           No reviews yet. Joiners can review a tour once it's finished.

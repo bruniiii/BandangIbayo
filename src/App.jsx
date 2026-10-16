@@ -20,6 +20,7 @@ import { PublicTourList, PublicTourDetail } from './PublicTours';
 import { todayManila, formatPeso, groupTripDates } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
+import { SkeletonTourCards } from './ui/Skeleton';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -270,11 +271,7 @@ function LandingPage() {
           </div>
  
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5rem 0', color: '#A8481A' }}>
-              <Loader2 style={{ animation: 'spin 1s linear infinite' }} size={36}/>
-              <p style={{ marginTop: 16, fontWeight: 800, fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>Syncing Tours…</p>
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            </div>
+            <SkeletonTourCards count={3} imageHeight={220} />
           ) : tours.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 28 }}>
               {tours.map((tour) => (

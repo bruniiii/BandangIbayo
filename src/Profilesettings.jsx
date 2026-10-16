@@ -11,6 +11,7 @@ import {
   Loader2, CheckCircle2, Camera, Trash2,
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
+import { Skel, SkeletonRegion } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -281,11 +282,17 @@ const ProfileSettings = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.85)' }}>
-        <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-        <span style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading profile…</span>
-        <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-      </div>
+      <SkeletonRegion label="Loading profile" style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 780, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)' }}>
+          <Skel w={84} h={84} r={999} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}><Skel w="40%" h={16} /><Skel w="30%" h={11} /><Skel w={120} h={30} r={10} /></div>
+        </div>
+        <div style={{ background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 7 }}><Skel w="35%" h={9} /><Skel h={40} r={12} /></div>
+          ))}
+        </div>
+      </SkeletonRegion>
     );
   }
 

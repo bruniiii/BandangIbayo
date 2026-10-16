@@ -20,6 +20,7 @@ import {
 
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
+import { SkeletonTourCards } from './ui/Skeleton';
 
 
 
@@ -311,27 +312,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
         {loading ? (
 
-          <div style={{
-
-            gridColumn: '1 / -1',
-
-            display: 'flex', flexDirection: 'column',
-
-            alignItems: 'center', justifyContent: 'center',
-
-            padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
-
-          }}>
-
-            <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-
-            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-
-              Finding Adventures…
-
-            </p>
-
-          </div>
+          <SkeletonTourCards count={6} />
 
         ) : filteredTours.length === 0 ? (
           <div style={{ gridColumn: '1 / -1' }}>

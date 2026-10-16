@@ -13,6 +13,7 @@ import {
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
   Wallet, Printer, Users, History,
 } from 'lucide-react';
+import { SkeletonTable, SkeletonLines } from './ui/Skeleton';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -303,16 +304,7 @@ const BookingManagement = () => {
         overflow: 'hidden',
       }}>
         {loading ? (
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            padding: '5rem 0', color: 'rgba(122,58,24,0.85)',
-          }}>
-            <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-              Loading Records…
-            </p>
-          </div>
+          <div style={{ padding: '0 0.25rem' }}><SkeletonTable rows={7} cols={6} label="Loading bookings" /></div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: bookingGridCols, minWidth: 980 }}>
@@ -1153,7 +1145,7 @@ const BookingActivity = ({ bookingId }) => {
   return (
     <ViewSection title="Activity" icon={<History size={14} />}>
       {entries === null ? (
-        <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>Loading…</p>
+        <SkeletonLines lines={3} label="Loading activity" />
       ) : entries.length === 0 ? (
         <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>No activity recorded yet.</p>
       ) : (

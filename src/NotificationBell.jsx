@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
 import { Bell, CheckCheck, Compass, Loader2, X, ArrowRight, Clock } from 'lucide-react';
+import { SkeletonRows } from './ui/Skeleton';
 
 const timeAgo = (dateStr) => {
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -148,9 +149,7 @@ const NotificationBell = ({ onNotificationClick }) => {
 
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loading ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2.5rem 0', color: 'rgba(122,58,24,0.85)' }}>
-                <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-              </div>
+              <div style={{ padding: '0 16px' }}><SkeletonRows count={3} boxed={false} label="Loading notifications" /></div>
             ) : notifications.length === 0 ? (
               <div style={{ padding: 12 }}>
                 <EmptyState compact icon={BellRing} title="You're all caught up" message="New updates about your bookings will appear here." />
