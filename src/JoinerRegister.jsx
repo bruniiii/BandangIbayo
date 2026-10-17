@@ -14,6 +14,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { safeNextPath } from './tourUtils';
@@ -72,8 +73,9 @@ const JoinerRegister = () => {
     setAvatarPreview(null);
   };
 
-  const uploadAvatar = async (userId, file) => {
-    if (!file) return null;
+  const uploadAvatar = async (userId, original) => {
+    if (!original) return null;
+    const file = await shrinkImage(original, { maxSide: 512 }); // a profile picture never shows bigger than this
 
     const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const filePath = `avatars/${userId}/${Date.now()}.${extension}`;

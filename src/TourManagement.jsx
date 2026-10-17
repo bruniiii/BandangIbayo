@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { shrinkImage } from './imageCompress';
 import EmptyState from './ui/EmptyState';
 import { SearchX, Map as MapIcon, CalendarPlus } from 'lucide-react';
 import { toast } from './ui/toast';
@@ -191,8 +192,9 @@ const TourManagement = () => {
       setUploading(true);
       const uploadedUrls = [];
       for (const fileObj of filesToUpload) {
-        const fileName = `${Math.random()}.${fileObj.file.name.split('.').pop()}`;
-        const { error: uploadError } = await supabase.storage.from('tours').upload(`tour-gallery/${fileName}`, fileObj.file);
+        const file = await shrinkImage(fileObj.file); // phone photos are resized before upload
+        const fileName = `${Math.random()}.${file.name.split('.').pop()}`;
+        const { error: uploadError } = await supabase.storage.from('tours').upload(`tour-gallery/${fileName}`, file);
         if (uploadError) throw uploadError;
         const { data } = supabase.storage.from('tours').getPublicUrl(`tour-gallery/${fileName}`);
         uploadedUrls.push(data.publicUrl);

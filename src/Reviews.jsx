@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { todayManila } from './tourUtils';
@@ -167,12 +168,13 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
   const uploadReviewMedia = async () => {
     const uploaded = [];
     for (const item of mediaItems) {
-      const ext = item.file.name.split('.').pop();
+      const file = item.type === 'video' ? item.file : await shrinkImage(item.file); // photos are resized before upload
+      const ext = file.name.split('.').pop();
       // Joiners may only upload into their own review-media/<user id>/ folder.
       const filePath = `review-media/${currentUserId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('tours')
-        .upload(filePath, item.file);
+        .upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data } = supabase.storage.from('tours').getPublicUrl(filePath);
       uploaded.push({ url: data.publicUrl, type: item.type });

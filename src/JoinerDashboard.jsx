@@ -22,6 +22,7 @@ import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
+import MenuEdgeTab from './ui/MenuEdgeTab';
 import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -426,6 +427,9 @@ const JoinerDashboard = () => {
       />
 
       {/* ── SIDEBAR ── */}
+      {/* edge tab: opens the menu from anywhere on the page */}
+      {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
+
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
         onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}

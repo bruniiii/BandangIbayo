@@ -102,7 +102,7 @@ function buildEmail(opts: {
 
   const stopsHtml = stops.length
     ? `<ul style="margin:0;padding-left:18px;color:#1A0A00;font-size:14px;line-height:1.7;">${stops
-        .map((s) => `<li><strong>${esc(s.location_name)}</strong> — ETA ${esc(s.scheduled_time)}${s.note ? ` <em>(${esc(s.note)})</em>` : ""}</li>`)
+        .map((s) => `<li><strong>${esc(s.location_name)}</strong> — ETA ${esc(s.scheduled_time)}${s.note ? ` <em>(${esc(s.note)})</em>` : ""} · <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.location_name ?? "")}" style="color:#A8481A;">Map</a></li>`)
         .join("")}</ul>`
     : "";
 
@@ -135,7 +135,7 @@ function buildEmail(opts: {
     ${section("Important Note", noteHtml)}
 
     <p style="font-size:13px;color:#7A3A18;margin:18px 0 0;line-height:1.6;">
-      Live van updates are also posted under <strong>Tracking</strong> in your Bandang IBAYO account.
+      Your pickup points, driver and check-in QR are on the <strong>Trip Day</strong> card in My Bookings, and live van updates are under <strong>Tracking</strong>.
       Questions? Just reply to this email or write us at ${GMAIL_USER}.
     </p>
     <p style="color:#7A3A18;font-size:13px;margin-top:20px;">— The Bandang IBAYO Team</p>

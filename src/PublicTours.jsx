@@ -10,6 +10,8 @@ import {
 } from './JoinerTours';
 import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, formatPeso, groupTripDates, tripForDate } from './tourUtils';
 import { TripDatePicker } from './ui/TripDates';
+import { MoreTourFilters } from './ui/TourFilters';
+import { applyTripFilters, useTripFilters } from './tripFilters';
 import logoIcon from './assets/newIcon.png';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock } from 'lucide-react';
@@ -133,8 +135,12 @@ export const PublicTourList = () => {
     return () => { document.title = SITE_TITLE; };
   }, []);
 
+  // Month, price range and trip length (ui/TourFilters.jsx).
+  const { filters: tripFilters, setFilter: setTripFilter, clearFilters: clearTripFilters, active: tripFiltersActive } = useTripFilters();
+  const clearAllFilters = () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); clearTripFilters(); };
+
   const q = searchQuery.trim().toLowerCase();
-  const filteredTours = tours.filter((t) => {
+  const filteredTours = applyTripFilters(tours, tripFilters).filter((t) => {
     const matchesSearch = !q || t.title?.toLowerCase().includes(q) || t.destination?.toLowerCase().includes(q);
     const matchesDifficulty = difficultyFilter === 'All Difficulty' || t.difficulty === difficultyFilter;
     return matchesSearch && matchesDifficulty;
@@ -161,7 +167,7 @@ export const PublicTourList = () => {
           Browse every joiner tour. Create a free account when you're ready to book.
         </p>
 
-        <div className="public-tour-filters" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 28 }}>
+        <div className="public-tour-filters" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
           <div style={{ position: 'relative' }}>
             <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#A8481A' }} />
             <input
@@ -185,6 +191,14 @@ export const PublicTourList = () => {
             <option value="highToLow">Price: High to Low</option>
           </select>
         </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+          <MoreTourFilters trips={tours} filters={tripFilters} setFilter={setTripFilter} inputStyle={inputStyle} />
+          {(tripFiltersActive || q || difficultyFilter !== 'All Difficulty') && (
+            <button type="button" className="text-link" onClick={clearAllFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, padding: '0 4px' }}>
+              Clear filters
+            </button>
+          )}
+        </div>
 
         {loading ? (
           <SkeletonTourCards count={6} />
@@ -204,8 +218,8 @@ export const PublicTourList = () => {
             <EmptyState
               icon={SearchX}
               title="No tours match your search"
-              message="Try another destination or difficulty, or clear the filters to see every open tour."
-              action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); } }}
+              message="Try another month, price or destination, or clear the filters to see every open tour."
+              action={{ label: 'Clear Filters', onClick: clearAllFilters }}
             />
           ) : (
             <EmptyState

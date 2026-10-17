@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Download, Printer, X, Loader2, MapPin, Truck, Users } from 'lucide-react';
+import { Download, Printer, X, Loader2, MapPin, Truck, Users, Megaphone, Send } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { formatDateRange, formatPeso } from './tourUtils';
 import EmptyState from './ui/EmptyState';
 import { UsersRound } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
+import { notifyUser } from './notifications';
+import { sendCustomEmail } from './Email';
+import { confirmDialog } from './ui/ConfirmDialog';
 
 // ─────────────────────────────────────────────
 // JOINER LIST (manifest) for one tour, for drivers and guides.
@@ -45,6 +48,7 @@ const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 
 const JoinerListModal = ({ tour, onClose }) => {
   const [data, setData] = useState(null);
+  const [composing, setComposing] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -52,7 +56,7 @@ const JoinerListModal = ({ tour, onClose }) => {
       const [{ data: bookings, error }, { data: stops }, { data: vehicle }] = await Promise.all([
         supabase
           .from('bookings')
-          .select('booking_number, full_name, contact_number, email, slots_booked, companions, payment_status, payment_method, total_price, amount_paid, balance_settled, created_at')
+          .select('booking_number, user_id, full_name, contact_number, email, slots_booked, companions, payment_status, payment_method, total_price, amount_paid, balance_settled, created_at')
           .eq('tour_id', tour.id)
           .not('booking_status', 'in', '("Cancelled","Rejected")')
           .order('created_at', { ascending: true }),
@@ -137,7 +141,13 @@ const JoinerListModal = ({ tour, onClose }) => {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 <button type="button" onClick={downloadCsv} style={actionButton('#1A0A00')}><Download size={14} /> Download CSV</button>
                 <button type="button" onClick={printList} style={actionButton('#A8481A')}><Printer size={14} /> Print / Save as PDF</button>
+                <button type="button" onClick={() => setComposing((v) => !v)} disabled={!data.bookings.length} aria-expanded={composing}
+                  style={{ ...actionButton('#FDF6EE'), color: '#1A0A00', border: '1px solid rgba(122,58,24,0.35)', opacity: data.bookings.length ? 1 : 0.5 }}>
+                  <Megaphone size={14} /> Message Joiners
+                </button>
               </div>
+
+              {composing && <MessageJoiners tour={tour} bookings={data.bookings} onDone={() => setComposing(false)} />}
 
               <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
                 <Users size={14} style={{ color: '#A8481A' }} /> {people.length} joiner{people.length === 1 ? '' : 's'} on {data.bookings.length} booking{data.bookings.length === 1 ? '' : 's'}
@@ -191,6 +201,84 @@ const JoinerListModal = ({ tour, onClose }) => {
         </div>
       </div>
     </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// MESSAGE JOINERS: an announcement to everyone booked on this date
+// ("call time moved to 4:00 AM"), as an in-app notification and, if
+// ticked, an email. Uses the same notification and "custom" email the
+// rest of the admin side already uses, one per joiner.
+// ─────────────────────────────────────────────
+const MessageJoiners = ({ tour, bookings, onDone }) => {
+  const [subject, setSubject] = useState(`Update: ${tour.title}`);
+  const [message, setMessage] = useState('');
+  const [alsoEmail, setAlsoEmail] = useState(true);
+  const [sending, setSending] = useState(false);
+  const userIds = [...new Set(bookings.map((b) => b.user_id).filter(Boolean))];
+  const when = formatDateRange(tour.start_date, tour.duration);
+
+  const send = async (e) => {
+    e.preventDefault();
+    const title = subject.trim();
+    const body = message.trim();
+    if (!title || !body) { toast.error('Add a subject and a message'); return; }
+    if (title.length > 200 || body.length > 5000) { toast.error('Too long', 'Keep the subject under 200 and the message under 5,000 characters.'); return; }
+    if (!(await confirmDialog({
+      title: `Send to ${userIds.length} joiner${userIds.length === 1 ? '' : 's'}?`,
+      message: `Everyone booked on ${tour.title} (${when}) gets this as a notification${alsoEmail ? ' and an email' : ''}.`,
+      confirmLabel: 'Send Message', cancelLabel: 'Keep Editing',
+    }))) return;
+
+    setSending(true);
+    let emailed = 0;
+    const failed = [];
+    await Promise.all(userIds.map(async (userId) => {
+      await notifyUser(userId, { title, message: `${tour.title} (${when}): ${body}`, type: 'tour' });
+      if (!alsoEmail) return;
+      const { ok } = await sendCustomEmail({ userId, subject: title, message: `${tour.title}, ${when}\n\n${body}` });
+      if (ok) emailed++; else failed.push(userId);
+    }));
+    setSending(false);
+    if (failed.length) {
+      toast.error(`${failed.length} email${failed.length === 1 ? '' : 's'} didn't send`, `Everyone still got the notification. ${emailed} email${emailed === 1 ? '' : 's'} went out.`);
+    } else {
+      toast.success('Message sent', `${userIds.length} joiner${userIds.length === 1 ? '' : 's'} notified${alsoEmail ? ' and emailed' : ''}.`);
+    }
+    onDone();
+  };
+
+  const field = {
+    width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)',
+    borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+  };
+  const label = { display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18', marginBottom: 5 };
+
+  return (
+    <form onSubmit={send} style={{ background: '#F2E4D0', borderRadius: 16, padding: '1rem 1.1rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+        Goes to the {userIds.length} joiner{userIds.length === 1 ? '' : 's'} who booked {when}. Companions aren't included, so ask bookers to pass it on.
+      </p>
+      <div>
+        <label style={label} htmlFor="announce-subject">Subject</label>
+        <input id="announce-subject" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={200} required style={field} />
+      </div>
+      <div>
+        <label style={label} htmlFor="announce-message">Message</label>
+        <textarea id="announce-message" value={message} onChange={(e) => setMessage(e.target.value)} maxLength={5000} rows={4} required
+          placeholder="e.g. Call time is moved to 4:00 AM at the Cubao pickup point. Please be on time."
+          style={{ ...field, resize: 'vertical' }} />
+      </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#1A0A00', cursor: 'pointer' }}>
+        <input type="checkbox" checked={alsoEmail} onChange={(e) => setAlsoEmail(e.target.checked)} /> Also send it by email
+      </label>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button type="submit" disabled={sending} style={{ ...actionButton('#B4511E'), opacity: sending ? 0.7 : 1 }}>
+          {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {sending ? 'Sending…' : 'Send Message'}
+        </button>
+        <button type="button" onClick={onDone} disabled={sending} style={{ ...actionButton('transparent'), color: '#7A3A18', border: '1px solid rgba(122,58,24,0.3)' }}>Cancel</button>
+      </div>
+    </form>
   );
 };
 
