@@ -888,7 +888,7 @@ const Reports = () => {
           ) : (
             <>
               {/* ── KPI Cards ── */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+              <div className="report-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
                 <StatCard title="Total Revenue" value={peso(stats.revenue)} icon={<Wallet size={17} />} iconColor="#A8481A" />
                 <StatCard title="Estimated Profit" value={peso(estimatedProfit)} icon={<TrendingUp size={17} />} iconColor="#A8481A" />
                 <StatCard title="Avg. Booking Value" value={peso(stats.avgBookingValue)} icon={<Percent size={17} />} iconColor="#7A3A18" />
@@ -1398,29 +1398,38 @@ const SectionTitle = ({ icon, children }) => (
   </h4>
 );
 
-const StatCard = ({ title, value, icon, iconColor }) => (
-  <div style={{
-    background: '#FDF6EE', borderRadius: 18, padding: '1.4rem 1.5rem',
-    border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
-    display: 'flex', flexDirection: 'column', gap: 8,
-  }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
-        {title}
-      </p>
-      <div style={{
-        width: 32, height: 32, borderRadius: 9, background: '#F2E4D0',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: iconColor || '#A8481A', flexShrink: 0,
-      }}>
-        {icon}
+// One KPI: icon and label on top, the number below on one line. Long
+// numbers (peso amounts) get a slightly smaller size instead of wrapping.
+const StatCard = ({ title, value, icon, iconColor }) => {
+  const text = String(value ?? '');
+  const size = text.length > 12 ? 22 : text.length > 9 ? 25 : 28;
+  return (
+    <div style={{
+      background: '#FDF6EE', borderRadius: 18, padding: '1.15rem 1.25rem',
+      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+      display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14, minWidth: 0,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, background: '#F2E4D0',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: iconColor || '#A8481A', flexShrink: 0,
+        }}>
+          {icon}
+        </div>
+        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0, lineHeight: 1.35 }}>
+          {title}
+        </p>
       </div>
+      <p title={text} style={{
+        fontSize: size, fontWeight: 900, letterSpacing: '-0.03em', color: '#1A0A00', margin: 0, lineHeight: 1.1,
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontVariantNumeric: 'tabular-nums',
+      }}>
+        {value}
+      </p>
     </div>
-    <p style={{ fontSize: 28, fontWeight: 900, letterSpacing: '-0.03em', color: '#1A0A00', margin: 0, lineHeight: 1.1, wordBreak: 'break-word' }}>
-      {value}
-    </p>
-  </div>
-);
+  );
+};
 
 const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValueless, invertTrendColor }) => {
   const trendGood = invertTrendColor ? (trend ?? 0) <= 0 : (trend ?? 0) >= 0;
