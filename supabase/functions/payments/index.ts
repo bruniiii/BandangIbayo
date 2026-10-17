@@ -185,12 +185,22 @@ async function handleWebhook(req: Request) {
 
 // ───────────── Joiner actions ─────────────
 async function loadOwnBooking(bookingId: unknown, userId: string) {
-  const { data: booking } = await supabase
+  if (bookingId == null || bookingId === "") throw new HttpError(400, "Missing booking.");
+  const { data: booking, error } = await supabase
     .from("bookings")
     .select("*, tours ( id, title, start_date, end_date )")
     .eq("id", bookingId)
     .maybeSingle();
-  if (!booking || booking.user_id !== userId) throw new HttpError(404, "Booking not found.");
+  // Each case says what went wrong (and is logged), instead of one "not found" for all of them.
+  if (error) {
+    console.error("payments: couldn't load booking", { bookingId, error });
+    throw new HttpError(500, `Couldn't load your booking (${error.message}). Please try again, or contact us.`);
+  }
+  if (!booking) throw new HttpError(404, `Booking not found (id ${bookingId}).`);
+  if (booking.user_id !== userId) {
+    console.error("payments: booking belongs to another account", { bookingId, owner: booking.user_id, caller: userId });
+    throw new HttpError(403, "This booking belongs to another account. Please log in with the account that made it.");
+  }
   return booking;
 }
 
