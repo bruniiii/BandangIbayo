@@ -629,12 +629,13 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
               {/* Footer actions */}
               <div style={{
                 marginTop: 'auto', padding: '1.25rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
-                background: '#F2E4D0', display: 'flex', gap: 12,
+                background: '#F2E4D0', display: 'flex', flexWrap: 'wrap', gap: 12,
               }}>
+                {/* Labels stay on one line; when there's no room the buttons wrap to a new row. */}
                 <button
                   onClick={onClose}
                   style={{
-                    flex: 1, padding: '14px 0', background: '#FDF6EE', color: '#1A0A00',
+                    flex: '1 1 110px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#FDF6EE', color: '#1A0A00',
                     border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                     transition: 'background 0.2s',
@@ -651,7 +652,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={handleDownloadReceipt}
                     disabled={downloadingReceipt}
                     style={{
-                      flex: 1, padding: '14px 0', background: '#1A0A00', color: '#FDF6EE',
+                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#1A0A00', color: '#FDF6EE',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -664,7 +665,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   <button
                     onClick={() => setShowCancelConfirm(true)}
                     style={{
-                      flex: 1, padding: '14px 0', background: 'rgba(140,47,28,0.08)', color: '#8C2F1C',
+                      flex: '1 1 180px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'rgba(140,47,28,0.08)', color: '#8C2F1C',
                       border: '1px solid rgba(140,47,28,0.2)', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
