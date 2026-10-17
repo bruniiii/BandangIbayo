@@ -10,6 +10,8 @@ import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
 import CheckInQr from './ui/CheckInQr';
+import TripDayCard from './TripDayCard';
+import { tripDayBookings } from './tripDay';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
@@ -102,7 +104,9 @@ const MyBookings = ({ onExplore }) => {
           end_date,
           duration,
           image_urls,
-          price
+          price,
+          things_to_bring,
+          important_note
         )
       `)
       .eq('user_id', user.id)
@@ -159,6 +163,9 @@ const MyBookings = ({ onExplore }) => {
  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* ── Trip Day: the next few days' confirmed trips, with pickups, driver and QR ── */}
+      {!loading && tripDayBookings(bookings).map((b) => <TripDayCard key={b.id} booking={b} />)}
 
       {/* ── Header / Tabs ── */}
       <div style={{

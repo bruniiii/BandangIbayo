@@ -373,3 +373,8 @@ main {
     padding-bottom: 0.6rem !important;
   }
 }
+
+/* Trip Day card (My Bookings): details and QR stack on phones */
+@media (max-width: 720px) {
+  .trip-day-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}

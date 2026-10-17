@@ -5,6 +5,8 @@ import { toast } from './ui/toast';
 
 import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter, groupTripDates, tripForDate } from './tourUtils';
 import { TripDatePicker, TripDateLines } from './ui/TripDates';
+import { MoreTourFilters } from './ui/TourFilters';
+import { applyTripFilters, useTripFilters } from './tripFilters';
 import { startCheckout } from './payments';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
@@ -158,7 +160,12 @@ const JoinerTours = ({ initialTourId = null }) => {
 
  
 
-  const filteredTours = tours.filter((t) => {
+  // Month, price range and trip length (ui/TourFilters.jsx).
+  const { filters: tripFilters, setFilter: setTripFilter, clearFilters: clearTripFilters, active: tripFiltersActive } = useTripFilters();
+  const anyFilter = tripFiltersActive || searchQuery || difficultyFilter !== "All Difficulty";
+  const clearAllFilters = () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); setPriceSort('default'); clearTripFilters(); };
+
+  const filteredTours = applyTripFilters(tours, tripFilters).filter((t) => {
 
     const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || t.destination.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -302,6 +309,15 @@ const JoinerTours = ({ initialTourId = null }) => {
 
         </div>
 
+        {/* Second row: when, how much, how long */}
+        <div style={{ flexBasis: '100%', height: 0 }} />
+        <MoreTourFilters trips={tours} filters={tripFilters} setFilter={setTripFilter} inputStyle={inputStyle} />
+        {anyFilter && (
+          <button type="button" className="text-link" onClick={clearAllFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, padding: '0 4px' }}>
+            Clear filters
+          </button>
+        )}
+
       </div>
 
 
@@ -320,8 +336,8 @@ const JoinerTours = ({ initialTourId = null }) => {
               <EmptyState
                 icon={SearchX}
                 title="No tours match your search"
-                message="Try another destination or difficulty, or clear the filters to see every open tour."
-                action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); setPriceSort('default'); } }}
+                message="Try another month, price or destination, or clear the filters to see every open tour."
+                action={{ label: 'Clear Filters', onClick: clearAllFilters }}
               />
             ) : (
               <EmptyState

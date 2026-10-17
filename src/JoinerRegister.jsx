@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Loader2,
@@ -14,6 +14,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { safeNextPath } from './tourUtils';
@@ -29,8 +30,14 @@ import logoIcon from './assets/newIcon.png';
 import PasswordField from './ui/PasswordField';
 import RequiredMark from './ui/RequiredMark';
 import { phoneInputProps } from './ui/phoneField';
+import GoogleButton, { OrDivider } from './ui/GoogleButton';
+import { googleNameParts } from './googleAuth';
 
-const JoinerRegister = () => {
+// mode="complete" (/complete-profile): after "Continue with Google", the
+// same form without email and password fills in the rest of the profile.
+const JoinerRegister = ({ mode = 'register' }) => {
+  const completing = mode === 'complete';
+  const [googleUser, setGoogleUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
@@ -48,6 +55,16 @@ const JoinerRegister = () => {
   const [searchParams] = useSearchParams();
   const nextPath = safeNextPath(searchParams.get('next'));
   const loginPath = nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login';
+
+  // Completing a Google sign-up: needs the signed-in account (its email and name).
+  useEffect(() => {
+    if (!completing) return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) navigate(loginPath, { replace: true });
+      else setGoogleUser(data.session.user);
+    });
+  }, [completing, navigate, loginPath]);
+  const googleName = googleNameParts(googleUser);
 
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
@@ -72,8 +89,9 @@ const JoinerRegister = () => {
     setAvatarPreview(null);
   };
 
-  const uploadAvatar = async (userId, file) => {
-    if (!file) return null;
+  const uploadAvatar = async (userId, original) => {
+    if (!original) return null;
+    const file = await shrinkImage(original, { maxSide: 512 }); // a profile picture never shows bigger than this
 
     const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const filePath = `avatars/${userId}/${Date.now()}.${extension}`;
@@ -139,7 +157,7 @@ const JoinerRegister = () => {
         ['middleName', nameError(middleName, 'Middle initial', { required: false, min: 1 })],
         ['lastName', nameError(lastName, 'Last name')],
         ['suffix', suffixError(suffix)],
-        ['email', emailError(email)],
+        ['email', completing ? '' : emailError(email)],
         ['phone', phoneError(phone, 'Phone number')],
         ['dateOfBirth', birthDateError(dateOfBirth)],
         ['emergencyContactName', hasEmergency ? nameError(emergencyContactName, 'Emergency contact name', { max: 120 }) : ''],
@@ -150,14 +168,14 @@ const JoinerRegister = () => {
         ['city', city ? '' : 'Please choose your city or municipality.'],
         ['barangay', barangay ? '' : 'Please choose your barangay.'],
         ['street', textError(street, 'Street / house no.', { min: 2, max: 200 })],
-        ['password', passwordErrorMessage(password)],
-        ['confirmPassword', password !== confirmPassword ? 'The passwords do not match.' : ''],
-        ['password', username && password.toLowerCase().includes(username.toLowerCase()) ? "Your password shouldn't contain your username." : ''],
+        ['password', completing ? '' : passwordErrorMessage(password)],
+        ['confirmPassword', !completing && password !== confirmPassword ? 'The passwords do not match.' : ''],
+        ['password', !completing && username && password.toLowerCase().includes(username.toLowerCase()) ? "Your password shouldn't contain your username." : ''],
       ]);
       if (!ok) return;
 
       // "juan@gmial.com" → offer "juan@gmail.com", since the confirmation link goes there.
-      const suggested = emailSuggestion(email);
+      const suggested = completing ? null : emailSuggestion(email);
       if (suggested && await confirmDialog({ title: `Did you mean ${suggested}?`, message: 'Your confirmation link will be sent to this address.', confirmLabel: `Use ${suggested.split('@')[1]}`, cancelLabel: `Keep ${email.split('@')[1]}` })) {
         email = suggested;
         const emailInput = form.querySelector('[name="email"]');
@@ -166,8 +184,40 @@ const JoinerRegister = () => {
 
       // Usernames must be unique (checked without logging in).
       const { data: takenBy } = await supabase.rpc('email_for_login', { p_username: username });
-      if (takenBy) {
+      if (takenBy && !(completing && takenBy.toLowerCase() === String(googleUser?.email || '').toLowerCase())) {
         flagField(form, 'username', 'This username is already taken. Please choose another one.');
+        return;
+      }
+
+      // Google sign-up: save the rest of the profile, then into the dashboard.
+      if (completing) {
+        let avatarUrl = googleName.avatar || null;
+        if (avatarFile) {
+          try { avatarUrl = (await uploadAvatar(googleUser.id, avatarFile)) || avatarUrl; }
+          catch (avatarError) { console.error('Avatar upload failed:', avatarError); }
+        }
+        const { error: saveError } = await supabase.rpc('complete_my_profile', {
+          p: {
+            username,
+            first_name: cleanName(firstName),
+            middle_name: cleanName(middleName),
+            last_name: cleanName(lastName),
+            suffix,
+            phone_number: normalizePhone(phone),
+            date_of_birth: dateOfBirth || null,
+            address, province, city_municipality: city, barangay, street,
+            emergency_contact_name: cleanName(emergencyContactName),
+            emergency_contact_number: emergencyContactNumber ? normalizePhone(emergencyContactNumber) : '',
+            avatar_url: avatarUrl,
+          },
+        });
+        if (saveError) {
+          if (/username/i.test(saveError.message)) flagField(form, 'username', saveError.message);
+          else toast.error("Couldn't save your profile", saveError.message);
+          return;
+        }
+        toast.success('Welcome to Bandang IBAYO!', 'Your profile is all set.');
+        navigate(nextPath || '/dashboard', { replace: true });
         return;
       }
 
@@ -517,7 +567,7 @@ const JoinerRegister = () => {
               margin: '0 0 8px',
             }}
           >
-            Join the Adventure
+            {completing ? 'Almost there!' : 'Join the Adventure'}
           </h1>
 
           <p
@@ -529,13 +579,27 @@ const JoinerRegister = () => {
               fontWeight: 500,
             }}
           >
-            Create your traveler profile for Bandang Ibayo.
+            {completing
+              ? `Signed in with Google${googleUser?.email ? ` as ${googleUser.email}` : ''}. Finish your traveler profile to start booking.`
+              : 'Create your traveler profile for Bandang Ibayo.'}
           </p>
           <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>
             Fields marked <RequiredMark /> are required.
           </p>
         </div>
 
+        {!completing && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
+            <GoogleButton nextPath={nextPath} label="Sign up with Google" />
+            <OrDivider />
+          </div>
+        )}
+
+        {completing && !googleUser ? (
+          <div role="status" style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: '#A8481A' }}>
+            <Loader2 size={26} style={{ animation: 'spin 1s linear infinite' }} />
+          </div>
+        ) : (
         <form
           style={{
             display: 'flex',
@@ -686,6 +750,7 @@ const JoinerRegister = () => {
               <label style={labelStyle}>First Name <RequiredMark /></label>
               <input
                 name="firstName"
+                defaultValue={completing ? googleName.first : undefined}
                 data-allow="name"
                 type="text"
                 placeholder="Juan"
@@ -709,6 +774,7 @@ const JoinerRegister = () => {
               <label style={labelStyle}>Last Name <RequiredMark /></label>
               <input
                 name="lastName"
+                defaultValue={completing ? googleName.last : undefined}
                 data-allow="name"
                 type="text"
                 placeholder="Dela Cruz"
@@ -746,7 +812,8 @@ const JoinerRegister = () => {
                   name="email"
                   type="email"
                   placeholder="juan@email.com"
-                  style={inputWithIconStyle}
+                  style={completing ? { ...inputWithIconStyle, background: '#F2E4D0', color: '#7A3A18' } : inputWithIconStyle}
+                  {...(completing ? { value: googleUser?.email || '', readOnly: true, 'aria-readonly': true } : {})}
                   required
                 />
               </div>
@@ -839,8 +906,8 @@ const JoinerRegister = () => {
             required
           />
 
-          {/* PASSWORD ROW */}
-          <div
+          {/* PASSWORD ROW (Google accounts sign in with Google, no password) */}
+          {!completing && <div
             style={{
               display: 'grid',
               gridTemplateColumns:
@@ -874,7 +941,7 @@ const JoinerRegister = () => {
                 required
               />
             </div>
-          </div>
+          </div>}
 
           <div
             style={{
@@ -998,10 +1065,10 @@ const JoinerRegister = () => {
                     animation: 'spin 1s linear infinite',
                   }}
                 />
-                Creating Account...
+                {completing ? 'Saving...' : 'Creating Account...'}
               </>
             ) : (
-              'Create Account'
+              completing ? 'Save and Continue' : 'Create Account'
             )}
           </button>
 
@@ -1012,6 +1079,7 @@ const JoinerRegister = () => {
             }
           `}</style>
         </form>
+        )}
 
         {/* FOOTER */}
         <p
@@ -1023,16 +1091,17 @@ const JoinerRegister = () => {
             opacity: 0.9,
           }}
         >
-          Already have an account?{' '}
+          {completing ? 'Not you?' : 'Already have an account?'}{' '}
           <Link className="text-link"
             to={loginPath}
+            onClick={completing ? () => supabase.auth.signOut() : undefined}
             style={{
               color: '#A8481A',
               fontWeight: 800,
               textDecoration: 'none',
             }}
           >
-            Login here
+            {completing ? 'Sign out and use another account' : 'Login here'}
           </Link>
         </p>
       </div>

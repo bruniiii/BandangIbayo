@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import MyData from './MyData';
 import ChangePassword from './ChangePassword';
@@ -204,7 +205,8 @@ const ProfileSettings = () => {
         finalAvatarUrl = null;
       } else if (pendingAvatarFile instanceof File) {
         setAvatarBusy(true);
-        const rawExt = pendingAvatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const avatarFile = await shrinkImage(pendingAvatarFile, { maxSide: 512 }); // a profile picture never shows bigger than this
+        const rawExt = avatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
         const ext = rawExt.replace(/[^a-z0-9]/g, '') || 'jpg';
         const filePath = `avatars/${userId}/${Date.now()}.${ext}`; // own folder: joiners may only upload into avatars/<their id>/
 
@@ -212,10 +214,10 @@ const ProfileSettings = () => {
         // A unique path avoids browser/CDN caching an older profile photo.
         const { error: uploadError } = await supabase.storage
           .from('tours')
-          .upload(filePath, pendingAvatarFile, {
+          .upload(filePath, avatarFile, {
             cacheControl: '3600',
             upsert: false,
-            contentType: pendingAvatarFile.type,
+            contentType: avatarFile.type,
           });
 
         if (uploadError) throw uploadError;

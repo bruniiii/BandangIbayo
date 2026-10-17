@@ -139,7 +139,8 @@ export const textError = (raw, label, { required = true, min = 1, max = 2000 } =
 };
 
 // ── Files ────────────────────────────────────
-export const IMAGE_MAX_MB = 10;
+// Photos are shrunk before upload (imageCompress.js), so big phone photos are fine.
+export const IMAGE_MAX_MB = 25;
 export const VIDEO_MAX_MB = 50;
 
 // Returns an error for a file that isn't an image/video or is too big.

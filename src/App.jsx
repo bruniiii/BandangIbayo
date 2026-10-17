@@ -10,6 +10,7 @@ import logoIcon from './assets/newIcon.png';
  
 import JoinerLogin from './JoinerLogin'; 
 import JoinerRegister from './JoinerRegister';
+import AuthCallback from './AuthCallback';
 import AdminDashboard from './AdminDashboard';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
@@ -542,6 +543,8 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<JoinerLogin />} />
       <Route path="/register" element={<JoinerRegister />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/complete-profile" element={<JoinerRegister mode="complete" />} />
       <Route path="/tours" element={<PublicTourList />} />
       <Route path="/tours/:id" element={<PublicTourDetail />} />
       <Route path="/dashboard/*" element={<ProtectedRoute><JoinerDashboard /></ProtectedRoute>} />
