@@ -154,7 +154,7 @@ const TourCalendar = ({ initialDate }) => {
             ))}
           </div>
  
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, textAlign: 'left' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 8, textAlign: 'left' }}>
             {calendarDays.map((day, idx) => {
               const dayTours = getToursForDay(new Date(day));
               const isSelected = isSameDay(day, selectedDate);
@@ -168,6 +168,8 @@ const TourCalendar = ({ initialDate }) => {
                   disabled={isPast}
                   style={{
                     height: 92,
+                    minWidth: 0,
+                    overflow: 'hidden',
                     borderRadius: 16,
                     padding: 10,
                     transition: 'all 0.2s',
@@ -187,20 +189,23 @@ const TourCalendar = ({ initialDate }) => {
                   }}>
                     {format(day, 'd')}
                   </span>
+                  {/* The tours on this day by name (two at most, then "+N more"). */}
                   {dayTours.length > 0 && !isPast && (
-                    <div style={{ marginTop: 'auto' }}>
-                      <div style={{
-                        fontSize: 11,
-                        fontWeight: 900,
-                        textTransform: 'uppercase',
-                        padding: '2px 6px',
-                        borderRadius: 6,
-                        display: 'inline-block',
-                        color: '#1A0A00',
-                        background: '#E8A265'
-                      }}>
-                        {dayTours.length} {dayTours.length === 1 ? 'Tour' : 'Tours'}
-                      </div>
+                    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, width: '100%' }}>
+                      {dayTours.slice(0, 2).map((t) => (
+                        <span key={t.id} title={t.title} className="cal-tour-chip" style={{
+                          display: 'block', maxWidth: '100%', boxSizing: 'border-box',
+                          fontSize: 11, fontWeight: 800, lineHeight: 1.3,
+                          padding: '2px 6px', borderRadius: 6,
+                          color: '#1A0A00', background: '#E8A265',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        }}>
+                          {t.title}
+                        </span>
+                      ))}
+                      {dayTours.length > 2 && (
+                        <span className="cal-tour-more" style={{ fontSize: 10.5, fontWeight: 800, color: '#A8481A', paddingLeft: 2 }}>+{dayTours.length - 2} more</span>
+                      )}
                     </div>
                   )}
                 </button>

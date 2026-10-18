@@ -45,7 +45,7 @@ const JoinerLogin = () => {
 
   const showError = (text) => setMessage({ text, tone: 'error' });
   // Shown right under the field: wrong username/password, or a wrong code.
-  const [credError, setCredError] = useState(null);   // { text, hint }
+  const [credError, setCredError] = useState(null);   // { field: 'identifier' | 'password' | 'both', text, hint }
   const [codeError, setCodeError] = useState(null);
 
   const handleLogin = async (e) => {
@@ -62,9 +62,16 @@ const JoinerLogin = () => {
     const result = await loginStart(identifier, password);
     setLoading(false);
     if (!result.ok) {
-      if (result.attemptsLeft != null) {
+      if (result.field === 'identifier') {
+        // No account has that username or Gmail.
+        setCredError({ field: 'identifier', text: 'Invalid username or Gmail.', hint: 'No account uses that. Check the spelling, or register.' });
+      } else if (result.attemptsLeft != null) {
         const left = result.attemptsLeft;
-        setCredError({ text: 'Invalid Gmail/username or password.', hint: `${left} attempt${left === 1 ? '' : 's'} left before your account is locked for 15 minutes.` });
+        const hint = `${left} attempt${left === 1 ? '' : 's'} left before your account is locked for 15 minutes.`;
+        // Older servers don't say which part was wrong.
+        setCredError(result.field === 'password'
+          ? { field: 'password', text: 'Invalid password.', hint }
+          : { field: 'both', text: 'Invalid Gmail/username or password.', hint });
       } else {
         showError(result.error);   // locked, email not confirmed, no connection…
       }
@@ -313,24 +320,27 @@ const JoinerLogin = () => {
             <input
               name="identifier"
               type="text"
-              placeholder="traveler_2026 or you@email.com"
-              style={{ ...inputStyle, ...(credError ? errorBorder : null) }}
+              placeholder="e.g. juandelacruz or juan@gmail.com"
+              style={{ ...inputStyle, ...(credError && credError.field !== 'password' ? errorBorder : null) }}
+              aria-invalid={credError?.field === 'identifier'}
+              aria-describedby={credError?.field === 'identifier' ? 'identifier-error' : undefined}
               onChange={() => setCredError(null)}
               required
             />
+            {credError?.field === 'identifier' && <FieldError id="identifier-error" error={credError} />}
           </div>
           <div>
             <label style={labelStyle}>Password</label>
             <PasswordField
               name="password"
               placeholder="••••••••"
-              style={{ ...inputStyle, ...(credError ? errorBorder : null) }}
-              aria-invalid={!!credError}
-              aria-describedby={credError ? 'cred-error' : undefined}
+              style={{ ...inputStyle, ...(credError && credError.field !== 'identifier' ? errorBorder : null) }}
+              aria-invalid={!!credError && credError.field !== 'identifier'}
+              aria-describedby={credError && credError.field !== 'identifier' ? 'cred-error' : undefined}
               onChange={() => setCredError(null)}
               required
             />
-            {credError && <FieldError id="cred-error" error={credError} />}
+            {credError && credError.field !== 'identifier' && <FieldError id="cred-error" error={credError} />}
           </div>
 
           <div style={{ textAlign: 'right' }}>

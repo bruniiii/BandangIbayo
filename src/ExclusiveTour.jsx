@@ -3,15 +3,23 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
-import { checkFields, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH, normalizePhone, formatPhPhone } from './validation';
+import { checkFields, flagField, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH, normalizePhone, formatPhPhone } from './validation';
 import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
   FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
-  Phone, Globe, Loader2
+  Phone, Globe, Loader2, CreditCard
 } from 'lucide-react';
+import { startExclusiveDownpayment } from './payments';
 import { phoneFieldProps } from './ui/phoneField';
 import { SkeletonRows } from './ui/Skeleton';
+import TermsModal from './ui/TermsModal';
+
+// The most a joiner can enter as their exclusive tour budget.
+const MAX_EXCLUSIVE_BUDGET = 100000;
+// Share of the package price paid up front to confirm an exclusive tour
+// (the payments function uses the same rate).
+const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -215,6 +223,7 @@ const SuccessScreen = ({ type, onReset }) => (
  
 // ─── EXCLUSIVE TOUR FORM ────────────────────────────────────────────────────────
 const ExclusiveTourForm = () => {
+  const [showTerms, setShowTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const prefill = usePrefilledContact();
@@ -239,7 +248,8 @@ const ExclusiveTourForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!checkRequestFields(e.currentTarget, form)) return;
-    if (form.budget !== '' && !(Number(form.budget) >= 0)) { toast.error('Check the budget', 'Budget must be zero or more.'); return; }
+    if (form.budget !== '' && !(Number(form.budget) >= 0)) { flagField(e.currentTarget, 'budget', 'Budget must be zero or more.'); return; }
+    if (Number(form.budget) > MAX_EXCLUSIVE_BUDGET) { flagField(e.currentTarget, 'budget', `Budget can be up to ${formatPeso(MAX_EXCLUSIVE_BUDGET)}.`); return; }
     if (!form.agreeTerms) { toast.info('Please accept the terms and conditions.'); return; }
     setLoading(true);
 
@@ -337,8 +347,7 @@ const ExclusiveTourForm = () => {
             options={[
               { value: '', label: 'Select preference…' },
               { value: 'non-ac', label: 'Non-AC Room' },
-              { value: 'ac', label: 'AC Room' },
-              { value: 'with-cr', label: 'With Private CR' },
+              { value: 'ac', label: 'AC Room' },             
               { value: 'with-all', label: 'With All Amenities' },
               { value: 'none', label: 'No accommodation needed' },
             ]}
@@ -347,9 +356,14 @@ const ExclusiveTourForm = () => {
             name="budget"
             label="Budget for Exclusive Tour"
             {...moneyInputProps}
-            placeholder="e.g. 50000"
+            placeholder="Up to 100,000"
             value={form.budget}
-            onChange={(e) => setForm(prev => ({ ...prev, budget: cleanMoney(e.target.value) }))}
+            onChange={(e) => {
+              const value = cleanMoney(e.target.value);
+              // Stop typing past the limit instead of failing later.
+              if (Number(value) > MAX_EXCLUSIVE_BUDGET) { flagField(e.target.form, 'budget', `Budget can be up to ${formatPeso(MAX_EXCLUSIVE_BUDGET)}.`); return; }
+              setForm(prev => ({ ...prev, budget: value }));
+            }}
             required
           />
         </div>
@@ -370,7 +384,7 @@ const ExclusiveTourForm = () => {
           Policy Reminder
         </p>
         <ul style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-          <li>A <strong>downpayment via GCash</strong> is required to confirm the booking.</li>          
+          <li>A <strong>downpayment</strong> is required to confirm the booking.</li>          
           <li>Bookings are <strong>non-refundable</strong>. Cancellations are not allowed.</li>
           <li>All prices are all-in (van, accommodation, coordination). Entrance/environmental fees are separate.</li>
           <li>An email and notification will be sent to confirm your exclusive booking.</li>
@@ -386,10 +400,21 @@ const ExclusiveTourForm = () => {
           style={{ marginTop: 3, accentColor: '#B4511E', width: 16, height: 16 }}
         />
         <span style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6 }}>
-          I have read and agree to the <span style={{ color: '#1A0A00', fontWeight: 900, textDecoration: 'underline' }}>Terms & Conditions</span> and understand the 
+          I have read and agree to the{' '}
+          <button type="button" className="text-link no-touch-size" onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 900, color: '#1A0A00' }}>
+            Terms &amp; Conditions
+          </button>{' '}and understand the 
           non-refundable payment policy. I also acknowledge the medical disclaimer applicable to overland travel.
         </span>
       </label>
+
+      {showTerms && (
+        <TermsModal
+          onClose={() => setShowTerms(false)}
+          onAgree={() => { setForm((prev) => ({ ...prev, agreeTerms: true })); setShowTerms(false); }}
+        />
+      )}
  
       <button
         type="submit"
@@ -452,10 +477,10 @@ const RequestTourForm = () => {
       contact_number: normalizePhone(form.contact) || form.contact.trim(),
       email: form.email,
       destination: form.destination,
-      region: form.region,
+      region: form.region || null,
       group_size: parseInt(form.groupSize) || null,
       preferred_date: form.preferredDate || null,
-      tour_type: form.tourType,
+      tour_type: form.tourType || null, // no longer asked on the form
       notes: form.notes,
     }]).select();
 
@@ -518,25 +543,14 @@ const RequestTourForm = () => {
           Destination &amp; Tour Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
-          <InputField name="region" data-allow="place" label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
+          <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />          
           <InputField name="groupSize" label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField name="preferredDate" label="Preferred Tour Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
         </div>
-        <SelectField
-          label="Tour Type Preference"
-          value={form.tourType}
-          onChange={set('tourType')}
-          required
-          options={[
-            { value: '', label: 'Select type…' },
-            { value: 'joiner', label: 'Open to other joiners (shared cost)' },
-            { value: 'exclusive', label: 'Exclusive for my group only' },
-          ]}
-        />
+        
         <TextAreaField name="notes"
           label="Additional Details / Preferences"
-          placeholder="Tell us more — specific spots you want to visit, activities, accommodation preferences, budget range, etc."
+          placeholder="Tell us more — specific spots you want to visit, activities, accommodation preferences, etc."
           value={form.notes}
           onChange={set('notes')}
           rows={5}
@@ -556,7 +570,7 @@ const RequestTourForm = () => {
             ['Agency reviews your request', 'Usually within 24–48 hours'],
             ['Custom price list is prepared', 'Based on group size, destination & dates'],
             ['You receive a notification here that the request has been approved or denied', 'If approved, the tour will be open for joiners on the Explore Tours page'],
-            ['You may confirm the tour by making a downpayment', 'Via GCash to secure your booking'],
+            ['You may confirm the tour by making a downpayment', 'To secure your booking'],
           ].map(([step, desc], i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <span style={{
@@ -600,6 +614,7 @@ const STATUS_STYLES = {
   Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
   Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
+  Confirmed: { bg: '#1A0A00', color: '#E8A265' }, // downpayment paid
 };
 
 const RequestStatusBadge = ({ status }) => {
@@ -646,6 +661,10 @@ const RequestHistoryCard = ({ request }) => {
   const isExclusive = request.request_type === 'exclusive';
   const pkg = request.package_details;
   const hasPackage = !!request.package_sent_at && pkg;
+  // Exclusive tours are confirmed with a 50% downpayment of the package price.
+  const packagePrice = Number(pkg?.price);
+  const canPay = isExclusive && request.status === 'Approved' && hasPackage && packagePrice > 0;
+  const isPaid = request.payment_status === 'Paid';
 
   return (
     <div style={{
@@ -693,7 +712,7 @@ const RequestHistoryCard = ({ request }) => {
           </span>
         )}
 
-        <RequestStatusBadge status={request.status} />
+        <RequestStatusBadge status={isPaid ? 'Confirmed' : request.status} />
 
         <ChevronDown
           size={16}
@@ -804,8 +823,65 @@ const RequestHistoryCard = ({ request }) => {
               )}
             </div>
           )}
+
         </div>
       )}
+
+      {/* Always visible, so joiners don't have to open the card to pay */}
+      {canPay && (
+        <div style={{ padding: '0 1.25rem 1.25rem' }}>
+          <DownpaymentPanel request={request} price={packagePrice} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// "Pay 50% downpayment" for an approved exclusive tour, or "Confirmed" once paid.
+const DownpaymentPanel = ({ request, price }) => {
+  const [busy, setBusy] = useState(false);
+  const downpayment = Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
+
+  if (request.payment_status === 'Paid') {
+    return (
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: 'rgba(180,81,30,0.08)', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 16, padding: '14px 16px' }}>
+        <CheckCircle2 size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 1 }} />
+        <div>
+          <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Your exclusive tour is confirmed</p>
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.6 }}>
+            Downpayment of {formatPeso(Number(request.amount_paid) || downpayment)} received{request.paid_at ? ` on ${formatShortDate(request.paid_at)}` : ''}.
+            The remaining {formatPeso(Math.max(0, price - (Number(request.amount_paid) || downpayment)))} is settled with our team before the trip.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const pay = async () => {
+    setBusy(true);
+    const { ok, data, error } = await startExclusiveDownpayment({ requestId: request.id });
+    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(false); return; }
+    if (data.alreadyPaid) { toast.success('Downpayment already paid', 'Your exclusive tour is confirmed.'); setBusy(false); return; }
+    window.location.assign(data.checkoutUrl);
+  };
+
+  return (
+    <div style={{ background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div>
+        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>Confirm your tour</p>
+        <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.6 }}>
+          Pay a <strong>50% downpayment of {formatPeso(downpayment)}</strong> (of the {formatPeso(price)} package) to lock in your exclusive tour.
+          Pay online with GCash, Maya or card. Payments are non-refundable.
+        </p>
+      </div>
+      <button type="button" onClick={pay} disabled={busy} style={{
+        alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+        padding: '12px 20px', borderRadius: 14, border: 'none', cursor: busy ? 'default' : 'pointer',
+        background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+        letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy ? 0.75 : 1,
+      }}>
+        {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(downpayment)} Downpayment
+      </button>
     </div>
   );
 };

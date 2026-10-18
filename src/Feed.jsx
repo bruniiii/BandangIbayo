@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { mediaFileError } from './validation';
@@ -199,9 +200,10 @@ const Feed = ({ isAdmin = false }) => {
     try {
       const media = [];
       for (const item of mediaItems) {
-        const ext = item.file.name.split('.').pop();
+        const file = item.type === 'video' ? item.file : await shrinkImage(item.file); // photos are resized before upload
+        const ext = file.name.split('.').pop();
         const fileName = `${Math.random()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from('tours').upload(`feed-media/${fileName}`, item.file);
+        const { error: uploadError } = await supabase.storage.from('tours').upload(`feed-media/${fileName}`, file);
         if (uploadError) throw uploadError;
         const { data } = supabase.storage.from('tours').getPublicUrl(`feed-media/${fileName}`);
         media.push({ url: data.publicUrl, type: item.type });

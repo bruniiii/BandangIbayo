@@ -348,7 +348,7 @@ function LandingPage() {
             What is a Joiner Tour?
           </h2>
           <p style={{ fontSize: 18, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', opacity: 0.9 }}>
-            A Joiner is a solo traveler or small group who shares a tour package with others — splitting transport and accommodation costs so you can explore more without spending more. Check live seat availability, full pricing, and itinerary details all in one place.
+            A Joiner is a solo traveler or small group who shares a tour package with others — splitting transport and accommodation costs. Check live seat availability, full pricing, and itinerary details all in one place.
           </p>
         </div>
       </section>
@@ -483,9 +483,20 @@ function LandingPage() {
               Bandang<br/><span style={{ color: '#A8481A' }}>IBAYO.</span>
             </h2>
             <p style={{ fontSize: 17, lineHeight: 1.8, color: '#7A3A18', marginBottom: 32, opacity: 0.9 }}>
-              A local travel agency from Bulacan on a mission to help Filipinos explore the country affordably. By modernizing our booking process, every trip is secure, organized, and stress-free from day one.
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              A local travel agency from Bulacan on a mission to help Filipinos explore the country. By modernizing our booking process, every trip is secure, organized, and stress-free from day one.
+            </p>            
+          </div>
+ 
+          <div style={{ background: '#FDF6EE', borderRadius: 28, padding: '36px 32px', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 24px rgba(26,10,0,0.07)' }}>
+            <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', margin: '0 0 20px' }}>Contact Our Coordinator</h3>           
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
+                <Mail size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> bandangibayo@gmail.com
+              </p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
+                <MapPin size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> Bulacan, Philippines
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
               <a href="https://facebook.com/bandangibayo" target="_blank" rel="noreferrer" style={{
                 display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 13,
                 color: '#1877F2', textDecoration: 'none', background: '#EFF6FF',
@@ -497,21 +508,6 @@ function LandingPage() {
                 borderRadius: 12, padding: '10px 18px',
               }}><Phone size={16} style={{ color: '#A8481A' }}/> +63 9XX XXX XXXX</div>
             </div>
-          </div>
- 
-          <div style={{ background: '#FDF6EE', borderRadius: 28, padding: '36px 32px', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 24px rgba(26,10,0,0.07)' }}>
-            <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', margin: '0 0 20px' }}>Contact Our Coordinator</h3>
-            <div style={{ background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: '16px 20px', marginBottom: 24 }}>
-              <p style={{ fontWeight: 800, fontSize: 13, color: '#A8481A', margin: '0 0 4px' }}>For Exclusive & Request Tours Only</p>
-              <p style={{ fontSize: 13, color: '#7A3A18', margin: 0, opacity: 0.9 }}>Joiner tours can be booked directly on the platform.</p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <p style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
-                <Mail size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> bandangibayo@gmail.com
-              </p>
-              <p style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
-                <MapPin size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> Bulacan, Philippines
-              </p>
             </div>
           </div>
         </div>

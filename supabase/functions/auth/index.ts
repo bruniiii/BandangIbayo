@@ -87,7 +87,7 @@ async function recordFailure(email: string, state: Awaited<ReturnType<typeof loc
   }
   await admin.from("login_lockouts").upsert({ email, failed_count: failed, locked_until: null, updated_at: new Date().toISOString() });
   const left = MAX_ATTEMPTS - failed;
-  throw new HttpError(401, `Incorrect username/email or password. ${left} attempt${left === 1 ? "" : "s"} left before your account is locked for ${LOCK_MINUTES} minutes.`, { attemptsLeft: left });
+  throw new HttpError(401, `Invalid password. ${left} attempt${left === 1 ? "" : "s"} left before your account is locked for ${LOCK_MINUTES} minutes.`, { attemptsLeft: left, field: "password" });
 }
 
 const clearLock = (email: string) => admin.from("login_lockouts").delete().eq("email", email);
@@ -123,13 +123,20 @@ async function findProfileEmail(column: "username" | "email", value: string) {
   return match?.email ? String(match.email).toLowerCase() : null;
 }
 
+// The email to sign in with, and whether we know an account has it.
+// Accepts an email, "juan@gmail", a username, or a Gmail address typed
+// without "@gmail.com" ("juan" → the account with username juan, otherwise
+// juan@gmail.com).
 async function resolveEmail(identifier: string) {
   let id = identifier.trim();
-  // "juan@gmail" → "juan@gmail.com"
   if (/@gmail$/i.test(id)) id += ".com";
-  if (id.includes("@")) return id.toLowerCase();
-  // A username, or a Gmail address typed without "@gmail.com".
-  return (await findProfileEmail("username", id)) ?? (await findProfileEmail("email", `${id}@gmail.com`));
+  if (!id.includes("@")) {
+    const byUsername = await findProfileEmail("username", id);
+    if (byUsername) return { email: byUsername, known: true };
+    id = `${id}@gmail.com`;
+  }
+  const email = id.toLowerCase();
+  return { email, known: Boolean(await findProfileEmail("email", email)) };
 }
 
 async function login(p: any) {
@@ -137,11 +144,16 @@ async function login(p: any) {
   const password = String(p.password ?? "");
   if (!identifier || !password) throw new HttpError(400, "Please enter your username/email and password.");
 
-  // Unknown usernames are counted like wrong passwords, so the response doesn't reveal which accounts exist.
-  const email = (await resolveEmail(identifier)) ?? `unknown:${identifier.toLowerCase()}`;
+  // The password is checked even when no profile matches (an account can exist
+  // without its email in profiles), so the right password always gets in.
+  const { email, known } = await resolveEmail(identifier);
   const state = await assertNotLocked(email);
-  const user = email.startsWith("unknown:") ? null : await checkPassword(email, password);
-  if (!user) await recordFailure(email, state);
+  const user = await checkPassword(email, password);
+  if (!user) {
+    // Says which part is wrong: no such account, or the wrong password (which counts toward the lock).
+    if (!known) throw new HttpError(404, "No account found with that username or Gmail.", { field: "identifier" });
+    await recordFailure(email, state);
+  }
   await clearLock(email);
 
   const challengeId = crypto.randomUUID();

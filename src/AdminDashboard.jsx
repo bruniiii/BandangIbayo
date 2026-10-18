@@ -23,6 +23,7 @@ import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
+import MenuEdgeTab from './ui/MenuEdgeTab';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -342,6 +343,9 @@ const AdminDashboard = () => {
       />
  
       {/* ── SIDEBAR — expands on hover (desktop), tap-to-open drawer (mobile) ── */}
+      {/* edge tab: opens the menu from anywhere on the page */}
+      {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
+
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
         onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}
