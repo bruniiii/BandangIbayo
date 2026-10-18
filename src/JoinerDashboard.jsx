@@ -5,7 +5,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, groupTripDates } from './tourUtils';
-import { verifyCheckout, cancelCheckout } from './payments';
+import { verifyCheckout, cancelCheckout, verifyExclusivePayment } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
 import JoinerTours, { DetailedTourModal } from './JoinerTours';
 import TourCalendar from './TourCalendar';
@@ -74,9 +74,13 @@ const JoinerDashboard = () => {
     const kind = searchParams.has('payment') ? 'payment' : searchParams.has('balance') ? 'balance' : null;
     return kind ? { kind, result: searchParams.get(kind), bookingId: searchParams.get('booking') } : null;
   });
-  const [paymentNotice, setPaymentNotice] = useState(paymentReturn ? { type: 'info', text: 'Checking your payment…' } : null);
+  // ...or /dashboard?exclusive=success|cancelled&request=<id> after an exclusive tour downpayment.
+  const [exclusiveReturn] = useState(() => (searchParams.has('exclusive')
+    ? { result: searchParams.get('exclusive'), requestId: searchParams.get('request') } : null));
+  const [paymentNotice, setPaymentNotice] = useState(paymentReturn || exclusiveReturn ? { type: 'info', text: 'Checking your payment…' } : null);
+  const [exclusiveKey, setExclusiveKey] = useState(0);
   const [myBookingsKey, setMyBookingsKey] = useState(0);
-  const [activeTab, setActiveTab] = useState(paymentReturn ? 'My Bookings' : bookTourId ? 'Explore Tours' : 'HomePage');
+  const [activeTab, setActiveTab] = useState(paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Exclusive Tours' : bookTourId ? 'Explore Tours' : 'HomePage');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -108,7 +112,7 @@ const JoinerDashboard = () => {
 
   // Drop ?book= / ?payment= from the URL so a refresh doesn't repeat them.
   useEffect(() => {
-    if (['book', 'payment', 'balance'].some((k) => searchParams.has(k))) setSearchParams({}, { replace: true });
+    if (['book', 'payment', 'balance', 'exclusive'].some((k) => searchParams.has(k))) setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
 
   // Confirm (or release) the booking with PayMongo's answer, then show the result.
@@ -142,6 +146,27 @@ const JoinerDashboard = () => {
     })();
     return () => { active = false; };
   }, [paymentReturn]);
+
+  // Exclusive tour downpayment: check it with PayMongo, then show the result.
+  useEffect(() => {
+    if (!exclusiveReturn?.requestId) return;
+    let active = true;
+    (async () => {
+      let notice;
+      if (exclusiveReturn.result === 'cancelled') {
+        notice = { type: 'info', text: 'Downpayment cancelled. You can pay anytime from your request under Exclusive Tours.' };
+      } else {
+        const { ok, data, error } = await verifyExclusivePayment({ requestId: exclusiveReturn.requestId });
+        if (!ok) notice = { type: 'error', text: `We couldn't check your payment yet (${error}). It will update automatically once PayMongo confirms it.` };
+        else if (data?.status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your downpayment yet. If you paid, it will show here once PayMongo confirms it.' };
+        else notice = { type: 'success', text: 'Downpayment received! Your exclusive tour is confirmed. 🎉' };
+      }
+      if (!active) return;
+      setPaymentNotice(notice);
+      setExclusiveKey((k) => k + 1);
+    })();
+    return () => { active = false; };
+  }, [exclusiveReturn]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -869,7 +894,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Calendar' ? (
             <TourCalendar initialDate={calendarTarget} />
           ) : activeTab === 'Exclusive Tours' ? (
-            <ExclusiveTour />
+            <ExclusiveTour key={exclusiveKey} />
           ) : activeTab === 'Reviews' ? (
             <Reviews isAdmin={false} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Profile Settings' ? (

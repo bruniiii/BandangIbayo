@@ -9,6 +9,9 @@
 //   - "verify-checkout"  { bookingId }   re-checks the booking's checkouts with PayMongo (used when
 //                                        the joiner comes back from PayMongo, and from My Bookings)
 //   - "cancel-checkout"  { bookingId }   joiner backed out: expires the checkout, frees the slots
+//   - "pay-exclusive"    { requestId, returnBaseUrl }   50% downpayment for an approved exclusive
+//                        tour, from the package price the agency sent (never from the request body)
+//   - "verify-exclusive" { requestId }   re-checks that downpayment with PayMongo
 //
 // Scheduled (pg_cron, every 5 minutes; no login needed, it only touches lapsed holds):
 //   - "expire-holds"     closes each lapsed checkout at PayMongo first, so it can no longer
@@ -115,9 +118,14 @@ async function createSession(opts: {
 async function processSession(sessionId: string) {
   const session = await paymongo("GET", `/checkout_sessions/${encodeURIComponent(sessionId)}`);
   const attrs = session?.data?.attributes ?? {};
+  const paid = (attrs.payments ?? []).find((p: any) => p?.attributes?.status === "paid");
+  if (attrs.metadata?.kind === "exclusive") {
+    if (!attrs.metadata?.request_id) return { status: "not_ours" };
+    if (!paid) return { status: "unpaid", kind: "exclusive" };
+    return await recordExclusivePayment(attrs.metadata.request_id, (paid.attributes.amount ?? 0) / 100, paid.id);
+  }
   const bookingId = attrs.metadata?.booking_id;
   const kind = attrs.metadata?.kind === "balance" ? "balance" : "booking";
-  const paid = (attrs.payments ?? []).find((p: any) => p?.attributes?.status === "paid");
   if (!bookingId) return { status: "not_ours" };
   if (!paid) return { status: "unpaid" };
 
@@ -339,6 +347,123 @@ async function expireHolds() {
   return { released, confirmed, retry };
 }
 
+// ───────────── Exclusive tours: 50% downpayment ─────────────
+const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+async function loadOwnRequest(requestId: unknown, userId: string) {
+  if (requestId == null || requestId === "") throw new HttpError(400, "Missing request.");
+  const { data: request, error } = await supabase.from("exclusive_requests").select("*").eq("id", requestId).maybeSingle();
+  if (error) {
+    console.error("payments: couldn't load exclusive request", { requestId, error });
+    throw new HttpError(500, `Couldn't load your request (${error.message}). Please try again, or contact us.`);
+  }
+  if (!request) throw new HttpError(404, "Request not found.");
+  if (request.user_id !== userId) throw new HttpError(403, "This request belongs to another account.");
+  return request;
+}
+
+// The package price the agency sent, and half of it.
+function exclusiveAmounts(request: any) {
+  const price = Number(request.package_details?.price);
+  if (request.request_type !== "exclusive" || request.status !== "Approved" || !request.package_sent_at || !(price > 0)) {
+    throw new HttpError(409, "This request has no package price to pay yet. You'll be notified once the agency sends it.");
+  }
+  return { price, downpayment: round2(price * EXCLUSIVE_DOWNPAYMENT_RATE) };
+}
+
+async function payExclusive(userId: string, p: any) {
+  const request = await loadOwnRequest(p.requestId, userId);
+  if (request.payment_status === "Paid") return { alreadyPaid: true };
+  const { price, downpayment } = exclusiveAmounts(request);
+
+  // An earlier checkout may already be paid, or still usable for the same amount.
+  if (request.paymongo_checkout_id) {
+    const result = await processSession(request.paymongo_checkout_id);
+    if (result.status === "confirmed" || result.status === "already") return { alreadyPaid: true };
+    if (request.paymongo_checkout_url && Number(request.downpayment_amount) === downpayment) {
+      return { checkoutUrl: request.paymongo_checkout_url };
+    }
+  }
+
+  const base = returnBase(p.returnBaseUrl);
+  const reference = `EX-${String(request.id).slice(0, 8).toUpperCase()}`;
+  const session = await paymongo("POST", "/checkout_sessions", {
+    data: {
+      attributes: {
+        line_items: [{
+          name: `Exclusive tour: ${request.package_details?.destination || request.destination} · 50% downpayment`,
+          amount: centavos(downpayment),
+          currency: "PHP",
+          quantity: 1,
+        }],
+        payment_method_types: PAYMENT_METHODS,
+        description: `Bandang IBAYO exclusive tour ${reference}. 50% downpayment of ₱${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })}. Payments are non-refundable.`,
+        reference_number: reference,
+        metadata: { request_id: String(request.id), kind: "exclusive" },
+        send_email_receipt: true,
+        show_description: true,
+        show_line_items: true,
+        success_url: `${base}/dashboard?exclusive=success&request=${request.id}`,
+        cancel_url: `${base}/dashboard?exclusive=cancelled&request=${request.id}`,
+      },
+    },
+  });
+  const id = session?.data?.id as string;
+  const url = session?.data?.attributes?.checkout_url as string;
+  await supabase.from("exclusive_requests")
+    .update({ paymongo_checkout_id: id, paymongo_checkout_url: url, downpayment_amount: downpayment })
+    .eq("id", request.id);
+  return { checkoutUrl: url };
+}
+
+async function verifyExclusive(userId: string, p: any) {
+  const request = await loadOwnRequest(p.requestId, userId);
+  if (request.payment_status === "Paid") return { status: "already" };
+  if (!request.paymongo_checkout_id) return { status: "unpaid" };
+  return await processSession(request.paymongo_checkout_id);
+}
+
+// PayMongo says it's paid: record it once, then tell the joiner and the agency.
+async function recordExclusivePayment(requestId: string, amount: number, paymentId: string) {
+  const { data: updated, error } = await supabase.from("exclusive_requests")
+    .update({ payment_status: "Paid", amount_paid: amount, paid_at: new Date().toISOString(), paymongo_payment_id: paymentId })
+    .eq("id", requestId)
+    .neq("payment_status", "Paid")
+    .select("id, user_id, destination, full_name")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!updated) return { status: "already", kind: "exclusive" };
+
+  const peso = `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+  const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
+  const rows = [
+    {
+      user_id: updated.user_id, type: "exclusive_request",
+      title: "Exclusive Tour Confirmed 🎉",
+      message: `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed!`,
+    },
+    ...(admins ?? []).map((a: any) => ({
+      user_id: a.id, type: "exclusive_request",
+      title: "Exclusive Tour Downpayment Paid",
+      message: `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}.`,
+    })),
+  ].filter((r) => r.user_id);
+  if (rows.length) await supabase.from("notifications").insert(rows);
+  if (updated.user_id) {
+    await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "custom", userId: updated.user_id,
+        subject: `Your exclusive tour to ${updated.destination} is confirmed`,
+        message: `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nOur team will contact you about the remaining balance and final trip details. You can see your package anytime under Exclusive Tours in your Bandang IBAYO account.`,
+      }),
+    }).catch((err) => console.error("payments: exclusive confirmation email failed", err));
+  }
+  return { status: "confirmed", kind: "exclusive" };
+}
+
 // ───────────── Request handler ─────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -359,6 +484,8 @@ Deno.serve(async (req) => {
       case "pay-balance": return reply(await payBalance(userId, payload));
       case "verify-checkout": return reply(await verifyCheckout(userId, payload));
       case "cancel-checkout": return reply(await cancelCheckout(userId, payload));
+      case "pay-exclusive": return reply(await payExclusive(userId, payload));
+      case "verify-exclusive": return reply(await verifyExclusive(userId, payload));
       default: return reply({ error: "Unknown action" }, 400);
     }
   } catch (err) {

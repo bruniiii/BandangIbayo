@@ -30,3 +30,11 @@ export const verifyCheckout = ({ bookingId }) => callPayments('verify-checkout',
 
 // The joiner backed out of an unfinished checkout: frees the held slots.
 export const cancelCheckout = ({ bookingId }) => callPayments('cancel-checkout', { bookingId });
+
+// Exclusive tours: the 50% downpayment, worked out on the server from the
+// package price the agency sent. Returns { checkoutUrl } or { alreadyPaid }.
+export const startExclusiveDownpayment = ({ requestId }) =>
+  callPayments('pay-exclusive', { requestId, returnBaseUrl: returnBaseUrl() });
+
+// Coming back from PayMongo: has the downpayment been paid?
+export const verifyExclusivePayment = ({ requestId }) => callPayments('verify-exclusive', { requestId });
