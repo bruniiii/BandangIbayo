@@ -337,8 +337,7 @@ const ExclusiveTourForm = () => {
             options={[
               { value: '', label: 'Select preference…' },
               { value: 'non-ac', label: 'Non-AC Room' },
-              { value: 'ac', label: 'AC Room' },
-              { value: 'with-cr', label: 'With Private CR' },
+              { value: 'ac', label: 'AC Room' },             
               { value: 'with-all', label: 'With All Amenities' },
               { value: 'none', label: 'No accommodation needed' },
             ]}
@@ -370,7 +369,7 @@ const ExclusiveTourForm = () => {
           Policy Reminder
         </p>
         <ul style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-          <li>A <strong>downpayment via GCash</strong> is required to confirm the booking.</li>          
+          <li>A <strong>downpayment</strong> is required to confirm the booking.</li>          
           <li>Bookings are <strong>non-refundable</strong>. Cancellations are not allowed.</li>
           <li>All prices are all-in (van, accommodation, coordination). Entrance/environmental fees are separate.</li>
           <li>An email and notification will be sent to confirm your exclusive booking.</li>
@@ -518,25 +517,14 @@ const RequestTourForm = () => {
           Destination &amp; Tour Details
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />
-          <InputField name="region" data-allow="place" label="Region / Province" placeholder="e.g. Cordillera Administrative Region" value={form.region} onChange={set('region')} />
+          <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />          
           <InputField name="groupSize" label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
           <InputField name="preferredDate" label="Preferred Tour Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
         </div>
-        <SelectField
-          label="Tour Type Preference"
-          value={form.tourType}
-          onChange={set('tourType')}
-          required
-          options={[
-            { value: '', label: 'Select type…' },
-            { value: 'joiner', label: 'Open to other joiners (shared cost)' },
-            { value: 'exclusive', label: 'Exclusive for my group only' },
-          ]}
-        />
+        
         <TextAreaField name="notes"
           label="Additional Details / Preferences"
-          placeholder="Tell us more — specific spots you want to visit, activities, accommodation preferences, budget range, etc."
+          placeholder="Tell us more — specific spots you want to visit, activities, accommodation preferences, etc."
           value={form.notes}
           onChange={set('notes')}
           rows={5}
@@ -556,7 +544,7 @@ const RequestTourForm = () => {
             ['Agency reviews your request', 'Usually within 24–48 hours'],
             ['Custom price list is prepared', 'Based on group size, destination & dates'],
             ['You receive a notification here that the request has been approved or denied', 'If approved, the tour will be open for joiners on the Explore Tours page'],
-            ['You may confirm the tour by making a downpayment', 'Via GCash to secure your booking'],
+            ['You may confirm the tour by making a downpayment', 'To secure your booking'],
           ].map(([step, desc], i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <span style={{
