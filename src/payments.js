@@ -35,6 +35,9 @@ export const cancelCheckout = ({ bookingId }) => callPayments('cancel-checkout',
 // package price the agency sent. Returns { checkoutUrl } or { alreadyPaid }.
 export const startExclusiveDownpayment = ({ requestId }) =>
   callPayments('pay-exclusive', { requestId, returnBaseUrl: returnBaseUrl() });
+// The rest of the package price, after the downpayment.
+export const startExclusiveBalance = ({ requestId }) =>
+  callPayments('pay-exclusive', { requestId, part: 'balance', returnBaseUrl: returnBaseUrl() });
 
 // Coming back from PayMongo: has the downpayment been paid?
 export const verifyExclusivePayment = ({ requestId }) => callPayments('verify-exclusive', { requestId });

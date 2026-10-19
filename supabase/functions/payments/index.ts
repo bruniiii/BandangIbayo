@@ -11,7 +11,8 @@
 //   - "cancel-checkout"  { bookingId }   joiner backed out: expires the checkout, frees the slots
 //   - "pay-exclusive"    { requestId, returnBaseUrl }   50% downpayment for an approved exclusive
 //                        tour, from the package price the agency sent (never from the request body)
-//   - "verify-exclusive" { requestId }   re-checks that downpayment with PayMongo
+//                        (part: "balance" pays the rest of the package price after it)
+//   - "verify-exclusive" { requestId }   re-checks those payments with PayMongo
 //
 // Scheduled (pg_cron, every 5 minutes; no login needed, it only touches lapsed holds):
 //   - "expire-holds"     closes each lapsed checkout at PayMongo first, so it can no longer
@@ -119,10 +120,14 @@ async function processSession(sessionId: string) {
   const session = await paymongo("GET", `/checkout_sessions/${encodeURIComponent(sessionId)}`);
   const attrs = session?.data?.attributes ?? {};
   const paid = (attrs.payments ?? []).find((p: any) => p?.attributes?.status === "paid");
-  if (attrs.metadata?.kind === "exclusive") {
+  if (attrs.metadata?.kind === "exclusive" || attrs.metadata?.kind === "exclusive_balance") {
+    const isBalance = attrs.metadata.kind === "exclusive_balance";
     if (!attrs.metadata?.request_id) return { status: "not_ours" };
-    if (!paid) return { status: "unpaid", kind: "exclusive" };
-    return await recordExclusivePayment(attrs.metadata.request_id, (paid.attributes.amount ?? 0) / 100, paid.id);
+    if (!paid) return { status: "unpaid", kind: attrs.metadata.kind };
+    const amount = (paid.attributes.amount ?? 0) / 100;
+    return isBalance
+      ? await recordExclusiveBalance(attrs.metadata.request_id, amount, paid.id)
+      : await recordExclusivePayment(attrs.metadata.request_id, amount, paid.id);
   }
   const bookingId = attrs.metadata?.booking_id;
   const kind = attrs.metadata?.kind === "balance" ? "balance" : "booking";
@@ -347,7 +352,7 @@ async function expireHolds() {
   return { released, confirmed, retry };
 }
 
-// ───────────── Exclusive tours: 50% downpayment ─────────────
+// ───────────── Exclusive tours: 50% downpayment, then the balance ─────────────
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -372,8 +377,61 @@ function exclusiveAmounts(request: any) {
   return { price, downpayment: round2(price * EXCLUSIVE_DOWNPAYMENT_RATE) };
 }
 
+// A PayMongo checkout for part of an exclusive tour's package price.
+async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "balance", amount: number, price: number) {
+  const base = returnBase(p.returnBaseUrl);
+  const reference = `EX-${String(request.id).slice(0, 8).toUpperCase()}${part === "balance" ? "-BAL" : ""}`;
+  const label = part === "balance" ? "remaining balance" : "50% downpayment";
+  const session = await paymongo("POST", "/checkout_sessions", {
+    data: {
+      attributes: {
+        line_items: [{
+          name: `Exclusive tour: ${request.package_details?.destination || request.destination} · ${label}`,
+          amount: centavos(amount),
+          currency: "PHP",
+          quantity: 1,
+        }],
+        payment_method_types: PAYMENT_METHODS,
+        description: `Bandang IBAYO exclusive tour ${reference}. ${label[0].toUpperCase()}${label.slice(1)} of the ₱${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })} package. Payments are non-refundable.`,
+        reference_number: reference,
+        metadata: { request_id: String(request.id), kind: part === "balance" ? "exclusive_balance" : "exclusive" },
+        send_email_receipt: true,
+        show_description: true,
+        show_line_items: true,
+        success_url: `${base}/dashboard?exclusive=success&request=${request.id}`,
+        cancel_url: `${base}/dashboard?exclusive=cancelled&request=${request.id}`,
+      },
+    },
+  });
+  return { id: session?.data?.id as string, url: session?.data?.attributes?.checkout_url as string };
+}
+
+// The rest of the package price, once the downpayment is in.
+async function payExclusiveBalance(request: any, p: any) {
+  if (request.payment_status !== "Paid") throw new HttpError(409, "Please pay the 50% downpayment first.");
+  if (request.balance_settled) return { alreadyPaid: true };
+  const { price } = exclusiveAmounts(request);
+  const balance = round2(Math.max(0, price - Number(request.amount_paid || 0)));
+  if (!(balance > 0)) return { alreadyPaid: true };
+
+  if (request.balance_paymongo_checkout_id) {
+    const result = await processSession(request.balance_paymongo_checkout_id);
+    if (result.status === "confirmed" || result.status === "already") return { alreadyPaid: true };
+    if (request.balance_paymongo_checkout_url && Number(request.balance_amount) === balance) {
+      return { checkoutUrl: request.balance_paymongo_checkout_url };
+    }
+  }
+
+  const { id, url } = await exclusiveCheckout(request, p, "balance", balance, price);
+  await supabase.from("exclusive_requests")
+    .update({ balance_paymongo_checkout_id: id, balance_paymongo_checkout_url: url, balance_amount: balance })
+    .eq("id", request.id);
+  return { checkoutUrl: url };
+}
+
 async function payExclusive(userId: string, p: any) {
   const request = await loadOwnRequest(p.requestId, userId);
+  if (p.part === "balance") return await payExclusiveBalance(request, p);
   if (request.payment_status === "Paid") return { alreadyPaid: true };
   const { price, downpayment } = exclusiveAmounts(request);
 
@@ -386,31 +444,7 @@ async function payExclusive(userId: string, p: any) {
     }
   }
 
-  const base = returnBase(p.returnBaseUrl);
-  const reference = `EX-${String(request.id).slice(0, 8).toUpperCase()}`;
-  const session = await paymongo("POST", "/checkout_sessions", {
-    data: {
-      attributes: {
-        line_items: [{
-          name: `Exclusive tour: ${request.package_details?.destination || request.destination} · 50% downpayment`,
-          amount: centavos(downpayment),
-          currency: "PHP",
-          quantity: 1,
-        }],
-        payment_method_types: PAYMENT_METHODS,
-        description: `Bandang IBAYO exclusive tour ${reference}. 50% downpayment of ₱${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })}. Payments are non-refundable.`,
-        reference_number: reference,
-        metadata: { request_id: String(request.id), kind: "exclusive" },
-        send_email_receipt: true,
-        show_description: true,
-        show_line_items: true,
-        success_url: `${base}/dashboard?exclusive=success&request=${request.id}`,
-        cancel_url: `${base}/dashboard?exclusive=cancelled&request=${request.id}`,
-      },
-    },
-  });
-  const id = session?.data?.id as string;
-  const url = session?.data?.attributes?.checkout_url as string;
+  const { id, url } = await exclusiveCheckout(request, p, "downpayment", downpayment, price);
   await supabase.from("exclusive_requests")
     .update({ paymongo_checkout_id: id, paymongo_checkout_url: url, downpayment_amount: downpayment })
     .eq("id", request.id);
@@ -419,9 +453,63 @@ async function payExclusive(userId: string, p: any) {
 
 async function verifyExclusive(userId: string, p: any) {
   const request = await loadOwnRequest(p.requestId, userId);
-  if (request.payment_status === "Paid") return { status: "already" };
-  if (!request.paymongo_checkout_id) return { status: "unpaid" };
-  return await processSession(request.paymongo_checkout_id);
+  if (request.payment_status !== "Paid") {
+    if (!request.paymongo_checkout_id) return { status: "unpaid" };
+    return await processSession(request.paymongo_checkout_id);
+  }
+  if (request.balance_settled) return { status: "already", kind: "exclusive_balance" };
+  if (!request.balance_paymongo_checkout_id) return { status: "already" };
+  return await processSession(request.balance_paymongo_checkout_id);
+}
+
+// Tells the joiner (notification + email) and the admins about an exclusive tour payment.
+async function announceExclusive(updated: any, joiner: { title: string; message: string; subject: string; email: string }, admin: { title: string; message: string }) {
+  const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
+  const rows = [
+    { user_id: updated.user_id, type: "exclusive_request", title: joiner.title, message: joiner.message },
+    ...(admins ?? []).map((a: any) => ({ user_id: a.id, type: "exclusive_request", title: admin.title, message: admin.message })),
+  ].filter((r) => r.user_id);
+  if (rows.length) await supabase.from("notifications").insert(rows);
+  if (updated.user_id) {
+    await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "custom", userId: updated.user_id, subject: joiner.subject, message: joiner.email }),
+    }).catch((err) => console.error("payments: exclusive email failed", err));
+  }
+}
+
+// PayMongo says the balance is paid: record it once and tell everyone.
+async function recordExclusiveBalance(requestId: string, amount: number, paymentId: string) {
+  const { data: request, error: loadError } = await supabase.from("exclusive_requests")
+    .select("amount_paid").eq("id", requestId).maybeSingle();
+  if (loadError) throw new Error(loadError.message);
+  if (!request) return { status: "not_ours" };
+  const { data: updated, error } = await supabase.from("exclusive_requests")
+    .update({
+      balance_settled: true,
+      balance_paid_at: new Date().toISOString(),
+      balance_paymongo_payment_id: paymentId,
+      amount_paid: round2(Number(request.amount_paid || 0) + amount),
+    })
+    .eq("id", requestId)
+    .eq("balance_settled", false)
+    .select("id, user_id, destination, full_name")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!updated) return { status: "already", kind: "exclusive_balance" };
+
+  const peso = `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+  await announceExclusive(updated, {
+    title: "Exclusive Tour Fully Paid ✅",
+    message: `We received your ${peso} balance for your exclusive tour to ${updated.destination}. Your tour is fully paid. See you on the trip!`,
+    subject: `Your exclusive tour to ${updated.destination} is fully paid`,
+    email: `We received your ${peso} remaining balance. Your exclusive tour to ${updated.destination} is now fully paid.\n\nOur team will contact you about the final trip details. You can see your package anytime under Exclusive Tours in your Bandang IBAYO account.`,
+  }, {
+    title: "Exclusive Tour Balance Paid",
+    message: `${updated.full_name || "A joiner"} paid the ${peso} remaining balance for their exclusive tour to ${updated.destination}. It's fully paid.`,
+  });
+  return { status: "confirmed", kind: "exclusive_balance" };
 }
 
 // PayMongo says it's paid: record it once, then tell the joiner and the agency.
@@ -436,31 +524,15 @@ async function recordExclusivePayment(requestId: string, amount: number, payment
   if (!updated) return { status: "already", kind: "exclusive" };
 
   const peso = `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
-  const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
-  const rows = [
-    {
-      user_id: updated.user_id, type: "exclusive_request",
-      title: "Exclusive Tour Confirmed 🎉",
-      message: `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed!`,
-    },
-    ...(admins ?? []).map((a: any) => ({
-      user_id: a.id, type: "exclusive_request",
-      title: "Exclusive Tour Downpayment Paid",
-      message: `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}.`,
-    })),
-  ].filter((r) => r.user_id);
-  if (rows.length) await supabase.from("notifications").insert(rows);
-  if (updated.user_id) {
-    await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "custom", userId: updated.user_id,
-        subject: `Your exclusive tour to ${updated.destination} is confirmed`,
-        message: `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nOur team will contact you about the remaining balance and final trip details. You can see your package anytime under Exclusive Tours in your Bandang IBAYO account.`,
-      }),
-    }).catch((err) => console.error("payments: exclusive confirmation email failed", err));
-  }
+  await announceExclusive(updated, {
+    title: "Exclusive Tour Confirmed 🎉",
+    message: `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed! You can pay the remaining balance online anytime under Exclusive Tours.`,
+    subject: `Your exclusive tour to ${updated.destination} is confirmed`,
+    email: `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nYou can pay the remaining balance online anytime under Exclusive Tours in your Bandang IBAYO account, or settle it with our team before the trip.`,
+  }, {
+    title: "Exclusive Tour Downpayment Paid",
+    message: `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}.`,
+  });
   return { status: "confirmed", kind: "exclusive" };
 }
 
