@@ -6,6 +6,7 @@ import { Loader2, CheckCircle2, MailCheck, ArrowLeft } from 'lucide-react';
 import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
 import OtpInput from './ui/OtpInput';
 import PasswordField from './ui/PasswordField';
+import GoogleButton, { OrDivider } from './ui/GoogleButton';
  import logoIcon from './assets/newIcon.png';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -310,6 +311,14 @@ const JoinerLogin = () => {
           }}>
             {message.text}
           </p>
+        )}
+
+        {/* Google: one tap, no password or emailed code */}
+        {!challenge && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 18 }}>
+            <GoogleButton nextPath={nextPath} />
+            <OrDivider />
+          </div>
         )}
 
         {/* form */}

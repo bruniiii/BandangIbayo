@@ -22,6 +22,7 @@ import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
+import { profileIsComplete } from './googleAuth';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
@@ -287,9 +288,16 @@ const JoinerDashboard = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name, last_name, username, avatar_url')
+        .select('first_name, last_name, username, avatar_url, phone_number, province, address')
         .eq('id', user.id)
         .maybeSingle();
+
+      // Signed up with Google but never finished the profile: finish it first.
+      const viaGoogle = (user.identities || []).some((i) => i.provider === 'google') || user.app_metadata?.provider === 'google';
+      if (viaGoogle && !profileIsComplete(profile)) {
+        navigate('/complete-profile', { replace: true });
+        return;
+      }
 
       if (profile) {
         const full = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
@@ -305,7 +313,7 @@ const JoinerDashboard = () => {
     } catch (err) {
       console.error('Error fetching user profile:', err);
     }
-  }, []);
+  }, [navigate]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
