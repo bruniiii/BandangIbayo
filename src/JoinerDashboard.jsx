@@ -22,7 +22,9 @@ import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
+import { profileIsComplete } from './googleAuth';
 import MenuEdgeTab from './ui/MenuEdgeTab';
+import InstallAppCard from './ui/InstallAppCard';
 import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -147,18 +149,19 @@ const JoinerDashboard = () => {
     return () => { active = false; };
   }, [paymentReturn]);
 
-  // Exclusive tour downpayment: check it with PayMongo, then show the result.
+  // Exclusive tour downpayment or balance: check it with PayMongo, then show the result.
   useEffect(() => {
     if (!exclusiveReturn?.requestId) return;
     let active = true;
     (async () => {
       let notice;
       if (exclusiveReturn.result === 'cancelled') {
-        notice = { type: 'info', text: 'Downpayment cancelled. You can pay anytime from your request under Exclusive Tours.' };
+        notice = { type: 'info', text: 'Payment cancelled. You can pay anytime from your request under Exclusive Tours.' };
       } else {
         const { ok, data, error } = await verifyExclusivePayment({ requestId: exclusiveReturn.requestId });
         if (!ok) notice = { type: 'error', text: `We couldn't check your payment yet (${error}). It will update automatically once PayMongo confirms it.` };
-        else if (data?.status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your downpayment yet. If you paid, it will show here once PayMongo confirms it.' };
+        else if (data?.status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your payment yet. If you paid, it will show here once PayMongo confirms it.' };
+        else if (data?.kind === 'exclusive_balance') notice = { type: 'success', text: 'Balance received! Your exclusive tour is fully paid. ✅' };
         else notice = { type: 'success', text: 'Downpayment received! Your exclusive tour is confirmed. 🎉' };
       }
       if (!active) return;
@@ -287,9 +290,16 @@ const JoinerDashboard = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name, last_name, username, avatar_url')
+        .select('first_name, last_name, username, avatar_url, phone_number, province, address')
         .eq('id', user.id)
         .maybeSingle();
+
+      // Signed up with Google but never finished the profile: finish it first.
+      const viaGoogle = (user.identities || []).some((i) => i.provider === 'google') || user.app_metadata?.provider === 'google';
+      if (viaGoogle && !profileIsComplete(profile)) {
+        navigate('/complete-profile', { replace: true });
+        return;
+      }
 
       if (profile) {
         const full = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
@@ -305,7 +315,7 @@ const JoinerDashboard = () => {
     } catch (err) {
       console.error('Error fetching user profile:', err);
     }
-  }, []);
+  }, [navigate]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -662,6 +672,8 @@ const JoinerDashboard = () => {
 
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+              <InstallAppCard />
 
               {/* hero banner */}
               <div style={{

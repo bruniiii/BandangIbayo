@@ -39,11 +39,16 @@ const STATUS_STYLES = {
   Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
   Confirmed: { bg: '#1A0A00', color: '#E8A265' },
+  'Fully Paid': { bg: 'rgba(122,58,24,0.16)', color: '#7A3A18' },
 };
 
-// Exclusive tours are confirmed once the joiner pays 50% of the package price.
+// Exclusive tours are confirmed once the joiner pays 50% of the package price,
+// and fully paid once the balance is in too.
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
-const shownStatus = (request) => (request.payment_status === 'Paid' ? 'Confirmed' : request.status);
+const shownStatus = (request) => {
+  if (request.payment_status !== 'Paid') return request.status;
+  return request.balance_settled ? 'Fully Paid' : 'Confirmed';
+};
 
 const StatusBadge = ({ status, large = false }) => {
   const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
@@ -176,6 +181,7 @@ const AdminExclusiveTours = () => {
               <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
               <option value="Confirmed">Confirmed</option>
+              <option value="Fully Paid">Fully Paid</option>
               <option value="Rejected">Rejected</option>
             </select>
             <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
@@ -296,40 +302,29 @@ const DetailRow = ({ icon, label, value }) => (
 /* ─────────────────────────────────────────────
    REQUEST DETAIL MODAL — review + approve/reject + notify
 ───────────────────────────────────────────── */
-// ── 50% downpayment status (joiners pay online; admins can record other payments) ──
+// ── Payment status: 50% downpayment, then the balance (joiners pay online;
+//    admins can record payments made another way) ──
 const DownpaymentSection = ({ request, price, onChanged }) => {
   const [saving, setSaving] = useState(false);
   const isPaid = request.payment_status === 'Paid';
   const downpayment = Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
+  const paidAmount = Number(request.amount_paid) || 0;
+  const balance = Math.max(0, Math.round((price - paidAmount) * 100) / 100);
+  const fullyPaid = isPaid && (request.balance_settled || balance <= 0);
 
-  const markPaid = async () => {
-    if (!(await confirmDialog({
-      title: 'Mark downpayment as paid?',
-      message: `Only do this if the joiner paid ${formatPeso(downpayment)} another way (cash, bank transfer). Their exclusive tour will show as Confirmed.`,
-      confirmLabel: 'Mark as Paid', cancelLabel: 'Go Back',
-    }))) return;
+  const record = async ({ confirm, update, notify, done }) => {
+    if (!(await confirmDialog({ ...confirm, cancelLabel: 'Go Back' }))) return;
     setSaving(true);
     try {
       const { error } = await supabase
         .from('exclusive_requests')
-        .update({
-          payment_status: 'Paid',
-          downpayment_amount: downpayment,
-          amount_paid: downpayment,
-          paid_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+        .update({ ...update, updated_at: new Date().toISOString() })
         .eq('id', request.id);
       if (error) throw error;
       if (request.user_id) {
-        await notifyUser(request.user_id, {
-          title: 'Exclusive Tour Confirmed 🎉',
-          message: `We received your ${formatPeso(downpayment)} downpayment for your exclusive tour to ${request.destination}. Your booking is confirmed. The remaining ${formatPeso(Math.max(0, price - downpayment))} is paid before the trip.`,
-          type: 'exclusive_request',
-          related_id: request.id,
-        });
+        await notifyUser(request.user_id, { ...notify, type: 'exclusive_request', related_id: request.id });
       }
-      toast.success('Downpayment recorded', 'The joiner was notified that their tour is confirmed.');
+      toast.success(done, 'The joiner was notified.');
       onChanged();
     } catch (err) {
       toast.error("Couldn't record payment", err.message);
@@ -338,11 +333,52 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
     }
   };
 
-  const paidAmount = Number(request.amount_paid) || 0;
-  let text;
-  if (isPaid) text = `Paid ${formatPeso(paidAmount)} on ${formatDateTime(request.paid_at)}. Balance before the trip: ${formatPeso(Math.max(0, price - paidAmount))}.`;
-  else if (price > 0) text = `Waiting for the joiner to pay the 50% downpayment of ${formatPeso(downpayment)} (package price ${formatPeso(price)}).`;
-  else text = 'Send the tour package with a price first. The joiner can then pay a 50% downpayment online to confirm.';
+  const markDownpaymentPaid = () => record({
+    confirm: {
+      title: 'Mark downpayment as paid?',
+      message: `Only do this if the joiner paid ${formatPeso(downpayment)} another way (cash, bank transfer). Their exclusive tour will show as Confirmed.`,
+      confirmLabel: 'Mark as Paid',
+    },
+    update: { payment_status: 'Paid', downpayment_amount: downpayment, amount_paid: downpayment, paid_at: new Date().toISOString() },
+    notify: {
+      title: 'Exclusive Tour Confirmed 🎉',
+      message: `We received your ${formatPeso(downpayment)} downpayment for your exclusive tour to ${request.destination}. Your booking is confirmed. You can pay the remaining ${formatPeso(Math.max(0, price - downpayment))} online under Exclusive Tours, or settle it with our team before the trip.`,
+    },
+    done: 'Downpayment recorded',
+  });
+
+  const markBalancePaid = () => record({
+    confirm: {
+      title: 'Mark balance as paid?',
+      message: `Only do this if the joiner paid the remaining ${formatPeso(balance)} another way (cash, bank transfer). Their exclusive tour will show as Fully Paid.`,
+      confirmLabel: 'Mark Balance Paid',
+    },
+    update: { balance_settled: true, balance_amount: balance, amount_paid: paidAmount + balance, balance_paid_at: new Date().toISOString() },
+    notify: {
+      title: 'Exclusive Tour Fully Paid ✅',
+      message: `We received your ${formatPeso(balance)} balance for your exclusive tour to ${request.destination}. Your tour is fully paid. See you on the trip!`,
+    },
+    done: 'Balance recorded',
+  });
+
+  let title, text;
+  if (fullyPaid) {
+    title = 'Fully Paid';
+    text = `Paid ${formatPeso(paidAmount)} in total. Downpayment on ${formatDateTime(request.paid_at)}${request.balance_paid_at ? `, balance on ${formatDateTime(request.balance_paid_at)}` : ''}.`;
+  } else if (isPaid) {
+    title = 'Downpayment Paid · Confirmed';
+    text = `Paid ${formatPeso(paidAmount)} on ${formatDateTime(request.paid_at)}. Remaining balance: ${formatPeso(balance)}. The joiner can pay it online, or you can mark it paid.`;
+  } else if (price > 0) {
+    title = '50% Downpayment';
+    text = `Waiting for the joiner to pay the 50% downpayment of ${formatPeso(downpayment)} (package price ${formatPeso(price)}).`;
+  } else {
+    title = '50% Downpayment';
+    text = 'Send the tour package with a price first. The joiner can then pay a 50% downpayment online to confirm.';
+  }
+
+  const action = !isPaid && price > 0
+    ? { label: 'Mark as Paid', onClick: markDownpaymentPaid }
+    : isPaid && !fullyPaid ? { label: 'Mark Balance Paid', onClick: markBalancePaid } : null;
 
   return (
     <div style={{
@@ -357,14 +393,14 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
           color: isPaid ? '#E8A265' : '#1A0A00',
         }}>
           {isPaid ? <CheckCircle2 size={14} /> : <Wallet size={14} style={{ color: '#A8481A' }} />}
-          {isPaid ? 'Downpayment Paid · Confirmed' : '50% Downpayment'}
+          {title}
         </p>
         <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6, margin: 0, color: isPaid ? 'rgba(253,246,238,0.9)' : '#7A3A18' }}>{text}</p>
       </div>
-      {!isPaid && price > 0 && (
+      {action && (
         <button
           type="button"
-          onClick={markPaid}
+          onClick={action.onClick}
           disabled={saving}
           style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 999,
@@ -374,7 +410,7 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
           }}
         >
           {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />}
-          Mark as Paid
+          {action.label}
         </button>
       )}
     </div>

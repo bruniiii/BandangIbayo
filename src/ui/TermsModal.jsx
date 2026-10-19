@@ -115,7 +115,8 @@ const TermsModal = ({ onClose, onAgree }) => (
           All bookings are confirmed only after payment is received online
           (GCash, Maya or card), either in full or as a 40% downpayment.
           Exclusive (private) tours are confirmed with a 50% downpayment of
-          the package price the agency sends you. Every joiner is charged the
+          the package price the agency sends you; the remaining balance can be
+          paid online or settled with the agency before the trip. Every joiner is charged the
           full listed tour price regardless of age or status — the platform
           does not offer PWD or senior citizen discounts.
         </TermsSection>

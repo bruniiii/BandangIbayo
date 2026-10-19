@@ -10,7 +10,7 @@ import {
   FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
   Phone, Globe, Loader2, CreditCard
 } from 'lucide-react';
-import { startExclusiveDownpayment } from './payments';
+import { startExclusiveDownpayment, startExclusiveBalance } from './payments';
 import { phoneFieldProps } from './ui/phoneField';
 import { SkeletonRows } from './ui/Skeleton';
 import TermsModal from './ui/TermsModal';
@@ -615,6 +615,7 @@ const STATUS_STYLES = {
   Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
   Confirmed: { bg: '#1A0A00', color: '#E8A265' }, // downpayment paid
+  'Fully Paid': { bg: '#A8481A', color: '#FDF6EE' }, // balance paid too
 };
 
 const RequestStatusBadge = ({ status }) => {
@@ -712,7 +713,7 @@ const RequestHistoryCard = ({ request }) => {
           </span>
         )}
 
-        <RequestStatusBadge status={isPaid ? 'Confirmed' : request.status} />
+        <RequestStatusBadge status={isPaid ? (request.balance_settled ? 'Fully Paid' : 'Confirmed') : request.status} />
 
         <ChevronDown
           size={16}
@@ -837,33 +838,60 @@ const RequestHistoryCard = ({ request }) => {
   );
 };
 
-// "Pay 50% downpayment" for an approved exclusive tour, or "Confirmed" once paid.
+// "Pay 50% downpayment" for an approved exclusive tour, then "Pay remaining
+// balance" once it's confirmed, then "Fully paid".
+const PayButton = ({ busy, onClick, children }) => (
+  <button type="button" onClick={onClick} disabled={busy} style={{
+    alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
+    padding: '12px 20px', borderRadius: 14, border: 'none', cursor: busy ? 'default' : 'pointer',
+    background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+    letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy ? 0.75 : 1,
+  }}>
+    {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} {children}
+  </button>
+);
+
 const DownpaymentPanel = ({ request, price }) => {
   const [busy, setBusy] = useState(false);
   const downpayment = Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
+  const isPaid = request.payment_status === 'Paid';
+  const paidSoFar = Number(request.amount_paid) || (isPaid ? downpayment : 0);
+  const balance = Math.max(0, Math.round((price - paidSoFar) * 100) / 100);
 
-  if (request.payment_status === 'Paid') {
+  const pay = (start, doneTitle, doneText) => async () => {
+    setBusy(true);
+    const { ok, data, error } = await start({ requestId: request.id });
+    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(false); return; }
+    if (data.alreadyPaid) { toast.success(doneTitle, doneText); setBusy(false); return; }
+    window.location.assign(data.checkoutUrl);
+  };
+
+  if (isPaid) {
+    const fullyPaid = request.balance_settled || balance <= 0;
     return (
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', background: 'rgba(180,81,30,0.08)', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 16, padding: '14px 16px' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', background: 'rgba(180,81,30,0.08)', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 16, padding: '14px 16px' }}>
         <CheckCircle2 size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 1 }} />
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Your exclusive tour is confirmed</p>
-          <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.6 }}>
-            Downpayment of {formatPeso(Number(request.amount_paid) || downpayment)} received{request.paid_at ? ` on ${formatShortDate(request.paid_at)}` : ''}.
-            The remaining {formatPeso(Math.max(0, price - (Number(request.amount_paid) || downpayment)))} is settled with our team before the trip.
-          </p>
+        <div style={{ flex: '1 1 220px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
+              {fullyPaid ? 'Your exclusive tour is fully paid' : 'Your exclusive tour is confirmed'}
+            </p>
+            <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.6 }}>
+              {fullyPaid
+                ? <>Paid {formatPeso(Math.max(paidSoFar, price))} in total{request.balance_paid_at ? `, balance paid on ${formatShortDate(request.balance_paid_at)}` : ''}. See you on the trip!</>
+                : <>Downpayment of {formatPeso(paidSoFar)} received{request.paid_at ? ` on ${formatShortDate(request.paid_at)}` : ''}.
+                  You can pay the remaining <strong>{formatPeso(balance)}</strong> online now, or settle it with our team before the trip.</>}
+            </p>
+          </div>
+          {!fullyPaid && (
+            <PayButton busy={busy} onClick={pay(startExclusiveBalance, 'Balance already paid', 'Your exclusive tour is fully paid.')}>
+              Pay {formatPeso(balance)} Balance
+            </PayButton>
+          )}
         </div>
       </div>
     );
   }
-
-  const pay = async () => {
-    setBusy(true);
-    const { ok, data, error } = await startExclusiveDownpayment({ requestId: request.id });
-    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(false); return; }
-    if (data.alreadyPaid) { toast.success('Downpayment already paid', 'Your exclusive tour is confirmed.'); setBusy(false); return; }
-    window.location.assign(data.checkoutUrl);
-  };
 
   return (
     <div style={{ background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -874,14 +902,9 @@ const DownpaymentPanel = ({ request, price }) => {
           Pay online with GCash, Maya or card. Payments are non-refundable.
         </p>
       </div>
-      <button type="button" onClick={pay} disabled={busy} style={{
-        alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
-        padding: '12px 20px', borderRadius: 14, border: 'none', cursor: busy ? 'default' : 'pointer',
-        background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
-        letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy ? 0.75 : 1,
-      }}>
-        {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(downpayment)} Downpayment
-      </button>
+      <PayButton busy={busy} onClick={pay(startExclusiveDownpayment, 'Downpayment already paid', 'Your exclusive tour is confirmed.')}>
+        Pay {formatPeso(downpayment)} Downpayment
+      </PayButton>
     </div>
   );
 };
