@@ -154,19 +154,19 @@ function LandingPage() {
           </p>
  
           <div className="hero-buttons" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            <Link to="/tours" className="btn-primary" style={{
+            <Link to="/login" className="btn-primary" style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontWeight: 900, fontSize: 14, color: '#1A0A00', textDecoration: 'none',
               background: '#E8A265', borderRadius: 12,
               padding: '15px 32px', letterSpacing: '0.04em',
               boxShadow: '0 8px 28px rgba(232,162,101,0.38)',
-            }}>Browse Tours →</Link>
-            <Link to="/login" className="btn-outline" style={{
+            }}>Log In</Link>
+            <Link to="/tours" className="btn-outline" style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontWeight: 700, fontSize: 14, color: 'rgba(232,210,190,0.85)', textDecoration: 'none',
               border: '1.5px solid rgba(232,210,190,0.22)', borderRadius: 12,
               padding: '15px 28px', letterSpacing: '0.04em',
-            }}>Log In</Link>
+            }}>Browse Tours →</Link>
           </div>
         </div>
  
