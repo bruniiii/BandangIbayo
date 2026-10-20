@@ -13,6 +13,7 @@ import {
   Clock, MessageSquare, ArrowRight, FileText, Send, PencilLine, Package,
 } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
+import ModalHeader from './ui/ModalHeader';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -570,7 +571,6 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     fontFamily: 'inherit', outline: 'none',
   };
 
-  const accentColor = request.status === 'Approved' ? '#A8481A' : request.status === 'Rejected' ? '#8C2F1C' : '#E8A265';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -578,33 +578,19 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       <div style={{
         position: 'relative', background: '#FDF6EE',
         width: '100%', maxWidth: 680,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 24, borderTop: '6px solid #B4511E', boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
         overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
-        {/* Header: type and close on top, then the name and status */}
-        <div className="request-modal-header" style={{
-          background: '#1A0A00', padding: '1.5rem 2.25rem 1.6rem',
-          borderBottom: `4px solid ${accentColor}`,
-          display: 'flex', flexDirection: 'column', gap: 12, flexShrink: 0,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <TypeBadge type={request.request_type} dark />
-            <button onClick={onClose} aria-label="Close" style={{
-              width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(253,246,238,0.08)', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.9)', padding: 0,
-            }}>
-              <X size={18} />
-            </button>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px 14px', flexWrap: 'wrap' }}>
-            <h2 style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em', color: '#FDF6EE', margin: 0, lineHeight: 1.2, minWidth: 0, overflowWrap: 'anywhere' }}>
-              {request.full_name || 'Joiner'}
-            </h2>
-            <StatusBadge status={shownStatus(request)} large />
-          </div>
-        </div>
+        <ModalHeader
+          name={request.full_name}
+          label={isExclusive ? 'Exclusive Tour Request' : 'Tour Request'}
+          title={request.full_name || 'Joiner'}
+          onClose={onClose}
+        >
+          <StatusBadge status={shownStatus(request)} />
+          <TypeBadge type={request.request_type} />
+        </ModalHeader>
 
         {/* Body */}
         <div className="request-modal-body" style={{ overflowY: 'auto', flex: 1, padding: '2rem 2.25rem', display: 'flex', flexDirection: 'column', gap: 24 }}>

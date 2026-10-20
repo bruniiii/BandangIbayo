@@ -14,6 +14,7 @@ import {
   Wallet, Printer, Users, History,
 } from 'lucide-react';
 import { SkeletonTable, SkeletonLines } from './ui/Skeleton';
+import ModalHeader from './ui/ModalHeader';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -625,7 +626,6 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
     win.document.close();
   };
  
-  const accentColor = isRejected ? '#8C2F1C' : isCancelled ? '#1A0A00' : isComplete ? '#A8481A' : '#E8A265';
  
   const labelStyle = {
     display: 'block',
@@ -641,35 +641,24 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
       <div style={{
         position: 'relative', background: '#FDF6EE',
         width: '100%', maxWidth: 760,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
         overflow: 'hidden',
-        borderTop: `8px solid ${accentColor}`,
+        borderTop: '6px solid #B4511E',
         maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
  
-        {/* Header */}
-        <div className="responsive-modal-padding" style={{
-          background: '#1A0A00', padding: '2rem 2.5rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexShrink: 0, flexWrap: 'wrap', gap: 12,
-        }}>
-          <div>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 6px' }}>
-              Booking Details
-            </p>
-            <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', color: '#FDF6EE', margin: 0 }}>
-              {booking.booking_number || 'N/A'}
-            </h2>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            <StatusBadge status={derivedStatus} large />
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.85)', padding: 0 }}>
-              <X size={24} />
-            </button>
-          </div>
-        </div>
- 
+        <ModalHeader
+          name={joinerName}
+          photo={profile?.avatar_url}
+          label="Booking Details"
+          title={booking.booking_number || 'N/A'}
+          onClose={onClose}
+        >
+          <StatusBadge status={derivedStatus} />
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>{joinerName}</span>
+        </ModalHeader>
+
         {/* Scrollable Body */}
         <div className="responsive-modal-padding" style={{ overflowY: 'auto', flex: 1, padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
  
