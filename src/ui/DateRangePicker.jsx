@@ -62,7 +62,7 @@ const DateRangePicker = ({ name, start, end, min, onChange, style }) => {
           ...style, width: '100%', textAlign: 'left', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
           color: start ? '#1A0A00' : 'rgba(122,58,24,0.75)',
-          borderColor: open ? '#B4511E' : style?.borderColor,
+          border: `1px solid ${open ? '#B4511E' : 'rgba(180,81,30,0.18)'}`,
         }}
       >
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>

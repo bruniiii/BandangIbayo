@@ -230,9 +230,11 @@ const SuccessScreen = ({ type, onReset }) => (
  
 // ─── EXCLUSIVE TOUR FORM ────────────────────────────────────────────────────────
 // Preferred dates on a calendar (first day, then last day) and the number
-// of days worked out from them. Used by both request forms.
-const TripDatesFields = ({ form, setForm }) => (
-  <>
+// of days worked out from them, on their own row (with `children`, e.g. the
+// alternate date, at the end). Used by both request forms.
+const TripDatesFields = ({ form, setForm, children }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <label style={labelStyle}>Preferred Dates <span style={{ color: '#A8481A' }}>*</span></label>
       <DateRangePicker
@@ -243,7 +245,6 @@ const TripDatesFields = ({ form, setForm }) => (
         onChange={({ start, end }) => setForm((prev) => ({ ...prev, preferredDate: start, preferredEndDate: end }))}
         style={inputStyle}
       />
-      <span style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', marginTop: 6 }}>Trips can be booked from 3 weeks ahead.</span>
     </div>
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <label style={labelStyle}>Number of Days</label>
@@ -253,10 +254,15 @@ const TripDatesFields = ({ form, setForm }) => (
         aria-label="Number of days (filled in from your dates)"
         value={daysLabel(tripDays(form.preferredDate, form.preferredEndDate))}
         placeholder="Filled in from your dates"
-        style={{ ...inputStyle, cursor: 'default', fontWeight: 800 }}
+        style={{ ...inputStyle, cursor: 'default', fontWeight: form.preferredEndDate ? 800 : inputStyle.fontWeight }}
       />
     </div>
-  </>
+    {children}
+  </div>
+  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+    Trips can be booked from 3 weeks ahead. Tap the first day, then the last day of your trip.
+  </p>
+  </div>
 );
 
 // Saves a request with its trip dates. On a database without the trip-dates
@@ -385,9 +391,10 @@ const ExclusiveTourForm = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
           <InputField name="groupSize" label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
-          <TripDatesFields form={form} setForm={setForm} />
-          <InputField name="alternateDate" label="Alternate Start Date (optional)" type="date" min={earliestTripDate()} value={form.alternateDate} onChange={set('alternateDate')} />
         </div>
+        <TripDatesFields form={form} setForm={setForm}>
+          <InputField name="alternateDate" label="Alternate Start (optional)" type="date" min={earliestTripDate()} value={form.alternateDate} onChange={set('alternateDate')} />
+        </TripDatesFields>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <SelectField
             label="Accommodation Preference"
@@ -595,8 +602,8 @@ const RequestTourForm = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />          
           <InputField name="groupSize" label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
-          <TripDatesFields form={form} setForm={setForm} />
         </div>
+        <TripDatesFields form={form} setForm={setForm} />
         
         <TextAreaField name="notes"
           label="Additional Details / Preferences"
