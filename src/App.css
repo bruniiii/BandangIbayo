@@ -394,5 +394,7 @@ main {
 /* Admin request window: on phones the Approve/Reject buttons fill the width, Approve on top. */
 @media (max-width: 560px) {
   .request-modal-actions { flex-direction: column-reverse; padding: 1rem 1.25rem !important; }
+  .request-modal-header { padding: 1.1rem 1.25rem 1.25rem !important; }
+  .request-modal-body { padding: 1.5rem 1.25rem !important; }
   .request-modal-actions > button { width: 100%; justify-content: center; }
 }
