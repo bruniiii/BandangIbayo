@@ -455,7 +455,7 @@ function LandingPage() {
             <p style={{ fontSize: 15, lineHeight: 1.75, color: 'rgba(232,210,190,0.85)', marginBottom: 28 }}>
               Building trust is our priority, especially for solo travelers. Organizer accountability details are always visible, and medical term acceptance is required before every booking.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {['Non-refundable deposit policy protects both parties.', 'Automatic email reminder sent 24 hours before departure.'].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                   <CheckCircle size={17} style={{ color: '#E8A265', flexShrink: 0, marginTop: 2 }}/>
@@ -463,11 +463,6 @@ function LandingPage() {
                 </div>
               ))}
             </div>
-            <Link to="/register" className="btn-primary" style={{
-              display: 'inline-block', fontWeight: 900, fontSize: 14, color: '#1A0A00', textDecoration: 'none',
-              background: '#E8A265', borderRadius: 12, padding: '14px 28px',
-              letterSpacing: '0.04em', boxShadow: '0 6px 20px rgba(232,162,101,0.3)',
-            }}>Browse Available Tours</Link>
           </div>
         </div>
       </section>

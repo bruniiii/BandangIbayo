@@ -30,7 +30,6 @@ import PasswordField from './ui/PasswordField';
 import RequiredMark from './ui/RequiredMark';
 import { phoneInputProps } from './ui/phoneField';
 import TermsModal from './ui/TermsModal';
-import GoogleButton, { OrDivider } from './ui/GoogleButton';
 import { googleNameParts } from './googleAuth';
 
 // mode="complete" (/complete-profile): after "Continue with Google", the
@@ -587,13 +586,6 @@ const JoinerRegister = ({ mode = 'register' }) => {
             Fields marked <RequiredMark /> are required.
           </p>
         </div>
-
-        {!completing && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
-            <GoogleButton nextPath={nextPath} label="Sign up with Google" />
-            <OrDivider />
-          </div>
-        )}
 
         {completing && !googleUser ? (
           <div role="status" style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: '#A8481A' }}>
