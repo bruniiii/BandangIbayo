@@ -185,7 +185,6 @@ function LandingPage() {
             <path d="M0 700 L0 480 L100 390 L200 450 L320 350 L400 420 L480 360 L600 410 L600 700Z" fill="#4A2C12" opacity="0.85"/>
             <path d="M0 700 L0 540 L150 460 L280 510 L380 440 L500 490 L600 450 L600 700Z" fill="#5A3418" opacity="0.8"/>
             <path d="M0 700 L0 600 L200 540 L350 580 L500 530 L600 560 L600 700Z" fill="#6B3D1C" opacity="0.75"/>
-            <rect x="0" y="195" width="600" height="30" fill="#B4511E" opacity="0.08"/>
           </svg>
  
           <div style={{
@@ -205,11 +204,6 @@ function LandingPage() {
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 120, background: 'linear-gradient(to bottom,transparent,#1A0A00)', zIndex: 3 }}/>
         </div>
  
-        <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, zIndex: 10 }}>
-          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{ width: '100%', height: 80, display: 'block' }}>
-            <polygon points="0,80 1440,0 1440,80" fill="#F2E4D0"/>
-          </svg>
-        </div>
       </section>
  
       {/* ── Responsive & interaction polish ── */}
