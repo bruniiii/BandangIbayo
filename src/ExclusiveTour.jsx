@@ -14,6 +14,8 @@ import { startExclusiveDownpayment, startExclusiveBalance } from './payments';
 import { phoneFieldProps } from './ui/phoneField';
 import { SkeletonRows } from './ui/Skeleton';
 import TermsModal from './ui/TermsModal';
+import DateRangePicker from './ui/DateRangePicker';
+import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 
 // The most a joiner can enter as their exclusive tour budget.
 const MAX_EXCLUSIVE_BUDGET = 100000;
@@ -229,7 +231,7 @@ const ExclusiveTourForm = () => {
   const prefill = usePrefilledContact();
   const [form, setForm] = useState({
     fullName: '', contact: '', email: '',
-    destination: '', groupSize: '', preferredDate: '', alternateDate: '',
+    destination: '', groupSize: '', preferredDate: '', preferredEndDate: '', alternateDate: '',
     accommodation: '', budget: '', notes: '', agreeTerms: false,
   });
 
@@ -248,6 +250,7 @@ const ExclusiveTourForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!checkRequestFields(e.currentTarget, form)) return;
+    if (!form.preferredEndDate) { flagField(e.currentTarget, 'preferredDate', 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).'); return; }
     if (form.budget !== '' && !(Number(form.budget) >= 0)) { flagField(e.currentTarget, 'budget', 'Budget must be zero or more.'); return; }
     if (Number(form.budget) > MAX_EXCLUSIVE_BUDGET) { flagField(e.currentTarget, 'budget', `Budget can be up to ${formatPeso(MAX_EXCLUSIVE_BUDGET)}.`); return; }
     if (!form.agreeTerms) { toast.info('Please accept the terms and conditions.'); return; }
@@ -260,7 +263,8 @@ const ExclusiveTourForm = () => {
       return;
     }
 
-    const { data: inserted, error } = await supabase.from('exclusive_requests').insert([{
+    const days = tripDays(form.preferredDate, form.preferredEndDate);
+    const row = {
       user_id: user.id,
       request_type: 'exclusive',
       full_name: form.fullName,
@@ -269,11 +273,22 @@ const ExclusiveTourForm = () => {
       destination: form.destination,
       group_size: parseInt(form.groupSize) || null,
       preferred_date: form.preferredDate || null,
+      preferred_end_date: form.preferredEndDate || null,
+      trip_days: days || null,
       alternate_date: form.alternateDate || null,
       accommodation: form.accommodation,
       budget: parseFloat(form.budget) || null,
       notes: form.notes,
-    }]).select();
+    };
+    let { data: inserted, error } = await supabase.from('exclusive_requests').insert([row]).select();
+    // Database without the trip-dates columns yet (20261025000000_exclusive_trip_dates.sql):
+    // send the request anyway, with the dates written into the notes.
+    if (error && /preferred_end_date|trip_days/.test(error.message || '')) {
+      const { preferred_end_date: _end, trip_days: _days, ...older } = row;
+      const datesNote = `Trip dates: ${formatYmdRange(form.preferredDate, form.preferredEndDate)} (${daysLabel(days)})`;
+      ({ data: inserted, error } = await supabase.from('exclusive_requests')
+        .insert([{ ...older, notes: [datesNote, form.notes].filter(Boolean).join('\n\n') }]).select());
+    }
 
     if (error) {
       toast.error("Couldn't submit your request", error.message);
@@ -335,8 +350,29 @@ const ExclusiveTourForm = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
           <InputField name="groupSize" label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
-          <InputField name="preferredDate" label="Preferred Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
-          <InputField name="alternateDate" label="Alternate Date (optional)" type="date" min={addDaysPH(1)} value={form.alternateDate} onChange={set('alternateDate')} />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={labelStyle}>Preferred Dates <span style={{ color: '#A8481A' }}>*</span></label>
+            <DateRangePicker
+              name="preferredDate"
+              start={form.preferredDate}
+              end={form.preferredEndDate}
+              min={addDaysPH(1)}
+              onChange={({ start, end }) => setForm((prev) => ({ ...prev, preferredDate: start, preferredEndDate: end }))}
+              style={inputStyle}
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={labelStyle}>Number of Days</label>
+            <input
+              readOnly
+              tabIndex={-1}
+              aria-label="Number of days (filled in from your dates)"
+              value={daysLabel(tripDays(form.preferredDate, form.preferredEndDate))}
+              placeholder="Filled in from your dates"
+              style={{ ...inputStyle, cursor: 'default', fontWeight: 800 }}
+            />
+          </div>
+          <InputField name="alternateDate" label="Alternate Start Date (optional)" type="date" min={addDaysPH(1)} value={form.alternateDate} onChange={set('alternateDate')} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <SelectField

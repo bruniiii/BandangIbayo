@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
+import { formatYmdRange, daysLabel } from './dateRange';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -28,6 +29,14 @@ import ModalHeader from './ui/ModalHeader';
 const formatDate = (d) => {
   if (!d) return '—';
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+// "Oct 10 – 12, 2026 · 3 days" for a date range, or the one preferred date.
+const tripDates = (request) => {
+  if (!request.preferred_date) return '—';
+  if (!request.preferred_end_date) return formatDate(request.preferred_date);
+  const days = request.trip_days ? ` · ${daysLabel(request.trip_days)}` : '';
+  return `${formatYmdRange(request.preferred_date, request.preferred_end_date)}${days}`;
 };
 
 const formatDateTime = (d) => {
@@ -273,7 +282,7 @@ const RequestRow = ({ request, onView }) => {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', minWidth: 150 }}>
-        <Calendar size={13} style={{ color: '#A8481A' }} /> {formatDate(request.preferred_date)}
+        <Calendar size={13} style={{ color: '#A8481A' }} /> {tripDates(request)}
       </div>
 
       <div style={{ marginLeft: 'auto' }}>
@@ -601,8 +610,8 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             <DetailRow icon={<MapPin size={14} />} label="Destination" value={request.destination} />
             {request.region && <DetailRow icon={<MapPin size={14} />} label="Region / Province" value={request.region} />}
             <DetailRow icon={<Users size={14} />} label="Group Size" value={request.group_size ? `${request.group_size} pax` : null} />
-            <DetailRow icon={<Calendar size={14} />} label="Preferred Date" value={formatDate(request.preferred_date)} />
-            {isExclusive && <DetailRow icon={<Calendar size={14} />} label="Alternate Date" value={formatDate(request.alternate_date)} />}
+            <DetailRow icon={<Calendar size={14} />} label={request.preferred_end_date ? 'Preferred Dates' : 'Preferred Date'} value={tripDates(request)} />
+            {isExclusive && <DetailRow icon={<Calendar size={14} />} label={request.preferred_end_date ? 'Alternate Start Date' : 'Alternate Date'} value={formatDate(request.alternate_date)} />}
             {isExclusive && <DetailRow icon={<Home size={14} />} label="Accommodation" value={request.accommodation} />}
             {isExclusive && <DetailRow icon={<Wallet size={14} />} label="Budget" value={request.budget ? `${formatPeso(Number(request.budget))}` : null} />}
             {!isExclusive && <DetailRow icon={<ArrowRight size={14} />} label="Tour Type Preference" value={request.tour_type === 'joiner' ? 'Open to other joiners' : request.tour_type === 'exclusive' ? 'Exclusive for their group' : null} />}
