@@ -2,7 +2,7 @@ import { todayManila } from './tourUtils';
 
 // Which bookings get a Trip Day card (TripDayCard.jsx).
 
-export const TRIP_DAY_LEAD_DAYS = 3;
+export const TRIP_DAY_LEAD_DAYS = 1; // shown from the day before the trip
 
 export const daysBetween = (fromYmd, toYmd) =>
   Math.round((new Date(`${toYmd}T00:00:00Z`) - new Date(`${fromYmd}T00:00:00Z`)) / 86400000);

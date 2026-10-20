@@ -8,7 +8,7 @@ import { MapPin, Clock, Bus, Phone, Backpack, Wallet, ExternalLink, AlertCircle 
 
 // ─────────────────────────────────────────────
 // TRIP DAY CARD (My Bookings)
-// Shown from 3 days before a confirmed trip until it ends: everything a
+// Shown from the day before a confirmed trip until it ends: everything a
 // joiner needs on the day in one place. Pickup points and the driver come
 // from Tracking Management (tour_meetups, tour_vehicles), so the admin
 // doesn't fill anything in twice.
