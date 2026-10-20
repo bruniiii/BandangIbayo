@@ -25,6 +25,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import { SkeletonRows, Skel } from './ui/Skeleton';
+import { readTab, saveTab, forgetTab } from './rememberTab';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -93,7 +94,9 @@ const NAV_ITEMS = [
 // ─── Main Component ──────────────────────────────────────────────────────────
  
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeTab, setActiveTab] = useState(() => readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'Overview'));
+  // A refresh reopens the page you were on (see rememberTab.js).
+  useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -186,6 +189,7 @@ const AdminDashboard = () => {
     });
     if (!ok) return;
     // Leave the dashboard first, so signing out lands on the landing page, not the login page.
+    forgetTab(TAB_KEY);
     navigate('/', { replace: true });
     const { error } = await supabase.auth.signOut();
     if (error) toast.error('Logout failed', error.message);
@@ -898,6 +902,8 @@ const AdminDashboard = () => {
 };
  
 // Title and one-line description shown at the top of each page.
+const TAB_KEY = 'ibayo-admin-tab';
+
 const PAGE_INFO = {
   'Overview':            { icon: LayoutDashboard, title: 'Overview',            subtitle: "Today's bookings, payments and tours at a glance" },
   'Feed':                { icon: Rss,             title: 'Community Feed',      subtitle: 'Updates, announcements & newly posted tours' },
