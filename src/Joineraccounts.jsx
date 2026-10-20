@@ -178,7 +178,7 @@ const JoinerAccounts = () => {
           <Mail size={14} /> Email a Joiner
         </button>
 
-        <div style={{ position: 'relative' }}>
+        <div className="joiners-search" style={{ position: 'relative' }}>
           <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(122,58,24,0.85)' }} />
           <input
             value={query}
@@ -216,7 +216,7 @@ const JoinerAccounts = () => {
           )
         ) : (
           <div className="responsive-table-wrapper">
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="joiners-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
                   {['Joiner', 'Contact', 'Address', 'Bookings', 'Joined', ''].map((h) => (
@@ -249,11 +249,13 @@ const JoinerAccounts = () => {
                             <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : initialsOf(p)}
                         </div>
-                        <div>
+                        <div style={{ minWidth: 0 }}>
                           <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{fullName(p)}</p>
                           {p.username && (
                             <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>@{p.username}</p>
                           )}
+                          {/* phones only: the Contact column is hidden there */}
+                          <p className="joiners-phone-only" style={{ fontSize: 11.5, color: '#1A0A00', margin: '3px 0 0', overflowWrap: 'anywhere' }}>{p.email || '—'}</p>
                         </div>
                       </div>
                     </td>

@@ -30,7 +30,6 @@ import PasswordField from './ui/PasswordField';
 import RequiredMark from './ui/RequiredMark';
 import { phoneInputProps } from './ui/phoneField';
 import TermsModal from './ui/TermsModal';
-import GoogleButton, { OrDivider } from './ui/GoogleButton';
 import { googleNameParts } from './googleAuth';
 
 // mode="complete" (/complete-profile): after "Continue with Google", the
@@ -588,13 +587,6 @@ const JoinerRegister = ({ mode = 'register' }) => {
           </p>
         </div>
 
-        {!completing && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 20 }}>
-            <GoogleButton nextPath={nextPath} label="Sign up with Google" />
-            <OrDivider />
-          </div>
-        )}
-
         {completing && !googleUser ? (
           <div role="status" style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: '#A8481A' }}>
             <Loader2 size={26} style={{ animation: 'spin 1s linear infinite' }} />
@@ -720,7 +712,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   margin: '8px 0 0',
                 }}
               >
-                JPG, PNG, or WebP • Maximum 5 MB
+                JPG, PNG, or WebP
               </p>
             </div>
           </div>

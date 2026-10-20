@@ -13,6 +13,7 @@ import {
   Clock, MessageSquare, ArrowRight, FileText, Send, PencilLine, Package,
 } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
+import ModalHeader from './ui/ModalHeader';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -68,11 +69,11 @@ const StatusBadge = ({ status, large = false }) => {
   );
 };
 
-const TypeBadge = ({ type }) => (
+const TypeBadge = ({ type, dark = false }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', gap: 5,
-    background: type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
-    color: type === 'exclusive' ? '#1A0A00' : '#A8481A',
+    background: dark ? 'rgba(232,162,101,0.14)' : type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
+    color: dark ? '#E8A265' : type === 'exclusive' ? '#1A0A00' : '#A8481A',
     borderRadius: 999, padding: '4px 12px',
     fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
   }}>
@@ -286,9 +287,9 @@ const RequestRow = ({ request, onView }) => {
    DETAIL ROW helper
 ───────────────────────────────────────────── */
 const DetailRow = ({ icon, label, value }) => (
-  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, minWidth: 0 }}>
     <span style={{ color: '#A8481A', opacity: 0.9, marginTop: 2, flexShrink: 0 }}>{icon}</span>
-    <div>
+    <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
       <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
         {label}
       </p>
@@ -570,7 +571,6 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     fontFamily: 'inherit', outline: 'none',
   };
 
-  const accentColor = request.status === 'Approved' ? '#A8481A' : request.status === 'Rejected' ? '#8C2F1C' : '#E8A265';
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -578,35 +578,24 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       <div style={{
         position: 'relative', background: '#FDF6EE',
         width: '100%', maxWidth: 680,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 24, borderTop: '6px solid #B4511E', boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
         overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
-        borderTop: `8px solid ${accentColor}`,
       }}>
-        {/* Header */}
-        <div style={{
-          background: '#1A0A00', padding: '1.75rem 2.25rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexShrink: 0, flexWrap: 'wrap', gap: 12,
-        }}>
-          <div>
-            <div style={{ marginBottom: 8 }}><TypeBadge type={request.request_type} /></div>
-            <h2 style={{ fontSize: 19, fontWeight: 900, letterSpacing: '-0.02em', color: '#FDF6EE', margin: 0 }}>
-              {request.full_name || 'Joiner'}
-            </h2>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <StatusBadge status={shownStatus(request)} large />
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.85)', padding: 0 }}>
-              <X size={22} />
-            </button>
-          </div>
-        </div>
+        <ModalHeader
+          name={request.full_name}
+          label={isExclusive ? 'Exclusive Tour Request' : 'Tour Request'}
+          title={request.full_name || 'Joiner'}
+          onClose={onClose}
+        >
+          <StatusBadge status={shownStatus(request)} />
+          <TypeBadge type={request.request_type} />
+        </ModalHeader>
 
         {/* Body */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '2rem 2.25rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="request-modal-body" style={{ overflowY: 'auto', flex: 1, padding: '2rem 2.25rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16 }}>
             <DetailRow icon={<Mail size={14} />} label="Email" value={request.email} />
             <DetailRow icon={<Phone size={14} />} label="Contact Number" value={request.contact_number} />
             <DetailRow icon={<MapPin size={14} />} label="Destination" value={request.destination} />
@@ -851,7 +840,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
         {/* Footer actions */}
         {isPending && (
-          <div style={{
+          <div className="request-modal-actions" style={{
             padding: '1.5rem 2.25rem', borderTop: '1px solid rgba(180,81,30,0.12)',
             background: '#FDF6EE', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end',
           }}>

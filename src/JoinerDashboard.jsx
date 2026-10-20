@@ -260,8 +260,9 @@ const JoinerDashboard = () => {
       cancelLabel: 'Stay Signed In',
     });
     if (!ok) return;
+    // Leave the dashboard first, so signing out lands on the landing page, not the login page.
+    navigate('/', { replace: true });
     await supabase.auth.signOut();
-    navigate('/login');
   };
 
   const formatDateRange = (dateString, duration) => {

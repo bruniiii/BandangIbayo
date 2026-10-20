@@ -390,3 +390,30 @@ main {
   .cal-tour-chip { font-size: 0 !important; padding: 0 !important; height: 5px; }
   .cal-tour-more { display: none; }
 }
+
+/* Admin request window: on phones the Approve/Reject buttons fill the width, Approve on top. */
+@media (max-width: 560px) {
+  .request-modal-actions { flex-direction: column-reverse; padding: 1rem 1.25rem !important; }
+  .request-modal-body { padding: 1.5rem 1.25rem !important; }
+  .request-modal-actions > button { width: 100%; justify-content: center; }
+}
+
+/* Light header of admin details windows (ui/ModalHeader): tighter on phones. */
+@media (max-width: 560px) {
+  .modal-header-light { padding: 1.25rem 3.25rem 1.1rem 1.25rem !important; gap: 12px !important; }
+  .modal-header-light > div:first-child { width: 48px !important; height: 48px !important; font-size: 16px !important; }
+}
+
+/* Joiner Accounts: on phones the table keeps Joiner (with email), Bookings
+   and the arrow; address, contact and join date are in the details window. */
+.joiners-phone-only { display: none; }
+@media (max-width: 640px) {
+  .responsive-table-wrapper table.joiners-table { min-width: 0; }
+  .joiners-table th:nth-child(2), .joiners-table td:nth-child(2),
+  .joiners-table th:nth-child(3), .joiners-table td:nth-child(3),
+  .joiners-table th:nth-child(5), .joiners-table td:nth-child(5) { display: none; }
+  .joiners-table th, .joiners-table td { padding-left: 14px !important; padding-right: 14px !important; }
+  .joiners-phone-only { display: block; }
+  .joiners-search { flex: 1 1 100%; }
+  .joiners-search input { width: 100% !important; }
+}

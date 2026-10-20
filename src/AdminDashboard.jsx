@@ -185,9 +185,10 @@ const AdminDashboard = () => {
       cancelLabel: 'Stay Signed In',
     });
     if (!ok) return;
+    // Leave the dashboard first, so signing out lands on the landing page, not the login page.
+    navigate('/', { replace: true });
     const { error } = await supabase.auth.signOut();
     if (error) toast.error('Logout failed', error.message);
-    else navigate('/login');
   };
  
   const fetchOverviewData = async () => {

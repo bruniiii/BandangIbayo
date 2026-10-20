@@ -180,9 +180,9 @@ function LandingPage() {
               </radialGradient>
             </defs>
             <rect width="600" height="700" fill="#2D1B0E"/>
-            <circle cx="300" cy="200" r="160" fill="url(#sunGlow)"/>
-            <path d="M0 700 L0 420 L80 340 L160 400 L260 290 L340 370 L420 280 L500 360 L600 300 L600 700Z" fill="#3D2410" opacity="0.9"/>
-            <path d="M0 700 L0 480 L100 390 L200 450 L320 350 L400 420 L480 360 L600 410 L600 700Z" fill="#4A2C12" opacity="0.85"/>
+            <circle className="hero-sun" cx="300" cy="200" r="160" fill="url(#sunGlow)"/>
+            <path className="hero-ridge hero-ridge-far" d="M0 700 L0 420 L80 340 L160 400 L260 290 L340 370 L420 280 L500 360 L600 300 L600 700Z" fill="#3D2410" opacity="0.9"/>
+            <path className="hero-ridge hero-ridge-mid" d="M0 700 L0 480 L100 390 L200 450 L320 350 L400 420 L480 360 L600 410 L600 700Z" fill="#4A2C12" opacity="0.85"/>
             <path d="M0 700 L0 540 L150 460 L280 510 L380 440 L500 490 L600 450 L600 700Z" fill="#5A3418" opacity="0.8"/>
             <path d="M0 700 L0 600 L200 540 L350 580 L500 530 L600 560 L600 700Z" fill="#6B3D1C" opacity="0.75"/>
             <rect x="0" y="195" width="600" height="30" fill="#B4511E" opacity="0.08"/>
@@ -191,14 +191,18 @@ function LandingPage() {
           <div style={{
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
           }}>
-            <div style={{
+            {/* Animated (see .hero-logo-* in index.css): rises in, then floats; a ring of light turns around it. */}
+            <div className="hero-logo-wrap" style={{ position: 'relative' }}>
+            <div className="hero-logo-ring" aria-hidden="true" />
+            <div className="hero-logo-disc" style={{
               width: 420, height: 420, borderRadius: '50%',
               background: 'rgba(26,10,0,0.55)', backdropFilter: 'blur(10px)',
               border: '1.5px solid rgba(232,162,101,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 80px rgba(180,81,30,0.2)',
             }}>
-              <img src="/sampLOGO.png" alt="Bandang IBAYO" style={{ width: 340, height: 340, objectFit: 'contain' }}/>
+              <img className="hero-logo-img" src="/sampLOGO.png" alt="Bandang IBAYO" style={{ width: 340, height: 340, objectFit: 'contain' }}/>
+            </div>
             </div>
           </div>
  
@@ -432,7 +436,7 @@ function LandingPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
               {[
                 { icon: <ShieldCheck size={24} strokeWidth={1.8}/>, title: 'Verified Safety', text: 'Driver names, plate numbers, and medical disclaimers shown for every trip.' },
-                { icon: <Clock size={24} strokeWidth={1.8}/>, title: 'Real-Time ETA Tracking', text: 'Know exactly when your vehicle is arriving at the pickup point.' },
+                { icon: <Clock size={24} strokeWidth={1.8}/>, title: 'ETA Tracking', text: 'Know exactly when your vehicle is arriving at the pickup point.' },
                 { icon: <Calendar size={24} strokeWidth={1.8}/>, title: 'Live Availability', text: 'Open dates, remaining seats, and full pricing — updated in real time.' },
                 { icon: <Smartphone size={24} strokeWidth={1.8}/>, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
               ].map((item, i) => (
@@ -455,7 +459,7 @@ function LandingPage() {
             <p style={{ fontSize: 15, lineHeight: 1.75, color: 'rgba(232,210,190,0.85)', marginBottom: 28 }}>
               Building trust is our priority, especially for solo travelers. Organizer accountability details are always visible, and medical term acceptance is required before every booking.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 36 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {['Non-refundable deposit policy protects both parties.', 'Automatic email reminder sent 24 hours before departure.'].map((item, i) => (
                 <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                   <CheckCircle size={17} style={{ color: '#E8A265', flexShrink: 0, marginTop: 2 }}/>
@@ -463,11 +467,6 @@ function LandingPage() {
                 </div>
               ))}
             </div>
-            <Link to="/register" className="btn-primary" style={{
-              display: 'inline-block', fontWeight: 900, fontSize: 14, color: '#1A0A00', textDecoration: 'none',
-              background: '#E8A265', borderRadius: 12, padding: '14px 28px',
-              letterSpacing: '0.04em', boxShadow: '0 6px 20px rgba(232,162,101,0.3)',
-            }}>Browse Available Tours</Link>
           </div>
         </div>
       </section>
