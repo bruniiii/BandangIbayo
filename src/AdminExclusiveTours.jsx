@@ -611,7 +611,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             {request.region && <DetailRow icon={<MapPin size={14} />} label="Region / Province" value={request.region} />}
             <DetailRow icon={<Users size={14} />} label="Group Size" value={request.group_size ? `${request.group_size} pax` : null} />
             <DetailRow icon={<Calendar size={14} />} label={request.preferred_end_date ? 'Preferred Dates' : 'Preferred Date'} value={tripDates(request)} />
-            {isExclusive && <DetailRow icon={<Calendar size={14} />} label={request.preferred_end_date ? 'Alternate Start Date' : 'Alternate Date'} value={formatDate(request.alternate_date)} />}
+            {isExclusive && request.alternate_date && <DetailRow icon={<Calendar size={14} />} label="Alternate Date" value={formatDate(request.alternate_date)} />}
             {isExclusive && <DetailRow icon={<Home size={14} />} label="Accommodation" value={request.accommodation} />}
             {isExclusive && <DetailRow icon={<Wallet size={14} />} label="Budget" value={request.budget ? `${formatPeso(Number(request.budget))}` : null} />}
             {!isExclusive && <DetailRow icon={<ArrowRight size={14} />} label="Tour Type Preference" value={request.tour_type === 'joiner' ? 'Open to other joiners' : request.tour_type === 'exclusive' ? 'Exclusive for their group' : null} />}
