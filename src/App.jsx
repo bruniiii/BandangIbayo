@@ -432,7 +432,7 @@ function LandingPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
               {[
                 { icon: <ShieldCheck size={24} strokeWidth={1.8}/>, title: 'Verified Safety', text: 'Driver names, plate numbers, and medical disclaimers shown for every trip.' },
-                { icon: <Clock size={24} strokeWidth={1.8}/>, title: 'Real-Time ETA Tracking', text: 'Know exactly when your vehicle is arriving at the pickup point.' },
+                { icon: <Clock size={24} strokeWidth={1.8}/>, title: 'ETA Tracking', text: 'Know exactly when your vehicle is arriving at the pickup point.' },
                 { icon: <Calendar size={24} strokeWidth={1.8}/>, title: 'Live Availability', text: 'Open dates, remaining seats, and full pricing — updated in real time.' },
                 { icon: <Smartphone size={24} strokeWidth={1.8}/>, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
               ].map((item, i) => (

@@ -712,7 +712,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   margin: '8px 0 0',
                 }}
               >
-                JPG, PNG, or WebP • Maximum 5 MB
+                JPG, PNG, or WebP
               </p>
             </div>
           </div>
