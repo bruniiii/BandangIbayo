@@ -390,3 +390,9 @@ main {
   .cal-tour-chip { font-size: 0 !important; padding: 0 !important; height: 5px; }
   .cal-tour-more { display: none; }
 }
+
+/* Admin request window: on phones the Approve/Reject buttons fill the width, Approve on top. */
+@media (max-width: 560px) {
+  .request-modal-actions { flex-direction: column-reverse; padding: 1rem 1.25rem !important; }
+  .request-modal-actions > button { width: 100%; justify-content: center; }
+}

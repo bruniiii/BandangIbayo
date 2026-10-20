@@ -286,9 +286,9 @@ const RequestRow = ({ request, onView }) => {
    DETAIL ROW helper
 ───────────────────────────────────────────── */
 const DetailRow = ({ icon, label, value }) => (
-  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, minWidth: 0 }}>
     <span style={{ color: '#A8481A', opacity: 0.9, marginTop: 2, flexShrink: 0 }}>{icon}</span>
-    <div>
+    <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
       <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
         {label}
       </p>
@@ -606,7 +606,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         {/* Body */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '2rem 2.25rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16 }}>
             <DetailRow icon={<Mail size={14} />} label="Email" value={request.email} />
             <DetailRow icon={<Phone size={14} />} label="Contact Number" value={request.contact_number} />
             <DetailRow icon={<MapPin size={14} />} label="Destination" value={request.destination} />
@@ -851,7 +851,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
         {/* Footer actions */}
         {isPending && (
-          <div style={{
+          <div className="request-modal-actions" style={{
             padding: '1.5rem 2.25rem', borderTop: '1px solid rgba(180,81,30,0.12)',
             background: '#FDF6EE', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end',
           }}>
