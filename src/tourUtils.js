@@ -83,6 +83,8 @@ export const safeNextPath = (next) =>
 export const CANCELLATION_CUTOFF_DAYS = 14;
 // Joiners ask to cancel; the agency approves within this many hours (or it happens automatically).
 export const CANCELLATION_APPROVAL_HOURS = 12;
+// Exclusive tours and tour requests: the earliest trip date is this many days from today.
+export const TRIP_REQUEST_LEAD_DAYS = 21;
 
 // Last day a joiner can cancel (YYYY-MM-DD), and whether that's still possible today.
 export const cancellationDeadline = (startDate) => {
