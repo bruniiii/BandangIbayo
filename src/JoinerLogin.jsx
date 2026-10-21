@@ -7,6 +7,9 @@ import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
 import OtpInput from './ui/OtpInput';
 import PasswordField from './ui/PasswordField';
 import GoogleButton, { OrDivider } from './ui/GoogleButton';
+
+// "Continue with Google" is turned off for now; set to true to show it again.
+const SHOW_GOOGLE_LOGIN = false;
  import logoIcon from './assets/newIcon.png';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -322,8 +325,8 @@ const JoinerLogin = () => {
           </p>
         )}
 
-        {/* Google: one tap, no password or emailed code */}
-        {!challenge && (
+        {/* Google: one tap, no password (hidden for now, see SHOW_GOOGLE_LOGIN) */}
+        {SHOW_GOOGLE_LOGIN && !challenge && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 18 }}>
             <GoogleButton nextPath={nextPath} />
             <OrDivider />
