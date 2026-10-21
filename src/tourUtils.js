@@ -81,6 +81,8 @@ export const safeNextPath = (next) =>
 // Terms, section 2: no cancellations within two weeks of the tour date.
 // Keep in sync with cancellation_cutoff_days() in the database.
 export const CANCELLATION_CUTOFF_DAYS = 14;
+// Joiners ask to cancel; the agency approves within this many hours (or it happens automatically).
+export const CANCELLATION_APPROVAL_HOURS = 12;
 
 // Last day a joiner can cancel (YYYY-MM-DD), and whether that's still possible today.
 export const cancellationDeadline = (startDate) => {

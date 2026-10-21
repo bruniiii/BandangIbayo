@@ -84,6 +84,7 @@ const JoinerDashboard = () => {
     ? { result: searchParams.get('exclusive'), requestId: searchParams.get('request') } : null));
   const [paymentNotice, setPaymentNotice] = useState(paymentReturn || exclusiveReturn ? { type: 'info', text: 'Checking your payment…' } : null);
   const [exclusiveKey, setExclusiveKey] = useState(0);
+  const [exclusiveStart, setExclusiveStart] = useState(null); // { form, date } from the calendar
   const [myBookingsKey, setMyBookingsKey] = useState(0);
   const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Exclusive Tours' : bookTourId ? 'Explore Tours'
     : readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'HomePage')));
@@ -231,6 +232,7 @@ const JoinerDashboard = () => {
     setBookTourId(null);
     setBookingsFilter(null);
     setCalendarTarget(null);
+    setExclusiveStart(null);
     setActiveTab(label);
     if (isMobile) setMobileNavOpen(false);
   };
@@ -623,7 +625,7 @@ const JoinerDashboard = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <NotificationBell onNotificationClick={handleNotificationNavigate} />
+              <NotificationBell onNotificationClick={handleNotificationNavigate} clearPaymentNotices />
 
               {/* dynamic user chip matching the Reviews identity */}
               <div
@@ -912,9 +914,12 @@ const JoinerDashboard = () => {
           ) : activeTab === 'My Bookings' ? (
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Calendar' ? (
-            <TourCalendar initialDate={calendarTarget} />
+            <TourCalendar
+              initialDate={calendarTarget}
+              onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab('Exclusive Tours'); }}
+            />
           ) : activeTab === 'Exclusive Tours' ? (
-            <ExclusiveTour key={exclusiveKey} />
+            <ExclusiveTour key={exclusiveKey} start={exclusiveStart} />
           ) : activeTab === 'Reviews' ? (
             <Reviews isAdmin={false} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Profile Settings' ? (
@@ -922,7 +927,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Tracking' ? (
             <JoinerTracking onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Notification' ? (
-            <Notification isAdmin={false} onNavigate={handleNotificationNavigate} />
+            <Notification isAdmin={false} onNavigate={handleNotificationNavigate} clearPaymentNotices />
           ) : (
             <div style={{
               height: '100%', minHeight: 400, display: 'flex',

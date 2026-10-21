@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry } from './notifications';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -59,7 +60,7 @@ const FILTERABLE_TYPES = Object.keys(TYPE_META).filter((t) => t !== 'default');
    and joiners each just see their own
    feed of everything that's happened to their account, Facebook-style.
 ───────────────────────────────────────────── */
-const Notifications = ({ onNavigate }) => {
+const Notifications = ({ onNavigate, clearPaymentNotices = false }) => {
   const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,9 +77,9 @@ const Notifications = ({ onNavigate }) => {
       .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .limit(150);
-    if (!error) setNotifications(data || []);
+    if (!error) setNotifications(clearPaymentNotices ? clearOldPaymentNotices(data || []) : (data || []));
     setLoading(false);
-  }, []);
+  }, [clearPaymentNotices]);
 
   useEffect(() => {
     (async () => {
@@ -101,6 +102,21 @@ const Notifications = ({ onNavigate }) => {
     return () => { supabase.removeChannel(channel); };
   }, [userId, fetchNotifications]);
 
+  // The other notification view changed something: load again.
+  useEffect(() => {
+    if (!userId) return undefined;
+    return onNotificationsChanged(() => fetchNotifications(userId));
+  }, [userId, fetchNotifications]);
+
+  // Payment notices disappear 3 minutes after they arrive (joiners only).
+  useEffect(() => {
+    if (!clearPaymentNotices || !userId) return undefined;
+    const wait = nextPaymentNoticeExpiry(notifications);
+    if (wait == null) return undefined;
+    const timer = setTimeout(() => fetchNotifications(userId), wait);
+    return () => clearTimeout(timer);
+  }, [clearPaymentNotices, userId, notifications, fetchNotifications]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpenId(null);
@@ -114,6 +130,7 @@ const Notifications = ({ onNavigate }) => {
   const markAsRead = async (id) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    notificationsChanged();
   };
 
   const markAllRead = async () => {
@@ -121,12 +138,14 @@ const Notifications = ({ onNavigate }) => {
     if (!unreadIds.length) return;
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds);
+    notificationsChanged();
   };
 
   const deleteNotification = async (id) => {
     setMenuOpenId(null);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     await supabase.from('notifications').delete().eq('id', id);
+    notificationsChanged();
   };
 
   const clearAll = async () => {
@@ -136,6 +155,7 @@ const Notifications = ({ onNavigate }) => {
     const ids = notifications.map((n) => n.id);
     setNotifications([]);
     await supabase.from('notifications').delete().in('id', ids);
+    notificationsChanged();
     setClearing(false);
   };
 

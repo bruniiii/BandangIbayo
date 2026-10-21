@@ -311,7 +311,7 @@ function LandingPage() {
                     </div>
                     {/* Price on its own line, full-width button below, so long prices never squeeze the button. */}
                     <div style={{ paddingTop: 20, marginTop: 22, borderTop: '1px solid rgba(180,81,30,0.1)' }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 2 }}>Starting at</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 2 }}>Starts at</div>
                       <div style={{ fontSize: 26, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>{formatPeso(tour.price)}</div>
                       <Link to={`/tours/${tour.id}`} className="btn-primary" style={{
                         position: 'relative', zIndex: 2,

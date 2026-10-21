@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
 import { SkeletonTourCards } from './ui/Skeleton';
+import ItineraryTimeline from './ui/ItineraryTimeline';
 
 
 
@@ -678,147 +679,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
 
 
-/* Renders itinerary text ("Day 1:" headers + "TIME – Activity" or
 
-   "START – END – Activity" lines) as grouped timeline rows, each
-
-   sized to its own content instead of stretched full-width. */
-
-const ItineraryTimeline = ({ text }) => {
-
-  const rawLines = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
-
-
-
-  if (rawLines.length === 0) {
-
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
-
-  }
-
-
-
-  // Matches a leading time or time-range (e.g. "04:00 AM", "08:15 AM – 11:00 AM",
-
-  // or Filipino shorthand "12:00nn"/"12:00mn"), followed by a separator (":" or "-"/"–"),
-
-  // with everything after it treated as the activity text.
-
-  const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
-
-  const isDayHeader = (line) => /^day\b/i.test(line);
-
-
-
-  const days = [];
-
-  let current = null;
-
-  rawLines.forEach(line => {
-
-    if (isDayHeader(line)) {
-
-      current = { label: line.replace(/:$/, ''), items: [] };
-
-      days.push(current);
-
-      return;
-
-    }
-
-    if (!current) {
-
-      current = { label: null, items: [] };
-
-      days.push(current);
-
-    }
-
-    const match = line.match(TIME_PREFIX_RE);
-
-    if (match) {
-
-      const time = match[1].replace(/\s*[–-]\s*/g, ' – ').trim();
-
-      current.items.push({ time, activity: match[2].trim() });
-
-    } else {
-
-      current.items.push({ time: null, activity: line });
-
-    }
-
-  });
-
-
-
-  return (
-
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-      {days.map((day, di) => (
-
-        <div key={di}>
-
-          {day.label && (
-
-            <span style={{
-
-              display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
-
-              borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
-
-              letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
-
-            }}>{day.label}</span>
-
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-
-            {day.items.map((item, ii) => (
-
-              <div key={ii} style={{
-
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-
-                background: 'rgba(180,81,30,0.06)', borderRadius: 12, padding: '9px 12px',
-
-                maxWidth: '100%',
-
-              }}>
-
-                {item.time && (
-
-                  <span style={{
-
-                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#A8481A',
-
-                    background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)',
-
-                    borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
-
-                  }}>{item.time}</span>
-
-                )}
-
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      ))}
-
-    </div>
-
-  );
-
-};
 
 
 
@@ -1819,7 +1680,10 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
 
 
-const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack, busy }) => (
+const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack, busy }) => {
+    // Joiners tick the non-refundable agreement before they can pay.
+    const [agreed, setAgreed] = useState(false);
+    return (
 
     <div style={overlayBackdrop}>
 
@@ -1858,6 +1722,10 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                 <p style={{ fontSize: 11, fontWeight: 800, color: '#8C2F1C', margin: '8px 0 0' }}>
                     Payments are non-refundable. You can cancel up to 14 days before the tour, but the amount paid won't be returned.
                 </p>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', marginTop: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.18)', borderRadius: 14, padding: '10px 12px' }}>
+                    <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
+                    <span>I agree that my payment is <strong>non-refundable</strong>, and that cancellations need the agency's approval and close 14 days before the tour.</span>
+                </label>
 
             </div>
 
@@ -1868,9 +1736,10 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                 <button
 
                     onClick={() => onChoose('full')}
-                    disabled={busy}
+                    title={agreed ? undefined : 'Tick the agreement above first'}
+                    disabled={busy || !agreed}
 
-                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s' }}
+                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
 
                     onMouseEnter={e => e.currentTarget.style.background = '#2D1B0E'}
 
@@ -1897,9 +1766,10 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                 <button
 
                     onClick={() => onChoose('down')}
-                    disabled={busy}
+                    title={agreed ? undefined : 'Tick the agreement above first'}
+                    disabled={busy || !agreed}
 
-                    style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(180,81,30,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                    style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(180,81,30,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', transition: 'border-color 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
 
                     onMouseEnter={e => e.currentTarget.style.borderColor = '#B4511E'}
 
@@ -1933,6 +1803,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
     </div>
 
 );
+};
 
 
 

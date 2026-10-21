@@ -15,6 +15,7 @@ import { phoneFieldProps } from './ui/phoneField';
 import { SkeletonRows } from './ui/Skeleton';
 import TermsModal from './ui/TermsModal';
 import DateRangePicker from './ui/DateRangePicker';
+import ItineraryTimeline from './ui/ItineraryTimeline';
 import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 
 // The most a joiner can enter as their exclusive tour budget.
@@ -270,14 +271,17 @@ const insertRequest = async (row, form) => {
     .insert([{ ...row, notes: [datesNote, row.notes].filter(Boolean).join('\n\n') }]).select();
 };
 
-const ExclusiveTourForm = () => {
+// A start date picked on the calendar, if it's far enough ahead to book.
+const usableStart = (date) => (date && date >= earliestTripDate() ? date : '');
+
+const ExclusiveTourForm = ({ startDate }) => {
   const [showTerms, setShowTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const prefill = usePrefilledContact();
   const [form, setForm] = useState({
     fullName: '', contact: '', email: '',
-    destination: '', groupSize: '', preferredDate: '', preferredEndDate: '',
+    destination: '', groupSize: '', preferredDate: usableStart(startDate), preferredEndDate: '',
     accommodation: '', budget: '', notes: '', agreeTerms: false,
   });
 
@@ -483,13 +487,13 @@ const ExclusiveTourForm = () => {
 };
  
 // ─── REQUEST TOUR FORM ──────────────────────────────────────────────────────────
-const RequestTourForm = () => {
+const RequestTourForm = ({ startDate }) => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const prefill = usePrefilledContact();
   const [form, setForm] = useState({
     fullName: '', contact: '', email: '',
-    destination: '', region: '', groupSize: '', preferredDate: '', preferredEndDate: '',
+    destination: '', region: '', groupSize: '', preferredDate: usableStart(startDate), preferredEndDate: '',
     tourType: '', notes: '',
   });
 
@@ -842,9 +846,19 @@ const RequestHistoryCard = ({ request }) => {
                 )}
               </div>
 
-              {pkg.itinerary && (
+              {pkg.itinerary && (/^day\b/im.test(pkg.itinerary) ? (
+                // Written by day: the same open/close days as the tour pages.
+                <div>
+                  <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 6px' }}>
+                    <Calendar size={11} /> Itinerary
+                  </p>
+                  <div style={{ background: '#FDF6EE', borderRadius: 14, padding: 10 }}>
+                    <ItineraryTimeline text={pkg.itinerary} />
+                  </div>
+                </div>
+              ) : (
                 <PackageDetail label="Itinerary" icon={<Calendar size={11} />}>{pkg.itinerary}</PackageDetail>
-              )}
+              ))}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14 }}>
                 {pkg.inclusions && (
@@ -1016,8 +1030,9 @@ const MyRequestsSection = () => {
 };
 
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────────────
-const ExclusiveTour = () => {
-  const [activeTab, setActiveTab] = useState('exclusive');
+// `start` comes from the joiner calendar: { form: 'exclusive' | 'request', date: 'YYYY-MM-DD' }.
+const ExclusiveTour = ({ start }) => {
+  const [activeTab, setActiveTab] = useState(start?.form === 'request' ? 'request' : 'exclusive');
  
   const tabs = [
     {
@@ -1088,7 +1103,7 @@ const ExclusiveTour = () => {
         border: '1px solid rgba(180,81,30,0.12)', borderTop: '8px solid #B4511E',
         boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
       }}>
-        {activeTab === 'exclusive' ? <ExclusiveTourForm /> : <RequestTourForm />}
+        {activeTab === 'exclusive' ? <ExclusiveTourForm startDate={start?.date} /> : <RequestTourForm startDate={start?.date} />}
       </div>
 
       {/* Your Submitted Requests — status + admin updates + tour package details */}

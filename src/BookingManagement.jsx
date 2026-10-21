@@ -30,6 +30,7 @@ const getDerivedStatus = (b) => (
   (b.payment_status === 'Pending' || b.payment_status === 'Verification Pending') ? b.payment_status :
   b.payment_status === 'Rejected' ? 'Rejected' :
   b.booking_status === 'Cancelled' ? 'Cancelled' :
+  b.cancellation_requested_at ? 'Cancellation Requested' : // the joiner asked to cancel; waiting on an admin
   b.payment_status
 );
  
@@ -252,6 +253,7 @@ const BookingManagement = () => {
             <option value="Verification Pending">Verification Pending</option>
             <option value="Complete">Complete</option>
             <option value="Rejected">Rejected</option>
+            <option value="Cancellation Requested">Cancellation Requested</option>
             <option value="Cancelled">Cancelled</option>
             <option value="Awaiting Payment">Awaiting Payment</option>
             <option value="Balance Due">Balance Due</option>
@@ -353,6 +355,7 @@ const BookingManagement = () => {
         <BookingDetailModal
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
+          onChanged={async () => { setSelectedBooking(null); await fetchBookings(); }}
           onStatusUpdate={async (id, status) => {
             const newBookingStatus = status === 'Confirmed' ? 'Completed' : 'Cancelled';
             const newPaymentStatus = status === 'Confirmed' ? 'Complete' : 'Rejected';
@@ -494,7 +497,7 @@ const BookingRow = ({ booking, onView }) => {
 /* ─────────────────────────────────────────────
    BOOKING DETAIL MODAL
 ───────────────────────────────────────────── */
-const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance }) => {
+const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSettleBalance }) => {
   // Receipts are private: view them through a short-lived signed link.
   const receiptSrc = useReceiptUrl(booking.receipt_url);
   const [confirming, setConfirming] = useState(false);
@@ -560,7 +563,28 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
   const isComplete = booking.payment_status === 'Complete';
   const isRejected = booking.payment_status === 'Rejected';
   const isCancelled = !isPending && booking.booking_status === 'Cancelled' && booking.payment_status !== 'Rejected';
-  const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : booking.payment_status);
+  const cancelRequested = !!booking.cancellation_requested_at && !isCancelled && !isRejected && booking.booking_status !== 'Rejected';
+  const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : cancelRequested ? 'Cancellation Requested' : booking.payment_status);
+  const [deciding, setDeciding] = useState(null); // 'approve' | 'decline'
+
+  // The joiner asked to cancel: approve (frees their slots) or decline (keeps the booking).
+  const decideCancellation = async (approve) => {
+    if (!(await confirmDialog(approve
+      ? { title: 'Approve this cancellation?', message: `${booking.booking_number} will be cancelled and its ${booking.slots_booked} slot${booking.slots_booked === 1 ? '' : 's'} released. Payments are non-refundable.`, confirmLabel: 'Approve Cancellation', cancelLabel: 'Go Back', tone: 'danger' }
+      : { title: 'Decline this cancellation?', message: 'The booking stays as it is, and the joiner is told their request was declined.', confirmLabel: 'Decline Request', cancelLabel: 'Go Back' }))) return;
+    setDeciding(approve ? 'approve' : 'decline');
+    const { error } = await supabase.from('bookings')
+      .update(approve ? { booking_status: 'Cancelled' } : { cancellation_requested_at: null })
+      .eq('id', booking.id);
+    setDeciding(null);
+    if (error) { toast.error("Couldn't update the booking", error.message); return; }
+    notifyUser(booking.user_id, approve
+      ? { title: 'Cancellation Approved', message: `Your cancellation for ${booking.tours?.title || 'your tour'} (${booking.booking_number}) has been approved, and your slot has been released.`, type: 'cancellation', related_id: booking.id }
+      : { title: 'Cancellation Declined', message: `Your request to cancel ${booking.tours?.title || 'your tour'} (${booking.booking_number}) was declined, so your booking stays active. Please message us if you have questions.`, type: 'cancellation', related_id: booking.id });
+    if (approve) sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
+    toast.success(approve ? 'Cancellation approved' : 'Request declined', approve ? 'The slots were released and the joiner was notified.' : 'The booking stays active and the joiner was notified.');
+    onChanged?.();
+  };
  
   const subtotal = booking.total_price || 0;
   const amountPaid = balanceSettled ? subtotal : (booking.amount_paid || subtotal);
@@ -825,13 +849,37 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
             />
           )}
  
+          {/* Cancellation request: approve or decline */}
+          {cancelRequested && (
+            <div style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <AlertCircle size={20} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />
+                <div>
+                  <p style={{ fontSize: 13.5, fontWeight: 900, color: '#8C2F1C', margin: 0 }}>Cancellation requested</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0', lineHeight: 1.6 }}>
+                    Asked {formatDateTime(booking.cancellation_requested_at)}. Reason: “{booking.cancellation_reason || '—'}”.
+                    {' '}The slots stay held until you decide. If no one decides within 12 hours, it's approved automatically.
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => decideCancellation(true)} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: '#8C2F1C', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {deciding === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve Cancellation
+                </button>
+                <button type="button" onClick={() => decideCancellation(false)} disabled={!!deciding} style={{ flex: '1 1 160px', padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(180,81,30,0.3)', background: '#FDF6EE', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {deciding === 'decline' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Decline
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Cancellation Notice */}
           {isCancelled && (
             <Notice
               color="#1A0A00" bg="rgba(26,10,0,0.05)"
               icon={<XCircle size={20} />}
-              title="Booking Cancelled by Joiner"
-              text="This booking was cancelled by the joiner. The slot has been released back to the tour."
+              title="Booking Cancelled"
+              text={booking.cancellation_reason ? `Cancelled at the joiner's request (“${booking.cancellation_reason}”). The slot has been released back to the tour.` : 'This booking was cancelled. The slot has been released back to the tour.'}
             />
           )}
  
@@ -1187,6 +1235,7 @@ const STATUS_STYLES = {
   Verified: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
   Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
+  'Cancellation Requested': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
   'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
   Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };

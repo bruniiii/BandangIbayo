@@ -1,14 +1,13 @@
 // supabase/functions/auth/index.ts
 //
-// Login with lockout and an emailed verification code, plus password changes.
+// Login with lockout, plus password changes.
 //
 //   - "login"   { identifier, password }   identifier = email or username
 //        3 wrong passwords in a row lock the account for 15 minutes. On the right
-//        password, a 6-digit code is emailed and a challenge id is returned; no
-//        session is handed out yet.
-//   - "verify"  { challengeId, code }      right code (within 10 minutes, 5 tries) →
-//        returns { access_token, refresh_token } for supabase.auth.setSession()
-//   - "resend"  { challengeId }            new code (max 3 resends, 60 s apart)
+//        password it returns { access_token, refresh_token } for
+//        supabase.auth.setSession() (no emailed code any more).
+//   - "verify" / "resend"   the old emailed-code step; kept so a browser that
+//        started a login before this deploy can still finish it
 //   - "change-password"  { currentPassword, newPassword }   logged-in user; checks the
 //        current password (wrong ones count toward the lock) and the password rules
 //   - "password-changed"   logged-in user (after a reset link): clears their lock
@@ -155,19 +154,21 @@ async function login(p: any) {
     await recordFailure(email, state);
   }
   await clearLock(email);
+  return await startSession(email);
+}
 
-  const challengeId = crypto.randomUUID();
-  const code = newCode();
-  await admin.from("login_challenges").delete().eq("user_id", user!.id);
-  await admin.from("login_challenges").insert({
-    id: challengeId,
-    user_id: user!.id,
-    email,
-    code_hash: await codeHash(challengeId, code),
-    expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
-  });
-  await sendCode(email, user!.id, code);
-  return { challengeId, sentTo: maskEmail(email), expiresInMinutes: CODE_MINUTES };
+// Signs the account in: a one-time sign-in link, used here and never sent.
+async function startSession(email: string) {
+  const { data: link, error: linkError } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+  if (linkError) throw new Error(linkError.message);
+  const tokenHash = link.properties?.hashed_token;
+  let session = null;
+  for (const type of ["magiclink", "email"] as const) {
+    const { data, error } = await freshClient().auth.verifyOtp({ token_hash: tokenHash, type });
+    if (!error && data.session) { session = data.session; break; }
+  }
+  if (!session) throw new Error("Could not start your session. Please log in again.");
+  return { access_token: session.access_token, refresh_token: session.refresh_token };
 }
 
 async function loadChallenge(challengeId: unknown) {
@@ -191,18 +192,7 @@ async function verify(p: any) {
     throw new HttpError(401, left > 0 ? `That code isn't right. ${left} tr${left === 1 ? "y" : "ies"} left.` : "Too many wrong codes. Please log in again.");
   }
   await admin.from("login_challenges").delete().eq("id", challenge.id);
-
-  // Code is right: create the session (a one-time sign-in link, used here and never sent).
-  const { data: link, error: linkError } = await admin.auth.admin.generateLink({ type: "magiclink", email: challenge.email });
-  if (linkError) throw new Error(linkError.message);
-  const tokenHash = link.properties?.hashed_token;
-  let session = null;
-  for (const type of ["magiclink", "email"] as const) {
-    const { data, error } = await freshClient().auth.verifyOtp({ token_hash: tokenHash, type });
-    if (!error && data.session) { session = data.session; break; }
-  }
-  if (!session) throw new Error("Could not start your session. Please log in again.");
-  return { access_token: session.access_token, refresh_token: session.refresh_token };
+  return await startSession(challenge.email);
 }
 
 async function resend(p: any) {

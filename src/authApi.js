@@ -4,8 +4,7 @@ import { errorDetail } from './Email';
 // ─────────────────────────────────────────────
 // LOGIN & PASSWORD HELPERS
 // Talk to the `auth` Edge Function (supabase/functions/auth/index.ts), which
-// counts wrong passwords (3 → 15-minute lock) and emails a 6-digit code
-// before handing out a session.
+// counts wrong passwords (3 → 15-minute lock) before handing out a session.
 // Each helper returns { ok, data } or { ok: false, error, ...details }.
 // ─────────────────────────────────────────────
 
@@ -27,8 +26,17 @@ const call = async (body) => {
   }
 };
 
-// Step 1: username/email + password → emails a code, returns { challengeId, sentTo, expiresInMinutes }
-export const loginStart = (identifier, password) => call({ action: 'login', identifier, password });
+// Username/email + password → signs the browser in: { ok, data: { user, session } }.
+// An auth function deployed before the code step was removed answers with
+// { challengeId, sentTo, expiresInMinutes } instead: data.challenge holds it.
+export const loginStart = async (identifier, password) => {
+  const result = await call({ action: 'login', identifier, password });
+  if (!result.ok) return result;
+  if (result.data?.challengeId) return { ok: true, data: { challenge: result.data } };
+  const { data, error } = await supabase.auth.setSession(result.data);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true, data };
+};
 
 // Step 2: the emailed code → signs the browser in.
 export const verifyLoginCode = async (challengeId, code) => {

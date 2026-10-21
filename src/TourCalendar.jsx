@@ -27,7 +27,8 @@ import { Skel, SkeletonRegion } from './ui/Skeleton';
 /* ─────────────────────────────────────────────
   TOUR CALENDAR
 ───────────────────────────────────────────── */
-const TourCalendar = ({ initialDate }) => {
+// onPlanTrip(form, date): a day without tours offers an exclusive tour or a tour request.
+const TourCalendar = ({ initialDate, onPlanTrip }) => {
   const [currentMonth, setCurrentMonth] = useState(() =>
     initialDate ? new Date(initialDate.year, initialDate.month, 1) : new Date()
   );
@@ -306,6 +307,23 @@ const TourCalendar = ({ initialDate }) => {
                   fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
                 }}>
                   No tours scheduled.
+                  {onPlanTrip && (
+                    <div style={{ fontStyle: 'normal', marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.9)' }}>Want to travel on this day?</p>
+                      <button type="button" onClick={() => onPlanTrip('exclusive', format(selectedDate, 'yyyy-MM-dd'))} style={{
+                        padding: '12px 16px', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE',
+                        fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                      }}>
+                        Exclusive Tour
+                      </button>
+                      <button type="button" onClick={() => onPlanTrip('request', format(selectedDate, 'yyyy-MM-dd'))} style={{
+                        padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(232,162,101,0.45)', background: 'transparent', color: '#E8A265',
+                        fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                      }}>
+                        Request a Tour
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

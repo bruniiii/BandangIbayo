@@ -7,6 +7,11 @@ import { formatDateRange } from './tourUtils';
 // This acknowledges a GCash payment; it is not a BIR-registered official receipt.
 // ─────────────────────────────────────────────
 
+// "October 21, 2026, 3:45 PM" in Philippine time.
+const dateTime = (d) => new Date(d).toLocaleString('en-PH', {
+  timeZone: 'Asia/Manila', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
+});
+
 const php = (n) => `PHP ${Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const receiptNumber = (booking) => `R-${booking.booking_number}`;
@@ -52,9 +57,9 @@ export const downloadReceipt = async (booking, tour) => {
 
   section('Receipt');
   line('Receipt number', receiptNumber(booking), { bold: true });
-  line('Date issued', new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }));
+  line('Date & time issued', dateTime(new Date()));
   line('Booking number', booking.booking_number);
-  line('Booked on', booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }) : '—');
+  line('Booked on', booking.created_at ? dateTime(booking.created_at) : '—');
 
   section('Received from');
   line('Name', booking.full_name);
@@ -79,6 +84,9 @@ export const downloadReceipt = async (booking, tour) => {
     line('Payment method', `GCash · ${booking.payment_method || '—'}`);
     if (booking.gcash_reference_no) line('GCash reference', booking.gcash_reference_no);
   }
+  const paidAt = booking.paid_online_at || booking.updated_at;
+  if (paidAt) line('Paid on', dateTime(paidAt));
+  if (booking.balance_settled_at) line('Balance paid on', dateTime(booking.balance_settled_at));
   line('Tour total', php(booking.total_price));
   line('Amount paid', php(booking.amount_paid ?? booking.total_price), { bold: true, size: 12 });
   const balance = balanceRemaining(booking);
