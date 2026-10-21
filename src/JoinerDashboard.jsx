@@ -25,6 +25,7 @@ import PageHeader from './ui/PageHeader';
 import { profileIsComplete } from './googleAuth';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import InstallAppCard from './ui/InstallAppCard';
+import { readTab, saveTab, forgetTab } from './rememberTab';
 import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -53,6 +54,8 @@ const NAV_ITEMS = [
 ];
 
 // Title and one-line description shown at the top of each page.
+const TAB_KEY = 'ibayo-joiner-tab';
+
 const PAGE_INFO = {
   'HomePage':         { icon: Home,         title: 'Homepage',         subtitle: 'Your trips, new tours and reviews at a glance' },
   'Feed':             { icon: Rss,          title: 'Community Feed',   subtitle: 'Updates, announcements & newly posted tours' },
@@ -82,7 +85,10 @@ const JoinerDashboard = () => {
   const [paymentNotice, setPaymentNotice] = useState(paymentReturn || exclusiveReturn ? { type: 'info', text: 'Checking your payment…' } : null);
   const [exclusiveKey, setExclusiveKey] = useState(0);
   const [myBookingsKey, setMyBookingsKey] = useState(0);
-  const [activeTab, setActiveTab] = useState(paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Exclusive Tours' : bookTourId ? 'Explore Tours' : 'HomePage');
+  const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Exclusive Tours' : bookTourId ? 'Explore Tours'
+    : readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'HomePage')));
+  // A refresh reopens the page you were on (see rememberTab.js).
+  useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -261,6 +267,7 @@ const JoinerDashboard = () => {
     });
     if (!ok) return;
     // Leave the dashboard first, so signing out lands on the landing page, not the login page.
+    forgetTab(TAB_KEY);
     navigate('/', { replace: true });
     await supabase.auth.signOut();
   };

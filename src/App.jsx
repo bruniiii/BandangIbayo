@@ -180,40 +180,30 @@ function LandingPage() {
               </radialGradient>
             </defs>
             <rect width="600" height="700" fill="#2D1B0E"/>
-            <circle className="hero-sun" cx="300" cy="200" r="160" fill="url(#sunGlow)"/>
-            <path className="hero-ridge hero-ridge-far" d="M0 700 L0 420 L80 340 L160 400 L260 290 L340 370 L420 280 L500 360 L600 300 L600 700Z" fill="#3D2410" opacity="0.9"/>
-            <path className="hero-ridge hero-ridge-mid" d="M0 700 L0 480 L100 390 L200 450 L320 350 L400 420 L480 360 L600 410 L600 700Z" fill="#4A2C12" opacity="0.85"/>
+            <circle cx="300" cy="200" r="160" fill="url(#sunGlow)"/>
+            <path d="M0 700 L0 420 L80 340 L160 400 L260 290 L340 370 L420 280 L500 360 L600 300 L600 700Z" fill="#3D2410" opacity="0.9"/>
+            <path d="M0 700 L0 480 L100 390 L200 450 L320 350 L400 420 L480 360 L600 410 L600 700Z" fill="#4A2C12" opacity="0.85"/>
             <path d="M0 700 L0 540 L150 460 L280 510 L380 440 L500 490 L600 450 L600 700Z" fill="#5A3418" opacity="0.8"/>
             <path d="M0 700 L0 600 L200 540 L350 580 L500 530 L600 560 L600 700Z" fill="#6B3D1C" opacity="0.75"/>
-            <rect x="0" y="195" width="600" height="30" fill="#B4511E" opacity="0.08"/>
           </svg>
  
           <div style={{
             position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2,
           }}>
-            {/* Animated (see .hero-logo-* in index.css): rises in, then floats; a ring of light turns around it. */}
-            <div className="hero-logo-wrap" style={{ position: 'relative' }}>
-            <div className="hero-logo-ring" aria-hidden="true" />
-            <div className="hero-logo-disc" style={{
+            <div style={{
               width: 420, height: 420, borderRadius: '50%',
               background: 'rgba(26,10,0,0.55)', backdropFilter: 'blur(10px)',
               border: '1.5px solid rgba(232,162,101,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 80px rgba(180,81,30,0.2)',
             }}>
-              <img className="hero-logo-img" src="/sampLOGO.png" alt="Bandang IBAYO" style={{ width: 340, height: 340, objectFit: 'contain' }}/>
-            </div>
+              <img src="/sampLOGO.png" alt="Bandang IBAYO" style={{ width: 340, height: 340, objectFit: 'contain' }}/>
             </div>
           </div>
  
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 120, background: 'linear-gradient(to bottom,transparent,#1A0A00)', zIndex: 3 }}/>
         </div>
  
-        <div style={{ position: 'absolute', bottom: -2, left: 0, right: 0, zIndex: 10 }}>
-          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{ width: '100%', height: 80, display: 'block' }}>
-            <polygon points="0,80 1440,0 1440,80" fill="#F2E4D0"/>
-          </svg>
-        </div>
       </section>
  
       {/* ── Responsive & interaction polish ── */}

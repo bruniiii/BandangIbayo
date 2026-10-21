@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import { formatPeso } from './tourUtils';
-import { checkFields, flagField, fullNameError, phoneError, emailError, textError, todayPH, addDaysPH, normalizePhone, formatPhPhone } from './validation';
+import { checkFields, flagField, fullNameError, phoneError, emailError, textError, addDaysPH, normalizePhone, formatPhPhone } from './validation';
 import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
@@ -14,6 +14,8 @@ import { startExclusiveDownpayment, startExclusiveBalance } from './payments';
 import { phoneFieldProps } from './ui/phoneField';
 import { SkeletonRows } from './ui/Skeleton';
 import TermsModal from './ui/TermsModal';
+import DateRangePicker from './ui/DateRangePicker';
+import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 
 // The most a joiner can enter as their exclusive tour budget.
 const MAX_EXCLUSIVE_BUDGET = 100000;
@@ -60,6 +62,10 @@ const labelStyle = {
   display: 'block',
 };
 
+// Requests need time to plan: the earliest trip date is 3 weeks from today.
+const LEAD_DAYS = 21;
+const earliestTripDate = () => addDaysPH(LEAD_DAYS);
+
 // Typing mistakes shared by both request forms: wrong phone format, past
 // dates, the same date twice, an impossible group size.
 const checkRequestFields = (formEl, form) => {
@@ -70,9 +76,8 @@ const checkRequestFields = (formEl, form) => {
     ['email', emailError(form.email)],
     ['destination', textError(form.destination, 'Destination', { min: 2, max: 150 })],
     ['groupSize', !Number.isInteger(size) || size < 1 ? 'Group size must be a whole number, at least 1.' : size > 100 ? 'For groups over 100, please contact us directly.' : ''],
-    ['preferredDate', !form.preferredDate ? 'Please choose a preferred date.' : form.preferredDate <= todayPH() ? 'The preferred date must be in the future.' : ''],
-    ['alternateDate', form.alternateDate && form.alternateDate <= todayPH() ? 'The alternate date must be in the future.' : ''],
-    ['alternateDate', form.alternateDate && form.alternateDate === form.preferredDate ? 'The alternate date is the same as the preferred date. Pick a different day, or leave it blank.' : ''],
+    ['preferredDate', !form.preferredDate ? 'Please choose your trip dates.' : form.preferredDate < earliestTripDate() ? 'Trips can be booked from 3 weeks ahead. Please pick a later date.' : ''],
+    ['preferredDate', form.preferredDate && !form.preferredEndDate ? 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).' : ''],
     ['notes', textError(form.notes, 'Notes', { required: false, max: 2000 })],
   ]);
 };
@@ -222,6 +227,49 @@ const SuccessScreen = ({ type, onReset }) => (
 );
  
 // ─── EXCLUSIVE TOUR FORM ────────────────────────────────────────────────────────
+// Preferred dates on a calendar (first day, then last day) and the number
+// of days worked out from them. Used by both request forms.
+const TripDatesFields = ({ form, setForm }) => (
+  <>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <label style={labelStyle}>Preferred Dates <span style={{ color: '#A8481A' }}>*</span></label>
+      <DateRangePicker
+        name="preferredDate"
+        start={form.preferredDate}
+        end={form.preferredEndDate}
+        min={earliestTripDate()}
+        onChange={({ start, end }) => setForm((prev) => ({ ...prev, preferredDate: start, preferredEndDate: end }))}
+        style={inputStyle}
+      />
+      <span style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', marginTop: 6 }}>Trips can be booked from 3 weeks ahead.</span>
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <label style={labelStyle}>Number of Days</label>
+      <input
+        readOnly
+        tabIndex={-1}
+        aria-label="Number of days (filled in from your dates)"
+        value={daysLabel(tripDays(form.preferredDate, form.preferredEndDate))}
+        placeholder="Filled in from your dates"
+        style={{ ...inputStyle, cursor: 'default', fontWeight: form.preferredEndDate ? 800 : inputStyle.fontWeight }}
+      />
+    </div>
+  </>
+);
+
+// Saves a request with its trip dates. On a database without the trip-dates
+// columns yet (20261025000000_exclusive_trip_dates.sql) it still goes
+// through, with the dates written into the notes.
+const insertRequest = async (row, form) => {
+  const days = tripDays(form.preferredDate, form.preferredEndDate);
+  const full = { ...row, preferred_end_date: form.preferredEndDate || null, trip_days: days || null };
+  const first = await supabase.from('exclusive_requests').insert([full]).select();
+  if (!first.error || !/preferred_end_date|trip_days/.test(first.error.message || '')) return first;
+  const datesNote = `Trip dates: ${formatYmdRange(form.preferredDate, form.preferredEndDate)} (${daysLabel(days)})`;
+  return supabase.from('exclusive_requests')
+    .insert([{ ...row, notes: [datesNote, row.notes].filter(Boolean).join('\n\n') }]).select();
+};
+
 const ExclusiveTourForm = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -229,7 +277,7 @@ const ExclusiveTourForm = () => {
   const prefill = usePrefilledContact();
   const [form, setForm] = useState({
     fullName: '', contact: '', email: '',
-    destination: '', groupSize: '', preferredDate: '', alternateDate: '',
+    destination: '', groupSize: '', preferredDate: '', preferredEndDate: '',
     accommodation: '', budget: '', notes: '', agreeTerms: false,
   });
 
@@ -260,7 +308,7 @@ const ExclusiveTourForm = () => {
       return;
     }
 
-    const { data: inserted, error } = await supabase.from('exclusive_requests').insert([{
+    const { data: inserted, error } = await insertRequest({
       user_id: user.id,
       request_type: 'exclusive',
       full_name: form.fullName,
@@ -269,11 +317,10 @@ const ExclusiveTourForm = () => {
       destination: form.destination,
       group_size: parseInt(form.groupSize) || null,
       preferred_date: form.preferredDate || null,
-      alternate_date: form.alternateDate || null,
       accommodation: form.accommodation,
       budget: parseFloat(form.budget) || null,
       notes: form.notes,
-    }]).select();
+    }, form);
 
     if (error) {
       toast.error("Couldn't submit your request", error.message);
@@ -335,8 +382,7 @@ const ExclusiveTourForm = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label="Destination" placeholder="e.g. Mt. Pulag, Sagada, Batanes" value={form.destination} onChange={set('destination')} required />
           <InputField name="groupSize" label="Number of Participants" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 10" value={form.groupSize} onChange={set('groupSize')} required />
-          <InputField name="preferredDate" label="Preferred Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
-          <InputField name="alternateDate" label="Alternate Date (optional)" type="date" min={addDaysPH(1)} value={form.alternateDate} onChange={set('alternateDate')} />
+          <TripDatesFields form={form} setForm={setForm} />
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <SelectField
@@ -443,7 +489,7 @@ const RequestTourForm = () => {
   const prefill = usePrefilledContact();
   const [form, setForm] = useState({
     fullName: '', contact: '', email: '',
-    destination: '', region: '', groupSize: '', preferredDate: '',
+    destination: '', region: '', groupSize: '', preferredDate: '', preferredEndDate: '',
     tourType: '', notes: '',
   });
 
@@ -470,7 +516,7 @@ const RequestTourForm = () => {
       return;
     }
 
-    const { data: inserted, error } = await supabase.from('exclusive_requests').insert([{
+    const { data: inserted, error } = await insertRequest({
       user_id: user.id,
       request_type: 'request',
       full_name: form.fullName,
@@ -482,7 +528,7 @@ const RequestTourForm = () => {
       preferred_date: form.preferredDate || null,
       tour_type: form.tourType || null, // no longer asked on the form
       notes: form.notes,
-    }]).select();
+    }, form);
 
     if (error) {
       toast.error("Couldn't submit your request", error.message);
@@ -545,7 +591,7 @@ const RequestTourForm = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label="Requested Destination" placeholder="e.g. Sagada, Mountain Province" value={form.destination} onChange={set('destination')} required />          
           <InputField name="groupSize" label="Estimated Group Size" type="number" min="1" step="1" onKeyDown={blockSignKeys} placeholder="e.g. 4" value={form.groupSize} onChange={set('groupSize')} required />
-          <InputField name="preferredDate" label="Preferred Tour Date" type="date" min={addDaysPH(1)} value={form.preferredDate} onChange={set('preferredDate')} required />
+          <TripDatesFields form={form} setForm={setForm} />
         </div>
         
         <TextAreaField name="notes"
