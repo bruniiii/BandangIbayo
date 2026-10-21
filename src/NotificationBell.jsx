@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry } from './notifications';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
 import { Bell, CheckCheck, Compass, Loader2, X, ArrowRight, Clock } from 'lucide-react';
@@ -25,7 +26,7 @@ const fullDateTime = (dateStr) =>
    give joiners a live inbox for admin decisions —
    e.g. their Exclusive Tour / Request-a-Tour status.
 ───────────────────────────────────────────── */
-const NotificationBell = ({ onNotificationClick }) => {
+const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) => {
   const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,10 +40,10 @@ const NotificationBell = ({ onNotificationClick }) => {
       .select('*')
       .eq('user_id', uid)
       .order('created_at', { ascending: false })
-      .limit(30);
-    if (!error) setNotifications(data || []);
+      .limit(150); // the same rows as the Notification page, so the unread count matches
+    if (!error) setNotifications(clearPaymentNotices ? clearOldPaymentNotices(data || []) : (data || []));
     setLoading(false);
-  }, []);
+  }, [clearPaymentNotices]);
 
   useEffect(() => {
     (async () => {
@@ -65,6 +66,21 @@ const NotificationBell = ({ onNotificationClick }) => {
     return () => { supabase.removeChannel(channel); };
   }, [userId, fetchNotifications]);
 
+  // The other notification view changed something: load again.
+  useEffect(() => {
+    if (!userId) return undefined;
+    return onNotificationsChanged(() => fetchNotifications(userId));
+  }, [userId, fetchNotifications]);
+
+  // Payment notices disappear 3 minutes after they arrive (joiners only).
+  useEffect(() => {
+    if (!clearPaymentNotices || !userId) return undefined;
+    const wait = nextPaymentNoticeExpiry(notifications);
+    if (wait == null) return undefined;
+    const timer = setTimeout(() => fetchNotifications(userId), wait);
+    return () => clearTimeout(timer);
+  }, [clearPaymentNotices, userId, notifications, fetchNotifications]);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
@@ -78,6 +94,7 @@ const NotificationBell = ({ onNotificationClick }) => {
   const markAsRead = async (id) => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, is_read: true } : n)));
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    notificationsChanged();
   };
 
   const markAllRead = async () => {
@@ -85,6 +102,7 @@ const NotificationBell = ({ onNotificationClick }) => {
     if (!unreadIds.length) return;
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     await supabase.from('notifications').update({ is_read: true }).in('id', unreadIds);
+    notificationsChanged();
   };
 
   return (
@@ -155,7 +173,7 @@ const NotificationBell = ({ onNotificationClick }) => {
                 <EmptyState compact icon={BellRing} title="You're all caught up" message="New updates about your bookings will appear here." />
               </div>
             ) : (
-              notifications.map(n => (
+              notifications.slice(0, 30).map(n => (
                 <div
                   key={n.id}
                   onClick={() => {

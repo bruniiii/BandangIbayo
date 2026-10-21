@@ -161,6 +161,16 @@ export const PublicTourList = () => {
     <div style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(2rem,5vw,4rem) clamp(1rem,5vw,4rem)' }}>
+        {/* Back to the top of the landing page */}
+        <Link
+          className="text-link"
+          to="/"
+          onClick={() => setTimeout(() => window.scrollTo({ top: 0 }), 0)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#7A3A18', textDecoration: 'none', marginBottom: 18 }}
+        >
+          <ArrowLeft size={15} /> Back
+        </Link>
+        <div />
         <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Open for booking</span>
         <h1 style={{ fontWeight: 900, fontSize: 'clamp(2rem,4vw,3rem)', letterSpacing: '-0.03em', margin: '8px 0 6px' }}>Upcoming Tours</h1>
         <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 28px' }}>

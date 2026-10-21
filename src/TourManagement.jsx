@@ -17,6 +17,7 @@ import {
   CreditCard, CheckCircle, XCircle, AlertTriangle, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { SkeletonTourCards } from './ui/Skeleton';
+import ItineraryTimeline from './ui/ItineraryTimeline';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -1320,76 +1321,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 };
  
  
-/* Renders itinerary text ("Day 1:" headers + "TIME – Activity" or
-   "START – END – Activity" lines) as grouped timeline cards, matching
-   the styled look of ChecklistGrid. */
-const ItineraryTimeline = ({ text }) => {
-  const rawLines = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
 
-  if (rawLines.length === 0) {
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
-  }
-
-  // Matches a leading time or time-range (e.g. "04:00 AM" or "08:15 AM – 11:00 AM"),
-  // followed by a separator (":" or "-"/"–"), with everything after it as the activity.
-  const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
-  const isDayHeader = (line) => /^day\b/i.test(line);
-
-  const days = [];
-  let current = null;
-  rawLines.forEach(line => {
-    if (isDayHeader(line)) {
-      current = { label: line.replace(/:$/, ''), items: [] };
-      days.push(current);
-      return;
-    }
-    if (!current) {
-      current = { label: null, items: [] };
-      days.push(current);
-    }
-    const match = line.match(TIME_PREFIX_RE);
-    if (match) {
-      const time = match[1].replace(/\s*[–-]\s*/g, ' – ').trim();
-      current.items.push({ time, activity: match[2].trim() });
-    } else {
-      current.items.push({ time: null, activity: line });
-    }
-  });
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {days.map((day, di) => (
-        <div key={di}>
-          {day.label && (
-            <span style={{
-              display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
-              borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
-              letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
-            }}>{day.label}</span>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-            {day.items.map((item, ii) => (
-              <div key={ii} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-                background: 'rgba(180,81,30,0.06)', borderRadius: 12, padding: '9px 12px',
-                maxWidth: '100%',
-              }}>
-                {item.time && (
-                  <span style={{
-                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#A8481A',
-                    background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)',
-                    borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
-                  }}>{item.time}</span>
-                )}
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 
 const ModalInput = ({ label, name, defaultValue, ...props }) => (

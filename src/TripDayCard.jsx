@@ -4,6 +4,7 @@ import { formatDateRange, formatPeso, todayManila } from './tourUtils';
 import CheckInQr from './ui/CheckInQr';
 import { Skel } from './ui/Skeleton';
 import { daysBetween } from './tripDay';
+import PackingChecklist from './ui/PackingChecklist';
 import { MapPin, Clock, Bus, Phone, Backpack, Wallet, ExternalLink, AlertCircle } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -123,11 +124,7 @@ const TripDayCard = ({ booking }) => {
 
           {items.length > 0 && (
             <Section icon={<Backpack size={13} />} title="Things to bring">
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {items.map((item, i) => (
-                  <span key={i} style={{ background: 'rgba(180,81,30,0.08)', borderRadius: 999, padding: '5px 11px', fontSize: 12, fontWeight: 700, color: '#1A0A00' }}>{item}</span>
-                ))}
-              </div>
+              <PackingChecklist bookingId={booking.id} text={tour.things_to_bring} />
             </Section>
           )}
 

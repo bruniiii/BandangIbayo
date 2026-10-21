@@ -5,17 +5,18 @@ import { Compass, Mountain, CalendarX2, QrCode } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, withAvailableSlots, todayManila, formatPeso } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
 import CheckInQr from './ui/CheckInQr';
+import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
 import { tripDayBookings } from './tripDay';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
-  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard
+  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard, Clock, Backpack
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
 
@@ -350,30 +351,52 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
   const [cancelling, setCancelling] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [reasonError, setReasonError] = useState(false);
+  const [agreedNoRefund, setAgreedNoRefund] = useState(false);
+  const [agreeError, setAgreeError] = useState(false);
 
+  // Sends a cancellation request: the slots stay held until the agency approves
+  // it (within 12 hours, or it's approved automatically).
   const handleCancelBooking = async () => {
     // At least a few words, so the agency knows why (e.g. not just "x").
     if (cancelReason.trim().length < 5) {
       setReasonError(true);
       return;
     }
+    if (!agreedNoRefund) {
+      setAgreeError(true);
+      return;
+    }
 
     setCancelling(true);
-
-    const { error } = await supabase
+    const reason = cancelReason.trim();
+    let { error } = await supabase
       .from('bookings')
-      .update({
-        booking_status: 'Cancelled',
-        cancellation_reason: cancelReason.trim()
-      })
+      .update({ cancellation_reason: reason, cancellation_requested_at: new Date().toISOString() })
       .eq('id', booking.id);
+    let requested = true;
+    // Database without 20261026000000_cancellation_requests.sql yet: cancel right away, as before.
+    if (error && /cancellation_requested_at/.test(error.message || '')) {
+      requested = false;
+      ({ error } = await supabase.from('bookings')
+        .update({ booking_status: 'Cancelled', cancellation_reason: reason })
+        .eq('id', booking.id));
+    }
 
     if (error) {
       toast.error("Couldn't cancel your booking", error.message);
+    } else if (requested) {
+      notifyAdmins({
+        title: 'Cancellation Request',
+        message: `A joiner asked to cancel ${tour.title || 'a tour'} (${booking.booking_number}). Reason: ${reason}. Approve or decline it in Booking Management within ${CANCELLATION_APPROVAL_HOURS} hours, or it's approved automatically.`,
+        type: 'cancellation',
+        related_id: booking.id,
+      });
+      toast.success('Cancellation requested', `We'll review it within ${CANCELLATION_APPROVAL_HOURS} hours. Your slot stays reserved until then.`);
+      onCancelSuccess();
     } else {
       notifyAdmins({
         title: 'Booking Cancellation',
-        message: `A joiner cancelled their booking for ${tour.title || 'a tour'} (${booking.booking_number}). Reason: ${cancelReason.trim()}`,
+        message: `A joiner cancelled their booking for ${tour.title || 'a tour'} (${booking.booking_number}). Reason: ${reason}`,
         type: 'cancellation',
         related_id: booking.id,
       });
@@ -401,10 +424,13 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
   const isAwaitingPayment = booking.payment_status === 'Awaiting Payment' &&
                             booking.booking_status !== 'Cancelled' &&
                             booking.booking_status !== 'Rejected';
+  const cancelRequested = !!booking.cancellation_requested_at &&
+                          booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected';
   const isOpenBooking = booking.booking_status !== 'Cancelled' &&
                         booking.booking_status !== 'Rejected' &&
                         !booking.isActuallyCompleted &&
-                        !isAwaitingPayment;
+                        !isAwaitingPayment &&
+                        !cancelRequested;
   // Terms, section 2: no cancellations within two weeks of the tour date.
   const cancellationClosed = isOpenBooking && isWithinCancellationWindow(tour.start_date);
   const canCancel = isOpenBooking && !cancellationClosed;
@@ -500,6 +526,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   </ViewSection>
                 )}
 
+                {isPaymentConfirmed && !booking.isActuallyCompleted && tour.things_to_bring?.trim() && (
+                  <ViewSection title="Things to Bring" icon={<Backpack size={14} style={{ color: '#A8481A' }} />}>
+                    <PackingChecklist bookingId={booking.id} text={tour.things_to_bring} />
+                  </ViewSection>
+                )}
+
                 {booking.companions?.length > 0 && (
                   <ViewSection title="Joining You" icon={<Users size={14} style={{ color: '#A8481A' }} />}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -532,6 +564,19 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   </div>
                 )}
 
+                {cancelRequested && (
+                  <div style={{
+                    background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)',
+                    borderRadius: 18, padding: '1.25rem', display: 'flex', gap: 12,
+                  }}>
+                    <Clock size={18} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
+                    <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
+                      <strong style={{ color: '#1A0A00' }}>Cancellation requested</strong> on {new Date(booking.cancellation_requested_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.
+                      {' '}Bandang IBAYO will review it within {CANCELLATION_APPROVAL_HOURS} hours; your slot stays reserved until then. You'll get a notification once it's approved.
+                    </p>
+                  </div>
+                )}
+
                 {cancellationClosed && (
                   <div style={{
                     background: 'rgba(140,47,28,0.08)', border: '1px solid rgba(140,47,28,0.2)',
@@ -558,7 +603,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </div>
                       <div>
                         <h4 style={{ fontSize: 13, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
-                        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>This can't be undone, and the amount you paid won't be refunded.</p>
+                        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>The agency approves cancellations within {CANCELLATION_APPROVAL_HOURS} hours. The amount you paid won't be refunded.</p>
                       </div>
                     </div>
 
@@ -589,9 +634,27 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       )}
                     </div>
 
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55 }}>
+                      <input
+                        type="checkbox"
+                        checked={agreedNoRefund}
+                        onChange={(e) => { setAgreedNoRefund(e.target.checked); setAgreeError(false); }}
+                        style={{ width: 18, height: 18, marginTop: 1, accentColor: '#8C2F1C', flexShrink: 0 }}
+                      />
+                      <span>
+                        I understand that all payments are <strong>non-refundable</strong>, and that my cancellation is final once
+                        Bandang IBAYO approves it (within {CANCELLATION_APPROVAL_HOURS} hours).
+                      </span>
+                    </label>
+                    {agreeError && (
+                      <p style={{ fontSize: 11.5, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '-8px 0 0' }}>
+                        ⚠ Please tick the box to confirm you understand.
+                      </p>
+                    )}
+
                     <div style={{ display: 'flex', gap: 12 }}>
                       <button
-                        onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setReasonError(false); }}
+                        onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setReasonError(false); setAgreedNoRefund(false); setAgreeError(false); }}
                         style={{
                           flex: 1, padding: '12px 0', background: '#F2E4D0', color: '#7A3A18',
                           border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, cursor: 'pointer',
@@ -618,7 +681,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       >
                         {cancelling
                           ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                          : <><Trash2 size={13} /> Cancel My Booking</>
+                          : <><Trash2 size={13} /> Request Cancellation</>
                         }
                       </button>
                     </div>
@@ -867,6 +930,8 @@ const StatusBadge = ({ booking }) => {
     bg = 'rgba(180,81,30,0.15)'; color = '#A8481A'; label = 'Completed';
   } else if (booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected') {
     bg = 'rgba(140,47,28,0.1)'; color = '#8C2F1C'; label = 'Cancelled';
+  } else if (booking.cancellation_requested_at) {
+    bg = 'rgba(140,47,28,0.08)'; color = '#8C2F1C'; label = 'Cancellation Requested';
   } else if (booking.payment_status === 'Awaiting Payment') {
     bg = 'rgba(232,162,101,0.25)'; color = '#A8481A'; label = 'Awaiting Payment';
   } else if (booking.payment_status === 'Complete' || booking.payment_status === 'Verified') {

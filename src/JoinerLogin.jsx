@@ -7,6 +7,9 @@ import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
 import OtpInput from './ui/OtpInput';
 import PasswordField from './ui/PasswordField';
 import GoogleButton, { OrDivider } from './ui/GoogleButton';
+
+// "Continue with Google" is turned off for now; set to true to show it again.
+const SHOW_GOOGLE_LOGIN = false;
  import logoIcon from './assets/newIcon.png';
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -59,10 +62,10 @@ const JoinerLogin = () => {
     const identifier = formData.get('identifier').trim();
     const password = formData.get('password');
 
-    // The server counts wrong passwords (3 → locked for 15 minutes) and emails a code.
+    // The server counts wrong passwords (3 → locked for 15 minutes) and signs you in.
     const result = await loginStart(identifier, password);
-    setLoading(false);
     if (!result.ok) {
+      setLoading(false);
       if (result.field === 'identifier') {
         // No account has that username or Gmail.
         setCredError({ field: 'identifier', text: 'Invalid username or Gmail.', hint: 'No account uses that. Check the spelling, or register.' });
@@ -78,9 +81,41 @@ const JoinerLogin = () => {
       }
       return;
     }
-    setChallenge(result.data);
-    setCode('');
-    setCodeError(null);
+    // Only an auth function deployed before the code step was removed asks for a code.
+    if (result.data.challenge) {
+      setLoading(false);
+      setChallenge(result.data.challenge);
+      setCode('');
+      setCodeError(null);
+      return;
+    }
+    await finishLogin(result.data.user);
+  };
+
+  // Signed in: check the role and go to the right dashboard.
+  const finishLogin = async (user) => {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+      // No profile row at all — treat as invalid account rather than guessing.
+      await supabase.auth.signOut();
+      setLoading(false);
+      setChallenge(null);
+      showError('No profile found for this account.');
+      return;
+    }
+
+    const role = profile.role === 'admin' ? 'admin' : 'joiner';
+    setSuccessRole(role);
+    setIsSuccess(true);
+
+    setTimeout(() => {
+      navigate(role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard');
+    }, 1500);
   };
 
   const handleVerify = async (e) => {
@@ -102,30 +137,7 @@ const JoinerLogin = () => {
       showError(result.error);
       return;
     }
-
-    // Look up role to decide where to send them
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', result.data.user.id)
-      .single();
-
-    if (profileError || !profile) {
-      // No profile row at all — treat as invalid account rather than guessing.
-      await supabase.auth.signOut();
-      setLoading(false);
-      setChallenge(null);
-      showError('No profile found for this account.');
-      return;
-    }
-
-    const role = profile.role === 'admin' ? 'admin' : 'joiner';
-    setSuccessRole(role);
-    setIsSuccess(true);
-
-    setTimeout(() => {
-      navigate(role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard');
-    }, 1500);
+    await finishLogin(result.data.user);
   };
 
   const handleResend = async () => {
@@ -313,8 +325,8 @@ const JoinerLogin = () => {
           </p>
         )}
 
-        {/* Google: one tap, no password or emailed code */}
-        {!challenge && (
+        {/* Google: one tap, no password (hidden for now, see SHOW_GOOGLE_LOGIN) */}
+        {SHOW_GOOGLE_LOGIN && !challenge && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 18 }}>
             <GoogleButton nextPath={nextPath} />
             <OrDivider />
