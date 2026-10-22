@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 // Frequently asked questions on the landing page (added by Katrina on the
-// oliva branch; styled to match the other landing sections). One answer is
+// oliva branch; on the same cream as the sections around it). One answer is
 // open at a time.
 
 const faqData = [
@@ -28,7 +28,7 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(null);
 
   return (
-    <section style={{ background: '#F2E4D0', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
+    <section style={{ background: '#FDF6EE', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
       <div style={{ maxWidth: 820, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>FAQ</span>
@@ -45,8 +45,8 @@ export default function FAQ() {
             const open = openIndex === index;
             return (
               <div key={faq.question} style={{
-                background: '#FDF6EE', borderRadius: 18, overflow: 'hidden',
-                border: `1px solid ${open ? 'rgba(180,81,30,0.35)' : 'rgba(180,81,30,0.14)'}`,
+                background: open ? '#FFFFFF' : '#FFFBF6', borderRadius: 18, overflow: 'hidden',
+                border: `1px solid ${open ? 'rgba(180,81,30,0.35)' : 'rgba(180,81,30,0.18)'}`,
                 boxShadow: open ? '0 10px 28px rgba(26,10,0,0.08)' : '0 2px 10px rgba(26,10,0,0.04)',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
               }}>
