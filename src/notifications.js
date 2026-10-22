@@ -41,13 +41,9 @@ import { supabase } from './supabaseClient';
      on notifications for update
      using (auth.uid() = user_id);
 
-   -- Notifications are inserted from the client on behalf of *other*
-   -- users (e.g. a joiner's booking notifies the admin), so inserts
-   -- need to be allowed broadly. If you want tighter control, move
-   -- these inserts into a Supabase Edge Function / DB trigger instead.
-   create policy "Any authenticated user can insert notifications"
-     on notifications for insert
-     with check (auth.role() = 'authenticated');
+   -- Insert rules now live in
+   -- supabase/migrations/20261013000000_privacy_cancellation_receipts.sql:
+   -- admins can notify anyone; joiners can only notify admins.
    ------------------------------------------------------------
 ───────────────────────────────────────────── */
 
@@ -79,7 +75,7 @@ export const notifyUser = async (userId, { title, message, type = null, related_
 export const notifyAdmins = async ({ title, message, type = null, related_id = null }) => {
   try {
     const { data: admins, error } = await supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('id')
       .eq('role', 'admin');
     if (error) throw error;
@@ -107,7 +103,7 @@ export const notifyAdmins = async ({ title, message, type = null, related_id = n
 export const notifyAllJoiners = async ({ title, message, type = null, related_id = null }) => {
   try {
     const { data: joiners, error } = await supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('id')
       .neq('role', 'admin');
     if (error) throw error;
@@ -125,4 +121,45 @@ export const notifyAllJoiners = async ({ title, message, type = null, related_id
   } catch (err) {
     console.error('Error notifying joiners:', err.message);
   }
+};
+/* ── Keeping the bell and the Notification page in sync ──
+   Both read the same rows. Whenever one of them changes a notification
+   (read, delete, clear), it calls notificationsChanged() and the other one
+   re-loads straight away, instead of waiting on realtime. */
+const CHANGED_EVENT = 'ibayo:notifications-changed';
+
+export const notificationsChanged = () => {
+  try { window.dispatchEvent(new Event(CHANGED_EVENT)); } catch { /* not in a browser */ }
+};
+
+export const onNotificationsChanged = (fn) => {
+  window.addEventListener(CHANGED_EVENT, fn);
+  return () => window.removeEventListener(CHANGED_EVENT, fn);
+};
+
+/* ── Payment notices clear themselves ──
+   Joiners' "payment received" notifications (type 'payment') are removed
+   3 minutes after they arrive. */
+export const PAYMENT_NOTICE_MS = 3 * 60 * 1000;
+
+const isOldPaymentNotice = (n, now = Date.now()) =>
+  n.type === 'payment' && now - new Date(n.created_at).getTime() >= PAYMENT_NOTICE_MS;
+
+// Drops expired payment notices from a list and deletes them from the database.
+// Returns the list without them.
+export const clearOldPaymentNotices = (list) => {
+  const now = Date.now();
+  const old = list.filter((n) => isOldPaymentNotice(n, now));
+  if (old.length) {
+    supabase.from('notifications').delete().in('id', old.map((n) => n.id))
+      .then(({ error }) => { if (error) console.warn('Could not clear old payment notices:', error.message); });
+  }
+  return old.length ? list.filter((n) => !isOldPaymentNotice(n, now)) : list;
+};
+
+// Milliseconds until the next payment notice in the list expires (or null).
+export const nextPaymentNoticeExpiry = (list) => {
+  const waits = list.filter((n) => n.type === 'payment')
+    .map((n) => PAYMENT_NOTICE_MS - (Date.now() - new Date(n.created_at).getTime()));
+  return waits.length ? Math.max(1000, Math.min(...waits) + 500) : null;
 };

@@ -1,14 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import EmptyState from './ui/EmptyState';
+import { SearchX, ClipboardList } from 'lucide-react';
+import { toast } from './ui/toast';
+import { confirmDialog } from './ui/ConfirmDialog';
+import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
+import { notifyUser } from './notifications';
+import { useReceiptUrl } from './receipts';
+import { formatPeso, downpaymentFor } from './tourUtils';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
-  Wallet, Printer,
+  Wallet, Printer, Users, History,
 } from 'lucide-react';
+import { SkeletonTable, SkeletonLines } from './ui/Skeleton';
+import ModalHeader from './ui/ModalHeader';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent / confirm)
+// #A8481A  burnt sienna (accent / confirm)
 // #E8A265  warm amber (highlight / pending)
 // #FDF6EE  cream (light bg)
 // #F2E4D0  parchment (section bg)
@@ -20,6 +30,7 @@ const getDerivedStatus = (b) => (
   (b.payment_status === 'Pending' || b.payment_status === 'Verification Pending') ? b.payment_status :
   b.payment_status === 'Rejected' ? 'Rejected' :
   b.booking_status === 'Cancelled' ? 'Cancelled' :
+  b.cancellation_requested_at ? 'Cancellation Requested' : // the joiner asked to cancel; waiting on an admin
   b.payment_status
 );
  
@@ -32,6 +43,11 @@ const getBalanceStatus = (b) => {
   return b.balance_settled ? 'Fully Paid' : 'Balance Due';
 };
  
+// Remaining balance on a confirmed downpayment booking that isn't settled yet.
+const balanceOwed = (b) => Math.max(0, (b.total_price || 0) - (b.amount_paid || 0));
+const owesBalance = (b) =>
+  getBalanceStatus(b) === 'Balance Due' && b.booking_status !== 'Cancelled' && balanceOwed(b) > 0;
+
 /* ─────────────────────────────────────────────
    BOOKING MANAGEMENT  (Admin)
 ───────────────────────────────────────────── */
@@ -134,18 +150,25 @@ const BookingManagement = () => {
       (b.tours?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (b.booking_number || '').toLowerCase().includes(searchTerm.toLowerCase());
     const derived = getDerivedStatus(b);
-    const matchesStatus = statusFilter === 'All Status' || derived === statusFilter;
+    const matchesStatus = statusFilter === 'All Status' || derived === statusFilter
+      || (statusFilter === 'Balance Due' && owesBalance(b));
     const matchesMethod = methodFilter === 'All Methods' || b.payment_method === methodFilter;
     const matchesTour = tourFilter === 'All Tours' || String(b.tour_id) === String(tourFilter);
     const matchesDate = !dateFilter || b.tours?.start_date === dateFilter;
     return matchesSearch && matchesStatus && matchesMethod && matchesTour && matchesDate;
   });
+  // Who still owes: soonest tour first.
+  if (statusFilter === 'Balance Due') {
+    filteredBookings.sort((a, b) => (a.tours?.start_date || '').localeCompare(b.tours?.start_date || ''));
+  }
+  const balancesDue = bookings.filter(owesBalance);
+  const totalBalanceDue = balancesDue.reduce((sum, b) => sum + balanceOwed(b), 0);
  
   // ── shared input style ──
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
     background: '#F2E4D0',
-    border: '1px solid rgba(196,92,38,0.18)',
+    border: '1px solid rgba(180,81,30,0.18)',
     borderRadius: 14,
     padding: '10px 14px',
     fontSize: 13, fontWeight: 600,
@@ -156,8 +179,8 @@ const BookingManagement = () => {
  
   const thStyle = {
     padding: '14px 20px',
-    fontSize: 9, fontWeight: 900, letterSpacing: '0.18em',
-    textTransform: 'uppercase', color: 'rgba(122,58,24,0.78)',
+    fontSize: 11, fontWeight: 900, letterSpacing: '0.18em',
+    textTransform: 'uppercase', color: 'rgba(122,58,24,0.85)',
     textAlign: 'left', whiteSpace: 'nowrap',
     background: '#F2E4D0',
     display: 'flex', alignItems: 'center',
@@ -167,32 +190,41 @@ const BookingManagement = () => {
   const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 150px 140px';
  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
-      <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
  
-      {/* ── Header ── */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-        borderBottom: '1px solid rgba(196,92,38,0.15)',
-        paddingBottom: 16, marginBottom: 20, gap: 20, flexWrap: 'wrap',
-      }}>
-        <div>
-          <h2 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 6px' }}>
-            Manage Booking Records
-          </h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.7, margin: 0, maxWidth: 540, lineHeight: 1.6 }}>
-            Verify GCash payments, track downpayments, and update booking status across all joiner reservations.
+      {/* ── Balances still owed (downpayment bookings) ── */}
+      {balancesDue.length > 0 && (
+        <div style={{
+          background: 'rgba(232,162,101,0.16)', border: '1px solid rgba(232,162,101,0.45)',
+          borderRadius: 18, padding: '12px 16px', marginBottom: 16,
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+            <Wallet size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
+            <span><strong style={{ color: '#1A0A00' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: '#1A0A00' }}>{formatPeso(totalBalanceDue)}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
           </p>
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'Balance Due' ? 'All Status' : 'Balance Due')}
+            style={{
+              background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 12,
+              padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+              letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
+            }}
+          >
+            {statusFilter === 'Balance Due' ? 'Show all bookings' : 'Show who owes'}
+          </button>
         </div>
-      </div>
- 
+      )}
+
       {/* ── Filters ── */}
       <div style={{
         background: '#FDF6EE',
         borderRadius: 20, padding: '14px 18px',
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
         boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
@@ -202,7 +234,7 @@ const BookingManagement = () => {
           <Search size={15} style={{
             position: 'absolute', left: 13, top: '50%',
             transform: 'translateY(-50%)',
-            color: 'rgba(122,58,24,0.35)', pointerEvents: 'none',
+            color: 'rgba(122,58,24,0.85)', pointerEvents: 'none',
           }} />
           <input
             type="text" placeholder="Search joiner, tour, or booking no…"
@@ -221,9 +253,12 @@ const BookingManagement = () => {
             <option value="Verification Pending">Verification Pending</option>
             <option value="Complete">Complete</option>
             <option value="Rejected">Rejected</option>
+            <option value="Cancellation Requested">Cancellation Requested</option>
             <option value="Cancelled">Cancelled</option>
+            <option value="Awaiting Payment">Awaiting Payment</option>
+            <option value="Balance Due">Balance Due</option>
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
         </div>
         {/* Payment method */}
         <div style={{ position: 'relative', minWidth: 175 }}>
@@ -235,7 +270,7 @@ const BookingManagement = () => {
             <option value="Full Payment">Full Payment</option>
             <option value="Downpayment">Downpayment</option>
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
         </div>
         {/* Tour */}
         <div style={{ position: 'relative', minWidth: 200 }}>
@@ -248,7 +283,7 @@ const BookingManagement = () => {
               <option key={t.id} value={t.id}>{t.title}</option>
             ))}
           </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
         </div>
         {/* Date */}
         <div style={{ position: 'relative', minWidth: 175 }}>
@@ -267,21 +302,12 @@ const BookingManagement = () => {
         flexShrink: 0,
         background: '#FDF6EE',
         borderRadius: 22,
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
         boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         overflow: 'hidden',
       }}>
         {loading ? (
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
-          }}>
-            <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-              Loading Records…
-            </p>
-          </div>
+          <div style={{ padding: '0 0.25rem' }}><SkeletonTable rows={7} cols={6} label="Loading bookings" /></div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: bookingGridCols, minWidth: 980 }}>
@@ -305,10 +331,17 @@ const BookingManagement = () => {
                   />
                 ))
               ) : (
-                <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center' }}>
-                  <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-                    No booking records found.
-                  </p>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  {(searchTerm || statusFilter !== 'All Status' || methodFilter !== 'All Methods' || tourFilter !== 'All Tours' || dateFilter) ? (
+                    <EmptyState
+                      icon={SearchX}
+                      title="No bookings match your filters"
+                      message="Try another search, status, payment type, tour or date."
+                      action={{ label: 'Clear Filters', onClick: () => { setSearchTerm(''); setStatusFilter('All Status'); setMethodFilter('All Methods'); setTourFilter('All Tours'); setDateFilter(''); } }}
+                    />
+                  ) : (
+                    <EmptyState icon={ClipboardList} title="No bookings yet" message="When joiners book a tour, their bookings will show up here for you to manage." />
+                  )}
                 </div>
               )}
             </div>
@@ -322,6 +355,7 @@ const BookingManagement = () => {
         <BookingDetailModal
           booking={selectedBooking}
           onClose={() => setSelectedBooking(null)}
+          onChanged={async () => { setSelectedBooking(null); await fetchBookings(); }}
           onStatusUpdate={async (id, status) => {
             const newBookingStatus = status === 'Confirmed' ? 'Completed' : 'Cancelled';
             const newPaymentStatus = status === 'Confirmed' ? 'Complete' : 'Rejected';
@@ -331,10 +365,24 @@ const BookingManagement = () => {
             }).eq('id', id);
  
             if (!error) {
+              sendBookingStatusEmail({ bookingId: id });
+              // A rejected booking frees its slots: email anyone on the waitlist.
+              if (status !== 'Confirmed') sendWaitlistOpeningsEmail({ tourId: selectedBooking.tour_id });
+
+              notifyUser(selectedBooking.user_id, {
+                title: status === 'Confirmed' ? 'Booking Confirmed 🎉' : 'Booking Update',
+                message: status === 'Confirmed'
+                  ? `Your payment for ${selectedBooking.tours?.title} has been verified. Your booking is confirmed!`
+                  : `We weren't able to verify your payment for ${selectedBooking.tours?.title} (${selectedBooking.booking_number}). Please reach out to us.`,
+                type: 'payment',
+                related_id: selectedBooking.id,
+              });
+
+              toast.success(status === 'Confirmed' ? 'Payment confirmed' : 'Payment rejected', `${selectedBooking.booking_number}: the joiner has been notified.`);
               setSelectedBooking(null);
               fetchBookings();
             } else {
-              alert('Error updating status: ' + error.message);
+              toast.error("Couldn't update status", error.message);
             }
           }}
           onSettleBalance={async (id, fullAmount) => {
@@ -348,10 +396,17 @@ const BookingManagement = () => {
             `).single();
  
             if (!error) {
+              toast.success('Balance marked as paid', `${selectedBooking.booking_number} is now paid in full.`);
               await fetchBookings();
+              notifyUser(selectedBooking.user_id, {
+                title: 'Balance Payment Confirmed',
+                message: `Your remaining balance for ${selectedBooking.tours?.title} (${selectedBooking.booking_number}) has been marked as paid in full.`,
+                type: 'payment',
+                related_id: selectedBooking.id,
+              });
               return data;
             } else {
-              alert('Error settling balance: ' + error.message);
+              toast.error("Couldn't settle balance", error.message);
               return null;
             }
           }}
@@ -368,8 +423,8 @@ const BookingRow = ({ booking, onView }) => {
   const [hovered, setHovered] = useState(false);
   const cellStyle = {
     padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    background: hovered ? 'rgba(196,92,38,0.04)' : 'transparent',
-    borderBottom: '1px solid rgba(196,92,38,0.08)',
+    background: hovered ? 'rgba(180,81,30,0.04)' : 'transparent',
+    borderBottom: '1px solid rgba(180,81,30,0.08)',
     transition: 'background 0.15s',
   };
   const rowHandlers = {
@@ -380,7 +435,7 @@ const BookingRow = ({ booking, onView }) => {
   return (
     <>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#C45C26', fontSize: 12, margin: 0 }}>
+        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12, margin: 0 }}>
           {booking.booking_number || '—'}
         </p>
       </div>
@@ -388,26 +443,26 @@ const BookingRow = ({ booking, onView }) => {
         <p style={{ fontWeight: 900, color: '#1A0A00', fontSize: 13, margin: 0 }}>
           {booking.profiles ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim() : booking.full_name || '—'}
         </p>
-        <p style={{ color: '#7A3A18', opacity: 0.75, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
+        <p style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
           {booking.profiles?.phone_number || booking.contact_number || '—'}
         </p>
       </div>
       <div style={cellStyle} {...rowHandlers}>
         <p style={{ fontWeight: 800, color: '#1A0A00', fontSize: 13, margin: 0 }}>{booking.tours?.title || '—'}</p>
-        <p style={{ color: '#7A3A18', opacity: 0.75, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
-          <MapPin size={11} style={{ color: '#C45C26' }} /> {booking.tours?.destination}
+        <p style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
+          <MapPin size={11} style={{ color: '#A8481A' }} /> {booking.tours?.destination}
         </p>
       </div>
       <div style={{ ...cellStyle, alignItems: 'center', textAlign: 'center', fontWeight: 900, color: '#1A0A00', fontSize: 13 }} {...rowHandlers}>
         {booking.slots_booked}
       </div>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontWeight: 900, color: '#C45C26', fontSize: 13, margin: 0 }}>
-          ₱{booking.total_price?.toLocaleString()}
+        <p style={{ fontWeight: 900, color: '#A8481A', fontSize: 13, margin: 0 }}>
+          {formatPeso(booking.total_price)}
         </p>
         {booking.payment_method === 'Downpayment' && (
-          <p style={{ fontSize: 9, fontWeight: 800, color: booking.balance_settled ? '#C45C26' : '#9A5B1E', margin: '3px 0 0', letterSpacing: '0.04em' }}>
-            Paid: ₱{booking.amount_paid?.toLocaleString()}{booking.balance_settled ? ' (Full)' : ''}
+          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? '#A8481A' : '#8C5216', margin: '3px 0 0', letterSpacing: '0.04em' }}>
+            Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}
       </div>
@@ -428,7 +483,7 @@ const BookingRow = ({ booking, onView }) => {
             background: '#F2E4D0', color: '#1A0A00',
             border: 'none', borderRadius: 10, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
-            fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
             padding: '9px 16px',
           }}
         >
@@ -442,7 +497,9 @@ const BookingRow = ({ booking, onView }) => {
 /* ─────────────────────────────────────────────
    BOOKING DETAIL MODAL
 ───────────────────────────────────────────── */
-const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance }) => {
+const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSettleBalance }) => {
+  // Receipts are private: view them through a short-lived signed link.
+  const receiptSrc = useReceiptUrl(booking.receipt_url);
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
@@ -495,6 +552,8 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
   };
  
   const handleReject = async () => {
+    // Rejecting by mistake would tell the joiner their payment failed, so confirm first.
+    if (!(await confirmDialog({ title: `Reject the payment for ${booking.booking_number}?`, message: 'The joiner will be notified and emailed that their payment was rejected.', confirmLabel: 'Reject Payment', cancelLabel: 'Go Back', tone: 'danger' }))) return;
     setRejecting(true);
     await onStatusUpdate(booking.id, 'Rejected');
     setRejecting(false);
@@ -504,11 +563,32 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
   const isComplete = booking.payment_status === 'Complete';
   const isRejected = booking.payment_status === 'Rejected';
   const isCancelled = !isPending && booking.booking_status === 'Cancelled' && booking.payment_status !== 'Rejected';
-  const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : booking.payment_status);
+  const cancelRequested = !!booking.cancellation_requested_at && !isCancelled && !isRejected && booking.booking_status !== 'Rejected';
+  const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : cancelRequested ? 'Cancellation Requested' : booking.payment_status);
+  const [deciding, setDeciding] = useState(null); // 'approve' | 'decline'
+
+  // The joiner asked to cancel: approve (frees their slots) or decline (keeps the booking).
+  const decideCancellation = async (approve) => {
+    if (!(await confirmDialog(approve
+      ? { title: 'Approve this cancellation?', message: `${booking.booking_number} will be cancelled and its ${booking.slots_booked} slot${booking.slots_booked === 1 ? '' : 's'} released. Payments are non-refundable.`, confirmLabel: 'Approve Cancellation', cancelLabel: 'Go Back', tone: 'danger' }
+      : { title: 'Decline this cancellation?', message: 'The booking stays as it is, and the joiner is told their request was declined.', confirmLabel: 'Decline Request', cancelLabel: 'Go Back' }))) return;
+    setDeciding(approve ? 'approve' : 'decline');
+    const { error } = await supabase.from('bookings')
+      .update(approve ? { booking_status: 'Cancelled' } : { cancellation_requested_at: null })
+      .eq('id', booking.id);
+    setDeciding(null);
+    if (error) { toast.error("Couldn't update the booking", error.message); return; }
+    notifyUser(booking.user_id, approve
+      ? { title: 'Cancellation Approved', message: `Your cancellation for ${booking.tours?.title || 'your tour'} (${booking.booking_number}) has been approved, and your slot has been released.`, type: 'cancellation', related_id: booking.id }
+      : { title: 'Cancellation Declined', message: `Your request to cancel ${booking.tours?.title || 'your tour'} (${booking.booking_number}) was declined, so your booking stays active. Please message us if you have questions.`, type: 'cancellation', related_id: booking.id });
+    if (approve) sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
+    toast.success(approve ? 'Cancellation approved' : 'Request declined', approve ? 'The slots were released and the joiner was notified.' : 'The booking stays active and the joiner was notified.');
+    onChanged?.();
+  };
  
   const subtotal = booking.total_price || 0;
   const amountPaid = balanceSettled ? subtotal : (booking.amount_paid || subtotal);
-  const downpaymentAmount = Math.round(subtotal * 0.4);
+  const downpaymentAmount = downpaymentFor(subtotal);
   const balance = booking.payment_method === 'Downpayment' ? subtotal - downpaymentAmount : 0;
   const isDownpayment = booking.payment_method === 'Downpayment';
  
@@ -537,7 +617,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
             body { font-family: 'Courier New', monospace; color: #1A0A00; padding: 32px; max-width: 380px; margin: 0 auto; }
             h1 { font-size: 16px; text-align: center; letter-spacing: 0.1em; margin: 0 0 2px; }
             .sub { text-align: center; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; margin-bottom: 18px; }
-            .stamp { text-align: center; border: 2px solid #C45C26; color: #C45C26; font-weight: bold; letter-spacing: 0.15em; padding: 6px; margin: 14px 0; text-transform: uppercase; font-size: 12px; }
+            .stamp { text-align: center; border: 2px solid #B4511E; color: #A8481A; font-weight: bold; letter-spacing: 0.15em; padding: 6px; margin: 14px 0; text-transform: uppercase; font-size: 12px; }
             .row { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; }
             hr { border: none; border-top: 1px dashed #999; margin: 12px 0; }
             .total { font-weight: bold; font-size: 14px; }
@@ -553,13 +633,13 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           <div class="row"><span>Destination</span><span>${booking.tours?.destination || '—'}</span></div>
           <div class="row"><span>Pax</span><span>${booking.slots_booked}</span></div>
           <hr />
-          <div class="row"><span>Subtotal</span><span>₱${subtotal.toLocaleString()}</span></div>
+          <div class="row"><span>Subtotal</span><span>${formatPeso(subtotal)}</span></div>
           ${isDownpayment ? `
-            <div class="row"><span>Downpayment Paid</span><span>₱${downpaymentAmount.toLocaleString()}</span></div>
-            <div class="row"><span>Balance Settled</span><span>₱${balance.toLocaleString()}</span></div>
+            <div class="row"><span>Downpayment Paid</span><span>${formatPeso(downpaymentAmount)}</span></div>
+            <div class="row"><span>Balance Settled</span><span>${formatPeso(balance)}</span></div>
           ` : ''}
           <hr />
-          <div class="row total"><span>TOTAL PAID</span><span>₱${subtotal.toLocaleString()}</span></div>
+          <div class="row total"><span>TOTAL PAID</span><span>${formatPeso(subtotal)}</span></div>
           <div class="stamp">Payment Complete</div>
           <div class="footer">
             Printed: ${dateNow}${balanceSettledAt ? `<br/>Balance settled: ${new Date(balanceSettledAt).toLocaleString('en-PH')}` : ''}
@@ -570,13 +650,12 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
     win.document.close();
   };
  
-  const accentColor = isRejected ? '#8C2F1C' : isCancelled ? '#1A0A00' : isComplete ? '#C45C26' : '#E8A265';
  
   const labelStyle = {
     display: 'block',
-    fontSize: 9, fontWeight: 800,
+    fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.7,
+    color: '#7A3A18', opacity: 0.9,
     marginBottom: 5,
   };
  
@@ -586,35 +665,24 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
       <div style={{
         position: 'relative', background: '#FDF6EE',
         width: '100%', maxWidth: 760,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
         overflow: 'hidden',
-        borderTop: `8px solid ${accentColor}`,
-        maxHeight: '92vh',
+        borderTop: '6px solid #B4511E',
+        maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
  
-        {/* Header */}
-        <div className="responsive-modal-padding" style={{
-          background: '#1A0A00', padding: '2rem 2.5rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          flexShrink: 0, flexWrap: 'wrap', gap: 12,
-        }}>
-          <div>
-            <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: '0 0 6px' }}>
-              Booking Details
-            </p>
-            <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', color: '#FDF6EE', margin: 0 }}>
-              {booking.booking_number || 'N/A'}
-            </h2>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            <StatusBadge status={derivedStatus} large />
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(232,210,190,0.5)', padding: 0 }}>
-              <X size={24} />
-            </button>
-          </div>
-        </div>
- 
+        <ModalHeader
+          name={joinerName}
+          photo={profile?.avatar_url}
+          label="Booking Details"
+          title={booking.booking_number || 'N/A'}
+          onClose={onClose}
+        >
+          <StatusBadge status={derivedStatus} />
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>{joinerName}</span>
+        </ModalHeader>
+
         {/* Scrollable Body */}
         <div className="responsive-modal-padding" style={{ overflowY: 'auto', flex: 1, padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 28 }}>
  
@@ -644,6 +712,16 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               <InfoItem label="Quantity (pax)" value={`${booking.slots_booked} ${booking.slots_booked === 1 ? 'person' : 'persons'}`} />
             </div>
           </ViewSection>
+
+          {booking.companions?.length > 0 && (
+            <ViewSection title="Group Members" icon={<Users size={14} />}>
+              <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                {booking.companions.map((c, i) => (
+                  <InfoItem key={i} label={`Person ${i + 2}`} value={`${c.full_name} · ${c.contact_number}`} />
+                ))}
+              </div>
+            </ViewSection>
+          )}
  
           <ViewSection title="Payment Information" icon={<CreditCard size={14} />}>
             <div style={{ background: '#F2E4D0', borderRadius: 18, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -662,7 +740,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                     <p style={labelStyle}>Balance Status</p>
                     <BalanceStatusBadge status={balanceSettled ? 'Fully Paid' : 'Balance Due'} />
                     {balanceSettled && balanceSettledAt && (
-                      <p style={{ fontSize: 10, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: '6px 0 0' }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
                         Settled {formatDateTime(balanceSettledAt)}
                       </p>
                     )}
@@ -671,69 +749,87 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               </div>
  
               {/* Payment Breakdown */}
-              <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: '#7A3A18', opacity: 0.7 }}>Quantity</span>
-                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × ₱{booking.tours?.price?.toLocaleString()}</span>
+                  <span style={{ color: '#7A3A18', opacity: 0.9 }}>Quantity</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × {formatPeso(booking.tours?.price)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: '#7A3A18', opacity: 0.7 }}>Subtotal</span>
-                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{subtotal.toLocaleString()}</span>
+                  <span style={{ color: '#7A3A18', opacity: 0.9 }}>Subtotal</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{formatPeso(subtotal)}</span>
                 </div>
  
                 {booking.payment_method === 'Downpayment' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>Downpayment (40%)</span>
-                      <span style={{ fontWeight: 700, color: '#9A5B1E' }}>₱{downpaymentAmount.toLocaleString()}</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Downpayment (40%)</span>
+                      <span style={{ fontWeight: 700, color: '#8C5216' }}>{formatPeso(downpaymentAmount)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>Remaining Balance</span>
-                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.8)' }}>₱{balance.toLocaleString()}</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Remaining Balance</span>
+                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.85)' }}>{formatPeso(balance)}</span>
                     </div>
                   </>
                 )}
  
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid rgba(196,92,38,0.18)', paddingTop: 12, marginTop: 4 }}>
-                  <span style={{ fontWeight: 900, color: '#1A0A00', fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid rgba(180,81,30,0.18)', paddingTop: 12, marginTop: 4 }}>
+                  <span style={{ fontWeight: 900, color: '#1A0A00', fontSize: 11.5, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
                     {booking.payment_method === 'Downpayment' ? 'Amount Paid (Due Now)' : 'Total Payment'}
                   </span>
-                  <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 22, letterSpacing: '-0.02em' }}>₱{amountPaid.toLocaleString()}</span>
+                  <span style={{ fontWeight: 900, color: '#A8481A', fontSize: 22, letterSpacing: '-0.02em' }}>{formatPeso(amountPaid)}</span>
                 </div>
               </div>
  
               {/* GCash Details */}
               {(booking.gcash_number || booking.gcash_reference_no) && (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <p style={labelStyle}>GCash Details</p>
                   {booking.gcash_number && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>GCash Number</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>GCash Number</span>
                       <span style={{ fontWeight: 700, color: '#1A0A00', fontFamily: 'monospace' }}>{booking.gcash_number}</span>
                     </div>
                   )}
                   {booking.gcash_reference_no && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.7 }}>Reference No.</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Reference No.</span>
                       <span style={{ fontWeight: 700, color: '#1A0A00', fontFamily: 'monospace' }}>{booking.gcash_reference_no}</span>
                     </div>
                   )}
                 </div>
               )}
  
-              {/* Receipt Screenshot */}
-              {booking.receipt_url ? (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+              {/* Paid online through PayMongo: no receipt to check */}
+              {booking.paymongo_payment_id ? (
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
+                  <p style={labelStyle}>Online Payment (PayMongo)</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.7 }}>
+                    Confirmed automatically{booking.paid_online_at ? ` on ${formatDateTime(booking.paid_online_at)}` : ''}.<br />
+                    Payment ID: <span style={{ fontFamily: 'monospace' }}>{booking.paymongo_payment_id}</span>
+                    {booking.paymongo_balance_payment_id && (
+                      <><br />Balance payment ID: <span style={{ fontFamily: 'monospace' }}>{booking.paymongo_balance_payment_id}</span></>
+                    )}
+                  </p>
+                </div>
+              ) : booking.payment_status === 'Awaiting Payment' ? (
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
+                  <p style={labelStyle}>Online Payment (PayMongo)</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+                    The joiner hasn't finished paying yet. The slots are released automatically if they don't pay within 30 minutes.
+                  </p>
+                </div>
+              ) : booking.receipt_url ? (
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
-                  <ReceiptThumb src={booking.receipt_url} onClick={() => setShowReceiptPreview(true)} />
+                  <ReceiptThumb src={receiptSrc} onClick={() => setShowReceiptPreview(true)} />
                 </div>
               ) : (
-                <div style={{ borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
                   <div style={{
-                    border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16,
+                    border: '2px dashed rgba(180,81,30,0.25)', borderRadius: 16,
                     padding: '1.5rem', display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.35)',
+                    alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)',
                   }}>
                     <ImageIcon size={26} style={{ marginBottom: 8 }} />
                     <p style={{ fontSize: 11, fontWeight: 700, margin: 0 }}>No receipt uploaded</p>
@@ -753,36 +849,62 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
             />
           )}
  
+          {/* Cancellation request: approve or decline */}
+          {cancelRequested && (
+            <div style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <AlertCircle size={20} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />
+                <div>
+                  <p style={{ fontSize: 13.5, fontWeight: 900, color: '#8C2F1C', margin: 0 }}>Cancellation requested</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0', lineHeight: 1.6 }}>
+                    Asked {formatDateTime(booking.cancellation_requested_at)}. Reason: “{booking.cancellation_reason || '—'}”.
+                    {' '}The slots stay held until you decide. If no one decides within 12 hours, it's approved automatically.
+                  </p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => decideCancellation(true)} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: '#8C2F1C', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {deciding === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve Cancellation
+                </button>
+                <button type="button" onClick={() => decideCancellation(false)} disabled={!!deciding} style={{ flex: '1 1 160px', padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(180,81,30,0.3)', background: '#FDF6EE', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  {deciding === 'decline' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Decline
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Cancellation Notice */}
           {isCancelled && (
             <Notice
               color="#1A0A00" bg="rgba(26,10,0,0.05)"
               icon={<XCircle size={20} />}
-              title="Booking Cancelled by Joiner"
-              text="This booking was cancelled by the joiner. The slot has been released back to the tour."
+              title="Booking Cancelled"
+              text={booking.cancellation_reason ? `Cancelled at the joiner's request (“${booking.cancellation_reason}”). The slot has been released back to the tour.` : 'This booking was cancelled. The slot has been released back to the tour.'}
             />
           )}
  
           {/* Confirmed Notice */}
           {isComplete && (
             <Notice
-              color="#C45C26" bg="rgba(196,92,38,0.08)"
+              color="#A8481A" bg="rgba(180,81,30,0.08)"
               icon={<CheckCircle2 size={20} />}
               title="Booking Confirmed"
               text="Payment has been verified and the booking is confirmed."
             />
           )}
+
+          <BookingActivity bookingId={booking.id} />
         </div>
  
         {/* Footer: Action Buttons */}
         {isPending && (
           <div style={{
-            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
             background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0, flexWrap: 'wrap',
           }}>
             <div style={{ flex: 1, minWidth: 200, background: '#F2E4D0', borderRadius: 16, padding: '14px 18px' }}>
               <p style={labelStyle}>Admin Action Required</p>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.75, margin: '4px 0 0', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
                 Verify the GCash reference number and receipt screenshot before confirming.
               </p>
             </div>
@@ -796,11 +918,11 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   background: 'rgba(140,47,28,0.1)', color: '#8C2F1C',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                   opacity: (rejecting || confirming) ? 0.5 : 1,
                 }}
               >
-                {rejecting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject
+                {rejecting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject Payment
               </button>
               <button
                 onClick={handleConfirm}
@@ -808,15 +930,15 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '13px 26px',
-                  background: '#C45C26', color: '#FDF6EE',
+                  background: '#B4511E', color: '#FDF6EE',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                  fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
+                  boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
                   opacity: (confirming || rejecting) ? 0.5 : 1,
                 }}
               >
-                {confirming ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Confirm
+                {confirming ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Confirm Payment
               </button>
             </div>
           </div>
@@ -825,7 +947,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
         {/* Footer: Balance settlement (Downpayment bookings) + Receipt printing */}
         {isComplete && (
           <div style={{
-            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(196,92,38,0.12)',
+            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
             background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0,
             flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
           }}>
@@ -833,8 +955,8 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               <>
                 <div style={{ flex: 1, minWidth: 200, background: 'rgba(140,47,28,0.08)', borderRadius: 16, padding: '14px 18px' }}>
                   <p style={{ ...labelStyle, color: '#8C2F1C' }}>Balance Due On Tour Day</p>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0', lineHeight: 1.5 }}>
-                    Remaining balance of ₱{balance.toLocaleString()} is still unpaid. Mark it as paid once the joiner settles it on the day of the tour.
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
+                    Remaining balance of {formatPeso(balance)} is still unpaid. Mark it as paid once the joiner settles it on the day of the tour.
                   </p>
                 </div>
                 <button
@@ -843,11 +965,11 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '13px 26px',
-                    background: '#C45C26', color: '#FDF6EE',
+                    background: '#B4511E', color: '#FDF6EE',
                     border: 'none', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900,
-                    fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-                    boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                    fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
+                    boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
                     opacity: settlingBalance ? 0.5 : 1, flexShrink: 0,
                   }}
                 >
@@ -858,7 +980,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
               <>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <p style={labelStyle}>Payment Status</p>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#C45C26', margin: '4px 0 0' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '4px 0 0' }}>
                     {isDownpayment
                       ? `Full payment received${balanceSettledAt ? ' — balance settled ' + formatDateTime(balanceSettledAt) : ''}.`
                       : 'Payment received in full.'}
@@ -872,7 +994,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                     background: '#1A0A00', color: '#E8A265',
                     border: 'none', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900,
-                    fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
+                    fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                     boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
                   }}
                 >
@@ -895,22 +1017,22 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
             position: 'relative', background: '#FDF6EE',
             width: '100%', maxWidth: 420,
             borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-            borderTop: '7px solid #C45C26',
+            borderTop: '7px solid #B4511E',
             padding: '2rem',
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%',
-              background: 'rgba(196,92,38,0.12)',
+              background: 'rgba(180,81,30,0.12)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 18, color: '#C45C26',
+              marginBottom: 18, color: '#A8481A',
             }}>
               <Wallet size={26} />
             </div>
             <h3 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 10px' }}>
               Confirm Balance Payment
             </h3>
-            <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.85, margin: '0 0 24px', lineHeight: 1.6 }}>
-              Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>₱{balance.toLocaleString()}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
+            <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '0 0 24px', lineHeight: 1.6 }}>
+              Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>{formatPeso(balance)}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button
@@ -920,7 +1042,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                   background: 'rgba(122,58,24,0.1)', color: '#7A3A18',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                 }}
               >
                 Cancel
@@ -930,14 +1052,14 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '12px 24px',
-                  background: '#C45C26', color: '#FDF6EE',
+                  background: '#B4511E', color: '#FDF6EE',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
-                  boxShadow: '0 6px 20px rgba(196,92,38,0.35)',
+                  fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
                 }}
               >
-                <CheckCircle2 size={14} /> Confirm Payment
+                <CheckCircle2 size={14} /> Mark Balance as Paid
               </button>
             </div>
           </div>
@@ -945,7 +1067,7 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
       )}
  
       {/* Receipt Full Preview */}
-      {showReceiptPreview && booking.receipt_url && (
+      {showReceiptPreview && receiptSrc && (
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 99999,
@@ -961,12 +1083,12 @@ const BookingDetailModal = ({ booking, onClose, onStatusUpdate, onSettleBalance 
           }}>
             <X size={40} />
           </button>
-          <img src={booking.receipt_url} style={{ maxWidth: '100%', maxHeight: '90vh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Receipt" />
+          <img src={receiptSrc} style={{ maxWidth: '100%', maxHeight: '90dvh', borderRadius: 16, boxShadow: '0 32px 80px rgba(0,0,0,0.6)' }} alt="Receipt" />
         </div>
       )}
     </div>
   );
-};
+};       
  
 /* ─────────────────────────────────────────────
    RECEIPT THUMBNAIL (helper)
@@ -980,7 +1102,7 @@ const ReceiptThumb = ({ src, onClick }) => {
       onMouseLeave={() => setHovered(false)}
       style={{
         position: 'relative', borderRadius: 16, overflow: 'hidden',
-        cursor: 'pointer', border: '1px solid rgba(196,92,38,0.2)',
+        cursor: 'pointer', border: '1px solid rgba(180,81,30,0.2)',
         boxShadow: '0 4px 14px rgba(26,10,0,0.1)',
       }}
     >
@@ -995,7 +1117,7 @@ const ReceiptThumb = ({ src, onClick }) => {
           <span style={{
             background: 'rgba(253,246,238,0.95)', borderRadius: 999,
             padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8,
-            fontSize: 9, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00',
           }}>
             <Eye size={12} /> View Full Receipt
           </span>
@@ -1011,23 +1133,83 @@ const ReceiptThumb = ({ src, onClick }) => {
 const ViewSection = ({ title, icon, children }) => (
   <section>
     <h4 style={{
-      fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
+      fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
       textTransform: 'uppercase', color: '#1A0A00',
       margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 8,
-      paddingBottom: 12, borderBottom: '1px solid rgba(196,92,38,0.12)',
+      paddingBottom: 12, borderBottom: '1px solid rgba(180,81,30,0.12)',
     }}>
-      <span style={{ color: '#C45C26' }}>{icon}</span> {title}
+      <span style={{ color: '#A8481A' }}>{icon}</span> {title}
     </h4>
     {children}
   </section>
 );
  
+/* Who confirmed, rejected, moved or edited this booking, and when (booking_activity). */
+const ACTIVITY_FIELD_LABELS = {
+  payment_status: 'Payment status', booking_status: 'Booking status', tour_id: 'Tour',
+  amount_paid: 'Amount paid', total_price: 'Total price', slots_booked: 'Slots',
+  receipt_url: 'Receipt', gcash_reference_no: 'GCash reference', gcash_number: 'GCash number',
+  payment_method: 'Payment method', balance_settled: 'Balance settled', cancellation_reason: 'Cancellation reason',
+  full_name: 'Name', contact_number: 'Contact number', email: 'Email',
+};
+
+const BookingActivity = ({ bookingId }) => {
+  const [entries, setEntries] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase
+      .from('booking_activity')
+      .select('id, actor_name, action, changes, created_at')
+      .eq('booking_id', bookingId)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (error) console.error('Error loading booking activity:', error.message);
+        if (active) setEntries(data || []);
+      });
+    return () => { active = false; };
+  }, [bookingId]);
+
+  const describe = (changes) => Object.keys(changes || {})
+    .filter((k) => ACTIVITY_FIELD_LABELS[k] && typeof changes[k] === 'object' && changes[k] !== null && 'to' in changes[k])
+    .map((k) => {
+      const { from, to } = changes[k];
+      if (k === 'receipt_url' || k === 'tour_id') return ACTIVITY_FIELD_LABELS[k] + ' changed';
+      return `${ACTIVITY_FIELD_LABELS[k]}: ${from ?? '—'} → ${to ?? '—'}`;
+    })
+    .join(' · ');
+
+  return (
+    <ViewSection title="Activity" icon={<History size={14} />}>
+      {entries === null ? (
+        <SkeletonLines lines={3} label="Loading activity" />
+      ) : entries.length === 0 ? (
+        <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>No activity recorded yet.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {entries.map((e) => (
+            <div key={e.id} style={{ borderLeft: '3px solid rgba(180,81,30,0.35)', paddingLeft: 12 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
+                {e.action} <span style={{ fontWeight: 600, color: '#7A3A18' }}>by {e.actor_name}</span>
+              </p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
+                {new Date(e.created_at).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
+                {describe(e.changes) && ` · ${describe(e.changes)}`}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </ViewSection>
+  );
+};
+
 const InfoItem = ({ label, value, mono = false }) => (
   <div>
-    <p style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 5px' }}>
+    <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 4px' }}>
       {label}
     </p>
-    <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
+    <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
       {value || '—'}
     </p>
   </div>
@@ -1041,18 +1223,21 @@ const Notice = ({ color, bg, icon, title, text }) => (
     <span style={{ color, flexShrink: 0, marginTop: 1 }}>{icon}</span>
     <div>
       <p style={{ fontSize: 13, fontWeight: 900, color, margin: '0 0 4px' }}>{title}</p>
-      <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.8, margin: 0, lineHeight: 1.6 }}>{text}</p>
+      <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, lineHeight: 1.6 }}>{text}</p>
     </div>
   </div>
 );
  
 const STATUS_STYLES = {
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
-  'Verification Pending': { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
-  Complete: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
-  Verified: { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
+  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  'Verification Pending': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  Complete: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
+  Verified: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.55)' },
+  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
+  'Cancellation Requested': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
+  'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
+  Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };
  
 const StatusBadge = ({ status, large = false }) => {
@@ -1074,7 +1259,7 @@ const StatusBadge = ({ status, large = false }) => {
 };
  
 const BALANCE_STATUS_STYLES = {
-  'Fully Paid': { bg: 'rgba(196,92,38,0.14)', color: '#C45C26' },
+  'Fully Paid': { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   'Balance Due': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
 };
  
@@ -1084,7 +1269,7 @@ const BalanceStatusBadge = ({ status }) => {
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       background: bg, color, borderRadius: 999,
-      padding: '3px 10px', fontSize: 8,
+      padding: '3px 10px', fontSize: 11,
       fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
@@ -1094,20 +1279,23 @@ const BalanceStatusBadge = ({ status }) => {
 };
  
 const PAYMENT_METHOD_STYLES = {
-  'Full Payment': { bg: 'rgba(26,10,0,0.06)', color: '#1A0A00' },
-  Downpayment: { bg: 'rgba(232,162,101,0.25)', color: '#9A5B1E' },
+  'Full Payment': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
+  Downpayment: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
 };
  
 const PaymentMethodBadge = ({ method }) => {
-  if (!method) return <span style={{ color: 'rgba(122,58,24,0.4)', fontSize: 11, fontWeight: 700 }}>—</span>;
-  const { bg, color } = PAYMENT_METHOD_STYLES[method] || { bg: 'rgba(196,92,38,0.1)', color: '#7A3A18' };
+  if (!method) return <span style={{ color: '#7A3A18', fontSize: 11, fontWeight: 700 }}>—</span>;
+  const { bg, color } = PAYMENT_METHOD_STYLES[method] || { bg: 'rgba(180,81,30,0.1)', color: '#7A3A18' };
+  const Icon = method === 'Downpayment' ? Wallet : CreditCard;
   return (
+    // Sized to its text (not stretched to the column), like the status badges beside it.
     <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start', width: 'fit-content',
       background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 9, fontWeight: 900,
-      letterSpacing: '0.16em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+      padding: '4px 11px', fontSize: 10, fontWeight: 900,
+      letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
-      {method}
+      <Icon size={11} /> {method}
     </span>
   );
 };

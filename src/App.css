@@ -189,6 +189,7 @@
 .admin-dashboard-container, 
 .joiner-dashboard-container {
   height: 100vh !important;
+  height: 100dvh !important; /* the visible height on phones, so nothing hides under the browser's toolbar */
   width: 100vw !important;
   overflow: hidden !important;
   display: flex;
@@ -200,6 +201,7 @@
 /* Ensure the main content area handles its own scrolling */
 main {
   height: 100vh !important;
+  height: 100dvh !important;
   overflow-y: auto !important;
   flex: 1;
   background-color: #f8fafc;
@@ -244,7 +246,9 @@ main {
     top: 0;
     left: 0;
     height: 100vh !important;
+    height: 100dvh !important;
     z-index: 100 !important;
+    padding-bottom: env(safe-area-inset-bottom);
     transform: translateX(-100%);
     box-shadow: 8px 0 40px rgba(26,10,0,0.35) !important;
   }
@@ -266,15 +270,6 @@ main {
     z-index: 90;
   }
  
-  .dashboard-header {
-    padding-left: 1.25rem !important;
-    padding-right: 1.25rem !important;
-  }
- 
-  .dashboard-header-search {
-    display: none !important;
-  }
- 
   .dashboard-user-chip-text {
     display: none !important;
   }
@@ -285,17 +280,17 @@ main {
 }
  
 @media (max-width: 560px) {
-  .dashboard-header-title {
-    font-size: 12px !important;
-    letter-spacing: 0.04em !important;
-  }
- 
   .dashboard-hero-padding {
     padding: 1.75rem 1.5rem !important;
   }
  
   .dashboard-content {
     padding: 1rem !important;
+  }
+
+  /* Phones: page name only, so the bell and account fit beside it */
+  .page-header-subtitle {
+    display: none;
   }
 }
  
@@ -314,7 +309,7 @@ main {
    tablet breakpoint (900px). */
 @media (max-width: 900px) {
   .responsive-section-grid-2 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
  
@@ -324,6 +319,13 @@ main {
   .responsive-form-grid-3 {
     grid-template-columns: 1fr !important;
   }
+
+  /* A tour date in the tour form: start and end stacked, remove button beside them */
+  .tour-date-row {
+    grid-template-columns: 1fr auto !important;
+  }
+  .tour-date-row > div:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .tour-date-row > button { grid-column: 2; grid-row: 1 / 3; align-self: center; }
  
   /* 4-column gallery thumbnail grids become 2 columns instead of 1 */
   .responsive-form-grid-4 {
@@ -348,4 +350,70 @@ main {
   .responsive-table-wrapper table {
     min-width: 640px;
   }
+}
+/* Phone menu on short screens: tighter spacing so every item fits on the
+   screen without scrolling the menu (items stay at least 40px tall). */
+@media (max-width: 900px) and (max-height: 860px) {
+  .dashboard-sidebar > div:first-of-type {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  .dashboard-sidebar nav {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    gap: 2px !important;
+  }
+  .dashboard-sidebar nav > button {
+    min-height: 40px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  .dashboard-sidebar > div:last-child {
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
+  }
+}
+
+/* Trip Day card (My Bookings): details and QR stack on phones */
+@media (max-width: 720px) {
+  .trip-day-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* Reports KPI cards: 4 per row on wide screens, then 3, 2, 1 */
+@media (max-width: 1180px) { .report-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+@media (max-width: 820px)  { .report-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 420px)  { .report-kpis { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* Calendar: on phones the day boxes are too narrow for tour names, so each
+   tour shows as a small bar (tapping the day lists the names below). */
+@media (max-width: 600px) {
+  .cal-tour-chip { font-size: 0 !important; padding: 0 !important; height: 5px; }
+  .cal-tour-more { display: none; }
+}
+
+/* Admin request window: on phones the Approve/Reject buttons fill the width, Approve on top. */
+@media (max-width: 560px) {
+  .request-modal-actions { flex-direction: column-reverse; padding: 1rem 1.25rem !important; }
+  .request-modal-body { padding: 1.5rem 1.25rem !important; }
+  .request-modal-actions > button { width: 100%; justify-content: center; }
+}
+
+/* Light header of admin details windows (ui/ModalHeader): tighter on phones. */
+@media (max-width: 560px) {
+  .modal-header-light { padding: 1.25rem 3.25rem 1.1rem 1.25rem !important; gap: 12px !important; }
+  .modal-header-light > div:first-child { width: 48px !important; height: 48px !important; font-size: 16px !important; }
+}
+
+/* Joiner Accounts: on phones the table keeps Joiner (with email), Bookings
+   and the arrow; address, contact and join date are in the details window. */
+.joiners-phone-only { display: none; }
+@media (max-width: 640px) {
+  .responsive-table-wrapper table.joiners-table { min-width: 0; }
+  .joiners-table th:nth-child(2), .joiners-table td:nth-child(2),
+  .joiners-table th:nth-child(3), .joiners-table td:nth-child(3),
+  .joiners-table th:nth-child(5), .joiners-table td:nth-child(5) { display: none; }
+  .joiners-table th, .joiners-table td { padding-left: 14px !important; padding-right: 14px !important; }
+  .joiners-phone-only { display: block; }
+  .joiners-search { flex: 1 1 100%; }
+  .joiners-search input { width: 100% !important; }
 }

@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { Star, Send, Trash2, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
+import { shrinkImage } from './imageCompress';
+import { toast } from './ui/toast';
+import { confirmDialog } from './ui/ConfirmDialog';
+import { todayManila } from './tourUtils';
+import { mediaFileError } from './validation';
+import EmptyState from './ui/EmptyState';
+
+const REVIEW_MAX = 1000;
+import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
+import { SkeletonPosts } from './ui/Skeleton';
 
 const displayName = (profile) => {
   if (!profile) return 'A Traveler';
@@ -10,10 +19,17 @@ const displayName = (profile) => {
   return 'A Traveler';
 };
 
+const initialsOf = (profile) => {
+  const first = (profile?.first_name || '').trim();
+  const last = (profile?.last_name || '').trim();
+  if (first || last) return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase() || first.charAt(0).toUpperCase();
+  if (profile?.username) return profile.username.charAt(0).toUpperCase();
+  return '?';
+};
+
 const formatDate = (dateStr) =>
   new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-/* Formats a tour's date (or date range, if start/end differ) for display */
 const formatTourDate = (startStr, endStr) => {
   if (!startStr) return '';
   const opts = { month: 'short', day: 'numeric', year: 'numeric' };
@@ -28,16 +44,14 @@ const formatTourDate = (startStr, endStr) => {
   return `${startLabel} – ${endLabel}`;
 };
 
-/* Read-only star display */
 const StarRow = ({ rating, size = 14 }) => (
   <div style={{ display: 'flex', gap: 2 }}>
     {[1, 2, 3, 4, 5].map(n => (
-      <Star key={n} size={size} fill={n <= rating ? '#E8A265' : 'none'} color={n <= rating ? '#E8A265' : 'rgba(122,58,24,0.3)'} />
+      <Star key={n} size={size} fill={n <= rating ? '#E8A265' : 'none'} color={n <= rating ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
     ))}
   </div>
 );
 
-/* Interactive star picker */
 const StarPicker = ({ value, onChange }) => {
   const [hover, setHover] = useState(0);
   return (
@@ -51,28 +65,22 @@ const StarPicker = ({ value, onChange }) => {
           onMouseLeave={() => setHover(0)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}
         >
-          <Star size={26} fill={n <= (hover || value) ? '#E8A265' : 'none'} color={n <= (hover || value) ? '#E8A265' : 'rgba(122,58,24,0.3)'} />
+          <Star size={26} fill={n <= (hover || value) ? '#E8A265' : 'none'} color={n <= (hover || value) ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
         </button>
       ))}
     </div>
   );
 };
 
-/* ─────────────────────────────────────────────
-   REVIEWS  (shared between AdminDashboard & JoinerDashboard)
-   isAdmin=true  -> read-only, sees every review, can moderate (delete)
-   isAdmin=false -> can leave a review for any tour they've completed
-───────────────────────────────────────────── */
-const Reviews = ({ isAdmin = false }) => {
+const Reviews = ({ isAdmin = false, onExplore }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewableTours, setReviewableTours] = useState([]);
   const [selectedTourId, setSelectedTourId] = useState('');
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [mediaItems, setMediaItems] = useState([]); // [{ file, preview, type: 'image'|'video' }]
+  const [mediaItems, setMediaItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const mediaInputRef = useRef(null);
 
@@ -86,7 +94,7 @@ const Reviews = ({ isAdmin = false }) => {
 
     const userIds = [...new Set((data || []).map(r => r.user_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = userIds.length
-      ? await supabase.from('profiles').select('id, first_name, last_name, username').in('id', userIds)
+      ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url').in('id', userIds)
       : { data: [] };
     if (profilesError) console.error('Error fetching review authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
@@ -95,17 +103,20 @@ const Reviews = ({ isAdmin = false }) => {
     setLoading(false);
   }, []);
 
-  // Tours this joiner has completed and hasn't reviewed yet.
+  // Same rule the database enforces (can_review_tour): payment confirmed and the tour has ended.
   const fetchReviewableTours = useCallback(async (userId, existingReviewTourIds) => {
     const { data: bookings } = await supabase
       .from('bookings')
-      .select('tour_id, tours(id, title, destination, start_date, end_date)')
+      .select('tour_id, payment_status, booking_status, tours(id, title, destination, start_date, end_date)')
       .eq('user_id', userId)
-      .eq('booking_status', 'Completed');
+      .not('booking_status', 'in', '("Cancelled","Rejected")');
 
+    const today = todayManila();
     const uniqueMap = {};
     (bookings || []).forEach(b => {
-      if (b.tour_id && b.tours && !existingReviewTourIds.includes(b.tour_id)) {
+      const paid = b.payment_status === 'Complete' || b.booking_status === 'Completed';
+      const ended = b.tours && (b.tours.end_date || b.tours.start_date) < today;
+      if (b.tour_id && b.tours && paid && ended && !existingReviewTourIds.includes(b.tour_id)) {
         uniqueMap[b.tour_id] = b.tours;
       }
     });
@@ -134,8 +145,13 @@ const Reviews = ({ isAdmin = false }) => {
   }, [fetchReviews]);
 
   const handleMediaSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
+    const picked = Array.from(e.target.files || []);
+    if (!picked.length) return;
+    // Skip files that aren't photos/videos or are too big to upload.
+    const problems = picked.map((f) => mediaFileError(f)).filter(Boolean);
+    if (problems.length) toast.error(`${problems.length} file${problems.length === 1 ? ' was' : 's were'} skipped`, problems.join('\n'));
+    const files = picked.filter((f) => !mediaFileError(f));
+    if (!files.length) { if (mediaInputRef.current) mediaInputRef.current.value = ''; return; }
     const next = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
@@ -152,20 +168,25 @@ const Reviews = ({ isAdmin = false }) => {
   const uploadReviewMedia = async () => {
     const uploaded = [];
     for (const item of mediaItems) {
-      const ext = item.file.name.split('.').pop();
-      const fileName = `${Math.random()}.${ext}`;
+      const file = item.type === 'video' ? item.file : await shrinkImage(item.file); // photos are resized before upload
+      const ext = file.name.split('.').pop();
+      // Joiners may only upload into their own review-media/<user id>/ folder.
+      const filePath = `review-media/${currentUserId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('tours')
-        .upload(`review-media/${fileName}`, item.file);
+        .upload(filePath, file);
       if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('tours').getPublicUrl(`review-media/${fileName}`);
+      const { data } = supabase.storage.from('tours').getPublicUrl(filePath);
       uploaded.push({ url: data.publicUrl, type: item.type });
     }
     return uploaded;
   };
 
   const handleSubmit = async () => {
-    if (!selectedTourId || rating === 0) { alert('Please select a tour and give it a star rating.'); return; }
+    if (!selectedTourId || rating === 0) { toast.info('Almost there', 'Please choose a tour and give it a star rating.'); return; }
+    if (comment.trim().length > REVIEW_MAX) { toast.error('Review is too long', `${REVIEW_MAX} characters at most.`); return; }
+    // Reviews can't be deleted, so a last look before it goes up.
+    if (!(await confirmDialog({ title: `Post your ${rating}-star review?`, message: "Reviews can't be edited or deleted after posting.", confirmLabel: 'Post Review', cancelLabel: 'Keep Editing' }))) return;
     setSubmitting(true);
     try {
       const media = mediaItems.length ? await uploadReviewMedia() : [];
@@ -184,23 +205,16 @@ const Reviews = ({ isAdmin = false }) => {
       setComment('');
       mediaItems.forEach(m => URL.revokeObjectURL(m.preview));
       setMediaItems([]);
+      toast.success('Review posted', 'Thank you for sharing your experience!');
       fetchReviews();
       const { data: myReviews } = await supabase.from('reviews').select('tour_id').eq('user_id', currentUserId);
       fetchReviewableTours(currentUserId, (myReviews || []).map(r => r.tour_id));
     } catch (err) {
       const msg = err.message?.includes('duplicate') ? "You've already reviewed this tour." : err.message;
-      alert('Error submitting review: ' + msg);
+      toast.error("Couldn't post your review", msg);
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this review? This cannot be undone.')) return;
-    setDeletingId(id);
-    const { error } = await supabase.from('reviews').delete().eq('id', id);
-    if (error) alert('Error: ' + error.message); else fetchReviews();
-    setDeletingId(null);
   };
 
   const avgRating = reviews.length
@@ -210,58 +224,40 @@ const Reviews = ({ isAdmin = false }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 780, margin: '0 auto' }}>
 
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 11, background: '#1A0A00',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265',
-          }}>
-            <MessageSquare size={18} />
-          </div>
-          <div>
-            <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-              Tour Reviews
-            </h2>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
-              {isAdmin ? 'What joiners are saying about your tours' : 'Share your experience &amp; read what others say'}
-            </p>
-          </div>
-        </div>
-
+      {/* average rating */}
         {avgRating && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.14)', borderRadius: 999, padding: '8px 16px' }}>
+          <div style={{ alignSelf: 'flex-end', display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 999, padding: '8px 16px' }}>
             <StarRow rating={Math.round(avgRating)} size={13} />
             <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{avgRating}</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78 }}>({reviews.length})</span>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>({reviews.length})</span>
           </div>
         )}
-      </div>
 
       {/* composer — joiner only */}
       {!isAdmin && (
         <div style={{
           background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
           {reviewableTours.length === 0 ? (
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.78, margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
               Once you've completed a tour, it'll show up here so you can leave a review.
             </p>
           ) : (
             <>
               <label style={{
-                display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 6,
+                display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
+                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 6,
               }}>
                 Which tour would you like to review?
               </label>
               <select
+                id="review-tour"
                 value={selectedTourId}
                 onChange={(e) => setSelectedTourId(e.target.value)}
                 style={{
                   width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-                  border: '1px solid rgba(196,92,38,0.18)', borderRadius: 14,
+                  border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14,
                   padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00',
                   fontFamily: 'inherit', outline: 'none',
                 }}
@@ -280,7 +276,7 @@ const Reviews = ({ isAdmin = false }) => {
                 return (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
-                    fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.75,
+                    fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9,
                   }}>
                     <Calendar size={12} /> Tour date: {formatTourDate(selectedTour.start_date, selectedTour.end_date)}
                   </div>
@@ -290,8 +286,8 @@ const Reviews = ({ isAdmin = false }) => {
               <div style={{ marginBottom: 16 }} />
 
               <label style={{
-                display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8,
+                display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
+                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 8,
               }}>
                 Your Rating
               </label>
@@ -299,12 +295,13 @@ const Reviews = ({ isAdmin = false }) => {
 
               <textarea
                 value={comment}
+                maxLength={REVIEW_MAX}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Tell other joiners about your experience..."
                 rows={3}
                 style={{
                   width: '100%', boxSizing: 'border-box', resize: 'vertical', marginTop: 16,
-                  background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+                  background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
                   borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
                   color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
                 }}
@@ -350,8 +347,8 @@ const Reviews = ({ isAdmin = false }) => {
                   onClick={() => mediaInputRef.current?.click()}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-                    fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: '#7A3A18', opacity: 0.75,
+                    fontSize: 11.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    color: '#7A3A18', opacity: 0.9,
                     background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
                   }}
                 >
@@ -371,11 +368,11 @@ const Reviews = ({ isAdmin = false }) => {
                   disabled={submitting || !selectedTourId || rating === 0}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(196,92,38,0.4)' : '#C45C26',
+                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(180,81,30,0.4)' : '#B4511E',
                     color: '#FDF6EE', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
                     border: 'none', cursor: (submitting || !selectedTourId || rating === 0) ? 'not-allowed' : 'pointer',
-                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(196,92,38,0.3)',
+                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(180,81,30,0.3)',
                   }}
                 >
                   {submitting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -390,85 +387,66 @@ const Reviews = ({ isAdmin = false }) => {
 
       {/* review list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.35)' }}>
-          <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading reviews…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonPosts count={3} withImage={false} label="Loading reviews" />
       ) : reviews.length === 0 ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '4rem 2rem', border: '2px dashed rgba(196,92,38,0.18)', borderRadius: 20,
-          color: 'rgba(122,58,24,0.35)', textAlign: 'center',
-        }}>
-          <Star size={36} style={{ marginBottom: 12, opacity: 0.5 }} />
-          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-            No reviews yet
-          </p>
-          <p style={{ fontSize: 12, fontWeight: 600, margin: '6px 0 0', opacity: 0.85 }}>
-            Reviews from joiners will appear here.
-          </p>
-        </div>
+        <EmptyState
+          icon={Star}
+          title="No reviews yet"
+          message={isAdmin
+            ? 'Reviews from joiners will show up here after their tours.'
+            : reviewableTours.length
+              ? 'Be the first to share how your trip went. It helps other joiners decide.'
+              : 'Join a tour and you can review it here once it\'s done.'}
+          action={!isAdmin && reviewableTours.length
+            ? { label: 'Write a Review', onClick: () => document.getElementById('review-tour')?.focus() }
+            : !isAdmin && onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
+        />
       ) : (
         reviews.map(review => (
-          <ReviewCard
-            key={review.id}
-            review={review}
-            canDelete={isAdmin || review.user_id === currentUserId}
-            deleting={deletingId === review.id}
-            onDelete={() => handleDelete(review.id)}
-          />
+          <ReviewCard key={review.id} review={review} />
         ))
       )}
     </div>
   );
 };
 
-/* ── REVIEW CARD ── */
-const ReviewCard = ({ review, canDelete, deleting, onDelete }) => (
+/* ── REVIEW CARD ──
+   Reviews can't be deleted, by the joiner or by an admin. */
+const ReviewCard = ({ review }) => (
   <div style={{
     background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
-    border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+    border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
   }}>
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
           background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#E8A265', fontWeight: 900, fontSize: 15,
+          color: '#E8A265', fontWeight: 900, fontSize: 15, overflow: 'hidden',
         }}>
-          {displayName(review.author).charAt(0).toUpperCase()}
+          {review.author?.avatar_url ? (
+            <img src={review.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            initialsOf(review.author)
+          )}
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
-            {displayName(review.author)}
+            {review.user_id ? displayName(review.author) : 'Deleted account'}
           </p>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
             {formatDate(review.created_at)}
           </p>
         </div>
       </div>
 
-      {canDelete && (
-        <button
-          onClick={onDelete}
-          disabled={deleting}
-          title="Delete review"
-          style={{
-            background: 'none', border: 'none', cursor: deleting ? 'not-allowed' : 'pointer',
-            color: 'rgba(140,47,28,0.5)', padding: 6, flexShrink: 0,
-          }}
-        >
-          {deleting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
-        </button>
-      )}
     </div>
 
     {review.tours && (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         <span style={{
           background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
-          fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
+          fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
           color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
         }}>
           <MapPin size={10} /> {review.tours.title}
@@ -476,7 +454,7 @@ const ReviewCard = ({ review, canDelete, deleting, onDelete }) => (
         {review.tours.start_date && (
           <span style={{
             background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
-            fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
             color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
           }}>
             <Calendar size={10} /> {formatTourDate(review.tours.start_date, review.tours.end_date)}

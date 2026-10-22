@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { shrinkImage } from './imageCompress';
+import { toast } from './ui/toast';
+import { confirmDialog } from './ui/ConfirmDialog';
+import { mediaFileError } from './validation';
+import EmptyState from './ui/EmptyState';
+import { formatPeso } from './tourUtils';
 import {
   Image as ImageIcon, Send, Trash2, X, Loader2, MapPin,
   Compass, Rss, Video, ChevronDown, MessageCircle,
 } from 'lucide-react';
+import { SkeletonPosts } from './ui/Skeleton';
 
 const REACTIONS = [
   { emoji: '👍', label: 'Like' },
@@ -16,7 +23,7 @@ const REACTIONS = [
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #7A3A18  rust mid-tone
@@ -63,7 +70,6 @@ const Feed = ({ isAdmin = false }) => {
   const [expandedPostIds, setExpandedPostIds] = useState(new Set());
   const [reactingId, setReactingId] = useState(null);
   const [commentingId, setCommentingId] = useState(null);
-  const [deletingCommentId, setDeletingCommentId] = useState(null);
   const postIdsRef = useRef([]);
 
   const fetchReactions = useCallback(async (postIds) => {
@@ -87,7 +93,7 @@ const Feed = ({ isAdmin = false }) => {
 
     const authorIds = [...new Set((data || []).map(c => c.user_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = authorIds.length
-      ? await supabase.from('profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
+      ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
       : { data: [] };
     if (profilesError) console.error('Error fetching comment authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
@@ -111,7 +117,7 @@ const Feed = ({ isAdmin = false }) => {
 
     const authorIds = [...new Set((data || []).map(p => p.author_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = authorIds.length
-      ? await supabase.from('profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
+      ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
       : { data: [] };
     if (profilesError) console.error('Error fetching post authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
@@ -162,8 +168,13 @@ const Feed = ({ isAdmin = false }) => {
   }, [fetchReactions, fetchComments]);
 
   const handleMediaSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
+    const picked = Array.from(e.target.files || []);
+    if (!picked.length) return;
+    // Skip files that aren't photos/videos or are too big to upload.
+    const problems = picked.map((f) => mediaFileError(f)).filter(Boolean);
+    if (problems.length) toast.error(`${problems.length} file${problems.length === 1 ? ' was' : 's were'} skipped`, problems.join('\n'));
+    const files = picked.filter((f) => !mediaFileError(f));
+    if (!files.length) { if (fileInputRef.current) fileInputRef.current.value = ''; return; }
     const next = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
@@ -189,9 +200,10 @@ const Feed = ({ isAdmin = false }) => {
     try {
       const media = [];
       for (const item of mediaItems) {
-        const ext = item.file.name.split('.').pop();
+        const file = item.type === 'video' ? item.file : await shrinkImage(item.file); // photos are resized before upload
+        const ext = file.name.split('.').pop();
         const fileName = `${Math.random()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from('tours').upload(`feed-media/${fileName}`, item.file);
+        const { error: uploadError } = await supabase.storage.from('tours').upload(`feed-media/${fileName}`, file);
         if (uploadError) throw uploadError;
         const { data } = supabase.storage.from('tours').getPublicUrl(`feed-media/${fileName}`);
         media.push({ url: data.publicUrl, type: item.type });
@@ -212,22 +224,22 @@ const Feed = ({ isAdmin = false }) => {
       clearComposer();
       fetchPosts();
     } catch (err) {
-      alert('Error posting: ' + err.message);
+      toast.error("Couldn't publish the post", err.message);
     } finally {
       setPosting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this post? This cannot be undone.')) return;
+    if (!(await confirmDialog({ title: 'Delete this post?', message: "It will be removed from everyone's feed. This can't be undone.", confirmLabel: 'Delete Post', cancelLabel: 'Keep Post', tone: 'danger' }))) return;
     setDeletingId(id);
     const { error } = await supabase.from('feed_posts').delete().eq('id', id);
-    if (error) alert('Error: ' + error.message); else fetchPosts();
+    if (error) toast.error("Couldn't delete the post", error.message); else { toast.success('Post deleted'); fetchPosts(); }
     setDeletingId(null);
   };
 
   const toggleReaction = async (postId, emoji) => {
-    if (!currentUserId) { alert('Please log in to react.'); return; }
+    if (!currentUserId) { toast.info('Please log in to react to posts.'); return; }
     setReactingId(postId);
     try {
       const mine = (reactionsMap[postId] || []).find(r => r.user_id === currentUserId);
@@ -243,7 +255,7 @@ const Feed = ({ isAdmin = false }) => {
       setOpenPickerId(null);
       fetchReactions(postIdsRef.current);
     } catch (err) {
-      alert('Error reacting: ' + err.message);
+      toast.error("Couldn't react to the post", err.message);
     } finally {
       setReactingId(null);
     }
@@ -276,61 +288,31 @@ const Feed = ({ isAdmin = false }) => {
       setCommentDrafts(prev => ({ ...prev, [postId]: '' }));
       fetchComments(postIdsRef.current);
     } catch (err) {
-      alert('Error posting comment: ' + err.message);
+      toast.error("Couldn't post comment", err.message);
     } finally {
       setCommentingId(null);
-    }
-  };
-
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Delete this comment?')) return;
-    setDeletingCommentId(commentId);
-    try {
-      const { error } = await supabase.from('feed_comments').delete().eq('id', commentId);
-      if (error) throw error;
-      fetchComments(postIdsRef.current);
-    } catch (err) {
-      alert('Error: ' + err.message);
-    } finally {
-      setDeletingCommentId(null);
     }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 680, margin: '0 auto' }}>
 
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 38, height: 38, borderRadius: 11, background: '#1A0A00',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265',
-        }}>
-          <Rss size={18} />
-        </div>
-        <div>
-          <h2 style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0 }}>
-            Community Feed
-          </h2>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '2px 0 0' }}>
-            Updates, announcements &amp; newly posted tours
-          </p>
-        </div>
-      </div>
-
       {/* composer — admin only */}
       {isAdmin && (
         <div style={{
           background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(196,92,38,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
           <textarea
+            id="feed-composer"
             value={content}
+            maxLength={3000}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share an announcement with your joiners..."
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box', resize: 'vertical',
-              background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)',
+              background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
               borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
               color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
             }}
@@ -375,8 +357,8 @@ const Feed = ({ isAdmin = false }) => {
               onClick={() => fileInputRef.current?.click()}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-                fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#7A3A18', opacity: 0.75,
+                fontSize: 11.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: '#7A3A18', opacity: 0.9,
                 background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
               }}
             >
@@ -413,25 +395,14 @@ const Feed = ({ isAdmin = false }) => {
 
       {/* feed list */}
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', color: 'rgba(122,58,24,0.35)' }}>
-          <Loader2 size={20} style={{ marginRight: 10, animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>Loading feed…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonPosts count={3} label="Loading feed" />
       ) : posts.length === 0 ? (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '4rem 2rem', border: '2px dashed rgba(196,92,38,0.18)', borderRadius: 20,
-          color: 'rgba(122,58,24,0.35)', textAlign: 'center',
-        }}>
-          <Compass size={36} style={{ marginBottom: 12, opacity: 0.5 }} />
-          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-            No posts yet
-          </p>
-          <p style={{ fontSize: 12, fontWeight: 600, margin: '6px 0 0', opacity: 0.85 }}>
-            {isAdmin ? 'Share your first update above.' : 'Check back soon for updates from Bandang IBAYO.'}
-          </p>
-        </div>
+        <EmptyState
+          icon={Rss}
+          title={isAdmin ? 'No posts yet' : 'Nothing in the feed yet'}
+          message={isAdmin ? 'Share announcements, tour updates or travel tips with your joiners.' : 'Updates, new tours and announcements from Bandang IBAYO will show up here.'}
+          action={isAdmin ? { label: 'Write a Post', onClick: () => document.getElementById('feed-composer')?.focus() } : null}
+        />
       ) : (
         posts.map(post => (
           <FeedPostCard
@@ -454,8 +425,6 @@ const Feed = ({ isAdmin = false }) => {
             onCommentDraftChange={(v) => handleCommentDraftChange(post.id, v)}
             onAddComment={() => handleAddComment(post.id)}
             commenting={commentingId === post.id}
-            onDeleteComment={handleDeleteComment}
-            deletingCommentId={deletingCommentId}
           />
         ))
       )}
@@ -468,7 +437,6 @@ const FeedPostCard = ({
   post, canDelete, deleting, onDelete,
   currentUserId, reactions, reacting, pickerOpen, onTogglePicker, onQuickLike, onPickReaction,
   comments, commentsExpanded, onToggleComments, commentDraft, onCommentDraftChange, onAddComment, commenting,
-  onDeleteComment, deletingCommentId,
 }) => {
   const isTourPost = post.post_type === 'tour';
   const tour = post.tours;
@@ -487,7 +455,7 @@ const FeedPostCard = ({
   return (
     <div style={{
       background: '#FDF6EE', borderRadius: 20, overflow: 'hidden',
-      border: '1px solid rgba(196,92,38,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
     }}>
       <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -503,13 +471,13 @@ const FeedPostCard = ({
               {displayName(post.author)}
               {post.author?.role === 'admin' && (
                 <span style={{
-                  marginLeft: 8, background: '#C45C26', color: '#FDF6EE',
-                  fontSize: 8, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  marginLeft: 8, background: '#B4511E', color: '#FDF6EE',
+                  fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
                   borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle',
                 }}>Admin</span>
               )}
             </p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.78, margin: '3px 0 0' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
               {timeAgo(post.created_at)} {isTourPost && '· New Tour Posted'}
             </p>
           </div>
@@ -520,9 +488,10 @@ const FeedPostCard = ({
             onClick={onDelete}
             disabled={deleting}
             title="Delete post"
+            aria-label="Delete post"
             style={{
               background: 'none', border: 'none', cursor: deleting ? 'not-allowed' : 'pointer',
-              color: 'rgba(140,47,28,0.5)', padding: 6, flexShrink: 0,
+              color: '#C0362C', padding: 8, flexShrink: 0, borderRadius: 8,
             }}
           >
             {deleting ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={15} />}
@@ -583,13 +552,13 @@ const FeedPostCard = ({
             <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {tour.title}
             </p>
-            <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
               <MapPin size={11} /> {tour.destination}
             </p>
           </div>
           {tour.price != null && (
-            <span style={{ fontSize: 14, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>
-              ₱{Number(tour.price).toLocaleString()}
+            <span style={{ fontSize: 14, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>
+              {formatPeso(Number(tour.price))}
             </span>
           )}
         </div>
@@ -614,7 +583,7 @@ const FeedPostCard = ({
           {comments.length > 0 && (
             <button
               onClick={onToggleComments}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit', opacity: 0.8 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit', opacity: 0.9 }}
             >
               {comments.length} Comment{comments.length !== 1 ? 's' : ''}
             </button>
@@ -622,7 +591,7 @@ const FeedPostCard = ({
         </div>
       )}
 
-      <div style={{ borderTop: '1px solid rgba(196,92,38,0.12)', margin: '0 1.5rem' }} />
+      <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', margin: '0 1.5rem' }} />
 
       {/* action row: like / comment toggle */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '4px 1rem', gap: 4 }}>
@@ -633,7 +602,7 @@ const FeedPostCard = ({
             style={{
               display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
               cursor: reacting ? 'not-allowed' : 'pointer', padding: '10px 10px', borderRadius: 10,
-              fontSize: 12, fontWeight: 800, color: mine ? '#C45C26' : '#7A3A18', fontFamily: 'inherit',
+              fontSize: 12, fontWeight: 800, color: mine ? '#A8481A' : '#7A3A18', fontFamily: 'inherit',
             }}
           >
             <span style={{ fontSize: 15 }}>{mine ? mine.emoji : '👍'}</span>
@@ -642,7 +611,7 @@ const FeedPostCard = ({
           <button
             onClick={onTogglePicker}
             title="Choose a reaction"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#7A3A18', opacity: 0.55 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#7A3A18', opacity: 0.9 }}
           >
             <ChevronDown size={13} />
           </button>
@@ -650,7 +619,7 @@ const FeedPostCard = ({
           {pickerOpen && (
             <div style={{
               position: 'absolute', bottom: '110%', left: 0, background: '#FDF6EE',
-              border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999, padding: '6px 10px',
+              border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999, padding: '6px 10px',
               display: 'flex', gap: 6, boxShadow: '0 8px 24px rgba(26,10,0,0.18)', zIndex: 5,
             }}>
               {REACTIONS.map(r => (
@@ -700,24 +669,13 @@ const FeedPostCard = ({
                   <div style={{ flex: 1, background: '#F2E4D0', borderRadius: 14, padding: '8px 12px', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                       <p style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
-                        {displayName(c.author, 'Joiner')}
+                        {c.user_id ? displayName(c.author, 'Joiner') : 'Deleted account'}
                       </p>
-                      {(canDelete || c.user_id === currentUserId) && (
-                        <button
-                          onClick={() => onDeleteComment(c.id)}
-                          disabled={deletingCommentId === c.id}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(140,47,28,0.5)', padding: 2, flexShrink: 0 }}
-                        >
-                          {deletingCommentId === c.id
-                            ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} />
-                            : <Trash2 size={11} />}
-                        </button>
-                      )}
                     </div>
                     <p style={{ fontSize: 12.5, color: '#1A0A00', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
                       {c.content}
                     </p>
-                    <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.72, margin: '4px 0 0' }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
                       {timeAgo(c.created_at)}
                     </p>
                   </div>
@@ -729,12 +687,14 @@ const FeedPostCard = ({
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               value={commentDraft}
+              maxLength={500}
+              aria-describedby={`comment-note-${post.id}`}
               onChange={(e) => onCommentDraftChange(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onAddComment(); } }}
               placeholder="Write a comment..."
               style={{
                 flex: 1, boxSizing: 'border-box', background: '#F2E4D0',
-                border: '1px solid rgba(196,92,38,0.18)', borderRadius: 999,
+                border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999,
                 padding: '9px 14px', fontSize: 12.5, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
               }}
             />
@@ -743,7 +703,7 @@ const FeedPostCard = ({
               disabled={commenting || !commentDraft.trim()}
               style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                background: (commenting || !commentDraft.trim()) ? 'rgba(196,92,38,0.35)' : '#C45C26',
+                background: (commenting || !commentDraft.trim()) ? 'rgba(180,81,30,0.35)' : '#B4511E',
                 color: '#FDF6EE', border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: (commenting || !commentDraft.trim()) ? 'not-allowed' : 'pointer',
@@ -752,6 +712,9 @@ const FeedPostCard = ({
               {commenting ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
             </button>
           </div>
+          <p id={`comment-note-${post.id}`} style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 4px 0' }}>
+            Comments can't be edited or deleted after posting.
+          </p>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>
       )}

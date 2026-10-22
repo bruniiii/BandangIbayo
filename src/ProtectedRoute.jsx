@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     // 1. Check if a user session exists on load
@@ -24,7 +25,9 @@ const ProtectedRoute = ({ children }) => {
   if (loading) return null; // Or a loading spinner
 
   if (!session) {
-    return <Navigate to="/admin-login" replace />; // Redirect if not logged in
+    // Redirect if not logged in, coming back here after login
+    const next = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`${redirectTo}?next=${next}`} replace />;
   }
 
   return children;

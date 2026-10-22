@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Map, Calendar, Users,
-  FileText, Bell, CreditCard, LogOut, Search, TrendingUp, AlertCircle,
-  CheckCircle2, XCircle, Clock, Menu, X, Rss, Star, Globe,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessageSquare, Loader2
+  LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
+  LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe,
+  ArrowUpRight, MapPin, Wallet, ImageIcon, ScanLine, User
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
 import Feed from './Feed';
@@ -14,20 +14,28 @@ import ProfileSettings from './Profilesettings.jsx';
 import Reviews from './Reviews';
 import JoinerAccounts from './Joineraccounts';
 import Reports from './Reports';
+import AdminCheckIn from './AdminCheckIn';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
 import NotificationBell from './NotificationBell';
+import Notification from './Notification';
+import { formatPeso, archivePastTours } from './tourUtils';
+import { confirmDialog } from './ui/ConfirmDialog';
+import PageHeader from './ui/PageHeader';
+import MenuEdgeTab from './ui/MenuEdgeTab';
+import { SkeletonRows, Skel } from './ui/Skeleton';
+import { readTab, saveTab, forgetTab } from './rememberTab';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 // #E8A265  warm amber (highlight)
 // #FDF6EE  cream (light bg)
 // #2D1B0E  deep brown (dark card)
 // #7A3A18  rust mid-tone
 // #F2E4D0  parchment (legacy section bg, still used for some inset panels)
-// #EDEAE3  warm stone (page bg — cooler/greyer than parchment so cream cards pop)
+// #FDF6EE  cream (page bg, same as the public Tours page)
 // #3F5D62  slate teal (secondary contrast accent, used sparingly)
 // ---------------------------------------------------------
  
@@ -41,21 +49,8 @@ const timeAgo = (dateStr) => {
   return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? 's' : ''} ago`;
 };
  
-const deriveActivity = (booking) => {
-  const name = booking.profiles
-    ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim()
-    : booking.full_name || 'Unknown';
  
-  if (booking.booking_status === 'Cancelled') {
-    return { label: 'Booking cancelled', name, type: 'cancel', Icon: XCircle, ts: booking.updated_at || booking.created_at };
-  }
-  if (booking.payment_status === 'Complete' || booking.payment_status === 'Verified') {
-    return { label: 'Payment confirmed via GCash', name, type: 'payment', Icon: CreditCard, ts: booking.updated_at || booking.created_at };
-  }
-  return { label: 'New booking created', name, type: 'booking', Icon: CheckCircle2, ts: booking.created_at };
-};
- 
-const peso = (n) => `₱${Number(n || 0).toLocaleString()}`;
+const peso = formatPeso;
 
 const truncate = (text, max = 74) => {
   if (!text) return '';
@@ -90,14 +85,18 @@ const NAV_ITEMS = [
   { icon: <Users size={18} strokeWidth={2} />,           label: 'Joiner Accounts' },
   { icon: <Globe size={18} strokeWidth={2} />,           label: 'Exclusive Requests' },
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
+  { icon: <ScanLine size={18} strokeWidth={2} />,        label: 'Check-in' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
+  { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
 ];
  
 // ─── Main Component ──────────────────────────────────────────────────────────
  
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [activeTab, setActiveTab] = useState(() => readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'Overview'));
+  // A refresh reopens the page you were on (see rememberTab.js).
+  useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -133,6 +132,7 @@ const AdminDashboard = () => {
     switch (notification.type) {
       case 'booking':
       case 'payment':
+      case 'cancellation':
         handleNavClick('Booking Management');
         break;
       case 'exclusive_request':
@@ -163,7 +163,6 @@ const AdminDashboard = () => {
     revenueThisMonth: 0,
     revenueLastMonth: 0,
   });
-  const [activities, setActivities] = useState([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
   // Per-module snapshot data surfaced on the Overview tab so admins don't
@@ -182,9 +181,18 @@ const AdminDashboard = () => {
   });
  
   const handleLogout = async () => {
+    const ok = await confirmDialog({
+      title: 'Sign out?',
+      message: "You'll need to log in again to manage tours and bookings.",
+      confirmLabel: 'Sign Out',
+      cancelLabel: 'Stay Signed In',
+    });
+    if (!ok) return;
+    // Leave the dashboard first, so signing out lands on the landing page, not the login page.
+    forgetTab(TAB_KEY);
+    navigate('/', { replace: true });
     const { error } = await supabase.auth.signOut();
-    if (error) alert('Logout failed: ' + error.message);
-    else navigate('/admin/login');
+    if (error) toast.error('Logout failed', error.message);
   };
  
   const fetchOverviewData = async () => {
@@ -196,6 +204,7 @@ const AdminDashboard = () => {
     const nextMonthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 1).toISOString();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
+    await archivePastTours();
     const [
       { count: totalBookings },
       { count: bookingsThisMonth },
@@ -205,7 +214,6 @@ const AdminDashboard = () => {
       { count: pendingVerification },
       { count: totalJoiners },
       { count: joinersThisWeek },
-      { data: recentBookingsRaw },
       { data: revenueThisMonthRaw },
       { data: revenueLastMonthRaw },
       { data: upcomingToursRaw },
@@ -225,7 +233,6 @@ const AdminDashboard = () => {
       supabase.from('bookings').select('*', { count: 'exact', head: true }).in('payment_status', ['Pending', 'Verification Pending']),
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
-      supabase.from('bookings').select('id, full_name, user_id, payment_status, booking_status, created_at, updated_at').order('updated_at', { ascending: false }).limit(10),
       supabase.from('bookings').select('total_price').eq('payment_status', 'Complete').gte('created_at', monthStart).lt('created_at', monthEnd),
       supabase.from('bookings').select('total_price').eq('payment_status', 'Complete').gte('created_at', lastMonthStart).lt('created_at', monthStart),
       supabase.from('tours').select('id, title, destination, start_date, group_size, image_urls').eq('is_archived', false).order('start_date', { ascending: true }).limit(3),
@@ -252,16 +259,6 @@ const AdminDashboard = () => {
       revenueThisMonth,
       revenueLastMonth,
     });
-
-    if (recentBookingsRaw && recentBookingsRaw.length > 0) {
-      const userIds = [...new Set(recentBookingsRaw.map(b => b.user_id).filter(Boolean))];
-      const { data: profilesData } = await supabase.from('profiles').select('id, first_name, last_name').in('id', userIds);
-      const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
-      const enriched = recentBookingsRaw.map(b => ({ ...b, profiles: profileMap[b.user_id] || null }));
-      setActivities(enriched.map(deriveActivity));
-    } else {
-      setActivities([]);
-    }
 
     // ── Tour Management snippet: live booked/capacity for the next 3 tours ──
     let toursWithCounts = [];
@@ -337,9 +334,9 @@ const AdminDashboard = () => {
  
   return (
     <div className="admin-dashboard-container" style={{
-      display: 'flex', height: '100vh',
-      fontFamily: "'Inter', system-ui, sans-serif",
-      background: '#EDEAE3',
+      display: 'flex', height: '100dvh',
+      fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
+      background: '#FDF6EE',
       color: '#1A0A00',
       overflow: 'hidden',
     }}>
@@ -351,6 +348,9 @@ const AdminDashboard = () => {
       />
  
       {/* ── SIDEBAR — expands on hover (desktop), tap-to-open drawer (mobile) ── */}
+      {/* edge tab: opens the menu from anywhere on the page */}
+      {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
+
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
         onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}
@@ -376,7 +376,7 @@ const AdminDashboard = () => {
               top: 26, right: -14,
               width: 28, height: 28,
               borderRadius: '50%',
-              background: '#C45C26',
+              background: '#B4511E',
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
@@ -386,7 +386,7 @@ const AdminDashboard = () => {
               transition: 'background 0.2s, transform 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.background = '#C45C26'}
+            onMouseLeave={e => e.currentTarget.style.background = '#B4511E'}
           >
             <X size={16} strokeWidth={3} />
           </button>
@@ -400,10 +400,18 @@ const AdminDashboard = () => {
           alignItems: sidebarExpanded ? 'stretch' : 'center',
           overflow: 'hidden',
         }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
-            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
-          }}>
+          {/* Logo: back to the dashboard home */}
+          <button
+            type="button"
+            onClick={() => handleNavClick('Overview')}
+            aria-label="Go to dashboard home"
+            title="Dashboard home"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, marginBottom: sidebarExpanded ? 6 : 0,
+              justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+            }}
+          >
             <img
               src={logoIcon}
               alt="BANDANG IBAYO"
@@ -416,15 +424,15 @@ const AdminDashboard = () => {
               }}
             />
             {sidebarExpanded && (
-              <span style={{ fontWeight: 900, fontSize: 16, letterSpacing: '-0.03em', color: '#FDF6EE', whiteSpace: 'nowrap' }}>
-                Bandang <span style={{ color: '#C45C26' }}>IBAYO</span>
+              <span className="font-display" style={{ fontSize: 19, color: '#FDF6EE', whiteSpace: 'nowrap' }}>
+                Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span>
               </span>
             )}
-          </div>
+          </button>
           {sidebarExpanded && (
             <p style={{
-              fontSize: 9, fontWeight: 800, letterSpacing: '0.22em',
-              textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', margin: 0,
+              fontSize: 11, fontWeight: 800, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: 0,
               whiteSpace: 'nowrap',
             }}>
               Admin Management
@@ -454,17 +462,17 @@ const AdminDashboard = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(232,210,190,0.4)',
+              color: 'rgba(232,210,190,0.85)',
               fontFamily: 'inherit',
               padding: 0,
               transition: 'color 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.4)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.85)'}
           >
             <LogOut size={16} style={{ flexShrink: 0 }} />
             {sidebarExpanded && (
-              <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                 Logout System
               </span>
             )}
@@ -476,100 +484,58 @@ const AdminDashboard = () => {
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
  
         {/* header */}
-        <header className="dashboard-header" style={{
-          background: '#FDF6EE',
-          borderBottom: '1px solid rgba(196,92,38,0.12)',
-          height: 72,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 2.5rem',
-          position: 'sticky', top: 0, zIndex: 10,
-          boxShadow: '0 2px 16px rgba(26,10,0,0.06)',
-          gap: 12,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-            {/* hamburger - hidden on desktop via CSS, shown <=900px */}
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setMobileNavOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu size={22} />
-            </button>
- 
-            <h2 className="dashboard-header-title" style={{
-              fontWeight: 900, fontSize: 15, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: '#1A0A00', margin: 0,
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-            }}>
-              {activeTab}
-            </h2>
-          </div>
- 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* search */}
-            <div className="dashboard-header-search" style={{ position: 'relative' }}>
-              <Search
-                size={15}
-                style={{
-                  position: 'absolute', left: 14, top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: 'rgba(122,58,24,0.35)',
-                  pointerEvents: 'none',
-                }}
-              />
-              <input
-                type="text"
-                placeholder="Search system..."
-                style={{
-                  paddingLeft: 36, paddingRight: 16,
-                  paddingTop: 9, paddingBottom: 9,
-                  background: '#F2E4D0',
-                  border: '1px solid rgba(196,92,38,0.18)',
-                  borderRadius: 999,
-                  fontSize: 11, fontWeight: 600,
-                  color: '#1A0A00',
-                  fontFamily: 'inherit',
-                  width: 220,
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            {/* notification bell — live from the `notifications` table,
-                surfaces joiner-side activity: new bookings, payment
-                submissions, cancellations, reviews, requests, registrations */}
-            <NotificationBell onNotificationClick={handleNotificationNavigate} />
-
-            {/* admin chip */}
-            <div
-              onClick={() => handleNavClick('Profile Settings')}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: '#F2E4D0',
-                border: '1px solid rgba(196,92,38,0.18)',
-                borderRadius: 14, padding: '8px 14px',
-                cursor: 'pointer',
-              }}>
-              <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
-                <p style={{ fontSize: 9, fontWeight: 700, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
-              </div>
-              <div style={{
-                width: 38, height: 38, borderRadius: 11,
-                background: '#1A0A00',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#E8A265', fontWeight: 900, fontSize: 15,
-                boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
-                flexShrink: 0,
-              }}>
-                A
-              </div>
-            </div>
-          </div>
-        </header>
- 
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#EDEAE3' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE', display: 'flex', flexDirection: 'column' }}>
+          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+              {/* hamburger - hidden on desktop via CSS, shown <=900px */}
+              <button
+                className="mobile-menu-btn"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu size={22} />
+              </button>
+              {PAGE_INFO[activeTab] && <PageHeader {...PAGE_INFO[activeTab]} />}
+            </div>
+ 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              {/* notification bell — live from the `notifications` table,
+                  surfaces joiner-side activity: new bookings, payment
+                  submissions, cancellations, reviews, requests, registrations */}
+              <NotificationBell onNotificationClick={handleNotificationNavigate} />
+
+              {/* admin chip */}
+              <div
+                onClick={() => handleNavClick('Profile Settings')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: '#F2E4D0',
+                  border: '1px solid rgba(180,81,30,0.18)',
+                  borderRadius: 14, padding: '8px 14px',
+                  cursor: 'pointer',
+                }}>
+                <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
+                </div>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 11,
+                  background: '#1A0A00',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#E8A265', fontWeight: 900, fontSize: 15,
+                  boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                  flexShrink: 0,
+                }}>
+                  A
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* The page content under the title row */}
+          <div style={{ flex: 1, minHeight: 0 }}>
  
           {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
@@ -586,8 +552,8 @@ const AdminDashboard = () => {
               }}>
                 <div>
                   <p style={{
-                    fontSize: 9, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase',
-                    color: '#C45C26', margin: '0 0 6px',
+                    fontSize: 11, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase',
+                    color: '#E8A265', margin: '0 0 6px',
                   }}>
                     Operations Overview
                   </p>
@@ -606,7 +572,7 @@ const AdminDashboard = () => {
                     color: '#E8A265', letterSpacing: '0.04em',
                   }}>
                     <AlertCircle size={13} />
-                    {loadingStats ? '…' : stats.pendingVerification} awaiting verification
+                    {loadingStats ? <Skel dark w={22} h={11} style={{ display: 'inline-block' }} /> : stats.pendingVerification} awaiting verification
                   </span>
                 </div>
               </div>
@@ -615,9 +581,9 @@ const AdminDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
                 <StatCard
                   title="Revenue This Month"
-                  value={loadingStats ? '…' : peso(stats.revenueThisMonth)}
+                  value={loadingStats ? <Skel w={140} h={34} style={{ display: 'inline-block' }} /> : peso(stats.revenueThisMonth)}
                   icon={<Wallet size={18} />}
-                  iconColor="#C45C26"
+                  iconColor="#A8481A"
                   trend={loadingStats ? '' : (() => {
                     const last = stats.revenueLastMonth || 0;
                     if (last === 0) return 'No data for last month';
@@ -627,7 +593,7 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                   title="Total Bookings"
-                  value={loadingStats ? '…' : stats.totalBookings}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalBookings}
                   icon={<TrendingUp size={18} />}
                   iconColor="#3F5D62"
                   trend={loadingStats ? '' : (() => {
@@ -639,14 +605,14 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                   title="Pending Verification"
-                  value={loadingStats ? '…' : stats.pendingVerification}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.pendingVerification}
                   icon={<AlertCircle size={18} />}
-                  iconColor="#C45C26"
+                  iconColor="#A8481A"
                   trend={loadingStats ? '' : 'Awaiting payment review'}
                 />
                 <StatCard
                   title="Total Joiners"
-                  value={loadingStats ? '…' : stats.totalJoiners}
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalJoiners}
                   icon={<Users size={18} />}
                   iconColor="#3F5D62"
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
@@ -662,7 +628,7 @@ const AdminDashboard = () => {
                   }}>
                     Module Snapshots
                   </h3>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.55, margin: 0 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                     Live from Tours, Bookings, Joiners, Reviews &amp; Feed
                   </p>
                 </div>
@@ -680,21 +646,21 @@ const AdminDashboard = () => {
                     emptyText="No active tours yet."
                   >
                     {snippets.tours.map(t => (
-                      <div key={t.id} style={{ padding: '10px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={t.id} style={{ padding: '10px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                           <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {t.title}
                           </p>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, flexShrink: 0 }}>{shortDate(t.start_date)}</span>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>{shortDate(t.start_date)}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                          <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(196,92,38,0.14)', overflow: 'hidden' }}>
+                          <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(180,81,30,0.14)', overflow: 'hidden' }}>
                             <div style={{
                               height: '100%', borderRadius: 999, width: `${t.pct}%`,
-                              background: t.pct >= 100 ? '#C45C26' : t.pct >= 80 ? '#E8A265' : '#7A3A18',
+                              background: t.pct >= 100 ? '#B4511E' : t.pct >= 80 ? '#E8A265' : '#7A3A18',
                             }} />
                           </div>
-                          <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7A3A18', opacity: 0.7, flexShrink: 0 }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>
                             {t.booked}/{t.capacity}
                           </span>
                         </div>
@@ -713,16 +679,16 @@ const AdminDashboard = () => {
                     emptyText="Nothing awaiting verification."
                   >
                     {snippets.pendingBookings.map(b => (
-                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {personName(b.profiles, b.full_name)}
                           </p>
-                          <p style={{ fontSize: 10.5, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {b.tours?.title || 'Tour'}
                           </p>
                         </div>
-                        <span style={{ fontSize: 11.5, fontWeight: 900, color: '#C45C26', flexShrink: 0 }}>{peso(b.total_price)}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>{peso(b.total_price)}</span>
                       </div>
                     ))}
                   </ModuleCard>
@@ -738,7 +704,7 @@ const AdminDashboard = () => {
                     emptyText="No joiners registered yet."
                   >
                     {snippets.recentJoiners.map(p => (
-                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{
                           width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
                           background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -749,7 +715,7 @@ const AdminDashboard = () => {
                         <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {personName(p, 'Unnamed Joiner')}
                         </p>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.55, flexShrink: 0 }}>{shortDate(p.created_at)}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>{shortDate(p.created_at)}</span>
                       </div>
                     ))}
                   </ModuleCard>
@@ -765,19 +731,19 @@ const AdminDashboard = () => {
                     emptyText="Nothing awaiting review."
                   >
                     {snippets.pendingExclusiveRequests.map(r => (
-                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(196,92,38,0.08)' }}>
+                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                         <div style={{ minWidth: 0 }}>
                           <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.full_name || 'Joiner'}
                           </p>
-                          <p style={{ fontSize: 10.5, fontWeight: 600, color: '#7A3A18', opacity: 0.6, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.destination || 'Destination TBD'}
                           </p>
                         </div>
                         <span style={{
-                          fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
-                          color: r.request_type === 'exclusive' ? '#1A0A00' : '#C45C26',
-                          background: r.request_type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(196,92,38,0.12)',
+                          fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+                          color: r.request_type === 'exclusive' ? '#1A0A00' : '#A8481A',
+                          background: r.request_type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
                           borderRadius: 999, padding: '3px 9px', flexShrink: 0,
                         }}>
                           {r.request_type === 'exclusive' ? 'Exclusive' : 'Request'}
@@ -804,17 +770,17 @@ const AdminDashboard = () => {
                           </p>
                           <div style={{ display: 'flex', gap: 1 }}>
                             {[1, 2, 3, 4, 5].map(n => (
-                              <Star key={n} size={11} fill={n <= snippets.latestReview.rating ? '#E8A265' : 'none'} color={n <= snippets.latestReview.rating ? '#E8A265' : 'rgba(122,58,24,0.25)'} />
+                              <Star key={n} size={11} fill={n <= snippets.latestReview.rating ? '#E8A265' : 'none'} color={n <= snippets.latestReview.rating ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
                             ))}
                           </div>
                         </div>
                         {snippets.latestReview.tours?.title && (
-                          <p style={{ fontSize: 10, fontWeight: 700, color: '#C45C26', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#A8481A', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
                             <MapPin size={10} /> {snippets.latestReview.tours.title}
                           </p>
                         )}
                         {snippets.latestReview.comment && (
-                          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, lineHeight: 1.5, margin: 0 }}>
+                          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.5, margin: 0 }}>
                             "{truncate(snippets.latestReview.comment, 96)}"
                           </p>
                         )}
@@ -843,7 +809,7 @@ const AdminDashboard = () => {
                             <div style={{
                               width: 52, height: 52, borderRadius: 12, flexShrink: 0,
                               background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: 'rgba(196,92,38,0.35)',
+                              color: '#A8481A',
                             }}>
                               <ImageIcon size={20} />
                             </div>
@@ -854,7 +820,7 @@ const AdminDashboard = () => {
                             {personName(snippets.latestPost.author, 'Bandang IBAYO')}
                           </p>
                           <p style={{
-                            fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.85, lineHeight: 1.5, margin: 0,
+                            fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.5, margin: 0,
                             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                           }}>
                             {snippets.latestPost.content || (snippets.latestPost.post_type === 'tour' ? 'New tour posted.' : 'Shared an update.')}
@@ -865,64 +831,6 @@ const AdminDashboard = () => {
                   </ModuleCard>
 
                 </div>
-              </div>
-
-              {/* recent activity */}
-              <div style={{
-                background: '#FDF6EE',
-                borderRadius: 24,
-                padding: '2rem 2.5rem',
-                border: '1px solid rgba(196,92,38,0.12)',
-                boxShadow: '0 4px 24px rgba(26,10,0,0.06)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-                    background: '#1A0A00', color: '#E8A265',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Clock size={15} />
-                  </div>
-                  <h3 style={{
-                    fontWeight: 900, fontSize: 13, letterSpacing: '0.18em',
-                    textTransform: 'uppercase', color: '#1A0A00',
-                    margin: 0,
-                  }}>
-                    Recent System Activity
-                  </h3>
-                </div>
- 
-                {loadingStats ? (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '4rem 0', color: 'rgba(122,58,24,0.3)',
-                  }}>
-                    <Clock size={22} style={{ marginRight: 10 }} />
-                    <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-                      Loading activity…
-                    </span>
-                  </div>
-                ) : activities.length === 0 ? (
-                  <div style={{
-                    display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center',
-                    padding: '4rem 0',
-                    border: '2px dashed rgba(196,92,38,0.15)',
-                    borderRadius: 16,
-                    color: 'rgba(122,58,24,0.3)',
-                  }}>
-                    <Users size={36} style={{ marginBottom: 10, opacity: 0.3 }} />
-                    <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-                      No recent activity
-                    </p>
-                  </div>
-                ) : (
-                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {activities.map((item, i) => (
-                      <ActivityItem key={i} {...item} />
-                    ))}
-                  </ul>
-                )}
               </div>
             </div>
           )}
@@ -935,10 +843,13 @@ const AdminDashboard = () => {
           {activeTab === 'Exclusive Requests' && <AdminExclusiveTours />}
           {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
           {activeTab === 'Reports' && <Reports />}
+          {activeTab === 'Check-in' && <AdminCheckIn />}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
           {activeTab === 'Profile Settings' && <ProfileSettings />}
+          {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
+          
 
           {/* FALLBACK COMING SOON SECTION */}
           {activeTab !== 'Overview' &&
@@ -950,14 +861,16 @@ const AdminDashboard = () => {
            activeTab !== 'Exclusive Requests' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
-           activeTab !== 'Profile Settings' && (
+           activeTab !== 'Check-in' &&
+           activeTab !== 'Profile Settings' &&
+           activeTab !== 'Notification' && (
             <div style={{
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
               background: '#FDF6EE',
               borderRadius: 24,
-              border: '1px solid rgba(196,92,38,0.12)',
+              border: '1px solid rgba(180,81,30,0.12)',
               boxShadow: '0 4px 24px rgba(26,10,0,0.06)',
               padding: '3rem',
               textAlign: 'center',
@@ -966,7 +879,7 @@ const AdminDashboard = () => {
                 width: 72, height: 72, borderRadius: 20,
                 background: '#F2E4D0',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(196,92,38,0.25)', marginBottom: 20,
+                color: '#A8481A', marginBottom: 20,
               }}>
                 <FileText size={36} />
               </div>
@@ -976,59 +889,36 @@ const AdminDashboard = () => {
               }}>
                 {activeTab} Module
               </h3>
-              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.6, margin: 0 }}>
+              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                 Coming soon — check back later.
               </p>
             </div>
           )}
+          </div>
         </div>
       </main>
     </div>
   );
 };
  
-// ─── Activity Item ────────────────────────────────────────────────────────────
- 
-const ACTIVITY_COLORS = {
-  cancel:  { bg: 'rgba(196,92,38,0.10)',  color: '#C45C26' },
-  payment: { bg: 'rgba(26,10,0,0.07)',    color: '#7A3A18' },
-  booking: { bg: 'rgba(232,162,101,0.15)', color: '#E8A265' },
+// Title and one-line description shown at the top of each page.
+const TAB_KEY = 'ibayo-admin-tab';
+
+const PAGE_INFO = {
+  'Overview':            { icon: LayoutDashboard, title: 'Overview',            subtitle: "Today's bookings, payments and tours at a glance" },
+  'Feed':                { icon: Rss,             title: 'Community Feed',      subtitle: 'Updates, announcements & newly posted tours' },
+  'Tour Management':     { icon: Map,             title: 'Tour Management',     subtitle: 'Create tours, add dates and manage your postings' },
+  'Booking Management':  { icon: Calendar,        title: 'Booking Management',  subtitle: 'Verify payments, track downpayments and update booking status' },
+  'Joiner Accounts':     { icon: Users,           title: 'Joiner Accounts',     subtitle: 'Everyone registered as a joiner' },
+  'Exclusive Requests':  { icon: Globe,           title: 'Exclusive Requests',  subtitle: 'Private-group requests and new destination suggestions from joiners' },
+  'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners" },
+  'Check-in':            { icon: ScanLine,        title: 'Check-in',            subtitle: "Scan each joiner's QR on the day of the tour. One QR covers their whole group." },
+  'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
+  'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
+  'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
+  'Profile Settings':    { icon: User,            title: 'Profile Settings',    subtitle: 'Manage your account information and preferences' },
 };
- 
-const ActivityItem = ({ label, name, type, ts, Icon }) => { // Fixed destructured Icon prop bug
-  const { bg, color } = ACTIVITY_COLORS[type] || ACTIVITY_COLORS.booking;
-  return (
-    <li style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '14px 0',
-      borderBottom: '1px solid rgba(196,92,38,0.08)',
-      gap: 16,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: '50%',
-          background: bg,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-          color,
-        }}>
-          {Icon && <Icon size={17} />}
-        </div>
-        <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>{label}</p>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.65, margin: '3px 0 0' }}>{name}</p>
-        </div>
-      </div>
-      <span style={{
-        fontSize: 10, fontWeight: 700, color: '#7A3A18',
-        opacity: 0.5, whiteSpace: 'nowrap', flexShrink: 0,
-      }}>
-        {timeAgo(ts)}
-      </span>
-    </li>
-  );
-};
- 
+
 // ─── Nav Item ────────────────────────────────────────────────────────────────
  
 const NavItem = ({ icon, label, active, onClick, collapsed }) => (
@@ -1044,22 +934,22 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
       borderRadius: 12,
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
-      background: active ? '#C45C26' : 'transparent',
-      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.45)',
+      background: active ? '#B4511E' : 'transparent',
+      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
-      boxShadow: active ? '0 6px 20px rgba(196,92,38,0.35)' : 'none',
+      boxShadow: active ? '0 6px 20px rgba(180,81,30,0.35)' : 'none',
       transition: 'all 0.2s',
       textAlign: 'left',
     }}
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.5)', flexShrink: 0 }}>
+    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0 }}>
       {icon}
     </span>
     {!collapsed && (
-      <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
       </span>
     )}
@@ -1073,7 +963,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     background: '#FDF6EE',
     borderRadius: 20,
     padding: '1.75rem 2rem',
-    border: '1px solid rgba(196,92,38,0.12)',
+    border: '1px solid rgba(180,81,30,0.12)',
     boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
     display: 'flex', flexDirection: 'column', gap: 10,
     transition: 'transform 0.2s',
@@ -1084,8 +974,8 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <p style={{
-        fontSize: 10, fontWeight: 800, letterSpacing: '0.18em',
-        textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0,
+        fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em',
+        textTransform: 'uppercase', color: '#7A3A18', margin: 0,
       }}>
         {title}
       </p>
@@ -1093,7 +983,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
         width: 36, height: 36, borderRadius: 10,
         background: '#F1EEE8',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: iconColor || '#C45C26',
+        color: iconColor || '#A8481A',
         flexShrink: 0,
       }}>
         {icon}
@@ -1107,8 +997,8 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     </p>
     {trend && (
       <p style={{
-        fontSize: 10, fontWeight: 700, fontStyle: 'italic',
-        color: '#7A3A18', opacity: 0.7, margin: 0,
+        fontSize: 11.5, fontWeight: 700, fontStyle: 'italic',
+        color: '#7A3A18', opacity: 0.9, margin: 0,
       }}>
         {trend}
       </p>
@@ -1125,14 +1015,14 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
   <div style={{
     background: '#FDF6EE',
     borderRadius: 20,
-    border: '1px solid rgba(196,92,38,0.12)',
+    border: '1px solid rgba(180,81,30,0.12)',
     boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
     display: 'flex', flexDirection: 'column',
     overflow: 'hidden',
   }}>
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '1.1rem 1.35rem', borderBottom: '1px solid rgba(196,92,38,0.1)',
+      padding: '1.1rem 1.35rem', borderBottom: '1px solid rgba(180,81,30,0.1)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         <div style={{
@@ -1147,7 +1037,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
             {title}
           </p>
           {metaLabel && (
-            <p style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.6, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
               {metaLabel}
             </p>
           )}
@@ -1159,8 +1049,8 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
         style={{
           display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#C45C26', fontFamily: 'inherit', fontWeight: 800,
-          fontSize: 10, letterSpacing: '0.06em', padding: 4,
+          color: '#A8481A', fontFamily: 'inherit', fontWeight: 800,
+          fontSize: 11.5, letterSpacing: '0.06em', padding: 4,
         }}
       >
         View <ArrowUpRight size={13} />
@@ -1169,16 +1059,22 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
 
     <div style={{ padding: '0.4rem 1.35rem 0.9rem', flex: 1 }}>
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '1.5rem 0', color: 'rgba(122,58,24,0.4)' }}>
-          <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-          <span style={{ fontSize: 10.5, fontWeight: 700 }}>Loading…</span>
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-        </div>
+        <SkeletonRows count={3} avatar={false} boxed={false} />
       ) : empty ? (
-        <div style={{ padding: '1.5rem 0', textAlign: 'center' }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.55, margin: 0, fontStyle: 'italic' }}>
-            {emptyText}
-          </p>
+        // Small empty state: what's missing, plus a way to the full module.
+        <div style={{ padding: '1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
+          <span aria-hidden="true" style={{
+            width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'linear-gradient(145deg, #F7E3CC, #F2D3B3)', color: '#A8481A',
+          }}>
+            {icon}
+          </span>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>{emptyText}</p>
+          {onViewAll && (
+            <button type="button" className="text-link" onClick={onViewAll} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 11.5 }}>
+              Open {title}
+            </button>
+          )}
         </div>
       ) : children}
     </div>

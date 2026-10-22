@@ -1,6 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
+
+import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter, groupTripDates, tripForDate } from './tourUtils';
+import { TripDatePicker, TripDateLines } from './ui/TripDates';
+import { MoreTourFilters } from './ui/TourFilters';
+import { applyTripFilters, useTripFilters } from './tripFilters';
+import { startCheckout } from './payments';
+import EmptyState from './ui/EmptyState';
+import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
+import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
 
 import { 
 
@@ -11,6 +21,9 @@ import {
   CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
 
 } from 'lucide-react';
+import { phoneFieldProps } from './ui/phoneField';
+import { SkeletonTourCards } from './ui/Skeleton';
+import ItineraryTimeline from './ui/ItineraryTimeline';
 
 
 
@@ -18,7 +31,7 @@ import {
 
 // #1A0A00  espresso dark
 
-// #C45C26  burnt sienna (accent)
+// #A8481A  burnt sienna (accent)
 
 // #E8A265  warm amber (highlight)
 
@@ -40,7 +53,9 @@ import {
 
  
 
-const JoinerTours = () => {
+const JoinerTours = ({ initialTourId = null }) => {
+
+  const pendingTourId = useRef(initialTourId);
 
   const [tours, setTours] = useState([]);
 
@@ -68,61 +83,6 @@ const JoinerTours = () => {
 
  
 
-  const formatDateRange = (dateString, duration) => {
-
-    if (!dateString) return "";
-
-    const [year, month, day] = dateString.split('-').map(Number);
-
- 
-
-    const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;
-
-    const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
-
- 
-
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
- 
-
-    const startDate = new Date(year, month - 1, day);
-
-    const endDate = new Date(year, month - 1, day + numDays - 1);
-
- 
-
-    const startMonth = monthNames[startDate.getMonth()];
-
-    const endMonth = monthNames[endDate.getMonth()];
-
-    const startYear = startDate.getFullYear();
-
-    const endYear = endDate.getFullYear();
-
- 
-
-    if (numDays <= 1) {
-
-      return `${startMonth} ${startDate.getDate()}, ${startYear}`;
-
-    } else if (startMonth === endMonth && startYear === endYear) {
-
-      return `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startYear}`;
-
-    } else if (startYear === endYear) {
-
-      return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startYear}`;
-
-    } else {
-
-      return `${startMonth} ${startDate.getDate()}, ${startYear} - ${endMonth} ${endDate.getDate()}, ${endYear}`;
-
-    }
-
-  };
 
  
 
@@ -130,6 +90,7 @@ const JoinerTours = () => {
 
     setLoading(true);
 
+    await archivePastTours();
     const { data: toursData } = await supabase
 
       .from('tours')
@@ -138,45 +99,25 @@ const JoinerTours = () => {
 
       .eq('is_archived', false)
 
+      .or(notEndedFilter())
+
       .order('start_date', { ascending: true });
 
  
 
-    const { data: bookingsData } = await supabase
+    // One card per trip; the joiner picks the date in the booking window.
+    const updatedTours = groupTripDates(await withAvailableSlots(toursData));
 
-      .from('bookings')
 
-      .select('tour_id, slots_booked')
-
-      .not('booking_status', 'in', '("Cancelled","Rejected")');
-
- 
-
-    const updatedTours = (toursData || []).map(tour => {
-
-      const totalBooked = (bookingsData || [])
-
-        .filter(b => b.tour_id === tour.id)
-
-        .reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-
-      const maxCapacity = tour.group_size || 15;
-
-      return { 
-
-        ...tour, 
-
-        current_booked: totalBooked, 
-
-        available_slots: Math.max(0, maxCapacity - totalBooked) 
-
-      };
-
-    });
-
- 
 
     setTours(updatedTours);
+
+    // Opened from a shared tour link (/dashboard?book=<id>): show that tour's booking window once.
+    if (pendingTourId.current) {
+      const target = tripForDate(updatedTours, pendingTourId.current);
+      pendingTourId.current = null;
+      if (target) setSelectedTour(target);
+    }
 
     setLoading(false);
 
@@ -220,7 +161,12 @@ const JoinerTours = () => {
 
  
 
-  const filteredTours = tours.filter((t) => {
+  // Month, price range and trip length (ui/TourFilters.jsx).
+  const { filters: tripFilters, setFilter: setTripFilter, clearFilters: clearTripFilters, active: tripFiltersActive } = useTripFilters();
+  const anyFilter = tripFiltersActive || searchQuery || difficultyFilter !== "All Difficulty";
+  const clearAllFilters = () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); setPriceSort('default'); clearTripFilters(); };
+
+  const filteredTours = applyTripFilters(tours, tripFilters).filter((t) => {
 
     const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || t.destination.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -246,7 +192,7 @@ const JoinerTours = () => {
 
     background: '#F2E4D0',
 
-    border: '1px solid rgba(196,92,38,0.18)',
+    border: '1px solid rgba(180,81,30,0.18)',
 
     borderRadius: 14,
 
@@ -278,7 +224,7 @@ const JoinerTours = () => {
 
         borderRadius: 20, padding: '14px 18px',
 
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
 
         boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
 
@@ -298,7 +244,7 @@ const JoinerTours = () => {
 
             transform: 'translateY(-50%)',
 
-            color: 'rgba(122,58,24,0.35)', pointerEvents: 'none',
+            color: 'rgba(122,58,24,0.85)', pointerEvents: 'none',
 
           }} />
 
@@ -336,7 +282,7 @@ const JoinerTours = () => {
 
           </select>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
 
         </div>
 
@@ -360,9 +306,18 @@ const JoinerTours = () => {
 
           </select>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.35)' }} />
+          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
 
         </div>
+
+        {/* Second row: when, how much, how long */}
+        <div style={{ flexBasis: '100%', height: 0 }} />
+        <MoreTourFilters trips={tours} filters={tripFilters} setFilter={setTripFilter} inputStyle={inputStyle} />
+        {anyFilter && (
+          <button type="button" className="text-link" onClick={clearAllFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, padding: '0 4px' }}>
+            Clear filters
+          </button>
+        )}
 
       </div>
 
@@ -374,50 +329,24 @@ const JoinerTours = () => {
 
         {loading ? (
 
-          <div style={{
-
-            gridColumn: '1 / -1',
-
-            display: 'flex', flexDirection: 'column',
-
-            alignItems: 'center', justifyContent: 'center',
-
-            padding: '5rem 0', color: 'rgba(122,58,24,0.4)',
-
-          }}>
-
-            <Loader2 size={30} style={{ marginBottom: 10, animation: 'spin 1s linear infinite' }} />
-
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', margin: 0 }}>
-
-              Finding Adventures…
-
-            </p>
-
-          </div>
+          <SkeletonTourCards count={6} />
 
         ) : filteredTours.length === 0 ? (
-
-          <div style={{
-
-            gridColumn: '1 / -1',
-
-            padding: '5rem 0', textAlign: 'center',
-
-            background: '#FDF6EE',
-
-            borderRadius: 20,
-
-            border: '2px dashed rgba(196,92,38,0.2)',
-
-          }}>
-
-            <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.4)', margin: 0 }}>
-
-              No tours found.
-
-            </p>
-
+          <div style={{ gridColumn: '1 / -1' }}>
+            {tours.length ? (
+              <EmptyState
+                icon={SearchX}
+                title="No tours match your search"
+                message="Try another month, price or destination, or clear the filters to see every open tour."
+                action={{ label: 'Clear Filters', onClick: clearAllFilters }}
+              />
+            ) : (
+              <EmptyState
+                icon={CalendarClockIcon}
+                title="No open tours right now"
+                message="New tour dates are posted regularly. Check the feed for announcements, or request your own trip from Exclusive Tours."
+              />
+            )}
           </div>
 
         ) : filteredTours.map((tour) => (
@@ -460,7 +389,10 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
   const [hovered, setHovered] = useState(false);
 
-  const isFull = tour.available_slots <= 0;
+  // A trip with several dates lists them; it's full only when every date is.
+  const dates = tour.dates || [tour];
+  const manyDates = dates.length > 1;
+  const isFull = dates.every((d) => d.available_slots <= 0);
 
 
 
@@ -474,7 +406,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
         borderRadius: 22, overflow: 'hidden',
 
-        border: '1px solid rgba(196,92,38,0.12)',
+        border: '1px solid rgba(180,81,30,0.12)',
 
         boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
 
@@ -500,7 +432,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="" />
 
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.2)' }}><ImageIcon size={44} /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
 
         }
 
@@ -512,7 +444,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             background: 'rgba(253,246,238,0.92)', borderRadius: 999,
 
-            padding: '4px 12px', fontSize: 9, fontWeight: 900,
+            padding: '4px 12px', fontSize: 11, fontWeight: 900,
 
             letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00',
 
@@ -524,15 +456,15 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           <span style={{
 
-            background: isFull ? '#8C2F1C' : '#C45C26', color: '#FDF6EE',
+            background: isFull ? '#8C2F1C' : '#B4511E', color: '#FDF6EE',
 
             borderRadius: 999, padding: '4px 10px',
 
-            fontSize: 8, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
 
           }}>
 
-            {isFull ? 'Fully Booked' : `${tour.available_slots} Slots Left`}
+            {isFull ? 'Fully Booked' : manyDates ? `${dates.length} Dates` : `${tour.available_slots} Slots Left`}
 
           </span>
 
@@ -552,33 +484,36 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
 
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#C45C26', marginLeft: 10, flexShrink: 0 }}>₱{tour.price.toLocaleString()}</span>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#A8481A', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
 
           </div>
 
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.65, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
 
-            <MapPin size={11} style={{ color: '#C45C26' }} /> {tour.destination}
+            <MapPin size={11} style={{ color: '#A8481A' }} /> {tour.destination}
 
           </p>
 
+          {manyDates ? (
+            <div style={{ marginBottom: 4 }}><TripDateLines dates={dates} /></div>
+          ) : (<>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
-              <Calendar size={12} style={{ color: '#C45C26' }} /> {formatDateRange(tour.start_date, tour.duration)}
+              <Calendar size={12} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration)}
 
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, fontWeight: 700, color: isFull ? '#8C2F1C' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? '#8C2F1C' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
-              <Users size={12} style={{ color: '#C45C26' }} />
+              <Users size={12} style={{ color: '#A8481A' }} />
 
               {tour.current_booked} / {tour.group_size} Booked
 
               {isFull && (
 
-                <span style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', fontSize: 7, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
+                <span style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
 
               )}
 
@@ -594,7 +529,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
                 height: 6, borderRadius: 999, transition: 'all 0.3s',
 
-                background: isFull ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#C45C26',
+                background: isFull ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#B4511E',
 
                 width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`,
 
@@ -603,6 +538,8 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
             />
 
           </div>
+
+          </>)}
 
         </div>
 
@@ -614,19 +551,17 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
           onClick={onDetails}
 
-          disabled={isFull}
-
           style={{
 
             width: '100%', marginTop: 14,
 
             padding: '11px 0',
 
-            border: 'none', borderRadius: 12, cursor: isFull ? 'not-allowed' : 'pointer',
+            border: 'none', borderRadius: 12, cursor: 'pointer',
 
             fontFamily: 'inherit', fontWeight: 900,
 
-            fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase',
+            fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
 
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
 
@@ -634,17 +569,17 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             background: isFull ? '#F2E4D0' : '#1A0A00',
 
-            color: isFull ? 'rgba(122,58,24,0.5)' : '#FDF6EE',
+            color: isFull ? 'rgba(122,58,24,0.85)' : '#FDF6EE',
 
           }}
 
-          onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#C45C26'; }}
+          onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#B4511E'; }}
 
           onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = '#1A0A00'; }}
 
         >
 
-          <Eye size={13} /> {isFull ? 'Closed' : 'View Details'}
+          <Eye size={13} /> {isFull ? 'Join Waitlist' : manyDates ? 'Pick a Date' : 'View Details'}
 
         </button>
 
@@ -670,7 +605,7 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 
     <h4 style={{
 
-      fontSize: 9, fontWeight: 900, letterSpacing: '0.25em',
+      fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
 
       textTransform: 'uppercase', color: titleColor || '#1A0A00',
 
@@ -698,15 +633,15 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
   if (items.length === 0) {
 
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
 
   }
 
 
 
-  const iconColor = variant === 'exclude' ? '#8C2F1C' : variant === 'include' ? '#C45C26' : '#7A3A18';
+  const iconColor = variant === 'exclude' ? '#8C2F1C' : '#A8481A';
 
-  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(196,92,38,0.07)' : 'rgba(122,58,24,0.06)';
+  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(168,72,26,0.07)' : 'rgba(180,81,30,0.06)';
 
   const Icon = variant === 'exclude' ? X : CheckCircle2;
 
@@ -744,147 +679,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
 
 
-/* Renders itinerary text ("Day 1:" headers + "TIME – Activity" or
 
-   "START – END – Activity" lines) as grouped timeline rows, each
-
-   sized to its own content instead of stretched full-width. */
-
-const ItineraryTimeline = ({ text }) => {
-
-  const rawLines = (text || '').split('\n').map(s => s.trim()).filter(Boolean);
-
-
-
-  if (rawLines.length === 0) {
-
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.5, margin: 0 }}>N/A</p>;
-
-  }
-
-
-
-  // Matches a leading time or time-range (e.g. "04:00 AM", "08:15 AM – 11:00 AM",
-
-  // or Filipino shorthand "12:00nn"/"12:00mn"), followed by a separator (":" or "-"/"–"),
-
-  // with everything after it treated as the activity text.
-
-  const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
-
-  const isDayHeader = (line) => /^day\b/i.test(line);
-
-
-
-  const days = [];
-
-  let current = null;
-
-  rawLines.forEach(line => {
-
-    if (isDayHeader(line)) {
-
-      current = { label: line.replace(/:$/, ''), items: [] };
-
-      days.push(current);
-
-      return;
-
-    }
-
-    if (!current) {
-
-      current = { label: null, items: [] };
-
-      days.push(current);
-
-    }
-
-    const match = line.match(TIME_PREFIX_RE);
-
-    if (match) {
-
-      const time = match[1].replace(/\s*[–-]\s*/g, ' – ').trim();
-
-      current.items.push({ time, activity: match[2].trim() });
-
-    } else {
-
-      current.items.push({ time: null, activity: line });
-
-    }
-
-  });
-
-
-
-  return (
-
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-      {days.map((day, di) => (
-
-        <div key={di}>
-
-          {day.label && (
-
-            <span style={{
-
-              display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
-
-              borderRadius: 999, padding: '4px 12px', fontSize: 9, fontWeight: 900,
-
-              letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10,
-
-            }}>{day.label}</span>
-
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-
-            {day.items.map((item, ii) => (
-
-              <div key={ii} style={{
-
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-
-                background: 'rgba(196,92,38,0.06)', borderRadius: 12, padding: '9px 12px',
-
-                maxWidth: '100%',
-
-              }}>
-
-                {item.time && (
-
-                  <span style={{
-
-                    flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#C45C26',
-
-                    background: '#FDF6EE', border: '1px solid rgba(196,92,38,0.25)',
-
-                    borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
-
-                  }}>{item.time}</span>
-
-                )}
-
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      ))}
-
-    </div>
-
-  );
-
-};
 
 
 
@@ -988,7 +783,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
         ) : (
 
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.3)' }}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}>
 
             <ImageIcon size={40} />
 
@@ -1088,7 +883,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
 
-                border: i === index ? '2px solid #C45C26' : '1px solid rgba(196,92,38,0.15)',
+                border: i === index ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.15)',
 
                 opacity: i === index ? 1 : 0.65, transition: 'opacity 0.2s, border-color 0.2s',
 
@@ -1120,7 +915,17 @@ const TourImageCarousel = ({ images = [] }) => {
 
 ───────────────────────────────────────────── */
 
-const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess }) => {
+// Booking window. A trip with several dates (tour.dates, from groupTripDates)
+// shows a date picker; each date is its own tour, so picking one swaps the
+// window over to that date's slots, waitlist and booking.
+const DetailedTourModal = ({ tour, ...props }) => {
+    const dates = tour.dates?.length ? tour.dates : [tour];
+    const [activeId, setActiveId] = useState(tour.id);
+    const active = dates.find((d) => d.id === activeId) || dates[0];
+    return <TourBookingWindow key={active.id} {...props} tour={active} dates={dates} onPickDate={setActiveId} />;
+};
+
+const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }) => {
 
     const images = tour.image_urls || [];
 
@@ -1132,206 +937,139 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
     const [paymentStep, setPaymentStep] = useState(null);
 
-    const [paymentType, setPaymentType] = useState(null);
 
-    const [bookingId, setBookingId] = useState(null);
-
-    const [createdBooking, setCreatedBooking] = useState(null);
-
-
+    const [redirectingToPayment, setRedirectingToPayment] = useState(false);
+    // Everyone joining besides the person booking (persons 2..N): name + contact each.
+    const [companions, setCompanions] = useState([]);
+    const [companionError, setCompanionError] = useState("");
+    // Waitlist, shown when the tour is full.
+    const [myWaitlist, setMyWaitlist] = useState(null);
+    const [waitlistSlots, setWaitlistSlots] = useState(1);
+    const [waitlistBusy, setWaitlistBusy] = useState(false);
 
     const isFullyBooked = tour.available_slots <= 0;
-
     const isAlmostFull = !isFullyBooked && tour.available_slots <= 3;
-
     const maxBookingLimit = Math.min(tour.available_slots || 0, 10);
-
     const subtotal = tour.price * numPersons;
-
-    const downpaymentAmount = Math.round(subtotal * 0.4);
-
+    const downpaymentAmount = downpaymentFor(subtotal);
     const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
 
+    useEffect(() => {
+        let active = true;
+        (async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const { data } = await supabase
+                .from('tour_waitlist')
+                .select('id, slots_wanted, notified_at')
+                .eq('tour_id', tour.id)
+                .eq('user_id', user.id)
+                .maybeSingle();
+            if (active) setMyWaitlist(data || null);
+        })();
+        return () => { active = false; };
+    }, [tour.id]);
 
-
-    const handleBookThisTour = async () => {
-
+    const handlePersonsChange = (count) => {
+        setNumPersons(count);
+        setCompanions((prev) => Array.from({ length: count - 1 }, (_, i) => prev[i] || { full_name: '', contact_number: '' }));
         setSlotError("");
+        setCompanionError("");
+    };
 
+    const updateCompanion = (index, field, value) => {
+        setCompanions((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
+        setCompanionError("");
+    };
+
+    // Nothing is reserved here: slots are held only once the joiner picks a
+    // payment type and goes to PayMongo (start_online_booking). These checks just
+    // stop a joiner from starting checkout for a tour that's full or already booked.
+    const handleBookThisTour = async () => {
+        setSlotError("");
+        setCompanionError("");
+        if (companions.some((c) => !c.full_name.trim() || !c.contact_number.trim())) {
+            setCompanionError("Please enter the name and contact number of each person joining you.");
+            return;
+        }
+        // Typing mistakes in the companions' details (wrong number format, one-word names, the same person twice).
+        for (let i = 0; i < companions.length; i++) {
+            const c = companions[i];
+            const problem = fullNameError(c.full_name, `Person ${i + 2}'s name`)
+                || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
+            if (problem) { setCompanionError(problem); return; }
+        }
+        const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
+        const repeated = names.find((n, i) => names.indexOf(n) !== i);
+        if (repeated) {
+            setCompanionError(`"${companions[names.indexOf(repeated)].full_name.trim()}" is entered more than once. Each person joining needs their own details.`);
+            return;
+        }
         setIsBooking(true);
-
-
-
         const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { toast.info('Please log in to book a tour.'); setIsBooking(false); return; }
 
-        if (!user) { alert("Please log in to book a tour."); setIsBooking(false); return; }
-
-
-
-        const { data: freshBookings } = await supabase
-
-            .from('bookings')
-
-            .select('slots_booked')
-
-            .eq('tour_id', tour.id)
-
-            .not('booking_status', 'in', '("Cancelled","Rejected")');
-
-
-
-        const totalBooked = (freshBookings || []).reduce((sum, b) => sum + (b.slots_booked || 0), 0);
-
-        const freshAvailable = (tour.group_size || 15) - totalBooked;
-
-
-
-        if (freshAvailable <= 0) {
-
-            setSlotError("Sorry, this tour just became fully booked.");
-
+        const [fresh] = await withAvailableSlots([tour]);
+        if (numPersons > fresh.available_slots) {
+            setSlotError(fresh.available_slots <= 0
+                ? "Sorry, this tour is now fully booked."
+                : `Only ${fresh.available_slots} slot${fresh.available_slots > 1 ? 's' : ''} remaining. Please reduce the number of persons.`);
             setIsBooking(false);
-
             return;
-
         }
-
-
-
-        if (numPersons > freshAvailable) {
-
-            setSlotError(`Only ${freshAvailable} slot${freshAvailable > 1 ? 's' : ''} remaining. Please reduce the number of persons.`);
-
-            setIsBooking(false);
-
-            return;
-
-        }
-
-
 
         const { data: existingBooking } = await supabase
-
             .from('bookings')
-
-            .select('id, booking_number')
-
+            .select('booking_number')
             .eq('tour_id', tour.id)
-
             .eq('user_id', user.id)
-
             .not('booking_status', 'in', '("Cancelled","Rejected")')
-
             .maybeSingle();
-
-
-
         if (existingBooking) {
-
             setSlotError(`You already have an active booking for this tour (${existingBooking.booking_number}). Please check My Bookings.`);
-
             setIsBooking(false);
-
             return;
-
-        }
-
-
-
-        const { data: profile } = await supabase
-
-            .from('profiles')
-
-            .select('full_name, contact_number, email')
-
-            .eq('id', user.id)
-
-            .single();
-
-
-
-        const bookingNumber = `BK-${Date.now().toString().slice(-8)}`;
-
-
-
-        const { data: booking, error } = await supabase.from('bookings').insert([{
-
-            tour_id: tour.id,
-
-            user_id: user.id,
-
-            booking_number: bookingNumber,
-
-            full_name: profile?.full_name || "N/A",
-
-            email: user.email || profile?.email || "N/A",
-
-            contact_number: profile?.contact_number || "N/A",
-
-            slots_booked: numPersons,
-
-            total_price: subtotal,
-
-            payment_status: 'Pending',
-
-            booking_status: 'Active',
-
-            payment_method: null,
-
-        }]).select();
-
-
-
-        if (error) {
-
-            alert("Database Error: " + error.message);
-
-            setIsBooking(false);
-
-        } else {
-
-            setBookingId(booking[0].id);
-
-            setCreatedBooking({
-
-                ...booking[0],
-
-                full_name: profile?.full_name || "N/A",
-
-                email: user.email || profile?.email || "N/A",
-
-                contact_number: profile?.contact_number || "N/A",
-
-                booking_number: bookingNumber,
-
-            });
-
-            setPaymentStep('proceed');
-
-            if (onBookingSuccess) onBookingSuccess();
-
         }
 
         setIsBooking(false);
-
+        setPaymentStep('proceed');
     };
 
-
-
-    const handleChoosePaymentType = (type) => {
-
-        setPaymentType(type);
-
-        setPaymentStep('gcash');
-
+    const handleJoinWaitlist = async () => {
+        setWaitlistBusy(true);
+        const { data, error } = await supabase
+            .from('tour_waitlist')
+            .insert([{ tour_id: tour.id, slots_wanted: waitlistSlots }])
+            .select('id, slots_wanted, notified_at')
+            .single();
+        if (error) toast.error("Couldn't join the waitlist", error.message);
+        else { setMyWaitlist(data); toast.success("You're on the waitlist", "We'll notify and email you if a slot opens."); }
+        setWaitlistBusy(false);
     };
 
+    const handleLeaveWaitlist = async () => {
+        setWaitlistBusy(true);
+        const { error } = await supabase.from('tour_waitlist').delete().eq('id', myWaitlist.id);
+        if (error) toast.error("Couldn't leave the waitlist", error.message);
+        else { setMyWaitlist(null); toast.info('You left the waitlist.'); }
+        setWaitlistBusy(false);
+    };
 
-
-    const handlePaymentSuccess = () => {
-
-        setPaymentStep('success');
-
+    // Online payment: hold the slots and go to PayMongo's secure checkout page.
+    const handleChoosePaymentType = async (type) => {
+        setRedirectingToPayment(true);
+        const { ok, data, error } = await startCheckout({
+            tourId: tour.id,
+            slots: numPersons,
+            paymentType: type,
+            companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
+        });
+        if (!ok) {
+            toast.error("Couldn't start the payment", error);
+            setRedirectingToPayment(false);
+            return;
+        }
+        window.location.assign(data.checkoutUrl);
     };
 
 
@@ -1350,11 +1088,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                 borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
 
-                borderTop: '8px solid #C45C26',
+                borderTop: '8px solid #B4511E',
 
                 overflow: 'hidden',
 
-                maxHeight: '92vh',
+                maxHeight: '92dvh',
 
                 display: 'flex', flexDirection: 'column',
 
@@ -1366,7 +1104,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                     background: 'none', border: 'none', cursor: 'pointer',
 
-                    color: 'rgba(122,58,24,0.5)',
+                    color: 'rgba(122,58,24,0.85)',
 
                 }}><X size={28} /></button>
 
@@ -1386,7 +1124,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                             padding: '2.5rem 2rem',
 
-                            borderRight: '1px solid rgba(196,92,38,0.12)',
+                            borderRight: '1px solid rgba(180,81,30,0.12)',
 
                             display: 'flex', flexDirection: 'column',
 
@@ -1404,7 +1142,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                             }}>{tour.title}</h2>
 
-
+                            {dates.length > 1 && (
+                                <div style={{ marginBottom: 18 }}>
+                                    <TripDatePicker dates={dates} activeId={tour.id} onPick={onPickDate} disabled={Boolean(paymentStep)} />
+                                </div>
+                            )}
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
 
@@ -1420,7 +1162,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
 
-                                        <span style={{ color: '#C45C26' }}>{row.icon}</span> {row.text}
+                                        <span style={{ color: '#A8481A' }}>{row.icon}</span> {row.text}
 
                                     </div>
 
@@ -1428,13 +1170,13 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#8C2F1C' : '#7A3A18' }}>
 
-                                    <span style={{ color: '#C45C26' }}><Users size={16} /></span>
+                                    <span style={{ color: '#A8481A' }}><Users size={16} /></span>
 
                                     {tour.current_booked} / {tour.group_size} Slots Booked
 
                                 </div>
 
-                                <div style={{ background: 'rgba(196,92,38,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+                                <div style={{ background: 'rgba(180,81,30,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
 
                                     <div style={{
 
@@ -1456,11 +1198,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     background: '#FDF6EE',
 
-                                    border: '1px solid rgba(196,92,38,0.2)',
+                                    border: '1px solid rgba(180,81,30,0.2)',
 
                                     borderRadius: 999, padding: '4px 14px',
 
-                                    fontSize: 9, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
+                                    fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
 
                                     color: '#1A0A00', width: 'fit-content',
 
@@ -1482,7 +1224,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px' }}>
 
-                                        <AlertCircle size={16} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <AlertCircle size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
 
                                         <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
 
@@ -1500,11 +1242,11 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     <label style={{
 
-                                        display: 'block', fontSize: 9, fontWeight: 800,
+                                        display: 'block', fontSize: 11, fontWeight: 800,
 
                                         letterSpacing: '0.2em', textTransform: 'uppercase',
 
-                                        color: '#7A3A18', opacity: 0.7, marginBottom: 6,
+                                        color: '#7A3A18', opacity: 0.9, marginBottom: 6,
 
                                     }}>Number of Persons</label>
 
@@ -1514,7 +1256,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                             value={numPersons}
 
-                                            onChange={(e) => { setNumPersons(parseInt(e.target.value)); setSlotError(""); }}
+                                            onChange={(e) => handlePersonsChange(parseInt(e.target.value))}
 
                                             style={{
 
@@ -1522,7 +1264,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                                 background: '#FDF6EE',
 
-                                                border: '1px solid rgba(196,92,38,0.18)',
+                                                border: '1px solid rgba(180,81,30,0.18)',
 
                                                 borderRadius: 14, padding: '12px 14px',
 
@@ -1544,7 +1286,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                         </select>
 
-                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(196,92,38,0.5)' }} />
+                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#A8481A' }} />
 
                                     </div>
 
@@ -1556,6 +1298,10 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                         </p>
 
+                                    )}
+
+                                    {companions.length > 0 && (
+                                        <CompanionFields companions={companions} onChange={updateCompanion} error={companionError} />
                                     )}
 
                                 </div>
@@ -1570,9 +1316,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
 
-                                        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7 }}>Total</span>
+                                        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>Total</span>
 
-                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
+                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#A8481A' }}>{formatPeso(subtotal)}</span>
 
                                     </div>
 
@@ -1580,11 +1326,22 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                 {isFullyBooked && (
 
-                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', opacity: 0.6, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>₱{tour.price.toLocaleString()} per person</p>
+                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(tour.price)} per person</p>
 
                                 )}
 
-                                <button
+                                {isFullyBooked && (
+                                    <WaitlistPanel
+                                        entry={myWaitlist}
+                                        slots={waitlistSlots}
+                                        onSlotsChange={setWaitlistSlots}
+                                        busy={waitlistBusy}
+                                        onJoin={handleJoinWaitlist}
+                                        onLeave={handleLeaveWaitlist}
+                                    />
+                                )}
+
+                                {!isFullyBooked && <button
 
                                     onClick={handleBookThisTour}
 
@@ -1594,7 +1351,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                         width: '100%', padding: '14px 0',
 
-                                        background: isFullyBooked ? '#EDEAE3' : '#C45C26',
+                                        background: isFullyBooked ? '#EDEAE3' : '#B4511E',
 
                                         color: isFullyBooked ? '#7A3A18' : '#FDF6EE',
 
@@ -1606,7 +1363,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
 
-                                        boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(196,92,38,0.32)',
+                                        boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(180,81,30,0.32)',
 
                                         transition: 'background 0.2s',
 
@@ -1614,13 +1371,13 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     onMouseEnter={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#1A0A00'; }}
 
-                                    onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#C45C26'; }}
+                                    onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#B4511E'; }}
 
                                 >
 
-                                    {isBooking ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <><CreditCard size={14} /> {isFullyBooked ? 'Fully Booked' : 'Book This Tour'}</>}
+                                    {isBooking ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <><CreditCard size={14} /> Book This Tour</>}
 
-                                </button>
+                                </button>}
 
                             </div>
 
@@ -1648,9 +1405,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
 
 
-                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
 
-                                    <ViewSection title="Inclusions" titleColor="#C45C26" icon={<CheckCircle2 size={14} />}>
+                                    <ViewSection title="Inclusions" titleColor="#A8481A" icon={<CheckCircle2 size={14} />}>
 
                                         <ChecklistGrid text={tour.inclusions} variant="include" />
 
@@ -1666,9 +1423,9 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
 
 
-                                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
 
-                                    <ViewSection title="Itinerary" titleColor="#C45C26" icon={<Clock size={14} />}>
+                                    <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
 
                                         <ItineraryTimeline text={tour.itinerary} />
 
@@ -1678,7 +1435,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
 
 
-                                <div style={{ borderTop: '1px solid rgba(196,92,38,0.1)', paddingTop: 24 }}>
+                                <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
 
                                     <ViewSection title="Things to Bring">
 
@@ -1694,21 +1451,21 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                                     <div style={{
 
-                                        background: 'rgba(196,92,38,0.07)',
+                                        background: 'rgba(180,81,30,0.07)',
 
                                         borderRadius: 18, padding: '1.5rem',
 
-                                        border: '1px solid rgba(196,92,38,0.2)',
+                                        border: '1px solid rgba(180,81,30,0.2)',
 
                                         display: 'flex', gap: 16,
 
                                     }}>
 
-                                        <AlertCircle size={22} style={{ color: '#C45C26', flexShrink: 0 }} />
+                                        <AlertCircle size={22} style={{ color: '#A8481A', flexShrink: 0 }} />
 
                                         <div>
 
-                                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 8px' }}>
+                                            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 8px' }}>
 
                                                 Important Note
 
@@ -1752,7 +1509,7 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                     onProceed={() => setPaymentStep('choose')}
 
-                    onCancel={() => { setPaymentStep(null); onClose(); }}
+                    onCancel={() => setPaymentStep(null)}  // back to this tour's details, choices kept
 
                     formatDateRange={formatDateRange}
 
@@ -1772,53 +1529,14 @@ const DetailedTourModal = ({ tour, onClose, formatDateRange, onBookingSuccess })
 
                     onChoose={handleChoosePaymentType}
 
+                    busy={redirectingToPayment}
+
                     onBack={() => setPaymentStep('proceed')}
 
                 />
 
             )}
 
-
-
-            {paymentStep === 'gcash' && (
-
-                <GCashPaymentModal
-
-                    bookingId={bookingId}
-
-                    tour={tour}
-
-                    numPersons={numPersons}
-
-                    subtotal={subtotal}
-
-                    downpaymentAmount={downpaymentAmount}
-
-                    paymentType={paymentType}
-
-                    onSuccess={handlePaymentSuccess}
-
-                    onBack={() => setPaymentStep('choose')}
-
-                />
-
-            )}
-
-
-
-            {paymentStep === 'success' && (
-
-                <BookingSuccessModal
-
-                    booking={createdBooking}
-
-                    tour={tour}
-
-                    onClose={() => { setPaymentStep(null); onClose(); }}
-
-                />
-
-            )}
 
         </div>
 
@@ -1856,9 +1574,9 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
       <div style={{
 
-        background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto',
+        background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
 
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #C45C26',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E',
 
       }}>
 
@@ -1866,15 +1584,17 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-            <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)' }}><X size={22} /></button>
+            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+              <ArrowLeft size={14} /> Back
+            </button>
 
-            <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 1 of 3</span>
+            <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 1 of 2</span>
 
           </div>
 
           <div>
 
-            <p style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26', margin: '0 0 4px' }}>Booking Preview</p>
+            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>Booking Preview</p>
 
             <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
 
@@ -1884,31 +1604,31 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
 
-              <MapPin size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {tour.destination}
+              <MapPin size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> {tour.destination}
 
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
 
-              <Calendar size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
+              <Calendar size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
 
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
 
-              <Users size={15} style={{ color: '#C45C26', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
+              <Users size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
 
             </div>
 
           </div>
 
-          <div style={{ borderTop: '2px solid rgba(196,92,38,0.12)', paddingTop: 18 }}>
+          <div style={{ borderTop: '2px solid rgba(180,81,30,0.12)', paddingTop: 18 }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
 
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.8 }}>Price per person</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Price per person</span>
 
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>{formatPeso(tour.price)}</span>
 
             </div>
 
@@ -1916,7 +1636,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
               <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A0A00' }}>Subtotal</span>
 
-              <span style={{ fontSize: 28, fontWeight: 900, color: '#C45C26' }}>₱{subtotal.toLocaleString()}</span>
+              <span style={{ fontSize: 28, fontWeight: 900, color: '#A8481A' }}>{formatPeso(subtotal)}</span>
 
             </div>
 
@@ -1938,7 +1658,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
             }}
 
-            onMouseEnter={e => e.currentTarget.style.background = '#C45C26'}
+            onMouseEnter={e => e.currentTarget.style.background = '#B4511E'}
 
             onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
 
@@ -1960,31 +1680,34 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
 
 
 
-const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack }) => (
+const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack, busy }) => {
+    // Joiners tick the non-refundable agreement before they can pay.
+    const [agreed, setAgreed] = useState(false);
+    return (
 
     <div style={overlayBackdrop}>
 
         <div style={{
 
-            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
+            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92dvh', overflowY: 'auto',
 
             padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
 
             textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
 
-            borderTop: '8px solid #C45C26',
+            borderTop: '8px solid #B4511E',
 
         }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.7)', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
 
                     <ArrowLeft size={14} /> Back
 
                 </button>
 
-                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(122,58,24,0.7)' }}>Step 2 of 3</span>
+                <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 2 of 2</span>
 
             </div>
 
@@ -1992,7 +1715,17 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
                 <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
 
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
+                    You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for 30 minutes.
+                </p>
+                <p style={{ fontSize: 11, fontWeight: 800, color: '#8C2F1C', margin: '8px 0 0' }}>
+                    Payments are non-refundable. You can cancel up to 14 days before the tour, but the amount paid won't be returned.
+                </p>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', marginTop: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.18)', borderRadius: 14, padding: '10px 12px' }}>
+                    <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
+                    <span>I agree that my payment is <strong>non-refundable</strong>, and that cancellations need the agency's approval and close 14 days before the tour.</span>
+                </label>
 
             </div>
 
@@ -2003,8 +1736,10 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                 <button
 
                     onClick={() => onChoose('full')}
+                    title={agreed ? undefined : 'Tick the agreement above first'}
+                    disabled={busy || !agreed}
 
-                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', cursor: 'pointer', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s' }}
+                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
 
                     onMouseEnter={e => e.currentTarget.style.background = '#2D1B0E'}
 
@@ -2014,15 +1749,15 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
 
                         <Check size={16} style={{ color: '#E8A265' }} />
 
                     </div>
 
-                    <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>₱{subtotal.toLocaleString()}</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, margin: 0 }}>{formatPeso(subtotal)}</p>
 
-                    <p style={{ fontSize: 11, opacity: 0.6, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
+                    <p style={{ fontSize: 11, opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay the complete amount now</p>
 
                 </button>
 
@@ -2031,541 +1766,142 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack 
                 <button
 
                     onClick={() => onChoose('down')}
+                    title={agreed ? undefined : 'Tick the agreement above first'}
+                    disabled={busy || !agreed}
 
-                    style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(196,92,38,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', cursor: 'pointer', transition: 'border-color 0.2s' }}
+                    style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(180,81,30,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', transition: 'border-color 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
 
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#C45C26'}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#B4511E'}
 
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(196,92,38,0.18)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(180,81,30,0.18)'}
 
                 >
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C45C26' }}>Downpayment (40%)</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Downpayment (40%)</span>
 
-                        <span style={{ fontSize: 9, fontWeight: 900, color: '#7A3A18', opacity: 0.7, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
 
                     </div>
 
-                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>₱{downpaymentAmount.toLocaleString()}</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.7, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now, settle the rest before the tour</p>
+                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
 
             </div>
+            {busy && (
+                <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#A8481A', margin: 0 }}>
+                    <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Opening secure checkout…
+                </p>
+            )}
 
         </div>
 
     </div>
 
 );
-
-
-
-const GCashPaymentModal = ({ bookingId, tour, numPersons, subtotal, downpaymentAmount, paymentType, onSuccess, onBack }) => {
-
-    const [gcashNumber, setGcashNumber] = useState("");
-
-
-
-    useEffect(() => {
-
-        const prefillPhone = async () => {
-
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) return;
-
-            const { data: profile } = await supabase
-
-                .from('profiles')
-
-                .select('phone_number')
-
-                .eq('id', user.id)
-
-                .single();
-
-            if (profile?.phone_number) setGcashNumber(profile.phone_number);
-
-        };
-
-        prefillPhone();
-
-    }, []);
-
-    const [refNumber, setRefNumber] = useState("");
-
-    const [screenshot, setScreenshot] = useState(null);
-
-    const [screenshotPreview, setScreenshotPreview] = useState(null);
-
-    const [submitting, setSubmitting] = useState(false);
-
-
-
-    const amountDue = paymentType === 'full' ? subtotal : downpaymentAmount;
-
-    const balance = paymentType === 'down' ? subtotal - downpaymentAmount : 0;
-
-
-
-    const handleScreenshotChange = (e) => {
-
-        const file = e.target.files[0];
-
-        if (file) {
-
-            setScreenshot(file);
-
-            const reader = new FileReader();
-
-            reader.onloadend = () => setScreenshotPreview(reader.result);
-
-            reader.readAsDataURL(file);
-
-        }
-
-    };
-
-
-
-    const handleConfirmBooking = async () => {
-
-        if (!gcashNumber.trim()) return alert("Please enter your GCash number.");
-
-        if (!refNumber.trim()) return alert("Please enter your GCash Reference Number.");
-
-        if (!screenshot) return alert("Please upload a screenshot of your transaction.");
-
-
-
-        setSubmitting(true);
-
-        try {
-
-            const fileExt = screenshot.name.split('.').pop();
-
-            const fileName = `receipts/${bookingId}_${Date.now()}.${fileExt}`;
-
-            let receiptUrl = null;
-
-
-
-            const { error: uploadError } = await supabase.storage
-
-              .from('booking-receipts')
-
-              .upload(fileName, screenshot);
-
-
-
-            if (!uploadError) {
-
-                const { data: urlData } = supabase.storage
-
-                    .from('booking-receipts')
-
-                    .getPublicUrl(fileName);
-
-                receiptUrl = urlData?.publicUrl || null;
-
-            }
-
-
-
-            const { error } = await supabase.from('bookings').update({
-
-                gcash_number: gcashNumber,
-
-                gcash_reference_no: refNumber,
-
-                receipt_url: receiptUrl,
-
-                payment_method: paymentType === 'full' ? 'Full Payment' : 'Downpayment',
-
-                amount_paid: amountDue,
-
-                payment_status: 'Pending',
-
-            }).eq('id', bookingId);
-
-
-
-            if (error) {
-
-                alert("Error: " + error.message);
-
-            } else {
-
-                onSuccess();
-
-            }
-
-        } catch {
-
-            alert("Something went wrong. Please try again.");
-
-        }
-
-        setSubmitting(false);
-
-    };
-
-
-
-    const fieldLabelStyle = { display: 'block', fontSize: 9, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, marginBottom: 8 };
-
-    const fieldInputStyle = { width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(196,92,38,0.18)', borderRadius: 16, padding: '14px 16px', fontSize: 13, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
-
-
-
-    return (
-
-        <div style={{ ...overlayBackdrop, overflowY: 'auto' }}>
-
-            <div style={{ background: '#FDF6EE', width: '100%', maxWidth: 720, borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', margin: 'auto' }}>
-
-                {/* Header */}
-
-                <div style={{ background: '#1A0A00', padding: '1.75rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-
-                        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E8A265', flexShrink: 0 }}>
-
-                            <ArrowLeft size={20} />
-
-                        </button>
-
-                        <div style={{ minWidth: 0 }}>
-
-                            <h3 style={{ fontSize: 18, fontWeight: 900, color: '#FDF6EE', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>GCash Payment</h3>
-
-                            <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.7)', margin: '2px 0 0' }}>{paymentType === 'full' ? 'Full Payment' : 'Downpayment (40%)'}</p>
-
-                        </div>
-
-                    </div>
-
-                    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.4)', flexShrink: 0 }}>Step 3 of 3</span>
-
-                </div>
-
-
-
-                <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-                    {/* GCash Send To */}
-
-                    <div style={{ background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.25)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
-
-                        <div style={{ width: 48, height: 48, background: '#3F5D62', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-
-                            <Smartphone size={22} style={{ color: '#FDF6EE' }} />
-
-                        </div>
-
-                        <div>
-
-                            <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3F5D62', margin: '0 0 4px' }}>Send GCash Payment To</p>
-
-                            <p style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: 0 }}>09XX XXX XXXX</p>
-
-                            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.8, margin: '2px 0 0' }}>Bandang IBAYO Tours</p>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-
-                        {/* Left: Form */}
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-
-                            <div>
-
-                                <label style={fieldLabelStyle}>Your GCash Number</label>
-
-                                <input
-
-                                    type="tel"
-
-                                    value={gcashNumber}
-
-                                    onChange={(e) => setGcashNumber(e.target.value)}
-
-                                    placeholder="09XX XXX XXXX"
-
-                                    style={fieldInputStyle}
-
-                                />
-
-                            </div>
-
-                            <div>
-
-                                <label style={fieldLabelStyle}>GCash Reference Number</label>
-
-                                <input
-
-                                    type="text"
-
-                                    value={refNumber}
-
-                                    onChange={(e) => setRefNumber(e.target.value)}
-
-                                    placeholder="13-digit reference number"
-
-                                    style={fieldInputStyle}
-
-                                />
-
-                            </div>
-
-                            <div>
-
-                                <label style={fieldLabelStyle}>Transaction Screenshot</label>
-
-                                <label style={{ width: '100%', boxSizing: 'border-box', border: '2px dashed rgba(196,92,38,0.25)', borderRadius: 16, padding: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#F2E4D0' }}>
-
-                                    <input type="file" accept="image/*" onChange={handleScreenshotChange} style={{ display: 'none' }} />
-
-                                    {screenshotPreview ? (
-
-                                        <img src={screenshotPreview} alt="Receipt" style={{ width: '100%', height: 128, objectFit: 'cover', borderRadius: 12 }} />
-
-                                    ) : (
-
-                                        <>
-
-                                            <Upload size={22} style={{ color: 'rgba(196,92,38,0.5)', marginBottom: 8 }} />
-
-                                            <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.7, margin: 0 }}>Upload Screenshot</p>
-
-                                        </>
-
-                                    )}
-
-                                </label>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* Right: Booking Summary */}
-
-                        <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-
-                                <Receipt size={15} style={{ color: '#C45C26' }} />
-
-                                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: 0 }}>Booking Summary</p>
-
-                            </div>
-
-
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13 }}>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Tour</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00', textAlign: 'right' }}>{tour.title}</span>
-
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Quantity</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>{numPersons} pax</span>
-
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Price/pax</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{tour.price.toLocaleString()}</span>
-
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(196,92,38,0.18)', paddingTop: 10 }}>
-
-                                    <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Subtotal</span>
-
-                                    <span style={{ fontWeight: 700, color: '#1A0A00' }}>₱{subtotal.toLocaleString()}</span>
-
-                                </div>
-
-
-
-                                {paymentType === 'down' && (
-
-                                    <>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                            <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Downpayment (40%)</span>
-
-                                            <span style={{ fontWeight: 700, color: '#C45C26' }}>₱{downpaymentAmount.toLocaleString()}</span>
-
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-
-                                            <span style={{ color: '#7A3A18', opacity: 0.8, fontWeight: 500 }}>Remaining Balance</span>
-
-                                            <span style={{ fontWeight: 700, color: '#7A3A18', opacity: 0.7 }}>₱{balance.toLocaleString()}</span>
-
-                                        </div>
-
-                                    </>
-
-                                )}
-
-
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid rgba(196,92,38,0.18)', paddingTop: 10, marginTop: 4 }}>
-
-                                    <span style={{ fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.1em' }}>
-
-                                        {paymentType === 'full' ? 'Total Payment' : 'Amount Due Now'}
-
-                                    </span>
-
-                                    <span style={{ fontWeight: 900, color: '#C45C26', fontSize: 18 }}>₱{amountDue.toLocaleString()}</span>
-
-                                </div>
-
-                            </div>
-
-
-
-                            {paymentType === 'down' && (
-
-                                <div style={{ background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px', marginTop: 4 }}>
-
-                                    <p style={{ fontSize: 10, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5, margin: 0 }}>⚠️ Remaining balance of ₱{balance.toLocaleString()} must be settled before the tour date.</p>
-
-                                </div>
-
-                            )}
-
-                        </div>
-
-                    </div>
-
-
-
-                    <button
-
-                        onClick={handleConfirmBooking}
-
-                        disabled={submitting}
-
-                        style={{
-
-                            width: '100%', padding: '15px 0', background: '#C45C26', color: '#FDF6EE',
-
-                            border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
-
-                            fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
-
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-
-                            boxShadow: '0 8px 24px rgba(196,92,38,0.3)',
-
-                            transition: 'background 0.2s',
-
-                        }}
-
-                        onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = '#1A0A00'; }}
-
-                        onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = '#C45C26'; }}
-
-                    >
-
-                        {submitting ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</> : <><Check size={16} /> Confirm Booking</>}
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    );
-
 };
 
 
 
-const BookingSuccessModal = ({ booking, tour, onClose }) => (
 
-    <div style={overlayBackdrop}>
 
-        <div style={{
 
-            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92vh', overflowY: 'auto',
-
-            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-
-            textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
-
-            borderTop: '8px solid #C45C26',
-
-        }}>
-
-            <div style={{ width: 72, height: 72, background: 'rgba(196,92,38,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-
-                <CheckCircle2 size={36} style={{ color: '#C45C26' }} />
-
-            </div>
-
-            <div>
-
-                <h3 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Booking Submitted!</h3>
-
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '8px 0 0' }}>Your booking is now pending verification by our team.</p>
-
-            </div>
-
-            <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left' }}>
-
-                <p style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.7, margin: '0 0 10px' }}>Booking Reference</p>
-
-                <p style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0, wordBreak: 'break-word' }}>{booking?.booking_number}</p>
-
-                <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.8, margin: '4px 0 0' }}>{tour?.title}</p>
-
-            </div>
-
-            <div style={{ background: 'rgba(196,92,38,0.1)', borderRadius: 16, padding: '14px 18px' }}>
-
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0 }}>We'll verify your GCash payment and confirm your slot shortly. Thank you! 🎉</p>
-
-            </div>
-
-            <button onClick={onClose} style={{ width: '100%', padding: '14px 0', background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Done</button>
-
+/* ─────────────────────────────────────────────
+   GROUP BOOKING: details of everyone else joining
+───────────────────────────────────────────── */
+const CompanionFields = ({ companions, onChange, error }) => {
+    const inputStyle = {
+        width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
+        border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
+        padding: '10px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
+        fontFamily: 'inherit', outline: 'none',
+    };
+    return (
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+                Who's joining you?
+            </p>
+            {companions.map((c, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>
+                    <input
+                        aria-label={`Person ${i + 2} full name`}
+                        data-allow="name"
+                        placeholder="Full name"
+                        value={c.full_name}
+                        onChange={(e) => onChange(i, 'full_name', e.target.value)}
+                        style={inputStyle}
+                    />
+                    <input
+                        aria-label={`Person ${i + 2} contact number`}
+                        {...phoneFieldProps(c.contact_number, (v) => onChange(i, 'contact_number', v))}
+                        style={inputStyle}
+                    />
+                </div>
+            ))}
+            {error && (
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#8C2F1C', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <AlertCircle size={13} /> {error}
+                </p>
+            )}
         </div>
+    );
+};
 
+/* ─────────────────────────────────────────────
+   WAITLIST (fully booked tours)
+───────────────────────────────────────────── */
+const WaitlistPanel = ({ entry, slots, onSlotsChange, busy, onJoin, onLeave }) => (
+    <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {entry ? (
+            <>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
+                    {entry.notified_at
+                        ? `A slot opened up! Slots go to whoever books first, so book soon if it's still open.`
+                        : `You're on the waitlist for ${entry.slots_wanted} slot${entry.slots_wanted > 1 ? 's' : ''}. We'll notify you and email you if a slot opens.`}
+                </p>
+                <button type="button" onClick={onLeave} disabled={busy} style={waitlistButton(false)}>
+                    {busy ? 'Leaving…' : 'Leave Waitlist'}
+                </button>
+            </>
+        ) : (
+            <>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+                    This tour is full. Join the waitlist and we'll let you know if a slot opens.
+                </p>
+                <select
+                    aria-label="Slots needed"
+                    value={slots}
+                    onChange={(e) => onSlotsChange(parseInt(e.target.value))}
+                    style={{ width: '100%', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '10px 12px', fontSize: 12, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit' }}
+                >
+                    {[...Array(10)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'Person' : 'Persons'}</option>
+                    ))}
+                </select>
+                <button type="button" onClick={onJoin} disabled={busy} style={waitlistButton(true)}>
+                    {busy ? 'Joining…' : 'Join Waitlist'}
+                </button>
+            </>
+        )}
     </div>
-
 );
 
+const waitlistButton = (primary) => ({
+    width: '100%', padding: '12px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
+    fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
+    border: primary ? 'none' : '1px solid rgba(140,47,28,0.25)',
+    background: primary ? '#1A0A00' : 'transparent',
+    color: primary ? '#FDF6EE' : '#8C2F1C',
+});
 
+
+
+
+export { JoinerTourCard, ViewSection, ChecklistGrid, ItineraryTimeline, TourImageCarousel, DetailedTourModal };
 
 export default JoinerTours;
