@@ -416,6 +416,12 @@ function LandingPage() {
         </div>
       </section>
  
+      {/* ── FAQ SECTION ── */}
+      <FAQ />
+
+      {/* ── JOINER REVIEWS ── */}
+      <LandingReviews />
+
       {/* ── WHY CHOOSE US ── */}
       <section style={{ background: '#1A0A00', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)', position: 'relative' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))', gap: 64, alignItems: 'start', position: 'relative', zIndex: 1 }}>
@@ -461,12 +467,6 @@ function LandingPage() {
           </div>
         </div>
       </section>
- 
-      {/* ── JOINER REVIEWS ── */}
-      <LandingReviews />
-
-      {/* ── FAQ SECTION ── */}
-      <FAQ />
 
       {/* ── ABOUT & CONTACT ── */}
       <section style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
