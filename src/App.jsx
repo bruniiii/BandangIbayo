@@ -11,6 +11,7 @@ import logoIcon from './assets/newIcon.png';
 import JoinerLogin from './JoinerLogin'; 
 import JoinerRegister from './JoinerRegister';
 import AuthCallback from './AuthCallback';
+import FAQ from './ui/FAQ';
 import AdminDashboard from './AdminDashboard';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
@@ -463,6 +464,9 @@ function LandingPage() {
  
       {/* ── JOINER REVIEWS ── */}
       <LandingReviews />
+
+      {/* ── FAQ SECTION ── */}
+      <FAQ />
 
       {/* ── ABOUT & CONTACT ── */}
       <section style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
