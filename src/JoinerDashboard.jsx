@@ -26,6 +26,7 @@ import { profileIsComplete } from './googleAuth';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import InstallAppCard from './ui/InstallAppCard';
 import { readTab, saveTab, forgetTab } from './rememberTab';
+import { useTabHistory } from './useTabHistory';
 import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -90,6 +91,8 @@ const JoinerDashboard = () => {
     : readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'HomePage')));
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
+  // Browser Back goes to the previous dashboard page.
+  useTabHistory(activeTab, setActiveTab, 'HomePage');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false

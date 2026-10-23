@@ -26,6 +26,7 @@ import PageHeader from './ui/PageHeader';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { readTab, saveTab, forgetTab } from './rememberTab';
+import { useTabHistory } from './useTabHistory';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -97,6 +98,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(() => readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'Overview'));
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
+  // Browser Back goes to the previous dashboard page.
+  useTabHistory(activeTab, setActiveTab, 'Overview');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -564,17 +567,6 @@ const AdminDashboard = () => {
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h2>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{
-                    display: 'flex', alignItems: 'center', gap: 7,
-                    background: 'rgba(232,162,101,0.12)', borderRadius: 999,
-                    padding: '8px 16px', fontSize: 11, fontWeight: 800,
-                    color: '#E8A265', letterSpacing: '0.04em',
-                  }}>
-                    <AlertCircle size={13} />
-                    {loadingStats ? <Skel dark w={22} h={11} style={{ display: 'inline-block' }} /> : stats.pendingVerification} awaiting verification
-                  </span>
-                </div>
               </div>
 
               {/* KPI row */}
@@ -602,13 +594,6 @@ const AdminDashboard = () => {
                     const change = last === 0 ? 0 : Math.round(((curr - last) / last) * 100);
                     return `${change >= 0 ? '+' : ''}${change}% vs last month`;
                   })()}
-                />
-                <StatCard
-                  title="Pending Verification"
-                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.pendingVerification}
-                  icon={<AlertCircle size={18} />}
-                  iconColor="#A8481A"
-                  trend={loadingStats ? '' : 'Awaiting payment review'}
                 />
                 <StatCard
                   title="Total Joiners"

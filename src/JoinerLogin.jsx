@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { safeNextPath } from './tourUtils';
@@ -40,6 +40,20 @@ const JoinerLogin = () => {
   // Where to go after login, e.g. back to a tour page (?next=/tours/12)
   const [searchParams] = useSearchParams();
   const nextPath = safeNextPath(searchParams.get('next'));
+
+  // Already signed in (e.g. pressed Back from the dashboard): go to the dashboard
+  // instead of showing the login form.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !active) return;
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+      if (!profile || !active) return;
+      navigate(profile.role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard', { replace: true });
+    })();
+    return () => { active = false; };
+  }, [navigate, nextPath]);
  
   // Step 2 (after the right password): the 6-digit code we emailed.
   const [challenge, setChallenge] = useState(null); // { challengeId, sentTo, expiresInMinutes }
@@ -114,7 +128,8 @@ const JoinerLogin = () => {
     setIsSuccess(true);
 
     setTimeout(() => {
-      navigate(role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard');
+      // Replace the login page in history, so Back doesn't return to it.
+      navigate(role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard', { replace: true });
     }, 1500);
   };
 
