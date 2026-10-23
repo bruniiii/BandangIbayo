@@ -248,6 +248,10 @@ const TourManagement = () => {
       ['description', textError(formData.get('description'), 'Description', { required: false, max: 5000 })],
     ]);
     if (!ok) { if (dateRows.length === 0) toast.error('Add at least one date', 'A tour needs a date for joiners to book.'); return; }
+    // Ask before saving, so a tour isn't posted or changed by accident.
+    if (!(await confirmDialog(editingTour
+      ? { title: 'Save changes to this tour?', message: 'Joiners will see the updated details right away.', confirmLabel: 'Save Changes', cancelLabel: 'Keep Editing' }
+      : { title: 'Post this tour?', message: 'It will be open for joiners to book right away.', confirmLabel: 'Post Tour', cancelLabel: 'Keep Editing' }))) return;
     const movedBooked = dateRows.filter((r) => r.id && r.booked > 0 && (r.start_date !== r.original.start_date || r.end_date !== r.original.end_date));
     if (movedBooked.length
       && !(await confirmDialog({ title: 'Change the dates of a booked tour?', message: `Joiners have already booked ${movedBooked.length === 1 ? 'a date you changed' : `${movedBooked.length} of the dates you changed`}. Changing the dates won't tell them automatically.`, confirmLabel: 'Save New Dates', cancelLabel: 'Keep Old Dates' }))) return;
