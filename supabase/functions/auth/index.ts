@@ -104,6 +104,11 @@ async function checkPassword(email: string, password: string) {
     return null;
   }
   await admin.auth.admin.signOut(data.session.access_token, "local").catch(() => {});
+  // Registered but never entered the emailed code (Supabase lets these in when
+  // its own "Confirm email" setting is off).
+  if (!data.user.email_confirmed_at) {
+    throw new HttpError(403, "This account isn't verified yet. Please register again with this email to get a new 6-digit code.");
+  }
   return data.user;
 }
 
