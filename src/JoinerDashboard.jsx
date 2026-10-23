@@ -356,12 +356,17 @@ const JoinerDashboard = () => {
           activeBookings.forEach(booking => {
             const tour = booking.tours;
             const tourDateStr = tour?.start_date || booking.start_date;
+            // A tour is completed only once it has ended (its last day is past),
+            // like the Completed tab in My Bookings. ("Completed" on a booking
+            // just means it's paid.)
+            const endStr = tour?.end_date || tourDateStr;
+            const paid = booking.payment_status === 'Complete' || booking.booking_status === 'Completed';
 
-            if (booking.booking_status === 'Completed') {
-              completed++;
+            if (endStr && new Date(`${endStr}T00:00:00`) < today) {
+              if (paid) completed++;
             } else if (tourDateStr) {
-              const tourDate = new Date(tourDateStr);
-              if (tourDate >= today) {
+              const tourDate = new Date(`${tourDateStr}T00:00:00`);
+              if (tourDate >= today || new Date(`${endStr}T00:00:00`) >= today) {
                 upcoming++;
                 if (tour && tourDate.getMonth() === today.getMonth() && tourDate.getFullYear() === today.getFullYear()) {
                   dots.push(tourDate.getDate());
@@ -369,8 +374,6 @@ const JoinerDashboard = () => {
                 if (!soonest || tourDate < new Date(soonest.tours.start_date)) {
                   soonest = booking;
                 }
-              } else {
-                completed++;
               }
             } else {
               upcoming++;
