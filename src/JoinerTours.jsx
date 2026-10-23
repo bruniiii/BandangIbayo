@@ -946,6 +946,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     const [myWaitlist, setMyWaitlist] = useState(null);
     const [waitlistSlots, setWaitlistSlots] = useState(1);
     const [waitlistBusy, setWaitlistBusy] = useState(false);
+    // The joiner's own active booking on this date: booked joiners can't join its waitlist.
+    const [myBookingNumber, setMyBookingNumber] = useState(null);
 
     const isFullyBooked = tour.available_slots <= 0;
     const isAlmostFull = !isFullyBooked && tour.available_slots <= 3;
@@ -959,13 +961,25 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
         (async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-            const { data } = await supabase
-                .from('tour_waitlist')
-                .select('id, slots_wanted, notified_at')
-                .eq('tour_id', tour.id)
-                .eq('user_id', user.id)
-                .maybeSingle();
-            if (active) setMyWaitlist(data || null);
+            const [{ data }, { data: booking }] = await Promise.all([
+                supabase
+                    .from('tour_waitlist')
+                    .select('id, slots_wanted, notified_at')
+                    .eq('tour_id', tour.id)
+                    .eq('user_id', user.id)
+                    .maybeSingle(),
+                supabase
+                    .from('bookings')
+                    .select('booking_number')
+                    .eq('tour_id', tour.id)
+                    .eq('user_id', user.id)
+                    .not('booking_status', 'in', '("Cancelled","Rejected")')
+                    .limit(1)
+                    .maybeSingle(),
+            ]);
+            if (!active) return;
+            setMyWaitlist(data || null);
+            setMyBookingNumber(booking?.booking_number || null);
         })();
         return () => { active = false; };
     }, [tour.id]);
@@ -1333,6 +1347,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                 {isFullyBooked && (
                                     <WaitlistPanel
                                         entry={myWaitlist}
+                                        bookingNumber={myBookingNumber}
                                         slots={waitlistSlots}
                                         onSlotsChange={setWaitlistSlots}
                                         busy={waitlistBusy}
@@ -1855,9 +1870,13 @@ const CompanionFields = ({ companions, onChange, error }) => {
 /* ─────────────────────────────────────────────
    WAITLIST (fully booked tours)
 ───────────────────────────────────────────── */
-const WaitlistPanel = ({ entry, slots, onSlotsChange, busy, onJoin, onLeave }) => (
+const WaitlistPanel = ({ entry, bookingNumber, slots, onSlotsChange, busy, onJoin, onLeave }) => (
     <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {entry ? (
+        {bookingNumber ? (
+            <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
+                You're already booked on this tour ({bookingNumber}), so you don't need the waitlist. You can see your booking in My Bookings.
+            </p>
+        ) : entry ? (
             <>
                 <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
                     {entry.notified_at
