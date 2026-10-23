@@ -508,6 +508,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
   const [balanceSettledAt, setBalanceSettledAt] = useState(booking.balance_settled_at || null);
   const [settlingBalance, setSettlingBalance] = useState(false);
   const [showSettleConfirm, setShowSettleConfirm] = useState(false);
+  const [balanceReceived, setBalanceReceived] = useState(false); // ticked in the confirm window
  
   useEffect(() => {
     const fetchProfile = async () => {
@@ -960,7 +961,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowSettleConfirm(true)}
+                  onClick={() => { setBalanceReceived(false); setShowSettleConfirm(true); }}
                   disabled={settlingBalance}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
@@ -1034,6 +1035,16 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
             <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '0 0 24px', lineHeight: 1.6 }}>
               Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>{formatPeso(balance)}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
             </p>
+            {/* A second, deliberate step so the balance isn't marked paid by an accidental click. */}
+            <label style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', margin: '-8px 0 22px',
+              background: 'rgba(180,81,30,0.07)', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 14, padding: '10px 12px',
+              fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.5,
+            }}>
+              <input type="checkbox" checked={balanceReceived} onChange={(e) => setBalanceReceived(e.target.checked)}
+                style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
+              <span>I received {formatPeso(balance)} from {joinerName !== '—' ? joinerName : 'the joiner'}.</span>
+            </label>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setShowSettleConfirm(false)}
@@ -1049,11 +1060,14 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               </button>
               <button
                 onClick={handleSettleBalance}
+                disabled={!balanceReceived}
+                title={balanceReceived ? undefined : 'Tick the box above first'}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '12px 24px',
                   background: '#B4511E', color: '#FDF6EE',
-                  border: 'none', borderRadius: 999, cursor: 'pointer',
+                  border: 'none', borderRadius: 999, cursor: balanceReceived ? 'pointer' : 'not-allowed',
+                  opacity: balanceReceived ? 1 : 0.45,
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                   boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
