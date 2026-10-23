@@ -1,12 +1,15 @@
 import { supabase } from './supabaseClient';
 
 // Archives tours whose end date has passed (archive_past_tours() in the
-// database, which also runs nightly). Called before tour lists load; runs
-// at most once per page load and never blocks the list if it fails.
+// database, which also runs nightly), and sends joiners on today's tours their
+// "Pickup Starts Today" notice (notify_pickup_day(), also nightly). Called
+// before tour lists load; runs at most once per page load and never blocks
+// the list if it fails.
 let archiveRun = null;
 export const archivePastTours = () => {
   if (!archiveRun) {
     archiveRun = Promise.resolve(supabase.rpc('archive_past_tours')).then(() => {}, () => {});
+    Promise.resolve(supabase.rpc('notify_pickup_day')).catch(() => {});
   }
   return archiveRun;
 };
