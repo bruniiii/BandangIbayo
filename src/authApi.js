@@ -47,6 +47,12 @@ export const verifyLoginCode = async (challengeId, code) => {
   return { ok: true, data };
 };
 
+// Registration: creates the account (not usable yet) and emails a 6-digit code:
+// { ok, data: { challengeId, sentTo, expiresInMinutes } }. verifyLoginCode()
+// with that code confirms the email and signs the new joiner in.
+export const signupStart = (email, password, profile) =>
+  call({ action: 'signup', email, password, profile });
+
 export const resendLoginCode = (challengeId) => call({ action: 'resend', challengeId });
 
 export const changePassword = (currentPassword, newPassword) =>
