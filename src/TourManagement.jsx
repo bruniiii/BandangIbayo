@@ -238,7 +238,7 @@ const TourManagement = () => {
     const ok = dateRows.length > 0 && checkFields(formEl, [
       ['title', textError(formData.get('title'), 'Tour title', { min: 3, max: 120 })],
       ['destination', textError(formData.get('destination'), 'Destination', { min: 2, max: 120 })],
-      ['price', !Number.isFinite(price) || price < 0 ? 'Price must be zero or more.' : ''],
+      ['price', !Number.isFinite(price) || price <= 0 ? 'Please enter a price above ₱0. Tours can\'t be free.' : ''],
       ['price', Math.abs(Math.round(price * 100) - price * 100) > 1e-6 ? 'Price can have at most 2 decimal places (centavos).' : ''],
       ['price', price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
       ...dateChecks,
@@ -248,7 +248,10 @@ const TourManagement = () => {
       ['description', textError(formData.get('description'), 'Description', { required: false, max: 5000 })],
     ]);
     if (!ok) { if (dateRows.length === 0) toast.error('Add at least one date', 'A tour needs a date for joiners to book.'); return; }
-    if (price === 0 && !(await confirmDialog({ title: 'Make this a free tour?', message: 'The price is ₱0.00.', confirmLabel: 'Save as Free Tour', cancelLabel: 'Change Price' }))) return;
+    // Ask before saving, so a tour isn't posted or changed by accident.
+    if (!(await confirmDialog(editingTour
+      ? { title: 'Save changes to this tour?', message: 'Joiners will see the updated details right away.', confirmLabel: 'Save Changes', cancelLabel: 'Keep Editing' }
+      : { title: 'Post this tour?', message: 'It will be open for joiners to book right away.', confirmLabel: 'Post Tour', cancelLabel: 'Keep Editing' }))) return;
     const movedBooked = dateRows.filter((r) => r.id && r.booked > 0 && (r.start_date !== r.original.start_date || r.end_date !== r.original.end_date));
     if (movedBooked.length
       && !(await confirmDialog({ title: 'Change the dates of a booked tour?', message: `Joiners have already booked ${movedBooked.length === 1 ? 'a date you changed' : `${movedBooked.length} of the dates you changed`}. Changing the dates won't tell them automatically.`, confirmLabel: 'Save New Dates', cancelLabel: 'Keep Old Dates' }))) return;
