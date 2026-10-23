@@ -154,3 +154,7 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
     max-height: calc(100dvh - 100px) !important;
   }
 }
+
+/* Edge adds its own eye (and clear ×) inside password boxes; PasswordField has its own eye. */
+input::-ms-reveal,
+input::-ms-clear { display: none; }
