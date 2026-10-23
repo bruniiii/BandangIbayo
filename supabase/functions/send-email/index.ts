@@ -7,7 +7,8 @@
 //        - { type: "booking-submitted", bookingId }  booking owner (or admin)
 //        - { type: "booking-status",    bookingId }  admin only; confirmed/rejected per payment_status
 //        - { type: "custom", userId, subject, message }  admin only (Joiner Accounts manual email)
-//        - { type: "login-code", to, name, code, minutes }  auth function only (service-role key)
+//        - { type: "login-code", to, name, code, minutes, purpose? }  auth function only (service-role
+//          key); purpose "signup" words it as confirming the email when registering
 //        - { type: "waitlist-openings", tourId }  any logged-in user; emails the waitlisted joiners
 //        - { type: "delete-account", confirm: "DELETE" }  the logged-in joiner deletes their own
 //          account: personal data removed (purge_user_data), their files deleted, login deleted
@@ -280,13 +281,17 @@ const customEmail = (name: string, subject: string, message: string) => ({
   `),
 });
 
-const loginCodeEmail = (name: string, code: string, minutes: number) => ({
-  subject: "Your Bandang IBAYO verification code",
-  html: wrapper("Your verification code", "#C45C26", `
+const loginCodeEmail = (name: string, code: string, minutes: number, purpose = "login") => ({
+  subject: purpose === "signup" ? "Confirm your email for Bandang IBAYO" : "Your Bandang IBAYO verification code",
+  html: wrapper(purpose === "signup" ? "Confirm your email" : "Your verification code", "#C45C26", `
     <p>Hi ${esc(name || "Traveler")},</p>
-    <p>Use this code to finish logging in to Bandang IBAYO:</p>
+    <p>${purpose === "signup"
+      ? "Thanks for registering! Enter this code on the registration page to confirm your email and finish creating your account:"
+      : "Use this code to finish logging in to Bandang IBAYO:"}</p>
     <p style="font-size: 32px; font-weight: 900; letter-spacing: 0.3em; color:#1A0A00; text-align:center; margin: 24px 0;">${esc(code)}</p>
-    <p style="color:#7A3A18;">It's valid for ${minutes} minutes. If you didn't try to log in, someone may know your password: please reset it.</p>
+    <p style="color:#7A3A18;">It's valid for ${minutes} minutes. ${purpose === "signup"
+      ? "If you didn't register, you can ignore this email."
+      : "If you didn't try to log in, someone may know your password: please reset it."}</p>
   `),
 });
 
@@ -363,7 +368,7 @@ async function buildNormalEmail(payload: any, callerId: string | null, trustedSe
     if (!trustedServer) throw new HttpError(403, "Not allowed");
     const code = String(payload.code ?? "");
     if (!usableEmail(payload.to) || !/^\d{6}$/.test(code)) throw new HttpError(400, "Missing recipient or code");
-    return { to: usableEmail(payload.to), ...loginCodeEmail(String(payload.name ?? ""), code, Number(payload.minutes) || 10) };
+    return { to: usableEmail(payload.to), ...loginCodeEmail(String(payload.name ?? ""), code, Number(payload.minutes) || 10, payload.purpose === "signup" ? "signup" : "login") };
   }
 
   throw new HttpError(400, "Unknown email type");

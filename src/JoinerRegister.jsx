@@ -11,6 +11,8 @@ import {
   CalendarDays,
   MapPin,
   Mail,
+  MailCheck,
+  ArrowLeft,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
@@ -31,6 +33,8 @@ import RequiredMark from './ui/RequiredMark';
 import { phoneInputProps } from './ui/phoneField';
 import TermsModal from './ui/TermsModal';
 import { googleNameParts } from './googleAuth';
+import OtpInput from './ui/OtpInput';
+import { signupStart, verifyLoginCode, resendLoginCode } from './authApi';
 
 // mode="complete" (/complete-profile): after "Continue with Google", the
 // same form without email and password fills in the rest of the profile.
@@ -40,6 +44,13 @@ const JoinerRegister = ({ mode = 'register' }) => {
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
+  // After Register: the emailed 6-digit code step ({ challengeId, sentTo, expiresInMinutes }).
+  const [codeStep, setCodeStep] = useState(null);
+  const [code, setCode] = useState('');
+  const [codeError, setCodeError] = useState('');
+  const [codeInfo, setCodeInfo] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [termsError, setTermsError] = useState(false);
@@ -112,6 +123,64 @@ const JoinerRegister = ({ mode = 'register' }) => {
     return data?.publicUrl || null;
   };
 
+  const saveAvatar = async (userId) => {
+    try {
+      const avatarUrl = await uploadAvatar(userId, avatarFile);
+
+      if (avatarUrl) {
+        const { error: avatarUpdateError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: avatarUrl })
+          .eq('id', userId);
+
+        if (avatarUpdateError) {
+          console.error('Avatar database update failed:', avatarUpdateError);
+          toast.info('Account created, photo not saved', 'You can add your profile picture later in Profile Settings.');
+        }
+      }
+    } catch (avatarError) {
+      console.error('Avatar upload failed:', avatarError);
+      toast.info('Account created, photo not uploaded', 'You can add your profile picture later in Profile Settings.');
+    }
+  };
+
+  // The server's messages are worded for logging in; here it's registering.
+  const forSignup = (text) => String(text || '').replace(/log in again/gi, 'register again');
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setVerifying(true);
+    setCodeError('');
+    setCodeInfo('');
+    const result = await verifyLoginCode(codeStep.challengeId, code);
+    if (!result.ok) {
+      setVerifying(false);
+      setCodeError(forSignup(result.error));
+      return;
+    }
+    // Verified and signed in: save the photo now that there's a session.
+    if (avatarFile && result.data?.user) await saveAvatar(result.data.user.id);
+    setVerifying(false);
+    setCodeStep(null);
+    setNeedsEmailConfirmation(false);
+    setIsSuccess(true);
+    setTimeout(() => navigate(nextPath || '/dashboard', { replace: true }), 2000);
+  };
+
+  const handleResendCode = async () => {
+    setResending(true);
+    setCodeError('');
+    setCodeInfo('');
+    const result = await resendLoginCode(codeStep.challengeId);
+    setResending(false);
+    if (!result.ok) {
+      setCodeError(forSignup(result.error));
+      return;
+    }
+    setCode('');
+    setCodeInfo(`We sent a new code to ${result.data.sentTo}.`);
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -173,9 +242,9 @@ const JoinerRegister = ({ mode = 'register' }) => {
       ]);
       if (!ok) return;
 
-      // "juan@gmial.com" → offer "juan@gmail.com", since the confirmation link goes there.
+      // "juan@gmial.com" → offer "juan@gmail.com", since the verification code goes there.
       const suggested = completing ? null : emailSuggestion(email);
-      if (suggested && await confirmDialog({ title: `Did you mean ${suggested}?`, message: 'Your confirmation link will be sent to this address.', confirmLabel: `Use ${suggested.split('@')[1]}`, cancelLabel: `Keep ${email.split('@')[1]}` })) {
+      if (suggested && await confirmDialog({ title: `Did you mean ${suggested}?`, message: 'Your 6-digit verification code will be sent to this address.', confirmLabel: `Use ${suggested.split('@')[1]}`, cancelLabel: `Keep ${email.split('@')[1]}` })) {
         email = suggested;
         const emailInput = form.querySelector('[name="email"]');
         if (emailInput) emailInput.value = suggested;
@@ -183,7 +252,10 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
       // Usernames must be unique (checked without logging in).
       const { data: takenBy } = await supabase.rpc('email_for_login', { p_username: username });
-      if (takenBy && !(completing && takenBy.toLowerCase() === String(googleUser?.email || '').toLowerCase())) {
+      // Their own email is fine: an unfinished sign-up being restarted (the
+      // server rejects it if that account is already verified).
+      const ownEmail = completing ? String(googleUser?.email || '').toLowerCase() : email;
+      if (takenBy && takenBy.toLowerCase() !== ownEmail) {
         flagField(form, 'username', 'This username is already taken. Please choose another one.');
         return;
       }
@@ -227,11 +299,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
        * We therefore send ALL profile fields through user metadata.
        * The database trigger should copy these fields into public.profiles.
        */
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
+      const profile = {
             username,
             first_name: cleanName(firstName),
             middle_name: cleanName(middleName),
@@ -247,8 +315,33 @@ const JoinerRegister = ({ mode = 'register' }) => {
             emergency_contact_name: cleanName(emergencyContactName),
             emergency_contact_number: emergencyContactNumber ? normalizePhone(emergencyContactNumber) : '',
             terms_accepted: true,
-          },
-        },
+      };
+
+      // Normal path: the auth function creates the account and emails a code.
+      // The account only works once that code is entered (below).
+      const started = await signupStart(email, password, profile);
+      if (started.ok) {
+        setCode('');
+        setCodeError('');
+        setCodeInfo('');
+        setCodeStep(started.data);
+        return;
+      }
+      if (started.field) {
+        flagField(form, started.field, started.error);
+        return;
+      }
+      // An auth function deployed before this change doesn't know "signup":
+      // fall back to Supabase's own sign-up (confirmation link).
+      if (!/unknown action/i.test(started.error || '')) {
+        toast.error('Registration failed', started.error);
+        return;
+      }
+
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: profile },
       });
 
       if (authError) {
@@ -281,26 +374,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
        * session yet. In that case the account is still created normally
        * and the user can add the optional photo later in Profile Settings.
        */
-      if (avatarFile && data.session) {
-        try {
-          const avatarUrl = await uploadAvatar(data.user.id, avatarFile);
-
-          if (avatarUrl) {
-            const { error: avatarUpdateError } = await supabase
-              .from('profiles')
-              .update({ avatar_url: avatarUrl })
-              .eq('id', data.user.id);
-
-            if (avatarUpdateError) {
-              console.error('Avatar database update failed:', avatarUpdateError);
-              toast.info('Account created, photo not saved', 'You can add your profile picture later in Profile Settings.');
-            }
-          }
-        } catch (avatarError) {
-          console.error('Avatar upload failed:', avatarError);
-          toast.info('Account created, photo not uploaded', 'You can add your profile picture later in Profile Settings.');
-        }
-      }
+      if (avatarFile && data.session) await saveAvatar(data.user.id);
 
       setIsSuccess(true);
 
@@ -376,6 +450,90 @@ const JoinerRegister = ({ mode = 'register' }) => {
         overflowX: 'hidden',
       }}
     >
+      {/* EMAIL CODE STEP */}
+      {codeStep && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 190, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(10px)', padding: 20,
+        }}>
+          <form
+            onSubmit={handleVerifyCode}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="code-title"
+            style={{
+              background: '#FDF6EE', padding: '2.5rem 2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
+              borderTop: '8px solid #B4511E', maxWidth: 420, width: '100%', boxSizing: 'border-box',
+              display: 'flex', flexDirection: 'column', gap: 18,
+            }}
+          >
+            <div style={{ textAlign: 'center' }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: '50%', background: '#B4511E', color: '#FDF6EE',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
+              }}>
+                <MailCheck size={30} />
+              </div>
+              <h3 id="code-title" style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.02em', color: '#1A0A00', textTransform: 'uppercase', margin: '0 0 8px' }}>
+                Verify Your Email
+              </h3>
+              <p style={{ margin: 0, fontSize: 13, color: '#7A3A18', lineHeight: 1.6 }}>
+                We sent a 6-digit code to <strong>{codeStep.sentTo}</strong>. Enter it below to finish creating your account.
+                It's valid for {codeStep.expiresInMinutes} minutes. Check your Spam or Promotions folder if you don't see it.
+              </p>
+            </div>
+            <div>
+              <OtpInput
+                value={code}
+                onChange={(v) => { setCode(v); setCodeError(''); }}
+                invalid={!!codeError}
+                describedBy={codeError ? 'signup-code-error' : undefined}
+                autoFocus
+              />
+              {codeError && (
+                <p id="signup-code-error" role="alert" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 800, color: '#8C2F1C', lineHeight: 1.5, textAlign: 'center' }}>
+                  {codeError}
+                </p>
+              )}
+              {codeInfo && !codeError && (
+                <p role="status" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 700, color: '#7A3A18', textAlign: 'center' }}>{codeInfo}</p>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={verifying || code.length !== 6}
+              style={{
+                background: verifying || code.length !== 6 ? 'rgba(180,81,30,0.45)' : '#B4511E', color: '#FDF6EE', border: 'none',
+                borderRadius: 12, padding: '14px 20px', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase',
+                cursor: verifying || code.length !== 6 ? 'default' : 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {verifying ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : 'Verify & Create Account'}
+            </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => setCodeStep(null)}
+                className="text-link"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                <ArrowLeft size={13} /> Change details
+              </button>
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={resending}
+                className="text-link"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 800 }}
+              >
+                {resending ? 'Sending…' : 'Resend code'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* SUCCESS OVERLAY */}
       {isSuccess && (
         <div
