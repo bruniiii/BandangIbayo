@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
-import { formatPeso } from './tourUtils';
+import { formatPeso, TRIP_REQUEST_LEAD_DAYS } from './tourUtils';
 import { checkFields, flagField, fullNameError, phoneError, emailError, textError, addDaysPH, normalizePhone, formatPhPhone } from './validation';
 import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
@@ -64,8 +64,7 @@ const labelStyle = {
 };
 
 // Requests need time to plan: the earliest trip date is 3 weeks from today.
-const LEAD_DAYS = 21;
-const earliestTripDate = () => addDaysPH(LEAD_DAYS);
+const earliestTripDate = () => addDaysPH(TRIP_REQUEST_LEAD_DAYS);
 
 // Typing mistakes shared by both request forms: wrong phone format, past
 // dates, the same date twice, an impossible group size.

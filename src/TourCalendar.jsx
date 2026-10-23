@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter } from './tourUtils';
+import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, TRIP_REQUEST_LEAD_DAYS } from './tourUtils';
+import { addDaysPH } from './validation';
 import { DetailedTourModal } from './JoinerTours';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -307,7 +308,14 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
                   fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
                 }}>
                   No tours scheduled.
-                  {onPlanTrip && (
+                  {/* Exclusive tours and requests start at least 3 weeks ahead. */}
+                  {onPlanTrip && format(selectedDate, 'yyyy-MM-dd') < addDaysPH(TRIP_REQUEST_LEAD_DAYS) && (
+                    <p style={{ fontStyle: 'normal', margin: '14px 0 0', fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.9)', lineHeight: 1.6 }}>
+                      Exclusive tours and tour requests can be booked from 3 weeks ahead.
+                      Pick a day from <strong style={{ color: '#E8A265' }}>{format(new Date(`${addDaysPH(TRIP_REQUEST_LEAD_DAYS)}T00:00:00`), 'MMMM d')}</strong> onwards.
+                    </p>
+                  )}
+                  {onPlanTrip && format(selectedDate, 'yyyy-MM-dd') >= addDaysPH(TRIP_REQUEST_LEAD_DAYS) && (
                     <div style={{ fontStyle: 'normal', marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.9)' }}>Want to travel on this day?</p>
                       <button type="button" onClick={() => onPlanTrip('exclusive', format(selectedDate, 'yyyy-MM-dd'))} style={{
