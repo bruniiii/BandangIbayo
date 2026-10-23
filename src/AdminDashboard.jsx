@@ -26,6 +26,7 @@ import PageHeader from './ui/PageHeader';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { readTab, saveTab, forgetTab } from './rememberTab';
+import { useTabHistory } from './useTabHistory';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -97,6 +98,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(() => readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'Overview'));
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
+  // Browser Back goes to the previous dashboard page.
+  useTabHistory(activeTab, setActiveTab, 'Overview');
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
