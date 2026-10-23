@@ -7,7 +7,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import {
   Bell, CheckCheck, Compass, Loader2, ArrowRight, Clock, ChevronDown,
   CreditCard, Wallet, Globe, Package, Star, Users, Map as MapIconLucide,
-  MoreHorizontal, Trash2, X, XCircle,
+  MoreHorizontal, Trash2, X, XCircle, Bus,
 } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
 
@@ -47,6 +47,7 @@ const TYPE_META = {
   review:             { Icon: Star,           color: '#8C5216', bg: 'rgba(232,162,101,0.25)',label: 'Review' },
   account:            { Icon: Users,          color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Account' },
   tour:               { Icon: MapIconLucide,  color: '#1A0A00', bg: 'rgba(26,10,0,0.08)',    label: 'Tour' },
+  tracking:           { Icon: Bus,            color: '#B4511E', bg: 'rgba(180,81,30,0.14)',  label: 'Tracking' },
   default:            { Icon: Bell,           color: '#7A3A18', bg: 'rgba(122,58,24,0.1)',   label: 'Update' },
 };
 
