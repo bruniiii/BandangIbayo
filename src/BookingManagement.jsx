@@ -4,7 +4,7 @@ import EmptyState from './ui/EmptyState';
 import { SearchX, ClipboardList } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
-import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
+import { sendBookingStatusEmail, sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
 import { formatPeso, downpaymentFor } from './tourUtils';
@@ -582,8 +582,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
     notifyUser(booking.user_id, approve
       ? { title: 'Cancellation Approved', message: `Your cancellation for ${booking.tours?.title || 'your tour'} (${booking.booking_number}) has been approved, and your slot has been released.`, type: 'cancellation', related_id: booking.id }
       : { title: 'Cancellation Declined', message: `Your request to cancel ${booking.tours?.title || 'your tour'} (${booking.booking_number}) was declined, so your booking stays active. Please message us if you have questions.`, type: 'cancellation', related_id: booking.id });
-    if (approve) sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
-    toast.success(approve ? 'Cancellation approved' : 'Request declined', approve ? 'The slots were released and the joiner was notified.' : 'The booking stays active and the joiner was notified.');
+    if (approve) {
+      sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
+      sendCancellationApprovedEmail({ bookingId: booking.id });
+    }
+    toast.success(approve ? 'Cancellation approved' : 'Request declined', approve ? 'The slots were released and the joiner was notified and emailed.' : 'The booking stays active and the joiner was notified.');
     onChanged?.();
   };
  

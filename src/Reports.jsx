@@ -6,6 +6,7 @@ import { toast } from './ui/toast';
 import { formatPeso } from './tourUtils';
 import SearchSelect from './ui/SearchSelect';
 import { downloadReportCSV, downloadReportPDF } from './reportExport';
+import SalesSummary from './SalesSummary';
 import {
   Loader2, Calendar, Users, CheckCircle2, Clock, XCircle, AlertCircle,
   MapPin, ChevronDown, Wallet, TrendingUp, TrendingDown, ClipboardList,
@@ -695,6 +696,8 @@ const Reports = () => {
           <ExportButton icon={<Printer size={13} />} label="Print" onClick={() => window.print()} />
         </div>
       </div>
+
+      <SalesSummary />
 
       {/* ── Fetch Error Banner (surfaces silent Supabase query failures instead of just showing 0 data) ── */}
       {fetchErrors.length > 0 && (

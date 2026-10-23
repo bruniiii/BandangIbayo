@@ -5,7 +5,7 @@ import EmptyState from './ui/EmptyState';
 import { primaryBtn, secondaryBtn } from './ui/buttons';
 import { formatDateRange, todayManila } from './tourUtils';
 import {
-  ScanLine, Camera, CameraOff, CheckCircle2, AlertTriangle, XCircle, Users, Undo2, Loader2, Search,
+  ScanLine, Camera, CameraOff, CheckCircle2, AlertTriangle, XCircle, Users, Undo2, Loader2, Search, Phone,
 } from 'lucide-react';
 import { SkeletonLines, SkeletonRows } from './ui/Skeleton';
 
@@ -50,6 +50,7 @@ const AdminCheckIn = () => {
   const [manual, setManual] = useState('');
   const [cameraOn, setCameraOn] = useState(false);
   const [cameraError, setCameraError] = useState('');
+  const [show, setShow] = useState('waiting'); // joiner list: 'waiting' | 'in' | 'all'
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -77,22 +78,29 @@ const AdminCheckIn = () => {
     })();
   }, []);
 
-  const loadRoster = useCallback(async (id) => {
+  const loadRoster = useCallback(async (id, quiet = false) => {
     if (!id) { setRoster([]); return; }
-    setLoadingRoster(true);
+    if (!quiet) setLoadingRoster(true);
     const { data, error } = await supabase
       .from('bookings')
-      .select('id, booking_number, full_name, slots_booked, payment_status, booking_status, checked_in_at')
+      .select('id, booking_number, full_name, contact_number, slots_booked, payment_status, booking_status, checked_in_at')
       .eq('tour_id', id)
       .eq('payment_status', 'Complete')
       .not('booking_status', 'in', '("Cancelled","Rejected")')
       .order('full_name', { ascending: true });
     setLoadingRoster(false);
-    if (error) { toast.error("Couldn't load the joiner list", error.message); return; }
+    if (error) { if (!quiet) toast.error("Couldn't load the joiner list", error.message); return; }
     setRoster(data || []);
   }, []);
 
   useEffect(() => { loadRoster(tourId); setResult(null); }, [tourId, loadRoster]);
+
+  // Keep the list fresh while another admin is scanning too (every 20 seconds).
+  useEffect(() => {
+    if (!tourId) return undefined;
+    const timer = setInterval(() => { if (!document.hidden) loadRoster(tourId, true); }, 20000);
+    return () => clearInterval(timer);
+  }, [tourId, loadRoster]);
 
   const verify = useCallback(async (code) => {
     const id = tourIdRef.current;
@@ -215,6 +223,11 @@ const AdminCheckIn = () => {
   const tour = tours.find((t) => String(t.id) === tourId);
   const totalPeople = roster.reduce((n, b) => n + (b.slots_booked || 1), 0);
   const inPeople = roster.filter((b) => b.checked_in_at).reduce((n, b) => n + (b.slots_booked || 1), 0);
+  const waitingCount = roster.filter((b) => !b.checked_in_at).length;
+  // Not checked in first, so you see who you're still waiting for.
+  const shownRoster = roster
+    .filter((b) => (show === 'waiting' ? !b.checked_in_at : show === 'in' ? !!b.checked_in_at : true))
+    .sort((a, b) => Number(!!a.checked_in_at) - Number(!!b.checked_in_at));
   const shown = result ? describe(result) : null;
   const tone = shown ? RESULT_STYLES[shown.tone] : null;
 
@@ -310,13 +323,31 @@ const AdminCheckIn = () => {
                 <span style={{ fontSize: 22, fontWeight: 900 }}>{inPeople}</span> / {totalPeople} checked in
               </p>
             </div>
+            {roster.length > 0 && (
+              <>
+                <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? '#8C5216' : '#2E6B4A', margin: '0 0 10px' }}>
+                  {waitingCount
+                    ? `Still waiting for ${totalPeople - inPeople} ${totalPeople - inPeople === 1 ? 'person' : 'people'} (${waitingCount} booking${waitingCount === 1 ? '' : 's'}).`
+                    : 'Everyone is checked in! 🎉'}
+                </p>
+                <div role="group" aria-label="Show" style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+                  {[['waiting', `Not yet (${waitingCount})`], ['in', `Checked in (${roster.length - waitingCount})`], ['all', `All (${roster.length})`]].map(([key, text]) => (
+                    <button key={key} type="button" aria-pressed={show === key} onClick={() => setShow(key)} style={chip(show === key)}>{text}</button>
+                  ))}
+                </div>
+              </>
+            )}
             {loadingRoster ? (
               <SkeletonRows count={4} boxed={false} label="Loading joiner list" />
             ) : roster.length === 0 ? (
               <EmptyState compact icon={Users} title="No confirmed joiners yet" message="Paid bookings for this tour will appear here." />
+            ) : shownRoster.length === 0 ? (
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+                {show === 'waiting' ? 'No one left to check in.' : 'No one has checked in yet.'}
+              </p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {roster.map((b) => (
+                {shownRoster.map((b) => (
                   <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_in_at ? 'rgba(46,107,74,0.08)' : '#FDF6EE', border: '1px solid rgba(180,81,30,0.1)' }}>
                     {b.checked_in_at
                       ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked in" />
@@ -325,6 +356,11 @@ const AdminCheckIn = () => {
                       <p style={{ fontSize: 13.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.full_name}</p>
                       <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{b.booking_number} · {b.slots_booked > 1 ? `${b.slots_booked} people` : '1 person'}</p>
                     </div>
+                    {!b.checked_in_at && b.contact_number && (
+                      <a href={`tel:${b.contact_number.replace(/[^\d+]/g, '')}`} aria-label={`Call ${b.full_name}`} title={`Call ${b.contact_number}`} style={callBtn}>
+                        <Phone size={14} />
+                      </a>
+                    )}
                     <span style={{ fontSize: 12, fontWeight: 800, color: b.checked_in_at ? '#2E6B4A' : '#7A3A18', whiteSpace: 'nowrap' }}>
                       {b.checked_in_at ? timeOf(b.checked_in_at) : 'Not yet'}
                     </span>
@@ -343,6 +379,17 @@ const card = {
   background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
   border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
 };
+const chip = (active) => ({
+  border: active ? 'none' : '1px solid rgba(180,81,30,0.2)', borderRadius: 999, padding: '6px 12px', cursor: 'pointer',
+  fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800,
+  background: active ? '#1A0A00' : 'transparent', color: active ? '#FDF6EE' : '#7A3A18',
+});
+
+const callBtn = {
+  width: 32, height: 32, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  background: 'rgba(180,81,30,0.12)', color: '#A8481A', textDecoration: 'none',
+};
+
 const label = {
   display: 'block', fontSize: 11.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
   color: '#7A3A18', margin: '0 0 6px',

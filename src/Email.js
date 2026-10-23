@@ -60,5 +60,10 @@ export const sendCustomEmail = async ({ userId, subject, message }) => {
 export const sendWaitlistOpeningsEmail = ({ tourId }) =>
   tourId ? send({ type: 'waitlist-openings', tourId }) : null;
 
+// After an admin approves a cancellation: emails the joiner (once; the hourly
+// email run also sends it, e.g. for automatic approvals).
+export const sendCancellationApprovedEmail = ({ bookingId }) =>
+  bookingId ? send({ type: 'cancellation-approved', bookingId }) : null;
+
 // The logged-in joiner deletes their own account (Profile Settings → Your Data).
 export const deleteMyAccount = () => send({ type: 'delete-account', confirm: 'DELETE' });

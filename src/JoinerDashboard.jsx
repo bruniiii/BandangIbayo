@@ -255,6 +255,12 @@ const JoinerDashboard = () => {
       case 'tour':
         handleNavClick('Explore Tours');
         break;
+      case 'tracking':
+        handleNavClick('Tracking');
+        break;
+      case 'review':
+        handleNavClick('Reviews');
+        break;
       case 'account':
         handleNavClick('Profile Settings');
         break;

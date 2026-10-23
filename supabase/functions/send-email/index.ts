@@ -13,11 +13,16 @@
 //        - { type: "delete-account", confirm: "DELETE" }  the logged-in joiner deletes their own
 //          account: personal data removed (purge_user_data), their files deleted, login deleted
 //          the database already notified about an opening on that tour (each joiner once)
+//        - { type: "cancellation-approved", bookingId }  admin only; emails the joiner (once)
 //   2) Reminder mode — body { action: "tour-reminders", date?, dryRun? }
 //        Also sends balance reminders: joiners who paid a downpayment and whose tour
 //        starts in 2–3 days get one email + in-app notice about the remaining balance.
 //        emails every confirmed joiner whose tour starts TOMORROW (Philippine time).
 //        Called daily by pg_cron with the x-cron-secret header; blocked for everyone else.
+//   3) Scheduled mode — body { action: "scheduled" }, hourly by pg_cron (trip-emails job,
+//        x-cron-secret = CRON_SECRET or the cron_secret in public.app_secrets). Sends, once each:
+//        the day-before reminders (from 5 PM Philippine time), balance reminders,
+//        "Pickup Starts Today", "Cancellation Approved" and "Rate your trip" emails.
 //
 // Deploy:   supabase functions deploy send-email --no-verify-jwt
 //           (auth is checked inside the function: user login + ownership/admin role for normal mode,
@@ -33,6 +38,8 @@ const GMAIL_USER = Deno.env.get("GMAIL_USER") ?? "bandangibayo@gmail.com";
 const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// The website (same secret the payments function uses), for buttons in emails.
+const SITE_URL = (Deno.env.get("SITE_URL") ?? "").replace(/\/+$/, "");
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -127,6 +134,7 @@ function buildEmail(opts: {
       <p style="margin:6px 0 0;font-size:13px;color:#E8A265;">📍 ${esc(tour.destination)}</p>
       <p style="margin:4px 0 0;font-size:13px;">📅 ${prettyDate(tour.start_date)}${tour.duration ? ` · ${esc(tour.duration)}` : ""}</p>
       <p style="margin:4px 0 0;font-size:13px;">👤 ${booking.slots_booked} ${booking.slots_booked === 1 ? "person" : "persons"} · Ref: ${esc(booking.booking_number)}</p>
+      ${stops[0] ? `<p style="margin:10px 0 0;font-size:14px;font-weight:800;color:#E8A265;">⏰ Meeting time: ${esc(stops[0].scheduled_time || "see pickup points")} at ${esc(stops[0].location_name)}</p>` : ""}
     </div>
 
     ${section("Pickup Points &amp; ETA", stopsHtml)}
@@ -214,8 +222,7 @@ async function runReminders(date: string, dryRun: boolean) {
           user_id: b.user_id,
           title: "Your tour starts tomorrow 🚐",
           message: `Reminder: ${tour.title} (${b.booking_number}) departs tomorrow, ${prettyDate(tour.start_date)}. Check the Tracking tab for pickup ETAs and driver details.`,
-          type: "tour",
-          related_id: b.id,
+          type: "tracking",
         }]);
       }
       sent++;
@@ -441,6 +448,160 @@ async function runBalanceReminders(dryRun: boolean) {
   return { from, to, found: (bookings ?? []).length, sent, skipped, errors };
 }
 
+// ───────────── Trip emails (scheduled mode) ─────────────
+const manilaHour = () => new Date(Date.now() + 8 * 3600 * 1000).getUTCHours();
+
+const button = (label: string) =>
+  SITE_URL
+    ? `<p style="margin:18px 0 0;"><a href="${SITE_URL}/login" style="display:inline-block;background:#B4511E;color:#FDF6EE;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px;">${esc(label)}</a></p>`
+    : "";
+
+// Claims an email in email_log before sending, so it goes out once even if two
+// runs overlap. Returns false when it was already sent.
+async function claim(kind: string, ref: string) {
+  const { data, error } = await supabase.from("email_log").upsert({ kind, ref }, { onConflict: "kind,ref", ignoreDuplicates: true }).select("ref");
+  if (error) throw new Error(error.message);
+  return (data ?? []).length > 0;
+}
+const unclaim = (kind: string, ref: string) => supabase.from("email_log").delete().eq("kind", kind).eq("ref", ref);
+
+async function sendOnce(kind: string, ref: string, to: string | null, subject: string, html: string) {
+  if (!to) return "skipped";
+  if (!(await claim(kind, ref))) return "already";
+  try {
+    await transporter.sendMail({ from: `"Bandang IBAYO" <${GMAIL_USER}>`, to, replyTo: GMAIL_USER, subject, html });
+    return "sent";
+  } catch (err) {
+    await unclaim(kind, ref);
+    throw err;
+  }
+}
+
+async function nameOf(userId: string | null, fallback?: string | null) {
+  if (!userId) return displayName(null, fallback);
+  const { data } = await supabase.from("profiles").select("first_name, last_name").eq("id", userId).maybeSingle();
+  return displayName(data, fallback);
+}
+
+const cancellationApprovedEmail = (name: string, b: any, tour: any) => ({
+  subject: `Cancellation approved — ${b.booking_number}`,
+  html: wrapper("Your cancellation was approved", "#8C2F1C", `
+    <p>Hi ${esc(name)},</p>
+    <p>Your cancellation for <strong>${esc(tour?.title)}</strong>${tour?.start_date ? ` (${prettyDate(tour.start_date)})` : ""}, booking
+    <strong>${esc(b.booking_number)}</strong>, has been approved, and your slot has been released.</p>
+    <p style="color:#7A3A18;">As agreed when booking, payments are non-refundable. We hope to see you on another trip soon!</p>
+    ${button("Browse other tours")}
+  `),
+});
+
+async function sendCancellationEmail(b: any) {
+  const tour = Array.isArray(b.tours) ? b.tours[0] : b.tours;
+  const email = cancellationApprovedEmail(await nameOf(b.user_id, b.full_name), b, tour);
+  return sendOnce("cancellation-approved", String(b.id), await recipientFor(b.user_id, b.email), email.subject, email.html);
+}
+
+async function runTripEmails() {
+  const out: Record<string, unknown> = {};
+  const count = async (label: string, work: () => Promise<string[]>) => {
+    try {
+      const results = await work();
+      out[label] = { sent: results.filter((r) => r === "sent").length, checked: results.length };
+    } catch (err) {
+      out[label] = { error: String((err as Error)?.message || err) };
+    }
+  };
+
+  // In-app notices first (also sent when the app loads tours).
+  await supabase.rpc("daily_notices");
+
+  // "Pickup Starts Today": everyone the notice went to today.
+  await count("pickupDay", async () => {
+    const { data, error } = await supabase
+      .from("pickup_day_notices")
+      .select("tour_id, user_id, tours!inner ( title, start_date )")
+      .eq("tours.start_date", manilaDate(0));
+    if (error) throw new Error(error.message);
+    const results: string[] = [];
+    for (const n of (data ?? []) as any[]) {
+      const tour = Array.isArray(n.tours) ? n.tours[0] : n.tours;
+      const { data: stops } = await supabase.from("tour_meetups").select("location_name, scheduled_time, note")
+        .eq("tour_id", n.tour_id).order("created_at", { ascending: true });
+      const list = stops ?? [];
+      const stopsHtml = list.length
+        ? `<ul style="padding-left:18px;line-height:1.7;">${list.map((s: any) => `<li><strong>${esc(s.location_name)}</strong>${s.scheduled_time ? ` — ${esc(s.scheduled_time)}` : ""}${s.note ? ` <em>(${esc(s.note)})</em>` : ""}</li>`).join("")}</ul>`
+        : `<p>Pickup points and times will be posted in the app under <strong>Tracking</strong>.</p>`;
+      results.push(await sendOnce("pickup-day", `${n.tour_id}:${n.user_id}`, await recipientFor(n.user_id),
+        `Pickup starts today: ${tour.title} 🚐`,
+        wrapper("Pickup starts today! 🚐", "#C45C26", `
+          <p>Hi ${esc(await nameOf(n.user_id))}, today is the day for <strong>${esc(tour.title)}</strong>.</p>
+          ${list[0] ? `<p style="font-size:16px;font-weight:800;">First pickup: ${esc(list[0].location_name)}${list[0].scheduled_time ? ` at ${esc(list[0].scheduled_time)}` : ""}</p>` : ""}
+          ${stopsHtml}
+          <p>Please be at your pickup point a few minutes early, and have your check-in QR ready (My Bookings → Trip Day). You can see where the van is under <strong>Tracking</strong>.</p>
+          ${button("Open Tracking")}
+        `)));
+    }
+    return results;
+  });
+
+  // "Cancellation Approved": by an admin or automatically after 12 hours.
+  await count("cancellations", async () => {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, user_id, booking_number, full_name, email, tours ( title, start_date )")
+      .eq("booking_status", "Cancelled")
+      .not("cancellation_requested_at", "is", null)
+      .gte("cancellation_requested_at", new Date(Date.now() - 14 * 864e5).toISOString());
+    if (error) throw new Error(error.message);
+    const results: string[] = [];
+    for (const b of data ?? []) results.push(await sendCancellationEmail(b));
+    return results;
+  });
+
+  // "Rate your trip": the review invites from the last 3 days.
+  await count("reviewInvites", async () => {
+    const { data, error } = await supabase
+      .from("review_invites")
+      .select("tour_id, user_id, sent_at, tours ( title )")
+      .gte("sent_at", new Date(Date.now() - 3 * 864e5).toISOString());
+    if (error) throw new Error(error.message);
+    const results: string[] = [];
+    for (const i of (data ?? []) as any[]) {
+      const { count: reviewed } = await supabase.from("reviews").select("id", { count: "exact", head: true })
+        .eq("tour_id", i.tour_id).eq("user_id", i.user_id);
+      if (reviewed) { results.push("skipped"); continue; }
+      const tour = Array.isArray(i.tours) ? i.tours[0] : i.tours;
+      results.push(await sendOnce("review-invite", `${i.tour_id}:${i.user_id}`, await recipientFor(i.user_id),
+        `How was ${tour?.title}? ⭐`,
+        wrapper("How was your trip? ⭐", "#C45C26", `
+          <p>Hi ${esc(await nameOf(i.user_id))}, thank you for joining <strong>${esc(tour?.title)}</strong>! We hope you had a great time.</p>
+          <p>Would you take a minute to rate your trip? Your review helps other travelers choose their next adventure, and helps us make every trip better.</p>
+          <p>Log in and open <strong>Reviews</strong> to leave yours (photos welcome!).</p>
+          ${button("Rate your trip")}
+        `)));
+    }
+    return results;
+  });
+
+  // Day-before reminders go out in the evening.
+  if (manilaHour() >= 17) {
+    out.reminders = await runReminders(tomorrowManila(), false).catch((err) => ({ error: String((err as Error)?.message || err) }));
+  }
+  out.balance = await runBalanceReminders(false).catch((err) => ({ error: String((err as Error)?.message || err) }));
+  console.log("send-email[scheduled]:", out);
+  return out;
+}
+
+// The hourly job's secret: the CRON_SECRET function secret, or the one the
+// migration stored in public.app_secrets.
+async function isScheduler(req: Request) {
+  const given = req.headers.get("x-cron-secret");
+  if (!given) return false;
+  const envSecret = Deno.env.get("CRON_SECRET");
+  if (envSecret && given === envSecret) return true;
+  const { data } = await supabase.from("app_secrets").select("value").eq("name", "cron_secret").maybeSingle();
+  return !!data?.value && given === data.value;
+}
+
 // ───────────── Account deletion (Data Privacy Act) ─────────────
 // The joiner deletes their own account. purge_user_data() keeps booking records
 // for the agency but strips personal details, and deletes everything else; then
@@ -533,9 +694,12 @@ Deno.serve(async (req) => {
     }
 
     // ── Reminder mode (service-role only) ──
+    if (payload.action === "scheduled") {
+      if (!(await isScheduler(req))) return reply({ error: "Forbidden: only the scheduler can start this" }, 403);
+      return reply(await runTripEmails());
+    }
     if (payload.action === "tour-reminders") {
-      const CRON_SECRET = Deno.env.get("CRON_SECRET");
-      if (!CRON_SECRET || req.headers.get("x-cron-secret") !== CRON_SECRET) {
+      if (!(await isScheduler(req))) {
         return reply({ error: "Forbidden: reminders can only be triggered by the scheduler" }, 403);
       }
       // Run independently, so a problem with one kind of reminder doesn't stop the other.
@@ -561,6 +725,18 @@ Deno.serve(async (req) => {
     }
 
     if (payload.type === "waitlist-openings") return reply(await sendWaitlistEmails(payload.tourId));
+    if (payload.type === "cancellation-approved") {
+      const { data: caller } = callerId
+        ? await supabase.from("profiles").select("role").eq("id", callerId).maybeSingle()
+        : { data: null };
+      if (!trustedServer && caller?.role !== "admin") return reply({ error: "Only admins can send this email." }, 403);
+      const { data: b } = await supabase.from("bookings")
+        .select("id, user_id, booking_number, full_name, email, booking_status, tours ( title, start_date )")
+        .eq("id", payload.bookingId).maybeSingle();
+      if (!b) return reply({ error: "Booking not found" }, 404);
+      if (b.booking_status !== "Cancelled") return reply({ error: "This booking isn't cancelled." }, 409);
+      return reply({ success: true, result: await sendCancellationEmail(b) });
+    }
     if (payload.type === "delete-account") {
       if (!callerId) return reply({ error: "Only the account owner can delete their account." }, 403);
       return reply(await deleteAccount(callerId, payload));
