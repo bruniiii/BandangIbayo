@@ -41,19 +41,29 @@ const JoinerLogin = () => {
   const [searchParams] = useSearchParams();
   const nextPath = safeNextPath(searchParams.get('next'));
 
-  // Already signed in (e.g. pressed Back from the dashboard): go to the dashboard
-  // instead of showing the login form.
+  // Already signed in on this browser: offer to continue or switch accounts.
+  // Nothing happens until they choose.
+  const [signedIn, setSignedIn] = useState(null); // { name, role }
   useEffect(() => {
     let active = true;
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session || !active) return;
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+      const { data: profile } = await supabase.from('profiles')
+        .select('role, first_name, last_name, username').eq('id', session.user.id).maybeSingle();
       if (!profile || !active) return;
-      navigate(profile.role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard', { replace: true });
+      const name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || session.user.email;
+      setSignedIn({ name, role: profile.role === 'admin' ? 'admin' : 'joiner' });
     })();
     return () => { active = false; };
-  }, [navigate, nextPath]);
+  }, []);
+
+  const continueSignedIn = () =>
+    navigate(signedIn.role === 'admin' ? '/admin/dashboard' : nextPath || '/dashboard', { replace: true });
+  const switchAccount = async () => {
+    await supabase.auth.signOut();
+    setSignedIn(null);
+  };
  
   // Step 2 (after the right password): the 6-digit code we emailed.
   const [challenge, setChallenge] = useState(null); // { challengeId, sentTo, expiresInMinutes }
@@ -348,8 +358,26 @@ const JoinerLogin = () => {
           </div>
         )}
 
+        {/* already signed in on this browser */}
+        {signedIn && !challenge && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 18, padding: '1.1rem 1.25rem', marginBottom: 18 }}>
+            <p style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.5 }}>
+              You're already signed in as <strong>{signedIn.name}</strong>.
+            </p>
+            <button type="button" onClick={continueSignedIn} style={{
+              padding: '13px 16px', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE', cursor: 'pointer',
+              fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}>
+              Continue to Dashboard
+            </button>
+            <button type="button" onClick={switchAccount} className="text-link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, padding: 0 }}>
+              Sign in as someone else
+            </button>
+          </div>
+        )}
+
         {/* form */}
-        {!challenge && (
+        {!challenge && !signedIn && (
         <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleLogin}>
           <div>
             <label style={labelStyle}>Username or Email</label>
