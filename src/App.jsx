@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import { supabase } from './supabaseClient';
+import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
+import { supabase, openedFromResetLink } from './supabaseClient';
 import { FaFacebook } from "react-icons/fa"; 
 import { 
   MapPin, Calendar, Users, Clock, Loader2, CheckCircle, 
@@ -527,6 +527,24 @@ function LandingPage() {
 }
  
 export default function App() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // A password reset link always opens the "set a new password" page, even if
+  // Supabase sent it to the homepage.
+  useEffect(() => {
+    // Waits for Supabase to read the sign-in details from the link first.
+    if (openedFromResetLink && pathname !== '/reset-password') {
+      supabase.auth.getSession().then(() => navigate('/reset-password', { replace: true }));
+    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' && window.location.pathname !== '/reset-password') navigate('/reset-password', { replace: true });
+    });
+    return () => subscription.unsubscribe();
+    // Only when the site first opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
