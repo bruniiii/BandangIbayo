@@ -7,7 +7,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
-import { formatPeso, downpaymentFor } from './tourUtils';
+import { formatPeso, downpaymentFor, formatDateRange as formatTourDates } from './tourUtils';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
@@ -523,23 +523,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
     fetchProfile();
   }, [booking.user_id]);
  
-  const formatDateRange = (dateString, duration) => {
-    if (!dateString) return '—';
-    const [year, month, day] = dateString.split('-').map(Number);
-    const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;
-    const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const startDate = new Date(year, month - 1, day);
-    const endDate = new Date(year, month - 1, day + numDays - 1);
-    const startMonth = monthNames[startDate.getMonth()];
-    const endMonth = monthNames[endDate.getMonth()];
-    const startYear = startDate.getFullYear();
-    const endYear = endDate.getFullYear();
-    if (numDays <= 1) return `${startMonth} ${startDate.getDate()}, ${startYear}`;
-    if (startMonth === endMonth && startYear === endYear) return `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startYear}`;
-    if (startYear === endYear) return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startYear}`;
-    return `${startMonth} ${startDate.getDate()}, ${startYear} - ${endMonth} ${endDate.getDate()}, ${endYear}`;
-  };
+  const formatDateRange = (d, dur) => formatTourDates(d, dur) || '—';
  
   const formatDateTime = (dateStr) => {
     if (!dateStr) return '—';

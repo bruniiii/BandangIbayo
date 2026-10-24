@@ -8,7 +8,7 @@ import { mediaFileError } from './validation';
 import EmptyState from './ui/EmptyState';
 
 const REVIEW_MAX = 1000;
-import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar } from 'lucide-react';
+import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar, ThumbsUp } from 'lucide-react';
 import { SkeletonPosts } from './ui/Skeleton';
 
 const displayName = (profile) => {
@@ -99,9 +99,42 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
     if (profilesError) console.error('Error fetching review authors:', profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
 
-    setReviews((data || []).map(r => ({ ...r, author: profileMap[r.user_id] || null })));
+    // "Helpful" counts, and whether the viewer marked each one (review_helpful_counts()).
+    const ids = (data || []).map(r => String(r.id));
+    const { data: helpfulData } = ids.length
+      ? await supabase.rpc('review_helpful_counts', { p_review_ids: ids })
+      : { data: [] };
+    const helpfulMap = Object.fromEntries((helpfulData || []).map(h => [String(h.review_id), h]));
+
+    setReviews((data || []).map(r => ({
+      ...r,
+      author: profileMap[r.user_id] || null,
+      helpful: helpfulMap[String(r.id)]?.helpful || 0,
+      helpfulMine: !!helpfulMap[String(r.id)]?.mine,
+    })));
     setLoading(false);
   }, []);
+
+  // Tap "Helpful" to add or take back your vote (not on your own review).
+  const [helpfulBusy, setHelpfulBusy] = useState(null);
+  const toggleHelpful = async (review) => {
+    if (!currentUserId || helpfulBusy) return;
+    setHelpfulBusy(review.id);
+    const marking = !review.helpfulMine;
+    // Show it right away; undone below if saving fails.
+    const apply = (mine) => setReviews(prev => prev.map(r => (r.id === review.id
+      ? { ...r, helpfulMine: mine, helpful: Math.max(0, r.helpful + (mine ? 1 : -1)) }
+      : r)));
+    apply(marking);
+    const { error } = marking
+      ? await supabase.from('review_reactions').insert([{ review_id: review.id }])
+      : await supabase.from('review_reactions').delete().eq('review_id', review.id).eq('user_id', currentUserId);
+    if (error) {
+      apply(!marking);
+      toast.error("Couldn't save your reaction", error.message);
+    }
+    setHelpfulBusy(null);
+  };
 
   // Same rule the database enforces (can_review_tour): payment confirmed and the tour has ended.
   const fetchReviewableTours = useCallback(async (userId, existingReviewTourIds) => {
@@ -403,7 +436,13 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
         />
       ) : (
         reviews.map(review => (
-          <ReviewCard key={review.id} review={review} />
+          <ReviewCard
+            key={review.id}
+            review={review}
+            canReact={!isAdmin && !!currentUserId && review.user_id !== currentUserId}
+            busy={helpfulBusy === review.id}
+            onHelpful={() => toggleHelpful(review)}
+          />
         ))
       )}
     </div>
@@ -412,7 +451,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
 /* ── REVIEW CARD ──
    Reviews can't be deleted, by the joiner or by an admin. */
-const ReviewCard = ({ review }) => (
+const ReviewCard = ({ review, canReact, busy, onHelpful }) => (
   <div style={{
     background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
     border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
@@ -495,6 +534,31 @@ const ReviewCard = ({ review }) => (
         ))}
       </div>
     )}
+
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
+      {canReact ? (
+        <button
+          type="button"
+          onClick={onHelpful}
+          disabled={busy}
+          aria-pressed={review.helpfulMine}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit',
+            borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 800,
+            border: review.helpfulMine ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.25)',
+            background: review.helpfulMine ? 'rgba(180,81,30,0.12)' : 'transparent',
+            color: review.helpfulMine ? '#A8481A' : '#7A3A18',
+          }}
+        >
+          <ThumbsUp size={14} fill={review.helpfulMine ? '#B4511E' : 'none'} />
+          Helpful{review.helpful ? ` (${review.helpful})` : ''}
+        </button>
+      ) : review.helpful > 0 ? (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
+          <ThumbsUp size={14} /> {review.helpful} {review.helpful === 1 ? 'person' : 'people'} found this helpful
+        </span>
+      ) : null}
+    </div>
   </div>
 );
 

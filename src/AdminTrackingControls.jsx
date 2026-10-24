@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { PickupRequestsAdmin } from './CustomPickup';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -70,6 +71,8 @@ export const AdminTrackingControls = () => {
   // Fleet & Driver Form States
   const [carType, setCarType] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
+  const [vehicleColor, setVehicleColor] = useState('');
+  const [vehicleNotes, setVehicleNotes] = useState('');
   const [driverName, setDriverName] = useState('');
   const [driverContact, setDriverContact] = useState('');
   const [isLogisticsSaved, setIsLogisticsSaved] = useState(false);
@@ -114,12 +117,16 @@ export const AdminTrackingControls = () => {
       if (vehicle) {
         setCarType(vehicle.car_type || '');
         setPlateNumber(vehicle.plate_number || '');
+        setVehicleColor(vehicle.vehicle_color || '');
+        setVehicleNotes(vehicle.vehicle_notes || '');
         setDriverName(vehicle.driver_name || '');
         setDriverContact(formatPhPhone(vehicle.driver_contact || ''));
         setIsLogisticsSaved(true);
       } else {
         setCarType('');
         setPlateNumber('');
+        setVehicleColor('');
+        setVehicleNotes('');
         setDriverName('');
         setDriverContact('');
         setIsLogisticsSaved(false);
@@ -190,6 +197,8 @@ export const AdminTrackingControls = () => {
       tour_id: activeTour.id,
       car_type: carType,
       plate_number: plateNumber.trim().toUpperCase(),
+      vehicle_color: vehicleColor.trim() || null,
+      vehicle_notes: vehicleNotes.trim() || null,
       driver_name: cleanName(driverName),
       driver_contact: normalizePhone(driverContact),
       updated_at: new Date().toISOString(),
@@ -428,6 +437,8 @@ export const AdminTrackingControls = () => {
           advancing={advancing}
           carType={carType} setCarType={setCarType}
           plateNumber={plateNumber} setPlateNumber={setPlateNumber}
+          vehicleColor={vehicleColor} setVehicleColor={setVehicleColor}
+          vehicleNotes={vehicleNotes} setVehicleNotes={setVehicleNotes}
           driverName={driverName} setDriverName={setDriverName}
           driverContact={driverContact} setDriverContact={setDriverContact}
           newLocName={newLocName} setNewLocName={setNewLocName}
@@ -579,6 +590,7 @@ const TrackingConsoleModal = ({
   isLogisticsSaved, setIsLogisticsSaved,
   savingLogistics, savingStop, advancing,
   carType, setCarType, plateNumber, setPlateNumber,
+  vehicleColor, setVehicleColor, vehicleNotes, setVehicleNotes,
   driverName, setDriverName, driverContact, setDriverContact,
   newLocName, setNewLocName, newTime, setNewTime,
   onSaveVehicleInfo, onAddPickupStop, onDeleteStop,
@@ -657,6 +669,10 @@ const TrackingConsoleModal = ({
                       <input type="text" placeholder="Plate Number (e.g. NBT-8921)" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} style={inputStyle} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
+                      <input type="text" placeholder="Color (e.g. Pearl White)" aria-label="Vehicle color (optional)" maxLength={40} value={vehicleColor} onChange={e => setVehicleColor(e.target.value)} style={inputStyle} />
+                      <input type="text" placeholder="How to spot it (e.g. IBAYO sticker, tinted)" aria-label="Other vehicle details (optional)" maxLength={120} value={vehicleNotes} onChange={e => setVehicleNotes(e.target.value)} style={inputStyle} />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                       <input type="text" data-allow="name" placeholder="Driver Name" value={driverName} onChange={e => setDriverName(e.target.value)} style={inputStyle} />
                       <input {...phoneFieldProps(driverContact, setDriverContact)} aria-label="Driver contact number" style={inputStyle} />
                     </div>
@@ -672,6 +688,8 @@ const TrackingConsoleModal = ({
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
                     <div><strong>Vehicle:</strong> {carType}</div>
                     <div><strong>Plate:</strong> {plateNumber}</div>
+                    {vehicleColor && <div><strong>Color:</strong> {vehicleColor}</div>}
+                    {vehicleNotes && <div><strong>How to spot it:</strong> {vehicleNotes}</div>}
                     <div><strong>Driver:</strong> {driverName}</div>
                     <div><strong>Contact:</strong> {driverContact}</div>
                     <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #B4511E', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
@@ -680,6 +698,8 @@ const TrackingConsoleModal = ({
                   </div>
                 )}
               </div>
+
+              <PickupRequestsAdmin tourId={tour?.id} />
 
               {/* Manual Stops */}
               <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>

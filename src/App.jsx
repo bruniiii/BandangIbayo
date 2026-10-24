@@ -19,7 +19,7 @@ import JoinerDashboard from './JoinerDashboard';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import { PublicTourList, PublicTourDetail } from './PublicTours';
-import { todayManila, formatPeso, groupTripDates } from './tourUtils';
+import { todayManila, formatPeso, groupTripDates, weekdayRange } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { SkeletonTourCards } from './ui/Skeleton';
@@ -300,7 +300,7 @@ function LandingPage() {
                       </p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {[
-                          [<Calendar size={15}/>, formatDate(tour.start_date) + (tour.dates?.length > 1 ? `  +${tour.dates.length - 1} more date${tour.dates.length > 2 ? 's' : ''}` : '')],
+                          [<Calendar size={15}/>, `${formatDate(tour.start_date)} (${weekdayRange(tour.start_date, tour.duration)})` + (tour.dates?.length > 1 ? `  +${tour.dates.length - 1} more date${tour.dates.length > 2 ? 's' : ''}` : '')],
                           [<Clock size={15}/>, tour.duration],
                           [<Users size={15}/>, `${tour.group_size} max pax`],
                         ].map(([icon, text], i) => (

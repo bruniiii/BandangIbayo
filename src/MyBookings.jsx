@@ -5,13 +5,14 @@ import { Compass, Mountain, CalendarX2, QrCode } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
 import CheckInQr from './ui/CheckInQr';
 import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
+import { CustomPickupSection } from './CustomPickup';
 import { tripDayBookings } from './tripDay';
 import { 
   ShoppingBag, MapPin, Calendar,
@@ -59,34 +60,7 @@ const MyBookings = ({ onExplore }) => {
     return `${month}-${day}-${year}`;
   };
  
-  const formatDateRange = (dateString, duration) => {
-    if (!dateString) return "";
-    const [year, month, day] = dateString.split('-').map(Number);
- 
-    const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;
-    const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
- 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
- 
-    const startDate = new Date(year, month - 1, day);
-    const endDate = new Date(year, month - 1, day + numDays - 1);
- 
-    const startMonth = monthNames[startDate.getMonth()];
-    const endMonth = monthNames[endDate.getMonth()];
-    const startYear = startDate.getFullYear();
-    const endYear = endDate.getFullYear();
- 
-    if (numDays <= 1) {
-      return `${startMonth} ${startDate.getDate()}, ${startYear}`;
-    } else if (startMonth === endMonth && startYear === endYear) {
-      return `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startYear}`;
-    } else if (startYear === endYear) {
-      return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startYear}`;
-    } else {
-      return `${startMonth} ${startDate.getDate()}, ${startYear} - ${endMonth} ${endDate.getDate()}, ${endYear}`;
-    }
-  };
+  const formatDateRange = formatTourDates;
  
   const fetchMyBookings = useCallback(async () => {
     setLoading(true);
@@ -546,6 +520,10 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 )}
 
                 <OnlinePaymentActions booking={booking} isAwaitingPayment={isAwaitingPayment} isPaymentConfirmed={isPaymentConfirmed} onChanged={onCancelSuccess} />
+
+                {isPaymentConfirmed && !booking.cancellation_requested_at && (
+                  <CustomPickupSection booking={booking} canRequest={!!tour.start_date && tour.start_date > todayManila()} />
+                )}
 
                 {canCancel && !showCancelConfirm && (
                   <RescheduleSection booking={booking} tour={tour} formatDateRange={formatDateRange} onMoved={onCancelSuccess} />

@@ -7,7 +7,7 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates } from './tourUtils';
 import { moneyInputProps, blockSignKeys } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import {
@@ -59,23 +59,7 @@ const TourManagement = () => {
   const [tempGallery, setTempGallery]           = useState([]);
   const [newFiles, setNewFiles]                 = useState([]);
  
-  const formatDateRange = (dateString, duration) => {
-    if (!dateString) return '';
-    const [year, month, day] = dateString.split('-').map(Number);
-    const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;
-    const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const startDate = new Date(year, month - 1, day);
-    const endDate   = new Date(year, month - 1, day + numDays - 1);
-    const startMonth = monthNames[startDate.getMonth()];
-    const endMonth   = monthNames[endDate.getMonth()];
-    const startYear  = startDate.getFullYear();
-    const endYear    = endDate.getFullYear();
-    if (numDays <= 1) return `${startMonth} ${startDate.getDate()}, ${startYear}`;
-    if (startMonth === endMonth && startYear === endYear) return `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}, ${startYear}`;
-    if (startYear === endYear) return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startYear}`;
-    return `${startMonth} ${startDate.getDate()}, ${startYear} - ${endMonth} ${endDate.getDate()}, ${endYear}`;
-  };
+  const formatDateRange = formatTourDates;
  
   const calculateDuration = (start, end) => {
     if (!start || !end) return '';

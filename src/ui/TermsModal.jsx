@@ -141,14 +141,21 @@ const TermsModal = ({ onClose, onAgree }) => (
           health conditions not disclosed at the time of booking.
         </TermsSection>
 
-        <TermsSection title="4. Tracking & Vehicle Information">
+        <TermsSection title="4. Date Changes (Weather & Safety)">
+          A tour date may be moved because of bad weather (such as typhoons
+          or heavy rain), road closures, or other safety concerns. When this
+          happens, the agency will notify affected joiners as soon as
+          possible and help them move to a new date.
+        </TermsSection>
+
+        <TermsSection title="5. Tracking & Vehicle Information">
           Estimated Time of Arrival (ETA), driver details, and vehicle
           plate numbers shown on the platform are provided for
           transparency and safety. ETA information is an estimate only
           and does not reflect real-time GPS tracking.
         </TermsSection>
 
-        <TermsSection title="5. Account & Data Privacy">
+        <TermsSection title="6. Account & Data Privacy">
           Your account information, including your contact details and
           payment records, is stored securely and protected through
           role-based access controls. Information you provide is used
@@ -156,7 +163,7 @@ const TermsModal = ({ onClose, onAgree }) => (
           tour-related reminders and updates.
         </TermsSection>
 
-        <TermsSection title="6. Conduct & Reviews">
+        <TermsSection title="7. Conduct & Reviews">
           Joiners are expected to conduct themselves respectfully toward
           organizers, drivers, and fellow travelers. Reviews and comments
           posted on tours should reflect genuine experiences and may be

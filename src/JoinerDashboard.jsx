@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, groupTripDates } from './tourUtils';
+import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, groupTripDates, formatDateRange as formatTourDates } from './tourUtils';
 import { verifyCheckout, cancelCheckout, verifyExclusivePayment } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
 import JoinerTours, { DetailedTourModal } from './JoinerTours';
@@ -283,23 +283,7 @@ const JoinerDashboard = () => {
     await supabase.auth.signOut();
   };
 
-  const formatDateRange = (dateString, duration) => {
-    if (!dateString) return "";
-    try {
-      const [year, month, day] = dateString.split('-').map(Number);
-      const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;
-      const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const startDate = new Date(year, month - 1, day);
-      const endDate = new Date(year, month - 1, day + numDays - 1);
-      const startMonth = monthNames[startDate.getMonth()];
-      const endMonth = monthNames[endDate.getMonth()];
-      if (numDays <= 1) return `${startMonth} ${startDate.getDate()}, ${year}`;
-      return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}, ${startDate.getFullYear()}`;
-    } catch {
-      return dateString;
-    }
-  };
+  const formatDateRange = formatTourDates;
 
   // ── FETCH CURRENT USER PROFILE FOR CHIP ──
   const fetchUserProfile = useCallback(async () => {

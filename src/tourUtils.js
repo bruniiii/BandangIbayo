@@ -44,8 +44,25 @@ export const withAvailableSlots = async (tours) => {
   });
 };
 
-// "Nov 1 - 3, 2026" from a YYYY-MM-DD start date and a duration like "3 Days".
+// "Fri – Sun" (or "Sat" for one day) from a YYYY-MM-DD start date and a duration like "3 Days".
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const weekdayRange = (dateString, duration) => {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-').map(Number);
+  const daysMatch = duration ? String(duration).match(/(\d+)\s*day/i) : null;
+  const numDays = daysMatch ? parseInt(daysMatch[1]) : 1;
+  const first = new Date(year, month - 1, day).getDay();
+  if (numDays <= 1) return WEEKDAYS[first];
+  return `${WEEKDAYS[first]} – ${WEEKDAYS[(first + numDays - 1) % 7]}`;
+};
+
+// "Nov 1 - 3, 2026 (Sun – Tue)" from a YYYY-MM-DD start date and a duration like "3 Days".
 export const formatDateRange = (dateString, duration) => {
+  const dates = formatDateNumbers(dateString, duration);
+  return dates ? `${dates} (${weekdayRange(dateString, duration)})` : '';
+};
+
+const formatDateNumbers = (dateString, duration) => {
   if (!dateString) return "";
   const [year, month, day] = dateString.split('-').map(Number);
   const daysMatch = duration ? duration.match(/(\d+)\s*day/i) : null;

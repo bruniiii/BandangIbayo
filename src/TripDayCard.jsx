@@ -46,14 +46,15 @@ const TripDayCard = ({ booking }) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [{ data: stops }, { data: vehicle }] = await Promise.all([
+      const [{ data: stops }, { data: vehicle }, { data: custom }] = await Promise.all([
         supabase.from('tour_meetups').select('*').eq('tour_id', booking.tour_id).order('created_at', { ascending: true }),
         supabase.from('tour_vehicles').select('*').eq('tour_id', booking.tour_id).maybeSingle(),
+        supabase.from('pickup_requests').select('location, note, status, extra_fee').eq('booking_id', booking.id).maybeSingle(),
       ]);
-      if (!cancelled) setDetails({ stops: stops || [], vehicle: vehicle || null });
+      if (!cancelled) setDetails({ stops: stops || [], vehicle: vehicle || null, custom: custom || null });
     })();
     return () => { cancelled = true; };
-  }, [booking.tour_id]);
+  }, [booking.tour_id, booking.id]);
 
   const items = (tour.things_to_bring || '').split('\n').map((s) => s.trim()).filter(Boolean);
   const balance = booking.payment_method === 'Downpayment' && !booking.balance_settled
@@ -61,14 +62,14 @@ const TripDayCard = ({ booking }) => {
   const vehicle = details?.vehicle;
 
   return (
-    <section aria-label={`Trip Day: ${tour.title}`} style={{
+    <section aria-label={`Day trip: ${tour.title}`} style={{
       background: '#FDF6EE', borderRadius: 24, overflow: 'hidden',
       border: '1px solid rgba(180,81,30,0.18)', boxShadow: '0 10px 32px rgba(26,10,0,0.10)',
     }}>
       {/* header */}
       <div style={{ background: '#1A0A00', color: '#FDF6EE', padding: '1.1rem 1.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265', margin: 0 }}>Trip Day</p>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265', margin: 0 }}>Day trip</p>
           <h3 style={{ fontSize: 20, color: '#FDF6EE', margin: '4px 0 2px', lineHeight: 1.2 }}>{tour.title}</h3>
           <p style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(253,246,238,0.85)', margin: 0 }}>
             {formatDateRange(tour.start_date, tour.duration)} · {booking.slots_booked || 1} {booking.slots_booked === 1 ? 'person' : 'persons'} · {booking.booking_number}
@@ -82,6 +83,12 @@ const TripDayCard = ({ booking }) => {
       <div className="trip-day-grid" style={{ padding: '1.25rem 1.4rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '1.25rem 1.75rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
           <Section icon={<MapPin size={13} />} title="Pickup points">
+            {details?.custom?.status === 'Approved' && (
+              <p style={{ fontSize: 13, fontWeight: 800, color: '#2E6B4A', background: 'rgba(46,107,74,0.1)', borderRadius: 12, padding: '9px 12px', margin: '0 0 8px' }}>
+                Your custom pickup: {details.custom.location}
+                {Number(details.custom.extra_fee) > 0 ? ` · additional fee ${formatPeso(details.custom.extra_fee)}` : ''}
+              </p>
+            )}
             {!details ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}><Skel w="80%" h={12} /><Skel w="60%" h={12} /></div>
             ) : details.stops.length ? (
@@ -109,8 +116,11 @@ const TripDayCard = ({ booking }) => {
             {!details ? <Skel w="70%" h={12} /> : vehicle ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 16px' }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
-                  {[vehicle.car_type, vehicle.plate_number && `Plate ${vehicle.plate_number}`, vehicle.driver_name].filter(Boolean).join(' · ') || 'Assigned soon'}
+                  {[vehicle.vehicle_color ? `${vehicle.vehicle_color} ${vehicle.car_type || 'vehicle'}` : vehicle.car_type, vehicle.plate_number && `Plate ${vehicle.plate_number}`, vehicle.driver_name].filter(Boolean).join(' · ') || 'Assigned soon'}
                 </p>
+                {vehicle.vehicle_notes && (
+                  <p style={{ ...muted, width: '100%' }}>How to spot it: {vehicle.vehicle_notes}</p>
+                )}
                 {vehicle.driver_contact && (
                   <a className="text-link" href={`tel:${String(vehicle.driver_contact).replace(/[^\d+]/g, '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
                     <Phone size={13} /> Call {vehicle.driver_contact}

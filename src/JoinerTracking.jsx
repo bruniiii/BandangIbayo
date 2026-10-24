@@ -286,6 +286,8 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
                     <div><strong style={{ color: '#7A3A18' }}>Vehicle:</strong> {vehicleInfo.car_type || 'Pending'}</div>
                     <div><strong style={{ color: '#7A3A18' }}>Plate No:</strong> {vehicleInfo.plate_number || 'Pending'}</div>
+                    {vehicleInfo.vehicle_color && <div><strong style={{ color: '#7A3A18' }}>Color:</strong> {vehicleInfo.vehicle_color}</div>}
+                    {vehicleInfo.vehicle_notes && <div><strong style={{ color: '#7A3A18' }}>How to spot it:</strong> {vehicleInfo.vehicle_notes}</div>}
                     <div><strong style={{ color: '#7A3A18' }}>Driver:</strong> {vehicleInfo.driver_name || 'Assigned Staff'}</div>
                     <div><strong style={{ color: '#7A3A18' }}>Contact:</strong> {vehicleInfo.driver_contact || 'N/A'}</div>
                   </div>
