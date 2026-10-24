@@ -327,7 +327,7 @@ const AdminCheckIn = () => {
               <>
                 <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? '#8C5216' : '#2E6B4A', margin: '0 0 10px' }}>
                   {waitingCount
-                    ? `Still waiting for ${totalPeople - inPeople} ${totalPeople - inPeople === 1 ? 'person' : 'people'} (${waitingCount} booking${waitingCount === 1 ? '' : 's'}).`
+                    ? `Still waiting for ${waitingCount} booking${waitingCount === 1 ? '' : 's'} (${totalPeople - inPeople} ${totalPeople - inPeople === 1 ? 'person' : 'people'}).`
                     : 'Everyone is checked in! 🎉'}
                 </p>
                 <div role="group" aria-label="Show" style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
