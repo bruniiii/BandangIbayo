@@ -104,6 +104,8 @@ function buildEmail(opts: {
     ? `<p style="margin:0;color:#1A0A00;font-size:14px;line-height:1.7;">
          <strong>Vehicle:</strong> ${esc(vehicle.car_type)}<br/>
          <strong>Plate No.:</strong> ${esc(vehicle.plate_number)}<br/>
+         ${vehicle.vehicle_color ? `<strong>Color:</strong> ${esc(vehicle.vehicle_color)}<br/>` : ""}
+         ${vehicle.vehicle_notes ? `<strong>How to spot it:</strong> ${esc(vehicle.vehicle_notes)}<br/>` : ""}
          <strong>Driver:</strong> ${esc(vehicle.driver_name)} (${esc(vehicle.driver_contact)})
        </p>`
     : "";
@@ -144,7 +146,7 @@ function buildEmail(opts: {
     ${section("Important Note", noteHtml)}
 
     <p style="font-size:13px;color:#7A3A18;margin:18px 0 0;line-height:1.6;">
-      Your pickup points, driver and check-in QR are on the <strong>Trip Day</strong> card in My Bookings, and live van updates are under <strong>Tracking</strong>.
+      Your pickup points, driver and check-in QR are on the <strong>Day trip</strong> card in My Bookings, and live van updates are under <strong>Tracking</strong>.
       Questions? Just reply to this email or write us at ${GMAIL_USER}.
     </p>
     <p style="color:#7A3A18;font-size:13px;margin-top:20px;">— The Bandang IBAYO Team</p>
@@ -536,7 +538,7 @@ async function runTripEmails() {
           <p>Hi ${esc(await nameOf(n.user_id))}, today is the day for <strong>${esc(tour.title)}</strong>.</p>
           ${list[0] ? `<p style="font-size:16px;font-weight:800;">First pickup: ${esc(list[0].location_name)}${list[0].scheduled_time ? ` at ${esc(list[0].scheduled_time)}` : ""}</p>` : ""}
           ${stopsHtml}
-          <p>Please be at your pickup point a few minutes early, and have your check-in QR ready (My Bookings → Trip Day). You can see where the van is under <strong>Tracking</strong>.</p>
+          <p>Please be at your pickup point a few minutes early, and have your check-in QR ready (My Bookings → Day trip). You can see where the van is under <strong>Tracking</strong>.</p>
           ${button("Open Tracking")}
         `)));
     }

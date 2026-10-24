@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import WeatherNotice from './ui/WeatherNotice';
 
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
@@ -1498,6 +1499,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                 )}
 
+                                <WeatherNotice />
+
                             </div>
 
                         </div>
@@ -1739,7 +1742,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                 </p>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', marginTop: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.18)', borderRadius: 14, padding: '10px 12px' }}>
                     <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
-                    <span>I agree that my payment is <strong>non-refundable</strong>, and that cancellations need the agency's approval and close 14 days before the tour.</span>
+                    <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations need the agency's approval and close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
                 </label>
 
             </div>

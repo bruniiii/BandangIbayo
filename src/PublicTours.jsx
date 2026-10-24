@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import WeatherNotice from './ui/WeatherNotice';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Search, MapPin, Calendar, Clock, Users, Loader2, CheckCircle2, X,
@@ -406,6 +407,8 @@ export const PublicTourDetail = () => {
                 </div>
               </div>
             )}
+
+            <WeatherNotice />
           </div>
 
           {/* ── Right: price and booking ── */}
