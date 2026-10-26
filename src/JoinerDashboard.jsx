@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2
+  Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2, MessagesSquare
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -18,6 +18,8 @@ import logoIcon from './assets/newIcon.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
+import GroupChat from './GroupChat';
+import { useChatUnread, OPEN_CHAT } from './groupChat';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -46,6 +48,7 @@ const NAV_ITEMS = [
   { icon: <Rss size={18} strokeWidth={2} />,         label: 'Feed' },
   { icon: <Compass size={18} strokeWidth={2} />,     label: 'Explore Tours' },
   { icon: <ShoppingBag size={18} strokeWidth={2} />, label: 'My Bookings' },
+  { icon: <MessagesSquare size={18} strokeWidth={2} />, label: 'Group Chat' },
   { icon: <CalendarIcon size={18} strokeWidth={2} />,label: 'Calendar' },
   { icon: <Clock size={18} strokeWidth={2} />,       label: 'Tracking' },
   { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Exclusive Tours' },
@@ -62,6 +65,7 @@ const PAGE_INFO = {
   'Feed':             { icon: Rss,          title: 'Community Feed',   subtitle: 'Updates, announcements & newly posted tours' },
   'Explore Tours':    { icon: Compass,      title: 'Explore Tours',    subtitle: 'Find your next adventure and pick a date' },
   'My Bookings':      { icon: ShoppingBag,  title: 'My Bookings',      subtitle: 'Track your adventures and manage your reservations' },
+  'Group Chat':       { icon: MessagesSquare, title: 'Group Chat',      subtitle: 'Chat with everyone on your tour and the Bandang IBAYO team' },
   'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
   'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
   'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: "Book a private group trip, or suggest a destination we don't offer yet" },
@@ -98,6 +102,9 @@ const JoinerDashboard = () => {
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // Group chat: unread badge, and "open this tour's chat" from elsewhere (My Bookings).
+  const chatUnread = useChatUnread();
+  const [chatTourId, setChatTourId] = useState(null);
   const tourScrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -240,6 +247,12 @@ const JoinerDashboard = () => {
     if (isMobile) setMobileNavOpen(false);
   };
 
+  useEffect(() => {
+    const open = (e) => { setChatTourId(e.detail?.tourId ?? null); handleNavClick('Group Chat'); };
+    window.addEventListener(OPEN_CHAT, open);
+    return () => window.removeEventListener(OPEN_CHAT, open);
+  });
+
   const handleNotificationNavigate = (notification) => {
     switch (notification.type) {
       case 'exclusive_request':
@@ -260,6 +273,9 @@ const JoinerDashboard = () => {
         break;
       case 'review':
         handleNavClick('Reviews');
+        break;
+      case 'chat':
+        handleNavClick('Group Chat');
         break;
       case 'account':
         handleNavClick('Profile Settings');
@@ -570,6 +586,7 @@ const JoinerDashboard = () => {
               active={activeTab === label}
               collapsed={!sidebarExpanded}
               onClick={() => handleNavClick(label)}
+              badge={label === 'Group Chat' ? chatUnread : 0}
             />
           ))}
         </nav>
@@ -909,6 +926,8 @@ const JoinerDashboard = () => {
             <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} onExplore={() => handleNavClick('Explore Tours')} />
+          ) : activeTab === 'Group Chat' ? (
+            <GroupChat key={chatTourId || 'chats'} initialTourId={chatTourId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Calendar' ? (
             <TourCalendar
               initialDate={calendarTarget}
@@ -963,7 +982,7 @@ const JoinerDashboard = () => {
 };
 
 /* ── NAV ITEM ── */
-const NavItem = ({ icon, label, active, onClick, collapsed }) => (
+const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
   <button
     onClick={onClick}
     title={collapsed ? label : undefined}
@@ -987,12 +1006,22 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0 }}>
+    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
       {icon}
+      {badge > 0 && collapsed && (
+        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </span>
     {!collapsed && (
       <span style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
+      </span>
+    )}
+    {!collapsed && badge > 0 && (
+      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {badge > 99 ? '99+' : badge}
       </span>
     )}
   </button>
