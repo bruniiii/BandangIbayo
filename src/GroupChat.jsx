@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus } from 'lucide-react';
+import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import EmptyState from './ui/EmptyState';
@@ -200,6 +200,10 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
   const [sending, setSending] = useState(false);
   const [reactions, setReactions] = useState({}); // message id → [{ user_id, emoji }]
   const [pickerFor, setPickerFor] = useState(null); // message id whose reaction picker is open
+  const [reactorsFor, setReactorsFor] = useState(null); // message id whose "who reacted" list is open
+  const [replyTo, setReplyTo] = useState(null); // the message being answered
+  const [flashId, setFlashId] = useState(null); // briefly highlighted after tapping a quoted message
+  const inputRef = useRef(null);
   const bottomRef = useRef(null);
   const profilesRef = useRef({});
   const tourId = chat.tour_id;
@@ -255,15 +259,16 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
         const map = {};
         (data || []).forEach((r) => { (map[r.message_id] = map[r.message_id] || []).push({ user_id: r.user_id, emoji: r.emoji }); });
         setReactions(map);
+        loadProfiles((data || []).map((r) => r.user_id));
       });
     const channel = supabase
       .channel(`chat-reactions-${tourId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tour_chat_reactions', filter: `tour_id=eq.${tourId}` }, ({ eventType, new: row, old }) => {
-        if (eventType === 'DELETE') put(old, true); else put(row);
+        if (eventType === 'DELETE') put(old, true); else { put(row); loadProfiles([row.user_id]); }
       })
       .subscribe();
     return () => { active = false; supabase.removeChannel(channel); };
-  }, [tourId]);
+  }, [tourId, loadProfiles]);
 
   // Tap the same emoji again to remove it; another emoji replaces yours.
   const react = async (messageId, emoji) => {
@@ -287,11 +292,26 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
 
   // Close the reaction picker on Escape.
   useEffect(() => {
-    if (pickerFor === null) return undefined;
-    const onKey = (e) => { if (e.key === 'Escape') setPickerFor(null); };
+    if (pickerFor === null && reactorsFor === null) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') { setPickerFor(null); setReactorsFor(null); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [pickerFor]);
+  }, [pickerFor, reactorsFor]);
+
+  const startReply = (m) => {
+    setPickerFor(null);
+    setReplyTo(m);
+    inputRef.current?.focus();
+  };
+
+  // Tap a quoted message to jump to the original.
+  const jumpTo = (id) => {
+    const el = document.getElementById(`chat-msg-${id}`);
+    if (!el) { toast.info('That message is too old to show here.'); return; }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setFlashId(id);
+    setTimeout(() => setFlashId((cur) => (cur === id ? null : cur)), 1600);
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
@@ -302,10 +322,12 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
     const body = text.trim();
     if (!body || sending) return;
     setSending(true);
-    const { data, error } = await supabase.from('tour_chat_messages').insert([{ tour_id: tourId, body }]).select().single();
+    const row = { tour_id: tourId, body, ...(replyTo ? { reply_to: replyTo.id } : {}) };
+    const { data, error } = await supabase.from('tour_chat_messages').insert([row]).select().single();
     setSending(false);
     if (error) { toast.error("Couldn't send your message", error.message); return; }
     setText('');
+    setReplyTo(null);
     setMessages((prev) => (prev && !prev.some((x) => x.id === data.id) ? [...prev, data] : prev));
     await loadProfiles([data.user_id]);
   };
@@ -351,7 +373,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
           const fromAdmin = author?.role === 'admin';
           const sameAuthor = prev && !newDay && prev.user_id === m.user_id;
           return (
-            <div key={m.id}>
+            <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(232,162,101,0.28)' : 'transparent' }}>
               {newDay && (
                 <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A', margin: '12px 0 6px' }}>{dayOf(m.created_at)}</p>
               )}
@@ -372,7 +394,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                     <div
                       role="button"
                       tabIndex={0}
-                      aria-label="Message. Tap to react"
+                      aria-label="Message. Tap to react or reply"
                       onClick={(e) => { e.stopPropagation(); setPickerFor(pickerFor === m.id ? null : m.id); }}
                       onKeyDown={(e) => { if (e.key === 'Enter') setPickerFor(pickerFor === m.id ? null : m.id); }}
                       style={{
@@ -384,6 +406,29 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                         WebkitTapHighlightColor: 'transparent',
                       }}
                     >
+                      {m.reply_to && (() => {
+                        const orig = messages.find((x) => x.id === m.reply_to);
+                        return (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => { e.stopPropagation(); jumpTo(m.reply_to); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); jumpTo(m.reply_to); } }}
+                            style={{
+                              display: 'block', borderLeft: `3px solid ${mine ? '#E8A265' : '#B4511E'}`, borderRadius: 8,
+                              background: mine ? 'rgba(253,246,238,0.18)' : 'rgba(180,81,30,0.08)',
+                              padding: '4px 8px', margin: '0 0 6px', fontSize: 12, lineHeight: 1.4, cursor: 'pointer',
+                            }}
+                          >
+                            <span style={{ display: 'block', fontWeight: 800, fontSize: 11 }}>
+                              {orig ? (orig.user_id === me ? 'You' : nameFor(profiles[orig.user_id], isAdmin)) : 'Earlier message'}
+                            </span>
+                            <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', opacity: 0.85 }}>
+                              {orig ? orig.body : 'Tap to find it'}
+                            </span>
+                          </span>
+                        );
+                      })()}
                       {m.body}
                       <span style={{ display: 'block', textAlign: 'right', fontSize: 10, fontWeight: 600, marginTop: 2, opacity: 0.75 }}>{timeOf(m.created_at)}</span>
                     </div>
@@ -396,6 +441,18 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A8481A', padding: 4, borderRadius: 8, display: 'flex', flexShrink: 0 }}
                       >
                         <SmilePlus size={16} />
+                      </button>
+                    )}
+                    {!narrow && canSend && (
+                      <button
+                        type="button"
+                        className="chat-react-btn"
+                        aria-label="Reply"
+                        title="Reply"
+                        onClick={(e) => { e.stopPropagation(); startReply(m); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A8481A', padding: 4, borderRadius: 8, display: 'flex', flexShrink: 0 }}
+                      >
+                        <Reply size={16} />
                       </button>
                     )}
                   </div>
@@ -416,29 +473,37 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                           </button>
                         );
                       })}
+                      {canSend && (
+                        <>
+                          <span aria-hidden="true" style={{ width: 1, background: 'rgba(180,81,30,0.2)', margin: '6px 2px' }} />
+                          <button type="button" role="menuitem" aria-label="Reply" onClick={() => startReply(m)} style={{
+                            display: 'flex', alignItems: 'center', gap: 4, border: 'none', cursor: 'pointer', borderRadius: 999,
+                            background: 'transparent', color: '#A8481A', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, padding: '0 8px',
+                          }}>
+                            <Reply size={narrow ? 18 : 16} /> Reply
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
 
-                  {(reactions[m.id] || []).length > 0 && (
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 3, justifyContent: mine ? 'flex-end' : 'flex-start' }}>
-                      {REACTIONS.map((emoji) => {
-                        const who = (reactions[m.id] || []).filter((r) => r.emoji === emoji);
-                        if (!who.length) return null;
-                        const mineToo = who.some((r) => r.user_id === me);
-                        const names = who.map((r) => (r.user_id === me ? 'You' : nameFor(profiles[r.user_id], isAdmin))).join(', ');
-                        return (
-                          <button key={emoji} type="button" title={names} aria-label={`${emoji} ${who.length}: ${names}`} onClick={(e) => { e.stopPropagation(); react(m.id, emoji); }} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 3, borderRadius: 999, padding: '2px 8px', fontSize: 12.5, fontWeight: 800,
-                            cursor: 'pointer', fontFamily: 'inherit', color: '#1A0A00',
-                            background: mineToo ? 'rgba(180,81,30,0.16)' : '#FFF',
-                            border: mineToo ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.2)',
-                          }}>
-                            <span style={{ fontSize: 14 }}>{emoji}</span>{who.length > 1 ? who.length : ''}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {(reactions[m.id] || []).length > 0 && (() => {
+                    const list = reactions[m.id];
+                    const used = REACTIONS.filter((e) => list.some((r) => r.emoji === e));
+                    const mineToo = list.some((r) => r.user_id === me);
+                    return (
+                      <button type="button" aria-label={`${list.length} reaction${list.length === 1 ? '' : 's'}. See who reacted`} onClick={(e) => { e.stopPropagation(); setPickerFor(null); setReactorsFor(m.id); }} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 2, borderRadius: 999, padding: '2px 8px', marginTop: 3,
+                        fontSize: 12.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', color: '#1A0A00',
+                        background: mineToo ? 'rgba(180,81,30,0.16)' : '#FFF',
+                        border: mineToo ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.2)',
+                        boxShadow: '0 2px 6px rgba(26,10,0,0.06)',
+                      }}>
+                        <span style={{ fontSize: 14, letterSpacing: 1 }}>{used.join('')}</span>
+                        {list.length > 1 && <span style={{ marginLeft: 3 }}>{list.length}</span>}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -447,15 +512,45 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
         <div ref={bottomRef} />
       </div>
 
+      {/* who reacted */}
+      {reactorsFor !== null && (
+        <ReactorsSheet
+          list={reactions[reactorsFor] || []}
+          me={me}
+          nameOf={(id) => (id === me ? 'You' : nameFor(profiles[id], isAdmin))}
+          profiles={profiles}
+          onRemoveMine={(emoji) => { react(reactorsFor, emoji); setReactorsFor(null); }}
+          onClose={() => setReactorsFor(null)}
+          narrow={narrow}
+        />
+      )}
+
+      {/* replying to */}
+      {canSend && replyTo && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
+          <Reply size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
+          <div style={{ minWidth: 0, flex: 1, borderLeft: '3px solid #B4511E', paddingLeft: 8 }}>
+            <p style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', margin: 0 }}>
+              Replying to {replyTo.user_id === me ? 'yourself' : nameFor(profiles[replyTo.user_id], isAdmin)}
+            </p>
+            <p style={{ fontSize: 12.5, fontWeight: 500, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyTo.body}</p>
+          </div>
+          <button type="button" onClick={() => setReplyTo(null)} aria-label="Cancel reply" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
       {/* composer */}
       {canSend ? (
         <form onSubmit={send} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: narrow ? '8px 10px' : '10px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#FDF6EE', flexShrink: 0 }}>
           <textarea
+            ref={inputRef}
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
             onKeyDown={onKeyDown}
             rows={1}
-            placeholder="Write a message…"
+            placeholder={replyTo ? 'Write your reply…' : 'Write a message…'}
             aria-label="Message"
             style={{
               flex: 1, resize: 'none', maxHeight: 120, minHeight: 42, boxSizing: 'border-box',
@@ -476,6 +571,67 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
           <Lock size={13} /> This trip is over, so the chat is read-only now.
         </p>
       )}
+    </div>
+  );
+};
+
+// "Who reacted": everyone's reaction, filterable by emoji. Your own can be removed here.
+const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narrow }) => {
+  const [tab, setTab] = useState('All');
+  const used = REACTIONS.filter((e) => list.some((r) => r.emoji === e));
+  const shown = tab === 'All' ? list : list.filter((r) => r.emoji === tab);
+  // Your reaction first, then by emoji order.
+  const sorted = [...shown].sort((a, b) => (a.user_id === me ? -1 : b.user_id === me ? 1 : REACTIONS.indexOf(a.emoji) - REACTIONS.indexOf(b.emoji)));
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(26,10,0,0.45)', display: 'flex', alignItems: narrow ? 'flex-end' : 'center', justifyContent: 'center', padding: narrow ? 0 : 20 }}>
+      <div role="dialog" aria-modal="true" aria-label="Who reacted" onClick={(e) => e.stopPropagation()} style={{
+        background: '#FDF6EE', width: '100%', maxWidth: 440, maxHeight: '70dvh', display: 'flex', flexDirection: 'column',
+        borderRadius: narrow ? '22px 22px 0 0' : 22, boxShadow: '0 -12px 40px rgba(26,10,0,0.25)',
+        paddingBottom: 'env(safe-area-inset-bottom)', marginBottom: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 6px' }}>
+          <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Reactions</p>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={18} />
+          </button>
+        </div>
+        <div role="tablist" style={{ display: 'flex', gap: 6, padding: '0 16px 10px', overflowX: 'auto', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
+          {['All', ...used].map((t) => {
+            const count = t === 'All' ? list.length : list.filter((r) => r.emoji === t).length;
+            const active = tab === t;
+            return (
+              <button key={t} type="button" role="tab" aria-selected={active} onClick={() => setTab(t)} style={{
+                border: 'none', borderRadius: 999, padding: '6px 12px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, flexShrink: 0,
+                background: active ? '#1A0A00' : '#F2E4D0', color: active ? '#FDF6EE' : '#1A0A00',
+              }}>
+                {t === 'All' ? 'All' : <span style={{ fontSize: 15 }}>{t}</span>} {count}
+              </button>
+            );
+          })}
+        </div>
+        <ul style={{ listStyle: 'none', margin: 0, padding: '6px 0', overflowY: 'auto' }}>
+          {sorted.map((r) => {
+            const p = profiles[r.user_id];
+            const isMe = r.user_id === me;
+            return (
+              <li key={r.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px' }}>
+                <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: p?.role === 'admin' ? '#B4511E' : '#1A0A00', color: p?.role === 'admin' ? '#FDF6EE' : '#E8A265', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {p?.avatar_url && p.role !== 'admin' ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{nameOf(r.user_id)}</span>
+                  {isMe && (
+                    <button type="button" onClick={() => onRemoveMine(r.emoji)} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
+                      Tap to remove
+                    </button>
+                  )}
+                </span>
+                <span style={{ fontSize: 22 }}>{r.emoji}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 };
