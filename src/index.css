@@ -162,3 +162,9 @@ input::-ms-clear { display: none; }
 /* Group chat: the react button stays quiet until you point at it. */
 .chat-react-btn { opacity: 0.45; transition: opacity 0.15s, background 0.15s; }
 .chat-react-btn:hover, .chat-react-btn:focus-visible { opacity: 1; background: rgba(180,81,30,0.1) !important; }
+
+/* Landing help button: on phones the panel spans the screen width. */
+@media (max-width: 560px) {
+  .help-widget-panel { left: 12px !important; right: 12px !important; width: auto !important; max-width: none !important; bottom: 84px !important; }
+  .help-widget-button { right: 14px !important; bottom: 14px !important; height: 54px !important; }
+}

@@ -11,7 +11,7 @@ import logoIcon from './assets/newIcon.png';
 import JoinerLogin from './JoinerLogin'; 
 import JoinerRegister from './JoinerRegister';
 import AuthCallback from './AuthCallback';
-import FAQ from './ui/FAQ';
+import HelpWidget from './ui/HelpWidget';
 import AdminDashboard from './AdminDashboard';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
@@ -416,9 +416,6 @@ function LandingPage() {
         </div>
       </section>
  
-      {/* ── FAQ SECTION ── */}
-      <FAQ />
-
       {/* ── JOINER REVIEWS ── */}
       <LandingReviews />
 
@@ -521,6 +518,9 @@ function LandingPage() {
           © 2026 
         </p>
       </footer>
+
+      {/* Floating help: joiner FAQ and user guide */}
+      <HelpWidget />
  
     </div>
   );
