@@ -109,6 +109,8 @@ const JoinerDashboard = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [bookingsFilter, setBookingsFilter] = useState(null);
+  // Booking to open straight away in My Bookings (from the Trip Readiness card).
+  const [openBookingId, setOpenBookingId] = useState(null);
   const [calendarTarget, setCalendarTarget] = useState(null);
   const navigate = useNavigate();
 
@@ -241,6 +243,7 @@ const JoinerDashboard = () => {
   const handleNavClick = (label) => {
     setBookTourId(null);
     setBookingsFilter(null);
+    setOpenBookingId(null);
     setCalendarTarget(null);
     setExclusiveStart(null);
     setActiveTab(label);
@@ -804,7 +807,7 @@ const JoinerDashboard = () => {
                     />
                   )}
                   {!loadingHome && nextTrip && (
-                    <TripReadinessCard trip={nextTrip} onClick={() => { setBookingsFilter('upcoming'); setActiveTab('My Bookings'); }} />
+                    <TripReadinessCard trip={nextTrip} onClick={() => { setOpenBookingId(nextTrip.id); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }} />
                   )}
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -925,7 +928,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Explore Tours' ? (
             <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
-            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} onExplore={() => handleNavClick('Explore Tours')} />
+            <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} openBookingId={openBookingId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Group Chat' ? (
             <GroupChat key={chatTourId || 'chats'} initialTourId={chatTourId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Calendar' ? (

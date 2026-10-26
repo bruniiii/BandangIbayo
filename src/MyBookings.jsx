@@ -49,7 +49,7 @@ const useIsMobile = (breakpoint = 640) => {
   return isMobile;
 };
 
-const MyBookings = ({ onExplore }) => {
+const MyBookings = ({ onExplore, openBookingId = null }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Upcoming'); 
@@ -63,6 +63,9 @@ const MyBookings = ({ onExplore }) => {
  
   const formatDateRange = formatTourDates;
  
+  // Opened from the homepage's Trip Readiness card: show that booking's details once loaded.
+  const openIdRef = useRef(openBookingId);
+
   const fetchMyBookings = useCallback(async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -102,6 +105,11 @@ const MyBookings = ({ onExplore }) => {
       });
  
       setBookings(processedBookings);
+      if (openIdRef.current) {
+        const target = processedBookings.find((b) => String(b.id) === String(openIdRef.current));
+        openIdRef.current = null;
+        if (target) setSelectedBooking(target);
+      }
     }
     setLoading(false);
   }, []);
@@ -308,12 +316,6 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         >
           View Details <ChevronRight size={13} />
         </button>
-        {booking.payment_status === 'Complete' && !booking.isActuallyCompleted
-          && booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
-          <button type="button" className="text-link" onClick={onView} style={{ background: 'none', border: 'none', padding: '4px 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
-            <QrCode size={13} /> Check-in QR
-          </button>
-        )}
       </div>
     </div>
   );
@@ -645,13 +647,13 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </p>
                     )}
 
-                    <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                       <button
                         onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setReasonError(false); setAgreedNoRefund(false); setAgreeError(false); }}
                         style={{
-                          flex: 1, padding: '12px 0', background: '#F2E4D0', color: '#7A3A18',
+                          flex: '1 1 170px', minHeight: 48, padding: '12px 14px', background: '#F2E4D0', color: '#7A3A18',
                           border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, cursor: 'pointer',
-                          fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
+                          fontFamily: 'inherit', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap',
                           transition: 'background 0.2s',
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
@@ -663,9 +665,9 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         onClick={handleCancelBooking}
                         disabled={cancelling}
                         style={{
-                          flex: 1, padding: '12px 0', background: '#C0362C', color: '#FFFFFF',
-                          border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
-                          fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
+                          flex: '1 1 170px', minHeight: 48, padding: '12px 14px', background: '#C0362C', color: '#FFFFFF',
+                          border: 'none', borderRadius: 14, cursor: cancelling ? 'default' : 'pointer', fontFamily: 'inherit',
+                          fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           transition: 'background 0.2s',
                         }}
@@ -674,7 +676,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       >
                         {cancelling
                           ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                          : <><Trash2 size={13} /> Request Cancellation</>
+                          : <><Trash2 size={15} style={{ flexShrink: 0 }} /> Request Cancellation</>
                         }
                       </button>
                     </div>
