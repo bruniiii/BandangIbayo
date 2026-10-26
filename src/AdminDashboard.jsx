@@ -853,6 +853,7 @@ const AdminDashboard = () => {
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
            activeTab !== 'Check-in' &&
+           activeTab !== 'Group Chats' &&
            activeTab !== 'Profile Settings' &&
            activeTab !== 'Notification' && (
             <div style={{
