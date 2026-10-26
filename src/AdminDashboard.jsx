@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, ScanLine, User
+  ArrowUpRight, MapPin, Wallet, ImageIcon, ScanLine, User, MessagesSquare
 } from 'lucide-react';
+import GroupChat from './GroupChat';
+import { useChatUnread } from './groupChat';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
@@ -87,6 +89,7 @@ const NAV_ITEMS = [
   { icon: <Globe size={18} strokeWidth={2} />,           label: 'Exclusive Requests' },
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
   { icon: <ScanLine size={18} strokeWidth={2} />,        label: 'Check-in' },
+  { icon: <MessagesSquare size={18} strokeWidth={2} />,  label: 'Group Chats' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
   { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
@@ -106,6 +109,7 @@ const AdminDashboard = () => {
   );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const navigate = useNavigate();
+  const chatUnread = useChatUnread();
  
   // Track viewport so the sidebar can switch between the desktop
   // hover-to-expand behavior and the mobile off-canvas drawer.
@@ -453,6 +457,7 @@ const AdminDashboard = () => {
               active={activeTab === label}
               collapsed={!sidebarExpanded}
               onClick={() => handleNavClick(label)}
+              badge={label === 'Group Chats' ? chatUnread : 0}
             />
           ))}
         </nav>
@@ -827,6 +832,7 @@ const AdminDashboard = () => {
           {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
           {activeTab === 'Exclusive Requests' && <AdminExclusiveTours />}
           {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
+          {activeTab === 'Group Chats' && <GroupChat isAdmin />}
           {activeTab === 'Reports' && <Reports />}
           {activeTab === 'Check-in' && <AdminCheckIn />}
           {activeTab === 'Tracking Management' && (
@@ -898,6 +904,7 @@ const PAGE_INFO = {
   'Exclusive Requests':  { icon: Globe,           title: 'Exclusive Requests',  subtitle: 'Private-group requests and new destination suggestions from joiners' },
   'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners" },
   'Check-in':            { icon: ScanLine,        title: 'Check-in',            subtitle: "Scan each joiner's QR on the day of the tour. One QR covers their whole group." },
+  'Group Chats':         { icon: MessagesSquare,  title: 'Group Chats',         subtitle: 'Chat with the joiners of each tour date' },
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
@@ -906,7 +913,7 @@ const PAGE_INFO = {
 
 // ─── Nav Item ────────────────────────────────────────────────────────────────
  
-const NavItem = ({ icon, label, active, onClick, collapsed }) => (
+const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
   <button
     onClick={onClick}
     title={collapsed ? label : undefined}
@@ -930,12 +937,22 @@ const NavItem = ({ icon, label, active, onClick, collapsed }) => (
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0 }}>
+    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
       {icon}
+      {badge > 0 && collapsed && (
+        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </span>
     {!collapsed && (
       <span style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
         {label}
+      </span>
+    )}
+    {!collapsed && badge > 0 && (
+      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {badge > 99 ? '99+' : badge}
       </span>
     )}
   </button>

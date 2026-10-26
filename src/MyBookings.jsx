@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
-import { Compass, Mountain, CalendarX2, QrCode } from 'lucide-react';
+import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
@@ -13,6 +13,7 @@ import CheckInQr from './ui/CheckInQr';
 import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
 import { CustomPickupSection } from './CustomPickup';
+import { openGroupChat } from './groupChat';
 import { tripDayBookings } from './tripDay';
 import { 
   ShoppingBag, MapPin, Calendar,
@@ -520,6 +521,20 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 )}
 
                 <OnlinePaymentActions booking={booking} isAwaitingPayment={isAwaitingPayment} isPaymentConfirmed={isPaymentConfirmed} onChanged={onCancelSuccess} />
+
+                {isPaymentConfirmed && (
+                  <button
+                    type="button"
+                    onClick={() => { onClose(); openGroupChat(booking.tour_id); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
+                      background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 14, padding: '12px 16px',
+                      fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >
+                    <MessagesSquare size={16} /> Open Tour Group Chat
+                  </button>
+                )}
 
                 {isPaymentConfirmed && !booking.cancellation_requested_at && (
                   <CustomPickupSection booking={booking} canRequest={!!tour.start_date && tour.start_date > todayManila()} />
