@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck } from 'lucide-react';
+import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import EmptyState from './ui/EmptyState';
@@ -14,6 +14,7 @@ import { fetchMyChats, chatChanged, CHAT_CHANGED } from './groupChat';
 // ─────────────────────────────────────────────
 
 const MAX_LEN = 1000;
+const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 const timeOf = (iso) => new Date(iso).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
 const dayOf = (iso) => {
@@ -97,29 +98,49 @@ const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
     );
   }
 
-  const showList = !narrow || !openChat;
-  const showChat = !!openChat && (!narrow || openId);
+  // Phones: the list in the page, and an open chat fills the whole screen (like Messenger).
+  if (narrow) {
+    return (
+      <>
+        <div style={{ background: '#FDF6EE', borderRadius: 20, border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)', overflow: 'hidden' }}>
+          <ChatList chats={chats} activeId={null} onPick={(id) => setOpenId(String(id))} narrow />
+        </div>
+        {openChat && (
+          <FullScreen>
+            <ChatWindow key={openChat.tour_id} chat={openChat} me={me} isAdmin={isAdmin} narrow onBack={() => setOpenId(null)} />
+          </FullScreen>
+        )}
+      </>
+    );
+  }
 
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: narrow ? '1fr' : 'minmax(240px, 320px) minmax(0, 1fr)',
+      display: 'grid', gridTemplateColumns: 'minmax(240px, 320px) minmax(0, 1fr)',
       background: '#FDF6EE', borderRadius: 22, border: '1px solid rgba(180,81,30,0.14)',
       boxShadow: '0 4px 20px rgba(26,10,0,0.06)', overflow: 'hidden',
-      height: narrow ? 'calc(100dvh - 190px)' : 'calc(100dvh - 210px)', minHeight: 460,
+      height: 'calc(100dvh - 190px)', minHeight: 420,
     }}>
-      {showList && (
-        <ChatList chats={chats} activeId={shownId} onPick={(id) => setOpenId(String(id))} narrow={narrow} />
-      )}
-      {showChat && (
-        <ChatWindow
-          key={openChat.tour_id}
-          chat={openChat}
-          me={me}
-          isAdmin={isAdmin}
-          narrow={narrow}
-          onBack={() => setOpenId(null)}
-        />
-      )}
+      <ChatList chats={chats} activeId={shownId} onPick={(id) => setOpenId(String(id))} narrow={false} />
+      {openChat && <ChatWindow key={openChat.tour_id} chat={openChat} me={me} isAdmin={isAdmin} narrow={false} onBack={() => setOpenId(null)} />}
+    </div>
+  );
+};
+
+// Covers the whole screen (above the menu tab), and stops the page behind from scrolling.
+const FullScreen = ({ children }) => {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+  return (
+    <div role="dialog" aria-modal="true" style={{
+      position: 'fixed', inset: 0, zIndex: 400, background: '#FDF6EE',
+      height: '100dvh', display: 'flex', flexDirection: 'column',
+      paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)', boxSizing: 'border-box',
+    }}>
+      {children}
     </div>
   );
 };
@@ -177,6 +198,8 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
   const [profiles, setProfiles] = useState({});
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [reactions, setReactions] = useState({}); // message id → [{ user_id, emoji }]
+  const [pickerFor, setPickerFor] = useState(null); // message id whose reaction picker is open
   const bottomRef = useRef(null);
   const profilesRef = useRef({});
   const tourId = chat.tour_id;
@@ -219,6 +242,57 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
     return () => { active = false; supabase.removeChannel(channel); };
   }, [tourId, loadProfiles, markRead]);
 
+  // Reactions on this chat's messages, then live updates.
+  useEffect(() => {
+    let active = true;
+    const put = (row, remove = false) => setReactions((prev) => {
+      const list = (prev[row.message_id] || []).filter((r) => r.user_id !== row.user_id);
+      return { ...prev, [row.message_id]: remove ? list : [...list, { user_id: row.user_id, emoji: row.emoji }] };
+    });
+    supabase.from('tour_chat_reactions').select('message_id, user_id, emoji').eq('tour_id', tourId)
+      .then(({ data }) => {
+        if (!active) return;
+        const map = {};
+        (data || []).forEach((r) => { (map[r.message_id] = map[r.message_id] || []).push({ user_id: r.user_id, emoji: r.emoji }); });
+        setReactions(map);
+      });
+    const channel = supabase
+      .channel(`chat-reactions-${tourId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tour_chat_reactions', filter: `tour_id=eq.${tourId}` }, ({ eventType, new: row, old }) => {
+        if (eventType === 'DELETE') put(old, true); else put(row);
+      })
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(channel); };
+  }, [tourId]);
+
+  // Tap the same emoji again to remove it; another emoji replaces yours.
+  const react = async (messageId, emoji) => {
+    setPickerFor(null);
+    if (!me) return;
+    const mineNow = (reactions[messageId] || []).find((r) => r.user_id === me)?.emoji;
+    const removing = mineNow === emoji;
+    const apply = (value) => setReactions((prev) => {
+      const list = (prev[messageId] || []).filter((r) => r.user_id !== me);
+      return { ...prev, [messageId]: value ? [...list, { user_id: me, emoji: value }] : list };
+    });
+    apply(removing ? null : emoji);
+    const { error } = removing
+      ? await supabase.from('tour_chat_reactions').delete().eq('message_id', messageId).eq('user_id', me)
+      : await supabase.from('tour_chat_reactions').upsert({ message_id: messageId, emoji }, { onConflict: 'message_id,user_id' });
+    if (error) {
+      apply(mineNow || null);
+      toast.error("Couldn't save your reaction", error.message);
+    }
+  };
+
+  // Close the reaction picker on Escape.
+  useEffect(() => {
+    if (pickerFor === null) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setPickerFor(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [pickerFor]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages]);
@@ -241,24 +315,27 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, flex: 1 }}>
       {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: narrow ? '10px 12px' : '12px 16px', borderBottom: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
         {narrow && (
-          <button type="button" onClick={onBack} aria-label="Back to chats" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4, display: 'flex' }}>
-            <ArrowLeft size={18} />
+          <button type="button" onClick={onBack} aria-label="Back to chats" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <ArrowLeft size={22} />
           </button>
         )}
+        <span aria-hidden="true" style={{ width: narrow ? 36 : 40, height: narrow ? 36 : 40, borderRadius: 12, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Users size={17} />
+        </span>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chat.title}</p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+          <p style={{ fontSize: narrow ? 15 : 14, fontWeight: 900, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chat.title}</p>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {formatYmdRange(chat.start_date, chat.end_date)} · {chat.members} joiner{chat.members === 1 ? '' : 's'} + Bandang IBAYO
           </p>
         </div>
       </div>
 
       {/* messages */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
+      <div onClick={() => setPickerFor(null)} style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: narrow ? '12px 10px' : '14px 16px', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
         <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#7A3A18', textAlign: 'center', margin: '0 0 8px' }}>
           <ShieldCheck size={13} /> Only people booked on this tour and the Bandang IBAYO team can see this chat.
         </p>
@@ -284,23 +361,84 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                     {author?.avatar_url && !fromAdmin ? <img src={author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(author)}
                   </span>
                 )}
-                <div style={{ maxWidth: '75%', minWidth: 0 }}>
+                <div style={{ maxWidth: narrow ? '82%' : '70%', minWidth: 0, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: mine ? 'flex-end' : 'flex-start' }}>
                   {!mine && !sameAuthor && (
                     <p style={{ fontSize: 11, fontWeight: 800, color: fromAdmin ? '#B4511E' : '#7A3A18', margin: '0 0 2px 4px', display: 'flex', alignItems: 'center', gap: 5 }}>
                       {nameFor(author, isAdmin)}
                       {fromAdmin && <span style={{ background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '1px 7px', fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin</span>}
                     </p>
                   )}
-                  <div title={timeOf(m.created_at)} style={{
-                    background: mine ? '#B4511E' : fromAdmin ? 'rgba(180,81,30,0.12)' : '#F2E4D0',
-                    color: mine ? '#FDF6EE' : '#1A0A00',
-                    border: fromAdmin && !mine ? '1px solid rgba(180,81,30,0.3)' : 'none',
-                    borderRadius: 16, padding: '8px 12px', fontSize: 13.5, fontWeight: 500, lineHeight: 1.5,
-                    whiteSpace: 'pre-wrap', overflowWrap: 'anywhere',
-                  }}>
-                    {m.body}
-                    <span style={{ display: 'block', textAlign: 'right', fontSize: 10, fontWeight: 600, marginTop: 2, opacity: 0.75 }}>{timeOf(m.created_at)}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexDirection: mine ? 'row-reverse' : 'row', maxWidth: '100%' }}>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Message. Tap to react"
+                      onClick={(e) => { e.stopPropagation(); setPickerFor(pickerFor === m.id ? null : m.id); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') setPickerFor(pickerFor === m.id ? null : m.id); }}
+                      style={{
+                        background: mine ? '#B4511E' : fromAdmin ? 'rgba(180,81,30,0.12)' : '#F2E4D0',
+                        color: mine ? '#FDF6EE' : '#1A0A00',
+                        border: fromAdmin && !mine ? '1px solid rgba(180,81,30,0.3)' : 'none',
+                        borderRadius: 16, padding: '8px 12px', fontSize: narrow ? 15 : 13.5, fontWeight: 500, lineHeight: 1.45,
+                        whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', cursor: 'pointer', minWidth: 0,
+                        WebkitTapHighlightColor: 'transparent',
+                      }}
+                    >
+                      {m.body}
+                      <span style={{ display: 'block', textAlign: 'right', fontSize: 10, fontWeight: 600, marginTop: 2, opacity: 0.75 }}>{timeOf(m.created_at)}</span>
+                    </div>
+                    {!narrow && (
+                      <button
+                        type="button"
+                        className="chat-react-btn"
+                        aria-label="React"
+                        onClick={(e) => { e.stopPropagation(); setPickerFor(pickerFor === m.id ? null : m.id); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A8481A', padding: 4, borderRadius: 8, display: 'flex', flexShrink: 0 }}
+                      >
+                        <SmilePlus size={16} />
+                      </button>
+                    )}
                   </div>
+
+                  {pickerFor === m.id && (
+                    <div role="menu" aria-label="Pick a reaction" onClick={(e) => e.stopPropagation()} style={{
+                      display: 'flex', gap: 2, background: '#FFF', borderRadius: 999, padding: '4px 6px', marginTop: 4,
+                      boxShadow: '0 8px 24px rgba(26,10,0,0.18)', border: '1px solid rgba(180,81,30,0.15)', zIndex: 2,
+                    }}>
+                      {REACTIONS.map((emoji) => {
+                        const chosen = (reactions[m.id] || []).some((r) => r.user_id === me && r.emoji === emoji);
+                        return (
+                          <button key={emoji} type="button" role="menuitem" aria-label={`React ${emoji}`} aria-pressed={chosen} onClick={() => react(m.id, emoji)} style={{
+                            fontSize: narrow ? 24 : 20, lineHeight: 1, width: narrow ? 40 : 34, height: narrow ? 40 : 34, borderRadius: '50%',
+                            border: 'none', cursor: 'pointer', background: chosen ? 'rgba(180,81,30,0.18)' : 'transparent',
+                          }}>
+                            {emoji}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {(reactions[m.id] || []).length > 0 && (
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 3, justifyContent: mine ? 'flex-end' : 'flex-start' }}>
+                      {REACTIONS.map((emoji) => {
+                        const who = (reactions[m.id] || []).filter((r) => r.emoji === emoji);
+                        if (!who.length) return null;
+                        const mineToo = who.some((r) => r.user_id === me);
+                        const names = who.map((r) => (r.user_id === me ? 'You' : nameFor(profiles[r.user_id], isAdmin))).join(', ');
+                        return (
+                          <button key={emoji} type="button" title={names} aria-label={`${emoji} ${who.length}: ${names}`} onClick={(e) => { e.stopPropagation(); react(m.id, emoji); }} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3, borderRadius: 999, padding: '2px 8px', fontSize: 12.5, fontWeight: 800,
+                            cursor: 'pointer', fontFamily: 'inherit', color: '#1A0A00',
+                            background: mineToo ? 'rgba(180,81,30,0.16)' : '#FFF',
+                            border: mineToo ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.2)',
+                          }}>
+                            <span style={{ fontSize: 14 }}>{emoji}</span>{who.length > 1 ? who.length : ''}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -311,7 +449,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
 
       {/* composer */}
       {canSend ? (
-        <form onSubmit={send} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: '10px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#FDF6EE' }}>
+        <form onSubmit={send} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: narrow ? '8px 10px' : '10px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#FDF6EE', flexShrink: 0 }}>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, MAX_LEN))}
@@ -322,7 +460,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
             style={{
               flex: 1, resize: 'none', maxHeight: 120, minHeight: 42, boxSizing: 'border-box',
               background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14,
-              padding: '10px 14px', fontSize: 14, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+              padding: '10px 14px', fontSize: narrow ? 16 : 14, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
             }}
           />
           <button type="submit" disabled={!text.trim() || sending} aria-label="Send" style={{
