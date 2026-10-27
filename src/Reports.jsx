@@ -4,16 +4,14 @@ import EmptyState from './ui/EmptyState';
 import { SearchX } from 'lucide-react';
 import { toast } from './ui/toast';
 import { formatPeso } from './tourUtils';
-import SearchSelect from './ui/SearchSelect';
 import { downloadReportCSV, downloadReportPDF } from './reportExport';
 import SalesSummary from './SalesSummary';
-import { blockSignKeys } from './moneyInput';
 import TourIncome from './TourIncome';
 import {
-  Loader2, Calendar, Users, CheckCircle2, Clock, XCircle, AlertCircle,
-  MapPin, ChevronDown, Wallet, TrendingUp, TrendingDown, ClipboardList,
-  Star, Printer, Download, Filter, Bell, Sparkles, PieChart, Repeat,
-  Percent, ArrowRight, Trophy, ThumbsDown, X, FileText,
+  Loader2, Calendar, Users, Clock, XCircle, AlertCircle,
+  TrendingUp, TrendingDown, ClipboardList,
+  Star, Printer, Download, Bell, Sparkles, PieChart,
+  ArrowRight, Trophy, ThumbsDown, FileText,
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
 
@@ -45,16 +43,6 @@ const pct = (n) => `${Number.isFinite(n) ? Math.round(n) : 0}%`;
 /* ─────────────────────────────────────────────
    DATE RANGE HELPERS
 ───────────────────────────────────────────── */
-const RANGE_PRESETS = [
-  { key: 'today', label: 'Today' },
-  { key: '7d', label: '7 Days' },
-  { key: '30d', label: '30 Days' },
-  { key: 'month', label: 'This Month' },
-  { key: 'year', label: 'This Year' },
-  { key: 'all', label: 'All Time' },
-  { key: 'custom', label: 'Custom' },
-];
-
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
@@ -92,56 +80,6 @@ const getRangeDates = (preset, customStart, customEnd) => {
   return { start, end };
 };
 
-const formatRangeLabel = (start, end) => {
-  const opts = { month: 'short', day: 'numeric', year: 'numeric' };
-  return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
-};
-
-/* Buckets bookings into day/week/month periods depending on range span,
-   filling gaps so the trend chart reads as a continuous timeline. */
-const bucketBookingsOverTime = (bookings, start, end) => {
-  const dayMs = 86400000;
-  const totalDays = Math.max(1, Math.round((end - start) / dayMs) + 1);
-  const granularity = totalDays > 180 ? 'month' : totalDays > 31 ? 'week' : 'day';
-
-  const keyFor = (date) => {
-    if (granularity === 'month') return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    if (granularity === 'week') {
-      const weekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay());
-      return weekStart.toISOString().slice(0, 10);
-    }
-    return date.toISOString().slice(0, 10);
-  };
-  const labelFor = (key) => {
-    if (granularity === 'month') {
-      const [y, m] = key.split('-');
-      return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-    }
-    return new Date(key).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  // seed every period in range so the chart has no gaps
-  const buckets = new Map();
-  const cursor = new Date(start);
-  let guard = 0;
-  while (cursor <= end && guard < 400) {
-    buckets.set(keyFor(cursor), 0);
-    if (granularity === 'month') cursor.setMonth(cursor.getMonth() + 1);
-    else if (granularity === 'week') cursor.setDate(cursor.getDate() + 7);
-    else cursor.setDate(cursor.getDate() + 1);
-    guard++;
-  }
-
-  bookings.forEach((b) => {
-    const key = keyFor(new Date(b.created_at));
-    if (buckets.has(key)) buckets.set(key, buckets.get(key) + 1);
-  });
-
-  return Array.from(buckets.entries())
-    .sort((a, b) => (a[0] > b[0] ? 1 : -1))
-    .map(([key, value]) => ({ key, label: labelFor(key), value }));
-};
-
 const getDerivedStatus = (b) => (
   (b.payment_status === 'Pending' || b.payment_status === 'Verification Pending') ? 'Pending' :
   b.payment_status === 'Rejected' ? 'Rejected' :
@@ -173,9 +111,10 @@ const Reports = () => {
   const noticeTimer = useRef(null);
   const firstLoad = useRef(true);
 
-  const [preset, setPreset] = useState('30d');
-  const [customStart, setCustomStart] = useState('');
-  const [customEnd, setCustomEnd] = useState('');
+  // The date buttons and filters were removed: the report covers all bookings.
+  const [preset, setPreset] = useState('all');
+  const [customStart] = useState('');
+  const [customEnd] = useState('');
 
   // ── advanced filters ──
   const [filterTour, setFilterTour] = useState('All Tours');
@@ -184,9 +123,8 @@ const Reports = () => {
   const [filterDestination, setFilterDestination] = useState('All Destinations');
 
   // ── profit assumption (no itemized cost data exists yet, so this is an editable estimate) ──
-  const [costPct, setCostPct] = useState(60);
+  const [costPct] = useState(60);
 
-  const tableRef = useRef(null);
 
   const fetchAll = useCallback(async (silent) => {
     if (!silent) setLoading(true);
@@ -257,14 +195,6 @@ const Reports = () => {
     });
   }, [allBookings, start, end]);
 
-  // ── advanced-filter option lists ──
-  const tourOptions = useMemo(() => (
-    Array.from(new Set(inRangeBookings.map((b) => b.tours?.title).filter(Boolean))).sort()
-  ), [inRangeBookings]);
-  const destinationOptions = useMemo(() => (
-    Array.from(new Set(inRangeBookings.map((b) => b.tours?.destination).filter(Boolean))).sort()
-  ), [inRangeBookings]);
-
   // ── final scoped bookings used across every metric below ──
   const bookings = useMemo(() => inRangeBookings.filter((b) => {
     if (filterTour !== 'All Tours' && b.tours?.title !== filterTour) return false;
@@ -281,7 +211,6 @@ const Reports = () => {
     setFilterStatus('All Status'); setFilterDestination('All Destinations');
   };
 
-  const scrollToTable = () => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // ── core stats ──
   const stats = useMemo(() => {
@@ -325,7 +254,30 @@ const Reports = () => {
 
     const change = (curr, prev) => (prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100));
 
+    // Running totals by day of the month, for the This Month vs. Last Month line chart.
+    // This month's line stops at today.
+    const daysIn = (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const valueOf = {
+      bookings: () => 1,
+      revenue: (b) => (getDerivedStatus(b) === 'Complete' ? (b.total_price || 0) : 0),
+      pax: (b) => b.slots_booked || 0,
+      cancellations: (b) => (['Cancelled', 'Rejected'].includes(getDerivedStatus(b)) ? 1 : 0),
+    };
+    const runningTotals = (arr, days, upTo, metric) => {
+      const perDay = new Array(days).fill(0);
+      arr.forEach((b) => { perDay[new Date(b.created_at).getDate() - 1] += valueOf[metric](b); });
+      let sum = 0;
+      return perDay.slice(0, upTo).map((v) => (sum += v));
+    };
+    const series = Object.fromEntries(Object.keys(valueOf).map((metric) => [metric, {
+      thisMonth: runningTotals(thisMonthBookings, daysIn(now), now.getDate(), metric),
+      lastMonth: runningTotals(lastMonthBookings, daysIn(lastMonthDate), daysIn(lastMonthDate), metric),
+    }]));
+
     return {
+      series,
+      thisMonthLabel: now.toLocaleDateString('en-US', { month: 'long' }),
+      lastMonthLabel: lastMonthDate.toLocaleDateString('en-US', { month: 'long' }),
       thisMonthRevenue: revOf(thisMonthBookings),
       revenueChangePct: change(revOf(thisMonthBookings), revOf(lastMonthBookings)),
       bookingsChangePct: change(thisMonthBookings.length, lastMonthBookings.length),
@@ -349,8 +301,6 @@ const Reports = () => {
     return Math.round(((stats.revenue - priorRevenue) / priorRevenue) * 100);
   }, [allBookings, start, end, stats.revenue]);
 
-  // ── trend chart data ──
-  const trendData = useMemo(() => bucketBookingsOverTime(bookings, start, end), [bookings, start, end]);
 
   // ── status breakdown (donut) ──
   const statusSegments = useMemo(() => ([
@@ -401,18 +351,6 @@ const Reports = () => {
     return `${hrs} hr${hrs !== 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
   };
 
-  // ── bookings by tour (bar, clickable to drill down) ──
-  const tourBreakdown = useMemo(() => {
-    const map = new Map();
-    bookings.forEach((b) => {
-      const title = b.tours?.title || 'Unknown Tour';
-      map.set(title, (map.get(title) || 0) + 1);
-    });
-    return Array.from(map.entries())
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
-  }, [bookings]);
 
   // ── tour performance table (bookings, revenue, pax, completion %, rating) ──
   const avgRatingByTour = useMemo(() => {
@@ -558,9 +496,21 @@ const Reports = () => {
     const avgBookings = counts.reduce((a, b) => a + b, 0) / counts.length;
     const avgRevenue = revs.reduce((a, b) => a + b, 0) / revs.length;
     const weighted = counts[0] * 0.5 + counts[1] * 0.3 + counts[2] * 0.2;
+    // The last 6 months (oldest first, this month last) for the forecast line chart.
+    const history = [5, 4, 3, 2, 1, 0].map((i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const inMonth = allBookings.filter((b) => monthKey(new Date(b.created_at)) === monthKey(d));
+      return {
+        label: d.toLocaleDateString('en-US', { month: 'short' }),
+        bookings: inMonth.length,
+        revenue: inMonth.filter((b) => getDerivedStatus(b) === 'Complete').reduce((s, b) => s + (b.total_price || 0), 0),
+      };
+    });
     return {
       expectedBookings: Math.round((weighted + avgBookings) / 2),
       expectedRevenue: Math.round(avgRevenue),
+      history,
+      nextLabel: new Date(now.getFullYear(), now.getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'short' }),
     };
   }, [allBookings]);
 
@@ -571,7 +521,7 @@ const Reports = () => {
       list.push(`Bookings ${monthlyComparison.bookingsChangePct >= 0 ? 'increased' : 'decreased'} ${Math.abs(monthlyComparison.bookingsChangePct)}% compared to last month.`);
     }
     if (bestTour) list.push(`${bestTour.title} generated the highest revenue this period (${peso(bestTour.revenue)}).`);
-    if (stats.total > 0) list.push(`${pct((stats.pending / stats.total) * 100)} of bookings in range are still pending verification.`);
+    if (stats.total > 0) list.push(`${pct((stats.pending / stats.total) * 100)} of bookings are still pending verification.`);
     const methodTop = methodSegments.length ? [...methodSegments].sort((a, b) => b.value - a.value)[0] : null;
     if (methodTop) list.push(`${methodTop.label} is currently the most used payment method.`);
     if (nearlyFullTours.length > 0) list.push(`${nearlyFullTours.map((t) => t.title).join(', ')} ${nearlyFullTours.length === 1 ? 'is' : 'are'} approaching full capacity.`);
@@ -590,7 +540,7 @@ const Reports = () => {
       filterStatus !== 'All Status' && `Status: ${filterStatus}`,
     ].filter(Boolean);
     return {
-      rangeLabel: formatRangeLabel(start, end),
+      rangeLabel: 'All bookings',
       filtersLabel: filters.length ? filters.join(' · ') : 'None (all bookings)',
       generatedAt: new Date().toLocaleString('en-PH', { dateStyle: 'long', timeStyle: 'short' }),
       summary: [
@@ -651,22 +601,8 @@ const Reports = () => {
     return list.slice(0, 6);
   }, [revenueTrendVsPriorPeriod, nearlyFullTours, stats]);
 
-  // ── recent / filtered bookings table (most recent first, capped) ──
-  const recentBookings = useMemo(() => (
-    [...bookings].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 12)
-  ), [bookings]);
-
-  const handleDonutClick = (key) => {
-    setFilterStatus((prev) => (prev === key ? 'All Status' : key));
-    scrollToTable();
-  };
-  const handleTourBarClick = (title) => {
-    setFilterTour((prev) => (prev === title ? 'All Tours' : title));
-    scrollToTable();
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>
 
       {/* ── live toast ── */}
       {liveNotice && (
@@ -684,7 +620,7 @@ const Reports = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
-            {formatRangeLabel(start, end)} · {loading ? <Skel w={110} h={10} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : `${stats.total} booking${stats.total !== 1 ? 's' : ''} in range`}
+            All bookings · {loading ? <Skel w={110} h={10} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : `${stats.total} booking${stats.total !== 1 ? 's' : ''}`}
             {lastUpdated && !loading && (
               <span style={{ opacity: 0.95 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
             )}
@@ -785,97 +721,6 @@ const Reports = () => {
             </div>
           )}
 
-          {/* ── Date Range Filter ── */}
-          <div style={{
-            background: '#FDF6EE', borderRadius: 20, padding: '14px 18px',
-            border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
-            display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
-          }}>
-            {RANGE_PRESETS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPreset(p.key)}
-                style={{
-                  padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
-                  border: 'none', fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  background: preset === p.key ? '#1A0A00' : '#F2E4D0',
-                  color: preset === p.key ? '#FDF6EE' : '#7A3A18',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
-
-            {preset === 'custom' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 4 }}>
-                <input
-                  type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
-                  style={{
-                    background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
-                    padding: '9px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
-                    fontFamily: 'inherit', outline: 'none',
-                  }}
-                />
-                <span style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 700 }}>to</span>
-                <input
-                  type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
-                  style={{
-                    background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
-                    padding: '9px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
-                    fontFamily: 'inherit', outline: 'none',
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* ── Advanced Filters ── */}
-          <div style={{
-            background: '#FDF6EE', borderRadius: 20, padding: '14px 18px',
-            border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
-            display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
-          }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginRight: 4 }}>
-              <Filter size={13} /> Filters
-            </span>
-            {/* Tours and destinations can be long lists: type to search. Clearing the box means "all". */}
-            <div style={{ width: 220 }}>
-              <SearchSelect
-                ariaLabel="Filter by tour"
-                value={filterTour === 'All Tours' ? '' : filterTour}
-                options={tourOptions}
-                onChange={(v) => setFilterTour(v || 'All Tours')}
-                placeholder="All tours (type to search)"
-                style={searchFilterStyle}
-              />
-            </div>
-            <div style={{ width: 220 }}>
-              <SearchSelect
-                ariaLabel="Filter by destination"
-                value={filterDestination === 'All Destinations' ? '' : filterDestination}
-                options={destinationOptions}
-                onChange={(v) => setFilterDestination(v || 'All Destinations')}
-                placeholder="All destinations (type to search)"
-                style={searchFilterStyle}
-              />
-            </div>
-            <FilterSelect value={filterMethod} onChange={setFilterMethod} options={['All Methods', 'Full Payment', 'Downpayment']} />
-            <FilterSelect value={filterStatus} onChange={setFilterStatus} options={['All Status', 'Complete', 'Pending', 'Rejected', 'Cancelled']} />
-            {filtersActive && (
-              <button
-                onClick={resetAdvancedFilters}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#8C2F1C', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                }}
-              >
-                <X size={12} /> Clear
-              </button>
-            )}
-          </div>
-
           {stats.total === 0 ? (
             filtersActive ? (
               <EmptyState
@@ -894,123 +739,33 @@ const Reports = () => {
             )
           ) : (
             <>
-              {/* ── KPI Cards ── */}
-              <div className="report-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
-                <StatCard title="Total Revenue" value={peso(stats.revenue)} icon={<Wallet size={17} />} iconColor="#A8481A" />
-                <StatCard title="Estimated Profit" value={peso(estimatedProfit)} icon={<TrendingUp size={17} />} iconColor="#A8481A" />
-                <StatCard title="Avg. Booking Value" value={peso(stats.avgBookingValue)} icon={<Percent size={17} />} iconColor="#7A3A18" />
-                <StatCard title="Total Bookings" value={stats.total} icon={<ClipboardList size={17} />} iconColor="#A8481A" />
-                <StatCard title="Confirmed" value={stats.complete} icon={<CheckCircle2 size={17} />} iconColor="#A8481A" />
-                <StatCard title="Pending" value={stats.pending} icon={<Clock size={17} />} iconColor="#8C5216" />
-                <StatCard title="Rejected / Cancelled" value={stats.rejected + stats.cancelled} icon={<XCircle size={17} />} iconColor="#8C2F1C" />
-                <StatCard title="Cancellation Rate" value={pct(stats.cancellationRate)} icon={<TrendingDown size={17} />} iconColor="#8C2F1C" />
-                <StatCard title="Total Pax" value={stats.totalPax} icon={<Users size={17} />} iconColor="#7A3A18" />
-                <StatCard title="Conversion Rate" value={pct(stats.conversionRate)} icon={<TrendingUp size={17} />} iconColor="#A8481A" />
-                <StatCard title="Outstanding Balance" value={peso(outstandingBalance)} icon={<Wallet size={17} />} iconColor="#8C5216" />
-                <StatCard
-                  title="Repeat Customers"
-                  value={pct((customerAnalytics.newCount + customerAnalytics.returningCount) ? (customerAnalytics.returningCount / (customerAnalytics.newCount + customerAnalytics.returningCount)) * 100 : 0)}
-                  icon={<Repeat size={17} />} iconColor="#7A3A18"
-                />
-              </div>
-
-              {/* ── Revenue & Profit ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Wallet size={14} />}>Revenue &amp; Profit Analytics</SectionTitle>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 20 }}>
-                  <MiniMetric
-                    label="Revenue This Month"
-                    value={peso(monthlyComparison.thisMonthRevenue)}
-                    trend={monthlyComparison.revenueChangePct}
-                    trendLabel="vs last month"
-                  />
-                  <MiniMetric label="Revenue in Selected Range" value={peso(stats.revenue)} />
-                  <MiniMetric label="Average Booking Value" value={peso(stats.avgBookingValue)} />
-                  <MiniMetric label="Outstanding Balance" value={peso(outstandingBalance)} tone="warn" />
+              {/* ── Monthly Comparison and Forecast, side by side ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 20, alignItems: 'stretch' }}>
+                <div style={{
+                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
+                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                }}>
+                  <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
+                  <MonthComparisonChart comparison={monthlyComparison} />
                 </div>
 
-                <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 16, marginBottom: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Revenue by Payment Method</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                    <MiniMetric label="Full Payment" value={peso(paymentAnalytics.fullRevenue)} compact />
-                    <MiniMetric label="Downpayment Collected" value={peso(paymentAnalytics.downRevenue)} compact />
-                    <MiniMetric label="Remaining Balance" value={peso(outstandingBalance)} compact tone="warn" />
-                  </div>
-                </div>
-
-                <div style={{ background: '#F2E4D0', borderRadius: 16, padding: '1.25rem 1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                    <div>
-                      <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px' }}>
-                        Estimated Profit
-                      </p>
-                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 420 }}>
-                        Itemized tour costs aren't tracked yet, so this uses an adjustable cost assumption applied to revenue.
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <label style={{ fontSize: 11.5, fontWeight: 800, color: '#7A3A18' }}>Est. Cost %</label>
-                      <input
-                        type="number" min={0} max={95} value={costPct} onKeyDown={blockSignKeys}
-                        onChange={(e) => setCostPct(Math.min(95, Math.max(0, Number(e.target.value) || 0)))}
-                        style={{ width: 60, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(180,81,30,0.25)', fontSize: 12, fontWeight: 700, textAlign: 'center' }}
-                      />
-                      <span style={{ fontSize: 22, fontWeight: 900, color: '#A8481A' }}>{peso(estimatedProfit)}</span>
-                    </div>
-                  </div>
+                <div style={{
+                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
+                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                }}>
+                  <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
+                  <ForecastChart forecast={forecast} />
                 </div>
               </div>
 
-              {/* ── Monthly Comparison ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
-                  <MiniMetric label="Bookings" value={monthlyComparison.thisMonthBookingsCount} trend={monthlyComparison.bookingsChangePct} />
-                  <MiniMetric label="Revenue" value={peso(monthlyComparison.thisMonthRevenue)} trend={monthlyComparison.revenueChangePct} />
-                  <MiniMetric label="Pax" value="Change" trend={monthlyComparison.paxChangePct} showValueless />
-                  <MiniMetric label="Cancellations" value="Change" trend={monthlyComparison.cancellationChangePct} showValueless invertTrendColor />
-                </div>
-              </div>
-
-              {/* ── Forecast ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '-8px 0 16px' }}>
-                  Based on a weighted average of the last three months.
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                  <MiniMetric label="Expected Bookings" value={forecast.expectedBookings} />
-                  <MiniMetric label="Expected Revenue" value={peso(forecast.expectedRevenue)} />
-                </div>
-              </div>
-
-              {/* ── Trend Chart ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<TrendingUp size={14} />}>Bookings Over Time</SectionTitle>
-                <BarChart data={trendData} color="#A8481A" height={190} />
-              </div>
-
-              {/* ── Donut charts row (clickable segments drill down into the table) ── */}
+              {/* ── Donut charts row ── */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
                   border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
                 }}>
                   <SectionTitle icon={<AlertCircle size={14} />}>Booking Status Breakdown</SectionTitle>
-                  <DonutChart segments={statusSegments} onSegmentClick={handleDonutClick} activeKey={filterStatus !== 'All Status' ? filterStatus : null} />
+                  <DonutChart segments={statusSegments} />
                 </div>
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
@@ -1040,11 +795,7 @@ const Reports = () => {
                     </thead>
                     <tbody>
                       {tourPerformance.map((t) => (
-                        <tr
-                          key={t.tourId || t.title}
-                          onClick={() => handleTourBarClick(t.title)}
-                          style={{ borderBottom: '1px solid rgba(180,81,30,0.08)', cursor: 'pointer' }}
-                        >
+                        <tr key={t.tourId || t.title} style={{ borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                           <td style={{ padding: '10px 16px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>{t.title}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.bookingsCount}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 900, color: '#A8481A', fontSize: 12.5 }}>{peso(t.revenue)}</td>
@@ -1066,29 +817,6 @@ const Reports = () => {
                     <HighlightCard icon={<ThumbsDown size={16} />} label="Lowest Performing Tour" title={worstTour.title} sub={`${worstTour.bookingsCount} bookings · ${peso(worstTour.revenue)}`} tone="warn" />
                   )}
                 </div>
-              </div>
-
-              {/* ── Tour Occupancy ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Users size={14} />}>Tour Occupancy (Active Tours)</SectionTitle>
-                {occupancy.length === 0 ? <EmptyChartNotice /> : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    {occupancy.map((o, i) => (
-                      <div key={i}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00' }}>{o.title}</span>
-                          <span style={{ fontSize: 12, fontWeight: 900, color: o.pctFull >= 100 ? '#8C2F1C' : '#A8481A' }}>{o.booked}/{o.capacity} ({o.pctFull}%)</span>
-                        </div>
-                        <div style={{ background: '#F2E4D0', borderRadius: 999, height: 10, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', borderRadius: 999, width: `${o.pctFull}%`, background: o.pctFull >= 100 ? '#8C2F1C' : o.pctFull >= 85 ? '#E8A265' : '#B4511E', transition: 'width 0.4s' }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* ── Cancellation Analytics ── */}
@@ -1159,71 +887,6 @@ const Reports = () => {
                 </div>
               </div>
 
-              {/* ── Bookings by Tour ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<MapPin size={14} />}>Bookings by Tour</SectionTitle>
-                <HorizontalBarChart data={tourBreakdown} color="#A8481A" onBarClick={handleTourBarClick} activeLabel={filterTour !== 'All Tours' ? filterTour : null} />
-              </div>
-
-              {/* ── Recent / Filtered Bookings Table ── */}
-              <div ref={tableRef} style={{
-                background: '#FDF6EE', borderRadius: 20, overflow: 'hidden',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <div style={{ padding: '1.5rem 1.75rem 0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-                  <SectionTitle icon={<ClipboardList size={14} />}>
-                    {filtersActive ? 'Filtered Bookings' : 'Recent Bookings In Range'}
-                  </SectionTitle>
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
-                        {['Booking No.', 'Joiner', 'Tour', 'Pax', 'Status', 'Date'].map((h) => (
-                          <th key={h} style={{
-                            textAlign: 'left', padding: '12px 20px', fontSize: 11, fontWeight: 800,
-                            letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
-                          }}>
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentBookings.map((b) => (
-                        <tr key={b.id} style={{ borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
-                          <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12 }}>
-                            {b.booking_number || '—'}
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>
-                            {b.full_name || '—'}
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 600, color: '#7A3A18', fontSize: 12.5 }}>
-                            {b.tours?.title || '—'}
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>
-                            {b.slots_booked}
-                          </td>
-                          <td style={{ padding: '12px 20px' }}>
-                            <MiniStatusBadge status={getDerivedStatus(b)} />
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 600, color: '#7A3A18', opacity: 0.9, fontSize: 11.5, whiteSpace: 'nowrap' }}>
-                            {new Date(b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {bookings.length > recentBookings.length && (
-                  <p style={{ padding: '14px 20px', fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
-                    Showing {recentBookings.length} most recent of {bookings.length} bookings matching current filters.
-                  </p>
-                )}
-              </div>
             </>
           )}
         </>
@@ -1235,6 +898,184 @@ const Reports = () => {
 /* ─────────────────────────────────────────────
    CHART PRIMITIVES  (hand-rolled, no external chart library)
 ───────────────────────────────────────────── */
+// This month vs. last month as two lines: running totals by day of the month.
+const COMPARISON_METRICS = [
+  { key: 'bookings', label: 'Bookings', change: 'bookingsChangePct', format: (v) => String(v) },
+  { key: 'revenue', label: 'Revenue', change: 'revenueChangePct', format: (v) => peso(v) },
+  { key: 'pax', label: 'Pax', change: 'paxChangePct', format: (v) => String(v) },
+  { key: 'cancellations', label: 'Cancellations', change: 'cancellationChangePct', format: (v) => String(v), lowerIsBetter: true },
+];
+
+const MonthComparisonChart = ({ comparison }) => {
+  const [metricKey, setMetricKey] = useState('bookings');
+  const [hoverDay, setHoverDay] = useState(null);
+  const metric = COMPARISON_METRICS.find((m) => m.key === metricKey);
+  const { thisMonth, lastMonth } = comparison.series[metricKey];
+  const days = Math.max(thisMonth.length, lastMonth.length, 1);
+  const lastDay = Math.max(lastMonth.length, 28);
+  const max = Math.max(1, ...thisMonth, ...lastMonth);
+  const W = 640, H = 200, padL = 46, padR = 14, padT = 14, padB = 28;
+  const x = (i) => padL + (i / Math.max(1, lastDay - 1)) * (W - padL - padR);
+  const y = (v) => padT + (1 - v / max) * (H - padT - padB);
+  const path = (arr) => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const change = comparison[metric.change];
+  const good = metric.lowerIsBetter ? change <= 0 : change >= 0;
+  const ticks = [0, 0.5, 1].map((t) => Math.round(max * t));
+  const thisTotal = thisMonth[thisMonth.length - 1] || 0;
+  const lastTotal = lastMonth[lastMonth.length - 1] || 0;
+  const hover = hoverDay != null ? { day: hoverDay + 1, now: thisMonth[hoverDay], before: lastMonth[hoverDay] } : null;
+
+  return (
+    <div>
+      <div role="group" aria-label="Show" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        {COMPARISON_METRICS.map((m) => (
+          <button key={m.key} type="button" aria-pressed={metricKey === m.key} onClick={() => setMetricKey(m.key)} style={{
+            padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+            background: metricKey === m.key ? '#1A0A00' : '#F2E4D0', color: metricKey === m.key ? '#FDF6EE' : '#7A3A18',
+          }}>{m.label}</button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 8 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>
+          <span style={{ width: 18, height: 3, borderRadius: 2, background: '#B4511E' }} />
+          {comparison.thisMonthLabel} (so far): {metric.format(thisTotal)}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
+          <span style={{ width: 18, height: 0, borderTop: '3px dashed rgba(122,58,24,0.6)' }} />
+          {comparison.lastMonthLabel}: {metric.format(lastTotal)}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 900, color: good ? '#2E6B4A' : '#8C2F1C' }}>
+          {change >= 0 ? '+' : ''}{change}% vs last month
+        </span>
+      </div>
+
+      <div style={{ position: 'relative', maxWidth: 720 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxWidth: 720, height: 'auto', display: 'block' }} role="img"
+          aria-label={`${metric.label}: ${comparison.thisMonthLabel} ${metric.format(thisTotal)} so far, ${comparison.lastMonthLabel} ${metric.format(lastTotal)}`}
+          onMouseLeave={() => setHoverDay(null)}
+          onMouseMove={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            const px = ((e.clientX - r.left) / r.width) * W;
+            const i = Math.round(((px - padL) / (W - padL - padR)) * (lastDay - 1));
+            setHoverDay(i >= 0 && i < days ? i : null);
+          }}>
+          {ticks.map((t) => (
+            <g key={t}>
+              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(180,81,30,0.12)" />
+              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="#7A3A18">
+                {metricKey === 'revenue' && t >= 1000 ? `₱${Math.round(t / 1000)}k` : t}
+              </text>
+            </g>
+          ))}
+          {[1, 8, 15, 22, lastDay].map((d) => (
+            <text key={d} x={x(d - 1)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight="700" fill="#7A3A18">{d}</text>
+          ))}
+          <path d={path(lastMonth)} fill="none" stroke="rgba(122,58,24,0.55)" strokeWidth="2.5" strokeDasharray="6 5" strokeLinejoin="round" />
+          <path d={path(thisMonth)} fill="none" stroke="#B4511E" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+          {thisMonth.length > 0 && <circle cx={x(thisMonth.length - 1)} cy={y(thisTotal)} r="4.5" fill="#B4511E" />}
+          {hover && (
+            <line x1={x(hover.day - 1)} x2={x(hover.day - 1)} y1={padT} y2={H - padB} stroke="rgba(26,10,0,0.25)" strokeDasharray="3 3" />
+          )}
+        </svg>
+        {hover && (
+          <div style={{
+            position: 'absolute', top: 6, left: `${(x(hover.day - 1) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
+            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+          }}>
+            Day {hover.day}: {hover.now != null ? metric.format(hover.now) : '—'} vs {hover.before != null ? metric.format(hover.before) : '—'}
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>Running totals by day of the month.</p>
+    </div>
+  );
+};
+
+// Last 6 months as a solid line, then a dashed line to next month's forecast
+// (a weighted average of the last three months).
+const ForecastChart = ({ forecast }) => {
+  const [metric, setMetric] = useState('bookings');
+  const [hover, setHover] = useState(null);
+  const isRevenue = metric === 'revenue';
+  const fmt = (v) => (isRevenue ? peso(v) : String(v));
+  const actual = forecast.history.map((h) => h[metric]);
+  const predicted = isRevenue ? forecast.expectedRevenue : forecast.expectedBookings;
+  const labels = [...forecast.history.map((h) => h.label), forecast.nextLabel];
+  const values = [...actual, predicted];
+  const max = Math.max(1, ...values);
+  const W = 640, H = 200, padL = 46, padR = 18, padT = 14, padB = 28;
+  const x = (i) => padL + (i / (labels.length - 1)) * (W - padL - padR);
+  const y = (v) => padT + (1 - v / max) * (H - padT - padB);
+  const line = (pts) => pts.map(([i, v], k) => `${k ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const last = actual.length - 1;
+  const ticks = [0, 0.5, 1].map((t) => Math.round(max * t));
+
+  return (
+    <div>
+      <div role="group" aria-label="Show" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        {[['bookings', 'Bookings'], ['revenue', 'Revenue']].map(([key, label]) => (
+          <button key={key} type="button" aria-pressed={metric === key} onClick={() => setMetric(key)} style={{
+            padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+            background: metric === key ? '#1A0A00' : '#F2E4D0', color: metric === key ? '#FDF6EE' : '#7A3A18',
+          }}>{label}</button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 8 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>
+          <span style={{ width: 18, height: 3, borderRadius: 2, background: '#B4511E' }} /> Actual
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
+          <span style={{ width: 18, height: 0, borderTop: '3px dashed #E8A265' }} /> Expected in {forecast.nextLabel}: {fmt(predicted)}
+        </span>
+      </div>
+
+      <div style={{ position: 'relative', maxWidth: 720 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxWidth: 720, height: 'auto', display: 'block' }} role="img"
+          aria-label={`${isRevenue ? 'Revenue' : 'Bookings'} for the last 6 months, and ${fmt(predicted)} expected in ${forecast.nextLabel}`}
+          onMouseLeave={() => setHover(null)}
+          onMouseMove={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            const px = ((e.clientX - r.left) / r.width) * W;
+            const i = Math.round(((px - padL) / (W - padL - padR)) * (labels.length - 1));
+            setHover(i >= 0 && i < labels.length ? i : null);
+          }}>
+          {ticks.map((t) => (
+            <g key={t}>
+              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(180,81,30,0.12)" />
+              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="#7A3A18">
+                {isRevenue && t >= 1000 ? `₱${Math.round(t / 1000)}k` : t}
+              </text>
+            </g>
+          ))}
+          {labels.map((l, i) => (
+            <text key={l + i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight={i === labels.length - 1 ? 900 : 700} fill={i === labels.length - 1 ? '#A8481A' : '#7A3A18'}>{l}</text>
+          ))}
+          <path d={line(actual.map((v, i) => [i, v]))} fill="none" stroke="#B4511E" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+          <path d={line([[last, actual[last]], [labels.length - 1, predicted]])} fill="none" stroke="#E8A265" strokeWidth="3" strokeDasharray="6 5" />
+          {actual.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r="3.5" fill="#B4511E" />)}
+          <circle cx={x(labels.length - 1)} cy={y(predicted)} r="5" fill="#FDF6EE" stroke="#E8A265" strokeWidth="3" />
+          {hover != null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} stroke="rgba(26,10,0,0.25)" strokeDasharray="3 3" />}
+        </svg>
+        {hover != null && (
+          <div style={{
+            position: 'absolute', top: 6, left: `${(x(hover) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
+            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+          }}>
+            {labels[hover]}: {fmt(values[hover])}{hover === labels.length - 1 ? ' (expected)' : hover === last ? ' (so far)' : ''}
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>
+        The forecast is a weighted average of the last three months. This month counts what's booked so far.
+      </p>
+    </div>
+  );
+};
+
 const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
   const max = Math.max(1, ...data.map((d) => d.value));
   const showEveryLabel = data.length <= 14;
@@ -1405,39 +1246,6 @@ const SectionTitle = ({ icon, children }) => (
   </h4>
 );
 
-// One KPI: icon and label on top, the number below on one line. Long
-// numbers (peso amounts) get a slightly smaller size instead of wrapping.
-const StatCard = ({ title, value, icon, iconColor }) => {
-  const text = String(value ?? '');
-  const size = text.length > 12 ? 22 : text.length > 9 ? 25 : 28;
-  return (
-    <div style={{
-      background: '#FDF6EE', borderRadius: 18, padding: '1.15rem 1.25rem',
-      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
-      display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14, minWidth: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 9, background: '#F2E4D0',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: iconColor || '#A8481A', flexShrink: 0,
-        }}>
-          {icon}
-        </div>
-        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0, lineHeight: 1.35 }}>
-          {title}
-        </p>
-      </div>
-      <p title={text} style={{
-        fontSize: size, fontWeight: 900, letterSpacing: '-0.03em', color: '#1A0A00', margin: 0, lineHeight: 1.1,
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontVariantNumeric: 'tabular-nums',
-      }}>
-        {value}
-      </p>
-    </div>
-  );
-};
-
 const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValueless, invertTrendColor }) => {
   const trendGood = invertTrendColor ? (trend ?? 0) <= 0 : (trend ?? 0) >= 0;
   return (
@@ -1498,47 +1306,5 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
   </button>
 );
 
-const searchFilterStyle = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
-  borderRadius: 12, padding: '0 14px', height: 40, fontSize: 11.5, fontWeight: 700,
-  color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
-};
-
-const FilterSelect = ({ value, onChange, options }) => (
-  <div style={{ position: 'relative' }}>
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      style={{
-        appearance: 'none', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
-        borderRadius: 12, padding: '9px 30px 9px 14px', fontSize: 11.5, fontWeight: 700,
-        color: '#1A0A00', fontFamily: 'inherit', outline: 'none', cursor: 'pointer', maxWidth: 190,
-      }}
-    >
-      {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-    </select>
-    <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
-  </div>
-);
-
-const STATUS_BADGE_STYLES = {
-  Complete: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
-};
-
-const MiniStatusBadge = ({ status }) => {
-  const { bg, color } = STATUS_BADGE_STYLES[status] || STATUS_BADGE_STYLES.Pending;
-  return (
-    <span style={{
-      display: 'inline-block', background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 11, fontWeight: 900,
-      letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-    }}>
-      {status}
-    </span>
-  );
-};
 
 export default Reports;
