@@ -8,7 +8,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
 import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, formatPickupTime } from './tourUtils';
-import { moneyInputProps, blockSignKeys } from './moneyInput';
+import { moneyInputProps, blockSignKeys, cleanMoney } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
@@ -759,7 +759,7 @@ const TourManagement = () => {
                       <div>
                         <label style={labelStyle}>Amount (₱)</label>
                         <input name={`other_amount_${i}`} {...moneyInputProps} value={o.amount}
-                          onChange={(e) => { setOtherExpenses((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: e.target.value } : x))); setFormDirty(true); }}
+                          onChange={(e) => { const v = cleanMoney(e.target.value); setOtherExpenses((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: v } : x))); setFormDirty(true); }}
                           style={inputStyle} />
                       </div>
                       <button type="button" aria-label="Remove this expense" onClick={() => { setOtherExpenses((rows) => rows.filter((x) => x.key !== o.key)); setFormDirty(true); }}

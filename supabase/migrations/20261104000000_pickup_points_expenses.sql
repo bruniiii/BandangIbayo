@@ -196,3 +196,33 @@ drop trigger if exists tour_expenses_check on public.tour_expenses;
 create trigger tour_expenses_check
   before insert or update on public.tour_expenses
   for each row execute function public.tour_expenses_check();
+
+-- ── 3. No negative amounts anywhere ───────────
+-- The forms already refuse a minus sign; these make the database refuse it
+-- too. NOT VALID: only new and changed rows are checked, so older test data
+-- can't stop this file from running.
+do $$
+declare
+  c record;
+begin
+  for c in
+    select * from (values
+      ('bookings', 'bookings_total_price_not_negative', 'total_price >= 0'),
+      ('bookings', 'bookings_amount_paid_not_negative', 'amount_paid >= 0'),
+      ('exclusive_requests', 'exclusive_amount_paid_not_negative', 'amount_paid >= 0'),
+      ('exclusive_requests', 'exclusive_balance_amount_not_negative', 'balance_amount >= 0'),
+      ('exclusive_requests', 'exclusive_downpayment_not_negative', 'downpayment_amount >= 0'),
+      ('exclusive_requests', 'exclusive_package_price_not_negative',
+        $c$coalesce(jsonb_typeof(package_details -> 'price') <> 'number' or (package_details ->> 'price')::numeric >= 0, true)$c$)
+    ) as t(tbl, name, expr)
+  loop
+    if not exists (select 1 from pg_constraint where conname = c.name) then
+      begin
+        execute format('alter table public.%I add constraint %I check (%s) not valid', c.tbl, c.name, c.expr);
+      exception when undefined_column then
+        raise notice 'Skipped %: column not found.', c.name;
+      end;
+    end if;
+  end loop;
+end;
+$$;
