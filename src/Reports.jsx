@@ -80,51 +80,6 @@ const getRangeDates = (preset, customStart, customEnd) => {
   return { start, end };
 };
 
-/* Buckets bookings into day/week/month periods depending on range span,
-   filling gaps so the trend chart reads as a continuous timeline. */
-const bucketBookingsOverTime = (bookings, start, end) => {
-  const dayMs = 86400000;
-  const totalDays = Math.max(1, Math.round((end - start) / dayMs) + 1);
-  const granularity = totalDays > 180 ? 'month' : totalDays > 31 ? 'week' : 'day';
-
-  const keyFor = (date) => {
-    if (granularity === 'month') return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    if (granularity === 'week') {
-      const weekStart = new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay());
-      return weekStart.toISOString().slice(0, 10);
-    }
-    return date.toISOString().slice(0, 10);
-  };
-  const labelFor = (key) => {
-    if (granularity === 'month') {
-      const [y, m] = key.split('-');
-      return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-    }
-    return new Date(key).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  // seed every period in range so the chart has no gaps
-  const buckets = new Map();
-  const cursor = new Date(start);
-  let guard = 0;
-  while (cursor <= end && guard < 400) {
-    buckets.set(keyFor(cursor), 0);
-    if (granularity === 'month') cursor.setMonth(cursor.getMonth() + 1);
-    else if (granularity === 'week') cursor.setDate(cursor.getDate() + 7);
-    else cursor.setDate(cursor.getDate() + 1);
-    guard++;
-  }
-
-  bookings.forEach((b) => {
-    const key = keyFor(new Date(b.created_at));
-    if (buckets.has(key)) buckets.set(key, buckets.get(key) + 1);
-  });
-
-  return Array.from(buckets.entries())
-    .sort((a, b) => (a[0] > b[0] ? 1 : -1))
-    .map(([key, value]) => ({ key, label: labelFor(key), value }));
-};
-
 const getDerivedStatus = (b) => (
   (b.payment_status === 'Pending' || b.payment_status === 'Verification Pending') ? 'Pending' :
   b.payment_status === 'Rejected' ? 'Rejected' :
@@ -301,7 +256,30 @@ const Reports = () => {
 
     const change = (curr, prev) => (prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100));
 
+    // Running totals by day of the month, for the This Month vs. Last Month line chart.
+    // This month's line stops at today.
+    const daysIn = (d) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const valueOf = {
+      bookings: () => 1,
+      revenue: (b) => (getDerivedStatus(b) === 'Complete' ? (b.total_price || 0) : 0),
+      pax: (b) => b.slots_booked || 0,
+      cancellations: (b) => (['Cancelled', 'Rejected'].includes(getDerivedStatus(b)) ? 1 : 0),
+    };
+    const runningTotals = (arr, days, upTo, metric) => {
+      const perDay = new Array(days).fill(0);
+      arr.forEach((b) => { perDay[new Date(b.created_at).getDate() - 1] += valueOf[metric](b); });
+      let sum = 0;
+      return perDay.slice(0, upTo).map((v) => (sum += v));
+    };
+    const series = Object.fromEntries(Object.keys(valueOf).map((metric) => [metric, {
+      thisMonth: runningTotals(thisMonthBookings, daysIn(now), now.getDate(), metric),
+      lastMonth: runningTotals(lastMonthBookings, daysIn(lastMonthDate), daysIn(lastMonthDate), metric),
+    }]));
+
     return {
+      series,
+      thisMonthLabel: now.toLocaleDateString('en-US', { month: 'long' }),
+      lastMonthLabel: lastMonthDate.toLocaleDateString('en-US', { month: 'long' }),
       thisMonthRevenue: revOf(thisMonthBookings),
       revenueChangePct: change(revOf(thisMonthBookings), revOf(lastMonthBookings)),
       bookingsChangePct: change(thisMonthBookings.length, lastMonthBookings.length),
@@ -325,8 +303,6 @@ const Reports = () => {
     return Math.round(((stats.revenue - priorRevenue) / priorRevenue) * 100);
   }, [allBookings, start, end, stats.revenue]);
 
-  // ── trend chart data ──
-  const trendData = useMemo(() => bucketBookingsOverTime(bookings, start, end), [bookings, start, end]);
 
   // ── status breakdown (donut) ──
   const statusSegments = useMemo(() => ([
@@ -785,12 +761,7 @@ const Reports = () => {
                 border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
-                  <MiniMetric label="Bookings" value={monthlyComparison.thisMonthBookingsCount} trend={monthlyComparison.bookingsChangePct} />
-                  <MiniMetric label="Revenue" value={peso(monthlyComparison.thisMonthRevenue)} trend={monthlyComparison.revenueChangePct} />
-                  <MiniMetric label="Pax" value="Change" trend={monthlyComparison.paxChangePct} showValueless />
-                  <MiniMetric label="Cancellations" value="Change" trend={monthlyComparison.cancellationChangePct} showValueless invertTrendColor />
-                </div>
+                <MonthComparisonChart comparison={monthlyComparison} />
               </div>
 
               {/* ── Forecast ── */}
@@ -806,15 +777,6 @@ const Reports = () => {
                   <MiniMetric label="Expected Bookings" value={forecast.expectedBookings} />
                   <MiniMetric label="Expected Revenue" value={peso(forecast.expectedRevenue)} />
                 </div>
-              </div>
-
-              {/* ── Trend Chart ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<TrendingUp size={14} />}>Bookings Over Time</SectionTitle>
-                <BarChart data={trendData} color="#A8481A" height={190} />
               </div>
 
               {/* ── Donut charts row (clickable segments drill down into the table) ── */}
@@ -1058,6 +1020,101 @@ const Reports = () => {
 /* ─────────────────────────────────────────────
    CHART PRIMITIVES  (hand-rolled, no external chart library)
 ───────────────────────────────────────────── */
+// This month vs. last month as two lines: running totals by day of the month.
+const COMPARISON_METRICS = [
+  { key: 'bookings', label: 'Bookings', change: 'bookingsChangePct', format: (v) => String(v) },
+  { key: 'revenue', label: 'Revenue', change: 'revenueChangePct', format: (v) => peso(v) },
+  { key: 'pax', label: 'Pax', change: 'paxChangePct', format: (v) => String(v) },
+  { key: 'cancellations', label: 'Cancellations', change: 'cancellationChangePct', format: (v) => String(v), lowerIsBetter: true },
+];
+
+const MonthComparisonChart = ({ comparison }) => {
+  const [metricKey, setMetricKey] = useState('bookings');
+  const [hoverDay, setHoverDay] = useState(null);
+  const metric = COMPARISON_METRICS.find((m) => m.key === metricKey);
+  const { thisMonth, lastMonth } = comparison.series[metricKey];
+  const days = Math.max(thisMonth.length, lastMonth.length, 1);
+  const lastDay = Math.max(lastMonth.length, 28);
+  const max = Math.max(1, ...thisMonth, ...lastMonth);
+  const W = 640, H = 220, padL = 46, padR = 14, padT = 14, padB = 28;
+  const x = (i) => padL + (i / Math.max(1, lastDay - 1)) * (W - padL - padR);
+  const y = (v) => padT + (1 - v / max) * (H - padT - padB);
+  const path = (arr) => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const change = comparison[metric.change];
+  const good = metric.lowerIsBetter ? change <= 0 : change >= 0;
+  const ticks = [0, 0.5, 1].map((t) => Math.round(max * t));
+  const thisTotal = thisMonth[thisMonth.length - 1] || 0;
+  const lastTotal = lastMonth[lastMonth.length - 1] || 0;
+  const hover = hoverDay != null ? { day: hoverDay + 1, now: thisMonth[hoverDay], before: lastMonth[hoverDay] } : null;
+
+  return (
+    <div>
+      <div role="group" aria-label="Show" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        {COMPARISON_METRICS.map((m) => (
+          <button key={m.key} type="button" aria-pressed={metricKey === m.key} onClick={() => setMetricKey(m.key)} style={{
+            padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+            background: metricKey === m.key ? '#1A0A00' : '#F2E4D0', color: metricKey === m.key ? '#FDF6EE' : '#7A3A18',
+          }}>{m.label}</button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 8 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>
+          <span style={{ width: 18, height: 3, borderRadius: 2, background: '#B4511E' }} />
+          {comparison.thisMonthLabel} (so far): {metric.format(thisTotal)}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
+          <span style={{ width: 18, height: 0, borderTop: '3px dashed rgba(122,58,24,0.6)' }} />
+          {comparison.lastMonthLabel}: {metric.format(lastTotal)}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 900, color: good ? '#2E6B4A' : '#8C2F1C' }}>
+          {change >= 0 ? '+' : ''}{change}% vs last month
+        </span>
+      </div>
+
+      <div style={{ position: 'relative' }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img"
+          aria-label={`${metric.label}: ${comparison.thisMonthLabel} ${metric.format(thisTotal)} so far, ${comparison.lastMonthLabel} ${metric.format(lastTotal)}`}
+          onMouseLeave={() => setHoverDay(null)}
+          onMouseMove={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            const px = ((e.clientX - r.left) / r.width) * W;
+            const i = Math.round(((px - padL) / (W - padL - padR)) * (lastDay - 1));
+            setHoverDay(i >= 0 && i < days ? i : null);
+          }}>
+          {ticks.map((t) => (
+            <g key={t}>
+              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(180,81,30,0.12)" />
+              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="#7A3A18">
+                {metricKey === 'revenue' && t >= 1000 ? `₱${Math.round(t / 1000)}k` : t}
+              </text>
+            </g>
+          ))}
+          {[1, 8, 15, 22, lastDay].map((d) => (
+            <text key={d} x={x(d - 1)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight="700" fill="#7A3A18">{d}</text>
+          ))}
+          <path d={path(lastMonth)} fill="none" stroke="rgba(122,58,24,0.55)" strokeWidth="2.5" strokeDasharray="6 5" strokeLinejoin="round" />
+          <path d={path(thisMonth)} fill="none" stroke="#B4511E" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+          {thisMonth.length > 0 && <circle cx={x(thisMonth.length - 1)} cy={y(thisTotal)} r="4.5" fill="#B4511E" />}
+          {hover && (
+            <line x1={x(hover.day - 1)} x2={x(hover.day - 1)} y1={padT} y2={H - padB} stroke="rgba(26,10,0,0.25)" strokeDasharray="3 3" />
+          )}
+        </svg>
+        {hover && (
+          <div style={{
+            position: 'absolute', top: 6, left: `${(x(hover.day - 1) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
+            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+          }}>
+            Day {hover.day}: {hover.now != null ? metric.format(hover.now) : '—'} vs {hover.before != null ? metric.format(hover.before) : '—'}
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>Running totals by day of the month.</p>
+    </div>
+  );
+};
+
 const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
   const max = Math.max(1, ...data.map((d) => d.value));
   const showEveryLabel = data.length <= 14;
