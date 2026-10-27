@@ -4,16 +4,14 @@ import EmptyState from './ui/EmptyState';
 import { SearchX } from 'lucide-react';
 import { toast } from './ui/toast';
 import { formatPeso } from './tourUtils';
-import SearchSelect from './ui/SearchSelect';
 import { downloadReportCSV, downloadReportPDF } from './reportExport';
 import SalesSummary from './SalesSummary';
-import { blockSignKeys } from './moneyInput';
 import TourIncome from './TourIncome';
 import {
-  Loader2, Calendar, Users, CheckCircle2, Clock, XCircle, AlertCircle,
-  MapPin, ChevronDown, Wallet, TrendingUp, TrendingDown, ClipboardList,
-  Star, Printer, Download, Filter, Bell, Sparkles, PieChart, Repeat,
-  Percent, ArrowRight, Trophy, ThumbsDown, X, FileText,
+  Loader2, Calendar, Users, Clock, XCircle, AlertCircle,
+  MapPin, TrendingUp, TrendingDown, ClipboardList,
+  Star, Printer, Download, Bell, Sparkles, PieChart,
+  ArrowRight, Trophy, ThumbsDown, X, FileText,
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
 
@@ -45,16 +43,6 @@ const pct = (n) => `${Number.isFinite(n) ? Math.round(n) : 0}%`;
 /* ─────────────────────────────────────────────
    DATE RANGE HELPERS
 ───────────────────────────────────────────── */
-const RANGE_PRESETS = [
-  { key: 'today', label: 'Today' },
-  { key: '7d', label: '7 Days' },
-  { key: '30d', label: '30 Days' },
-  { key: 'month', label: 'This Month' },
-  { key: 'year', label: 'This Year' },
-  { key: 'all', label: 'All Time' },
-  { key: 'custom', label: 'Custom' },
-];
-
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const endOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
@@ -90,11 +78,6 @@ const getRangeDates = (preset, customStart, customEnd) => {
       start = new Date(now.getFullYear(), now.getMonth(), 1);
   }
   return { start, end };
-};
-
-const formatRangeLabel = (start, end) => {
-  const opts = { month: 'short', day: 'numeric', year: 'numeric' };
-  return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
 };
 
 /* Buckets bookings into day/week/month periods depending on range span,
@@ -173,9 +156,10 @@ const Reports = () => {
   const noticeTimer = useRef(null);
   const firstLoad = useRef(true);
 
-  const [preset, setPreset] = useState('30d');
-  const [customStart, setCustomStart] = useState('');
-  const [customEnd, setCustomEnd] = useState('');
+  // The date buttons and filters were removed: the report covers all bookings.
+  const [preset, setPreset] = useState('all');
+  const [customStart] = useState('');
+  const [customEnd] = useState('');
 
   // ── advanced filters ──
   const [filterTour, setFilterTour] = useState('All Tours');
@@ -184,7 +168,7 @@ const Reports = () => {
   const [filterDestination, setFilterDestination] = useState('All Destinations');
 
   // ── profit assumption (no itemized cost data exists yet, so this is an editable estimate) ──
-  const [costPct, setCostPct] = useState(60);
+  const [costPct] = useState(60);
 
   const tableRef = useRef(null);
 
@@ -256,14 +240,6 @@ const Reports = () => {
       return created >= start && created <= end;
     });
   }, [allBookings, start, end]);
-
-  // ── advanced-filter option lists ──
-  const tourOptions = useMemo(() => (
-    Array.from(new Set(inRangeBookings.map((b) => b.tours?.title).filter(Boolean))).sort()
-  ), [inRangeBookings]);
-  const destinationOptions = useMemo(() => (
-    Array.from(new Set(inRangeBookings.map((b) => b.tours?.destination).filter(Boolean))).sort()
-  ), [inRangeBookings]);
 
   // ── final scoped bookings used across every metric below ──
   const bookings = useMemo(() => inRangeBookings.filter((b) => {
@@ -571,7 +547,7 @@ const Reports = () => {
       list.push(`Bookings ${monthlyComparison.bookingsChangePct >= 0 ? 'increased' : 'decreased'} ${Math.abs(monthlyComparison.bookingsChangePct)}% compared to last month.`);
     }
     if (bestTour) list.push(`${bestTour.title} generated the highest revenue this period (${peso(bestTour.revenue)}).`);
-    if (stats.total > 0) list.push(`${pct((stats.pending / stats.total) * 100)} of bookings in range are still pending verification.`);
+    if (stats.total > 0) list.push(`${pct((stats.pending / stats.total) * 100)} of bookings are still pending verification.`);
     const methodTop = methodSegments.length ? [...methodSegments].sort((a, b) => b.value - a.value)[0] : null;
     if (methodTop) list.push(`${methodTop.label} is currently the most used payment method.`);
     if (nearlyFullTours.length > 0) list.push(`${nearlyFullTours.map((t) => t.title).join(', ')} ${nearlyFullTours.length === 1 ? 'is' : 'are'} approaching full capacity.`);
@@ -590,7 +566,7 @@ const Reports = () => {
       filterStatus !== 'All Status' && `Status: ${filterStatus}`,
     ].filter(Boolean);
     return {
-      rangeLabel: formatRangeLabel(start, end),
+      rangeLabel: 'All bookings',
       filtersLabel: filters.length ? filters.join(' · ') : 'None (all bookings)',
       generatedAt: new Date().toLocaleString('en-PH', { dateStyle: 'long', timeStyle: 'short' }),
       summary: [
@@ -684,7 +660,7 @@ const Reports = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
-            {formatRangeLabel(start, end)} · {loading ? <Skel w={110} h={10} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : `${stats.total} booking${stats.total !== 1 ? 's' : ''} in range`}
+            All bookings · {loading ? <Skel w={110} h={10} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : `${stats.total} booking${stats.total !== 1 ? 's' : ''}`}
             {lastUpdated && !loading && (
               <span style={{ opacity: 0.95 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
             )}
@@ -785,97 +761,6 @@ const Reports = () => {
             </div>
           )}
 
-          {/* ── Date Range Filter ── */}
-          <div style={{
-            background: '#FDF6EE', borderRadius: 20, padding: '14px 18px',
-            border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
-            display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
-          }}>
-            {RANGE_PRESETS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPreset(p.key)}
-                style={{
-                  padding: '9px 16px', borderRadius: 999, cursor: 'pointer',
-                  border: 'none', fontFamily: 'inherit', fontWeight: 900,
-                  fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  background: preset === p.key ? '#1A0A00' : '#F2E4D0',
-                  color: preset === p.key ? '#FDF6EE' : '#7A3A18',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
-
-            {preset === 'custom' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 4 }}>
-                <input
-                  type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
-                  style={{
-                    background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
-                    padding: '9px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
-                    fontFamily: 'inherit', outline: 'none',
-                  }}
-                />
-                <span style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 700 }}>to</span>
-                <input
-                  type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
-                  style={{
-                    background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
-                    padding: '9px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
-                    fontFamily: 'inherit', outline: 'none',
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* ── Advanced Filters ── */}
-          <div style={{
-            background: '#FDF6EE', borderRadius: 20, padding: '14px 18px',
-            border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
-            display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
-          }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginRight: 4 }}>
-              <Filter size={13} /> Filters
-            </span>
-            {/* Tours and destinations can be long lists: type to search. Clearing the box means "all". */}
-            <div style={{ width: 220 }}>
-              <SearchSelect
-                ariaLabel="Filter by tour"
-                value={filterTour === 'All Tours' ? '' : filterTour}
-                options={tourOptions}
-                onChange={(v) => setFilterTour(v || 'All Tours')}
-                placeholder="All tours (type to search)"
-                style={searchFilterStyle}
-              />
-            </div>
-            <div style={{ width: 220 }}>
-              <SearchSelect
-                ariaLabel="Filter by destination"
-                value={filterDestination === 'All Destinations' ? '' : filterDestination}
-                options={destinationOptions}
-                onChange={(v) => setFilterDestination(v || 'All Destinations')}
-                placeholder="All destinations (type to search)"
-                style={searchFilterStyle}
-              />
-            </div>
-            <FilterSelect value={filterMethod} onChange={setFilterMethod} options={['All Methods', 'Full Payment', 'Downpayment']} />
-            <FilterSelect value={filterStatus} onChange={setFilterStatus} options={['All Status', 'Complete', 'Pending', 'Rejected', 'Cancelled']} />
-            {filtersActive && (
-              <button
-                onClick={resetAdvancedFilters}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#8C2F1C', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                }}
-              >
-                <X size={12} /> Clear
-              </button>
-            )}
-          </div>
-
           {stats.total === 0 ? (
             filtersActive ? (
               <EmptyState
@@ -894,77 +779,6 @@ const Reports = () => {
             )
           ) : (
             <>
-              {/* ── KPI Cards ── */}
-              <div className="report-kpis" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 16 }}>
-                <StatCard title="Total Revenue" value={peso(stats.revenue)} icon={<Wallet size={17} />} iconColor="#A8481A" />
-                <StatCard title="Estimated Profit" value={peso(estimatedProfit)} icon={<TrendingUp size={17} />} iconColor="#A8481A" />
-                <StatCard title="Avg. Booking Value" value={peso(stats.avgBookingValue)} icon={<Percent size={17} />} iconColor="#7A3A18" />
-                <StatCard title="Total Bookings" value={stats.total} icon={<ClipboardList size={17} />} iconColor="#A8481A" />
-                <StatCard title="Confirmed" value={stats.complete} icon={<CheckCircle2 size={17} />} iconColor="#A8481A" />
-                <StatCard title="Pending" value={stats.pending} icon={<Clock size={17} />} iconColor="#8C5216" />
-                <StatCard title="Rejected / Cancelled" value={stats.rejected + stats.cancelled} icon={<XCircle size={17} />} iconColor="#8C2F1C" />
-                <StatCard title="Cancellation Rate" value={pct(stats.cancellationRate)} icon={<TrendingDown size={17} />} iconColor="#8C2F1C" />
-                <StatCard title="Total Pax" value={stats.totalPax} icon={<Users size={17} />} iconColor="#7A3A18" />
-                <StatCard title="Conversion Rate" value={pct(stats.conversionRate)} icon={<TrendingUp size={17} />} iconColor="#A8481A" />
-                <StatCard title="Outstanding Balance" value={peso(outstandingBalance)} icon={<Wallet size={17} />} iconColor="#8C5216" />
-                <StatCard
-                  title="Repeat Customers"
-                  value={pct((customerAnalytics.newCount + customerAnalytics.returningCount) ? (customerAnalytics.returningCount / (customerAnalytics.newCount + customerAnalytics.returningCount)) * 100 : 0)}
-                  icon={<Repeat size={17} />} iconColor="#7A3A18"
-                />
-              </div>
-
-              {/* ── Revenue & Profit ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Wallet size={14} />}>Revenue &amp; Profit Analytics</SectionTitle>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 20 }}>
-                  <MiniMetric
-                    label="Revenue This Month"
-                    value={peso(monthlyComparison.thisMonthRevenue)}
-                    trend={monthlyComparison.revenueChangePct}
-                    trendLabel="vs last month"
-                  />
-                  <MiniMetric label="Revenue in Selected Range" value={peso(stats.revenue)} />
-                  <MiniMetric label="Average Booking Value" value={peso(stats.avgBookingValue)} />
-                  <MiniMetric label="Outstanding Balance" value={peso(outstandingBalance)} tone="warn" />
-                </div>
-
-                <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 16, marginBottom: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Revenue by Payment Method</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                    <MiniMetric label="Full Payment" value={peso(paymentAnalytics.fullRevenue)} compact />
-                    <MiniMetric label="Downpayment Collected" value={peso(paymentAnalytics.downRevenue)} compact />
-                    <MiniMetric label="Remaining Balance" value={peso(outstandingBalance)} compact tone="warn" />
-                  </div>
-                </div>
-
-                <div style={{ background: '#F2E4D0', borderRadius: 16, padding: '1.25rem 1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                    <div>
-                      <p style={{ fontSize: 11, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px' }}>
-                        Estimated Profit
-                      </p>
-                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, maxWidth: 420 }}>
-                        Itemized tour costs aren't tracked yet, so this uses an adjustable cost assumption applied to revenue.
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <label style={{ fontSize: 11.5, fontWeight: 800, color: '#7A3A18' }}>Est. Cost %</label>
-                      <input
-                        type="number" min={0} max={95} value={costPct} onKeyDown={blockSignKeys}
-                        onChange={(e) => setCostPct(Math.min(95, Math.max(0, Number(e.target.value) || 0)))}
-                        style={{ width: 60, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(180,81,30,0.25)', fontSize: 12, fontWeight: 700, textAlign: 'center' }}
-                      />
-                      <span style={{ fontSize: 22, fontWeight: 900, color: '#A8481A' }}>{peso(estimatedProfit)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* ── Monthly Comparison ── */}
               <div style={{
                 background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
@@ -1175,8 +989,17 @@ const Reports = () => {
               }}>
                 <div style={{ padding: '1.5rem 1.75rem 0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
                   <SectionTitle icon={<ClipboardList size={14} />}>
-                    {filtersActive ? 'Filtered Bookings' : 'Recent Bookings In Range'}
+                    {filtersActive ? 'Filtered Bookings' : 'Recent Bookings'}
                   </SectionTitle>
+                  {/* Clicking a chart segment filters this table; this clears it. */}
+                  {filtersActive && (
+                    <button type="button" onClick={resetAdvancedFilters} style={{
+                      display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer',
+                      color: '#8C2F1C', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
+                    }}>
+                      <X size={12} /> Clear filter
+                    </button>
+                  )}
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
@@ -1405,39 +1228,6 @@ const SectionTitle = ({ icon, children }) => (
   </h4>
 );
 
-// One KPI: icon and label on top, the number below on one line. Long
-// numbers (peso amounts) get a slightly smaller size instead of wrapping.
-const StatCard = ({ title, value, icon, iconColor }) => {
-  const text = String(value ?? '');
-  const size = text.length > 12 ? 22 : text.length > 9 ? 25 : 28;
-  return (
-    <div style={{
-      background: '#FDF6EE', borderRadius: 18, padding: '1.15rem 1.25rem',
-      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
-      display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 14, minWidth: 0,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 9, background: '#F2E4D0',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: iconColor || '#A8481A', flexShrink: 0,
-        }}>
-          {icon}
-        </div>
-        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0, lineHeight: 1.35 }}>
-          {title}
-        </p>
-      </div>
-      <p title={text} style={{
-        fontSize: size, fontWeight: 900, letterSpacing: '-0.03em', color: '#1A0A00', margin: 0, lineHeight: 1.1,
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontVariantNumeric: 'tabular-nums',
-      }}>
-        {value}
-      </p>
-    </div>
-  );
-};
-
 const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValueless, invertTrendColor }) => {
   const trendGood = invertTrendColor ? (trend ?? 0) <= 0 : (trend ?? 0) >= 0;
   return (
@@ -1496,29 +1286,6 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
   >
     {icon} {label}
   </button>
-);
-
-const searchFilterStyle = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
-  borderRadius: 12, padding: '0 14px', height: 40, fontSize: 11.5, fontWeight: 700,
-  color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
-};
-
-const FilterSelect = ({ value, onChange, options }) => (
-  <div style={{ position: 'relative' }}>
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      style={{
-        appearance: 'none', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
-        borderRadius: 12, padding: '9px 30px 9px 14px', fontSize: 11.5, fontWeight: 700,
-        color: '#1A0A00', fontFamily: 'inherit', outline: 'none', cursor: 'pointer', maxWidth: 190,
-      }}
-    >
-      {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-    </select>
-    <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
-  </div>
 );
 
 const STATUS_BADGE_STYLES = {
