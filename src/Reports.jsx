@@ -496,9 +496,21 @@ const Reports = () => {
     const avgBookings = counts.reduce((a, b) => a + b, 0) / counts.length;
     const avgRevenue = revs.reduce((a, b) => a + b, 0) / revs.length;
     const weighted = counts[0] * 0.5 + counts[1] * 0.3 + counts[2] * 0.2;
+    // The last 6 months (oldest first, this month last) for the forecast line chart.
+    const history = [5, 4, 3, 2, 1, 0].map((i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const inMonth = allBookings.filter((b) => monthKey(new Date(b.created_at)) === monthKey(d));
+      return {
+        label: d.toLocaleDateString('en-US', { month: 'short' }),
+        bookings: inMonth.length,
+        revenue: inMonth.filter((b) => getDerivedStatus(b) === 'Complete').reduce((s, b) => s + (b.total_price || 0), 0),
+      };
+    });
     return {
       expectedBookings: Math.round((weighted + avgBookings) / 2),
       expectedRevenue: Math.round(avgRevenue),
+      history,
+      nextLabel: new Date(now.getFullYear(), now.getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'short' }),
     };
   }, [allBookings]);
 
@@ -727,27 +739,22 @@ const Reports = () => {
             )
           ) : (
             <>
-              {/* ── Monthly Comparison ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
-                <MonthComparisonChart comparison={monthlyComparison} />
-              </div>
+              {/* ── Monthly Comparison and Forecast, side by side ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 20, alignItems: 'stretch' }}>
+                <div style={{
+                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
+                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                }}>
+                  <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
+                  <MonthComparisonChart comparison={monthlyComparison} />
+                </div>
 
-              {/* ── Forecast ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '-8px 0 16px' }}>
-                  Based on a weighted average of the last three months.
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                  <MiniMetric label="Expected Bookings" value={forecast.expectedBookings} />
-                  <MiniMetric label="Expected Revenue" value={peso(forecast.expectedRevenue)} />
+                <div style={{
+                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
+                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                }}>
+                  <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
+                  <ForecastChart forecast={forecast} />
                 </div>
               </div>
 
@@ -982,6 +989,89 @@ const MonthComparisonChart = ({ comparison }) => {
         )}
       </div>
       <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>Running totals by day of the month.</p>
+    </div>
+  );
+};
+
+// Last 6 months as a solid line, then a dashed line to next month's forecast
+// (a weighted average of the last three months).
+const ForecastChart = ({ forecast }) => {
+  const [metric, setMetric] = useState('bookings');
+  const [hover, setHover] = useState(null);
+  const isRevenue = metric === 'revenue';
+  const fmt = (v) => (isRevenue ? peso(v) : String(v));
+  const actual = forecast.history.map((h) => h[metric]);
+  const predicted = isRevenue ? forecast.expectedRevenue : forecast.expectedBookings;
+  const labels = [...forecast.history.map((h) => h.label), forecast.nextLabel];
+  const values = [...actual, predicted];
+  const max = Math.max(1, ...values);
+  const W = 640, H = 200, padL = 46, padR = 18, padT = 14, padB = 28;
+  const x = (i) => padL + (i / (labels.length - 1)) * (W - padL - padR);
+  const y = (v) => padT + (1 - v / max) * (H - padT - padB);
+  const line = (pts) => pts.map(([i, v], k) => `${k ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const last = actual.length - 1;
+  const ticks = [0, 0.5, 1].map((t) => Math.round(max * t));
+
+  return (
+    <div>
+      <div role="group" aria-label="Show" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        {[['bookings', 'Bookings'], ['revenue', 'Revenue']].map(([key, label]) => (
+          <button key={key} type="button" aria-pressed={metric === key} onClick={() => setMetric(key)} style={{
+            padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+            background: metric === key ? '#1A0A00' : '#F2E4D0', color: metric === key ? '#FDF6EE' : '#7A3A18',
+          }}>{label}</button>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 8 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>
+          <span style={{ width: 18, height: 3, borderRadius: 2, background: '#B4511E' }} /> Actual
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
+          <span style={{ width: 18, height: 0, borderTop: '3px dashed #E8A265' }} /> Expected in {forecast.nextLabel}: {fmt(predicted)}
+        </span>
+      </div>
+
+      <div style={{ position: 'relative', maxWidth: 720 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxWidth: 720, height: 'auto', display: 'block' }} role="img"
+          aria-label={`${isRevenue ? 'Revenue' : 'Bookings'} for the last 6 months, and ${fmt(predicted)} expected in ${forecast.nextLabel}`}
+          onMouseLeave={() => setHover(null)}
+          onMouseMove={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            const px = ((e.clientX - r.left) / r.width) * W;
+            const i = Math.round(((px - padL) / (W - padL - padR)) * (labels.length - 1));
+            setHover(i >= 0 && i < labels.length ? i : null);
+          }}>
+          {ticks.map((t) => (
+            <g key={t}>
+              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(180,81,30,0.12)" />
+              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="#7A3A18">
+                {isRevenue && t >= 1000 ? `₱${Math.round(t / 1000)}k` : t}
+              </text>
+            </g>
+          ))}
+          {labels.map((l, i) => (
+            <text key={l + i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight={i === labels.length - 1 ? 900 : 700} fill={i === labels.length - 1 ? '#A8481A' : '#7A3A18'}>{l}</text>
+          ))}
+          <path d={line(actual.map((v, i) => [i, v]))} fill="none" stroke="#B4511E" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+          <path d={line([[last, actual[last]], [labels.length - 1, predicted]])} fill="none" stroke="#E8A265" strokeWidth="3" strokeDasharray="6 5" />
+          {actual.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r="3.5" fill="#B4511E" />)}
+          <circle cx={x(labels.length - 1)} cy={y(predicted)} r="5" fill="#FDF6EE" stroke="#E8A265" strokeWidth="3" />
+          {hover != null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} stroke="rgba(26,10,0,0.25)" strokeDasharray="3 3" />}
+        </svg>
+        {hover != null && (
+          <div style={{
+            position: 'absolute', top: 6, left: `${(x(hover) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
+            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+          }}>
+            {labels[hover]}: {fmt(values[hover])}{hover === labels.length - 1 ? ' (expected)' : hover === last ? ' (so far)' : ''}
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>
+        The forecast is a weighted average of the last three months. This month counts what's booked so far.
+      </p>
     </div>
   );
 };
