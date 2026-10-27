@@ -5,7 +5,7 @@ import {
   ArrowUpRight, MapPin, Wallet, ImageIcon, ScanLine, User, MessagesSquare
 } from 'lucide-react';
 import GroupChat from './GroupChat';
-import { useChatUnread } from './groupChat';
+import { useChatUnread } from './chatStore';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';

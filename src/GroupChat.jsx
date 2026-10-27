@@ -6,7 +6,7 @@ import { toast } from './ui/toast';
 import EmptyState from './ui/EmptyState';
 import { SkeletonRows } from './ui/Skeleton';
 import { formatYmdRange } from './dateRange';
-import { fetchMyChats, chatChanged, CHAT_CHANGED } from './groupChat';
+import { fetchMyChats, chatChanged, CHAT_CHANGED } from './chatStore';
 
 // ─────────────────────────────────────────────
 // TOUR GROUP CHAT: one chat per tour date for everyone booked on it (paid,
