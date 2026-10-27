@@ -125,7 +125,8 @@ const MyBookings = ({ onExplore, openBookingId = null }) => {
   }, [bookings, fetchMyBookings]);
 
   useEffect(() => {
-    const initFetch = async () => { await fetchMyBookings(); };
+    // Approve any cancellation request left unanswered for 12 hours, then load.
+    const initFetch = async () => { await supabase.rpc('run_overdue_cancellations').then(() => {}, () => {}); await fetchMyBookings(); };
     initFetch();
     
     const channel = supabase
@@ -362,12 +363,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
     if (error) {
       toast.error("Couldn't cancel your booking", error.message);
     } else if (requested) {
-      notifyAdmins({
-        title: 'Cancellation Request',
-        message: `A joiner asked to cancel ${tour.title || 'a tour'} (${booking.booking_number}). Reason: ${reason}. Approve or decline it in Booking Management within ${CANCELLATION_APPROVAL_HOURS} hours, or it's approved automatically.`,
-        type: 'cancellation',
-        related_id: booking.id,
-      });
+      // The admins are notified by the database (bookings_notify_cancellation_request).
       toast.success('Cancellation requested', `We'll review it within ${CANCELLATION_APPROVAL_HOURS} hours. Your slot stays reserved until then.`);
       onCancelSuccess();
     } else {
@@ -567,7 +563,9 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     <Clock size={18} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
                     <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
                       <strong style={{ color: '#1A0A00' }}>Cancellation requested</strong> on {new Date(booking.cancellation_requested_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.
-                      {' '}Bandang IBAYO will review it within {CANCELLATION_APPROVAL_HOURS} hours; your slot stays reserved until then. You'll get a notification once it's approved.
+                      {' '}Bandang IBAYO will review it within {CANCELLATION_APPROVAL_HOURS} hours. If there's no answer by{' '}
+                      <strong style={{ color: '#1A0A00' }}>{new Date(new Date(booking.cancellation_requested_at).getTime() + CANCELLATION_APPROVAL_HOURS * 3600e3).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</strong>,
+                      {' '}it's approved automatically. You've left this tour's group chat; you'll get a notification once it's approved.
                     </p>
                   </div>
                 )}

@@ -103,10 +103,15 @@ const TourManagement = () => {
  
     if (error) { console.error('Error fetching tours:', error.message); setLoading(false); return; }
  
-    const { data: bookingsData } = await supabase
-      .from('bookings')
-      .select('tour_id, slots_booked, payment_status, booking_status')
-      .not('booking_status', 'eq', 'Cancelled');
+    const [{ data: bookingsData }, { data: ratesData }] = await Promise.all([
+      supabase
+        .from('bookings')
+        .select('tour_id, slots_booked, payment_status, booking_status')
+        .not('booking_status', 'eq', 'Cancelled'),
+      // Regular Rate (admins only; empty before 20261103000000_cancel_chat_rates.sql).
+      supabase.from('tour_rates').select('tour_id, regular_rate'),
+    ]);
+    const rateOf = Object.fromEntries((ratesData || []).map((r) => [r.tour_id, Number(r.regular_rate)]));
  
     const toursWithCounts = (data || []).map(tour => {
       const tourBookings  = (bookingsData || []).filter(b => b.tour_id === tour.id);
@@ -114,6 +119,7 @@ const TourManagement = () => {
       const maxCapacity   = tour.group_size || 18;
       return {
         ...tour,
+        regular_rate:       rateOf[tour.id] ?? null,
         current_booked:     totalBooked,
         available_slots:    Math.max(0, maxCapacity - totalBooked),
         bookings_pending:   tourBookings.filter(b => b.payment_status === 'Pending' || b.payment_status === 'Verification Pending').length,
@@ -198,6 +204,7 @@ const TourManagement = () => {
     const formEl    = e.target;
     const formData  = new FormData(formEl);
     const price     = Number(formData.get('price'));
+    const regularRate = Number(formData.get('regular_rate'));
     const groupSize = Number(formData.get('group_size'));
     const minStart  = getMinStartDate();
     // Each date's typing mistakes, shown at that date's field. A saved date may
@@ -222,7 +229,11 @@ const TourManagement = () => {
     const ok = dateRows.length > 0 && checkFields(formEl, [
       ['title', textError(formData.get('title'), 'Tour title', { min: 3, max: 120 })],
       ['destination', textError(formData.get('destination'), 'Destination', { min: 2, max: 120 })],
+      ['regular_rate', !Number.isFinite(regularRate) || regularRate < 1000 ? 'The Regular Rate must be at least ₱1,000.' : ''],
+      ['regular_rate', Math.abs(Math.round(regularRate * 100) - regularRate * 100) > 1e-6 ? 'The Regular Rate can have at most 2 decimal places (centavos).' : ''],
+      ['regular_rate', regularRate > 1000000 ? 'That rate looks too high. Please check for an extra zero.' : ''],
       ['price', !Number.isFinite(price) || price <= 0 ? 'Please enter a price above ₱0. Tours can\'t be free.' : ''],
+      ['price', Number.isFinite(regularRate) && regularRate >= 1000 && price < regularRate + 500 ? `The Joiner Rate must be at least ₱500 more than the Regular Rate (at least ${formatPeso(regularRate + 500)}).` : ''],
       ['price', Math.abs(Math.round(price * 100) - price * 100) > 1e-6 ? 'Price can have at most 2 decimal places (centavos).' : ''],
       ['price', price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
       ...dateChecks,
@@ -281,6 +292,14 @@ const TourManagement = () => {
     }
     const failed = results.find((r) => r.error);
     if (failed) { toast.error("Couldn't save the tour", failed.error.message); fetchTours(); return; }
+
+    // Regular Rate of every date of the trip (kept apart from tours so joiners never see it).
+    const rateIds = [...saved.map((r) => r.id), ...inserted.map((t) => t.id)];
+    if (rateIds.length) {
+      const { error: rateError } = await supabase.from('tour_rates')
+        .upsert(rateIds.map((id) => ({ tour_id: id, regular_rate: Math.round(regularRate * 100) / 100 })), { onConflict: 'tour_id' });
+      if (rateError) toast.error("Tour saved, but the Regular Rate wasn't", rateError.message);
+    }
     setFormDirty(false);
 
     // A bigger group size may open slots: email anyone on the waitlist (the database already notified them in-app).
@@ -648,7 +667,13 @@ const TourManagement = () => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} required />
-                  <ModalInput label="Price (₱)" name="price" {...moneyInputProps} placeholder="e.g. 1499.50" defaultValue={formTour?.price} required />
+                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="e.g. 2499.50" defaultValue={formTour?.price} required />
+                </div>
+                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
+                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="At least 1000" defaultValue={formTour?.regular_rate ?? ''} required />
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
+                    Admins only, never shown to joiners. At least ₱1,000; the Joiner Rate (what joiners pay) must be at least ₱500 more.
+                  </p>
                 </div>
  
                 {/* Dates: one trip, as many dates as the admin runs it. Joiners pick one when booking. */}
@@ -1039,7 +1064,10 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
               <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#A8481A', margin: '0 0 2px', lineHeight: 1 }}>
                 {formatPeso(tour.price)}
               </p>
-              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>per person</p>
+              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 4px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Joiner rate, per person</p>
+              <p style={{ fontSize: 12.5, fontWeight: 800, color: tour.regular_rate ? '#1A0A00' : '#8C2F1C', margin: '0 0 16px' }}>
+                {tour.regular_rate ? `Regular rate: ${formatPeso(tour.regular_rate)}` : 'Regular rate not set yet. Edit the tour to add it.'}
+              </p>
  
               <button
                 onClick={onEdit}

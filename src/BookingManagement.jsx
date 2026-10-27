@@ -7,11 +7,11 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
-import { formatPeso, downpaymentFor, formatDateRange as formatTourDates } from './tourUtils';
+import { formatPeso, downpaymentFor, formatDateRange as formatTourDates, CANCELLATION_APPROVAL_HOURS } from './tourUtils';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
   Hash, User, CreditCard, AlertCircle, Image as ImageIcon, ChevronDown,
-  Wallet, Printer, Users, History,
+  Wallet, Printer, Users, History, Clock,
 } from 'lucide-react';
 import { SkeletonTable, SkeletonLines } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
@@ -105,6 +105,20 @@ const BookingManagement = () => {
     setLoading(false);
   };
  
+  // Requests left unanswered for 12 hours are approved automatically: check
+  // now and every 5 minutes (the server also checks every 15 minutes).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = () => {
+      setNow(Date.now());
+      supabase.rpc('run_overdue_cancellations').then(({ data }) => { if (data > 0) fetchBookings(); }, () => {});
+    };
+    tick();
+    const timer = setInterval(tick, 5 * 60 * 1000);
+    const clock = setInterval(() => setNow(Date.now()), 60 * 1000);
+    return () => { clearInterval(timer); clearInterval(clock); };
+  }, []);
+
   useEffect(() => {
     fetchBookings();
  
@@ -161,6 +175,17 @@ const BookingManagement = () => {
   if (statusFilter === 'Balance Due') {
     filteredBookings.sort((a, b) => (a.tours?.start_date || '').localeCompare(b.tours?.start_date || ''));
   }
+  // Cancellation requests waiting for an answer, the oldest (closest to auto-approval) first.
+  const pendingCancels = bookings
+    .filter((b) => b.cancellation_requested_at && !['Cancelled', 'Rejected'].includes(b.booking_status))
+    .sort((a, b) => new Date(a.cancellation_requested_at) - new Date(b.cancellation_requested_at));
+  const timeLeft = (b) => {
+    const ms = new Date(b.cancellation_requested_at).getTime() + CANCELLATION_APPROVAL_HOURS * 3600e3 - now;
+    if (ms <= 0) return 'Approving automatically…';
+    const h = Math.floor(ms / 3600e3); const m = Math.floor((ms % 3600e3) / 60000);
+    return `Auto-approves in ${h ? `${h}h ` : ''}${m}m`;
+  };
+
   const balancesDue = bookings.filter(owesBalance);
   const totalBalanceDue = balancesDue.reduce((sum, b) => sum + balanceOwed(b), 0);
  
@@ -195,6 +220,43 @@ const BookingManagement = () => {
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
  
+      {/* ── Cancellation requests waiting for an answer ── */}
+      {pendingCancels.length > 0 && (
+        <div role="region" aria-label="Cancellation requests" style={{
+          background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.3)',
+          borderRadius: 18, padding: '14px 16px', marginBottom: 16,
+        }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#8C2F1C', margin: '0 0 10px' }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            {pendingCancels.length} cancellation request{pendingCancels.length === 1 ? '' : 's'} waiting for you.
+            <span style={{ fontWeight: 600, color: '#7A3A18' }}>Approve or decline within {CANCELLATION_APPROVAL_HOURS} hours, or it's approved automatically.</span>
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {pendingCancels.map((b) => (
+              <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(140,47,28,0.15)' }}>
+                <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
+                    {b.profiles ? `${b.profiles.first_name || ''} ${b.profiles.last_name || ''}`.trim() || b.full_name : b.full_name} · <span style={{ fontFamily: 'monospace' }}>{b.booking_number}</span>
+                  </p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {b.tours?.title || 'Tour'} · “{b.cancellation_reason || '—'}”
+                  </p>
+                </div>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#8C5216', whiteSpace: 'nowrap' }}>
+                  <Clock size={13} /> {timeLeft(b)}
+                </span>
+                <button type="button" onClick={() => setSelectedBooking(b)} style={{
+                  background: '#8C2F1C', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '9px 16px',
+                  fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                }}>
+                  Review
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Balances still owed (downpayment bookings) ── */}
       {balancesDue.length > 0 && (
         <div style={{
