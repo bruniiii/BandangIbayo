@@ -9,9 +9,9 @@ import SalesSummary from './SalesSummary';
 import TourIncome from './TourIncome';
 import {
   Loader2, Calendar, Users, Clock, XCircle, AlertCircle,
-  MapPin, TrendingUp, TrendingDown, ClipboardList,
+  TrendingUp, TrendingDown, ClipboardList,
   Star, Printer, Download, Bell, Sparkles, PieChart,
-  ArrowRight, Trophy, ThumbsDown, X, FileText,
+  ArrowRight, Trophy, ThumbsDown, FileText,
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
 
@@ -125,7 +125,6 @@ const Reports = () => {
   // ── profit assumption (no itemized cost data exists yet, so this is an editable estimate) ──
   const [costPct] = useState(60);
 
-  const tableRef = useRef(null);
 
   const fetchAll = useCallback(async (silent) => {
     if (!silent) setLoading(true);
@@ -212,7 +211,6 @@ const Reports = () => {
     setFilterStatus('All Status'); setFilterDestination('All Destinations');
   };
 
-  const scrollToTable = () => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // ── core stats ──
   const stats = useMemo(() => {
@@ -353,18 +351,6 @@ const Reports = () => {
     return `${hrs} hr${hrs !== 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
   };
 
-  // ── bookings by tour (bar, clickable to drill down) ──
-  const tourBreakdown = useMemo(() => {
-    const map = new Map();
-    bookings.forEach((b) => {
-      const title = b.tours?.title || 'Unknown Tour';
-      map.set(title, (map.get(title) || 0) + 1);
-    });
-    return Array.from(map.entries())
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
-  }, [bookings]);
 
   // ── tour performance table (bookings, revenue, pax, completion %, rating) ──
   const avgRatingByTour = useMemo(() => {
@@ -603,20 +589,6 @@ const Reports = () => {
     return list.slice(0, 6);
   }, [revenueTrendVsPriorPeriod, nearlyFullTours, stats]);
 
-  // ── recent / filtered bookings table (most recent first, capped) ──
-  const recentBookings = useMemo(() => (
-    [...bookings].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 12)
-  ), [bookings]);
-
-  const handleDonutClick = (key) => {
-    setFilterStatus((prev) => (prev === key ? 'All Status' : key));
-    scrollToTable();
-  };
-  const handleTourBarClick = (title) => {
-    setFilterTour((prev) => (prev === title ? 'All Tours' : title));
-    scrollToTable();
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -779,14 +751,14 @@ const Reports = () => {
                 </div>
               </div>
 
-              {/* ── Donut charts row (clickable segments drill down into the table) ── */}
+              {/* ── Donut charts row ── */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
                   border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
                 }}>
                   <SectionTitle icon={<AlertCircle size={14} />}>Booking Status Breakdown</SectionTitle>
-                  <DonutChart segments={statusSegments} onSegmentClick={handleDonutClick} activeKey={filterStatus !== 'All Status' ? filterStatus : null} />
+                  <DonutChart segments={statusSegments} />
                 </div>
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
@@ -816,11 +788,7 @@ const Reports = () => {
                     </thead>
                     <tbody>
                       {tourPerformance.map((t) => (
-                        <tr
-                          key={t.tourId || t.title}
-                          onClick={() => handleTourBarClick(t.title)}
-                          style={{ borderBottom: '1px solid rgba(180,81,30,0.08)', cursor: 'pointer' }}
-                        >
+                        <tr key={t.tourId || t.title} style={{ borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
                           <td style={{ padding: '10px 16px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>{t.title}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.bookingsCount}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 900, color: '#A8481A', fontSize: 12.5 }}>{peso(t.revenue)}</td>
@@ -842,29 +810,6 @@ const Reports = () => {
                     <HighlightCard icon={<ThumbsDown size={16} />} label="Lowest Performing Tour" title={worstTour.title} sub={`${worstTour.bookingsCount} bookings · ${peso(worstTour.revenue)}`} tone="warn" />
                   )}
                 </div>
-              </div>
-
-              {/* ── Tour Occupancy ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Users size={14} />}>Tour Occupancy (Active Tours)</SectionTitle>
-                {occupancy.length === 0 ? <EmptyChartNotice /> : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    {occupancy.map((o, i) => (
-                      <div key={i}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00' }}>{o.title}</span>
-                          <span style={{ fontSize: 12, fontWeight: 900, color: o.pctFull >= 100 ? '#8C2F1C' : '#A8481A' }}>{o.booked}/{o.capacity} ({o.pctFull}%)</span>
-                        </div>
-                        <div style={{ background: '#F2E4D0', borderRadius: 999, height: 10, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', borderRadius: 999, width: `${o.pctFull}%`, background: o.pctFull >= 100 ? '#8C2F1C' : o.pctFull >= 85 ? '#E8A265' : '#B4511E', transition: 'width 0.4s' }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* ── Cancellation Analytics ── */}
@@ -935,80 +880,6 @@ const Reports = () => {
                 </div>
               </div>
 
-              {/* ── Bookings by Tour ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<MapPin size={14} />}>Bookings by Tour</SectionTitle>
-                <HorizontalBarChart data={tourBreakdown} color="#A8481A" onBarClick={handleTourBarClick} activeLabel={filterTour !== 'All Tours' ? filterTour : null} />
-              </div>
-
-              {/* ── Recent / Filtered Bookings Table ── */}
-              <div ref={tableRef} style={{
-                background: '#FDF6EE', borderRadius: 20, overflow: 'hidden',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <div style={{ padding: '1.5rem 1.75rem 0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-                  <SectionTitle icon={<ClipboardList size={14} />}>
-                    {filtersActive ? 'Filtered Bookings' : 'Recent Bookings'}
-                  </SectionTitle>
-                  {/* Clicking a chart segment filters this table; this clears it. */}
-                  {filtersActive && (
-                    <button type="button" onClick={resetAdvancedFilters} style={{
-                      display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer',
-                      color: '#8C2F1C', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                    }}>
-                      <X size={12} /> Clear filter
-                    </button>
-                  )}
-                </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
-                        {['Booking No.', 'Joiner', 'Tour', 'Pax', 'Status', 'Date'].map((h) => (
-                          <th key={h} style={{
-                            textAlign: 'left', padding: '12px 20px', fontSize: 11, fontWeight: 800,
-                            letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
-                          }}>
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentBookings.map((b) => (
-                        <tr key={b.id} style={{ borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
-                          <td style={{ padding: '12px 20px', fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12 }}>
-                            {b.booking_number || '—'}
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>
-                            {b.full_name || '—'}
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 600, color: '#7A3A18', fontSize: 12.5 }}>
-                            {b.tours?.title || '—'}
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>
-                            {b.slots_booked}
-                          </td>
-                          <td style={{ padding: '12px 20px' }}>
-                            <MiniStatusBadge status={getDerivedStatus(b)} />
-                          </td>
-                          <td style={{ padding: '12px 20px', fontWeight: 600, color: '#7A3A18', opacity: 0.9, fontSize: 11.5, whiteSpace: 'nowrap' }}>
-                            {new Date(b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {bookings.length > recentBookings.length && (
-                  <p style={{ padding: '14px 20px', fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
-                    Showing {recentBookings.length} most recent of {bookings.length} bookings matching current filters.
-                  </p>
-                )}
-              </div>
             </>
           )}
         </>
@@ -1036,7 +907,7 @@ const MonthComparisonChart = ({ comparison }) => {
   const days = Math.max(thisMonth.length, lastMonth.length, 1);
   const lastDay = Math.max(lastMonth.length, 28);
   const max = Math.max(1, ...thisMonth, ...lastMonth);
-  const W = 640, H = 220, padL = 46, padR = 14, padT = 14, padB = 28;
+  const W = 640, H = 200, padL = 46, padR = 14, padT = 14, padB = 28;
   const x = (i) => padL + (i / Math.max(1, lastDay - 1)) * (W - padL - padR);
   const y = (v) => padT + (1 - v / max) * (H - padT - padB);
   const path = (arr) => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
@@ -1073,8 +944,8 @@ const MonthComparisonChart = ({ comparison }) => {
         </span>
       </div>
 
-      <div style={{ position: 'relative' }}>
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img"
+      <div style={{ position: 'relative', maxWidth: 720 }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxWidth: 720, height: 'auto', display: 'block' }} role="img"
           aria-label={`${metric.label}: ${comparison.thisMonthLabel} ${metric.format(thisTotal)} so far, ${comparison.lastMonthLabel} ${metric.format(lastTotal)}`}
           onMouseLeave={() => setHoverDay(null)}
           onMouseMove={(e) => {
@@ -1345,24 +1216,5 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
   </button>
 );
 
-const STATUS_BADGE_STYLES = {
-  Complete: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
-};
-
-const MiniStatusBadge = ({ status }) => {
-  const { bg, color } = STATUS_BADGE_STYLES[status] || STATUS_BADGE_STYLES.Pending;
-  return (
-    <span style={{
-      display: 'inline-block', background: bg, color, borderRadius: 999,
-      padding: '4px 12px', fontSize: 11, fontWeight: 900,
-      letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-    }}>
-      {status}
-    </span>
-  );
-};
 
 export default Reports;
