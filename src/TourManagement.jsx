@@ -610,7 +610,7 @@ const TourManagement = () => {
       </div>
  
       {/* ── Tour Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20, paddingBottom: 40 }}>
           {loading ? (
             <SkeletonTourCards count={6} />
           ) : filteredTours.length > 0 ? (

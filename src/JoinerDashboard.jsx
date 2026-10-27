@@ -961,7 +961,7 @@ const JoinerDashboard = () => {
               onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab('Exclusive Tours'); }}
             />
           ) : activeTab === 'Exclusive Tours' ? (
-            <ExclusiveTour key={exclusiveKey} start={exclusiveStart} />
+            <ExclusiveTour key={exclusiveKey} start={exclusiveStart} onOpenBooking={(id) => { setBookingsFilter(null); setOpenBookingId(id); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }} />
           ) : activeTab === 'Reviews' ? (
             <Reviews isAdmin={false} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Profile Settings' ? (

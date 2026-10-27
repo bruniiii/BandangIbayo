@@ -31,6 +31,10 @@ export const verifyCheckout = ({ bookingId }) => callPayments('verify-checkout',
 // The joiner backed out of an unfinished checkout: frees the held slots.
 export const cancelCheckout = ({ bookingId }) => callPayments('cancel-checkout', { bookingId });
 
+// Slots held for a joiner's requested tour: pay full or 40% downpayment.
+export const payHeldBooking = ({ bookingId, paymentType, companions }) =>
+  callPayments('pay-held', { bookingId, paymentType, companions, returnBaseUrl: returnBaseUrl() });
+
 // Exclusive tours: the 50% downpayment, worked out on the server from the
 // package price the agency sent. Returns { checkoutUrl } or { alreadyPaid }.
 export const startExclusiveDownpayment = ({ requestId }) =>

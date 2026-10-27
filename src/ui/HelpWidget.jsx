@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react';
-import { HelpCircle, X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star, MessageCircle } from 'lucide-react';
+import { HelpCircle, X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star } from 'lucide-react';
 
-// Where "Message us" goes. For testing this is a personal profile; swap in the
-// Bandang IBAYO Facebook page (or its m.me/<page> link) when it's ready.
-const MESSENGER_URL = 'https://www.facebook.com/isabellalouise.sabado.5';
+// Where "Message us on Facebook" goes. For testing this is a personal profile;
+// swap in the Bandang IBAYO Facebook page when it's ready.
+const FACEBOOK_URL = 'https://www.facebook.com/isabellalouise.sabado.5';
+
+// The Facebook "f" logo (lucide has no brand icons).
+const FacebookIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+    <path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.25h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z" />
+  </svg>
+);
 
 // ─────────────────────────────────────────────
 // HELP BUTTON (landing page): a floating button at the bottom-right that
@@ -165,16 +172,16 @@ const HelpWidget = ({ zIndex = 600 }) => {
           <div style={{ padding: '10px 14px 14px', borderTop: '1px solid rgba(180,81,30,0.12)', textAlign: 'center' }}>
             <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>Still have questions? Chat with us right away.</p>
             <a
-              href={MESSENGER_URL}
+              href={FACEBOOK_URL}
               target="_blank"
               rel="noopener noreferrer"
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 44,
-                borderRadius: 14, background: '#0866FF', color: '#FFF', textDecoration: 'none',
+                borderRadius: 14, background: '#1877F2', color: '#FFF', textDecoration: 'none',
                 fontSize: 13, fontWeight: 900, letterSpacing: '0.04em',
               }}
             >
-              <MessageCircle size={17} /> Message us on Messenger
+              <FacebookIcon size={18} /> Message us on Facebook
             </a>
           </div>
         </div>

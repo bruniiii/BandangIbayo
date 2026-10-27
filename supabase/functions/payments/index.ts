@@ -9,6 +9,8 @@
 //   - "verify-checkout"  { bookingId }   re-checks the booking's checkouts with PayMongo (used when
 //                                        the joiner comes back from PayMongo, and from My Bookings)
 //   - "cancel-checkout"  { bookingId }   joiner backed out: expires the checkout, frees the slots
+//   - "pay-held"         { bookingId, paymentType: "full"|"down", companions, returnBaseUrl }
+//        pays for slots the agency held for a tour the joiner requested (held for 2 days)
 //   - "pay-exclusive"    { requestId, returnBaseUrl }   50% downpayment for an approved exclusive
 //                        tour, from the package price the agency sent (never from the request body)
 //                        (part: "balance" pays the rest of the package price after it)
@@ -270,6 +272,39 @@ async function payBalance(userId: string, p: any) {
   });
   await supabase.from("bookings")
     .update({ paymongo_balance_checkout_id: session.id, paymongo_balance_checkout_url: session.url })
+    .eq("id", booking.id);
+  return { checkoutUrl: session.url };
+}
+
+// Slots held for the joiner who requested the tour: they choose full payment
+// or downpayment and name their companions, then pay like any booking.
+async function payHeld(userId: string, p: any) {
+  const booking = await loadOwnBooking(p.bookingId, userId);
+  if (!booking.request_id || booking.payment_status !== "Awaiting Payment") {
+    throw new HttpError(409, "This booking is not waiting for payment.");
+  }
+  // A checkout opened earlier may already be paid; otherwise close it, since
+  // the amount may change (full payment vs downpayment).
+  if (booking.paymongo_checkout_id) {
+    const result = await closeCheckout(booking.paymongo_checkout_id);
+    if (result.status !== "unpaid") return { alreadyPaid: true };
+  }
+  const { data: prepared, error } = await supabase.rpc("prepare_held_booking", {
+    p_booking_id: booking.id,
+    p_user_id: userId,
+    p_payment_type: p.paymentType,
+    p_companions: p.companions ?? [],
+  });
+  if (error) throw new HttpError(409, error.message);
+
+  const full = p.paymentType === "full";
+  const amount = full ? Number(prepared.total_price) : Math.round(Number(prepared.total_price) * 40) / 100;
+  const session = await createSession({
+    booking: prepared, tour: booking.tours, amount, kind: "booking", base: returnBase(p.returnBaseUrl),
+    label: full ? "Full payment" : "40% downpayment",
+  });
+  await supabase.from("bookings")
+    .update({ paymongo_checkout_id: session.id, paymongo_checkout_url: session.url })
     .eq("id", booking.id);
   return { checkoutUrl: session.url };
 }
@@ -556,6 +591,7 @@ Deno.serve(async (req) => {
       case "pay-balance": return reply(await payBalance(userId, payload));
       case "verify-checkout": return reply(await verifyCheckout(userId, payload));
       case "cancel-checkout": return reply(await cancelCheckout(userId, payload));
+      case "pay-held": return reply(await payHeld(userId, payload));
       case "pay-exclusive": return reply(await payExclusive(userId, payload));
       case "verify-exclusive": return reply(await verifyExclusive(userId, payload));
       default: return reply({ error: "Unknown action" }, 400);
