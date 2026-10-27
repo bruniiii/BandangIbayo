@@ -8,7 +8,9 @@ import { notifyAdmins } from './notifications';
 import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
-import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
+import { verifyCheckout, cancelCheckout, startBalanceCheckout, payHeldBooking } from './payments';
+import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
+import { phoneFieldProps } from './ui/phoneField';
 import CheckInQr from './ui/CheckInQr';
 import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
@@ -762,6 +764,8 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
   const holdUntil = booking.hold_expires_at
     ? new Date(booking.hold_expires_at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })
     : null;
+  // Slots the agency held for the tour this joiner requested (2 days to pay).
+  if (isAwaitingPayment && booking.request_id) return <HeldSlotsPayment booking={booking} onChanged={onChanged} />;
 
   const cancel = async () => {
     if (!(await confirmDialog({ title: 'Cancel this unfinished booking?', message: 'Your held slots will be released so others can book them.', confirmLabel: 'Cancel Booking', cancelLabel: 'Keep Booking', tone: 'danger' }))) return;
@@ -818,6 +822,115 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
             {busy === 'balance' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(balance)} online
           </button>
         )}
+      </div>
+    </ViewSection>
+  );
+};
+
+// The joiner requested this tour, so the agency held their group's slots when
+// it was posted. They choose full payment or a 40% downpayment, name the
+// people joining them, and pay before the hold runs out (or the slots go to others).
+const HeldSlotsPayment = ({ booking, onChanged }) => {
+  const others = Math.max(0, (booking.slots_booked || 1) - 1);
+  const [companions, setCompanions] = useState(() => Array.from({ length: others }, (_, i) => booking.companions?.[i] || { full_name: '', contact_number: '' }));
+  const [paymentType, setPaymentType] = useState('full');
+  const [agreed, setAgreed] = useState(false);
+  const [busy, setBusy] = useState(null); // 'pay' | 'cancel'
+  const [problem, setProblem] = useState('');
+  const total = Number(booking.tours?.price || 0) * (booking.slots_booked || 1) || Number(booking.total_price || 0);
+  const amount = paymentType === 'full' ? total : Math.round(total * 40) / 100;
+  const until = booking.hold_expires_at
+    ? new Date(booking.hold_expires_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+    : null;
+
+  const setCompanion = (i, field, value) => setCompanions((rows) => rows.map((c, j) => (j === i ? { ...c, [field]: value } : c)));
+
+  const pay = async () => {
+    setProblem('');
+    for (let i = 0; i < companions.length; i++) {
+      const c = companions[i];
+      const err = fullNameError(c.full_name, `Person ${i + 2}'s name`) || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
+      if (err) { setProblem(err); return; }
+    }
+    const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
+    if (names.some((n, i) => names.indexOf(n) !== i)) { setProblem('Each person joining needs their own name.'); return; }
+    setBusy('pay');
+    const { ok, data, error } = await payHeldBooking({
+      bookingId: booking.id,
+      paymentType,
+      companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
+    });
+    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
+    if (data.alreadyPaid) { toast.success('Already paid', 'Your booking is confirmed.'); setBusy(null); onChanged(); return; }
+    window.location.assign(data.checkoutUrl);
+  };
+
+  const release = async () => {
+    if (!(await confirmDialog({ title: 'Give up your held slots?', message: 'Your slots will be released so other joiners can book them.', confirmLabel: 'Release Slots', cancelLabel: 'Keep My Slots', tone: 'danger' }))) return;
+    setBusy('cancel');
+    const { ok, error } = await cancelCheckout({ bookingId: booking.id });
+    setBusy(null);
+    if (!ok) { toast.error("Couldn't release the slots", error); return; }
+    onChanged();
+  };
+
+  const field = { width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, padding: '10px 12px', minHeight: 44, fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
+  const choice = (active) => ({
+    flex: 1, minWidth: 140, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', borderRadius: 14, padding: '10px 12px',
+    border: active ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.25)', background: active ? 'rgba(180,81,30,0.08)' : '#FDF6EE', color: '#1A0A00',
+  });
+
+  return (
+    <ViewSection title="Your Held Slots" icon={<CreditCard size={14} style={{ color: '#A8481A' }} />}>
+      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '0 0 12px', lineHeight: 1.6 }}>
+        You requested this tour, so we're holding <strong>{booking.slots_booked} slot{booking.slots_booked === 1 ? '' : 's'}</strong> for you
+        {until ? <> until <strong>{until}</strong></> : null}. Pay before then to keep them, or they'll be released to other joiners.
+      </p>
+
+      <div role="radiogroup" aria-label="Payment" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
+        {[['full', 'Full payment', total], ['down', '40% downpayment', Math.round(total * 40) / 100]].map(([key, label, value]) => (
+          <button key={key} type="button" role="radio" aria-checked={paymentType === key} onClick={() => setPaymentType(key)} style={choice(paymentType === key)}>
+            <span style={{ display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A8481A' }}>{label}</span>
+            <span style={{ display: 'block', fontSize: 16, fontWeight: 900 }}>{formatPeso(value)}</span>
+          </button>
+        ))}
+      </div>
+
+      {companions.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+          <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>Who's joining you</p>
+          {companions.map((c, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+              <input aria-label={`Person ${i + 2}'s full name`} data-allow="name" placeholder={`Person ${i + 2}'s full name`} value={c.full_name} maxLength={120}
+                onChange={(e) => setCompanion(i, 'full_name', e.target.value)} style={field} />
+              <input {...phoneFieldProps(c.contact_number, (v) => setCompanion(i, 'contact_number', v))} aria-label={`Person ${i + 2}'s contact number`} style={field} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 12px', cursor: 'pointer' }}>
+        <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
+        <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations need the agency's approval and close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
+      </label>
+
+      {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '0 0 10px' }}>{problem}</p>}
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        <button type="button" disabled={busy !== null || !agreed} onClick={pay} title={agreed ? undefined : 'Tick the agreement above first'} style={{
+          flex: 2, minWidth: 180, padding: '12px 0', borderRadius: 14, border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+          letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          background: '#B4511E', color: '#FDF6EE', cursor: agreed ? 'pointer' : 'not-allowed', opacity: agreed ? 1 : 0.5,
+        }}>
+          {busy === 'pay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(amount)} now
+        </button>
+        <button type="button" disabled={busy !== null} onClick={release} style={{
+          flex: 1, minWidth: 140, padding: '12px 0', borderRadius: 14, fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+          letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          background: '#FDF6EE', color: '#8C2F1C', border: '1px solid rgba(140,47,28,0.25)', cursor: 'pointer',
+        }}>
+          {busy === 'cancel' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <X size={14} />} Release slots
+        </button>
       </div>
     </ViewSection>
   );

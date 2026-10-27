@@ -144,9 +144,11 @@ export const downloadExclusiveReceipt = async (request) => {
   line('Contact number', request.contact_number);
 
   section('Exclusive tour');
-  line('Destination', pkg.destination || request.destination, { bold: true });
-  line('Date', request.preferred_date
-    ? formatYmdRange(request.preferred_date, request.preferred_end_date || request.preferred_date) : '—');
+  if (pkg.title) line('Tour', pkg.title, { bold: true });
+  line('Destination', pkg.destination || request.destination, { bold: !pkg.title });
+  const start = pkg.start_date || request.preferred_date;
+  const end = pkg.end_date || request.preferred_end_date || start;
+  line('Date', start ? formatYmdRange(start, end) : '—');
   line('Group size', request.group_size ? `${request.group_size} persons` : '—');
   if (pkg.accommodation) line('Accommodation', pkg.accommodation);
 

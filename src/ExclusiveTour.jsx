@@ -709,7 +709,7 @@ const PackageDetail = ({ label, icon, color = 'rgba(232,210,190,0.85)', textColo
   </div>
 );
 
-const RequestHistoryCard = ({ request }) => {
+const RequestHistoryCard = ({ request, onOpenBooking }) => {
   const [expanded, setExpanded] = useState(false);
   const isExclusive = request.request_type === 'exclusive';
   const pkg = request.package_details;
@@ -717,6 +717,8 @@ const RequestHistoryCard = ({ request }) => {
   // Exclusive tours are confirmed with a 50% downpayment of the package price.
   const packagePrice = Number(pkg?.price);
   const canPay = isExclusive && request.status === 'Approved' && hasPackage && packagePrice > 0;
+  // A requested tour posted on Explore Tours: the requester's slots are held for them.
+  const postedTour = !isExclusive && hasPackage && pkg.tour_id;
   const isPaid = request.payment_status === 'Paid';
   const notApprovedReason = requestNotApprovedReason(request);
 
@@ -833,11 +835,46 @@ const RequestHistoryCard = ({ request }) => {
                 </span>
               </div>
 
+              {Array.isArray(pkg.image_urls) && pkg.image_urls.length > 0 && (
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+                  {pkg.image_urls.map((url) => (
+                    <img key={url} src={url} alt="" onClick={() => window.open(url, '_blank')}
+                      style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 12, flexShrink: 0, cursor: 'zoom-in' }} />
+                  ))}
+                </div>
+              )}
+
+              {pkg.title && (
+                <div>
+                  <p style={{ fontSize: 17, fontWeight: 900, color: '#FDF6EE', margin: 0 }}>{pkg.title}</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(232,210,190,0.85)', margin: '3px 0 0' }}>
+                    {[pkg.destination, pkg.start_date ? formatYmdRange(pkg.start_date, pkg.end_date || pkg.start_date) : null, pkg.difficulty].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+              )}
+
+              {postedTour && (
+                <div style={{ background: 'rgba(232,162,101,0.14)', border: '1px solid rgba(232,162,101,0.35)', borderRadius: 14, padding: '12px 14px' }}>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: '#FDF6EE', margin: 0, lineHeight: 1.5 }}>
+                    Your tour is posted on Explore Tours, and your slots are held for you for 2 days. Pay in My Bookings to keep them.
+                  </p>
+                  {pkg.held_booking_id && onOpenBooking && (
+                    <button type="button" onClick={() => onOpenBooking(pkg.held_booking_id)} style={{
+                      marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
+                      background: '#E8A265', color: '#1A0A00', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                    }}>
+                      <CreditCard size={14} /> Pay for my slots
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 14 }}>
                 {pkg.price != null && pkg.price !== '' && (
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 3px' }}>
-                      Price
+                      {isExclusive ? 'Package Price' : 'Price per Person'}
                     </p>
                     <p style={{ fontSize: 19, fontWeight: 900, color: '#E8A265', margin: 0 }}>
                       {formatPeso(Number(pkg.price))}
@@ -881,8 +918,22 @@ const RequestHistoryCard = ({ request }) => {
                 )}
               </div>
 
+              {pkg.description && (
+                <PackageDetail label="About the Tour" icon={<FileText size={11} />}>{pkg.description}</PackageDetail>
+              )}
+
+              {Array.isArray(pkg.pickup_points) && pkg.pickup_points.length > 0 && (
+                <PackageDetail label="Pickup Points" icon={<MapPin size={11} />}>
+                  {pkg.pickup_points.map((p) => `${p.location}${p.time ? ` · ${p.time}` : ''}`).join('\n')}
+                </PackageDetail>
+              )}
+
               {pkg.things_to_bring && (
                 <PackageDetail label="Things to Bring" icon={<Star size={11} />}>{pkg.things_to_bring}</PackageDetail>
+              )}
+
+              {pkg.important_note && (
+                <PackageDetail label="Important Notes" icon={<Shield size={11} />} color="#E8A265">{pkg.important_note}</PackageDetail>
               )}
 
               {/* Once booked (downpayment paid): what the trip covers, names only, no prices */}
@@ -993,7 +1044,7 @@ const DownpaymentPanel = ({ request, price }) => {
   );
 };
 
-const MyRequestsSection = () => {
+const MyRequestsSection = ({ onOpenBooking }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
@@ -1047,7 +1098,7 @@ const MyRequestsSection = () => {
         </p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {requests.map(r => <RequestHistoryCard key={r.id} request={r} />)}
+        {requests.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} />)}
       </div>
     </div>
   );
@@ -1055,7 +1106,7 @@ const MyRequestsSection = () => {
 
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 // `start` comes from the joiner calendar: { form: 'exclusive' | 'request', date: 'YYYY-MM-DD' }.
-const ExclusiveTour = ({ start }) => {
+const ExclusiveTour = ({ start, onOpenBooking }) => {
   const [activeTab, setActiveTab] = useState(start?.form === 'request' ? 'request' : 'exclusive');
  
   const tabs = [
@@ -1076,7 +1127,7 @@ const ExclusiveTour = ({ start }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
       {/* Your Submitted Requests (at the top): status, admin updates, tour package details */}
-      <MyRequestsSection />
+      <MyRequestsSection onOpenBooking={onOpenBooking} />
 
       {/* Tab Switcher */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
