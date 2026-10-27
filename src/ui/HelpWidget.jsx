@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { HelpCircle, X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star } from 'lucide-react';
 
-// Where "Message us on Facebook" goes. For testing this is a personal profile;
-// swap in the Bandang IBAYO Facebook page when it's ready.
-const FACEBOOK_URL = 'https://www.facebook.com/isabellalouise.sabado.5';
+// Where "Message us on Facebook" goes: the Bandang IBAYO Facebook page.
+const FACEBOOK_URL = 'https://www.facebook.com/bandangibayo';
 
 // The Facebook "f" logo (lucide has no brand icons).
 const FacebookIcon = ({ size = 18 }) => (
