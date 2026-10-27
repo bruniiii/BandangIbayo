@@ -2,13 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
-import { formatPeso, TRIP_REQUEST_LEAD_DAYS } from './tourUtils';
+import { formatPeso, TRIP_REQUEST_LEAD_DAYS, requestNotApprovedReason } from './tourUtils';
+import { expenseItems } from './tourExpenses';
+import { downloadExclusiveReceipt } from './paymentReceipt';
 import { checkFields, flagField, fullNameError, phoneError, emailError, textError, addDaysPH, normalizePhone, formatPhPhone } from './validation';
 import { moneyInputProps, cleanMoney, blockSignKeys } from './moneyInput';
 import {
   MapPin, Users, Calendar, ChevronRight, ChevronDown, CheckCircle, CheckCircle2,
   FileText, Send, Shield, Star, Clock, ArrowRight, XCircle, MessageSquare,
-  Phone, Globe, Loader2, CreditCard
+  Phone, Globe, Loader2, CreditCard, FileDown
 } from 'lucide-react';
 import { startExclusiveDownpayment, startExclusiveBalance } from './payments';
 import { phoneFieldProps } from './ui/phoneField';
@@ -665,6 +667,7 @@ const STATUS_STYLES = {
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
   Confirmed: { bg: '#1A0A00', color: '#E8A265' }, // downpayment paid
   'Fully Paid': { bg: '#A8481A', color: '#FDF6EE' }, // balance paid too
+  'Not Approved': { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' }, // date passed / under 2 weeks away
 };
 
 const RequestStatusBadge = ({ status }) => {
@@ -715,6 +718,7 @@ const RequestHistoryCard = ({ request }) => {
   const packagePrice = Number(pkg?.price);
   const canPay = isExclusive && request.status === 'Approved' && hasPackage && packagePrice > 0;
   const isPaid = request.payment_status === 'Paid';
+  const notApprovedReason = requestNotApprovedReason(request);
 
   return (
     <div style={{
@@ -762,7 +766,7 @@ const RequestHistoryCard = ({ request }) => {
           </span>
         )}
 
-        <RequestStatusBadge status={isPaid ? (request.balance_settled ? 'Fully Paid' : 'Confirmed') : request.status} />
+        <RequestStatusBadge status={isPaid ? (request.balance_settled ? 'Fully Paid' : 'Confirmed') : notApprovedReason ? 'Not Approved' : request.status} />
 
         <ChevronDown
           size={16}
@@ -799,6 +803,11 @@ const RequestHistoryCard = ({ request }) => {
                 </p>
               )}
             </div>
+          ) : notApprovedReason ? (
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
+              This request was not approved. {notApprovedReason} Requests must be approved at least 2 weeks before the trip date.
+              You're welcome to send a new request for a later date.
+            </p>
           ) : request.status === 'Pending' && (
             <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
               Still under review — you'll get a notification once our team responds.
@@ -876,6 +885,13 @@ const RequestHistoryCard = ({ request }) => {
                 <PackageDetail label="Things to Bring" icon={<Star size={11} />}>{pkg.things_to_bring}</PackageDetail>
               )}
 
+              {/* Once booked (downpayment paid): what the trip covers, names only, no prices */}
+              {isPaid && pkg.expenses && (
+                <PackageDetail label="Tour Expenses (covered)" icon={<CheckCircle2 size={11} />} color="#A8481A">
+                  {expenseItems(pkg.expenses).map((i) => `✓ ${i.label}`).join('\n')}
+                </PackageDetail>
+              )}
+
               {pkg.additional_notes && (
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
                   <PackageDetail label="Notes">{pkg.additional_notes}</PackageDetail>
@@ -942,11 +958,20 @@ const DownpaymentPanel = ({ request, price }) => {
                   You can pay the remaining <strong>{formatPeso(balance)}</strong> online now, or settle it with our team before the trip.</>}
             </p>
           </div>
-          {!fullyPaid && (
-            <PayButton busy={busy} onClick={pay(startExclusiveBalance, 'Balance already paid', 'Your exclusive tour is fully paid.')}>
-              Pay {formatPeso(balance)} Balance
-            </PayButton>
-          )}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            {!fullyPaid && (
+              <PayButton busy={busy} onClick={pay(startExclusiveBalance, 'Balance already paid', 'Your exclusive tour is fully paid.')}>
+                Pay {formatPeso(balance)} Balance
+              </PayButton>
+            )}
+            <button type="button" onClick={() => downloadExclusiveReceipt(request).catch((e) => toast.error("Couldn't create the receipt", e.message))} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 14, cursor: 'pointer',
+              background: 'transparent', border: '1px solid rgba(180,81,30,0.35)', color: '#A8481A', fontFamily: 'inherit',
+              fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+            }}>
+              <FileDown size={14} /> Download Receipt
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1012,7 +1037,7 @@ const MyRequestsSection = () => {
   if (requests.length === 0) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderBottom: '1px solid rgba(180,81,30,0.12)', paddingBottom: 28 }}>
       <div>
         <h3 style={{ fontSize: 15, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00', margin: '0 0 4px' }}>
           Your Submitted Requests
@@ -1050,6 +1075,9 @@ const ExclusiveTour = ({ start }) => {
  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
+      {/* Your Submitted Requests (at the top): status, admin updates, tour package details */}
+      <MyRequestsSection />
+
       {/* Tab Switcher */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
         {tabs.map(tab => {
@@ -1103,11 +1131,6 @@ const ExclusiveTour = ({ start }) => {
         boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
       }}>
         {activeTab === 'exclusive' ? <ExclusiveTourForm startDate={start?.date} /> : <RequestTourForm startDate={start?.date} />}
-      </div>
-
-      {/* Your Submitted Requests — status + admin updates + tour package details */}
-      <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 28 }}>
-        <MyRequestsSection />
       </div>
     </div>
   );

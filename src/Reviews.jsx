@@ -6,6 +6,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { todayManila } from './tourUtils';
 import { mediaFileError } from './validation';
 import EmptyState from './ui/EmptyState';
+import BrandAvatar from './ui/BrandAvatar';
 
 const REVIEW_MAX = 1000;
 const REPLY_MAX = 500;
@@ -643,7 +644,7 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
       {review.admin_reply && (
         <div style={{ marginTop: 14, background: 'rgba(180,81,30,0.07)', borderLeft: '3px solid #B4511E', borderRadius: '0 12px 12px 0', padding: '10px 12px' }}>
           <p style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <MessageSquare size={12} /> Reply from Bandang IBAYO
+            <BrandAvatar size={22} /> Reply from Bandang IBAYO
             {review.admin_reply_at && <span style={{ fontWeight: 700, color: '#7A3A18' }}>· {formatDate(review.admin_reply_at)}</span>}
           </p>
           <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>

@@ -107,6 +107,21 @@ export const CANCELLATION_CUTOFF_DAYS = 14;
 export const CANCELLATION_APPROVAL_HOURS = 12;
 // Exclusive tours and tour requests: the earliest trip date is this many days from today.
 export const TRIP_REQUEST_LEAD_DAYS = 21;
+// Admins can approve an exclusive tour or tour request only this many days
+// before its date. Keep in sync with exclusive_requests_guard_approval().
+export const EXCLUSIVE_APPROVAL_CUTOFF_DAYS = 14;
+
+// A pending request that can no longer be approved: its date has passed, or
+// it's less than 2 weeks away. Shown as "Not Approved" to admins and joiners.
+export const requestNotApprovedReason = (request) => {
+  if (!request || request.status !== 'Pending' || !request.preferred_date) return null;
+  const today = todayManila();
+  if (request.preferred_date < today) return 'The preferred date has already passed.';
+  const [y, m, d] = today.split('-').map(Number);
+  const cutoff = new Date(Date.UTC(y, m - 1, d + EXCLUSIVE_APPROVAL_CUTOFF_DAYS)).toISOString().slice(0, 10);
+  if (request.preferred_date < cutoff) return 'It was not approved at least 2 weeks before the preferred date.';
+  return null;
+};
 
 // Last day a joiner can cancel (YYYY-MM-DD), and whether that's still possible today.
 export const cancellationDeadline = (startDate) => {
