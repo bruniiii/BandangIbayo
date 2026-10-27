@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: 'How do I book a tour?',
-    a: 'Open a tour, pick a date, choose how many people are coming (add their names and numbers), then pay online. Your slots are held for 30 minutes while you pay.',
+    a: 'Open a tour, pick a date and your pickup point, choose how many people are coming (add their names and numbers), then pay online. Your slots are held for 30 minutes while you pay.',
   },
   {
     q: 'How can I pay? Can I pay a downpayment?',
@@ -36,8 +36,8 @@ const FAQS = [
     a: 'A tour date may be moved because of bad weather, road closures or other safety concerns. We will notify you right away and help you pick a new date.',
   },
   {
-    q: "Can I be picked up somewhere that's not a pickup point?",
-    a: 'Yes. In My Bookings, open your booking and tap Request Custom Pickup. There may be an extra fee (such as tolls); we confirm it before the trip.',
+    q: 'Where will I be picked up?',
+    a: 'When you book, choose your pickup point from the list for that tour. You can see it in My Bookings, on your receipt, and on the Day trip card; pickup times are under Tracking.',
   },
   {
     q: 'What do I need on the day of the tour?',
@@ -60,8 +60,8 @@ const FAQS = [
 const GUIDE = [
   { Icon: UserPlus, title: 'Create your account', points: ['Tap Join Now and fill in your details.', 'Enter the 6-digit code we email you.', 'Log in with your username or email.'] },
   { Icon: Compass, title: 'Find a tour', points: ['Open Explore Tours, or use the Calendar to see tours by date.', 'Filter by month, price or trip length.', 'Tap a tour to see the itinerary, inclusions and things to bring.'] },
-  { Icon: CreditCard, title: 'Book and pay', points: ['Pick a date and how many people are coming.', 'Choose full payment or a 40% downpayment.', 'Pay with GCash, Maya, card or GrabPay. Your receipt is in My Bookings.'] },
-  { Icon: Backpack, title: 'Get ready', points: ['We remind you the evening before, with the meeting time and pickup point.', 'Tick off your packing list in My Bookings.', 'Chat with your group in Group Chat, or request a custom pickup.'] },
+  { Icon: CreditCard, title: 'Book and pay', points: ['Pick a date, your pickup point and how many people are coming.', 'Choose full payment or a 40% downpayment.', 'Pay with GCash, Maya, card or GrabPay. Your receipt is in My Bookings.'] },
+  { Icon: Backpack, title: 'Get ready', points: ['We remind you the evening before, with the meeting time and pickup point.', 'Tick off your packing list in My Bookings.', 'Chat with your group in Group Chat.'] },
   { Icon: QrCode, title: 'On tour day', points: ['Show your check-in QR to the coordinator.', 'Follow the van and pickup times under Tracking.', 'Pay any remaining balance if you haven\'t yet.'] },
   { Icon: Star, title: 'After the trip', points: ['Rate your trip and share photos in Reviews.', 'Book your next adventure!'] },
 ];

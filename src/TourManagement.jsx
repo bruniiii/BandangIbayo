@@ -7,8 +7,8 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates } from './tourUtils';
-import { moneyInputProps, blockSignKeys } from './moneyInput';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, formatPickupTime } from './tourUtils';
+import { moneyInputProps, blockSignKeys, cleanMoney } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
@@ -75,11 +75,21 @@ const TourManagement = () => {
   };
 
   const blankDateRow = () => ({ key: `new-${Math.random()}`, start_date: '', end_date: '', booked: 0 });
+  // Pickup points joiners choose from when booking (saved as each date's pickup stops).
+  const [pickupRows, setPickupRows] = useState([]);
+  const blankPickup = () => ({ key: `p-${Math.random()}`, location: '', time: '' });
+  // Other expenses besides van, guide and bag tag (e.g. entrance fee, jeep).
+  const [otherExpenses, setOtherExpenses] = useState([]);
+  const blankExpense = () => ({ key: `e-${Math.random()}`, name: '', amount: '' });
   // Opens the form for a new trip, or for a trip's details and dates (withNewDate adds an empty date to fill in).
   const openTourForm = (trip = null, { withNewDate = false } = {}) => {
     setEditingTour(trip);
     const saved = (trip?.dates || []).map((d) => ({ key: d.id, id: d.id, start_date: d.start_date, end_date: d.end_date, booked: d.current_booked || 0, original: d }));
     setDateRows(trip ? (withNewDate ? [...saved, blankDateRow()] : saved) : [blankDateRow()]);
+    const stops = trip?.pickup_points || [];
+    setPickupRows(stops.length ? stops.map((m) => ({ key: `p-${m.id}`, location: m.location_name, time: to24h(m.scheduled_time) })) : [blankPickup()]);
+    const others = Array.isArray(trip?.expenses?.others) ? trip.expenses.others : [];
+    setOtherExpenses(others.map((o) => ({ key: `e-${Math.random()}`, name: o.name, amount: String(o.amount) })));
     setFormDirty(false);
     setShowModal(true);
   };
@@ -103,10 +113,18 @@ const TourManagement = () => {
  
     if (error) { console.error('Error fetching tours:', error.message); setLoading(false); return; }
  
-    const { data: bookingsData } = await supabase
-      .from('bookings')
-      .select('tour_id, slots_booked, payment_status, booking_status')
-      .not('booking_status', 'eq', 'Cancelled');
+    const [{ data: bookingsData }, { data: ratesData }, { data: stopsData }, { data: expensesData }] = await Promise.all([
+      supabase
+        .from('bookings')
+        .select('tour_id, slots_booked, payment_status, booking_status')
+        .not('booking_status', 'eq', 'Cancelled'),
+      // Regular Rate (admins only; empty before 20261103000000_cancel_chat_rates.sql).
+      supabase.from('tour_rates').select('tour_id, regular_rate'),
+      supabase.from('tour_meetups').select('id, tour_id, location_name, scheduled_time').order('created_at', { ascending: true }),
+      supabase.from('tour_expenses').select('*'),
+    ]);
+    const expensesOf = Object.fromEntries((expensesData || []).map((e) => [e.tour_id, e]));
+    const rateOf = Object.fromEntries((ratesData || []).map((r) => [r.tour_id, Number(r.regular_rate)]));
  
     const toursWithCounts = (data || []).map(tour => {
       const tourBookings  = (bookingsData || []).filter(b => b.tour_id === tour.id);
@@ -114,6 +132,9 @@ const TourManagement = () => {
       const maxCapacity   = tour.group_size || 18;
       return {
         ...tour,
+        regular_rate:       rateOf[tour.id] ?? null,
+        pickup_points:      (stopsData || []).filter((m) => m.tour_id === tour.id),
+        expenses:           expensesOf[tour.id] || null,
         current_booked:     totalBooked,
         available_slots:    Math.max(0, maxCapacity - totalBooked),
         bookings_pending:   tourBookings.filter(b => b.payment_status === 'Pending' || b.payment_status === 'Verification Pending').length,
@@ -198,6 +219,11 @@ const TourManagement = () => {
     const formEl    = e.target;
     const formData  = new FormData(formEl);
     const price     = Number(formData.get('price'));
+    const regularRate = Number(formData.get('regular_rate'));
+    const vanRent = Number(formData.get('van_rent'));
+    const tourGuide = Number(formData.get('tour_guide'));
+    const pickups = pickupRows.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location || r.time);
+    const pickupNames = pickups.map((r) => r.location.toLowerCase());
     const groupSize = Number(formData.get('group_size'));
     const minStart  = getMinStartDate();
     // Each date's typing mistakes, shown at that date's field. A saved date may
@@ -222,10 +248,26 @@ const TourManagement = () => {
     const ok = dateRows.length > 0 && checkFields(formEl, [
       ['title', textError(formData.get('title'), 'Tour title', { min: 3, max: 120 })],
       ['destination', textError(formData.get('destination'), 'Destination', { min: 2, max: 120 })],
+      ['regular_rate', !Number.isFinite(regularRate) || regularRate < 1000 ? 'The Regular Rate must be at least ₱1,000.' : ''],
+      ['regular_rate', Math.abs(Math.round(regularRate * 100) - regularRate * 100) > 1e-6 ? 'The Regular Rate can have at most 2 decimal places (centavos).' : ''],
+      ['regular_rate', regularRate > 1000000 ? 'That rate looks too high. Please check for an extra zero.' : ''],
       ['price', !Number.isFinite(price) || price <= 0 ? 'Please enter a price above ₱0. Tours can\'t be free.' : ''],
+      ['price', Number.isFinite(regularRate) && regularRate >= 1000 && price < regularRate + 500 ? `The Joiner Rate must be at least ₱500 more than the Regular Rate (at least ${formatPeso(regularRate + 500)}).` : ''],
       ['price', Math.abs(Math.round(price * 100) - price * 100) > 1e-6 ? 'Price can have at most 2 decimal places (centavos).' : ''],
       ['price', price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
       ...dateChecks,
+      ['van_rent', !Number.isFinite(vanRent) || vanRent < 15000 ? 'Van Rent must be at least ₱15,000.' : ''],
+      ['tour_guide', !Number.isFinite(tourGuide) || tourGuide < 1300 ? 'Tour Guide must be at least ₱1,300.' : ''],
+      ...otherExpenses.flatMap((o, i) => [
+        [`other_name_${i}`, (o.name.trim() || o.amount) && !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
+        [`other_amount_${i}`, o.name.trim() && !(Number(o.amount) >= 0 && String(o.amount).trim() !== '') ? 'Enter the amount (₱0 or more).' : ''],
+      ]),
+      ['pickup_0', pickups.length === 0 ? 'Add at least one pickup point, so joiners can choose where to be picked up.' : ''],
+      ...pickupRows.map((r, i) => {
+        const loc = r.location.trim().toLowerCase();
+        return [`pickup_${i}`, !loc && r.time ? 'Enter the pickup place.'
+          : loc && pickupRows.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
+      }),
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
       ['group_size', groupSize > 200 ? 'Max slots looks too high. Please check the number.' : ''],
       ['group_size', groupSize < mostBooked.booked ? `${mostBooked.booked} joiner${mostBooked.booked === 1 ? ' has' : 's have'} already booked one of the dates, so max slots can't be lower than ${mostBooked.booked}.` : ''],
@@ -281,6 +323,44 @@ const TourManagement = () => {
     }
     const failed = results.find((r) => r.error);
     if (failed) { toast.error("Couldn't save the tour", failed.error.message); fetchTours(); return; }
+
+    // Regular Rate of every date of the trip (kept apart from tours so joiners never see it).
+    const rateIds = [...saved.map((r) => r.id), ...inserted.map((t) => t.id)];
+    if (rateIds.length) {
+      const { error: rateError } = await supabase.from('tour_rates')
+        .upsert(rateIds.map((id) => ({ tour_id: id, regular_rate: Math.round(regularRate * 100) / 100 })), { onConflict: 'tour_id' });
+      if (rateError) toast.error("Tour saved, but the Regular Rate wasn't", rateError.message);
+
+      // Expenses of every date (Van Rent, Tour Guide, Bag Tag ₱260, others).
+      const others = otherExpenses.filter((o) => o.name.trim()).map((o) => ({ name: o.name.trim(), amount: Math.round(Number(o.amount) * 100) / 100 }));
+      const { error: expError } = await supabase.from('tour_expenses').upsert(rateIds.map((id) => ({
+        tour_id: id, van_rent: Math.round(vanRent * 100) / 100, tour_guide: Math.round(tourGuide * 100) / 100, bag_tag: 260, others,
+      })), { onConflict: 'tour_id' });
+      if (expError) toast.error("Tour saved, but the expenses weren't", expError.message);
+
+      // Pickup points: add new ones, update times, remove ones nobody picked.
+      const kept = [];
+      for (const id of rateIds) {
+        const existing = [...(editingTour?.dates || [])].find((d) => d.id === id)?.pickup_points || [];
+        for (const r of pickups) {
+          const match = existing.find((m) => m.location_name.trim().toLowerCase() === r.location.toLowerCase());
+          const time = formatPickupTime(r.time);
+          if (!match) {
+            await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: r.location, scheduled_time: time, status: 'DEPARTURE' }]);
+          } else if ((match.scheduled_time || '') !== time) {
+            await supabase.from('tour_meetups').update({ scheduled_time: time }).eq('id', match.id);
+          }
+        }
+        for (const m of existing) {
+          if (pickupNames.includes(m.location_name.trim().toLowerCase())) continue;
+          const { count } = await supabase.from('bookings').select('id', { count: 'exact', head: true })
+            .eq('tour_id', id).eq('pickup_point', m.location_name).not('booking_status', 'in', '("Cancelled","Rejected")');
+          if (count) kept.push(m.location_name);
+          else await supabase.from('tour_meetups').delete().eq('id', m.id);
+        }
+      }
+      if (kept.length) toast.info('Some pickup points were kept', `Joiners already chose ${[...new Set(kept)].join(', ')}, so ${kept.length === 1 ? 'it stays' : 'they stay'}. Move those joiners first to remove ${kept.length === 1 ? 'it' : 'them'}.`);
+    }
     setFormDirty(false);
 
     // A bigger group size may open slots: email anyone on the waitlist (the database already notified them in-app).
@@ -648,7 +728,53 @@ const TourManagement = () => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} required />
-                  <ModalInput label="Price (₱)" name="price" {...moneyInputProps} placeholder="e.g. 1499.50" defaultValue={formTour?.price} required />
+                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="e.g. 2499.50" defaultValue={formTour?.price} required />
+                </div>
+                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
+                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="At least 1000" defaultValue={formTour?.regular_rate ?? ''} required />
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
+                    Admins only, never shown to joiners. At least ₱1,000; the Joiner Rate (what joiners pay) must be at least ₱500 more.
+                  </p>
+                </div>
+
+                {/* Expenses: what this trip costs (shown to booked joiners and on their receipt, and used for income in Reports). */}
+                <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
+                  <label style={{ ...labelStyle, opacity: 1 }}>Expenses</label>
+                  <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <ModalInput label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder="At least 15000" defaultValue={formTour?.expenses?.van_rent ?? ''} onChange={() => setFormDirty(true)} required />
+                    <ModalInput label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder="At least 1300" defaultValue={formTour?.expenses?.tour_guide ?? ''} onChange={() => setFormDirty(true)} required />
+                    <div>
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 5 }}>Bag Tag (₱)</label>
+                      <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>260.00 <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span></p>
+                    </div>
+                  </div>
+                  {otherExpenses.map((o, i) => (
+                    <div key={o.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) 40px', gap: 10, alignItems: 'end', marginTop: 10 }}>
+                      <div>
+                        <label style={labelStyle}>Other expense</label>
+                        <input name={`other_name_${i}`} value={o.name} maxLength={60} placeholder="e.g. Entrance Fee, Jeep"
+                          onChange={(e) => { setOtherExpenses((rows) => rows.map((x) => (x.key === o.key ? { ...x, name: e.target.value } : x))); setFormDirty(true); }}
+                          style={inputStyle} />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Amount (₱)</label>
+                        <input name={`other_amount_${i}`} {...moneyInputProps} value={o.amount}
+                          onChange={(e) => { const v = cleanMoney(e.target.value); setOtherExpenses((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: v } : x))); setFormDirty(true); }}
+                          style={inputStyle} />
+                      </div>
+                      <button type="button" aria-label="Remove this expense" onClick={() => { setOtherExpenses((rows) => rows.filter((x) => x.key !== o.key)); setFormDirty(true); }}
+                        style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(122,58,24,0.3)', background: 'transparent', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => { setOtherExpenses((rows) => [...rows, blankExpense()]); setFormDirty(true); }} style={{
+                    marginTop: 10, width: '100%', minHeight: 38, borderRadius: 12, cursor: 'pointer', border: '1px dashed rgba(180,81,30,0.45)',
+                    background: 'transparent', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  }}>+ Add Other Expense</button>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 0 0' }}>
+                    Booked joiners can see this breakdown on their booking and receipt. Reports uses it to work out each tour's income.
+                  </p>
                 </div>
  
                 {/* Dates: one trip, as many dates as the admin runs it. Joiners pick one when booking. */}
@@ -705,6 +831,41 @@ const TourManagement = () => {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     }}
                   ><CalendarPlus size={13} /> Add Another Date</button>
+                </div>
+
+                {/* Pickup points: joiners pick one when booking. Times can also be changed later in Tracking Management. */}
+                <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
+                  <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {pickupRows.map((r, i) => (
+                      <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
+                        <div>
+                          <label style={labelStyle}>Place {pickupRows.length > 1 ? i + 1 : ''}</label>
+                          <input name={`pickup_${i}`} value={r.location} maxLength={120} placeholder="e.g. Shell Mindanao Ave, QC"
+                            onChange={(e) => { const v = e.target.value; setPickupRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, location: v } : x))); setFormDirty(true); }}
+                            style={inputStyle} />
+                        </div>
+                        <div>
+                          <label style={labelStyle}>Time</label>
+                          <input type="time" aria-label={`Pickup time ${i + 1}`} value={r.time}
+                            onChange={(e) => { const v = e.target.value; setPickupRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, time: v } : x))); setFormDirty(true); }}
+                            style={inputStyle} />
+                        </div>
+                        <button type="button" aria-label={`Remove pickup point ${i + 1}`} disabled={pickupRows.length === 1}
+                          onClick={() => { setPickupRows((rows) => rows.filter((x) => x.key !== r.key)); setFormDirty(true); }}
+                          style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(122,58,24,0.3)', background: 'transparent', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: pickupRows.length === 1 ? 'not-allowed' : 'pointer', opacity: pickupRows.length === 1 ? 0.4 : 1 }}>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => { setPickupRows((rows) => [...rows, blankPickup()]); setFormDirty(true); }} style={{
+                    marginTop: 10, width: '100%', minHeight: 38, borderRadius: 12, cursor: 'pointer', border: '1px dashed rgba(180,81,30,0.45)',
+                    background: 'transparent', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  }}>+ Add Pickup Point</button>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 0 0' }}>
+                    Joiners choose one of these when they book. The same points are used for every date of this trip.
+                  </p>
                 </div>
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -1039,7 +1200,10 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
               <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#A8481A', margin: '0 0 2px', lineHeight: 1 }}>
                 {formatPeso(tour.price)}
               </p>
-              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>per person</p>
+              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 4px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Joiner rate, per person</p>
+              <p style={{ fontSize: 12.5, fontWeight: 800, color: tour.regular_rate ? '#1A0A00' : '#8C2F1C', margin: '0 0 16px' }}>
+                {tour.regular_rate ? `Regular rate: ${formatPeso(tour.regular_rate)}` : 'Regular rate not set yet. Edit the tour to add it.'}
+              </p>
  
               <button
                 onClick={onEdit}
@@ -1310,6 +1474,16 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
  
 
 
+
+// "4:30 AM" (how pickup stops are saved) → "04:30" for a time input.
+const to24h = (value) => {
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i.exec(String(value || '').trim());
+  if (!m) return '';
+  let h = Number(m[1]) % 12;
+  if (m[3] && m[3].toUpperCase() === 'PM') h += 12;
+  if (!m[3]) h = Number(m[1]);
+  return `${String(h).padStart(2, '0')}:${m[2]}`;
+};
 
 const ModalInput = ({ label, name, defaultValue, ...props }) => (
   <div style={{ marginBottom: 0 }}>

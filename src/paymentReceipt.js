@@ -1,4 +1,5 @@
 import { formatDateRange } from './tourUtils';
+import { fetchTourExpenses, expenseItems, expensesTotal } from './tourExpenses';
 
 // ─────────────────────────────────────────────
 // PAYMENT RECEIPT (PDF) for a confirmed booking.
@@ -22,7 +23,7 @@ export const balanceRemaining = (booking) =>
     : 0;
 
 export const downloadReceipt = async (booking, tour) => {
-  const { jsPDF } = await import('jspdf');
+  const [{ jsPDF }, expenses] = await Promise.all([import('jspdf'), fetchTourExpenses(booking.tour_id)]);
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const left = 56;
   const right = doc.internal.pageSize.getWidth() - 56;
@@ -71,6 +72,7 @@ export const downloadReceipt = async (booking, tour) => {
   line('Destination', tour.destination);
   line('Date', formatDateRange(tour.start_date, tour.duration));
   line('Joiners', `${booking.slots_booked} ${booking.slots_booked === 1 ? 'person' : 'persons'}`);
+  if (booking.pickup_point) line('Pickup point', booking.pickup_point);
   if (booking.companions?.length) {
     line('Joining with', booking.companions.map((c) => c.full_name).join(', '));
   }
@@ -91,6 +93,12 @@ export const downloadReceipt = async (booking, tour) => {
   line('Amount paid', php(booking.amount_paid ?? booking.total_price), { bold: true, size: 12 });
   const balance = balanceRemaining(booking);
   line('Balance', balance > 0 ? `${php(balance)} (due on or before the tour date)` : 'Paid in full', { bold: balance === 0 });
+
+  if (expenses) {
+    section('Tour expenses (cost breakdown)');
+    expenseItems(expenses).forEach((item) => line(item.label, php(item.amount)));
+    line('Total expenses', php(expensesTotal(expenses)), { bold: true });
+  }
 
   y += 24;
   doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(122, 58, 24);

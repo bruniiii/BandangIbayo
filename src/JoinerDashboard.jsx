@@ -1133,7 +1133,12 @@ const NextTripCard = ({ trip, onViewBookings }) => {
 
 /* ── TRIP READINESS CARD ── */
 const TripReadinessCard = ({ trip, onClick }) => {
-  const paymentVerified = trip.payment_status === 'Paid' || trip.payment_status === 'Verified';
+  // Confirmed once payment is verified. Settled when nothing is left to pay:
+  // paid in full, or a downpayment whose balance was settled.
+  const bookingConfirmed = trip.payment_status === 'Complete' || trip.booking_status === 'Completed';
+  const balanceLeft = Math.max(0, (Number(trip.total_price) || 0) - (Number(trip.amount_paid) || 0));
+  const paymentSettled = bookingConfirmed
+    && (trip.payment_method !== 'Downpayment' || trip.balance_settled || balanceLeft <= 0);
 
   const chip = (label, ok) => (
     <div style={{
@@ -1169,12 +1174,14 @@ const TripReadinessCard = ({ trip, onClick }) => {
         <ChevronRight size={15} style={{ color: 'rgba(122,58,24,0.85)' }} />
       </div>
       <div style={{ display: 'flex', gap: 10 }}>
-        {chip('Booking', trip.booking_status === 'Completed')}
-        {chip('Payment', paymentVerified)}
+        {chip('Booking', bookingConfirmed)}
+        {!paymentSettled && chip('Payment', false)}
       </div>
-      {!paymentVerified && (
+      {!paymentSettled && (
         <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '12px 0 0' }}>
-          Settle your remaining balance before departure to lock in your seat.
+          {bookingConfirmed && balanceLeft > 0
+            ? `Settle your remaining balance of ${formatPeso(balanceLeft)} before departure. Tap to pay it online.`
+            : 'Settle your remaining balance before departure to lock in your seat.'}
         </p>
       )}
     </div>

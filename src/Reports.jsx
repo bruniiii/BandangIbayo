@@ -7,6 +7,8 @@ import { formatPeso } from './tourUtils';
 import SearchSelect from './ui/SearchSelect';
 import { downloadReportCSV, downloadReportPDF } from './reportExport';
 import SalesSummary from './SalesSummary';
+import { blockSignKeys } from './moneyInput';
+import TourIncome from './TourIncome';
 import {
   Loader2, Calendar, Users, CheckCircle2, Clock, XCircle, AlertCircle,
   MapPin, ChevronDown, Wallet, TrendingUp, TrendingDown, ClipboardList,
@@ -699,6 +701,8 @@ const Reports = () => {
 
       <SalesSummary />
 
+      <TourIncome />
+
       {/* ── Fetch Error Banner (surfaces silent Supabase query failures instead of just showing 0 data) ── */}
       {fetchErrors.length > 0 && (
         <div style={{
@@ -951,7 +955,7 @@ const Reports = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <label style={{ fontSize: 11.5, fontWeight: 800, color: '#7A3A18' }}>Est. Cost %</label>
                       <input
-                        type="number" min={0} max={95} value={costPct}
+                        type="number" min={0} max={95} value={costPct} onKeyDown={blockSignKeys}
                         onChange={(e) => setCostPct(Math.min(95, Math.max(0, Number(e.target.value) || 0)))}
                         style={{ width: 60, padding: '6px 8px', borderRadius: 8, border: '1px solid rgba(180,81,30,0.25)', fontSize: 12, fontWeight: 700, textAlign: 'center' }}
                       />

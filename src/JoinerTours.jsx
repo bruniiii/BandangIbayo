@@ -4,7 +4,7 @@ import WeatherNotice from './ui/WeatherNotice';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 
-import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter, groupTripDates, tripForDate } from './tourUtils';
+import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter, groupTripDates, tripForDate, formatPickupTime } from './tourUtils';
 import { TripDatePicker, TripDateLines } from './ui/TripDates';
 import { MoreTourFilters } from './ui/TourFilters';
 import { applyTripFilters, useTripFilters } from './tripFilters';
@@ -931,6 +931,16 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     const images = tour.image_urls || [];
 
     const [numPersons, setNumPersons] = useState(1);
+    // Pickup point the joiner picks from this date's pickup stops (tour_pickup_points()).
+    const [pickupPoints, setPickupPoints] = useState(null); // null = loading
+    const [pickupPoint, setPickupPoint] = useState('');
+    const [pickupError, setPickupError] = useState('');
+    useEffect(() => {
+        let active = true;
+        supabase.rpc('tour_pickup_points', { p_tour_id: tour.id })
+            .then(({ data, error }) => { if (active) setPickupPoints(error ? [] : data || []); });
+        return () => { active = false; };
+    }, [tour.id]);
 
     const [isBooking, setIsBooking] = useState(false);
 
@@ -1020,6 +1030,10 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             setCompanionError(`"${companions[names.indexOf(repeated)].full_name.trim()}" is entered more than once. Each person joining needs their own details.`);
             return;
         }
+        if (pickupPoints?.length && !pickupPoint) {
+            setPickupError('Please choose your pickup point.');
+            return;
+        }
         setIsBooking(true);
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { toast.info('Please log in to book a tour.'); setIsBooking(false); return; }
@@ -1083,6 +1097,11 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             toast.error("Couldn't start the payment", error);
             setRedirectingToPayment(false);
             return;
+        }
+        // Save the chosen pickup point on the new booking (it can still be changed in My Bookings).
+        if (pickupPoint && data.bookingId) {
+            const { error: pickupSaveError } = await supabase.from('bookings').update({ pickup_point: pickupPoint }).eq('id', data.bookingId);
+            if (pickupSaveError) console.error('Pickup point not saved:', pickupSaveError.message);
         }
         window.location.assign(data.checkoutUrl);
     };
@@ -1250,6 +1269,50 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                             </div>
 
 
+
+                            {!isFullyBooked && (
+                                <div style={{ marginBottom: 16 }}>
+                                    <label htmlFor="pickup-point" style={{
+                                        display: 'block', fontSize: 11, fontWeight: 800,
+                                        letterSpacing: '0.2em', textTransform: 'uppercase',
+                                        color: '#7A3A18', opacity: 0.9, marginBottom: 6,
+                                    }}>Pickup Point</label>
+                                    {pickupPoints === null ? (
+                                        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>Loading pickup points…</p>
+                                    ) : pickupPoints.length === 0 ? (
+                                        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+                                            Pickup points will be posted soon. You can choose yours later in My Bookings.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <div style={{ position: 'relative' }}>
+                                                <select
+                                                    id="pickup-point"
+                                                    value={pickupPoint}
+                                                    onChange={(e) => { setPickupPoint(e.target.value); setPickupError(''); }}
+                                                    aria-invalid={!!pickupError}
+                                                    style={{
+                                                        width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
+                                                        border: `1px solid ${pickupError ? '#8C2F1C' : 'rgba(180,81,30,0.18)'}`,
+                                                        borderRadius: 14, padding: '12px 14px', paddingRight: 34,
+                                                        fontSize: 13, fontWeight: 700, color: pickupPoint ? '#1A0A00' : '#7A3A18',
+                                                        fontFamily: 'inherit', outline: 'none', appearance: 'none', cursor: 'pointer',
+                                                    }}
+                                                >
+                                                    <option value="">Choose your pickup point</option>
+                                                    {pickupPoints.map((p) => (
+                                                        <option key={p.location_name} value={p.location_name}>
+                                                            {p.location_name}{p.scheduled_time ? ` · ${formatPickupTime(p.scheduled_time)}` : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#A8481A', pointerEvents: 'none' }} />
+                                            </div>
+                                            {pickupError && <p role="alert" style={{ fontSize: 12, fontWeight: 800, color: '#8C2F1C', margin: '6px 2px 0' }}>{pickupError}</p>}
+                                        </>
+                                    )}
+                                </div>
+                            )}
 
                             {!isFullyBooked && (
 
@@ -1522,6 +1585,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                     tour={tour}
 
                     numPersons={numPersons}
+                    pickupPoint={pickupPoint}
 
                     subtotal={subtotal}
 
@@ -1584,7 +1648,7 @@ const overlayBackdrop = {
 
 
 
-const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel, formatDateRange }) => {
+const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, subtotal, onProceed, onCancel, formatDateRange }) => {
 
   return (
 
@@ -1637,6 +1701,11 @@ const ProceedToPaymentModal = ({ tour, numPersons, subtotal, onProceed, onCancel
               <Users size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
 
             </div>
+            {pickupPoint && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+                <MapPin size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> Pickup: {pickupPoint}
+              </div>
+            )}
 
           </div>
 

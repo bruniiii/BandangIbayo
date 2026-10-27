@@ -10,6 +10,8 @@ export const archivePastTours = () => {
   if (!archiveRun) {
     archiveRun = Promise.resolve(supabase.rpc('archive_past_tours')).then(() => {}, () => {});
     Promise.resolve(supabase.rpc('daily_notices')).catch(() => {});
+    // Cancellation requests left unanswered for 12 hours are approved (also every 15 minutes on the server).
+    Promise.resolve(supabase.rpc('run_overdue_cancellations')).catch(() => {});
   }
   return archiveRun;
 };
@@ -154,4 +156,12 @@ export const tripForDate = (trips, id) => {
   const trip = trips.find((t) => t.dates.some((d) => String(d.id) === String(id)));
   if (!trip) return null;
   return { ...trip.dates.find((d) => String(d.id) === String(id)), dates: trip.dates };
+};
+
+// "04:30" → "4:30 AM"; times already like "4:30 AM" stay as they are (pickup stops).
+export const formatPickupTime = (value) => {
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(String(value || '').trim());
+  if (!m) return value || '';
+  const h = Number(m[1]);
+  return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
 };

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { PickupRequestsAdmin } from './CustomPickup';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -585,6 +584,68 @@ const useIsMobile = (breakpoint = 768) => {
   return isMobile;
 };
 
+// Who is picked up where: each confirmed joiner under the pickup point they chose.
+const PickupRoster = ({ tourId, stops }) => {
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    if (!tourId) return undefined;
+    let active = true;
+    const load = () => supabase
+      .from('bookings')
+      .select('id, booking_number, full_name, contact_number, slots_booked, pickup_point')
+      .eq('tour_id', tourId)
+      .eq('payment_status', 'Complete')
+      .not('booking_status', 'in', '("Cancelled","Rejected")')
+      .order('full_name', { ascending: true })
+      .then(({ data }) => { if (active) setRows(data || []); });
+    load();
+    const channel = supabase
+      .channel(`pickup-roster-${tourId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings', filter: `tour_id=eq.${tourId}` }, load)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(channel); };
+  }, [tourId]);
+
+  if (!rows) return null;
+  const names = [...stops.map((s) => s.location_name), ...rows.map((r) => r.pickup_point).filter(Boolean)];
+  const groups = [...new Set(names)].map((name) => ({ name, list: rows.filter((r) => r.pickup_point === name) }));
+  const none = rows.filter((r) => !r.pickup_point);
+  const people = (list) => list.reduce((n, r) => n + (r.slots_booked || 1), 0);
+
+  return (
+    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(180,81,30,0.1)' }}>
+      <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <MapPin size={14} /> Joiners per pickup point ({people(rows)} {people(rows) === 1 ? 'person' : 'people'})
+      </h4>
+      {rows.length === 0 ? (
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>No confirmed joiners yet.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[...groups, ...(none.length ? [{ name: null, list: none }] : [])].map((g) => (
+            <div key={g.name || 'none'}>
+              <p style={{ fontSize: 12.5, fontWeight: 900, color: g.name ? '#1A0A00' : '#8C2F1C', margin: '0 0 4px' }}>
+                {g.name || 'No pickup point chosen yet'} <span style={{ fontWeight: 700, color: '#7A3A18' }}>· {people(g.list)} {people(g.list) === 1 ? 'person' : 'people'}</span>
+              </p>
+              {g.list.length === 0 ? (
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0, opacity: 0.85 }}>Nobody yet.</p>
+              ) : (
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {g.list.map((r) => (
+                    <li key={r.id} style={{ fontSize: 12, fontWeight: 600, color: '#1A0A00', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      <span>{r.full_name} <span style={{ color: '#7A3A18' }}>· {r.slots_booked || 1} pax · {r.booking_number}</span></span>
+                      {r.contact_number && <a className="text-link" href={`tel:${String(r.contact_number).replace(/[^\d+]/g, '')}`} style={{ fontSize: 11.5, whiteSpace: 'nowrap' }}>{r.contact_number}</a>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TrackingConsoleModal = ({
   tour, meetupStops = [], trackingLogs = [], loadingConsole,
   isLogisticsSaved, setIsLogisticsSaved,
@@ -699,7 +760,7 @@ const TrackingConsoleModal = ({
                 )}
               </div>
 
-              <PickupRequestsAdmin tourId={tour?.id} />
+              <PickupRoster tourId={tour?.id} stops={safeStops} />
 
               {/* Manual Stops */}
               <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>

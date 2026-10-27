@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X } from 'lucide-react';
+import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import EmptyState from './ui/EmptyState';
@@ -150,11 +150,17 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => (
     <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#A8481A', margin: 0, padding: '16px 18px 10px' }}>
       Tour group chats
     </p>
-    {chats.map((c) => {
+    {chats.map((c, i) => {
       const active = String(c.tour_id) === activeId;
+      const firstArchived = !c.is_open && (i === 0 || chats[i - 1].is_open);
       return (
+        <div key={c.tour_id}>
+        {firstArchived && (
+          <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A3A18', margin: 0, padding: '16px 18px 6px', borderTop: i ? '1px solid rgba(180,81,30,0.12)' : 'none' }}>
+            <Archive size={13} /> Archived (tour ended)
+          </p>
+        )}
         <button
-          key={c.tour_id}
           type="button"
           onClick={() => onPick(c.tour_id)}
           aria-current={active ? 'true' : undefined}
@@ -163,9 +169,10 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => (
             display: 'flex', gap: 12, alignItems: 'center', padding: '12px 18px',
             background: active ? 'rgba(180,81,30,0.1)' : 'transparent',
             borderLeft: active ? '3px solid #B4511E' : '3px solid transparent',
+            opacity: c.is_open ? 1 : 0.75,
           }}
         >
-          <span style={{ width: 42, height: 42, borderRadius: 14, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ width: 42, height: 42, borderRadius: 14, background: c.is_open ? '#1A0A00' : '#7A3A18', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users size={18} />
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
@@ -188,6 +195,7 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => (
             </span>
           </span>
         </button>
+        </div>
       );
     })}
   </div>
@@ -207,7 +215,8 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
   const bottomRef = useRef(null);
   const profilesRef = useRef({});
   const tourId = chat.tour_id;
-  const canSend = isAdmin || chat.is_open;
+  // Archived once the tour ends: nobody can send or react, admins included.
+  const canSend = chat.is_open;
 
   const loadProfiles = useCallback(async (ids) => {
     const missing = [...new Set(ids.filter((id) => id && !profilesRef.current[id]))];
@@ -395,8 +404,8 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                       role="button"
                       tabIndex={0}
                       aria-label="Message. Tap to react or reply"
-                      onClick={(e) => { e.stopPropagation(); setPickerFor(pickerFor === m.id ? null : m.id); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') setPickerFor(pickerFor === m.id ? null : m.id); }}
+                      onClick={(e) => { e.stopPropagation(); if (canSend) setPickerFor(pickerFor === m.id ? null : m.id); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && canSend) setPickerFor(pickerFor === m.id ? null : m.id); }}
                       style={{
                         background: mine ? '#B4511E' : fromAdmin ? 'rgba(180,81,30,0.12)' : '#F2E4D0',
                         color: mine ? '#FDF6EE' : '#1A0A00',
@@ -432,7 +441,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                       {m.body}
                       <span style={{ display: 'block', textAlign: 'right', fontSize: 10, fontWeight: 600, marginTop: 2, opacity: 0.75 }}>{timeOf(m.created_at)}</span>
                     </div>
-                    {!narrow && (
+                    {!narrow && canSend && (
                       <button
                         type="button"
                         className="chat-react-btn"
@@ -519,7 +528,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
           me={me}
           nameOf={(id) => (id === me ? 'You' : nameFor(profiles[id], isAdmin))}
           profiles={profiles}
-          onRemoveMine={(emoji) => { react(reactorsFor, emoji); setReactorsFor(null); }}
+          onRemoveMine={canSend ? (emoji) => { react(reactorsFor, emoji); setReactorsFor(null); } : null}
           onClose={() => setReactorsFor(null)}
           narrow={narrow}
         />
@@ -568,7 +577,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
         </form>
       ) : (
         <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#7A3A18', padding: '12px 16px', margin: 0, borderTop: '1px solid rgba(180,81,30,0.12)' }}>
-          <Lock size={13} /> This trip is over, so the chat is read-only now.
+          <Lock size={13} /> This tour has ended, so its group chat is archived. You can still read it.
         </p>
       )}
     </div>
@@ -620,7 +629,7 @@ const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narr
                 </span>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{nameOf(r.user_id)}</span>
-                  {isMe && (
+                  {isMe && onRemoveMine && (
                     <button type="button" onClick={() => onRemoveMine(r.emoji)} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
                       Tap to remove
                     </button>

@@ -49,6 +49,7 @@ const csvCell = (v) => {
 const SalesSummary = () => {
   const [bookings, setBookings] = useState([]);
   const [exclusives, setExclusives] = useState([]);
+  const [rates, setRates] = useState({}); // tour id → Regular Rate
   const [loading, setLoading] = useState(true);
   const [month, setMonth] = useState(() => monthKeyOf(new Date()));
   const [showBalances, setShowBalances] = useState(true);
@@ -56,19 +57,21 @@ const SalesSummary = () => {
   useEffect(() => {
     let active = true;
     (async () => {
-      const [b, x] = await Promise.all([
+      const [b, x, r] = await Promise.all([
         supabase
           .from('bookings')
           .select('id, booking_number, full_name, contact_number, slots_booked, total_price, amount_paid, payment_method, payment_status, booking_status, balance_settled, created_at, tour_id, tours ( title, start_date, end_date )'),
         supabase
           .from('exclusive_requests')
           .select('id, full_name, destination, preferred_date, payment_status, amount_paid, balance_amount, balance_settled, paid_at, balance_paid_at, package_details'),
+        supabase.from('tour_rates').select('tour_id, regular_rate'),
       ]);
       if (!active) return;
       setLoading(false);
       if (b.error) toast.error("Couldn't load sales", b.error.message);
       setBookings(b.data || []);
       setExclusives(x.error ? [] : x.data || []); // exclusive payments are optional (older databases)
+      setRates(Object.fromEntries((r.data || []).map((row) => [row.tour_id, Number(row.regular_rate)])));
     })();
     return () => { active = false; };
   }, []);
@@ -79,9 +82,11 @@ const SalesSummary = () => {
     const perTour = new Map();
     inMonth.forEach((b) => {
       const key = b.tour_id;
-      const row = perTour.get(key) || { title: b.tours?.title || 'Unknown tour', start: b.tours?.start_date, end: b.tours?.end_date, bookings: 0, pax: 0, collected: 0, balance: 0 };
+      const row = perTour.get(key) || { title: b.tours?.title || 'Unknown tour', start: b.tours?.start_date, end: b.tours?.end_date, bookings: 0, pax: 0, collected: 0, balance: 0, regular: 0, hasRate: rates[key] != null };
       row.bookings += 1;
       row.pax += b.slots_booked || 1;
+      // Regular Rate × people booked: what the agency itself earns from this booking.
+      row.regular += (rates[key] || 0) * (b.slots_booked || 1);
       row.collected += collectedOf(b);
       row.balance += balanceOf(b);
       perTour.set(key, row);
@@ -116,6 +121,8 @@ const SalesSummary = () => {
 
     return {
       collected: toursCollected + exclusiveCollected,
+      regularTotal: [...perTour.values()].reduce((sum, t) => sum + t.regular, 0),
+      missingRates: [...perTour.values()].filter((t) => !t.hasRate).length,
       toursCollected,
       exclusiveCollected,
       bookings: inMonth.length,
@@ -124,7 +131,7 @@ const SalesSummary = () => {
       balances,
       balanceTotal: balances.reduce((s, r) => s + r.amount, 0),
     };
-  }, [bookings, exclusives, month]);
+  }, [bookings, exclusives, rates, month]);
 
   const download = () => {
     const lines = [
@@ -134,10 +141,11 @@ const SalesSummary = () => {
       ['From exclusive tours', summary.exclusiveCollected],
       ['Paid bookings', summary.bookings],
       ['Joiners', summary.pax],
+      ['Revenue at Regular Rate (tours)', summary.regularTotal],
       [],
       ['Per tour'],
-      ['Tour', 'Tour date', 'Bookings', 'Joiners', 'Collected', 'Balance still due'],
-      ...summary.perTour.map((t) => [t.title, t.start || '', t.bookings, t.pax, t.collected, t.balance]),
+      ['Tour', 'Tour date', 'Bookings', 'Joiners', 'Collected', 'Balance still due', 'At Regular Rate'],
+      ...summary.perTour.map((t) => [t.title, t.start || '', t.bookings, t.pax, t.collected, t.balance, t.hasRate ? t.regular : 'not set']),
       [],
       ['Unpaid balances (all months)', summary.balanceTotal],
       ['Type', 'Name', 'Reference', 'Contact', 'Tour', 'Tour date', 'Balance'],
@@ -173,6 +181,8 @@ const SalesSummary = () => {
         <Stat icon={<Wallet size={17} />} label={`Collected in ${monthLabel(month)}`} value={loading ? '…' : formatPeso(summary.collected)}
           sub={loading ? '' : summary.exclusiveCollected ? `${formatPeso(summary.toursCollected)} tours · ${formatPeso(summary.exclusiveCollected)} exclusive` : 'From tour bookings'} />
         <Stat icon={<Users size={17} />} label="Paid bookings" value={loading ? '…' : String(summary.bookings)} sub={loading ? '' : `${summary.pax} joiner${summary.pax === 1 ? '' : 's'}`} />
+        <Stat icon={<Wallet size={17} />} label="At Regular Rate" value={loading ? '…' : formatPeso(summary.regularTotal)}
+          sub={loading ? '' : summary.missingRates ? `${summary.missingRates} tour${summary.missingRates === 1 ? ' has' : 's have'} no Regular Rate yet` : 'Regular Rate × joiners, tour bookings'} />
         <Stat icon={<AlertCircle size={17} />} tone="warn" label="Unpaid balances" value={loading ? '…' : formatPeso(summary.balanceTotal)}
           sub={loading ? '' : `${summary.balances.length} booking${summary.balances.length === 1 ? '' : 's'}, all months`} />
       </div>
@@ -186,7 +196,7 @@ const SalesSummary = () => {
             <div style={{ overflowX: 'auto' }}>
               <table style={table}>
                 <thead>
-                  <tr>{['Tour', 'Date', 'Joiners', 'Collected', 'Balance due'].map((h) => <th key={h} style={th}>{h}</th>)}</tr>
+                  <tr>{['Tour', 'Date', 'Joiners', 'Collected', 'At Regular Rate', 'Balance due'].map((h) => <th key={h} style={th}>{h}</th>)}</tr>
                 </thead>
                 <tbody>
                   {summary.perTour.map((t) => (
@@ -195,6 +205,7 @@ const SalesSummary = () => {
                       <td style={td}>{t.start ? formatYmdRange(t.start, t.end) : '—'}</td>
                       <td style={td}>{t.pax}</td>
                       <td style={{ ...td, fontWeight: 800 }}>{formatPeso(t.collected)}</td>
+                      <td style={{ ...td, fontWeight: t.hasRate ? 800 : 600, color: t.hasRate ? '#1A0A00' : '#8C2F1C' }}>{t.hasRate ? formatPeso(t.regular) : 'Not set'}</td>
                       <td style={{ ...td, color: t.balance ? '#8C5216' : '#7A3A18', fontWeight: t.balance ? 800 : 600 }}>{t.balance ? formatPeso(t.balance) : '—'}</td>
                     </tr>
                   ))}
