@@ -420,7 +420,7 @@ const JoinerDashboard = () => {
               .from('tour_meetups')
               .select('*')
               .eq('tour_id', soonest.tour_id)
-              .order('stop_order', { ascending: true });
+              .order('created_at', { ascending: true });
 
             if (stops && stops.length > 0) {
               const active = stops.find(s => s.status === 'CURRENTLY HERE');
