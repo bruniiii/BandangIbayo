@@ -66,7 +66,8 @@ const GUIDE = [
   { Icon: Star, title: 'After the trip', points: ['Rate your trip and share photos in Reviews.', 'Book your next adventure!'] },
 ];
 
-const HelpWidget = () => {
+// zIndex: above the page but, in the dashboard, below the menu and pop-ups.
+const HelpWidget = ({ zIndex = 600 }) => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState('faq');
   const [openFaq, setOpenFaq] = useState(null);
@@ -87,7 +88,7 @@ const HelpWidget = () => {
           aria-label="Help for joiners"
           className="help-widget-panel"
           style={{
-            position: 'fixed', zIndex: 600, right: 20, bottom: 92,
+            position: 'fixed', zIndex, right: 20, bottom: 92,
             width: 380, maxWidth: 'calc(100vw - 24px)', height: 'min(620px, calc(100dvh - 120px))',
             background: '#FDF6EE', borderRadius: 22, border: '1px solid rgba(180,81,30,0.18)',
             boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -171,7 +172,7 @@ const HelpWidget = () => {
         aria-label={open ? 'Close help' : 'Help: FAQ and user guide'}
         className="help-widget-button"
         style={{
-          position: 'fixed', zIndex: 600, right: 20, bottom: 20, height: 58, minWidth: 58, padding: '0 20px 0 16px',
+          position: 'fixed', zIndex, right: 20, bottom: 20, height: 58, minWidth: 58, padding: '0 20px 0 16px',
           borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
           background: '#B4511E', color: '#FDF6EE', boxShadow: '0 12px 30px rgba(180,81,30,0.45)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

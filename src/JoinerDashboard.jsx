@@ -19,6 +19,7 @@ import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
+import HelpWidget from './ui/HelpWidget';
 import { useChatUnread, OPEN_CHAT } from './groupChat';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
@@ -489,6 +490,9 @@ const JoinerDashboard = () => {
       {/* ── SIDEBAR ── */}
       {/* edge tab: opens the menu from anywhere on the page */}
       {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
+
+      {/* Help: FAQ and user guide (not on Group Chat, where it would cover the send button) */}
+      {activeTab !== 'Group Chat' && !mobileNavOpen && <HelpWidget zIndex={95} />}
 
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
