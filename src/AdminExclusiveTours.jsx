@@ -5,7 +5,8 @@ import { SearchX, Inbox } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from "./notifications";
-import { formatPeso } from './tourUtils';
+import { formatPeso, requestNotApprovedReason } from './tourUtils';
+import { BAG_TAG_FEE, expenseItems } from './tourExpenses';
 import { moneyInputProps, cleanMoney } from './moneyInput';
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
@@ -50,12 +51,16 @@ const STATUS_STYLES = {
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
   Confirmed: { bg: '#1A0A00', color: '#E8A265' },
   'Fully Paid': { bg: 'rgba(122,58,24,0.16)', color: '#7A3A18' },
+  'Not Approved': { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };
 
 // Exclusive tours are confirmed once the joiner pays 50% of the package price,
 // and fully paid once the balance is in too.
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
+// Pending requests whose date passed, or is less than 2 weeks away, can't be
+// approved any more: they show as "Not Approved".
 const shownStatus = (request) => {
+  if (requestNotApprovedReason(request)) return 'Not Approved';
   if (request.payment_status !== 'Paid') return request.status;
   return request.balance_settled ? 'Fully Paid' : 'Confirmed';
 };
@@ -149,7 +154,7 @@ const AdminExclusiveTours = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const pendingCount = requests.filter(r => r.status === 'Pending').length;
+  const pendingCount = requests.filter(r => r.status === 'Pending' && !requestNotApprovedReason(r)).length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -193,6 +198,7 @@ const AdminExclusiveTours = () => {
               <option value="Confirmed">Confirmed</option>
               <option value="Fully Paid">Fully Paid</option>
               <option value="Rejected">Rejected</option>
+              <option value="Not Approved">Not Approved</option>
             </select>
             <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
           </div>
@@ -427,11 +433,63 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
   );
 };
 
+// Expenses in the package form: Van Rent, Tour Guide, the fixed Bag Tag and
+// any other costs (name + amount).
+const ExpensesFields = ({ value, onChange, labelStyle, inputStyle }) => {
+  const setOther = (i, field, v) => onChange((f) => ({
+    ...f, others: f.others.map((o, j) => (j === i ? { ...o, [field]: v } : o)),
+  }));
+  return (
+    <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 16, padding: '1rem', border: '1px solid rgba(180,81,30,0.18)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <p style={{ ...labelStyle, opacity: 1, margin: 0 }}>Expenses</p>
+      <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <div>
+          <p style={labelStyle}>Van Rent (₱)</p>
+          <input {...moneyInputProps} aria-label="Van Rent" value={value.van_rent} placeholder="₱15,000 – ₱30,000"
+            onChange={(e) => onChange((f) => ({ ...f, van_rent: cleanMoney(e.target.value) }))} style={inputStyle} />
+        </div>
+        <div>
+          <p style={labelStyle}>Tour Guide (₱)</p>
+          <input {...moneyInputProps} aria-label="Tour Guide" value={value.tour_guide} placeholder="₱1,300 – ₱2,000"
+            onChange={(e) => onChange((f) => ({ ...f, tour_guide: cleanMoney(e.target.value) }))} style={inputStyle} />
+        </div>
+        <div>
+          <p style={labelStyle}>Bag Tag (₱)</p>
+          <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>
+            {BAG_TAG_FEE.toFixed(2)} <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span>
+          </p>
+        </div>
+      </div>
+      {value.others.map((o, i) => (
+        <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input type="text" aria-label={`Other expense ${i + 1} name`} value={o.name} placeholder="e.g. Entrance Fee" maxLength={60}
+            onChange={(e) => setOther(i, 'name', e.target.value)} style={{ ...inputStyle, flex: 2 }} />
+          <input {...moneyInputProps} aria-label={`Other expense ${i + 1} amount`} value={o.amount} placeholder="Amount"
+            onChange={(e) => setOther(i, 'amount', cleanMoney(e.target.value))} style={{ ...inputStyle, flex: 1 }} />
+          <button type="button" aria-label="Remove this expense" title="Remove"
+            onClick={() => onChange((f) => ({ ...f, others: f.others.filter((_, j) => j !== i) }))}
+            style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+      <button type="button" onClick={() => onChange((f) => ({ ...f, others: [...f.others, { name: '', amount: '' }] }))}
+        style={{ alignSelf: 'flex-start', background: 'none', border: '1px dashed rgba(180,81,30,0.4)', borderRadius: 999, padding: '7px 14px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>
+        + Add other expense
+      </button>
+      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+        Once they pay, the joiner sees the names of these expenses (not the prices) on their request and receipt.
+      </p>
+    </div>
+  );
+};
+
 const RequestDetailModal = ({ request, onClose, onResolved }) => {
   const [adminResponse, setAdminResponse] = useState(request.admin_response || '');
   const [submitting, setSubmitting] = useState(null); // 'approve' | 'reject' | null
 
-  const isPending = request.status === 'Pending';
+  const notApprovedReason = requestNotApprovedReason(request);
+  const isPending = request.status === 'Pending' && !notApprovedReason;
   const isExclusive = request.request_type === 'exclusive';
   const isApproved = request.status === 'Approved';
 
@@ -451,6 +509,13 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     things_to_bring: existingPackage.things_to_bring || '',
     additional_notes: existingPackage.additional_notes || '',
   });
+  // Expenses (same rules as tours): Van Rent ₱15,000–₱30,000, Tour Guide
+  // ₱1,300–₱2,000, Bag Tag ₱260, plus any others. Joiners see the names only.
+  const [expenseForm, setExpenseForm] = useState({
+    van_rent: existingPackage.expenses?.van_rent ?? '',
+    tour_guide: existingPackage.expenses?.tour_guide ?? '',
+    others: (existingPackage.expenses?.others || []).map((o) => ({ name: o.name, amount: String(o.amount) })),
+  });
 
   const setPkgField = (field) => (e) =>
     setPackageForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -460,13 +525,31 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       toast.error('Check the price', 'Price must be zero or more.');
       return;
     }
+    const vanRent = Number(expenseForm.van_rent);
+    const tourGuide = Number(expenseForm.tour_guide);
+    const others = expenseForm.others.filter((o) => o.name.trim() || o.amount !== '');
+    const expenseError =
+      expenseForm.van_rent === '' || !(vanRent >= 15000) ? 'Van Rent must be at least ₱15,000.'
+      : vanRent > 30000 ? 'Van Rent can be at most ₱30,000.'
+      : expenseForm.tour_guide === '' || !(tourGuide >= 1300) ? 'Tour Guide must be at least ₱1,300.'
+      : tourGuide > 2000 ? 'Tour Guide can be at most ₱2,000.'
+      : others.some((o) => !o.name.trim()) ? 'Name each other expense, e.g. Entrance Fee.'
+      : others.some((o) => o.amount === '' || !(Number(o.amount) >= 0)) ? 'Give each other expense an amount of ₱0 or more.'
+      : '';
+    if (expenseError) { toast.error('Check the expenses', expenseError); return; }
+    const expenses = {
+      van_rent: Math.round(vanRent * 100) / 100,
+      tour_guide: Math.round(tourGuide * 100) / 100,
+      bag_tag: BAG_TAG_FEE,
+      others: others.map((o) => ({ name: o.name.trim(), amount: Math.round(Number(o.amount) * 100) / 100 })),
+    };
     setSendingPackage(true);
     try {
       const sentAt = new Date().toISOString();
       const { error: updateError } = await supabase
         .from('exclusive_requests')
         .update({
-          package_details: packageForm,
+          package_details: { ...packageForm, expenses },
           package_sent_at: sentAt,
         })
         .eq('id', request.id);
@@ -481,6 +564,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       if (packageForm.inclusions) lines.push(`✅ Inclusions:\n${packageForm.inclusions}`);
       if (packageForm.exclusions) lines.push(`❌ Exclusions:\n${packageForm.exclusions}`);
       if (packageForm.things_to_bring) lines.push(`🎒 Things to Bring:\n${packageForm.things_to_bring}`);
+      lines.push(`🧾 Expenses covered: ${expenseItems(expenses).map((i) => i.label).join(', ')}`);
       if (packageForm.additional_notes) lines.push(`📝 Notes:\n${packageForm.additional_notes}`);
 
       if (request.user_id) {
@@ -633,6 +717,18 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             {request.reviewed_at && <> · Reviewed {formatDateTime(request.reviewed_at)}</>}
           </div>
 
+          {notApprovedReason && (
+            <div style={{
+              background: 'rgba(26,10,0,0.05)', borderRadius: 16, padding: '1rem 1.25rem',
+              border: '1px solid rgba(26,10,0,0.15)', display: 'flex', gap: 12, alignItems: 'flex-start',
+            }}>
+              <XCircle size={18} style={{ color: '#7A3A18', flexShrink: 0, marginTop: 1 }} />
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
+                <strong style={{ color: '#1A0A00' }}>Not approved.</strong> {notApprovedReason} Requests can only be approved at least 2 weeks before the preferred date.
+              </p>
+            </div>
+          )}
+
           {/* Admin response / notify field */}
           <div>
             <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -655,7 +751,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             />
           </div>
 
-          {!isPending && (
+          {!isPending && !notApprovedReason && (
             <div style={{
               background: request.status === 'Approved' ? 'rgba(180,81,30,0.08)' : 'rgba(140,47,28,0.07)',
               borderRadius: 16, padding: '1rem 1.25rem',
@@ -792,6 +888,8 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                       style={{ ...packageInputStyle, resize: 'vertical' }}
                     />
                   </div>
+
+                  <ExpensesFields value={expenseForm} onChange={setExpenseForm} labelStyle={labelStyle} inputStyle={packageInputStyle} />
 
                   <div>
                     <p style={labelStyle}>Additional Notes (optional)</p>

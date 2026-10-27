@@ -1,4 +1,5 @@
 import { formatDateRange } from './tourUtils';
+import { formatYmdRange } from './dateRange';
 import { fetchTourExpenses, expenseItems } from './tourExpenses';
 
 // ─────────────────────────────────────────────
@@ -22,8 +23,8 @@ export const balanceRemaining = (booking) =>
     ? Math.max(0, (booking.total_price || 0) - (booking.amount_paid || 0))
     : 0;
 
-export const downloadReceipt = async (booking, tour) => {
-  const [{ jsPDF }, expenses] = await Promise.all([import('jspdf'), fetchTourExpenses(booking.tour_id)]);
+// A blank receipt with the Bandang IBAYO header, plus helpers to add rows.
+const startReceipt = (jsPDF) => {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const left = 56;
   const right = doc.internal.pageSize.getWidth() - 56;
@@ -45,6 +46,11 @@ export const downloadReceipt = async (booking, tour) => {
     doc.text(title.toUpperCase(), left, y);
     y += 18;
   };
+  const footer = (text) => {
+    y += 24;
+    doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(122, 58, 24);
+    doc.text(doc.splitTextToSize(text, right - left), left, y);
+  };
 
   // Header
   doc.setFont('helvetica', 'bold').setFontSize(20).setTextColor(26, 10, 0);
@@ -55,6 +61,20 @@ export const downloadReceipt = async (booking, tour) => {
   doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(122, 58, 24);
   doc.text('Joiner tours across the Philippines · bandangibayo@gmail.com', left, y);
   y += 14;
+
+  return { doc, line, section, footer };
+};
+
+// Expense names only: joiners don't see what each item costs.
+const addExpenses = (section, line, expenses) => {
+  if (!expenses) return;
+  section('Tour expenses (covered by your booking)');
+  expenseItems(expenses).forEach((item) => line(item.label, 'Included'));
+};
+
+export const downloadReceipt = async (booking, tour) => {
+  const [{ jsPDF }, expenses] = await Promise.all([import('jspdf'), fetchTourExpenses(booking.tour_id)]);
+  const { doc, line, section, footer } = startReceipt(jsPDF);
 
   section('Receipt');
   line('Receipt number', receiptNumber(booking), { bold: true });
@@ -94,19 +114,56 @@ export const downloadReceipt = async (booking, tour) => {
   const balance = balanceRemaining(booking);
   line('Balance', balance > 0 ? `${php(balance)} (due on or before the tour date)` : 'Paid in full', { bold: balance === 0 });
 
-  if (expenses) {
-    // Names only: joiners don't see what each item costs.
-    section('Tour expenses (covered by your booking)');
-    expenseItems(expenses).forEach((item) => line(item.label, 'Included'));
-  }
+  addExpenses(section, line, expenses);
 
-  y += 24;
-  doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(122, 58, 24);
-  doc.text(doc.splitTextToSize(
-    'This receipt acknowledges payment received for the booking above, verified by Bandang IBAYO. '
-    + 'All payments are non-refundable per our Terms & Conditions. This is not a BIR-registered official receipt.',
-    right - left,
-  ), left, y);
+  footer('This receipt acknowledges payment received for the booking above, verified by Bandang IBAYO. '
+    + 'All payments are non-refundable per our Terms & Conditions. This is not a BIR-registered official receipt.');
 
   doc.save(`receipt-${booking.booking_number}.pdf`);
+};
+
+// Receipt for an exclusive tour (50% downpayment, then the balance).
+export const exclusiveReceiptNumber = (request) => `R-EX-${String(request.id).slice(0, 8).toUpperCase()}`;
+
+export const downloadExclusiveReceipt = async (request) => {
+  const { jsPDF } = await import('jspdf');
+  const { doc, line, section, footer } = startReceipt(jsPDF);
+  const pkg = request.package_details || {};
+  const price = Number(pkg.price) || 0;
+  const paid = Number(request.amount_paid) || 0;
+  const balance = request.balance_settled ? 0 : Math.max(0, price - paid);
+
+  section('Receipt');
+  line('Receipt number', exclusiveReceiptNumber(request), { bold: true });
+  line('Date & time issued', dateTime(new Date()));
+  line('Requested on', request.created_at ? dateTime(request.created_at) : '—');
+
+  section('Received from');
+  line('Name', request.full_name);
+  line('Email', request.email);
+  line('Contact number', request.contact_number);
+
+  section('Exclusive tour');
+  line('Destination', pkg.destination || request.destination, { bold: true });
+  line('Date', request.preferred_date
+    ? formatYmdRange(request.preferred_date, request.preferred_end_date || request.preferred_date) : '—');
+  line('Group size', request.group_size ? `${request.group_size} persons` : '—');
+  if (pkg.accommodation) line('Accommodation', pkg.accommodation);
+
+  section('Payment');
+  line('Payment method', `${request.paymongo_payment_id ? 'Online via PayMongo' : 'Recorded by Bandang IBAYO'} · 50% downpayment`);
+  if (request.paymongo_payment_id) line('Payment ID', request.paymongo_payment_id);
+  if (request.balance_paymongo_payment_id) line('Balance payment ID', request.balance_paymongo_payment_id);
+  if (request.paid_at) line('Downpayment paid on', dateTime(request.paid_at));
+  if (request.balance_paid_at) line('Balance paid on', dateTime(request.balance_paid_at));
+  line('Package price', php(price));
+  line('Amount paid', php(paid), { bold: true, size: 12 });
+  line('Balance', balance > 0 ? `${php(balance)} (due before the trip)` : 'Paid in full', { bold: balance === 0 });
+
+  addExpenses(section, line, pkg.expenses);
+
+  footer('This receipt acknowledges payment received for the exclusive tour above, verified by Bandang IBAYO. '
+    + 'All payments are non-refundable per our Terms & Conditions. This is not a BIR-registered official receipt.');
+
+  doc.save(`receipt-exclusive-${String(request.id).slice(0, 8)}.pdf`);
 };
