@@ -48,6 +48,13 @@ const balanceOwed = (b) => Math.max(0, (b.total_price || 0) - (b.amount_paid || 
 const owesBalance = (b) =>
   getBalanceStatus(b) === 'Balance Due' && b.booking_status !== 'Cancelled' && balanceOwed(b) > 0;
 
+// The status the admin sees: a downpayment booking that still owes a balance
+// isn't "Complete" yet, it's "Downpayment Paid" (with a Balance Due badge).
+const getShownStatus = (b) => {
+  const derived = getDerivedStatus(b);
+  return derived === 'Complete' && owesBalance(b) ? 'Downpayment Paid' : derived;
+};
+
 /* ─────────────────────────────────────────────
    BOOKING MANAGEMENT  (Admin)
 ───────────────────────────────────────────── */
@@ -163,8 +170,8 @@ const BookingManagement = () => {
       joinerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (b.tours?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (b.booking_number || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const derived = getDerivedStatus(b);
-    const matchesStatus = statusFilter === 'All Status' || derived === statusFilter
+    const shown = getShownStatus(b);
+    const matchesStatus = statusFilter === 'All Status' || shown === statusFilter
       || (statusFilter === 'Balance Due' && owesBalance(b));
     const matchesMethod = methodFilter === 'All Methods' || b.payment_method === methodFilter;
     const matchesTour = tourFilter === 'All Tours' || String(b.tour_id) === String(tourFilter);
@@ -212,7 +219,7 @@ const BookingManagement = () => {
   };
  
   // ── grid column template shared by header + rows ──
-  const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 150px 140px';
+  const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 170px 140px';
  
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -314,6 +321,7 @@ const BookingManagement = () => {
             <option value="Pending">Pending</option>
             <option value="Verification Pending">Verification Pending</option>
             <option value="Complete">Complete</option>
+            <option value="Downpayment Paid">Downpayment Paid</option>
             <option value="Rejected">Rejected</option>
             <option value="Cancellation Requested">Cancellation Requested</option>
             <option value="Cancelled">Cancelled</option>
@@ -533,7 +541,7 @@ const BookingRow = ({ booking, onView }) => {
       </div>
       <div style={cellStyle} {...rowHandlers}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-start' }}>
-          <StatusBadge status={getDerivedStatus(booking)} />
+          <StatusBadge status={getShownStatus(booking)} wrap />
           {getBalanceStatus(booking) && <BalanceStatusBadge status={getBalanceStatus(booking)} />}
         </div>
       </div>
@@ -612,6 +620,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
   const isCancelled = !isPending && booking.booking_status === 'Cancelled' && booking.payment_status !== 'Rejected';
   const cancelRequested = !!booking.cancellation_requested_at && !isCancelled && !isRejected && booking.booking_status !== 'Rejected';
   const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : cancelRequested ? 'Cancellation Requested' : booking.payment_status);
+  const shownStatus = derivedStatus === 'Complete' && owesBalance(booking) ? 'Downpayment Paid' : derivedStatus;
   const [deciding, setDeciding] = useState(null); // 'approve' | 'decline'
 
   // The joiner asked to cancel: approve (frees their slots) or decline (keeps the booking).
@@ -729,7 +738,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           title={booking.booking_number || 'N/A'}
           onClose={onClose}
         >
-          <StatusBadge status={derivedStatus} />
+          <StatusBadge status={shownStatus} />
           <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>{joinerName}</span>
         </ModalHeader>
 
@@ -783,7 +792,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 </div>
                 <div>
                   <p style={labelStyle}>Booking Status</p>
-                  <StatusBadge status={derivedStatus} />
+                  <StatusBadge status={shownStatus} wrap />
                 </div>
                 {isDownpayment && isComplete && (
                   <div>
@@ -1299,11 +1308,14 @@ const STATUS_STYLES = {
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
   Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
   'Cancellation Requested': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
+  'Downpayment Paid': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
   'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
   Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };
  
-const StatusBadge = ({ status, large = false }) => {
+// wrap: long labels (e.g. Cancellation Requested) go onto two lines instead of
+// spilling into the next column.
+const StatusBadge = ({ status, large = false, wrap = false }) => {
   const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
     <span style={{
@@ -1313,8 +1325,8 @@ const StatusBadge = ({ status, large = false }) => {
       borderRadius: 999,
       padding: large ? '7px 18px' : '4px 12px',
       fontSize: large ? 11 : 9,
-      fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
-      whiteSpace: 'nowrap',
+      fontWeight: 900, letterSpacing: wrap ? '0.1em' : '0.16em', textTransform: 'uppercase',
+      whiteSpace: wrap ? 'normal' : 'nowrap', lineHeight: wrap ? 1.35 : undefined, maxWidth: '100%',
     }}>
       {status || 'Pending'}
     </span>

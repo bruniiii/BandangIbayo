@@ -4,16 +4,9 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { archivePastTours } from './tourUtils';
 
-// The time picker gives "16:30"; joiners see "4:30 PM", like the older stops.
-const formatTime12h = (value) => {
-  const m = /^(\d{1,2}):(\d{2})$/.exec(value);
-  if (!m) return value;
-  const h = Number(m[1]);
-  return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
-};
 import { nameError, phoneError, cleanName, normalizePhone, formatPhPhone } from './validation';
 import {
-  MapPin, Plus, Trash2, Archive, RefreshCw, History, X, Calendar,
+  MapPin, Trash2, Archive, RefreshCw, History, X, Calendar,
   Armchair, Compass, ImageIcon, Loader2, Truck, Check, CheckCircle2,
   Navigation, Clock, Send, ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -55,17 +48,14 @@ export const AdminTrackingControls = () => {
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
   const [meetupStops, setMeetupStops] = useState([]);
+  // The stops as last saved, to spot an Update that changes nothing.
+  const savedStopsRef = useRef([]);
   const [loading, setLoading] = useState(true);
   const [loadingConsole, setLoadingConsole] = useState(false);
   const [trackingLogs, setTrackingLogs] = useState([]);
   const [confirmAction, setConfirmAction] = useState(null);
-  const [savingStop, setSavingStop] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const [clearingFeed, setClearingFeed] = useState(false);
-
-  // New Checkpoint Inputs
-  const [newLocName, setNewLocName] = useState('');
-  const [newTime, setNewTime] = useState('');
 
   // Fleet & Driver Form States
   const [carType, setCarType] = useState('');
@@ -131,7 +121,8 @@ export const AdminTrackingControls = () => {
         setIsLogisticsSaved(false);
       }
 
-      setMeetupStops(Array.isArray(stops) ? stops : []);
+      savedStopsRef.current = Array.isArray(stops) ? stops : [];
+      setMeetupStops(savedStopsRef.current);
       setTrackingLogs(Array.isArray(logs) ? logs : []);
     } catch (err) {
       console.error('Error loading tracking console:', err.message);
@@ -212,35 +203,6 @@ export const AdminTrackingControls = () => {
     setIsLogisticsSaved(true);
   };
 
-  // Add Pickup Stop
-  const handleAddPickupStop = async (e) => {
-    e.preventDefault();
-    if (!newLocName.trim() || !newTime.trim() || !activeTour?.id) {
-      toast.error('Missing details', 'Please enter the pickup location and time.');
-      return;
-    }
-
-    setSavingStop(true);
-    const { data, error } = await supabase.from('tour_meetups').insert([{
-      tour_id: activeTour.id,
-      location_name: newLocName.trim(),
-      scheduled_time: formatTime12h(newTime.trim()),
-      status: 'DEPARTURE',
-      note: '',
-    }]).select();
-
-    setSavingStop(false);
-    if (error) {
-      toast.error("Couldn't add checkpoint", error.message);
-      return;
-    }
-
-    setMeetupStops(prev => [...(prev || []), ...(data || [])]);
-    toast.success('Pickup stop added');
-    setNewLocName('');
-    setNewTime('');
-  };
-
   // Delete Pickup Stop
   const handleDeleteStop = async (stopId) => {
     if (!(await confirmDialog({ title: 'Delete this pickup stop?', message: "Joiners won't see it on the tracking page anymore.", confirmLabel: 'Delete Stop', cancelLabel: 'Keep Stop', tone: 'danger' }))) return;
@@ -263,6 +225,20 @@ export const AdminTrackingControls = () => {
   // Update Stop Details
   const handleUpdateStopDetails = async (stop) => {
     if (!activeTour?.id || !stop?.id) return;
+    const same = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+    const saved = savedStopsRef.current.find(s => s.id === stop.id);
+    if (!String(stop.scheduled_time || '').trim()) {
+      toast.error('Missing ETA', 'Please enter the ETA for this stop.');
+      return;
+    }
+    if (saved && same(saved.scheduled_time, stop.scheduled_time) && same(saved.note, stop.note)) {
+      toast.error('Nothing changed', 'Change the ETA or the note before updating.');
+      return;
+    }
+    if (String(stop.note || '').trim() && meetupStops.some(s => s.id !== stop.id && same(s.note, stop.note))) {
+      toast.error('Note already used', 'Another stop has the same note. Please write a different one.');
+      return;
+    }
     const { error } = await supabase
       .from('tour_meetups')
       .update({
@@ -432,7 +408,6 @@ export const AdminTrackingControls = () => {
           isLogisticsSaved={isLogisticsSaved}
           setIsLogisticsSaved={setIsLogisticsSaved}
           savingLogistics={savingLogistics}
-          savingStop={savingStop}
           advancing={advancing}
           carType={carType} setCarType={setCarType}
           plateNumber={plateNumber} setPlateNumber={setPlateNumber}
@@ -440,10 +415,7 @@ export const AdminTrackingControls = () => {
           vehicleNotes={vehicleNotes} setVehicleNotes={setVehicleNotes}
           driverName={driverName} setDriverName={setDriverName}
           driverContact={driverContact} setDriverContact={setDriverContact}
-          newLocName={newLocName} setNewLocName={setNewLocName}
-          newTime={newTime} setNewTime={setNewTime}
           onSaveVehicleInfo={handleSaveVehicleInfo}
-          onAddPickupStop={handleAddPickupStop}
           onDeleteStop={handleDeleteStop}
           onStopFieldChange={handleStopFieldChange}
           onUpdateStopDetails={handleUpdateStopDetails}
@@ -649,12 +621,11 @@ const PickupRoster = ({ tourId, stops }) => {
 const TrackingConsoleModal = ({
   tour, meetupStops = [], trackingLogs = [], loadingConsole,
   isLogisticsSaved, setIsLogisticsSaved,
-  savingLogistics, savingStop, advancing,
+  savingLogistics, advancing,
   carType, setCarType, plateNumber, setPlateNumber,
   vehicleColor, setVehicleColor, vehicleNotes, setVehicleNotes,
   driverName, setDriverName, driverContact, setDriverContact,
-  newLocName, setNewLocName, newTime, setNewTime,
-  onSaveVehicleInfo, onAddPickupStop, onDeleteStop,
+  onSaveVehicleInfo, onDeleteStop,
   onStopFieldChange, onUpdateStopDetails,
   onAdvanceStop, onClearFeed, clearingFeed, onRequestArchive, onClose,
 }) => {
@@ -768,36 +739,13 @@ const TrackingConsoleModal = ({
                   <MapPin size={14} /> Manual Pickup Stops & ETA Dispatch
                 </h4>
 
-                <form onSubmit={onAddPickupStop} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 8, marginBottom: 14 }}>
-                  <input
-                    type="text"
-                    placeholder="Pickup Point (e.g. Shell Mindanao Ave)"
-                    value={newLocName}
-                    onChange={e => setNewLocName(e.target.value)}
-                    style={{ ...inputStyle, flex: 2 }}
-                  />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <input
-                      type="time"
-                      aria-label="Pickup time (ETA)"
-                      title="Pickup time (ETA)"
-                      value={newTime}
-                      onChange={e => setNewTime(e.target.value)}
-                      style={{ ...inputStyle, flex: 1 }}
-                    />
-                    <button type="submit" disabled={savingStop} style={{
-                      width: 44, flexShrink: 0, background: '#1A0A00', color: '#FDF6EE',
-                      border: 'none', borderRadius: 12, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {savingStop ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={18} />}
-                    </button>
-                  </div>
-                </form>
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+                  Pickup points come from Tour Management (Edit Tour → Pickup Points). Here you can update each stop's ETA and note.
+                </p>
 
                 {safeStops.length === 0 ? (
                   <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', opacity: 0.9, textAlign: 'center', margin: '14px 0' }}>
-                    No pickup stops added yet. Create one above.
+                    No pickup points yet. Add them in Tour Management (Edit Tour).
                   </p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

@@ -191,6 +191,13 @@ const JoinerDashboard = () => {
     return () => { active = false; };
   }, [exclusiveReturn]);
 
+  // Payment banners close by themselves after 1 minute (not while still checking).
+  useEffect(() => {
+    if (!paymentNotice || paymentNotice.text === 'Checking your payment…') return undefined;
+    const timer = setTimeout(() => setPaymentNotice(null), 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [paymentNotice]);
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 900;
