@@ -1353,8 +1353,9 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
               return (
                 <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(180,81,30,0.06)', borderRadius: 10, padding: '7px 8px 7px 10px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 800, color: '#1A0A00', whiteSpace: 'nowrap' }}>
-                      <Calendar size={12} style={{ color: '#A8481A', flexShrink: 0 }} /> {formatDateRange(d.start_date, d.duration)}
+                    {/* Wraps onto two lines when long (dates + weekdays) instead of running under the Joiners button */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12.5, fontWeight: 800, color: '#1A0A00', lineHeight: 1.35, overflowWrap: 'anywhere' }}>
+                      <Calendar size={12} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} /> <span style={{ minWidth: 0 }}>{formatDateRange(d.start_date, d.duration)}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: full ? '#A8481A' : '#7A3A18', marginTop: 2, paddingLeft: 18 }}>
                       {d.current_booked ?? 0} / {d.group_size || 18} booked
