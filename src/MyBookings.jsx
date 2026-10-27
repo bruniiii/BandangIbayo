@@ -5,20 +5,20 @@ import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare } from 'lucide-re
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout } from './payments';
 import CheckInQr from './ui/CheckInQr';
 import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
-import { CustomPickupSection } from './CustomPickup';
 import { openGroupChat } from './groupChat';
+import { fetchTourExpenses, expenseItems, expensesTotal } from './tourExpenses';
 import { tripDayBookings } from './tripDay';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
-  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard, Clock, Backpack
+  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard, Clock, Backpack, Wallet
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
 
@@ -520,6 +520,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
                 <OnlinePaymentActions booking={booking} isAwaitingPayment={isAwaitingPayment} isPaymentConfirmed={isPaymentConfirmed} onChanged={onCancelSuccess} />
 
+                {booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
+                  <PickupPointSection booking={booking} tour={tour} />
+                )}
+
+                {isPaymentConfirmed && <TourExpensesSection tourId={booking.tour_id} />}
+
                 {isPaymentConfirmed && (
                   <button
                     type="button"
@@ -534,9 +540,6 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   </button>
                 )}
 
-                {isPaymentConfirmed && !booking.cancellation_requested_at && (
-                  <CustomPickupSection booking={booking} canRequest={!!tour.start_date && tour.start_date > todayManila()} />
-                )}
 
                 {canCancel && !showCancelConfirm && (
                   <RescheduleSection booking={booking} tour={tour} formatDateRange={formatDateRange} onMoved={onCancelSuccess} />
@@ -821,6 +824,89 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 };
 
 /* ── Move to another date: same trip (destination) at the same price ── */
+// What the tour costs (van, guide, bag tag, others), as set by the agency.
+const TourExpensesSection = ({ tourId }) => {
+  const [expenses, setExpenses] = useState(undefined);
+  useEffect(() => {
+    let active = true;
+    fetchTourExpenses(tourId).then((e) => { if (active) setExpenses(e); });
+    return () => { active = false; };
+  }, [tourId]);
+  if (!expenses) return null;
+  return (
+    <ViewSection title="Tour Expenses" icon={<Wallet size={14} style={{ color: '#A8481A' }} />}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {expenseItems(expenses).map((item) => (
+          <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, fontWeight: 600, color: '#1A0A00' }}>
+            <span>{item.label}</span><span>{formatPeso(item.amount)}</span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, fontWeight: 900, color: '#1A0A00', borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 6, marginTop: 2 }}>
+          <span>Total</span><span>{formatPeso(expensesTotal(expenses))}</span>
+        </div>
+      </div>
+    </ViewSection>
+  );
+};
+
+// The joiner's pickup point: shown, and changeable until the tour date.
+const PickupPointSection = ({ booking, tour }) => {
+  const [points, setPoints] = useState(null);
+  const [current, setCurrent] = useState(booking.pickup_point || '');
+  const [saving, setSaving] = useState(false);
+  const canChange = !!tour.start_date && tour.start_date > todayManila();
+
+  useEffect(() => {
+    let active = true;
+    supabase.rpc('tour_pickup_points', { p_tour_id: booking.tour_id })
+      .then(({ data, error }) => { if (active) setPoints(error ? [] : data || []); });
+    return () => { active = false; };
+  }, [booking.tour_id]);
+
+  const change = async (value) => {
+    if (!value || value === current) return;
+    setSaving(true);
+    const { error } = await supabase.from('bookings').update({ pickup_point: value }).eq('id', booking.id);
+    setSaving(false);
+    if (error) { toast.error("Couldn't change your pickup point", error.message); return; }
+    setCurrent(value);
+    toast.success('Pickup point updated', value);
+  };
+
+  const timeOf = (name) => points?.find((p) => p.location_name === name)?.scheduled_time;
+
+  return (
+    <ViewSection title="Pickup Point" icon={<MapPin size={14} style={{ color: '#A8481A' }} />}>
+      {current ? (
+        <p style={{ fontSize: 14, fontWeight: 800, color: '#1A0A00', margin: '0 0 8px' }}>
+          {current}{timeOf(current) ? <span style={{ fontWeight: 600, color: '#7A3A18' }}> · {formatPickupTime(timeOf(current))}</span> : null}
+        </p>
+      ) : (
+        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 8px' }}>
+          {points?.length ? "You haven't chosen a pickup point yet." : 'Pickup points will be posted before the trip.'}
+        </p>
+      )}
+      {canChange && points?.length > 0 && (
+        <select
+          aria-label={current ? 'Change pickup point' : 'Choose pickup point'}
+          value=""
+          disabled={saving}
+          onChange={(e) => change(e.target.value)}
+          style={{
+            width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.22)',
+            borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, color: '#7A3A18', fontFamily: 'inherit', cursor: 'pointer',
+          }}
+        >
+          <option value="">{saving ? 'Saving…' : current ? 'Change pickup point…' : 'Choose your pickup point…'}</option>
+          {points.filter((p) => p.location_name !== current).map((p) => (
+            <option key={p.location_name} value={p.location_name}>{p.location_name}{p.scheduled_time ? ` · ${formatPickupTime(p.scheduled_time)}` : ''}</option>
+          ))}
+        </select>
+      )}
+    </ViewSection>
+  );
+};
+
 const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
   const [options, setOptions] = useState(null); // null = still checking
   const [moving, setMoving] = useState(null);

@@ -157,3 +157,11 @@ export const tripForDate = (trips, id) => {
   if (!trip) return null;
   return { ...trip.dates.find((d) => String(d.id) === String(id)), dates: trip.dates };
 };
+
+// "04:30" → "4:30 AM"; times already like "4:30 AM" stay as they are (pickup stops).
+export const formatPickupTime = (value) => {
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(String(value || '').trim());
+  if (!m) return value || '';
+  const h = Number(m[1]);
+  return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
+};

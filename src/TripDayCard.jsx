@@ -46,15 +46,14 @@ const TripDayCard = ({ booking }) => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [{ data: stops }, { data: vehicle }, { data: custom }] = await Promise.all([
+      const [{ data: stops }, { data: vehicle }] = await Promise.all([
         supabase.from('tour_meetups').select('*').eq('tour_id', booking.tour_id).order('created_at', { ascending: true }),
         supabase.from('tour_vehicles').select('*').eq('tour_id', booking.tour_id).maybeSingle(),
-        supabase.from('pickup_requests').select('location, note, status, extra_fee').eq('booking_id', booking.id).maybeSingle(),
       ]);
-      if (!cancelled) setDetails({ stops: stops || [], vehicle: vehicle || null, custom: custom || null });
+      if (!cancelled) setDetails({ stops: stops || [], vehicle: vehicle || null });
     })();
     return () => { cancelled = true; };
-  }, [booking.tour_id, booking.id]);
+  }, [booking.tour_id]);
 
   const items = (tour.things_to_bring || '').split('\n').map((s) => s.trim()).filter(Boolean);
   const balance = booking.payment_method === 'Downpayment' && !booking.balance_settled
@@ -83,10 +82,9 @@ const TripDayCard = ({ booking }) => {
       <div className="trip-day-grid" style={{ padding: '1.25rem 1.4rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '1.25rem 1.75rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
           <Section icon={<MapPin size={13} />} title="Pickup points">
-            {details?.custom?.status === 'Approved' && (
+            {booking.pickup_point && (
               <p style={{ fontSize: 13, fontWeight: 800, color: '#2E6B4A', background: 'rgba(46,107,74,0.1)', borderRadius: 12, padding: '9px 12px', margin: '0 0 8px' }}>
-                Your custom pickup: {details.custom.location}
-                {Number(details.custom.extra_fee) > 0 ? ` · additional fee ${formatPeso(details.custom.extra_fee)}` : ''}
+                Your pickup point: {booking.pickup_point}
               </p>
             )}
             {!details ? (

@@ -1,4 +1,4 @@
-import { ShieldCheck, X } from 'lucide-react';
+import { ShieldCheck, X, AlertTriangle } from 'lucide-react';
 
 // The Terms & Conditions, in a window. Used by registration and Exclusive
 // Tours. onAgree is optional: without it only Close is shown.
