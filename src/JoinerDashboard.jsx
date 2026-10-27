@@ -20,7 +20,7 @@ import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
 import HelpWidget from './ui/HelpWidget';
-import { useChatUnread, OPEN_CHAT } from './groupChat';
+import { useChatUnread, OPEN_CHAT } from './chatStore';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { confirmDialog } from './ui/ConfirmDialog';

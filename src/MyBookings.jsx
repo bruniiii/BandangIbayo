@@ -14,7 +14,7 @@ import { phoneFieldProps } from './ui/phoneField';
 import CheckInQr from './ui/CheckInQr';
 import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
-import { openGroupChat } from './groupChat';
+import { openGroupChat } from './chatStore';
 import { fetchTourExpenses, expenseItems } from './tourExpenses';
 import { tripDayBookings } from './tripDay';
 import { 
