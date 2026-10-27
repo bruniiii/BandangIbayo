@@ -433,6 +433,58 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
   );
 };
 
+// Posts (or updates) the tour for an approved joiner-tour request, like Tour
+// Management does: the tour date, its Regular Rate, expenses and a feed post.
+const durationOf = (start, end) => {
+  const days = Math.round((new Date(`${end}T00:00:00Z`) - new Date(`${start}T00:00:00Z`)) / 86400000) + 1;
+  return days <= 1 ? '1 Day' : `${days} Days`;
+};
+const postRequestedTour = async ({ request, packageForm, expenses, tourId }) => {
+  const start = request.preferred_date;
+  const end = request.preferred_end_date || start;
+  const row = {
+    title: packageForm.title.trim(),
+    destination: (packageForm.destination || request.destination || '').trim(),
+    price: Math.round(Number(packageForm.price) * 100) / 100,
+    group_size: Number(packageForm.group_size),
+    difficulty: packageForm.difficulty,
+    itinerary: packageForm.itinerary,
+    inclusions: packageForm.inclusions,
+    exclusions: packageForm.exclusions,
+    things_to_bring: packageForm.things_to_bring,
+    description: packageForm.additional_notes || `A joiner tour to ${request.destination}, requested by our community.`,
+    start_date: start,
+    end_date: end,
+    duration: durationOf(start, end),
+    is_archived: false,
+  };
+  let id = tourId;
+  if (id) {
+    const { error } = await supabase.from('tours').update(row).eq('id', id);
+    if (error) throw error;
+  } else {
+    const { data, error } = await supabase.from('tours').insert([{ ...row, image_urls: [] }]).select('id').single();
+    if (error) throw error;
+    id = data.id;
+  }
+  const { error: rateError } = await supabase.from('tour_rates')
+    .upsert([{ tour_id: id, regular_rate: Math.round(Number(packageForm.regular_rate) * 100) / 100 }], { onConflict: 'tour_id' });
+  if (rateError) throw rateError;
+  const { error: expError } = await supabase.from('tour_expenses').upsert([{ tour_id: id, ...expenses }], { onConflict: 'tour_id' });
+  if (expError) throw expError;
+  if (!tourId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error: feedError } = await supabase.from('feed_posts').insert([{
+      author_id: user?.id || null,
+      content: `New tour posted: ${row.title} — ${row.destination}. Requested by a joiner, now open to everyone. Book your slot now!`,
+      post_type: 'tour',
+      tour_id: id,
+    }]);
+    if (feedError) console.error('Error auto-posting tour to feed:', feedError.message);
+  }
+  return id;
+};
+
 // Expenses in the package form: Van Rent, Tour Guide, the fixed Bag Tag and
 // any other costs (name + amount).
 const ExpensesFields = ({ value, onChange, labelStyle, inputStyle }) => {
@@ -492,6 +544,9 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
   const isPending = request.status === 'Pending' && !notApprovedReason;
   const isExclusive = request.request_type === 'exclusive';
   const isApproved = request.status === 'Approved';
+  // A requested tour open to other joiners: sending its package also posts it
+  // on Explore Tours (as a normal tour, with the tour rules for prices).
+  const isOpenRequest = request.request_type === 'request' && request.tour_type === 'joiner';
 
   // ── Tour Package Details (sent to the joiner once a request is approved) ──
   const existingPackage = request.package_details || {};
@@ -508,7 +563,13 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     exclusions: existingPackage.exclusions || '',
     things_to_bring: existingPackage.things_to_bring || '',
     additional_notes: existingPackage.additional_notes || '',
+    // Only for requested tours posted on Explore Tours:
+    title: existingPackage.title || request.destination || '',
+    regular_rate: existingPackage.regular_rate ?? '',
+    group_size: existingPackage.group_size ?? (request.group_size ? Math.max(Number(request.group_size), 10) : 15),
+    difficulty: existingPackage.difficulty || 'Easy',
   });
+  const [postedTourId, setPostedTourId] = useState(existingPackage.tour_id || null);
   // Expenses (same rules as tours): Van Rent ₱15,000–₱30,000, Tour Guide
   // ₱1,300–₱2,000, Bag Tag ₱260, plus any others. Joiners see the names only.
   const [expenseForm, setExpenseForm] = useState({
@@ -537,6 +598,26 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       : others.some((o) => o.amount === '' || !(Number(o.amount) >= 0)) ? 'Give each other expense an amount of ₱0 or more.'
       : '';
     if (expenseError) { toast.error('Check the expenses', expenseError); return; }
+    const joinerRate = Number(packageForm.price);
+    const regularRate = Number(packageForm.regular_rate);
+    const slots = Number(packageForm.group_size);
+    if (isOpenRequest) {
+      const tourError =
+        !packageForm.title.trim() ? 'Please give the tour a title.'
+        : packageForm.regular_rate === '' || !(regularRate >= 1000) ? 'The Regular Rate must be at least ₱1,000.'
+        : regularRate > 7500 ? 'The Regular Rate can be at most ₱7,500.'
+        : packageForm.price === '' || !(joinerRate >= regularRate + 500) ? `The Joiner Rate must be at least ₱500 more than the Regular Rate (at least ${formatPeso(regularRate + 500)}).`
+        : joinerRate > 8000 ? 'The Joiner Rate can be at most ₱8,000.'
+        : !Number.isInteger(slots) || slots < 1 || slots > 60 ? 'Max joiners must be a whole number from 1 to 60.'
+        : !request.preferred_date ? 'This request has no date, so it can\'t be posted on Explore Tours.'
+        : '';
+      if (tourError) { toast.error('Check the tour details', tourError); return; }
+      if (!postedTourId && !(await confirmDialog({
+        title: 'Post this tour on Explore Tours?',
+        message: `"${packageForm.title.trim()}" (${tripDates(request)}) will open for booking to all joiners, and the joiner who requested it will be notified.`,
+        confirmLabel: 'Send & Post Tour', cancelLabel: 'Go Back',
+      }))) return;
+    }
     const expenses = {
       van_rent: Math.round(vanRent * 100) / 100,
       tour_guide: Math.round(tourGuide * 100) / 100,
@@ -546,10 +627,12 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     setSendingPackage(true);
     try {
       const sentAt = new Date().toISOString();
+      const tourId = isOpenRequest ? await postRequestedTour({ request, packageForm, expenses, tourId: postedTourId }) : null;
+      if (tourId) setPostedTourId(tourId);
       const { error: updateError } = await supabase
         .from('exclusive_requests')
         .update({
-          package_details: { ...packageForm, expenses },
+          package_details: { ...packageForm, expenses, ...(tourId ? { tour_id: tourId } : {}) },
           package_sent_at: sentAt,
         })
         .eq('id', request.id);
@@ -558,7 +641,8 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       const lines = [
         `📍 Destination: ${packageForm.destination || request.destination || '—'}`,
       ];
-      if (packageForm.price) lines.push(`💰 Price: ${formatPeso(Number(packageForm.price))}`);
+      if (packageForm.price) lines.push(`💰 Price: ${formatPeso(Number(packageForm.price))}${isOpenRequest ? ' per person' : ''}`);
+      if (tourId) lines.push('🧭 This tour is now open on Explore Tours. Book your slot there!');
       if (packageForm.accommodation) lines.push(`🏨 Accommodation: ${packageForm.accommodation}`);
       if (packageForm.itinerary) lines.push(`🗺️ Itinerary:\n${packageForm.itinerary}`);
       if (packageForm.inclusions) lines.push(`✅ Inclusions:\n${packageForm.inclusions}`);
@@ -579,7 +663,9 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       setPackageSentAt(sentAt);
       setSentPrice(Number(packageForm.price) || 0);
       setShowPackageForm(false);
-      toast.success('Package sent', 'The joiner was notified with the full package details.');
+      toast.success('Package sent', tourId
+        ? 'The joiner was notified, and the tour is now on Explore Tours. Add photos and pickup points in Tour Management.'
+        : 'The joiner was notified with the full package details.');
     } catch (err) {
       toast.error("Couldn't send tour package", err.message);
     } finally {
@@ -764,7 +850,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
                 This request has already been {request.status.toLowerCase()} and the joiner has been notified.
                 {request.request_type === 'request' && request.status === 'Approved' && request.tour_type === 'joiner' && (
-                  <> Remember to create the actual listing in <strong>Tour Management</strong> so joiners can book it.</>
+                  <> Send the tour package below to post it on <strong>Explore Tours</strong> so joiners can book it.</>
                 )}
               </p>
             </div>
@@ -830,14 +916,54 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                       />
                     </div>
                     <div>
-                      <p style={labelStyle}>Final Price (₱)</p>
+                      <p style={labelStyle}>{isOpenRequest ? 'Joiner Rate (₱ per person)' : 'Final Price (₱)'}</p>
                       <input
                         {...moneyInputProps} value={packageForm.price} onChange={(e) => setPackageForm((f) => ({ ...f, price: cleanMoney(e.target.value) }))}
-                        placeholder="e.g. 55000"
+                        placeholder={isOpenRequest ? '₱1,500 – ₱8,000' : 'e.g. 55000'}
                         style={packageInputStyle}
                       />
                     </div>
                   </div>
+
+                  {isOpenRequest && (
+                    <div style={{ background: 'rgba(26,10,0,0.04)', borderRadius: 16, padding: '1rem', border: '1px solid rgba(26,10,0,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+                        {postedTourId
+                          ? <><strong style={{ color: '#1A0A00' }}>Posted on Explore Tours.</strong> Resending updates that tour too.</>
+                          : <>This joiner tour will be <strong style={{ color: '#1A0A00' }}>posted on Explore Tours</strong> ({tripDates(request)}) when you send the package, so other joiners can book it.</>}
+                      </p>
+                      <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
+                        <div>
+                          <p style={labelStyle}>Tour Title</p>
+                          <input type="text" aria-label="Tour title" maxLength={120} value={packageForm.title} onChange={setPkgField('title')} placeholder="e.g. Sagada Sunrise Tour" style={packageInputStyle} />
+                        </div>
+                        <div>
+                          <p style={labelStyle}>Difficulty</p>
+                          <select aria-label="Difficulty" value={packageForm.difficulty} onChange={setPkgField('difficulty')} style={{ ...packageInputStyle, cursor: 'pointer' }}>
+                            <option value="Easy">Easy</option>
+                            <option value="Moderate">Moderate</option>
+                            <option value="Challenging">Challenging</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <p style={labelStyle}>Regular Rate (₱)</p>
+                          <input {...moneyInputProps} aria-label="Regular rate" value={packageForm.regular_rate} placeholder="₱1,000 – ₱7,500"
+                            onChange={(e) => setPackageForm((f) => ({ ...f, regular_rate: cleanMoney(e.target.value) }))} style={packageInputStyle} />
+                        </div>
+                        <div>
+                          <p style={labelStyle}>Max Joiners</p>
+                          <input type="number" min="1" max="60" step="1" aria-label="Max joiners" value={packageForm.group_size}
+                            onKeyDown={(e) => { if (['-', '+', 'e', 'E', '.'].includes(e.key)) e.preventDefault(); }}
+                            onChange={setPkgField('group_size')} style={packageInputStyle} />
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+                        Admins only: the Regular Rate is never shown to joiners. The Joiner Rate must be at least ₱500 more.
+                      </p>
+                    </div>
+                  )}
 
                   <div>
                     <p style={labelStyle}>Accommodation</p>

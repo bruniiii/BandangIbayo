@@ -126,6 +126,8 @@ const JoinerDashboard = () => {
   const [loadingHome, setLoadingHome] = useState(true);
   const [upcomingCount, setUpcomingCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+  // Finished tours the joiner hasn't reviewed yet (drives "Write a review").
+  const [toReviewCount, setToReviewCount] = useState(0);
   const [nextTrip, setNextTrip] = useState(null);
   const [monthDots, setMonthDots] = useState([]);
   const [trackingStop, setTrackingStop] = useState(null);
@@ -285,6 +287,9 @@ const JoinerDashboard = () => {
       case 'review':
         handleNavClick('Reviews');
         break;
+      case 'feed':
+        handleNavClick('Feed');
+        break;
       case 'chat':
         handleNavClick('Group Chat');
         break;
@@ -361,6 +366,7 @@ const JoinerDashboard = () => {
         if (userBookings) {
           let upcoming = 0;
           let completed = 0;
+          const finishedTourIds = new Set();
           let soonest = null;
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -380,7 +386,7 @@ const JoinerDashboard = () => {
             const paid = booking.payment_status === 'Complete' || booking.booking_status === 'Completed';
 
             if (endStr && new Date(`${endStr}T00:00:00`) < today) {
-              if (paid) completed++;
+              if (paid) { completed++; finishedTourIds.add(String(booking.tour_id)); }
             } else if (tourDateStr) {
               const tourDate = new Date(`${tourDateStr}T00:00:00`);
               if (tourDate >= today || new Date(`${endStr}T00:00:00`) >= today) {
@@ -399,6 +405,13 @@ const JoinerDashboard = () => {
 
           setUpcomingCount(upcoming);
           setCompletedCount(completed);
+          if (finishedTourIds.size) {
+            const { data: myReviews } = await supabase.from('reviews').select('tour_id').eq('user_id', user.id);
+            const reviewed = new Set((myReviews || []).map((r) => String(r.tour_id)));
+            setToReviewCount([...finishedTourIds].filter((id) => !reviewed.has(id)).length);
+          } else {
+            setToReviewCount(0);
+          }
           setMonthDots(dots);
           setNextTrip(soonest);
 
@@ -909,7 +922,7 @@ const JoinerDashboard = () => {
                   {/* Reviews: other joiners' recent reviews, plus a nudge to write one */}
                   <HomeReviews
                     loading={loadingHome}
-                    completedCount={completedCount}
+                    toReviewCount={toReviewCount}
                     onOpen={() => setActiveTab('Reviews')}
                   />
                 </div>
@@ -1398,8 +1411,9 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
 
 /* ── REVIEW PROMPT CARD ── */
 // Homepage reviews block (under Latest Tour Packages): a few recent 4–5★
-// reviews from other joiners, and a prompt to write one after a finished tour.
-const HomeReviews = ({ loading, completedCount, onOpen }) => {
+// reviews from other joiners, and a prompt to write one after a finished tour
+// (gone once every finished tour has a review).
+const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
   const reviews = usePublicReviews(3);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 8 }}>
@@ -1412,7 +1426,7 @@ const HomeReviews = ({ loading, completedCount, onOpen }) => {
         </button>
       </div>
 
-      {!loading && completedCount > 0 && (
+      {!loading && toReviewCount > 0 && (
         <button
           type="button"
           onClick={onOpen}
@@ -1425,7 +1439,7 @@ const HomeReviews = ({ loading, completedCount, onOpen }) => {
           <span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 900 }}>
               <Star size={15} fill="#E8A265" style={{ color: '#E8A265' }} />
-              {completedCount} tour{completedCount === 1 ? '' : 's'} to review
+              {toReviewCount} tour{toReviewCount === 1 ? '' : 's'} to review
             </span>
             <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.85)', marginTop: 3 }}>
               Tell other joiners how it went — it takes a minute.

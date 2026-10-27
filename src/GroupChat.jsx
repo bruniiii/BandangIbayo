@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import BrandAvatar from './ui/BrandAvatar';
 import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
@@ -387,7 +388,8 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                 <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A', margin: '12px 0 6px' }}>{dayOf(m.created_at)}</p>
               )}
               <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', gap: 8, marginTop: sameAuthor ? 0 : 6 }}>
-                {!mine && (
+                {!mine && fromAdmin && <BrandAvatar size={30} style={{ visibility: sameAuthor ? 'hidden' : 'visible' }} />}
+                {!mine && !fromAdmin && (
                   <span aria-hidden="true" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, visibility: sameAuthor ? 'hidden' : 'visible', background: fromAdmin ? '#B4511E' : '#1A0A00', color: fromAdmin ? '#FDF6EE' : '#E8A265', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {author?.avatar_url && !fromAdmin ? <img src={author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(author)}
                   </span>
@@ -624,9 +626,9 @@ const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narr
             const isMe = r.user_id === me;
             return (
               <li key={r.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px' }}>
-                <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: p?.role === 'admin' ? '#B4511E' : '#1A0A00', color: p?.role === 'admin' ? '#FDF6EE' : '#E8A265', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {p?.role === 'admin' ? <BrandAvatar size={36} /> : <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: p?.role === 'admin' ? '#B4511E' : '#1A0A00', color: p?.role === 'admin' ? '#FDF6EE' : '#E8A265', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {p?.avatar_url && p.role !== 'admin' ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
-                </span>
+                </span>}
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{nameOf(r.user_id)}</span>
                   {isMe && onRemoveMine && (

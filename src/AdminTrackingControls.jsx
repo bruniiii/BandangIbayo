@@ -172,8 +172,13 @@ export const AdminTrackingControls = () => {
   const handleSaveVehicleInfo = async (e) => {
     e.preventDefault();
     if (!activeTour?.id) return;
-    if (!carType.trim() || !plateNumber.trim() || !driverName.trim() || !driverContact.trim()) {
-      toast.error('Missing details', 'Please fill in all driver and vehicle fields.');
+    // Every field is required: name what's missing.
+    const missing = [
+      [carType, 'Van Model'], [plateNumber, 'Plate Number'], [vehicleColor, 'Color'],
+      [vehicleNotes, 'How to spot it'], [driverName, 'Driver Name'], [driverContact, 'Driver Contact'],
+    ].filter(([v]) => !String(v || '').trim()).map(([, label]) => label);
+    if (missing.length) {
+      toast.error('Please fill in all fields', `Missing: ${missing.join(', ')}.`);
       return;
     }
     // Joiners use these to find the van and call the driver, so check the formats.
@@ -185,10 +190,10 @@ export const AdminTrackingControls = () => {
     setSavingLogistics(true);
     const { error } = await supabase.from('tour_vehicles').upsert([{
       tour_id: activeTour.id,
-      car_type: carType,
+      car_type: carType.trim(),
       plate_number: plateNumber.trim().toUpperCase(),
-      vehicle_color: vehicleColor.trim() || null,
-      vehicle_notes: vehicleNotes.trim() || null,
+      vehicle_color: vehicleColor.trim(),
+      vehicle_notes: vehicleNotes.trim(),
       driver_name: cleanName(driverName),
       driver_contact: normalizePhone(driverContact),
       updated_at: new Date().toISOString(),
@@ -695,19 +700,20 @@ const TrackingConsoleModal = ({
                 </h4>
 
                 {!isLogisticsSaved ? (
-                  <form onSubmit={onSaveVehicleInfo} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <form noValidate onSubmit={onSaveVehicleInfo} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-                      <input type="text" placeholder="Van Model (e.g. Toyota Hiace)" value={carType} onChange={e => setCarType(e.target.value)} style={inputStyle} />
-                      <input type="text" placeholder="Plate Number (e.g. NBT-8921)" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} style={inputStyle} />
+                      <input type="text" required aria-label="Van model" placeholder="Van Model (e.g. Toyota Hiace)" value={carType} onChange={e => setCarType(e.target.value)} style={inputStyle} />
+                      <input type="text" required aria-label="Plate number" placeholder="Plate Number (e.g. NBT-8921)" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} style={inputStyle} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-                      <input type="text" placeholder="Color (e.g. Pearl White)" aria-label="Vehicle color (optional)" maxLength={40} value={vehicleColor} onChange={e => setVehicleColor(e.target.value)} style={inputStyle} />
-                      <input type="text" placeholder="How to spot it (e.g. IBAYO sticker, tinted)" aria-label="Other vehicle details (optional)" maxLength={120} value={vehicleNotes} onChange={e => setVehicleNotes(e.target.value)} style={inputStyle} />
+                      <input type="text" placeholder="Color (e.g. Pearl White)" required aria-label="Vehicle color" maxLength={40} value={vehicleColor} onChange={e => setVehicleColor(e.target.value)} style={inputStyle} />
+                      <input type="text" placeholder="How to spot it (e.g. IBAYO sticker, tinted)" required aria-label="How to spot the vehicle" maxLength={120} value={vehicleNotes} onChange={e => setVehicleNotes(e.target.value)} style={inputStyle} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
-                      <input type="text" data-allow="name" placeholder="Driver Name" value={driverName} onChange={e => setDriverName(e.target.value)} style={inputStyle} />
-                      <input {...phoneFieldProps(driverContact, setDriverContact)} aria-label="Driver contact number" style={inputStyle} />
+                      <input type="text" required aria-label="Driver name" data-allow="name" placeholder="Driver Name" value={driverName} onChange={e => setDriverName(e.target.value)} style={inputStyle} />
+                      <input {...phoneFieldProps(driverContact, setDriverContact)} required aria-label="Driver contact number" style={inputStyle} />
                     </div>
+                    <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>All fields are required.</p>
                     <button type="submit" disabled={savingLogistics} style={{
                       padding: '10px 0', background: '#B4511E', color: '#FDF6EE',
                       border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,

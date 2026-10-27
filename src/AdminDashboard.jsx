@@ -20,6 +20,7 @@ import AdminCheckIn from './AdminCheckIn';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
+import BrandAvatar from './ui/BrandAvatar';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
@@ -144,6 +145,9 @@ const AdminDashboard = () => {
         break;
       case 'exclusive_request':
         handleNavClick('Exclusive Requests');
+        break;
+      case 'feed':
+        handleNavClick('Feed');
         break;
       case 'review':
         handleNavClick('Reviews');
@@ -528,16 +532,7 @@ const AdminDashboard = () => {
                   <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
                 </div>
-                <div style={{
-                  width: 38, height: 38, borderRadius: 11,
-                  background: '#1A0A00',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#E8A265', fontWeight: 900, fontSize: 15,
-                  boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
-                  flexShrink: 0,
-                }}>
-                  A
-                </div>
+                <BrandAvatar size={38} radius={11} style={{ boxShadow: '0 4px 12px rgba(26,10,0,0.22)' }} />
               </div>
             </div>
           </div>

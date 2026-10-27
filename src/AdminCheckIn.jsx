@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
+import { confirmDialog } from './ui/ConfirmDialog';
+import { formatYmdRange } from './dateRange';
 import EmptyState from './ui/EmptyState';
 import { primaryBtn, secondaryBtn } from './ui/buttons';
 import { formatDateRange, todayManila } from './tourUtils';
@@ -14,7 +16,9 @@ import { SkeletonLines, SkeletonRows } from './ui/Skeleton';
 // On the day of the tour, pick the tour and scan each joiner's QR (from
 // My Bookings). The database confirms the booking belongs to this tour,
 // is paid and not cancelled, then marks it checked in. A booking number
-// can be typed instead when a phone can't show the QR.
+// can be typed instead when a phone can't show the QR, or a joiner can be
+// checked in (or undone) straight from the list.
+// Check-in opens the day before the tour (early departures) until it ends.
 // ─────────────────────────────────────────────
 
 const RESULT_STYLES = {
@@ -23,16 +27,42 @@ const RESULT_STYLES = {
   bad: { bg: 'rgba(140,47,28,0.08)', border: '#8C2F1C', color: '#8C2F1C', Icon: XCircle },
 };
 
-const timeOf = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }) : '');
+const timeOf = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' }) : '');
+
+// The joiner's name: the booking's, or their account's when the booking has none.
+const nameOf = (b) => {
+  const own = (b.full_name || '').trim();
+  if (own && own.toUpperCase() !== 'N/A') return own;
+  const p = b.profiles;
+  return `${p?.first_name || ''} ${p?.last_name || ''}`.trim() || 'Joiner';
+};
+const phoneOf = (b) => {
+  const own = (b.contact_number || '').trim();
+  return own && own.toUpperCase() !== 'N/A' ? own : (b.profiles?.phone_number || '');
+};
+
+// YYYY-MM-DD plus n days.
+const addDays = (ymd, n) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+};
+// Check-in is open from the day before the tour until its last day.
+const checkInOpen = (t) => {
+  if (!t?.start_date) return false;
+  const today = todayManila();
+  return today >= addDays(t.start_date, -1) && today <= (t.end_date || t.start_date);
+};
+const tourDates = (t) => formatDateRange(t.start_date, t.duration);
 const peso = (n) => `₱${(Number(n) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const describe = (r) => {
-  const who = r.full_name || 'This joiner';
+  const who = (r.full_name && r.full_name.toUpperCase() !== 'N/A' ? r.full_name : r.account_name) || 'This joiner';
   const pax = r.slots_booked > 1 ? `${r.slots_booked} people` : '1 person';
   switch (r.result) {
     case 'ok': return { tone: 'ok', title: `Checked in — ${who}`, detail: `${pax} · ${r.booking_number}` };
     case 'already': return { tone: 'already', title: `${who} is already checked in`, detail: `Checked in at ${timeOf(r.checked_in_at)} · ${pax} · ${r.booking_number}` };
-    case 'wrong_tour': return { tone: 'bad', title: 'Not on this tour', detail: `${who} is booked for ${r.tour_title || 'another tour'}${r.tour_start ? ` (${formatDateRange(r.tour_start)})` : ''}.` };
+    case 'wrong_tour': return { tone: 'bad', title: 'Not on this tour', detail: `${who} is booked for ${r.tour_title || 'another tour'}${r.tour_start ? ` (${formatYmdRange(r.tour_start, r.tour_end || r.tour_start)})` : ''}.` };
+    case 'not_open': return { tone: 'bad', title: 'Check-in is not open yet', detail: `This tour starts ${r.tour_start ? formatYmdRange(r.tour_start, r.tour_end || r.tour_start) : 'later'}. Check-in opens the day before the tour.` };
     case 'cancelled': return { tone: 'bad', title: 'Booking cancelled', detail: `${who}'s booking ${r.booking_number} was ${String(r.booking_status || 'cancelled').toLowerCase()}.` };
     case 'unpaid': return { tone: 'bad', title: 'Payment not confirmed', detail: `${who}'s payment is "${r.payment_status}". Confirm it in Booking Management first.` };
     default: return { tone: 'bad', title: 'QR not recognised', detail: 'No booking matches this code. Ask the joiner to open the QR in My Bookings, or type their booking number.' };
@@ -64,7 +94,7 @@ const AdminCheckIn = () => {
     (async () => {
       const { data, error } = await supabase
         .from('tours')
-        .select('id, title, destination, start_date, end_date')
+        .select('id, title, destination, start_date, end_date, duration')
         .eq('is_archived', false)
         .order('start_date', { ascending: true });
       setToursLoaded(true);
@@ -83,7 +113,7 @@ const AdminCheckIn = () => {
     if (!quiet) setLoadingRoster(true);
     const { data, error } = await supabase
       .from('bookings')
-      .select('id, booking_number, full_name, contact_number, slots_booked, payment_status, booking_status, checked_in_at')
+      .select('id, booking_number, full_name, contact_number, slots_booked, payment_status, booking_status, checked_in_at, profiles(first_name, last_name, phone_number)')
       .eq('tour_id', id)
       .eq('payment_status', 'Complete')
       .not('booking_status', 'in', '("Cancelled","Rejected")')
@@ -93,7 +123,11 @@ const AdminCheckIn = () => {
     setRoster(data || []);
   }, []);
 
-  useEffect(() => { loadRoster(tourId); setResult(null); }, [tourId, loadRoster]);
+  useEffect(() => {
+    loadRoster(tourId);
+    setResult(null);
+    lastScanRef.current = { code: '', at: 0 }; // the same QR can be scanned again for the new tour
+  }, [tourId, loadRoster]);
 
   // Keep the list fresh while another admin is scanning too (every 20 seconds).
   useEffect(() => {
@@ -107,10 +141,10 @@ const AdminCheckIn = () => {
     if (!code || !id || busyRef.current) return;
     busyRef.current = true;
     setChecking(true);
-    const { data, error } = await supabase.rpc('check_in_booking', { p_code: code, p_tour_id: Number(id) });
+    const { data, error } = await supabase.rpc('check_in_booking', { p_code: code, p_tour_id: /^\d+$/.test(id) ? Number(id) : id });
     busyRef.current = false;
     setChecking(false);
-    if (error) { toast.error("Couldn't check this code", error.message); return; }
+    if (error) { toast.error("Couldn't check this code", error.message); return false; }
     setResult(data);
     if (data?.result === 'ok') {
       navigator.vibrate?.(120);
@@ -118,9 +152,15 @@ const AdminCheckIn = () => {
     } else {
       navigator.vibrate?.([80, 60, 80]);
     }
+    return true;
   }, [loadRoster]);
 
-  const undo = async (bookingId) => {
+  const undo = async (bookingId, name) => {
+    if (!(await confirmDialog({
+      title: 'Undo this check-in?',
+      message: `${name || 'This joiner'} will be marked as not checked in.`,
+      confirmLabel: 'Undo Check-in', cancelLabel: 'Keep It', tone: 'danger',
+    }))) return;
     const { error } = await supabase.rpc('undo_check_in', { p_booking_id: bookingId });
     if (error) { toast.error("Couldn't undo the check-in", error.message); return; }
     toast.info('Check-in undone');
@@ -136,6 +176,13 @@ const AdminCheckIn = () => {
   }, []);
 
   useEffect(() => stopCamera, [stopCamera]);
+
+  // Attach the camera once the <video> is on the page (it only renders while cameraOn).
+  useEffect(() => {
+    if (!cameraOn || !videoRef.current || !streamRef.current) return;
+    videoRef.current.srcObject = streamRef.current;
+    videoRef.current.play().catch(() => {});
+  }, [cameraOn]);
 
   useEffect(() => {
     if (!cameraOn) return undefined;
@@ -202,9 +249,6 @@ const AdminCheckIn = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
       streamRef.current = stream;
       setCameraOn(true);
-      requestAnimationFrame(() => {
-        if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play().catch(() => {}); }
-      });
     } catch (err) {
       setCameraError(err?.name === 'NotAllowedError'
         ? 'Camera permission was denied. Allow camera access for this site, then try again.'
@@ -212,12 +256,21 @@ const AdminCheckIn = () => {
     }
   };
 
-  const submitManual = (e) => {
+  const submitManual = async (e) => {
     e.preventDefault();
     const code = manual.trim();
-    if (!code) return;
-    verify(code);
-    setManual('');
+    if (!code || checking) return;
+    if (await verify(code)) setManual(''); // keep what was typed if the check failed
+  };
+
+  // From the list: for a joiner whose phone can't show the QR.
+  const checkInFromList = async (b) => {
+    if (!(await confirmDialog({
+      title: `Check in ${nameOf(b)}?`,
+      message: `${b.booking_number} · ${b.slots_booked > 1 ? `${b.slots_booked} people` : '1 person'}. Make sure this is the right person.`,
+      confirmLabel: 'Check In', cancelLabel: 'Cancel',
+    }))) return;
+    verify(b.booking_number);
   };
 
   const tour = tours.find((t) => String(t.id) === tourId);
@@ -247,14 +300,20 @@ const AdminCheckIn = () => {
               id="checkin-tour"
               value={tourId}
               onChange={(e) => setTourId(e.target.value)}
-              style={{ ...field, marginBottom: 16 }}
+              style={{ ...field, marginBottom: tour && !checkInOpen(tour) ? 10 : 16 }}
             >
               {tours.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.title} — {formatDateRange(t.start_date)}{t.start_date <= todayManila() && (t.end_date || t.start_date) >= todayManila() ? ' (today)' : ''}
+                  {t.title} — {tourDates(t)}{t.start_date <= todayManila() && (t.end_date || t.start_date) >= todayManila() ? ' · today' : ''}
                 </option>
               ))}
             </select>
+
+            {tour && !checkInOpen(tour) && (
+              <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C5216', background: 'rgba(232,162,101,0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
+                This tour is on {tourDates(tour)}. Check-in opens the day before the tour, so joiners can't be checked in yet.
+              </p>
+            )}
 
             <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: '#1A0A00', aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {cameraOn ? (
@@ -284,7 +343,7 @@ const AdminCheckIn = () => {
                   id="checkin-manual"
                   value={manual}
                   onChange={(e) => setManual(e.target.value.toUpperCase())}
-                  placeholder="e.g. BK-2610-01001"
+                  placeholder="e.g. BK-2026-00094"
                   autoComplete="off"
                   style={{ ...field, flex: 1, fontFamily: 'monospace' }}
                 />
@@ -307,7 +366,7 @@ const AdminCheckIn = () => {
                   <p style={{ fontSize: 13, fontWeight: 800, color: '#8C5216', margin: '8px 0 0' }}>Balance to collect: {peso(result.balance_due)}</p>
                 )}
                 {(result.result === 'ok' || result.result === 'already') && (
-                  <button type="button" className="text-link" onClick={() => undo(result.booking_id)} style={{ background: 'none', border: 'none', padding: '8px 0 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <button type="button" className="text-link" onClick={() => undo(result.booking_id, result.full_name)} style={{ background: 'none', border: 'none', padding: '8px 0 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Undo2 size={13} /> Undo check-in
                   </button>
                 )}
@@ -353,17 +412,24 @@ const AdminCheckIn = () => {
                       ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked in" />
                       : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(122,58,24,0.45)', flexShrink: 0 }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.full_name}</p>
+                      <p style={{ fontSize: 13.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
                       <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{b.booking_number} · {b.slots_booked > 1 ? `${b.slots_booked} people` : '1 person'}</p>
                     </div>
-                    {!b.checked_in_at && b.contact_number && (
-                      <a href={`tel:${b.contact_number.replace(/[^\d+]/g, '')}`} aria-label={`Call ${b.full_name}`} title={`Call ${b.contact_number}`} style={callBtn}>
+                    {!b.checked_in_at && phoneOf(b) && (
+                      <a href={`tel:${phoneOf(b).replace(/[^\d+]/g, '')}`} aria-label={`Call ${nameOf(b)}`} title={`Call ${phoneOf(b)}`} style={callBtn}>
                         <Phone size={14} />
                       </a>
                     )}
-                    <span style={{ fontSize: 12, fontWeight: 800, color: b.checked_in_at ? '#2E6B4A' : '#7A3A18', whiteSpace: 'nowrap' }}>
-                      {b.checked_in_at ? timeOf(b.checked_in_at) : 'Not yet'}
-                    </span>
+                    {b.checked_in_at ? (
+                      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: '#2E6B4A', whiteSpace: 'nowrap' }}>{timeOf(b.checked_in_at)}</span>
+                        <button type="button" onClick={() => undo(b.id, nameOf(b))} style={rowLinkBtn}><Undo2 size={12} /> Undo</button>
+                      </span>
+                    ) : (
+                      <button type="button" onClick={() => checkInFromList(b)} disabled={checking || !checkInOpen(tour)} title={checkInOpen(tour) ? 'Check in without the QR' : 'Check-in opens the day before the tour'} style={rowCheckBtn(checking || !checkInOpen(tour))}>
+                        <CheckCircle2 size={13} /> Check in
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -384,6 +450,17 @@ const chip = (active) => ({
   fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800,
   background: active ? '#1A0A00' : 'transparent', color: active ? '#FDF6EE' : '#7A3A18',
 });
+
+const rowCheckBtn = (disabled) => ({
+  display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, whiteSpace: 'nowrap',
+  border: 'none', borderRadius: 10, padding: '8px 10px', minHeight: 32, fontFamily: 'inherit',
+  fontSize: 11.5, fontWeight: 900, cursor: disabled ? 'not-allowed' : 'pointer',
+  background: disabled ? 'rgba(26,10,0,0.08)' : '#1A0A00', color: disabled ? 'rgba(26,10,0,0.45)' : '#FDF6EE',
+});
+const rowLinkBtn = {
+  display: 'inline-flex', alignItems: 'center', gap: 3, background: 'none', border: 'none', padding: '2px 0',
+  cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800, color: '#8C2F1C',
+};
 
 const callBtn = {
   width: 32, height: 32, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,

@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import { HelpCircle, X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star } from 'lucide-react';
+import { HelpCircle, X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star, MessageCircle } from 'lucide-react';
+
+// Where "Message us" goes. For testing this is a personal profile; swap in the
+// Bandang IBAYO Facebook page (or its m.me/<page> link) when it's ready.
+const MESSENGER_URL = 'https://www.facebook.com/isabellalouise.sabado.5';
 
 // ─────────────────────────────────────────────
 // HELP BUTTON (landing page): a floating button at the bottom-right that
@@ -158,10 +162,21 @@ const HelpWidget = ({ zIndex = 600 }) => {
             )}
           </div>
 
-          <p style={{ margin: 0, padding: '10px 16px', borderTop: '1px solid rgba(180,81,30,0.12)', fontSize: 12, fontWeight: 600, color: '#7A3A18', textAlign: 'center' }}>
-            Still have questions? Email us at{' '}
-            <a className="text-link" href="mailto:bandangibayo@gmail.com" style={{ fontSize: 12 }}>bandangibayo@gmail.com</a>
-          </p>
+          <div style={{ padding: '10px 14px 14px', borderTop: '1px solid rgba(180,81,30,0.12)', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>Still have questions? Chat with us right away.</p>
+            <a
+              href={MESSENGER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 44,
+                borderRadius: 14, background: '#0866FF', color: '#FFF', textDecoration: 'none',
+                fontSize: 13, fontWeight: 900, letterSpacing: '0.04em',
+              }}
+            >
+              <MessageCircle size={17} /> Message us on Messenger
+            </a>
+          </div>
         </div>
       )}
 
