@@ -1,5 +1,5 @@
 import { formatDateRange } from './tourUtils';
-import { fetchTourExpenses, expenseItems, expensesTotal } from './tourExpenses';
+import { fetchTourExpenses, expenseItems } from './tourExpenses';
 
 // ─────────────────────────────────────────────
 // PAYMENT RECEIPT (PDF) for a confirmed booking.
@@ -95,9 +95,9 @@ export const downloadReceipt = async (booking, tour) => {
   line('Balance', balance > 0 ? `${php(balance)} (due on or before the tour date)` : 'Paid in full', { bold: balance === 0 });
 
   if (expenses) {
-    section('Tour expenses (cost breakdown)');
-    expenseItems(expenses).forEach((item) => line(item.label, php(item.amount)));
-    line('Total expenses', php(expensesTotal(expenses)), { bold: true });
+    // Names only: joiners don't see what each item costs.
+    section('Tour expenses (covered by your booking)');
+    expenseItems(expenses).forEach((item) => line(item.label, 'Included'));
   }
 
   y += 24;

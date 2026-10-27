@@ -8,6 +8,7 @@ import { mediaFileError } from './validation';
 import EmptyState from './ui/EmptyState';
 
 const REVIEW_MAX = 1000;
+const REPLY_MAX = 500;
 import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar, ThumbsUp } from 'lucide-react';
 import { SkeletonPosts } from './ui/Skeleton';
 
@@ -114,6 +115,21 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
     })));
     setLoading(false);
   }, []);
+
+  // Only admins reply to reviews (one reply per review, shown under it).
+  const saveReply = async (review, text) => {
+    const reply = text.trim();
+    if (reply.length > REPLY_MAX) { toast.error('Reply is too long', `${REPLY_MAX} characters at most.`); return false; }
+    const { error } = await supabase.from('reviews')
+      .update({ admin_reply: reply || null })
+      .eq('id', review.id);
+    if (error) { toast.error("Couldn't save your reply", error.message); return false; }
+    setReviews(prev => prev.map(r => (r.id === review.id
+      ? { ...r, admin_reply: reply || null, admin_reply_at: reply ? new Date().toISOString() : null }
+      : r)));
+    toast.success(reply ? 'Reply posted' : 'Reply removed');
+    return true;
+  };
 
   // Tap "Helpful" to add or take back your vote (not on your own review).
   const [helpfulBusy, setHelpfulBusy] = useState(null);
@@ -442,6 +458,8 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
             canReact={!isAdmin && !!currentUserId && review.user_id !== currentUserId}
             busy={helpfulBusy === review.id}
             onHelpful={() => toggleHelpful(review)}
+            isAdmin={isAdmin}
+            onSaveReply={(text) => saveReply(review, text)}
           />
         ))
       )}
@@ -451,7 +469,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
 /* ── REVIEW CARD ──
    Reviews can't be deleted, by the joiner or by an admin. */
-const ReviewCard = ({ review, canReact, busy, onHelpful }) => (
+const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply }) => (
   <div style={{
     background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
     border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
@@ -559,7 +577,91 @@ const ReviewCard = ({ review, canReact, busy, onHelpful }) => (
         </span>
       ) : null}
     </div>
+
+    <ReviewReply review={review} isAdmin={isAdmin} onSave={onSaveReply} />
   </div>
 );
+
+/* ── ADMIN REPLY ──
+   Everyone sees the reply; only admins get the Reply / Edit buttons. */
+const ReviewReply = ({ review, isAdmin, onSave }) => {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (!text.trim() && !review.admin_reply) { toast.error('Empty reply', 'Please write your reply first.'); return; }
+    if (text.trim() === (review.admin_reply || '').trim()) { setEditing(false); return; }
+    setSaving(true);
+    const ok = await onSave(text);
+    setSaving(false);
+    if (ok) setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div style={{ marginTop: 14, borderLeft: '3px solid #B4511E', paddingLeft: 12 }}>
+        <label htmlFor={`reply-${review.id}`} style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A' }}>
+          Reply as Bandang IBAYO
+        </label>
+        <textarea
+          id={`reply-${review.id}`}
+          value={text}
+          maxLength={REPLY_MAX}
+          rows={3}
+          autoFocus
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Thank the joiner or answer their comment…"
+          style={{
+            width: '100%', boxSizing: 'border-box', marginTop: 6, padding: '10px 12px', borderRadius: 12,
+            border: '1px solid rgba(180,81,30,0.25)', background: '#FFF', fontFamily: 'inherit', fontSize: 13,
+            color: '#1A0A00', resize: 'vertical',
+          }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+          <button type="button" onClick={save} disabled={saving} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, background: '#B4511E', color: '#FDF6EE', border: 'none',
+            borderRadius: 999, padding: '8px 16px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+            cursor: saving ? 'default' : 'pointer', fontFamily: 'inherit',
+          }}>
+            {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
+            {review.admin_reply && !text.trim() ? 'Remove Reply' : 'Post Reply'}
+          </button>
+          <button type="button" onClick={() => setEditing(false)} disabled={saving} style={{
+            background: 'none', border: 'none', color: '#7A3A18', fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            Cancel
+          </button>
+          <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>{text.length}/{REPLY_MAX}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {review.admin_reply && (
+        <div style={{ marginTop: 14, background: 'rgba(180,81,30,0.07)', borderLeft: '3px solid #B4511E', borderRadius: '0 12px 12px 0', padding: '10px 12px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <MessageSquare size={12} /> Reply from Bandang IBAYO
+            {review.admin_reply_at && <span style={{ fontWeight: 700, color: '#7A3A18' }}>· {formatDate(review.admin_reply_at)}</span>}
+          </p>
+          <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>
+            {review.admin_reply}
+          </p>
+        </div>
+      )}
+      {isAdmin && (
+        <button type="button" onClick={() => { setText(review.admin_reply || ''); setEditing(true); }} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, background: 'none',
+          border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, padding: '6px 14px', cursor: 'pointer',
+          fontFamily: 'inherit', fontSize: 12, fontWeight: 800, color: '#7A3A18',
+        }}>
+          <MessageSquare size={13} /> {review.admin_reply ? 'Edit Reply' : 'Reply'}
+        </button>
+      )}
+    </>
+  );
+};
 
 export default Reviews;

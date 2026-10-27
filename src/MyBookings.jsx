@@ -13,12 +13,12 @@ import CheckInQr from './ui/CheckInQr';
 import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
 import { openGroupChat } from './groupChat';
-import { fetchTourExpenses, expenseItems, expensesTotal } from './tourExpenses';
+import { fetchTourExpenses, expenseItems } from './tourExpenses';
 import { tripDayBookings } from './tripDay';
 import { 
   ShoppingBag, MapPin, Calendar,
   ChevronRight, Loader2, X,
-  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard, Clock, Backpack, Wallet
+  History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard, Clock, Backpack, Wallet, CheckCircle2
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
 
@@ -824,7 +824,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 };
 
 /* ── Move to another date: same trip (destination) at the same price ── */
-// What the tour costs (van, guide, bag tag, others), as set by the agency.
+// What the tour covers (van, guide, bag tag, others): names only, no prices.
 const TourExpensesSection = ({ tourId }) => {
   const [expenses, setExpenses] = useState(undefined);
   useEffect(() => {
@@ -837,13 +837,10 @@ const TourExpensesSection = ({ tourId }) => {
     <ViewSection title="Tour Expenses" icon={<Wallet size={14} style={{ color: '#A8481A' }} />}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {expenseItems(expenses).map((item) => (
-          <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, fontWeight: 600, color: '#1A0A00' }}>
-            <span>{item.label}</span><span>{formatPeso(item.amount)}</span>
+          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#1A0A00' }}>
+            <CheckCircle2 size={14} style={{ color: '#1F8A5C', flexShrink: 0 }} /><span>{item.label}</span>
           </div>
         ))}
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, fontWeight: 900, color: '#1A0A00', borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 6, marginTop: 2 }}>
-          <span>Total</span><span>{formatPeso(expensesTotal(expenses))}</span>
-        </div>
       </div>
     </ViewSection>
   );

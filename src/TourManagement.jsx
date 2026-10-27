@@ -250,14 +250,16 @@ const TourManagement = () => {
       ['destination', textError(formData.get('destination'), 'Destination', { min: 2, max: 120 })],
       ['regular_rate', !Number.isFinite(regularRate) || regularRate < 1000 ? 'The Regular Rate must be at least ₱1,000.' : ''],
       ['regular_rate', Math.abs(Math.round(regularRate * 100) - regularRate * 100) > 1e-6 ? 'The Regular Rate can have at most 2 decimal places (centavos).' : ''],
-      ['regular_rate', regularRate > 1000000 ? 'That rate looks too high. Please check for an extra zero.' : ''],
+      ['regular_rate', regularRate > 7500 ? 'The Regular Rate can be at most ₱7,500.' : ''],
       ['price', !Number.isFinite(price) || price <= 0 ? 'Please enter a price above ₱0. Tours can\'t be free.' : ''],
       ['price', Number.isFinite(regularRate) && regularRate >= 1000 && price < regularRate + 500 ? `The Joiner Rate must be at least ₱500 more than the Regular Rate (at least ${formatPeso(regularRate + 500)}).` : ''],
       ['price', Math.abs(Math.round(price * 100) - price * 100) > 1e-6 ? 'Price can have at most 2 decimal places (centavos).' : ''],
-      ['price', price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
+      ['price', price > 8000 ? 'The Joiner Rate can be at most ₱8,000.' : ''],
       ...dateChecks,
       ['van_rent', !Number.isFinite(vanRent) || vanRent < 15000 ? 'Van Rent must be at least ₱15,000.' : ''],
+      ['van_rent', vanRent > 30000 ? 'Van Rent can be at most ₱30,000.' : ''],
       ['tour_guide', !Number.isFinite(tourGuide) || tourGuide < 1300 ? 'Tour Guide must be at least ₱1,300.' : ''],
+      ['tour_guide', tourGuide > 2000 ? 'Tour Guide can be at most ₱2,000.' : ''],
       ...otherExpenses.flatMap((o, i) => [
         [`other_name_${i}`, (o.name.trim() || o.amount) && !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
         [`other_amount_${i}`, o.name.trim() && !(Number(o.amount) >= 0 && String(o.amount).trim() !== '') ? 'Enter the amount (₱0 or more).' : ''],
@@ -728,21 +730,21 @@ const TourManagement = () => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} required />
-                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="e.g. 2499.50" defaultValue={formTour?.price} required />
+                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="₱1,500 – ₱8,000" defaultValue={formTour?.price} required />
                 </div>
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
-                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="At least 1000" defaultValue={formTour?.regular_rate ?? ''} required />
+                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="₱1,000 – ₱7,500" defaultValue={formTour?.regular_rate ?? ''} required />
                   <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
-                    Admins only, never shown to joiners. At least ₱1,000; the Joiner Rate (what joiners pay) must be at least ₱500 more.
+                    Admins only, never shown to joiners. ₱1,000 to ₱7,500; the Joiner Rate (what joiners pay, up to ₱8,000) must be at least ₱500 more.
                   </p>
                 </div>
 
-                {/* Expenses: what this trip costs (shown to booked joiners and on their receipt, and used for income in Reports). */}
+                {/* Expenses: what this trip costs (booked joiners see the item names only, no prices; used for income in Reports). */}
                 <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Expenses</label>
                   <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                    <ModalInput label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder="At least 15000" defaultValue={formTour?.expenses?.van_rent ?? ''} onChange={() => setFormDirty(true)} required />
-                    <ModalInput label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder="At least 1300" defaultValue={formTour?.expenses?.tour_guide ?? ''} onChange={() => setFormDirty(true)} required />
+                    <ModalInput label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder="₱15,000 – ₱30,000" defaultValue={formTour?.expenses?.van_rent ?? ''} onChange={() => setFormDirty(true)} required />
+                    <ModalInput label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder="₱1,300 – ₱2,000" defaultValue={formTour?.expenses?.tour_guide ?? ''} onChange={() => setFormDirty(true)} required />
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 5 }}>Bag Tag (₱)</label>
                       <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>260.00 <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span></p>
