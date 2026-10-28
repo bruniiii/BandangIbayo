@@ -1,5 +1,5 @@
 import { Calendar } from 'lucide-react';
-import { formatDateRange } from '../tourUtils';
+import { formatDateRange, isOnSale, SALE_DISCOUNT } from '../tourUtils';
 
 // Dates of one trip (see groupTripDates in tourUtils.js).
 
@@ -39,6 +39,7 @@ export const TripDatePicker = ({ dates, activeId, onPick, dark = false, disabled
                 background: active ? 'radial-gradient(circle, #B4511E 45%, transparent 50%)' : 'transparent',
               }} />
               {formatDateRange(d.start_date, d.duration)}
+              {isOnSale(d) && <span style={{ background: '#8C2F1C', color: '#FDF6EE', borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Sale {Math.round(SALE_DISCOUNT * 100)}% off</span>}
             </span>
             <span style={{ fontSize: 11.5, fontWeight: 800, whiteSpace: 'nowrap', color: full ? (dark ? '#E8A265' : '#8C2F1C') : dark ? 'rgba(232,210,190,0.9)' : '#7A3A18' }}>
               {slotsText(d)}
@@ -59,7 +60,7 @@ export const TripDateLines = ({ dates, max = 3, showSlots = true, fontSize = 11.
       {shown.map((d) => (
         <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           <Calendar size={12} style={{ color: '#A8481A', flexShrink: 0 }} />
-          <span style={{ flex: 1, minWidth: 0 }}>{formatDateRange(d.start_date, d.duration)}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>{formatDateRange(d.start_date, d.duration)} {isOnSale(d) && <span style={{ background: '#8C2F1C', color: '#FDF6EE', borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Sale {Math.round(SALE_DISCOUNT * 100)}% off</span>}</span>
           {showSlots && (
             <span style={{ fontSize: fontSize - 0.5, letterSpacing: '0.06em', color: (d.available_slots ?? 1) <= 0 ? '#8C2F1C' : '#7A3A18', whiteSpace: 'nowrap' }}>{slotsText(d)}</span>
           )}

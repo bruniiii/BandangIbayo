@@ -5,7 +5,7 @@ import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare } from 'lucide-re
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout, payHeldBooking } from './payments';
@@ -86,6 +86,8 @@ const MyBookings = ({ onExplore, openBookingId = null }) => {
           duration,
           image_urls,
           price,
+          sale_starts,
+          sale_ends,
           things_to_bring,
           important_note
         )
@@ -837,7 +839,8 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(null); // 'pay' | 'cancel'
   const [problem, setProblem] = useState('');
-  const total = Number(booking.tours?.price || 0) * (booking.slots_booked || 1) || Number(booking.total_price || 0);
+  // Today's price for this date (5% off while it's on sale), the same as the database charges.
+  const total = (booking.tours ? effectivePrice(booking.tours) * (booking.slots_booked || 1) : 0) || Number(booking.total_price || 0);
   const amount = paymentType === 'full' ? total : Math.round(total * 40) / 100;
   const until = booking.hold_expires_at
     ? new Date(booking.hold_expires_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })

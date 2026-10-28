@@ -109,6 +109,10 @@ export const downloadReceipt = async (booking, tour) => {
   const paidAt = booking.paid_online_at || booking.updated_at;
   if (paidAt) line('Paid on', dateTime(paidAt));
   if (booking.balance_settled_at) line('Balance paid on', dateTime(booking.balance_settled_at));
+  if (Number(booking.sale_discount) > 0) {
+    line('Regular price', php(Number(booking.total_price) + Number(booking.sale_discount)));
+    line('Sale discount (5%)', `- ${php(booking.sale_discount)}`);
+  }
   line('Tour total', php(booking.total_price));
   line('Amount paid', php(booking.amount_paid ?? booking.total_price), { bold: true, size: 12 });
   const balance = balanceRemaining(booking);

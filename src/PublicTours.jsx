@@ -9,7 +9,8 @@ import { supabase } from './supabaseClient';
 import {
   JoinerTourCard, ViewSection, ChecklistGrid, ItineraryTimeline, TourImageCarousel,
 } from './JoinerTours';
-import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, formatPeso, groupTripDates, tripForDate } from './tourUtils';
+import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, groupTripDates, tripForDate } from './tourUtils';
+import PriceTag from './ui/PriceTag';
 import { TripDatePicker } from './ui/TripDates';
 import { MoreTourFilters } from './ui/TourFilters';
 import { applyTripFilters, useTripFilters } from './tripFilters';
@@ -419,7 +420,7 @@ export const PublicTourDetail = () => {
           }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)' }}>Price per joiner</div>
-              <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em' }}>{formatPeso(Number(tour.price || 0))}</div>
+              <PriceTag tour={tour} size={34} color="#FDF6EE" mutedColor="rgba(232,210,190,0.75)" align="flex-start" />
               <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
             </div>
 
@@ -495,7 +496,7 @@ export const PublicTourDetail = () => {
         boxShadow: '0 -8px 24px rgba(26,10,0,0.2)',
       }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 20, fontWeight: 900 }}>{formatPeso(Number(tour.price || 0))}</div>
+          <PriceTag tour={tour} size={20} color="#FDF6EE" mutedColor="rgba(232,210,190,0.75)" align="flex-start" showBadge={false} />
           <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.85)' }}>
             {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
           </div>

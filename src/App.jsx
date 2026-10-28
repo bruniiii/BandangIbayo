@@ -19,8 +19,9 @@ import JoinerDashboard from './JoinerDashboard';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
 import { PublicTourList, PublicTourDetail } from './PublicTours';
-import { todayManila, formatPeso, groupTripDates, weekdayRange } from './tourUtils';
+import { todayManila, groupTripDates, weekdayRange } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
+import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
 import { SkeletonTourCards } from './ui/Skeleton';
  
@@ -313,7 +314,7 @@ function LandingPage() {
                     {/* Price on its own line, full-width button below, so long prices never squeeze the button. */}
                     <div style={{ paddingTop: 20, marginTop: 22, borderTop: '1px solid rgba(180,81,30,0.1)' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 2 }}>Starts at</div>
-                      <div style={{ fontSize: 26, fontWeight: 900, color: '#1A0A00', letterSpacing: '-0.03em', whiteSpace: 'nowrap' }}>{formatPeso(tour.price)}</div>
+                      <PriceTag tour={tour} size={26} color="#1A0A00" align="flex-start" style={{ letterSpacing: '-0.03em' }} />
                       <Link to={`/tours/${tour.id}`} className="btn-primary" style={{
                         position: 'relative', zIndex: 2,
                         display: 'block', textAlign: 'center', marginTop: 14,

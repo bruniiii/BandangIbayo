@@ -542,7 +542,7 @@ const AdminDashboard = () => {
  
           {/* OVERVIEW TAB CONTENT */}
           {activeTab === 'Overview' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 32, paddingBottom: 40 }}>
  
               {/* dashboard header bar — status line + date, not a marketing hero */}
               <div className="dashboard-hero-padding" style={{
