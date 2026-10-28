@@ -3,18 +3,18 @@ import { formatYmdRange } from './dateRange';
 import { fetchTourExpenses, expenseItems } from './tourExpenses';
 
 // ─────────────────────────────────────────────
-// PAYMENT RECEIPT (PDF) for a confirmed booking.
-// Generated in the browser; jsPDF is loaded only when a joiner downloads one.
+// PAYMENT RECEIPTS (PDF), in the style of a printed till receipt: narrow
+// paper, a centered header, QTY / DESC / AMT lines, the amount paid in big
+// type, totals and the booking's check-in QR.
+// Generated in the browser; jsPDF is loaded only when a receipt is made.
 // Amounts use "PHP" because the PDF's built-in fonts have no peso sign.
-// This acknowledges a GCash payment; it is not a BIR-registered official receipt.
+// This acknowledges a payment; it is not a BIR-registered official receipt.
 // ─────────────────────────────────────────────
 
-// "October 21, 2026, 3:45 PM" in Philippine time.
-const dateTime = (d) => new Date(d).toLocaleString('en-PH', {
-  timeZone: 'Asia/Manila', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
-});
-
 const php = (n) => `PHP ${Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const manila = (d, opts) => new Date(d).toLocaleString('en-US', { timeZone: 'Asia/Manila', ...opts });
+const dateOf = (d) => manila(d, { month: '2-digit', day: '2-digit', year: 'numeric' });
+const timeOf = (d) => manila(d, { hour: '2-digit', minute: '2-digit', hour12: true });
 
 export const receiptNumber = (booking) => `R-${booking.booking_number}`;
 
@@ -23,153 +23,215 @@ export const balanceRemaining = (booking) =>
     ? Math.max(0, (booking.total_price || 0) - (booking.amount_paid || 0))
     : 0;
 
-// A blank receipt with the Bandang IBAYO header, plus helpers to add rows.
-const startReceipt = (jsPDF) => {
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const left = 56;
-  const right = doc.internal.pageSize.getWidth() - 56;
-  let y = 64;
+// A QR code image (PNG data URL) for the receipt.
+const qrImage = async (text) => {
+  const { default: QRCode } = await import('qrcode');
+  return QRCode.toDataURL(String(text), { width: 360, margin: 1, errorCorrectionLevel: 'M', color: { dark: '#464646', light: '#FFFFFF' } });
+};
+// The same check-in QR as in My Bookings (CheckInQr.jsx). Bookings without a
+// check-in code get their booking number, which Check-in also accepts.
+const checkinQrText = (booking) => (booking.checkin_code
+  ? `BANDANGIBAYO-CHECKIN:${booking.checkin_code}`
+  : booking.booking_number || 'BANDANG IBAYO');
 
-  const line = (label, value, opts = {}) => {
-    doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(122, 58, 24);
-    doc.text(label, left, y);
-    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal').setFontSize(opts.size || 10).setTextColor(26, 10, 0);
-    const lines = doc.splitTextToSize(String(value ?? '—'), right - left - 160);
-    doc.text(lines, left + 160, y);
-    y += 16 * lines.length + (opts.gap || 4);
-  };
-  const section = (title) => {
-    y += 10;
-    doc.setDrawColor(232, 210, 190).line(left, y, right, y);
-    y += 20;
-    doc.setFont('helvetica', 'bold').setFontSize(9).setTextColor(196, 92, 38);
-    doc.text(title.toUpperCase(), left, y);
-    y += 18;
-  };
-  const footer = (text) => {
-    y += 24;
-    doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(122, 58, 24);
-    doc.text(doc.splitTextToSize(text, right - left), left, y);
-  };
+// Lays out a receipt twice: once to measure its height, once to draw it on a
+// page of exactly that height (like a roll of receipt paper).
+const buildReceipt = async ({ draw, filename }) => {
+  const { jsPDF } = await import('jspdf');
+  const W = 240; // ~85 mm wide
+  const measure = new jsPDF({ unit: 'pt', format: [W, 2000] });
+  const height = draw(makePen(measure, W)) + 24;
+  const doc = new jsPDF({ unit: 'pt', format: [W, Math.max(height, 300)] });
+  draw(makePen(doc, W));
+  return { doc, filename };
+};
 
-  // Header
-  doc.setFont('helvetica', 'bold').setFontSize(20).setTextColor(26, 10, 0);
-  doc.text('Bandang IBAYO', left, y);
-  doc.setFontSize(12).setTextColor(196, 92, 38);
-  doc.text('PAYMENT RECEIPT', right, y, { align: 'right' });
-  y += 18;
-  doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(122, 58, 24);
-  doc.text('Joiner tours across the Philippines · bandangibayo@gmail.com', left, y);
-  y += 14;
+// Drawing helpers for one receipt page.
+const makePen = (doc, W) => {
+  const L = 16;
+  const R = W - 16;
+  const grey = [70, 70, 70];
+  let y = 30;
+  const font = (size, bold = true) => doc.setFont('helvetica', bold ? 'bold' : 'normal').setFontSize(size).setTextColor(...grey);
+  const wrap = (text, width) => doc.splitTextToSize(String(text ?? ''), width);
+  return {
+    get y() { return y; },
+    gap(n) { y += n; },
+    center(text, size = 9, bold = true) {
+      font(size, bold);
+      for (const line of wrap(text, R - L)) { doc.text(line, W / 2, y, { align: 'center' }); y += size + 4; }
+    },
+    pair(left, right, size = 8.5, bold = true) {
+      font(size, bold);
+      doc.text(String(left), L, y);
+      if (right != null && right !== '') doc.text(String(right), R, y, { align: 'right' });
+      y += size + 6;
+    },
+    dashes() {
+      doc.setDrawColor(...grey).setLineDashPattern([2, 2], 0).setLineWidth(0.8).line(L, y - 4, R, y - 4).setLineDashPattern([], 0);
+      y += 8;
+    },
+    columns() {
+      font(8);
+      doc.text('QTY', L, y); doc.text('DESC', L + 30, y); doc.text('AMT', R, y, { align: 'right' });
+      y += 6;
+      this.dashes();
+    },
+    // One item: quantity, a description that wraps, the amount on the right.
+    item(qty, desc, amount) {
+      font(8.5);
+      doc.text(String(qty ?? ''), L, y);
+      if (amount != null && amount !== '') doc.text(String(amount), R, y, { align: 'right' });
+      const lines = wrap(desc, R - L - 30 - 70);
+      doc.text(lines, L + 30, y);
+      y += 13 * lines.length + 3;
+    },
+    // A total line, indented like the sample (label, then the value).
+    total(label, value, size = 8.5) {
+      font(size);
+      doc.text(String(label), L + 30, y);
+      doc.text(String(value), L + 120, y);
+      y += size + 7;
+    },
+    big(label, value) {
+      font(15);
+      doc.text(String(label), L + 30, y);
+      doc.text(String(value), L + 82, y);
+      y += 22;
+    },
+    qr(dataUrl, caption) {
+      const size = 120;
+      doc.addImage(dataUrl, 'PNG', (W - size) / 2, y, size, size);
+      y += size + 12;
+      font(7, false);
+      doc.text(String(caption), W / 2, y - 2, { align: 'center' });
+      y += 8;
+    },
+    note(text) {
+      font(6.5, false);
+      for (const line of wrap(text, R - L)) { doc.text(line, W / 2, y, { align: 'center' }); y += 9; }
+    },
+  };
+};
 
-  return { doc, line, section, footer };
+const header = (pen) => {
+  pen.center('BANDANG IBAYO', 15);
+  pen.center('Joiner tours across the Philippines', 7.5, false);
+  pen.center('bandangibayo@gmail.com', 7.5, false);
+  pen.gap(6);
+};
+
+const footer = (pen, qr, caption, text) => {
+  pen.gap(4);
+  pen.qr(qr, caption);
+  pen.note(text);
+  return pen.y;
 };
 
 // Expense names only: joiners don't see what each item costs.
-const addExpenses = (section, line, expenses) => {
-  if (!expenses) return;
-  section('Tour expenses (covered by your booking)');
-  expenseItems(expenses).forEach((item) => line(item.label, 'Included'));
+const expenseLines = (pen, expenses) => {
+  const items = expenseItems(expenses);
+  if (!items.length) return;
+  pen.gap(2);
+  pen.pair('INCLUDED', '', 7.5);
+  items.forEach((i) => pen.item('', i.label, 'Included'));
+};
+
+// ── Tour booking receipt ──────────────────────
+const bookingReceipt = async (booking, tour, { expenses } = {}) => {
+  const exp = expenses === undefined ? await fetchTourExpenses(booking.tour_id) : expenses;
+  const paidAt = booking.balance_settled_at || booking.paid_online_at || booking.updated_at || booking.created_at || new Date();
+  const pax = booking.slots_booked || 1;
+  const discount = Number(booking.sale_discount) || 0;
+  const total = Number(booking.total_price) || 0;
+  const paid = Number(booking.amount_paid ?? total) || 0;
+  const balance = balanceRemaining(booking);
+  const companions = (booking.companions || []).map((c) => c.full_name).filter(Boolean);
+  const method = booking.paymongo_payment_id ? 'ONLINE' : 'GCASH';
+  const qr = await qrImage(checkinQrText(booking));
+
+  return buildReceipt({
+    filename: `receipt-${booking.booking_number}.pdf`,
+    draw: (pen) => {
+      header(pen);
+      pen.pair(dateOf(paidAt), timeOf(paidAt));
+      pen.pair(`BOOKING ${booking.booking_number || '—'}`, '');
+      pen.pair(`JOINER ${String(booking.full_name || '—').toUpperCase()}`, '');
+      pen.pair(`${method} · ${String(booking.payment_method || 'Full Payment').toUpperCase()}`, '');
+      if (booking.paymongo_payment_id) pen.pair(`REF ${booking.paymongo_payment_id}`, '', 7);
+      else if (booking.gcash_reference_no) pen.pair(`REF ${booking.gcash_reference_no}`, '', 7);
+      pen.gap(4);
+      pen.columns();
+      pen.item(pax, `${tour?.title || 'Tour'} (${formatDateRange(tour?.start_date, tour?.duration)})`, php(total + discount));
+      if (discount > 0) pen.item('', 'Sale discount (5%)', `- ${php(discount)}`);
+      if (booking.pickup_point) pen.item('', `Pickup: ${booking.pickup_point}`, '');
+      if (companions.length) pen.item('', `With: ${companions.join(', ')}`, '');
+      expenseLines(pen, exp);
+      pen.gap(10);
+      pen.big('AMT', php(paid));
+      pen.total('SUBTOTAL', php(total + discount));
+      if (discount > 0) pen.total('DISCOUNT', `- ${php(discount)}`);
+      pen.total('TOTAL', php(total));
+      pen.total('PAID', php(paid));
+      pen.total('BALANCE', balance > 0 ? php(balance) : 'PHP 0.00');
+      if (balance > 0) pen.note('Balance due on or before the tour date.');
+      return footer(pen, qr, 'Show this QR at check-in on the tour day',
+        `${receiptNumber(booking)} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Payments are non-refundable. Not a BIR-registered official receipt.`);
+    },
+  });
 };
 
 export const downloadReceipt = async (booking, tour) => {
-  const [{ jsPDF }, expenses] = await Promise.all([import('jspdf'), fetchTourExpenses(booking.tour_id)]);
-  const { doc, line, section, footer } = startReceipt(jsPDF);
-
-  section('Receipt');
-  line('Receipt number', receiptNumber(booking), { bold: true });
-  line('Date & time issued', dateTime(new Date()));
-  line('Booking number', booking.booking_number);
-  line('Booked on', booking.created_at ? dateTime(booking.created_at) : '—');
-
-  section('Received from');
-  line('Name', booking.full_name);
-  line('Email', booking.email);
-  line('Contact number', booking.contact_number);
-
-  section('Tour');
-  line('Tour', tour.title, { bold: true });
-  line('Destination', tour.destination);
-  line('Date', formatDateRange(tour.start_date, tour.duration));
-  line('Joiners', `${booking.slots_booked} ${booking.slots_booked === 1 ? 'person' : 'persons'}`);
-  if (booking.pickup_point) line('Pickup point', booking.pickup_point);
-  if (booking.companions?.length) {
-    line('Joining with', booking.companions.map((c) => c.full_name).join(', '));
-  }
-
-  section('Payment');
-  if (booking.paymongo_payment_id) {
-    line('Payment method', `Online via PayMongo · ${booking.payment_method || '—'}`);
-    line('Payment ID', booking.paymongo_payment_id);
-    if (booking.paymongo_balance_payment_id) line('Balance payment ID', booking.paymongo_balance_payment_id);
-  } else {
-    line('Payment method', `GCash · ${booking.payment_method || '—'}`);
-    if (booking.gcash_reference_no) line('GCash reference', booking.gcash_reference_no);
-  }
-  const paidAt = booking.paid_online_at || booking.updated_at;
-  if (paidAt) line('Paid on', dateTime(paidAt));
-  if (booking.balance_settled_at) line('Balance paid on', dateTime(booking.balance_settled_at));
-  if (Number(booking.sale_discount) > 0) {
-    line('Regular price', php(Number(booking.total_price) + Number(booking.sale_discount)));
-    line('Sale discount (5%)', `- ${php(booking.sale_discount)}`);
-  }
-  line('Tour total', php(booking.total_price));
-  line('Amount paid', php(booking.amount_paid ?? booking.total_price), { bold: true, size: 12 });
-  const balance = balanceRemaining(booking);
-  line('Balance', balance > 0 ? `${php(balance)} (due on or before the tour date)` : 'Paid in full', { bold: balance === 0 });
-
-  addExpenses(section, line, expenses);
-
-  footer('This receipt acknowledges payment received for the booking above, verified by Bandang IBAYO. '
-    + 'All payments are non-refundable per our Terms & Conditions. This is not a BIR-registered official receipt.');
-
-  doc.save(`receipt-${booking.booking_number}.pdf`);
+  const { doc, filename } = await bookingReceipt(booking, tour);
+  doc.save(filename);
 };
 
-// Receipt for an exclusive tour (50% downpayment, then the balance).
+// Admin "Print Receipt": the same receipt, opened in a new tab to print.
+export const printReceipt = async (booking, tour) => {
+  const win = window.open('', '_blank'); // opened now, so the browser doesn't block it
+  const { doc } = await bookingReceipt(booking, tour);
+  doc.autoPrint();
+  const url = doc.output('bloburl');
+  if (win) win.location.href = url; else window.open(url, '_blank');
+};
+
+// ── Exclusive tour receipt (50% downpayment, then the balance) ──
 export const exclusiveReceiptNumber = (request) => `R-EX-${String(request.id).slice(0, 8).toUpperCase()}`;
 
 export const downloadExclusiveReceipt = async (request) => {
-  const { jsPDF } = await import('jspdf');
-  const { doc, line, section, footer } = startReceipt(jsPDF);
   const pkg = request.package_details || {};
   const price = Number(pkg.price) || 0;
   const paid = Number(request.amount_paid) || 0;
   const balance = request.balance_settled ? 0 : Math.max(0, price - paid);
-
-  section('Receipt');
-  line('Receipt number', exclusiveReceiptNumber(request), { bold: true });
-  line('Date & time issued', dateTime(new Date()));
-  line('Requested on', request.created_at ? dateTime(request.created_at) : '—');
-
-  section('Received from');
-  line('Name', request.full_name);
-  line('Email', request.email);
-  line('Contact number', request.contact_number);
-
-  section('Exclusive tour');
-  if (pkg.title) line('Tour', pkg.title, { bold: true });
-  line('Destination', pkg.destination || request.destination, { bold: !pkg.title });
   const start = pkg.start_date || request.preferred_date;
   const end = pkg.end_date || request.preferred_end_date || start;
-  line('Date', start ? formatYmdRange(start, end) : '—');
-  line('Group size', request.group_size ? `${request.group_size} persons` : '—');
-  if (pkg.accommodation) line('Accommodation', pkg.accommodation);
+  const paidAt = request.balance_paid_at || request.paid_at || new Date();
+  const code = exclusiveReceiptNumber(request);
+  const qr = await qrImage(code);
 
-  section('Payment');
-  line('Payment method', `${request.paymongo_payment_id ? 'Online via PayMongo' : 'Recorded by Bandang IBAYO'} · 50% downpayment`);
-  if (request.paymongo_payment_id) line('Payment ID', request.paymongo_payment_id);
-  if (request.balance_paymongo_payment_id) line('Balance payment ID', request.balance_paymongo_payment_id);
-  if (request.paid_at) line('Downpayment paid on', dateTime(request.paid_at));
-  if (request.balance_paid_at) line('Balance paid on', dateTime(request.balance_paid_at));
-  line('Package price', php(price));
-  line('Amount paid', php(paid), { bold: true, size: 12 });
-  line('Balance', balance > 0 ? `${php(balance)} (due before the trip)` : 'Paid in full', { bold: balance === 0 });
-
-  addExpenses(section, line, pkg.expenses);
-
-  footer('This receipt acknowledges payment received for the exclusive tour above, verified by Bandang IBAYO. '
-    + 'All payments are non-refundable per our Terms & Conditions. This is not a BIR-registered official receipt.');
-
-  doc.save(`receipt-exclusive-${String(request.id).slice(0, 8)}.pdf`);
+  const { doc, filename } = await buildReceipt({
+    filename: `receipt-exclusive-${String(request.id).slice(0, 8)}.pdf`,
+    draw: (pen) => {
+      header(pen);
+      pen.pair(dateOf(paidAt), timeOf(paidAt));
+      pen.pair('EXCLUSIVE TOUR', '');
+      pen.pair(`JOINER ${String(request.full_name || '—').toUpperCase()}`, '');
+      pen.pair(`${request.paymongo_payment_id ? 'ONLINE' : 'RECORDED'} · 50% DOWNPAYMENT`, '');
+      if (request.paymongo_payment_id) pen.pair(`REF ${request.paymongo_payment_id}`, '', 7);
+      pen.gap(4);
+      pen.columns();
+      pen.item(request.group_size || 1, `${pkg.title || pkg.destination || request.destination}${start ? ` (${formatYmdRange(start, end)})` : ''}`, php(price));
+      if (pkg.accommodation) pen.item('', `Accommodation: ${pkg.accommodation}`, '');
+      expenseLines(pen, pkg.expenses);
+      pen.gap(10);
+      pen.big('AMT', php(paid));
+      pen.total('SUBTOTAL', php(price));
+      pen.total('PAID', php(paid));
+      pen.total('BALANCE', balance > 0 ? php(balance) : 'PHP 0.00');
+      if (balance > 0) pen.note('Balance due before the trip.');
+      return footer(pen, qr, code,
+        `${code} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Payments are non-refundable. Not a BIR-registered official receipt.`);
+    },
+  });
+  doc.save(filename);
 };
