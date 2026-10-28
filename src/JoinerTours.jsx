@@ -1611,6 +1611,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                     downpaymentAmount={downpaymentAmount}
 
+                    fullOnly={isOnSale(tour)}
+
                     onChoose={handleChoosePaymentType}
 
                     busy={redirectingToPayment}
@@ -1772,7 +1774,8 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, subtotal, onProc
 
 
 
-const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack, busy }) => {
+// fullOnly: a date on sale is paid in full (no downpayment).
+const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack, busy, fullOnly = false }) => {
     // Joiners tick the non-refundable agreement before they can pay.
     const [agreed, setAgreed] = useState(false);
     return (
@@ -1855,6 +1858,11 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
 
 
+                {fullOnly ? (
+                    <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', background: 'rgba(140,47,28,0.08)', borderRadius: 14, padding: '10px 14px', margin: 0, textAlign: 'left', lineHeight: 1.5 }}>
+                        This date is on sale, so it must be paid in full. Downpayment isn't available.
+                    </p>
+                ) : (
                 <button
 
                     onClick={() => onChoose('down')}
@@ -1882,6 +1890,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                     <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
+                )}
 
             </div>
             {busy && (
