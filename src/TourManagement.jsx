@@ -7,7 +7,7 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, formatPickupTime, salePriceOf, isOnSale } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, isOnSale } from './tourUtils';
 import PriceTag from './ui/PriceTag';
 import { moneyInputProps, blockSignKeys, cleanMoney } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
@@ -229,7 +229,7 @@ const TourManagement = () => {
     const regularRate = Number(formData.get('regular_rate'));
     const vanRent = Number(formData.get('van_rent'));
     const tourGuide = Number(formData.get('tour_guide'));
-    const pickups = pickupRows.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location || r.time);
+    const pickups = pickupRows.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location);
     const pickupNames = pickups.map((r) => r.location.toLowerCase());
     const groupSize = Number(formData.get('group_size'));
     const minStart  = getMinStartDate();
@@ -279,8 +279,7 @@ const TourManagement = () => {
       ['pickup_0', pickups.length === 0 ? 'Add at least one pickup point, so joiners can choose where to be picked up.' : ''],
       ...pickupRows.map((r, i) => {
         const loc = r.location.trim().toLowerCase();
-        return [`pickup_${i}`, !loc && r.time ? 'Enter the pickup place.'
-          : loc && pickupRows.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
+        return [`pickup_${i}`, loc && pickupRows.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
       }),
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
       ['group_size', groupSize > 200 ? 'Max slots looks too high. Please check the number.' : ''],
@@ -355,17 +354,15 @@ const TourManagement = () => {
       })), { onConflict: 'tour_id' });
       if (expError) toast.error("Tour saved, but the expenses weren't", expError.message);
 
-      // Pickup points: add new ones, update times, remove ones nobody picked.
+      // Pickup points: add new ones, remove ones nobody picked.
       const kept = [];
       for (const id of rateIds) {
         const existing = [...(editingTour?.dates || [])].find((d) => d.id === id)?.pickup_points || [];
         for (const r of pickups) {
           const match = existing.find((m) => m.location_name.trim().toLowerCase() === r.location.toLowerCase());
-          const time = formatPickupTime(r.time);
+          // No time here: the ETA of each stop is set in Tracking Management.
           if (!match) {
-            await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: r.location, scheduled_time: time, status: 'DEPARTURE' }]);
-          } else if ((match.scheduled_time || '') !== time) {
-            await supabase.from('tour_meetups').update({ scheduled_time: time }).eq('id', match.id);
+            await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: r.location, scheduled_time: '', status: 'DEPARTURE' }]);
           }
         }
         for (const m of existing) {
@@ -877,22 +874,16 @@ const TourManagement = () => {
                   ><CalendarPlus size={13} /> Add Another Date</button>
                 </div>
 
-                {/* Pickup points: joiners pick one when booking. Times can also be changed later in Tracking Management. */}
+                {/* Pickup points: joiners pick one when booking. Their times (ETAs) are set in Tracking Management. */}
                 <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {pickupRows.map((r, i) => (
-                      <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
+                      <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
                         <div>
                           <label style={labelStyle}>Place {pickupRows.length > 1 ? i + 1 : ''}</label>
                           <input name={`pickup_${i}`} value={r.location} maxLength={120} placeholder="e.g. Shell Mindanao Ave, QC"
                             onChange={(e) => { const v = e.target.value; setPickupRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, location: v } : x))); setFormDirty(true); }}
-                            style={inputStyle} />
-                        </div>
-                        <div>
-                          <label style={labelStyle}>Time</label>
-                          <input type="time" aria-label={`Pickup time ${i + 1}`} value={r.time}
-                            onChange={(e) => { const v = e.target.value; setPickupRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, time: v } : x))); setFormDirty(true); }}
                             style={inputStyle} />
                         </div>
                         <button type="button" aria-label={`Remove pickup point ${i + 1}`} disabled={pickupRows.length === 1}
@@ -908,7 +899,7 @@ const TourManagement = () => {
                     background: 'transparent', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
                   }}>+ Add Pickup Point</button>
                   <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 0 0' }}>
-                    Joiners choose one of these when they book. The same points are used for every date of this trip.
+                    Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management.
                   </p>
                 </div>
  

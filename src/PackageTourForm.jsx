@@ -133,7 +133,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     const guide = Number(form.tour_guide);
     const slots = Number(form.group_size);
     const tripDays = (new Date(form.end_date) - new Date(form.start_date)) / 86400000 + 1;
-    const stops = pickups.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location || r.time);
+    const stops = pickups.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location);
     const extra = others.filter((o) => o.name.trim() || String(o.amount).trim());
     const requestedSlots = Number(request.group_size) || 1;
 
@@ -158,8 +158,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['pickup_0', stops.length === 0 ? 'Add at least one pickup point.' : ''],
       ...pickups.map((r, i) => {
         const loc = r.location.trim().toLowerCase();
-        return [`pickup_${i}`, !loc && r.time ? 'Enter the pickup place.'
-          : loc && pickups.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
+        return [`pickup_${i}`, loc && pickups.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
       }),
       ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : slots > 200 ? 'That looks too high. Please check the number.'
         : isOpenRequest && slots < requestedSlots ? `Max slots must fit the requester's group of ${requestedSlots}.` : ''],
@@ -183,7 +182,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         bag_tag: BAG_TAG_FEE,
         others: extra.map((o) => ({ name: o.name.trim(), amount: Math.round(Number(o.amount) * 100) / 100 })),
       };
-      const pickup_points = stops.map((r) => ({ location: r.location, time: formatPickupTime(r.time) }));
+      // Times (ETAs) are set later in Tracking Management; keep any already set.
+      const pickup_points = stops.map((r) => ({ location: r.location, time: r.time ? formatPickupTime(r.time) : '' }));
       const details = {
         title: form.title.trim(),
         destination: form.destination.trim(),
@@ -376,16 +376,11 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points</label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {pickups.map((r, i) => (
-                  <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
+                  <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
                     <div>
                       <label style={labelStyle}>Place {pickups.length > 1 ? i + 1 : ''}</label>
                       <input name={`pickup_${i}`} value={r.location} maxLength={120} placeholder="e.g. Shell Mindanao Ave, QC"
                         onChange={(e) => { const v = e.target.value; setPickups((rows) => rows.map((x) => (x.key === r.key ? { ...x, location: v } : x))); setDirty(true); }} style={inputStyle} />
-                    </div>
-                    <div>
-                      <label style={labelStyle}>Time</label>
-                      <input type="time" aria-label={`Pickup time ${i + 1}`} value={r.time}
-                        onChange={(e) => { const v = e.target.value; setPickups((rows) => rows.map((x) => (x.key === r.key ? { ...x, time: v } : x))); setDirty(true); }} style={inputStyle} />
                     </div>
                     <button type="button" aria-label={`Remove pickup point ${i + 1}`} disabled={pickups.length === 1}
                       onClick={() => { setPickups((rows) => rows.filter((x) => x.key !== r.key)); setDirty(true); }} style={iconBtn(pickups.length === 1)}>
@@ -483,13 +478,12 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
   const { error: expError } = await supabase.from('tour_expenses').upsert([{ tour_id: id, ...expenses }], { onConflict: 'tour_id' });
   if (expError) throw expError;
 
-  // Pickup points: add new ones, update times, remove ones nobody picked.
+  // Pickup points: add new ones, remove ones nobody picked (times are set in Tracking).
   const { data: existing } = await supabase.from('tour_meetups').select('id, location_name, scheduled_time').eq('tour_id', id);
   const names = pickup_points.map((p) => p.location.toLowerCase());
   for (const p of pickup_points) {
     const match = (existing || []).find((m) => m.location_name.trim().toLowerCase() === p.location.toLowerCase());
     if (!match) await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: p.location, scheduled_time: p.time, status: 'DEPARTURE' }]);
-    else if ((match.scheduled_time || '') !== p.time) await supabase.from('tour_meetups').update({ scheduled_time: p.time }).eq('id', match.id);
   }
   for (const m of existing || []) {
     if (names.includes(m.location_name.trim().toLowerCase())) continue;
