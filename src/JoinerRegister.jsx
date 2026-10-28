@@ -44,7 +44,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
-  // After Register: the emailed 6-digit code step ({ challengeId, sentTo, expiresInMinutes }).
+  // After Register: the emailed 6-digit code step ({ challengeId, sentTo, expiresInMinutes, password }).
+  // The account is created only when the right code is entered.
   const [codeStep, setCodeStep] = useState(null);
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -152,9 +153,17 @@ const JoinerRegister = ({ mode = 'register' }) => {
     setVerifying(true);
     setCodeError('');
     setCodeInfo('');
-    const result = await verifyLoginCode(codeStep.challengeId, code);
+    const result = await verifyLoginCode(codeStep.challengeId, code, codeStep.password);
     if (!result.ok) {
       setVerifying(false);
+      // Taken while the code was on its way: back to the form to change it.
+      if (result.field === 'email' || result.field === 'username') {
+        setCodeStep(null);
+        const form = document.querySelector('form[data-register-form]');
+        if (form) flagField(form, result.field, result.error);
+        else toast.error('Registration failed', result.error);
+        return;
+      }
       setCodeError(forSignup(result.error));
       return;
     }
@@ -317,14 +326,14 @@ const JoinerRegister = ({ mode = 'register' }) => {
             terms_accepted: true,
       };
 
-      // Normal path: the auth function creates the account and emails a code.
-      // The account only works once that code is entered (below).
+      // Normal path: the auth function emails a code; the account is created
+      // only once that code is entered (below).
       const started = await signupStart(email, password, profile);
       if (started.ok) {
         setCode('');
         setCodeError('');
         setCodeInfo('');
-        setCodeStep(started.data);
+        setCodeStep({ ...started.data, password });
         return;
       }
       if (started.field) {
@@ -751,6 +760,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
           </div>
         ) : (
         <form
+          data-register-form
           style={{
             display: 'flex',
             flexDirection: 'column',

@@ -38,18 +38,19 @@ export const loginStart = async (identifier, password) => {
   return { ok: true, data };
 };
 
-// Step 2: the emailed code → signs the browser in.
-export const verifyLoginCode = async (challengeId, code) => {
-  const result = await call({ action: 'verify', challengeId, code });
+// Step 2: the emailed code → signs the browser in. A registration sends the
+// password again: the account is created only now.
+export const verifyLoginCode = async (challengeId, code, password) => {
+  const result = await call({ action: 'verify', challengeId, code, ...(password ? { password } : {}) });
   if (!result.ok) return result;
   const { data, error } = await supabase.auth.setSession(result.data);
   if (error) return { ok: false, error: error.message };
   return { ok: true, data };
 };
 
-// Registration: creates the account (not usable yet) and emails a 6-digit code:
+// Registration: checks the details and emails a 6-digit code:
 // { ok, data: { challengeId, sentTo, expiresInMinutes } }. verifyLoginCode()
-// with that code confirms the email and signs the new joiner in.
+// with that code (and the password) creates the account and signs the new joiner in.
 export const signupStart = (email, password, profile) =>
   call({ action: 'signup', email, password, profile });
 
