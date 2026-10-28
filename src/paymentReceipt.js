@@ -5,7 +5,7 @@ import { fetchTourExpenses, expenseItems } from './tourExpenses';
 // ─────────────────────────────────────────────
 // PAYMENT RECEIPTS (PDF), in the style of a printed till receipt: narrow
 // paper, a centered header, QTY / DESC / AMT lines, the amount paid in big
-// type, totals and a barcode of the booking number.
+// type, totals and the booking's check-in QR.
 // Generated in the browser; jsPDF is loaded only when a receipt is made.
 // Amounts use "PHP" because the PDF's built-in fonts have no peso sign.
 // This acknowledges a payment; it is not a BIR-registered official receipt.
@@ -23,29 +23,16 @@ export const balanceRemaining = (booking) =>
     ? Math.max(0, (booking.total_price || 0) - (booking.amount_paid || 0))
     : 0;
 
-// ── Code 128 (set B) barcode: bar/space widths for each symbol ──
-const CODE128 = [
-  '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213',
-  '221312', '231212', '112232', '122132', '122231', '113222', '123122', '123221', '223211', '221132',
-  '221231', '213212', '223112', '312131', '311222', '321122', '321221', '312212', '322112', '322211',
-  '212123', '212321', '232121', '111323', '131123', '131321', '112313', '132113', '132311', '211313',
-  '231113', '231311', '112133', '112331', '132131', '113123', '113321', '133121', '313121', '211331',
-  '231131', '213113', '213311', '213131', '311123', '311321', '331121', '312113', '312311', '332111',
-  '314111', '221411', '431111', '111224', '111422', '121124', '121421', '141122', '141221', '112214',
-  '112412', '122114', '122411', '142112', '142211', '241211', '221114', '413111', '241112', '134111',
-  '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112', '421211', '212141',
-  '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311', '113141',
-  '114131', '311141', '411131', '211412', '211214', '211232', '2331112',
-];
-const code128Widths = (text) => {
-  const values = [104]; // Start B
-  for (const ch of String(text)) {
-    const v = ch.charCodeAt(0) - 32;
-    if (v >= 0 && v < 95) values.push(v);
-  }
-  const check = values.reduce((sum, v, i) => sum + v * (i || 1), 0) % 103;
-  return [...values, check, 106].map((v) => CODE128[v]).join('');
+// A QR code image (PNG data URL) for the receipt.
+const qrImage = async (text) => {
+  const { default: QRCode } = await import('qrcode');
+  return QRCode.toDataURL(String(text), { width: 360, margin: 1, errorCorrectionLevel: 'M', color: { dark: '#464646', light: '#FFFFFF' } });
 };
+// The same check-in QR as in My Bookings (CheckInQr.jsx). Bookings without a
+// check-in code get their booking number, which Check-in also accepts.
+const checkinQrText = (booking) => (booking.checkin_code
+  ? `BANDANGIBAYO-CHECKIN:${booking.checkin_code}`
+  : booking.booking_number || 'BANDANG IBAYO');
 
 // Lays out a receipt twice: once to measure its height, once to draw it on a
 // page of exactly that height (like a roll of receipt paper).
@@ -112,21 +99,13 @@ const makePen = (doc, W) => {
       doc.text(String(value), L + 82, y);
       y += 22;
     },
-    barcode(text) {
-      const widths = code128Widths(text);
-      const units = [...widths].reduce((s, w) => s + Number(w), 0) + 20;
-      const unit = Math.min(1.2, (R - L) / units);
-      let x = (W - units * unit) / 2 + 10 * unit;
-      doc.setFillColor(...grey);
-      [...widths].forEach((w, i) => {
-        const width = Number(w) * unit;
-        if (i % 2 === 0) doc.rect(x, y, width, 40, 'F');
-        x += width;
-      });
-      y += 52;
+    qr(dataUrl, caption) {
+      const size = 120;
+      doc.addImage(dataUrl, 'PNG', (W - size) / 2, y, size, size);
+      y += size + 12;
       font(7, false);
-      doc.text(String(text), W / 2, y - 4, { align: 'center' });
-      y += 6;
+      doc.text(String(caption), W / 2, y - 2, { align: 'center' });
+      y += 8;
     },
     note(text) {
       font(6.5, false);
@@ -142,9 +121,9 @@ const header = (pen) => {
   pen.gap(6);
 };
 
-const footer = (pen, code, text) => {
+const footer = (pen, qr, caption, text) => {
   pen.gap(4);
-  pen.barcode(code);
+  pen.qr(qr, caption);
   pen.note(text);
   return pen.y;
 };
@@ -169,6 +148,7 @@ const bookingReceipt = async (booking, tour, { expenses } = {}) => {
   const balance = balanceRemaining(booking);
   const companions = (booking.companions || []).map((c) => c.full_name).filter(Boolean);
   const method = booking.paymongo_payment_id ? 'ONLINE' : 'GCASH';
+  const qr = await qrImage(checkinQrText(booking));
 
   return buildReceipt({
     filename: `receipt-${booking.booking_number}.pdf`,
@@ -195,7 +175,7 @@ const bookingReceipt = async (booking, tour, { expenses } = {}) => {
       pen.total('PAID', php(paid));
       pen.total('BALANCE', balance > 0 ? php(balance) : 'PHP 0.00');
       if (balance > 0) pen.note('Balance due on or before the tour date.');
-      return footer(pen, booking.booking_number || 'BANDANG IBAYO',
+      return footer(pen, qr, 'Show this QR at check-in on the tour day',
         `${receiptNumber(booking)} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Payments are non-refundable. Not a BIR-registered official receipt.`);
     },
   });
@@ -227,6 +207,7 @@ export const downloadExclusiveReceipt = async (request) => {
   const end = pkg.end_date || request.preferred_end_date || start;
   const paidAt = request.balance_paid_at || request.paid_at || new Date();
   const code = exclusiveReceiptNumber(request);
+  const qr = await qrImage(code);
 
   const { doc, filename } = await buildReceipt({
     filename: `receipt-exclusive-${String(request.id).slice(0, 8)}.pdf`,
@@ -248,7 +229,7 @@ export const downloadExclusiveReceipt = async (request) => {
       pen.total('PAID', php(paid));
       pen.total('BALANCE', balance > 0 ? php(balance) : 'PHP 0.00');
       if (balance > 0) pen.note('Balance due before the trip.');
-      return footer(pen, code,
+      return footer(pen, qr, code,
         `${code} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Payments are non-refundable. Not a BIR-registered official receipt.`);
     },
   });
