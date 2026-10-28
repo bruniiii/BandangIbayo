@@ -6,11 +6,12 @@
 //        3 wrong passwords in a row lock the account for 15 minutes. On the right
 //        password it returns { access_token, refresh_token } for
 //        supabase.auth.setSession() (no emailed code any more).
-//   - "signup"  { email, password, profile }   registration: creates the account
-//        unconfirmed and emails a 6-digit code; returns { challengeId, sentTo,
-//        expiresInMinutes }. The account can't log in until the code is entered.
-//   - "verify"  { challengeId, code }   right code (10 minutes, 5 tries) → confirms
-//        the email and returns { access_token, refresh_token } for setSession().
+//   - "signup"  { email, password, profile }   registration: checks the details
+//        and emails a 6-digit code; returns { challengeId, sentTo, expiresInMinutes }.
+//        No account exists yet: it's created only when the right code is entered.
+//   - "verify"  { challengeId, code, password? }   right code (10 minutes, 5 tries)
+//        → for a registration, creates the account (password sent again here) with
+//        its email confirmed; returns { access_token, refresh_token } for setSession().
 //        (Also finishes logins started before the login code was removed.)
 //   - "resend"  { challengeId }   new code (max 3 resends, 60 s apart)
 //   - "change-password"  { currentPassword, newPassword }   logged-in user; checks the
@@ -113,12 +114,11 @@ async function checkPassword(email: string, password: string) {
 }
 
 // ───────────── Codes ─────────────
-async function sendCode(email: string, userId: string, code: string, purpose: "login" | "signup" = "login") {
-  const { data: profile } = await admin.from("profiles").select("first_name").eq("id", userId).maybeSingle();
+async function sendCode(email: string, name: string, code: string, purpose: "login" | "signup" = "login") {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
     method: "POST",
     headers: { Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ type: "login-code", to: email, name: profile?.first_name ?? "", code, minutes: CODE_MINUTES, purpose }),
+    body: JSON.stringify({ type: "login-code", to: email, name, code, minutes: CODE_MINUTES, purpose }),
   });
   if (!res.ok) throw new HttpError(502, "We couldn't email your verification code. Please try again.");
 }
@@ -181,6 +181,9 @@ async function startSession(email: string) {
   return { access_token: session.access_token, refresh_token: session.refresh_token };
 }
 
+const firstNameOf = async (userId: string) =>
+  ((await admin.from("profiles").select("first_name").eq("id", userId).maybeSingle()).data?.first_name as string) ?? "";
+
 async function loadChallenge(challengeId: unknown) {
   const { data } = await admin.from("login_challenges").select("*").eq("id", challengeId).maybeSingle();
   if (!data || new Date(data.expires_at).getTime() < Date.now()) {
@@ -190,6 +193,7 @@ async function loadChallenge(challengeId: unknown) {
 }
 
 async function verify(p: any) {
+  if (await loadSignup(p.challengeId, false)) return await verifySignup(p);
   const challenge = await loadChallenge(p.challengeId);
   if (challenge.attempts >= MAX_CODE_TRIES) {
     await admin.from("login_challenges").delete().eq("id", challenge.id);
@@ -217,20 +221,39 @@ const PROFILE_FIELDS = [
 ];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-async function newChallenge(userId: string, email: string, purpose: "login" | "signup") {
-  const challengeId = crypto.randomUUID();
-  const code = newCode();
-  await admin.from("login_challenges").delete().eq("user_id", userId);
-  const { error } = await admin.from("login_challenges").insert({
-    id: challengeId,
-    user_id: userId,
-    email,
-    code_hash: await codeHash(challengeId, code),
-    expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
-  });
+// A registration waiting for its code: email, profile and the code's hash
+// (never the password; the form sends it again with the code).
+async function loadSignup(challengeId: unknown, required = true) {
+  if (typeof challengeId !== "string" || !/^[0-9a-f-]{36}$/i.test(challengeId)) {
+    if (required) throw new HttpError(410, "This code has expired. Please register again.");
+    return null;
+  }
+  const { data } = await admin.from("signup_challenges").select("*").eq("id", challengeId).maybeSingle();
+  if (!data) {
+    if (required) throw new HttpError(410, "This code has expired. Please register again.");
+    return null;
+  }
+  if (new Date(data.expires_at).getTime() < Date.now()) throw new HttpError(410, "This code has expired. Please register again.");
+  return data;
+}
+
+// An existing account with this email: { id, confirmed } or null.
+// (A database lookup: generateLink would create a missing account.)
+async function accountFor(email: string) {
+  const { data, error } = await admin.rpc("auth_account_for_email", { p_email: email });
   if (error) throw new Error(error.message);
-  await sendCode(email, userId, code, purpose);
-  return { challengeId, sentTo: maskEmail(email), expiresInMinutes: CODE_MINUTES };
+  const row = Array.isArray(data) ? data[0] : data;
+  return row?.id ? { id: String(row.id), confirmed: Boolean(row.confirmed) } : null;
+}
+
+const ALREADY_REGISTERED = 'This email is already registered. Please log in, or use "Forgot password?" on the login page.';
+
+async function usernameTaken(username: unknown, exceptUserId?: string) {
+  const name = String(username ?? "").trim();
+  if (!name) return false;
+  const pattern = name.replace(/[\\%_*]/g, (c) => "\\" + c);
+  const { data } = await admin.from("profiles").select("id, username").ilike("username", pattern).limit(10);
+  return (data ?? []).some((r: any) => String(r.username ?? "").toLowerCase() === name.toLowerCase() && r.id !== exceptUserId);
 }
 
 async function signup(p: any) {
@@ -242,31 +265,95 @@ async function signup(p: any) {
   const profile: Record<string, unknown> = {};
   for (const key of PROFILE_FIELDS) if (p.profile?.[key] !== undefined) profile[key] = p.profile[key];
 
-  let userId: string;
-  const created = await admin.auth.admin.createUser({ email, password, email_confirm: false, user_metadata: profile });
-  if (!created.error) {
-    userId = created.data.user!.id;
-  } else if (/already|registered|exists/i.test(created.error.message)) {
-    // The email has an account. A verified one can't be registered again; an
-    // unverified one (someone left before entering the code) gets a new code.
-    const { data: link, error: linkError } = await admin.auth.admin.generateLink({ type: "magiclink", email });
-    if (linkError || !link?.user) throw new Error(linkError?.message || "Could not look up this email.");
-    if (link.user.email_confirmed_at) {
-      throw new HttpError(409, 'This email is already registered. Please log in, or use "Forgot password?" on the login page.', { field: "email" });
-    }
-    userId = link.user.id;
-    await admin.auth.admin.updateUserById(userId, { password, user_metadata: profile });
-    const { terms_accepted: _t, ...profileRow } = profile;
-    await admin.from("profiles").update(profileRow).eq("id", userId);
-  } else if (/database error/i.test(created.error.message)) {
+  // A verified account can't be registered again. (An unverified one, left by
+  // the old sign-up, is taken over once the code is entered.)
+  const existing = await accountFor(email);
+  if (existing?.confirmed) throw new HttpError(409, ALREADY_REGISTERED, { field: "email" });
+  if (await usernameTaken(profile.username, existing?.id)) {
     throw new HttpError(409, "This username is already taken. Please choose another one.", { field: "username" });
-  } else {
-    throw new HttpError(400, created.error.message);
   }
-  return await newChallenge(userId, email, "signup");
+
+  // One waiting registration per email; old ones are cleared out.
+  await admin.from("signup_challenges").delete().eq("email", email);
+  await admin.from("signup_challenges").delete().lt("expires_at", new Date(Date.now() - 86400000).toISOString());
+  const challengeId = crypto.randomUUID();
+  const code = newCode();
+  const { error } = await admin.from("signup_challenges").insert({
+    id: challengeId,
+    email,
+    profile,
+    code_hash: await codeHash(challengeId, code),
+    expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
+  });
+  if (error) throw new Error(error.message);
+  await sendCode(email, String(profile.first_name ?? ""), code, "signup");
+  return { challengeId, sentTo: maskEmail(email), expiresInMinutes: CODE_MINUTES };
+}
+
+// The right code: now the account is created, with its email confirmed.
+async function verifySignup(p: any) {
+  const challenge = await loadSignup(p.challengeId);
+  if (challenge.attempts >= MAX_CODE_TRIES) {
+    await admin.from("signup_challenges").delete().eq("id", challenge.id);
+    throw new HttpError(429, "Too many wrong codes. Please register again.");
+  }
+  const code = String(p.code ?? "").replace(/\D/g, "");
+  if (code.length !== 6 || (await codeHash(challenge.id, code)) !== challenge.code_hash) {
+    const left = MAX_CODE_TRIES - challenge.attempts - 1;
+    await admin.from("signup_challenges").update({ attempts: challenge.attempts + 1 }).eq("id", challenge.id);
+    throw new HttpError(401, left > 0 ? `That code isn't right. ${left} tr${left === 1 ? "y" : "ies"} left.` : "Too many wrong codes. Please register again.");
+  }
+  const password = String(p.password ?? "");
+  const problems = passwordProblems(password);
+  if (problems.length) throw new HttpError(400, `Your password needs ${problems.join(", ")}.`);
+
+  const email = challenge.email as string;
+  const profile = (challenge.profile ?? {}) as Record<string, unknown>;
+  const existing = await accountFor(email);
+  if (existing?.confirmed) {
+    await admin.from("signup_challenges").delete().eq("id", challenge.id);
+    throw new HttpError(409, ALREADY_REGISTERED, { field: "email" });
+  }
+  if (existing) {
+    // Left unverified by the old sign-up: it becomes this registration.
+    const { error } = await admin.auth.admin.updateUserById(existing.id, { password, user_metadata: profile, email_confirm: true });
+    if (error) throw new HttpError(400, error.message);
+    const { terms_accepted: _t, ...profileRow } = profile;
+    await admin.from("profiles").update(profileRow).eq("id", existing.id);
+  } else {
+    const created = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: profile });
+    if (created.error) {
+      if (/database error/i.test(created.error.message)) {
+        throw new HttpError(409, "This username is already taken. Please choose another one.", { field: "username" });
+      }
+      if (/already|registered|exists/i.test(created.error.message)) throw new HttpError(409, ALREADY_REGISTERED, { field: "email" });
+      throw new HttpError(400, created.error.message);
+    }
+  }
+  await admin.from("signup_challenges").delete().eq("id", challenge.id);
+  return await startSession(email);
+}
+
+async function resendSignup(challenge: any) {
+  if (challenge.resends >= MAX_RESENDS) throw new HttpError(429, "You've asked for too many codes. Please register again.");
+  if (Date.now() - new Date(challenge.last_sent_at).getTime() < 60000) {
+    throw new HttpError(429, "Please wait a minute before asking for another code.");
+  }
+  const code = newCode();
+  await admin.from("signup_challenges").update({
+    code_hash: await codeHash(challenge.id, code),
+    attempts: 0,
+    resends: challenge.resends + 1,
+    last_sent_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
+  }).eq("id", challenge.id);
+  await sendCode(challenge.email, String(challenge.profile?.first_name ?? ""), code, "signup");
+  return { sentTo: maskEmail(challenge.email) };
 }
 
 async function resend(p: any) {
+  const pending = await loadSignup(p.challengeId, false);
+  if (pending) return await resendSignup(pending);
   const challenge = await loadChallenge(p.challengeId);
   if (challenge.resends >= MAX_RESENDS) throw new HttpError(429, "You've asked for too many codes. Please log in again.");
   if (Date.now() - new Date(challenge.last_sent_at).getTime() < 60000) {
@@ -282,7 +369,7 @@ async function resend(p: any) {
   }).eq("id", challenge.id);
   // Not verified yet → it's a registration code, worded as such.
   const { data: owner } = await admin.auth.admin.getUserById(challenge.user_id);
-  await sendCode(challenge.email, challenge.user_id, code, owner?.user?.email_confirmed_at ? "login" : "signup");
+  await sendCode(challenge.email, await firstNameOf(challenge.user_id), code, owner?.user?.email_confirmed_at ? "login" : "signup");
   return { sentTo: maskEmail(challenge.email) };
 }
 
