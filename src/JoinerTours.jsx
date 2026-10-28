@@ -4,7 +4,8 @@ import WeatherNotice from './ui/WeatherNotice';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 
-import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter, groupTripDates, tripForDate, formatPickupTime } from './tourUtils';
+import { withAvailableSlots, formatDateRange, formatPeso, downpaymentFor, archivePastTours, notEndedFilter, groupTripDates, tripForDate, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
+import PriceTag from './ui/PriceTag';
 import { TripDatePicker, TripDateLines } from './ui/TripDates';
 import { MoreTourFilters } from './ui/TourFilters';
 import { applyTripFilters, useTripFilters } from './tripFilters';
@@ -485,7 +486,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
 
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#A8481A', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
+            <PriceTag tour={tour} size={15} style={{ marginLeft: 10, flexShrink: 0 }} />
 
           </div>
 
@@ -963,7 +964,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     const isFullyBooked = tour.available_slots <= 0;
     const isAlmostFull = !isFullyBooked && tour.available_slots <= 3;
     const maxBookingLimit = Math.min(tour.available_slots || 0, 10);
-    const subtotal = tour.price * numPersons;
+    // On sale on this date: 5% off the Joiner Rate (the database charges the same).
+    const subtotal = effectivePrice(tour) * numPersons;
     const downpaymentAmount = downpaymentFor(subtotal);
     const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
 
@@ -1404,7 +1406,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                 {isFullyBooked && (
 
-                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(tour.price)} per person</p>
+                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(effectivePrice(tour))} per person</p>
 
                                 )}
 
@@ -1715,7 +1717,10 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, subtotal, onProc
 
               <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Price per person</span>
 
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>{formatPeso(tour.price)}</span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>
+                {isOnSale(tour) && <span style={{ textDecoration: 'line-through', fontWeight: 700, color: 'rgba(122,58,24,0.75)', marginRight: 6 }}>{formatPeso(tour.price)}</span>}
+                {formatPeso(effectivePrice(tour))}
+              </span>
 
             </div>
 

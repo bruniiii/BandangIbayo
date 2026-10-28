@@ -7,7 +7,8 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, formatPickupTime } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, formatPickupTime, salePriceOf, isOnSale } from './tourUtils';
+import PriceTag from './ui/PriceTag';
 import { moneyInputProps, blockSignKeys, cleanMoney } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import {
@@ -74,22 +75,28 @@ const TourManagement = () => {
     setShowModal(false);
   };
 
-  const blankDateRow = () => ({ key: `new-${Math.random()}`, start_date: '', end_date: '', booked: 0 });
+  const blankDateRow = () => ({ key: `new-${Math.random()}`, start_date: '', end_date: '', booked: 0, sale: false, sale_starts: '', sale_ends: '' });
   // Pickup points joiners choose from when booking (saved as each date's pickup stops).
   const [pickupRows, setPickupRows] = useState([]);
   const blankPickup = () => ({ key: `p-${Math.random()}`, location: '', time: '' });
   // Other expenses besides van, guide and bag tag (e.g. entrance fee, jeep).
   const [otherExpenses, setOtherExpenses] = useState([]);
+  // The Joiner Rate as typed (the field itself is uncontrolled), for the sale price preview.
+  const [formTourPrice, setFormTourPrice] = useState('');
   const blankExpense = () => ({ key: `e-${Math.random()}`, name: '', amount: '' });
   // Opens the form for a new trip, or for a trip's details and dates (withNewDate adds an empty date to fill in).
   const openTourForm = (trip = null, { withNewDate = false } = {}) => {
     setEditingTour(trip);
-    const saved = (trip?.dates || []).map((d) => ({ key: d.id, id: d.id, start_date: d.start_date, end_date: d.end_date, booked: d.current_booked || 0, original: d }));
+    const saved = (trip?.dates || []).map((d) => ({
+      key: d.id, id: d.id, start_date: d.start_date, end_date: d.end_date, booked: d.current_booked || 0, original: d,
+      sale: !!(d.sale_starts && d.sale_ends), sale_starts: d.sale_starts || '', sale_ends: d.sale_ends || '',
+    }));
     setDateRows(trip ? (withNewDate ? [...saved, blankDateRow()] : saved) : [blankDateRow()]);
     const stops = trip?.pickup_points || [];
     setPickupRows(stops.length ? stops.map((m) => ({ key: `p-${m.id}`, location: m.location_name, time: to24h(m.scheduled_time) })) : [blankPickup()]);
     const others = Array.isArray(trip?.expenses?.others) ? trip.expenses.others : [];
     setOtherExpenses(others.map((o) => ({ key: `e-${Math.random()}`, name: o.name, amount: String(o.amount) })));
+    setFormTourPrice(trip?.price ?? '');
     setFormDirty(false);
     setShowModal(true);
   };
@@ -239,6 +246,11 @@ const TourManagement = () => {
         [`end_date_${i}`, !r.end_date ? `${label}Pick an end date.` : ''],
         [`end_date_${i}`, r.end_date < r.start_date ? `${label}The end date can't be before the start date.` : ''],
         [`end_date_${i}`, tripDays > 30 ? `${label}A tour longer than 30 days looks like a typo. Please check the dates.` : ''],
+        // Sale (5% off the Joiner Rate) on this date only, ending by the day the tour starts.
+        [`sale_starts_${i}`, r.sale && !r.sale_starts ? `${label}Pick when the sale starts.` : ''],
+        [`sale_ends_${i}`, r.sale && !r.sale_ends ? `${label}Pick when the sale ends.` : ''],
+        [`sale_ends_${i}`, r.sale && r.sale_ends < r.sale_starts ? `${label}The sale can't end before it starts.` : ''],
+        [`sale_ends_${i}`, r.sale && r.start_date && r.sale_ends > r.start_date ? `${label}The sale must end by the tour's start date.` : ''],
       ];
     });
     const mostBooked = dateRows.reduce((m, r) => (r.booked > m.booked ? r : m), { booked: 0 });
@@ -307,7 +319,10 @@ const TourManagement = () => {
       image_urls:     finalGallery,
       is_archived:    false,
     };
-    const withDates = (r) => ({ ...shared, start_date: r.start_date, end_date: r.end_date, duration: calculateDuration(r.start_date, r.end_date) });
+    const withDates = (r) => ({
+      ...shared, start_date: r.start_date, end_date: r.end_date, duration: calculateDuration(r.start_date, r.end_date),
+      sale_starts: r.sale ? r.sale_starts : null, sale_ends: r.sale ? r.sale_ends : null,
+    });
 
     const isNewTour = !editingTour;
     const saved = dateRows.filter((r) => r.id);
@@ -730,7 +745,7 @@ const TourManagement = () => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} required />
-                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="₱1,500 – ₱8,000" defaultValue={formTour?.price} required />
+                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="₱1,500 – ₱8,000" defaultValue={formTour?.price} onChange={(e) => setFormTourPrice(e.target.value)} required />
                 </div>
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
                   <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="₱1,000 – ₱7,500" defaultValue={formTour?.regular_rate ?? ''} required />
@@ -819,6 +834,33 @@ const TourManagement = () => {
                           <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
                             {[calculateDuration(r.start_date, r.end_date), r.id ? `${r.booked} booked` : 'New date'].filter(Boolean).join(' · ')}
                           </p>
+                          {/* Sale: 5% off the Joiner Rate for this date, between two days. */}
+                          <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#8C2F1C', cursor: 'pointer' }}>
+                            <input type="checkbox" checked={r.sale} onChange={(e) => updateDateRow(r.key, 'sale', e.target.checked)} style={{ width: 16, height: 16, accentColor: '#8C2F1C' }} />
+                            Put this date on sale (5% off the Joiner Rate)
+                          </label>
+                          {r.sale && (
+                            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                              <div>
+                                <label style={labelStyle}>Sale Starts</label>
+                                <input type="date" name={`sale_starts_${i}`} value={r.sale_starts} max={r.start_date || undefined}
+                                  onChange={(e) => updateDateRow(r.key, 'sale_starts', e.target.value)} style={inputStyle} />
+                              </div>
+                              <div>
+                                <label style={labelStyle}>Sale Ends</label>
+                                <input type="date" name={`sale_ends_${i}`} value={r.sale_ends} min={r.sale_starts || undefined} max={r.start_date || undefined}
+                                  onChange={(e) => updateDateRow(r.key, 'sale_ends', e.target.value)} style={inputStyle} />
+                              </div>
+                              {(() => {
+                                const p = Number(formTourPrice) || 0;
+                                return p > 0 ? (
+                                  <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>
+                                    Sale price: {formatPeso(salePriceOf(p))} per person (was {formatPeso(p)}).
+                                  </p>
+                                ) : null;
+                              })()}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1199,9 +1241,9 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
               </div>
  
               {/* Price */}
-              <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#A8481A', margin: '0 0 2px', lineHeight: 1 }}>
-                {formatPeso(tour.price)}
-              </p>
+              <div style={{ margin: '0 0 2px', lineHeight: 1 }}>
+                <PriceTag tour={tour} size={36} align="flex-start" />
+              </div>
               <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 4px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Joiner rate, per person</p>
               <p style={{ fontSize: 12.5, fontWeight: 800, color: tour.regular_rate ? '#1A0A00' : '#8C2F1C', margin: '0 0 16px' }}>
                 {tour.regular_rate ? `Regular rate: ${formatPeso(tour.regular_rate)}` : 'Regular rate not set yet. Edit the tour to add it.'}
@@ -1341,7 +1383,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#A8481A', marginLeft: 10, flexShrink: 0 }}>{formatPeso(tour.price)}</span>
+            <PriceTag tour={tour} size={15} style={{ marginLeft: 10, flexShrink: 0 }} />
           </div>
           <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
             <MapPin size={11} style={{ color: '#A8481A' }} /> {tour.destination}
@@ -1359,6 +1401,11 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: full ? '#A8481A' : '#7A3A18', marginTop: 2, paddingLeft: 18 }}>
                       {d.current_booked ?? 0} / {d.group_size || 18} booked
+                      {d.sale_starts && d.sale_ends && (
+                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? '#8C2F1C' : 'rgba(140,47,28,0.12)', color: isOnSale(d) ? '#FDF6EE' : '#8C2F1C', fontSize: 10.5, fontWeight: 900, padding: '1px 7px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          {isOnSale(d) ? 'On sale' : 'Sale soon'}
+                        </span>
+                      )}
                       {full && <span style={{ background: 'rgba(180,81,30,0.12)', color: '#A8481A', fontSize: 10.5, fontWeight: 900, padding: '1px 7px', borderRadius: 999, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Full</span>}
                     </div>
                   </div>

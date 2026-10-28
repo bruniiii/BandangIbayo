@@ -811,7 +811,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: '#7A3A18', opacity: 0.9 }}>Quantity</span>
-                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × {formatPeso(booking.tours?.price)}</span>
+                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × {formatPeso((Number(booking.total_price) || 0) / (booking.slots_booked || 1))}{Number(booking.sale_discount) > 0 ? ' (sale)' : ''}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: '#7A3A18', opacity: 0.9 }}>Subtotal</span>

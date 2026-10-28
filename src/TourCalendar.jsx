@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
-import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, TRIP_REQUEST_LEAD_DAYS, formatDateRange as formatTourDates } from './tourUtils';
+import { withAvailableSlots, archivePastTours, notEndedFilter, TRIP_REQUEST_LEAD_DAYS, formatDateRange as formatTourDates } from './tourUtils';
+import PriceTag from './ui/PriceTag';
 import { addDaysPH } from './validation';
 import { DetailedTourModal } from './JoinerTours';
 import {
@@ -247,7 +248,7 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: '#E8A265' }}>{formatPeso(tour.price)}</span>
+                      <PriceTag tour={tour} size={15} color="#E8A265" mutedColor="rgba(232,210,190,0.7)" align="flex-start" />
                       <button
                         onClick={() => setSelectedTour(tour)}
                         style={{

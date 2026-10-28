@@ -139,6 +139,19 @@ export const isWithinCancellationWindow = (startDate) => {
 export const formatPeso = (amount) =>
   `₱${(Number(amount) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+// SALE: a tour date can be on sale between its sale_starts and sale_ends
+// dates (Philippine time, both included): joiners pay 5% less than the Joiner
+// Rate. Keep in sync with tour_effective_price() in the database.
+export const SALE_DISCOUNT = 0.05;
+export const isOnSale = (tour, today = todayManila()) =>
+  !!(tour?.sale_starts && tour?.sale_ends && today >= tour.sale_starts && today <= tour.sale_ends);
+export const salePriceOf = (price) => Math.round(Number(price || 0) * (1 - SALE_DISCOUNT) * 100) / 100;
+// What a joiner pays per person for this tour date today.
+export const effectivePrice = (tour) => (isOnSale(tour) ? salePriceOf(tour.price) : Number(tour?.price || 0));
+// For a trip (one card, many dates): on sale if any of its dates is.
+export const tripOnSale = (trip) => (trip?.dates?.length ? trip.dates.some((d) => isOnSale(d)) : isOnSale(trip));
+export const tripAllOnSale = (trip) => (trip?.dates?.length ? trip.dates.every((d) => isOnSale(d)) : isOnSale(trip));
+
 // 40% downpayment, rounded to the centavo (same rule as the database and payments function).
 export const downpaymentFor = (total) => Math.round((Number(total) || 0) * 40) / 100;
 
