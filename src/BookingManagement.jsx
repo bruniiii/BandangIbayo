@@ -7,6 +7,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
+import { printReceipt } from './paymentReceipt';
 import { formatPeso, downpaymentFor, formatDateRange as formatTourDates, CANCELLATION_APPROVAL_HOURS } from './tourUtils';
 import {
   Search, MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Calendar,
@@ -664,49 +665,15 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
     setSettlingBalance(false);
   };
  
+  // The same till-style receipt joiners download, opened to print.
   const handlePrintReceipt = () => {
-    const win = window.open('', '_blank', 'width=480,height=720');
-    if (!win) return;
-    const dateNow = new Date().toLocaleString('en-PH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    win.document.write(`
-      <html>
-        <head>
-          <title>Receipt - ${booking.booking_number || ''}</title>
-          <style>
-            body { font-family: 'Courier New', monospace; color: #1A0A00; padding: 32px; max-width: 380px; margin: 0 auto; }
-            h1 { font-size: 16px; text-align: center; letter-spacing: 0.1em; margin: 0 0 2px; }
-            .sub { text-align: center; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; margin-bottom: 18px; }
-            .stamp { text-align: center; border: 2px solid #B4511E; color: #A8481A; font-weight: bold; letter-spacing: 0.15em; padding: 6px; margin: 14px 0; text-transform: uppercase; font-size: 12px; }
-            .row { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; }
-            hr { border: none; border-top: 1px dashed #999; margin: 12px 0; }
-            .total { font-weight: bold; font-size: 14px; }
-            .footer { text-align: center; font-size: 10px; opacity: 0.6; margin-top: 20px; }
-          </style>
-        </head>
-        <body onload="window.print()">
-          <h1>BANDANG IBAYO</h1>
-          <div class="sub">Official Payment Receipt</div>
-          <div class="row"><span>Booking No.</span><span>${booking.booking_number || '—'}</span></div>
-          <div class="row"><span>Joiner</span><span>${joinerName}</span></div>
-          <div class="row"><span>Tour</span><span>${booking.tours?.title || '—'}</span></div>
-          <div class="row"><span>Destination</span><span>${booking.tours?.destination || '—'}</span></div>
-          <div class="row"><span>Pax</span><span>${booking.slots_booked}</span></div>
-          <hr />
-          <div class="row"><span>Subtotal</span><span>${formatPeso(subtotal)}</span></div>
-          ${isDownpayment ? `
-            <div class="row"><span>Downpayment Paid</span><span>${formatPeso(downpaymentAmount)}</span></div>
-            <div class="row"><span>Balance Settled</span><span>${formatPeso(balance)}</span></div>
-          ` : ''}
-          <hr />
-          <div class="row total"><span>TOTAL PAID</span><span>${formatPeso(subtotal)}</span></div>
-          <div class="stamp">Payment Complete</div>
-          <div class="footer">
-            Printed: ${dateNow}${balanceSettledAt ? `<br/>Balance settled: ${new Date(balanceSettledAt).toLocaleString('en-PH')}` : ''}
-          </div>
-        </body>
-      </html>
-    `);
-    win.document.close();
+    printReceipt({
+      ...booking,
+      full_name: joinerName,
+      balance_settled: balanceSettled || booking.balance_settled,
+      balance_settled_at: balanceSettledAt || booking.balance_settled_at,
+      amount_paid: balanceSettled ? subtotal : booking.amount_paid,
+    }, booking.tours).catch((e) => toast.error("Couldn't create the receipt", e.message));
   };
  
  
