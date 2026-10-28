@@ -5,7 +5,7 @@ import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare } from 'lucide-re
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyAdmins } from './notifications';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining } from './paymentReceipt';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout, payHeldBooking } from './payments';
@@ -841,7 +841,9 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
   const [problem, setProblem] = useState('');
   // Today's price for this date (5% off while it's on sale), the same as the database charges.
   const total = (booking.tours ? effectivePrice(booking.tours) * (booking.slots_booked || 1) : 0) || Number(booking.total_price || 0);
-  const amount = paymentType === 'full' ? total : Math.round(total * 40) / 100;
+  // A date on sale is paid in full (no downpayment).
+  const onSale = !!booking.tours && isOnSale(booking.tours);
+  const amount = paymentType === 'full' || onSale ? total : Math.round(total * 40) / 100;
   const until = booking.hold_expires_at
     ? new Date(booking.hold_expires_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
     : null;
@@ -860,7 +862,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
     setBusy('pay');
     const { ok, data, error } = await payHeldBooking({
       bookingId: booking.id,
-      paymentType,
+      paymentType: onSale ? 'full' : paymentType,
       companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
     });
     if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
@@ -891,13 +893,16 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       </p>
 
       <div role="radiogroup" aria-label="Payment" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-        {[['full', 'Full payment', total], ['down', '40% downpayment', Math.round(total * 40) / 100]].map(([key, label, value]) => (
+        {[['full', 'Full payment', total], ...(onSale ? [] : [['down', '40% downpayment', Math.round(total * 40) / 100]])].map(([key, label, value]) => (
           <button key={key} type="button" role="radio" aria-checked={paymentType === key} onClick={() => setPaymentType(key)} style={choice(paymentType === key)}>
             <span style={{ display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A8481A' }}>{label}</span>
             <span style={{ display: 'block', fontSize: 16, fontWeight: 900 }}>{formatPeso(value)}</span>
           </button>
         ))}
       </div>
+      {onSale && (
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: '-4px 0 12px' }}>This date is on sale, so it must be paid in full.</p>
+      )}
 
       {companions.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
