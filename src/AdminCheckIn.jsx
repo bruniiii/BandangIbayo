@@ -18,7 +18,7 @@ import { SkeletonLines, SkeletonRows } from './ui/Skeleton';
 // is paid and not cancelled, then marks it checked in. A booking number
 // can be typed instead when a phone can't show the QR, or a joiner can be
 // checked in (or undone) straight from the list.
-// Check-in opens the day before the tour (early departures) until it ends.
+// Check-in opens on the day the tour starts and stays open until it ends.
 // ─────────────────────────────────────────────
 
 const RESULT_STYLES = {
@@ -41,16 +41,11 @@ const phoneOf = (b) => {
   return own && own.toUpperCase() !== 'N/A' ? own : (b.profiles?.phone_number || '');
 };
 
-// YYYY-MM-DD plus n days.
-const addDays = (ymd, n) => {
-  const [y, m, d] = ymd.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
-};
-// Check-in is open from the day before the tour until its last day.
+// Check-in is open from the tour's first day until its last day.
 const checkInOpen = (t) => {
   if (!t?.start_date) return false;
   const today = todayManila();
-  return today >= addDays(t.start_date, -1) && today <= (t.end_date || t.start_date);
+  return today >= t.start_date && today <= (t.end_date || t.start_date);
 };
 const tourDates = (t) => formatDateRange(t.start_date, t.duration);
 const peso = (n) => `₱${(Number(n) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -62,7 +57,7 @@ const describe = (r) => {
     case 'ok': return { tone: 'ok', title: `Checked in — ${who}`, detail: `${pax} · ${r.booking_number}` };
     case 'already': return { tone: 'already', title: `${who} is already checked in`, detail: `Checked in at ${timeOf(r.checked_in_at)} · ${pax} · ${r.booking_number}` };
     case 'wrong_tour': return { tone: 'bad', title: 'Not on this tour', detail: `${who} is booked for ${r.tour_title || 'another tour'}${r.tour_start ? ` (${formatYmdRange(r.tour_start, r.tour_end || r.tour_start)})` : ''}.` };
-    case 'not_open': return { tone: 'bad', title: 'Check-in is not open yet', detail: `This tour starts ${r.tour_start ? formatYmdRange(r.tour_start, r.tour_end || r.tour_start) : 'later'}. Check-in opens the day before the tour.` };
+    case 'not_open': return { tone: 'bad', title: 'Check-in is not open yet', detail: `This tour starts ${r.tour_start ? formatYmdRange(r.tour_start, r.tour_end || r.tour_start) : 'later'}. Check-in opens on the day of the tour.` };
     case 'cancelled': return { tone: 'bad', title: 'Booking cancelled', detail: `${who}'s booking ${r.booking_number} was ${String(r.booking_status || 'cancelled').toLowerCase()}.` };
     case 'unpaid': return { tone: 'bad', title: 'Payment not confirmed', detail: `${who}'s payment is "${r.payment_status}". Confirm it in Booking Management first.` };
     default: return { tone: 'bad', title: 'QR not recognised', detail: 'No booking matches this code. Ask the joiner to open the QR in My Bookings, or type their booking number.' };
@@ -311,7 +306,7 @@ const AdminCheckIn = () => {
 
             {tour && !checkInOpen(tour) && (
               <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C5216', background: 'rgba(232,162,101,0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
-                This tour is on {tourDates(tour)}. Check-in opens the day before the tour, so joiners can't be checked in yet.
+                This tour is on {tourDates(tour)}. Check-in opens on the day of the tour, so joiners can't be checked in yet.
               </p>
             )}
 
@@ -426,7 +421,7 @@ const AdminCheckIn = () => {
                         <button type="button" onClick={() => undo(b.id, nameOf(b))} style={rowLinkBtn}><Undo2 size={12} /> Undo</button>
                       </span>
                     ) : (
-                      <button type="button" onClick={() => checkInFromList(b)} disabled={checking || !checkInOpen(tour)} title={checkInOpen(tour) ? 'Check in without the QR' : 'Check-in opens the day before the tour'} style={rowCheckBtn(checking || !checkInOpen(tour))}>
+                      <button type="button" onClick={() => checkInFromList(b)} disabled={checking || !checkInOpen(tour)} title={checkInOpen(tour) ? 'Check in without the QR' : 'Check-in opens on the day of the tour'} style={rowCheckBtn(checking || !checkInOpen(tour))}>
                         <CheckCircle2 size={13} /> Check in
                       </button>
                     )}
