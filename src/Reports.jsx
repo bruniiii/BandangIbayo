@@ -552,6 +552,16 @@ const Reports = () => {
   const onIncomeData = useCallback((d) => setIncomeData(d), []);
 
   // ── notifications ──
+  const notifications = useMemo(() => {
+    const list = [];
+    if (revenueTrendVsPriorPeriod !== null && revenueTrendVsPriorPeriod < 0) {
+      list.push({ icon: <TrendingDown size={15} />, text: `Revenue dropped ${Math.abs(revenueTrendVsPriorPeriod)}% vs. the previous equivalent period.`, tone: 'warn' });
+    }
+    nearlyFullTours.forEach((t) => list.push({ icon: <AlertCircle size={15} />, text: `${t.title} is nearly full — ${t.booked}/${t.capacity} booked.`, tone: 'info' }));
+    if (stats.pending > 0) list.push({ icon: <Clock size={15} />, text: `${stats.pending} payment${stats.pending !== 1 ? 's' : ''} awaiting verification.`, tone: 'action' });
+    return list.slice(0, 6);
+  }, [revenueTrendVsPriorPeriod, nearlyFullTours, stats]);
+
   // ── the downloadable PDF: everything on this page ──
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const buildReport = () => {
@@ -586,6 +596,7 @@ const Reports = () => {
       ],
       tours: tourPerformance,
       insights,
+      alerts: notifications.map((n) => n.text),
       sales: salesData,
       income: incomeData,
       comparison: {
@@ -636,15 +647,6 @@ const Reports = () => {
     setDownloadingPdf(false);
   };
 
-  const notifications = useMemo(() => {
-    const list = [];
-    if (revenueTrendVsPriorPeriod !== null && revenueTrendVsPriorPeriod < 0) {
-      list.push({ icon: <TrendingDown size={15} />, text: `Revenue dropped ${Math.abs(revenueTrendVsPriorPeriod)}% vs. the previous equivalent period.`, tone: 'warn' });
-    }
-    nearlyFullTours.forEach((t) => list.push({ icon: <AlertCircle size={15} />, text: `${t.title} is nearly full — ${t.booked}/${t.capacity} booked.`, tone: 'info' }));
-    if (stats.pending > 0) list.push({ icon: <Clock size={15} />, text: `${stats.pending} payment${stats.pending !== 1 ? 's' : ''} awaiting verification.`, tone: 'action' });
-    return list.slice(0, 6);
-  }, [revenueTrendVsPriorPeriod, nearlyFullTours, stats]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>

@@ -897,16 +897,27 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
 
   const setCompanion = (i, field, value) => setCompanions((rows) => rows.map((c, j) => (j === i ? { ...c, [field]: value } : c)));
 
-  const pay = async () => {
-    setProblem('');
+  // Booking for a group: the names are entered in a pop-up, then payment opens.
+  const [namesOpen, setNamesOpen] = useState(false);
+  const [namesProblem, setNamesProblem] = useState('');
+  const namesError = () => {
     for (let i = 0; i < companions.length; i++) {
       const c = companions[i];
       const err = fullNameError(c.full_name, `Person ${i + 2}'s name`) || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
-      if (err) { setProblem(err); return; }
+      if (err) return err;
     }
     const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
-    if (names.some((n, i) => names.indexOf(n) !== i)) { setProblem('Each person joining needs their own name.'); return; }
+    if (names.some((n, i) => names.indexOf(n) !== i)) return 'Each person joining needs their own name.';
+    return '';
+  };
+
+  const pay = async ({ namesDone = false } = {}) => {
+    setProblem('');
     if (accommodationChoices.length && !accommodation) { setProblem('Please choose your accommodation.'); return; }
+    if (companions.length && !namesDone) { setNamesProblem(''); setNamesOpen(true); return; }
+    const err = namesError();
+    if (err) { setNamesProblem(err); setNamesOpen(true); return; }
+    setNamesOpen(false);
     setBusy('pay');
     const { ok, data, error } = await payHeldBooking({
       bookingId: booking.id,
@@ -954,15 +965,43 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       )}
 
       {companions.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-          <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>Who's joining you</p>
-          {companions.map((c, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
-              <input aria-label={`Person ${i + 2}'s full name`} data-allow="name" placeholder={`Person ${i + 2}'s full name`} value={c.full_name} maxLength={120}
-                onChange={(e) => setCompanion(i, 'full_name', e.target.value)} style={field} />
-              <input {...phoneFieldProps(c.contact_number, (v) => setCompanion(i, 'contact_number', v))} aria-label={`Person ${i + 2}'s contact number`} style={field} />
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+          When you pay, you'll enter the name and contact number of the {companions.length} {companions.length === 1 ? 'person' : 'people'} joining you.
+        </p>
+      )}
+
+      {namesOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)' }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
+            background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E', padding: '2rem',
+            display: 'flex', flexDirection: 'column', gap: 14,
+          }}>
+            <div>
+              <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>Your group</p>
+              <h3 id="held-names-title" style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Who's joining you?</h3>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>Enter each person's full name and contact number, then continue to payment.</p>
             </div>
-          ))}
+            {companions.map((c, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>
+                <input aria-label={`Person ${i + 2}'s full name`} data-allow="name" placeholder="Full name" value={c.full_name} maxLength={120}
+                  onChange={(e) => { setCompanion(i, 'full_name', e.target.value); setNamesProblem(''); }} style={field} />
+                <input {...phoneFieldProps(c.contact_number, (v) => { setCompanion(i, 'contact_number', v); setNamesProblem(''); })} aria-label={`Person ${i + 2}'s contact number`} style={field} />
+              </div>
+            ))}
+            {namesProblem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{namesProblem}</p>}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => setNamesOpen(false)} style={{
+                flex: 1, minWidth: 120, padding: '13px 0', borderRadius: 14, border: '1px solid rgba(180,81,30,0.25)', background: '#F2E4D0', color: '#1A0A00',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+              }}>Back</button>
+              <button type="button" onClick={() => pay({ namesDone: true })} style={{
+                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+              }}>Continue to Payment</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -976,7 +1015,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '0 0 10px' }}>{problem}</p>}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-        <button type="button" disabled={busy !== null || !agreed} onClick={pay} title={agreed ? undefined : 'Tick the agreement above first'} style={{
+        <button type="button" disabled={busy !== null || !agreed} onClick={() => pay()} title={agreed ? undefined : 'Tick the agreement above first'} style={{
           flex: 2, minWidth: 180, padding: '12px 0', borderRadius: 14, border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           background: '#B4511E', color: '#FDF6EE', cursor: agreed ? 'pointer' : 'not-allowed', opacity: agreed ? 1 : 0.5,

@@ -184,6 +184,11 @@ export const downloadReportPDF = async (report) => {
     report.insights.forEach((line) => para(`-  ${line}`));
   }
 
+  if (report.alerts?.length) {
+    heading('Needs Attention');
+    report.alerts.forEach((line) => para(`-  ${line}`));
+  }
+
   heading('Payments');
   table(
     [{ label: 'Item', width: 3 }, { label: 'Amount', width: 2, align: 'right' }],
