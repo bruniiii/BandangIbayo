@@ -55,7 +55,7 @@ const NAV_ITEMS = [
   { icon: <Rss size={18} strokeWidth={2} />,         label: 'Feed' },
   { icon: <Compass size={18} strokeWidth={2} />,     label: 'Explore Tours' },
   { icon: <ShoppingBag size={18} strokeWidth={2} />, label: 'My Bookings' },
-  { icon: <MessagesSquare size={18} strokeWidth={2} />, label: 'Group Chat' },
+  { icon: <MessagesSquare size={18} strokeWidth={2} />, label: 'Messages' },
   { icon: <CalendarIcon size={18} strokeWidth={2} />,label: 'Calendar' },
   { icon: <Clock size={18} strokeWidth={2} />,       label: 'Tracking' },
   { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Exclusive Tours' },
@@ -73,7 +73,7 @@ const PAGE_INFO = {
   'Feed':             { icon: Rss,          title: 'Community Feed',   subtitle: 'Updates, announcements & newly posted tours' },
   'Explore Tours':    { icon: Compass,      title: 'Explore Tours',    subtitle: 'Find your next adventure and pick a date' },
   'My Bookings':      { icon: ShoppingBag,  title: 'My Bookings',      subtitle: 'Track your adventures and manage your reservations' },
-  'Group Chat':       { icon: MessagesSquare, title: 'Group Chat',      subtitle: 'Chat with your tour group, and read messages from Bandang IBAYO' },
+  'Messages':         { icon: MessagesSquare, title: 'Messages',         subtitle: 'Chat with your tour group, and read messages from Bandang IBAYO' },
   'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
   'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
   'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: 'Book a private group trip, just for your group' },
@@ -117,7 +117,7 @@ const JoinerDashboard = () => {
   const [chatView, setChatView] = useState('chats'); // 'chats' | 'messages'
   // Unread messages from the admin; re-checked on every page change.
   const [inboxUnread, setInboxUnread] = useAdminInboxUnread(`${activeTab}-${chatView}`);
-  const readingMessages = activeTab === 'Group Chat' && chatView === 'messages';
+  const readingMessages = activeTab === 'Messages' && chatView === 'messages';
   const clearInboxUnread = useCallback(() => setInboxUnread(0), [setInboxUnread]);
   const [chatTourId, setChatTourId] = useState(null);
   const tourScrollRef = useRef(null);
@@ -276,7 +276,7 @@ const JoinerDashboard = () => {
   };
 
   useEffect(() => {
-    const open = (e) => { setChatTourId(e.detail?.tourId ?? null); setChatView('chats'); handleNavClick('Group Chat'); };
+    const open = (e) => { setChatTourId(e.detail?.tourId ?? null); setChatView('chats'); handleNavClick('Messages'); };
     window.addEventListener(OPEN_CHAT, open);
     return () => window.removeEventListener(OPEN_CHAT, open);
   });
@@ -317,7 +317,7 @@ const JoinerDashboard = () => {
         break;
       case 'chat':
         setChatView('chats');
-        handleNavClick('Group Chat');
+        handleNavClick('Messages');
         break;
       case 'account':
         handleNavClick('Profile Settings');
@@ -538,7 +538,7 @@ const JoinerDashboard = () => {
       {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
 
       {/* Help: FAQ and user guide (not on Group Chat, where it would cover the send button) */}
-      {activeTab !== 'Group Chat' && !mobileNavOpen && <HelpWidget zIndex={95} />}
+      {activeTab !== 'Messages' && !mobileNavOpen && <HelpWidget zIndex={95} />}
 
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
@@ -640,7 +640,7 @@ const JoinerDashboard = () => {
               active={activeTab === label}
               collapsed={!sidebarExpanded}
               onClick={() => handleNavClick(label)}
-              badge={label === 'Group Chat' ? chatUnread + (readingMessages ? 0 : inboxUnread) : 0}
+              badge={label === 'Messages' ? chatUnread + (readingMessages ? 0 : inboxUnread) : 0}
             />
           ))}
         </nav>
@@ -981,7 +981,7 @@ const JoinerDashboard = () => {
             <JoinerTours initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} openBookingId={openBookingId} onExplore={() => handleNavClick('Explore Tours')} />
-          ) : activeTab === 'Group Chat' ? (
+          ) : activeTab === 'Messages' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div role="tablist" aria-label="Group chat or messages" style={{ display: 'flex', gap: 6, background: '#F2E4D0', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%' }}>
                 {[['chats', 'Group Chats', chatUnread], ['messages', 'Messages from Bandang IBAYO', inboxUnread]].map(([view, label, count]) => (

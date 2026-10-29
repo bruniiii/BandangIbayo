@@ -479,32 +479,17 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               <textarea name="description" value={form.description} onChange={set('description')} style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
             </div>
 
-            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 16 }}>
-              <div>
-                <label style={labelStyle}>Inclusions</label>
-                <textarea name="inclusions" value={form.inclusions} onChange={set('inclusions')} rows="4" style={{ ...inputStyle, resize: 'vertical' }} />
+            {[['inclusions', 'Inclusions'], ['exclusions', 'Exclusions'], ['things_to_bring', 'Things to Bring'], ['itinerary', 'Itinerary']].map(([field, title]) => (
+              <div key={field}>
+                <label style={labelStyle}>{title}</label>
+                <textarea name={field} value={form[field]} onChange={set(field)} style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
               </div>
-              <div>
-                <label style={labelStyle}>Exclusions</label>
-                <textarea name="exclusions" value={form.exclusions} onChange={set('exclusions')} rows="4" style={{ ...inputStyle, resize: 'vertical' }} />
-              </div>
-            </div>
-
-            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <div>
-                <label style={labelStyle}>Things to Bring</label>
-                <textarea name="things_to_bring" value={form.things_to_bring} onChange={set('things_to_bring')} rows="3" style={{ ...inputStyle, resize: 'vertical' }} />
-              </div>
-              <div>
-                <label style={labelStyle}>Itinerary</label>
-                <textarea name="itinerary" value={form.itinerary} onChange={set('itinerary')} rows="3" style={{ ...inputStyle, resize: 'vertical' }} />
-              </div>
-            </div>
+            ))}
 
             <div>
               <label style={{ ...labelStyle, color: '#A8481A', opacity: 1 }}>Important Notes</label>
-              <textarea name="important_note" value={form.important_note} onChange={set('important_note')} rows="2"
-                style={{ ...inputStyle, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
+              <textarea name="important_note" value={form.important_note} onChange={set('important_note')}
+                style={{ ...inputStyle, minHeight: 100, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
             </div>
             </fieldset>
           </div>
