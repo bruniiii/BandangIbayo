@@ -22,6 +22,7 @@ import ItineraryTimeline from './ui/ItineraryTimeline';
 import { addDaysYmd } from './dateRange';
 import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
+import { PICKUP_OPTIONS } from './pickupPoints';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -62,6 +63,8 @@ const TourManagement = () => {
   const [priceSort, setPriceSort]               = useState('default');
   const [tempGallery, setTempGallery]           = useState([]);
   const [newFiles, setNewFiles]                 = useState([]);
+  // A tour needs at least one photo; the other fields stay locked until then.
+  const hasPhoto = tempGallery.length > 0 || newFiles.length > 0;
  
   const formatDateRange = formatTourDates;
  
@@ -80,8 +83,9 @@ const TourManagement = () => {
 
   const blankDateRow = () => ({ key: `new-${Math.random()}`, start_date: '', end_date: '', booked: 0, sale: false, sale_starts: '', sale_ends: '' });
   // Pickup points joiners choose from when booking (saved as each date's pickup stops).
-  const [pickupRows, setPickupRows] = useState([]);
-  const blankPickup = () => ({ key: `p-${Math.random()}`, location: '', time: '' });
+  // pickupChoices: the fixed list, plus any older custom point this tour still has.
+  const [pickupChoices, setPickupChoices] = useState(PICKUP_OPTIONS);
+  const [pickupPicked, setPickupPicked] = useState([]);
   // Other expenses besides van, guide and bag tag (e.g. entrance fee, jeep).
   const [otherExpenses, setOtherExpenses] = useState([]);
   // The Joiner Rate as typed (the field itself is uncontrolled), for the sale price preview.
@@ -98,7 +102,9 @@ const TourManagement = () => {
     }));
     setDateRows(trip ? (withNewDate ? [...saved, blankDateRow()] : saved) : [blankDateRow()]);
     const stops = trip?.pickup_points || [];
-    setPickupRows(stops.length ? stops.map((m) => ({ key: `p-${m.id}`, location: m.location_name, time: to24h(m.scheduled_time) })) : [blankPickup()]);
+    const stopNames = [...new Set(stops.map((m) => m.location_name.trim()).filter(Boolean))];
+    setPickupChoices([...PICKUP_OPTIONS, ...stopNames.filter((n) => !PICKUP_OPTIONS.includes(n))]);
+    setPickupPicked(stopNames);
     const others = Array.isArray(trip?.expenses?.others) ? trip.expenses.others : [];
     setOtherExpenses(others.map((o) => ({ key: `e-${Math.random()}`, name: o.name, amount: String(o.amount) })));
     setFormTourPrice(trip?.price ?? '');
@@ -229,13 +235,14 @@ const TourManagement = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (savingRef.current) return;
+    if (!hasPhoto) { toast.error('Add a photo first', 'Upload at least one photo of the tour.'); return; }
     const formEl    = e.target;
     const formData  = new FormData(formEl);
     const price     = moneyNumber(formData.get('price'));
     const regularRate = moneyNumber(formData.get('regular_rate'));
     const vanRent = moneyNumber(formData.get('van_rent'));
     const tourGuide = moneyNumber(formData.get('tour_guide'));
-    const pickups = pickupRows.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location);
+    const pickups = pickupChoices.filter((n) => pickupPicked.includes(n)).map((location) => ({ location }));
     const pickupNames = pickups.map((r) => r.location.toLowerCase());
     const groupSize = Number(formData.get('group_size'));
     const minStart  = getMinStartDate();
@@ -276,11 +283,7 @@ const TourManagement = () => {
         [`other_name_${i}`, (o.name.trim() || o.amount) && !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
         [`other_amount_${i}`, o.name.trim() && !(Number(o.amount) >= 0 && String(o.amount).trim() !== '') ? 'Enter the amount (₱0 or more).' : ''],
       ]),
-      ['pickup_0', pickups.length === 0 ? 'Add at least one pickup point, so joiners can choose where to be picked up.' : ''],
-      ...pickupRows.map((r, i) => {
-        const loc = r.location.trim().toLowerCase();
-        return [`pickup_${i}`, loc && pickupRows.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
-      }),
+      ['pickup_0', pickups.length === 0 ? 'Tick at least one pickup point, so joiners can choose where to be picked up.' : ''],
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
       ['group_size', groupSize > 200 ? 'Max slots looks too high. Please check the number.' : ''],
       ['group_size', groupSize < mostBooked.booked ? `${mostBooked.booked} joiner${mostBooked.booked === 1 ? ' has' : 's have'} already booked one of the dates, so max slots can't be lower than ${mostBooked.booked}.` : ''],
@@ -739,6 +742,13 @@ const TourManagement = () => {
                   </div>
                 </div>
  
+                {/* The rest of the form opens once the tour has at least one photo. */}
+                {!hasPhoto && (
+                  <p role="status" style={{ margin: '-8px 0 0', fontSize: 12.5, fontWeight: 800, color: '#8C2F1C' }}>
+                    Upload at least one photo first. The other fields open after that.
+                  </p>
+                )}
+                <fieldset disabled={!hasPhoto} aria-disabled={!hasPhoto} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20, opacity: hasPhoto ? 1 : 0.45, cursor: hasPhoto ? undefined : 'not-allowed' }}>
                 <ModalInput label="Tour Title" name="title" defaultValue={formTour?.title} placeholder="e.g., Mt. Pulag" required />
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -878,30 +888,31 @@ const TourManagement = () => {
 
                 {/* Pickup points: joiners pick one when booking. Their times (ETAs) are set in Tracking Management. */}
                 <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
-                  <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {pickupRows.map((r, i) => (
-                      <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
-                        <div>
-                          <label style={labelStyle}>Place {pickupRows.length > 1 ? i + 1 : ''}</label>
-                          <input name={`pickup_${i}`} value={r.location} maxLength={120} placeholder="e.g. Shell Mindanao Ave, QC"
-                            onChange={(e) => { const v = e.target.value; setPickupRows((rows) => rows.map((x) => (x.key === r.key ? { ...x, location: v } : x))); setFormDirty(true); }}
-                            style={inputStyle} />
-                        </div>
-                        <button type="button" aria-label={`Remove pickup point ${i + 1}`} disabled={pickupRows.length === 1}
-                          onClick={() => { setPickupRows((rows) => rows.filter((x) => x.key !== r.key)); setFormDirty(true); }}
-                          style={{ width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(122,58,24,0.3)', background: 'transparent', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: pickupRows.length === 1 ? 'not-allowed' : 'pointer', opacity: pickupRows.length === 1 ? 0.4 : 1 }}>
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    ))}
+                  <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points *</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {pickupChoices.map((place, i) => {
+                      const on = pickupPicked.includes(place);
+                      return (
+                        <label key={place} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none',
+                          padding: '9px 14px', borderRadius: 12, fontSize: 12.5, fontWeight: 800,
+                          background: on ? 'rgba(180,81,30,0.12)' : '#F2E4D0', color: on ? '#A8481A' : '#7A3A18',
+                          border: `1px solid ${on ? 'rgba(180,81,30,0.45)' : 'rgba(180,81,30,0.18)'}`,
+                        }}>
+                          <input
+                            type="checkbox"
+                            name={i === 0 ? 'pickup_0' : undefined}
+                            checked={on}
+                            onChange={() => { setPickupPicked((list) => (list.includes(place) ? list.filter((x) => x !== place) : [...list, place])); setFormDirty(true); }}
+                            style={{ width: 16, height: 16, accentColor: '#B4511E', margin: 0 }}
+                          />
+                          {place}
+                        </label>
+                      );
+                    })}
                   </div>
-                  <button type="button" onClick={() => { setPickupRows((rows) => [...rows, blankPickup()]); setFormDirty(true); }} style={{
-                    marginTop: 10, width: '100%', minHeight: 38, borderRadius: 12, cursor: 'pointer', border: '1px dashed rgba(180,81,30,0.45)',
-                    background: 'transparent', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
-                  }}>+ Add Pickup Point</button>
                   <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 0 0' }}>
-                    Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management.
+                    Tick at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management.
                   </p>
                 </div>
  
@@ -924,37 +935,20 @@ const TourManagement = () => {
                     style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
                 </div>
  
-                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 16 }}>
-                  <div>
-                    <label style={labelStyle}>Inclusions</label>
-                    <textarea name="inclusions" defaultValue={formTour?.inclusions} rows="4"
-                      style={{ ...inputStyle, resize: 'vertical' }} />
+                {[['inclusions', 'Inclusions'], ['exclusions', 'Exclusions'], ['things_to_bring', 'Things to Bring'], ['itinerary', 'Itinerary']].map(([field, title]) => (
+                  <div key={field}>
+                    <label style={labelStyle}>{title}</label>
+                    <textarea name={field} defaultValue={formTour?.[field]}
+                      style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
                   </div>
-                  <div>
-                    <label style={labelStyle}>Exclusions</label>
-                    <textarea name="exclusions" defaultValue={formTour?.exclusions} rows="4"
-                      style={{ ...inputStyle, resize: 'vertical' }} />
-                  </div>
-                </div>
- 
-                <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <div>
-                    <label style={labelStyle}>Things to Bring</label>
-                    <textarea name="things_to_bring" defaultValue={formTour?.things_to_bring} rows="3"
-                      style={{ ...inputStyle, resize: 'vertical' }} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Itinerary</label>
-                    <textarea name="itinerary" defaultValue={formTour?.itinerary} rows="3"
-                      style={{ ...inputStyle, resize: 'vertical' }} />
-                  </div>
-                </div>
+                ))}
  
                 <div>
                   <label style={{ ...labelStyle, color: '#A8481A', opacity: 1 }}>Important Notes</label>
-                  <textarea name="important_note" defaultValue={formTour?.important_note} rows="2"
-                    style={{ ...inputStyle, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
+                  <textarea name="important_note" defaultValue={formTour?.important_note}
+                    style={{ ...inputStyle, minHeight: 100, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
                 </div>
+                </fieldset>
               </div>
             </div>
  
@@ -1517,16 +1511,6 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
  
 
 
-
-// "4:30 AM" (how pickup stops are saved) → "04:30" for a time input.
-const to24h = (value) => {
-  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i.exec(String(value || '').trim());
-  if (!m) return '';
-  let h = Number(m[1]) % 12;
-  if (m[3] && m[3].toUpperCase() === 'PM') h += 12;
-  if (!m[3]) h = Number(m[1]);
-  return `${String(h).padStart(2, '0')}:${m[2]}`;
-};
 
 const ModalInput = ({ label, name, defaultValue, ...props }) => (
   <div style={{ marginBottom: 0 }}>

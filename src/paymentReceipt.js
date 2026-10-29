@@ -136,7 +136,7 @@ const expenseLines = (pen, expenses) => {
   if (!items.length) return;
   pen.gap(2);
   pen.pair('INCLUSION', '', 7.5);
-  items.forEach((i) => pen.item('', i.label, 'Included'));
+  items.forEach((i) => pen.item('', i.label, ''));
 };
 
 // ── Tour booking receipt ──────────────────────

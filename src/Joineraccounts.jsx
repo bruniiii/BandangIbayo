@@ -5,6 +5,8 @@ import { SearchX } from 'lucide-react';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendCustomEmail } from './Email';
 import { notifyUser } from './notifications';
+import { logAdminMessages } from './adminMessages';
+import SentMessages from './ui/SentMessages';
 import {
   Search, Loader2, Users, Mail, Phone, Calendar, MapPin,
   ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle,
@@ -60,6 +62,8 @@ const JoinerAccounts = () => {
   const [alsoNotify, setAlsoNotify] = useState(true);
   const [sending, setSending] = useState(false);
   const [emailStatus, setEmailStatus] = useState(null); // { type: 'success' | 'error', text }
+  const [sentVersion, setSentVersion] = useState(0); // reloads the sent-messages list after sending
+  const [showAllSent, setShowAllSent] = useState(false); // every message sent, all joiners
 
   // Start with a clean composer every time a different joiner is opened.
   useEffect(() => {
@@ -95,6 +99,8 @@ const JoinerAccounts = () => {
     if (alsoNotify) {
       await notifyUser(selected.id, { title: subject.trim(), message: body.trim() });
     }
+    await logAdminMessages([{ userId: selected.id, subject: subject.trim(), message: body.trim(), source: 'email', emailed: true }]);
+    setSentVersion((v) => v + 1);
 
     setSending(false);
     setSubject('');
@@ -215,6 +221,17 @@ const JoinerAccounts = () => {
           }}
         >
           <Mail size={14} /> Email a Joiner
+        </button>
+        <button
+          onClick={() => setShowAllSent(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: '#FDF6EE', color: '#A8481A', border: '1px solid rgba(180,81,30,0.3)', borderRadius: 999,
+            padding: '10px 18px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
+          }}
+        >
+          <Send size={14} /> Sent Messages
         </button>
 
         <div className="joiners-search" style={{ position: 'relative' }}>
@@ -508,11 +525,38 @@ const JoinerAccounts = () => {
                 </div>
               )}
             </div>
+
+            {/* ── Messages already sent to this joiner ── */}
+            <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 22, paddingTop: 18 }}>
+              <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 12px' }}>
+                Sent Messages
+              </p>
+              <SentMessages key={`${selected.id}-${sentVersion}`} userId={selected.id} />
+            </div>
           </div>
         </div>
       )}
 
       {showBulk && <EmailJoinerModal joiners={joiners} onClose={() => setShowBulk(false)} />}
+
+      {/* Every message sent to joiners (emails and tour updates) */}
+      {showAllSent && (
+        <div onClick={() => setShowAllSent(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
+        }}>
+          <div onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Sent messages" className="responsive-modal-padding" style={{
+            background: '#FDF6EE', borderRadius: 24, padding: '2rem', width: '100%', maxWidth: 560,
+            boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '6px solid #B4511E', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
+          }}>
+            <button onClick={() => setShowAllSent(false)} aria-label="Close" style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
+              <X size={20} />
+            </button>
+            <h3 style={{ fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: '0 0 16px', letterSpacing: '-0.02em' }}>Sent Messages</h3>
+            <SentMessages names={Object.fromEntries(joiners.map((p) => [p.id, fullName(p)]))} limit={100} />
+          </div>
+        </div>
+      )}
 
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -583,6 +627,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
       if (ok) {
         sent++;
         if (alsoNotify) await notifyUser(p.id, { title: subject.trim(), message: body.trim() });
+        await logAdminMessages([{ userId: p.id, subject: subject.trim(), message: body.trim(), source: 'email', emailed: true }]);
       } else {
         failed.push({ p, error });
       }
