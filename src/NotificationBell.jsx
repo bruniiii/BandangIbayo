@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry, fetchNotificationsSeenAt, markNotificationsSeen, unseenCount } from './notifications';
+import { notificationsChanged, onNotificationsChanged, onNotificationsRefresh, clearOldPaymentNotices, nextPaymentNoticeExpiry, fetchNotificationsSeenAt, markNotificationsSeen, unseenCount } from './notifications';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
 import { Bell, CheckCheck, Compass, Loader2, X, ArrowRight, Clock } from 'lucide-react';
@@ -72,6 +72,12 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
   useEffect(() => {
     if (!userId) return undefined;
     return onNotificationsChanged(() => fetchNotifications(userId));
+  }, [userId, fetchNotifications]);
+
+  // Backup for live updates (tab focus, other tabs, every minute).
+  useEffect(() => {
+    if (!userId) return undefined;
+    return onNotificationsRefresh(() => fetchNotifications(userId));
   }, [userId, fetchNotifications]);
 
   // Payment notices disappear 3 minutes after they arrive (joiners only).
