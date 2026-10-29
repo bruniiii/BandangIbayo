@@ -17,6 +17,8 @@
 //   - "change-password"  { currentPassword, newPassword }   logged-in user; checks the
 //        current password (wrong ones count toward the lock) and the password rules
 //   - "password-changed"   logged-in user (after a reset link): clears their lock
+//   - "create-admin"  { first_name, last_name, email, password }   main admin only
+//        (Admin Settings): creates a new admin account, email already confirmed
 //
 // Deploy:  supabase functions deploy auth --no-verify-jwt
 // Uses the send-email function (Gmail) to deliver the code.
@@ -409,6 +411,45 @@ async function changePassword(user: { id: string; email?: string }, p: any) {
   return { success: true };
 }
 
+// Admin Settings: a main admin creates another admin's account.
+async function createAdmin(user: { id: string }, p: any) {
+  const { data: me } = await admin.from("profiles").select("role, is_main_admin").eq("id", user.id).maybeSingle();
+  if (me?.role !== "admin" || !me?.is_main_admin) throw new HttpError(403, "Only the main admin can add admins.");
+
+  const email = String(p.email ?? "").trim().toLowerCase();
+  const firstName = String(p.first_name ?? "").trim().replace(/\s+/g, " ");
+  const lastName = String(p.last_name ?? "").trim().replace(/\s+/g, " ");
+  const password = String(p.password ?? "");
+  if (firstName.length < 2) throw new HttpError(400, "Please enter the first name.", { field: "first_name" });
+  if (lastName.length < 2) throw new HttpError(400, "Please enter the last name.", { field: "last_name" });
+  if (!EMAIL_RE.test(email)) throw new HttpError(400, "Please enter a valid email address, like juan@gmail.com.", { field: "email" });
+  const problems = passwordProblems(password);
+  if (problems.length) throw new HttpError(400, `The password needs ${problems.join(", ")}.`, { field: "password" });
+  if (await accountFor(email)) {
+    throw new HttpError(409, "This email already has an account. Use \"Make an existing account an admin\" instead.", { field: "email" });
+  }
+
+  // A unique username from the email, e.g. maria.santos2.
+  const base = email.split("@")[0].replace(/[^a-z0-9._]/g, "").slice(0, 20) || "admin";
+  let username = base;
+  for (let i = 2; (await usernameOwners(username)).length; i++) username = `${base}${i}`;
+
+  const created = await admin.auth.admin.createUser({
+    email, password, email_confirm: true,
+    user_metadata: { first_name: firstName, last_name: lastName, username },
+  });
+  if (created.error || !created.data?.user) throw new HttpError(400, created.error?.message ?? "Couldn't create the account.");
+  const id = created.data.user.id;
+  // The profile row starts as a joiner; make it an admin (the service key may).
+  const { error } = await admin.from("profiles")
+    .upsert({ id, email, username, first_name: firstName, last_name: lastName, role: "admin" }, { onConflict: "id" });
+  if (error) {
+    await admin.auth.admin.deleteUser(id);
+    throw new HttpError(400, error.message);
+  }
+  return { success: true, id, name: `${firstName} ${lastName}`, email };
+}
+
 // ───────────── Request handler ─────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -427,6 +468,7 @@ Deno.serve(async (req) => {
 
     switch (p.action) {
       case "change-password": return reply(await changePassword(userData.user, p));
+      case "create-admin": return reply(await createAdmin(userData.user, p));
       case "password-changed":
         await clearLock(String(userData.user.email ?? "").toLowerCase());
         return reply({ success: true });

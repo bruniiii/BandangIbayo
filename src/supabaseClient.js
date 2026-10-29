@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, processLock } from '@supabase/supabase-js';
 
 const supabaseUrl = 'https://renugdlntgybazpikmbu.supabase.co';
 const supabaseAnonKey = 'sb_publishable_IaplUePHeDyuIpofBrNPTA_PRaBA-AR';
@@ -9,4 +9,11 @@ const supabaseAnonKey = 'sb_publishable_IaplUePHeDyuIpofBrNPTA_PRaBA-AR';
 export const openedFromResetLink =
   typeof window !== 'undefined' && /(^|[#&?])type=recovery(&|$)/.test(window.location.hash + window.location.search);
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Sign-in lock: one per browser tab (processLock) instead of the default
+// cross-tab browser lock. With the default, a tab that holds the lock too long
+// (a sleeping background tab, a slow connection) has it "stolen" by another,
+// and every request waiting on it fails with "AbortError: Lock broken by
+// another request with the 'steal' option" (seen on Reports).
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { lock: processLock },
+});

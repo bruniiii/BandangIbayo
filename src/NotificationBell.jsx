@@ -33,6 +33,8 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
   const [open, setOpen] = useState(false);
   const [viewingNotification, setViewingNotification] = useState(null);
   const [seenAt, setSeenAt] = useState(0);
+  // How many were new when the panel was opened (opening clears the badge).
+  const [newWhenOpened, setNewWhenOpened] = useState(0);
   const wrapperRef = useRef(null);
 
   const fetchNotifications = useCallback(async (uid) => {
@@ -103,7 +105,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
 
   const toggleOpen = () => {
     setOpen((v) => {
-      if (!v && userId) { setSeenAt(Date.now()); markNotificationsSeen(userId); }
+      if (!v && userId) { setNewWhenOpened(badgeCount); setSeenAt(Date.now()); markNotificationsSeen(userId); }
       return !v;
     });
   };
@@ -127,7 +129,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <button
         onClick={toggleOpen}
-        title="Notifications"
+        title={`Notifications: ${badgeCount} new, ${unreadCount} unread`}
         style={{
           position: 'relative',
           width: 40, height: 40, borderRadius: 12,
@@ -164,9 +166,17 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '14px 18px', borderBottom: '1px solid rgba(180,81,30,0.12)', flexShrink: 0,
           }}>
-            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>
-              Notifications
-            </p>
+            <div>
+              <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>
+                Notifications
+              </p>
+              {/* New = arrived since you last looked (the badge); unread = not clicked yet. */}
+              {!loading && (
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: '3px 0 0' }}>
+                  {newWhenOpened} new · {unreadCount} unread
+                </p>
+              )}
+            </div>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}

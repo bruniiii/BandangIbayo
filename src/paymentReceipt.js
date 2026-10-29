@@ -65,8 +65,14 @@ const makePen = (doc, W) => {
     },
     pair(left, right, size = 8.5, bold = true) {
       font(size, bold);
+      if (right == null || right === '') {
+        // Nothing on the right: long text (e.g. a name) wraps onto the next line.
+        for (const line of wrap(String(left), R - L)) { doc.text(line, L, y); y += size + 3; }
+        y += 3;
+        return;
+      }
       doc.text(String(left), L, y);
-      if (right != null && right !== '') doc.text(String(right), R, y, { align: 'right' });
+      doc.text(String(right), R, y, { align: 'right' });
       y += size + 6;
     },
     dashes() {
@@ -139,6 +145,11 @@ const expenseLines = (pen, expenses) => {
   items.forEach((i) => pen.item('', i.label, ''));
 };
 
+// Who processed the payment: the admin who recorded or verified it, or
+// "Online (PayMongo)" when the joiner paid online and no admin was involved.
+const processedBy = (adminName, paidOnline) =>
+  String(adminName || '').trim() || (paidOnline ? 'Online (PayMongo)' : 'Bandang IBAYO');
+
 // ── Tour booking receipt ──────────────────────
 // The downpayment a booking started with (40% of the total, as charged).
 const downpaymentOf = (total) => Math.round(total * 40) / 100;
@@ -182,6 +193,7 @@ const bookingReceipt = async (booking, tour, { expenses, part = 'payment' } = {}
       if (!isBalance && booking.paymongo_payment_id) pen.pair(`REF ${booking.paymongo_payment_id}`, '', 7);
       else if (isBalance && booking.paymongo_balance_payment_id) pen.pair(`REF ${booking.paymongo_balance_payment_id}`, '', 7);
       else if (!isBalance && booking.gcash_reference_no) pen.pair(`REF ${booking.gcash_reference_no}`, '', 7);
+      pen.pair(`PROCESSED BY ${processedBy(isBalance ? booking.balance_processed_by_name : booking.processed_by_name, method === 'ONLINE').toUpperCase()}`, '', 7);
       pen.gap(4);
       pen.columns();
       pen.item(pax, `${tour?.title || 'Tour'} (${formatDateRange(tour?.start_date, tour?.duration)})`, php(total + discount));
@@ -249,6 +261,7 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
       pen.pair(`JOINER ${String(request.full_name || '—').toUpperCase()}`, '');
       pen.pair(`${ref ? 'ONLINE' : 'RECORDED'} · ${isBalance ? 'BALANCE PAYMENT' : '50% DOWNPAYMENT'}`, '');
       if (ref) pen.pair(`REF ${ref}`, '', 7);
+      pen.pair(`PROCESSED BY ${processedBy(isBalance ? request.balance_processed_by_name : request.processed_by_name, !!ref).toUpperCase()}`, '', 7);
       pen.gap(4);
       pen.columns();
       pen.item(request.group_size || 1, `${pkg.title || pkg.destination || request.destination}${start ? ` (${formatYmdRange(start, end)})` : ''}`, php(price));

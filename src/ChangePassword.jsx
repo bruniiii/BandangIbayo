@@ -3,6 +3,7 @@ import { KeyRound, Loader2, Eye, EyeOff } from 'lucide-react';
 import PasswordChecklist from './PasswordChecklist';
 import { passwordErrorMessage } from './passwordPolicy';
 import { changePassword } from './authApi';
+import { toast } from './ui/toast';
 
 // ─────────────────────────────────────────────
 // CHANGE PASSWORD (Profile Settings)
@@ -55,9 +56,11 @@ const PasswordInput = ({ id, value, onChange, autoComplete, minLength }) => {
   );
 };
 
-const ChangePassword = () => {
+// startOpen + onClose: shown straight away in a pop-up (the admin's menu);
+// onClose runs after Cancel or a successful change.
+const ChangePassword = ({ startOpen = false, onClose = null }) => {
   // The form opens only after "Change Password" is clicked.
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -83,9 +86,10 @@ const ChangePassword = () => {
     setConfirm('');
     setMessage({ text: 'Your password has been changed. Use the new one the next time you log in.', tone: 'success' });
     setOpen(false);
+    if (onClose) { toast.success('Password changed', 'Use the new one the next time you log in.'); onClose(); }
   };
 
-  const close = () => { setOpen(false); setCurrent(''); setNext(''); setConfirm(''); };
+  const close = () => { setOpen(false); setCurrent(''); setNext(''); setConfirm(''); onClose?.(); };
 
   if (!open) {
     return (

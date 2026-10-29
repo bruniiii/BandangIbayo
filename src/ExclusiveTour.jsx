@@ -339,15 +339,19 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
   // After a submit the form is cleared, and the contact details aren't filled in again.
   const [cleared, setCleared] = useState(false);
 
-  useEffect(() => {
-    if (editing || cleared) return;
+  // Fill empty contact fields from the profile once it loads (and again if it
+  // changes), right as the page renders instead of in a second pass.
+  const prefillKey = `${prefill.fullName}|${prefill.contact}|${prefill.email}`;
+  const [appliedPrefill, setAppliedPrefill] = useState('');
+  if (!editing && !cleared && prefillKey !== appliedPrefill) {
+    setAppliedPrefill(prefillKey);
     setForm(prev => ({
       ...prev,
       fullName: prev.fullName || prefill.fullName,
       contact: prev.contact || prefill.contact,
       email: prev.email || prefill.email,
     }));
-  }, [prefill.fullName, prefill.contact, prefill.email, editing, cleared]);
+  }
 
   const set = (field) => (e) =>
     setForm(prev => ({ ...prev, [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
