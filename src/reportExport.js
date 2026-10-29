@@ -41,7 +41,28 @@ const loadLogo = async () => {
   }
 };
 
-export const downloadReportPDF = async (report) => {
+// print: open the browser's print window for the PDF instead of saving it.
+// Prints a jsPDF document: loads it in a hidden frame and opens the print
+// window for it (or opens it in a new tab if the browser won't print a frame).
+const printPdf = (doc) => {
+  const url = URL.createObjectURL(doc.output('blob'));
+  const frame = document.createElement('iframe');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  frame.src = url;
+  frame.onload = () => {
+    try {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    } catch {
+      window.open(url, '_blank');
+    }
+    // Clean up once the print window has had time to read the file.
+    setTimeout(() => { frame.remove(); URL.revokeObjectURL(url); }, 60000);
+  };
+  document.body.appendChild(frame);
+};
+
+export const downloadReportPDF = async (report, { print = false } = {}) => {
   const [{ jsPDF }, logo] = await Promise.all([import('jspdf'), loadLogo()]);
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
@@ -394,5 +415,6 @@ export const downloadReportPDF = async (report) => {
   );
 
   decorate();
-  doc.save(`bandang-ibayo-report-${fileDate()}.pdf`);
+  if (print) printPdf(doc);
+  else doc.save(`bandang-ibayo-report-${fileDate()}.pdf`);
 };

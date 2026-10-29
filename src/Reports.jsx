@@ -637,12 +637,13 @@ const Reports = () => {
       }),
     };
   };
-  const handleDownloadPdf = async () => {
-    setDownloadingPdf(true);
+  // Download PDF saves the report; Print opens the print window for the same PDF.
+  const handleDownloadPdf = async ({ print = false } = {}) => {
+    setDownloadingPdf(print ? 'print' : 'pdf');
     try {
-      await downloadReportPDF(buildReport());
+      await downloadReportPDF(buildReport(), { print });
     } catch (err) {
-      toast.error("Couldn't create the PDF", String(err?.message || err));
+      toast.error(print ? "Couldn't print the report" : "Couldn't create the PDF", String(err?.message || err));
     }
     setDownloadingPdf(false);
   };
@@ -676,8 +677,8 @@ const Reports = () => {
 
         {/* export controls */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <ExportButton icon={<FileText size={13} />} label={downloadingPdf ? 'Preparing PDF…' : 'Download PDF'} onClick={handleDownloadPdf} disabled={loading || downloadingPdf} />
-          <ExportButton icon={<Printer size={13} />} label="Print" onClick={() => window.print()} />
+          <ExportButton icon={<FileText size={13} />} label={downloadingPdf === 'pdf' ? 'Preparing PDF…' : 'Download PDF'} onClick={() => handleDownloadPdf()} disabled={loading || !!downloadingPdf} />
+          <ExportButton icon={<Printer size={13} />} label={downloadingPdf === 'print' ? 'Preparing…' : 'Print'} onClick={() => handleDownloadPdf({ print: true })} disabled={loading || !!downloadingPdf} />
         </div>
       </div>
 
