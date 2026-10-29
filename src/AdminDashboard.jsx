@@ -19,7 +19,7 @@ import JoinerAccounts from './Joineraccounts';
 import Reports from './Reports';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
-import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/adminLogo.png';
 import BrandAvatar from './ui/BrandAvatar';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
@@ -543,7 +543,7 @@ const AdminDashboard = () => {
                   <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
                 </div>
-                <BrandAvatar size={38} radius={11} style={{ boxShadow: '0 4px 12px rgba(26,10,0,0.22)' }} />
+                <BrandAvatar size={38} style={{ boxShadow: '0 4px 12px rgba(26,10,0,0.22)' }} />
               </div>
             </div>
           </div>
