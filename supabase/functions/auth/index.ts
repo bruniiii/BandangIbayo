@@ -18,7 +18,11 @@
 //        current password (wrong ones count toward the lock) and the password rules
 //   - "password-changed"   logged-in user (after a reset link): clears their lock
 //   - "create-admin"  { first_name, last_name, email, password }   main admin only
-//        (Admin Settings): creates a new admin account, email already confirmed
+//        (Admin Settings): checks the details and emails a 6-digit code to the
+//        new admin; returns { challengeId, sentTo, expiresInMinutes }
+//   - "create-admin-verify"  { challengeId, code, password }   main admin only:
+//        right code → creates the admin account (email confirmed)
+//        ("resend" works for these codes too)
 //
 // Deploy:  supabase functions deploy auth --no-verify-jwt
 // Uses the send-email function (Gmail) to deliver the code.
@@ -122,7 +126,7 @@ const inBackground = (task: Promise<unknown>) => {
 };
 
 // ───────────── Codes ─────────────
-async function sendCode(email: string, name: string, code: string, purpose: "login" | "signup" = "login") {
+async function sendCode(email: string, name: string, code: string, purpose: "login" | "signup" | "admin" = "login") {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
     method: "POST",
     headers: { Authorization: `Bearer ${SERVICE_ROLE}`, "Content-Type": "application/json" },
@@ -307,6 +311,7 @@ async function signup(p: any) {
 // The right code: now the account is created, with its email confirmed.
 async function verifySignup(p: any) {
   const challenge = await loadSignup(p.challengeId);
+  if (challenge.profile?.admin_invite) throw new HttpError(410, "This code has expired. Please register again.");
   if (challenge.attempts >= MAX_CODE_TRIES) {
     await admin.from("signup_challenges").delete().eq("id", challenge.id);
     throw new HttpError(429, "Too many wrong codes. Please register again.");
@@ -361,7 +366,7 @@ async function resendSignup(challenge: any) {
     last_sent_at: new Date().toISOString(),
     expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
   }).eq("id", challenge.id);
-  await sendCode(challenge.email, String(challenge.profile?.first_name ?? ""), code, "signup");
+  await sendCode(challenge.email, String(challenge.profile?.first_name ?? ""), code, challenge.profile?.admin_invite ? "admin" : "signup");
   return { sentTo: maskEmail(challenge.email) };
 }
 
@@ -411,24 +416,72 @@ async function changePassword(user: { id: string; email?: string }, p: any) {
   return { success: true };
 }
 
-// Admin Settings: a main admin creates another admin's account.
-async function createAdmin(user: { id: string }, p: any) {
-  const { data: me } = await admin.from("profiles").select("role, is_main_admin").eq("id", user.id).maybeSingle();
+// Admin Settings: a main admin adds another admin. Step 1 checks the details
+// and emails a code to the new admin; step 2 (the right code) creates the
+// account. The password isn't stored in between: it's sent again with the code.
+async function assertMainAdmin(userId: string) {
+  const { data: me } = await admin.from("profiles").select("role, is_main_admin").eq("id", userId).maybeSingle();
   if (me?.role !== "admin" || !me?.is_main_admin) throw new HttpError(403, "Only the main admin can add admins.");
+}
 
+function adminDetails(p: any) {
   const email = String(p.email ?? "").trim().toLowerCase();
   const firstName = String(p.first_name ?? "").trim().replace(/\s+/g, " ");
   const lastName = String(p.last_name ?? "").trim().replace(/\s+/g, " ");
-  const password = String(p.password ?? "");
   if (firstName.length < 2) throw new HttpError(400, "Please enter the first name.", { field: "first_name" });
   if (lastName.length < 2) throw new HttpError(400, "Please enter the last name.", { field: "last_name" });
   if (!EMAIL_RE.test(email)) throw new HttpError(400, "Please enter a valid email address, like juan@gmail.com.", { field: "email" });
-  const problems = passwordProblems(password);
-  if (problems.length) throw new HttpError(400, `The password needs ${problems.join(", ")}.`, { field: "password" });
-  if (await accountFor(email)) {
-    throw new HttpError(409, "This email already has an account. Use \"Make an existing account an admin\" instead.", { field: "email" });
-  }
+  return { email, firstName, lastName };
+}
 
+async function createAdmin(user: { id: string }, p: any) {
+  await assertMainAdmin(user.id);
+  const { email, firstName, lastName } = adminDetails(p);
+  const problems = passwordProblems(String(p.password ?? ""));
+  if (problems.length) throw new HttpError(400, `The password needs ${problems.join(", ")}.`, { field: "password" });
+  if (await accountFor(email)) throw new HttpError(409, "This email already has an account.", { field: "email" });
+
+  await admin.from("signup_challenges").delete().eq("email", email);
+  const challengeId = crypto.randomUUID();
+  const code = newCode();
+  const { error } = await admin.from("signup_challenges").insert({
+    id: challengeId,
+    email,
+    profile: { first_name: firstName, last_name: lastName, admin_invite: true, invited_by: user.id },
+    code_hash: await codeHash(challengeId, code),
+    expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
+  });
+  if (error) throw new Error(error.message);
+  await sendCode(email, firstName, code, "admin");
+  return { challengeId, sentTo: maskEmail(email), expiresInMinutes: CODE_MINUTES };
+}
+
+async function createAdminVerify(user: { id: string }, p: any) {
+  await assertMainAdmin(user.id);
+  const challenge = await loadSignup(p.challengeId);
+  const profile = (challenge.profile ?? {}) as Record<string, unknown>;
+  if (!profile.admin_invite || profile.invited_by !== user.id) throw new HttpError(410, "This code has expired. Please start again.");
+  if (challenge.attempts >= MAX_CODE_TRIES) {
+    await admin.from("signup_challenges").delete().eq("id", challenge.id);
+    throw new HttpError(429, "Too many wrong codes. Please start again.");
+  }
+  const code = String(p.code ?? "").replace(/\D/g, "");
+  if (code.length !== 6 || (await codeHash(challenge.id, code)) !== challenge.code_hash) {
+    const left = MAX_CODE_TRIES - challenge.attempts - 1;
+    await admin.from("signup_challenges").update({ attempts: challenge.attempts + 1 }).eq("id", challenge.id);
+    throw new HttpError(401, left > 0 ? `That code isn't right. ${left} tr${left === 1 ? "y" : "ies"} left.` : "Too many wrong codes. Please start again.");
+  }
+  const password = String(p.password ?? "");
+  const problems = passwordProblems(password);
+  if (problems.length) throw new HttpError(400, `The password needs ${problems.join(", ")}.`);
+
+  const email = challenge.email as string;
+  const firstName = String(profile.first_name ?? "");
+  const lastName = String(profile.last_name ?? "");
+  if (await accountFor(email)) {
+    await admin.from("signup_challenges").delete().eq("id", challenge.id);
+    throw new HttpError(409, "This email already has an account.");
+  }
   // A unique username from the email, e.g. maria.santos2.
   const base = email.split("@")[0].replace(/[^a-z0-9._]/g, "").slice(0, 20) || "admin";
   let username = base;
@@ -447,6 +500,7 @@ async function createAdmin(user: { id: string }, p: any) {
     await admin.auth.admin.deleteUser(id);
     throw new HttpError(400, error.message);
   }
+  await admin.from("signup_challenges").delete().eq("id", challenge.id);
   return { success: true, id, name: `${firstName} ${lastName}`, email };
 }
 
@@ -469,6 +523,7 @@ Deno.serve(async (req) => {
     switch (p.action) {
       case "change-password": return reply(await changePassword(userData.user, p));
       case "create-admin": return reply(await createAdmin(userData.user, p));
+      case "create-admin-verify": return reply(await createAdminVerify(userData.user, p));
       case "password-changed":
         await clearLock(String(userData.user.email ?? "").toLowerCase());
         return reply({ success: true });

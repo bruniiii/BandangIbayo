@@ -16,7 +16,7 @@ const input = {
   background: '#FFFDF9', fontSize: 13, fontWeight: 600, color: '#1A0A00', outline: 'none', fontFamily: 'inherit',
 };
 
-const AdminNameForm = ({ onSaved, compact = false }) => {
+const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
   const [first, setFirst] = useState('');
   const [last, setLast] = useState('');
   const [error, setError] = useState('');
@@ -68,6 +68,12 @@ const AdminNameForm = ({ onSaved, compact = false }) => {
       }}>
         {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} Save Name
       </button>
+      {onCancel && (
+        <button type="button" onClick={onCancel} disabled={saving} style={{
+          height: 38, padding: '0 16px', borderRadius: 10, border: '1px solid rgba(180,81,30,0.3)', background: 'transparent', color: '#7A3A18',
+          fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', flex: compact ? '1 1 100%' : '0 0 auto',
+        }}>Cancel</button>
+      )}
       {error && <p role="alert" style={{ flexBasis: '100%', margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
     </form>
   );
