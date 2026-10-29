@@ -62,6 +62,11 @@ export const changePassword = (currentPassword, newPassword) =>
 // After a password reset link: unlock the account. Never blocks the reset.
 export const clearLoginLock = () => call({ action: 'password-changed' });
 
-// Admin Settings (main admin only): a new admin account, email already confirmed.
+// Admin Settings (main admin only). Step 1: checks the details and emails a
+// 6-digit code to the new admin → { challengeId, sentTo, expiresInMinutes }.
 export const createAdminAccount = ({ first_name, last_name, email, password }) =>
   call({ action: 'create-admin', first_name, last_name, email, password });
+
+// Step 2: the code they received (and the password again) → the admin account.
+export const verifyAdminAccount = (challengeId, code, password) =>
+  call({ action: 'create-admin-verify', challengeId, code, password });

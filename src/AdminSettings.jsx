@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, UserPlus, Trash2, Loader2, Eye, EyeOff, Crown, UserRound } from 'lucide-react';
+import { ShieldCheck, UserPlus, Trash2, Loader2, Eye, EyeOff, Crown, UserRound, Pencil, MailCheck, ArrowLeft } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
-import { createAdminAccount } from './authApi';
+import { createAdminAccount, verifyAdminAccount, resendLoginCode } from './authApi';
+import OtpInput from './ui/OtpInput';
 import PasswordChecklist from './PasswordChecklist';
 import { passwordErrorMessage } from './passwordPolicy';
 import { emailError, fullNameError } from './validation';
@@ -40,17 +41,21 @@ const AdminSettings = () => {
   const me = useAdminMe();
   const [myId, setMyId] = useState(null);
   const [admins, setAdmins] = useState(null);
-  const [mode, setMode] = useState('new'); // 'new' | 'existing'
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' });
-  const [existingEmail, setExistingEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // After "Send Code": { challengeId, sentTo } until the right code is entered.
+  const [pending, setPending] = useState(null);
+  const [code, setCode] = useState('');
+  const [editingName, setEditingName] = useState(false);
 
-  // Loads quietly after the first time.
+  // Loads quietly after the first time. Nothing is asked for while signed out.
   const load = useCallback(async () => {
-    const [{ data: { user } }, { data, error: err }] = await Promise.all([supabase.auth.getUser(), supabase.rpc('list_admins')]);
-    setMyId(user?.id || null);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    setMyId(user.id);
+    const { data, error: err } = await supabase.rpc('list_admins');
     if (err) { toast.error("Couldn't load the admins", err.message); setAdmins([]); return; }
     setAdmins(data || []);
   }, []);
@@ -59,41 +64,45 @@ const AdminSettings = () => {
 
   const set = (field) => (e) => { setForm((f) => ({ ...f, [field]: e.target.value })); setError(''); };
 
-  const addNew = async (e) => {
+  // Step 1: check the details and email a code to the new admin.
+  const sendCode = async (e) => {
     e.preventDefault();
     const problem = fullNameError(`${form.first_name} ${form.last_name}`, 'Name')
       || emailError(form.email) || passwordErrorMessage(form.password);
     if (problem) { setError(problem); return; }
     if (!(await confirmDialog({
       title: `Add ${form.first_name.trim()} ${form.last_name.trim()} as an admin?`,
-      message: `They can log in with ${form.email.trim()} and the password you set, and do everything admins can. Only you can add or remove admins.`,
-      confirmLabel: 'Add Admin', cancelLabel: 'Go Back',
+      message: `We'll email a 6-digit code to ${form.email.trim()}. Ask them for it to finish adding them. They'll be able to do everything admins can.`,
+      confirmLabel: 'Send Code', cancelLabel: 'Go Back',
     }))) return;
     setBusy(true);
     const result = await createAdminAccount({ ...form, email: form.email.trim() });
     setBusy(false);
     if (!result.ok) { setError(result.error); return; }
+    setPending({ challengeId: result.data.challengeId, sentTo: result.data.sentTo });
+    setCode('');
+  };
+
+  // Step 2: the code they received → the admin account is created.
+  const verifyCode = async (e) => {
+    e.preventDefault();
+    if (code.length !== 6) { setError('Enter the 6-digit code they received.'); return; }
+    setBusy(true);
+    const result = await verifyAdminAccount(pending.challengeId, code, form.password);
+    setBusy(false);
+    if (!result.ok) { setError(result.error); return; }
     toast.success('Admin added', `${result.data.name} can now log in. Share the password with them; they can change it from their name at the top right.`);
+    setPending(null);
+    setCode('');
     setForm({ first_name: '', last_name: '', email: '', password: '' });
     load();
   };
 
-  const addExisting = async (e) => {
-    e.preventDefault();
-    const problem = emailError(existingEmail);
-    if (problem) { setError(problem); return; }
-    if (!(await confirmDialog({
-      title: 'Make this account an admin?',
-      message: `${existingEmail.trim()} will get the admin dashboard and can do everything admins can.`,
-      confirmLabel: 'Make Admin', cancelLabel: 'Go Back',
-    }))) return;
-    setBusy(true);
-    const { data, error: err } = await supabase.rpc('make_admin', { p_email: existingEmail.trim() });
-    setBusy(false);
-    if (err) { setError(err.message); return; }
-    toast.success('Admin added', `${data} is now an admin. They'll see the admin dashboard the next time they log in.`);
-    setExistingEmail('');
-    load();
+  const resend = async () => {
+    setError('');
+    const result = await resendLoginCode(pending.challengeId);
+    if (!result.ok) { setError(result.error); return; }
+    toast.info('New code sent', `Sent to ${result.data.sentTo}.`);
   };
 
   const remove = async (a) => {
@@ -122,13 +131,43 @@ const AdminSettings = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* ── Your name (shown at the top right and on receipts) ── */}
       <section style={{ ...card, border: needsName ? '1.5px solid rgba(180,81,30,0.45)' : card.border }} aria-label="Your name">
-        <h3 style={cardTitle}><UserRound size={16} style={{ color: '#A8481A' }} /> Your Name</h3>
-        <p style={cardHint}>
-          {needsName
-            ? 'Your account has no name yet, so your email shows instead. Add your name: it shows at the top right and on the receipts of payments you process.'
-            : 'Shown at the top right and on the receipts of payments you process.'}
-        </p>
-        <AdminNameForm onSaved={load} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div>
+            <h3 style={cardTitle}><UserRound size={16} style={{ color: '#A8481A' }} /> Your Name</h3>
+            <p style={{ ...cardHint, marginBottom: 0 }}>
+              {needsName
+                ? 'Your account has no name yet, so your email shows instead. Add your name: it shows at the top right and on the receipts of payments you process.'
+                : 'Shown at the top right and on the receipts of payments you process.'}
+            </p>
+          </div>
+          {!editingName && (
+            <button type="button" onClick={() => setEditingName(true)} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, height: 36, padding: '0 16px', borderRadius: 10, cursor: 'pointer',
+              background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.3)', color: '#A8481A', fontFamily: 'inherit',
+              fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+            }}><Pencil size={13} /> {needsName ? 'Add Name' : 'Edit'}</button>
+          )}
+        </div>
+        {editingName ? (
+          <div style={{ marginTop: 14 }}>
+            <AdminNameForm onSaved={() => { setEditingName(false); load(); }} onCancel={() => setEditingName(false)} />
+          </div>
+        ) : (
+          <dl style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 40px', margin: '14px 0 0' }}>
+            <div>
+              <dt style={label}>Name</dt>
+              <dd style={{ margin: 0, fontSize: 14, fontWeight: 800, color: needsName ? '#8C2F1C' : '#1A0A00' }}>{needsName ? 'Not set yet' : me.name}</dd>
+            </div>
+            <div>
+              <dt style={label}>Email</dt>
+              <dd style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1A0A00' }}>{me.email || '—'}</dd>
+            </div>
+            <div>
+              <dt style={label}>Role</dt>
+              <dd style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1A0A00' }}>{me.isMain ? 'Main Admin' : 'Admin'}</dd>
+            </div>
+          </dl>
+        )}
       </section>
 
       <div className="admin-settings-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)', gap: 20, alignItems: 'start' }}>
@@ -176,17 +215,8 @@ const AdminSettings = () => {
         {/* ── Add an admin ── */}
         <section style={card} aria-label="Add an admin">
           <h3 style={cardTitle}><UserPlus size={16} style={{ color: '#A8481A' }} /> Add an Admin</h3>
-          <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, background: '#F2E4D0', borderRadius: 10, padding: 4, margin: '12px 0 14px' }}>
-            {[['new', 'New account'], ['existing', 'Existing account']].map(([key, text]) => (
-              <button key={key} type="button" role="tab" aria-selected={mode === key} onClick={() => { setMode(key); setError(''); }} style={{
-                border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
-                letterSpacing: '0.06em', textTransform: 'uppercase', background: mode === key ? '#1A0A00' : 'transparent', color: mode === key ? '#FDF6EE' : '#7A3A18',
-              }}>{text}</button>
-            ))}
-          </div>
-
-          {mode === 'new' ? (
-            <form onSubmit={addNew} style={{ display: 'flex', flexDirection: 'column', gap: 12 }} noValidate>
+          {!pending ? (
+            <form onSubmit={sendCode} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }} noValidate>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div><label style={label} htmlFor="admin-first">First Name</label><input id="admin-first" data-allow="name" value={form.first_name} onChange={set('first_name')} maxLength={60} style={input} /></div>
                 <div><label style={label} htmlFor="admin-last">Last Name</label><input id="admin-last" data-allow="name" value={form.last_name} onChange={set('last_name')} maxLength={60} style={input} /></div>
@@ -203,15 +233,26 @@ const AdminSettings = () => {
                 {form.password && <PasswordChecklist password={form.password} />}
                 <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>Share it with them privately. They can change it from their name at the top right.</p>
               </div>
+              <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, background: '#F2E4D0', borderRadius: 10, padding: '8px 10px' }}>
+                To verify the email, we'll send them a 6-digit code. Ask them for it to finish.
+              </p>
               {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
-              <button type="submit" disabled={busy} style={primaryBtn(busy)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <UserPlus size={14} />} Add Admin</button>
+              <button type="submit" disabled={busy} style={primaryBtn(busy)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MailCheck size={14} />} Send Code</button>
             </form>
           ) : (
-            <form onSubmit={addExisting} style={{ display: 'flex', flexDirection: 'column', gap: 12 }} noValidate>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>For someone who already has an account on the site, for example a joiner.</p>
-              <div><label style={label} htmlFor="admin-existing">Their Account Email</label><input id="admin-existing" type="email" value={existingEmail} onChange={(e) => { setExistingEmail(e.target.value); setError(''); }} maxLength={120} placeholder="maria@gmail.com" style={input} /></div>
+            <form onSubmit={verifyCode} style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }} noValidate>
+              <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: '#1A0A00', lineHeight: 1.55 }}>
+                We emailed a 6-digit code to <strong>{pending.sentTo}</strong>. Ask <strong>{form.first_name.trim() || 'them'}</strong> for it and enter it here. It's valid for 10 minutes.
+              </p>
+              <OtpInput value={code} onChange={(v) => { setCode(v); setError(''); }} invalid={!!error} autoFocus />
               {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
-              <button type="submit" disabled={busy} style={primaryBtn(busy)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={14} />} Make Admin</button>
+              <button type="submit" disabled={busy || code.length !== 6} style={primaryBtn(busy || code.length !== 6)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={14} />} Verify &amp; Add Admin</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => { setPending(null); setError(''); }} className="text-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
+                  <ArrowLeft size={13} /> Change details
+                </button>
+                <button type="button" onClick={resend} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Send a new code</button>
+              </div>
             </form>
           )}
         </section>
