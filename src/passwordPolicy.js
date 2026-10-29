@@ -14,5 +14,6 @@ export const passwordProblems = (password) =>
 
 export const passwordErrorMessage = (password) => {
   const problems = passwordProblems(password);
-  return problems.length ? `Your password needs: ${problems.join(', ').toLowerCase()}.` : '';
+  // "An uppercase letter (A–Z)" → "an uppercase letter (A–Z)": only the first letter changes.
+  return problems.length ? `Your password needs: ${problems.map((p) => p[0].toLowerCase() + p.slice(1)).join(', ')}.` : '';
 };

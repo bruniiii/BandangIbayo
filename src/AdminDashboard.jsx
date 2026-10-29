@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare
+  ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare, ShieldCheck
 } from 'lucide-react';
 import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
+import { useAdminMe } from './adminMe';
+import AdminSettings from './AdminSettings';
 import { toast } from './ui/toast';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
@@ -95,11 +97,15 @@ const NAV_ITEMS = [
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
   { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
 ];
+// Only the main admin sees this one.
+const SETTINGS_ITEM = { icon: <ShieldCheck size={18} strokeWidth={2} />, label: 'Admin Settings' };
  
 // ─── Main Component ──────────────────────────────────────────────────────────
  
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState(() => readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'Overview'));
+  const [activeTab, setActiveTab] = useState(() => readTab(TAB_KEY, [...NAV_ITEMS, SETTINGS_ITEM].map((n) => n.label), 'Overview'));
+  const me = useAdminMe();
+  const navItems = me.isMain ? [...NAV_ITEMS, SETTINGS_ITEM] : NAV_ITEMS;
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   // Browser Back goes to the previous dashboard page.
@@ -466,7 +472,7 @@ const AdminDashboard = () => {
  
         {/* nav */}
         <nav style={{ flex: 1, padding: sidebarExpanded ? '1.25rem 1rem' : '1.25rem 0.75rem', display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto', overflowX: 'hidden' }}>
-          {NAV_ITEMS.map(({ icon, label }) => (
+          {navItems.map(({ icon, label }) => (
             <NavItem
               key={label}
               icon={icon}
@@ -532,7 +538,7 @@ const AdminDashboard = () => {
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
               {/* admin chip: who's signed in + Change Password */}
-              <AdminAccountMenu />
+              <AdminAccountMenu onOpenSettings={() => handleNavClick('Admin Settings')} />
             </div>
           </div>
 
@@ -833,6 +839,7 @@ const AdminDashboard = () => {
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
           {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
+          {activeTab === 'Admin Settings' && <AdminSettings />}
           
 
           {/* FALLBACK COMING SOON SECTION */}
@@ -847,7 +854,8 @@ const AdminDashboard = () => {
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
            activeTab !== 'Group Chats' &&
-           activeTab !== 'Notification' && (
+           activeTab !== 'Notification' &&
+           activeTab !== 'Admin Settings' && (
             <div style={{
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',
@@ -901,6 +909,7 @@ const PAGE_INFO = {
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
+  'Admin Settings':      { icon: ShieldCheck,     title: 'Admin Settings',      subtitle: 'Add or remove the people who can use the admin dashboard' },
 };
 
 // ─── Nav Item ────────────────────────────────────────────────────────────────

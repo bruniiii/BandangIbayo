@@ -158,6 +158,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <InfoItem label="Booking Number" value={booking.booking_number} mono />
               <InfoItem label="Booking Date" value={formatDateTime(booking.created_at)} />
+              {/* The admin who verified / recorded the payment (online payments have none). */}
+              <InfoItem label="Payment Processed By" value={booking.processed_by_name || (booking.paymongo_payment_id ? 'Online (PayMongo)' : '—')} />
+              {booking.balance_settled && (
+                <InfoItem label="Balance Processed By" value={booking.balance_processed_by_name || (booking.paymongo_balance_payment_id ? 'Online (PayMongo)' : '—')} />
+              )}
             </div>
           </ViewSection>
  

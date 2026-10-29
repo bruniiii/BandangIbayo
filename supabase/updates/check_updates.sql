@@ -3,7 +3,7 @@
 --
 -- Paste into the Supabase SQL Editor and click Run. Each row says whether
 -- that update is in the database. Any "NOT YET" means: run
--- supabase/updates/install_updates_1111_to_1117.sql (it's safe to run again
+-- supabase/updates/install_updates.sql (it's safe to run again
 -- even if some are already installed). Read-only: changes nothing.
 -- ─────────────────────────────────────────────
 
@@ -29,5 +29,8 @@ from (values
               where n.nspname = 'public' and p.proname = 'tours_slot_limit')),
   ('20261117 live updates (realtime)',
      exists (select 1 from pg_publication_tables
-              where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'notifications'))
+              where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'notifications')),
+  ('20261118 more admins (Admin Settings, processed by)',
+     exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'is_main_admin'))
 ) as u(update_file, installed);
