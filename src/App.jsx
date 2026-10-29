@@ -6,7 +6,7 @@ import {
   MapPin, Calendar, Users, Clock, Loader2, CheckCircle, 
   ShieldCheck, Smartphone, Map, CreditCard, Globe, Mail, Phone
 } from 'lucide-react';
-import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/logo.png';
  
 import JoinerLogin from './JoinerLogin'; 
 import JoinerRegister from './JoinerRegister';

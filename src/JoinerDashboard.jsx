@@ -18,7 +18,7 @@ import ExclusiveTour from './ExclusiveTour';
 import Feed from './Feed';
 import Reviews from './Reviews';
 import ProfileSettings from './Profilesettings.jsx';
-import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/logo.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';

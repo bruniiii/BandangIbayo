@@ -28,7 +28,7 @@ const AMBER = [232, 162, 101];
 // The logo as a data URL for jsPDF (null if it can't be loaded).
 const loadLogo = async () => {
   try {
-    const { default: url } = await import('./assets/adminLogo.png');
+    const { default: url } = await import('./assets/logo.png');
     const blob = await (await fetch(url)).blob();
     return await new Promise((resolve) => {
       const r = new FileReader();

@@ -5,7 +5,7 @@ import { passwordErrorMessage } from './passwordPolicy';
 import PasswordChecklist from './PasswordChecklist';
 import { clearLoginLock } from './authApi';
 import { Loader2, CheckCircle2, Lock } from 'lucide-react';
-import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/logo.png';
 import PasswordField from './ui/PasswordField';
 
 const inputStyle = {

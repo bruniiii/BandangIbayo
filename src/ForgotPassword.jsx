@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { Loader2, CheckCircle2, Mail } from 'lucide-react';
-import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/logo.png';
 import { emailError, emailSuggestion } from './validation';
 
 // ── PALETTE ──────────────────────────────────────────────
