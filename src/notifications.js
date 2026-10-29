@@ -137,6 +137,23 @@ export const onNotificationsChanged = (fn) => {
   return () => window.removeEventListener(CHANGED_EVENT, fn);
 };
 
+// Backup for live updates: load again when the tab is opened or focused,
+// when another tab of the site marks notifications as seen, and every minute.
+export const onNotificationsRefresh = (fn, everyMs = 60000) => {
+  const onVisible = () => { if (document.visibilityState === 'visible') fn(); };
+  const onStorage = (e) => { if (e.key && e.key.startsWith('ibayo-notifications-seen:')) fn(); };
+  const timer = setInterval(onVisible, everyMs);
+  window.addEventListener('focus', onVisible);
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('storage', onStorage);
+  return () => {
+    clearInterval(timer);
+    window.removeEventListener('focus', onVisible);
+    document.removeEventListener('visibilitychange', onVisible);
+    window.removeEventListener('storage', onStorage);
+  };
+};
+
 /* ── Payment notices clear themselves ──
    Joiners' "payment received" notifications (type 'payment') are removed
    3 minutes after they arrive. */

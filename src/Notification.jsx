@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry, markNotificationsSeen } from './notifications';
+import { notificationsChanged, onNotificationsChanged, onNotificationsRefresh, clearOldPaymentNotices, nextPaymentNoticeExpiry, markNotificationsSeen } from './notifications';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -117,6 +117,12 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
   useEffect(() => {
     if (!userId) return undefined;
     return onNotificationsChanged(() => fetchNotifications(userId));
+  }, [userId, fetchNotifications]);
+
+  // Backup for live updates (tab focus, other tabs, every minute).
+  useEffect(() => {
+    if (!userId) return undefined;
+    return onNotificationsRefresh(() => fetchNotifications(userId));
   }, [userId, fetchNotifications]);
 
   // Viewing this page clears the bell's count, including for notifications
