@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, UserPlus, Trash2, Loader2, Eye, EyeOff, Crown, UserRound, Pencil, MailCheck, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, UserPlus, Trash2, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -11,6 +11,7 @@ import { emailError, fullNameError } from './validation';
 import { SkeletonRows } from './ui/Skeleton';
 import { useAdminMe } from './adminMe';
 import AdminNameForm from './AdminNameForm';
+import BrandAvatar from './ui/BrandAvatar';
 
 // ─────────────────────────────────────────────
 // ADMIN SETTINGS (main admin only): the list of admins, adding an admin (a new
@@ -49,6 +50,8 @@ const AdminSettings = () => {
   const [pending, setPending] = useState(null);
   const [code, setCode] = useState('');
   const [editingName, setEditingName] = useState(false);
+  const [adding, setAdding] = useState(false); // the Add Admin window
+  const closeAdding = () => { if (busy) return; setAdding(false); setPending(null); setCode(''); setError(''); };
 
   // Loads quietly after the first time. Nothing is asked for while signed out.
   const load = useCallback(async () => {
@@ -95,6 +98,7 @@ const AdminSettings = () => {
     setPending(null);
     setCode('');
     setForm({ first_name: '', last_name: '', email: '', password: '' });
+    setAdding(false);
     load();
   };
 
@@ -126,138 +130,172 @@ const AdminSettings = () => {
   }
 
   const needsName = me.loaded && (!me.name || me.name === me.email);
+  const step = pending ? 2 : 1;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* ── Your name (shown at the top right and on receipts) ── */}
-      <section style={{ ...card, border: needsName ? '1.5px solid rgba(180,81,30,0.45)' : card.border }} aria-label="Your name">
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-          <div>
-            <h3 style={cardTitle}><UserRound size={16} style={{ color: '#A8481A' }} /> Your Name</h3>
-            <p style={{ ...cardHint, marginBottom: 0 }}>
-              {needsName
-                ? 'Your account has no name yet, so your email shows instead. Add your name: it shows at the top right and on the receipts of payments you process.'
-                : 'Shown at the top right and on the receipts of payments you process.'}
-            </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>
+      {/* ── Your profile: dark banner like the Overview header ── */}
+      <section aria-label="Your profile" className="dashboard-hero-padding" style={{
+        position: 'relative', overflow: 'hidden', background: '#1A0A00', borderRadius: 22, padding: '1.75rem 2rem',
+        boxShadow: '0 10px 30px rgba(26,10,0,0.22)', borderBottom: '4px solid #B4511E',
+      }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '45%', height: '100%', background: 'radial-gradient(ellipse at top right, rgba(180,81,30,0.22) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+          <BrandAvatar size={72} style={{ boxShadow: '0 0 0 3px rgba(232,162,101,0.35)' }} />
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#E8A265' }}>Your Admin Profile</p>
+            {editingName ? (
+              <div style={{ background: '#FDF6EE', borderRadius: 14, padding: '12px 14px', maxWidth: 640 }}>
+                <AdminNameForm onSaved={() => { setEditingName(false); load(); }} onCancel={() => setEditingName(false)} />
+              </div>
+            ) : (
+              <>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, letterSpacing: '-0.01em', color: needsName ? '#E8A265' : '#FDF6EE', overflowWrap: 'anywhere' }}>
+                  {needsName ? 'Add your name' : me.name}
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: 'rgba(232,210,190,0.9)' }}>
+                    <Mail size={13} /> {me.email || '—'}
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 999, background: 'rgba(232,162,101,0.16)', color: '#E8A265', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    {me.isMain && <Crown size={12} />} {me.isMain ? 'Main Admin' : 'Admin'}
+                  </span>
+                </div>
+                <p style={{ margin: '10px 0 0', fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.75)' }}>
+                  {needsName ? 'Your email shows until you add a name. ' : ''}Your name shows at the top right and on the receipts of payments you process.
+                </p>
+              </>
+            )}
           </div>
           {!editingName && (
             <button type="button" onClick={() => setEditingName(true)} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, height: 36, padding: '0 16px', borderRadius: 10, cursor: 'pointer',
-              background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.3)', color: '#A8481A', fontFamily: 'inherit',
-              fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-            }}><Pencil size={13} /> {needsName ? 'Add Name' : 'Edit'}</button>
+              display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, cursor: 'pointer',
+              background: '#E8A265', border: 'none', color: '#1A0A00', fontFamily: 'inherit',
+              fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            }}><Pencil size={14} /> {needsName ? 'Add Name' : 'Edit Name'}</button>
           )}
         </div>
-        {editingName ? (
-          <div style={{ marginTop: 14 }}>
-            <AdminNameForm onSaved={() => { setEditingName(false); load(); }} onCancel={() => setEditingName(false)} />
-          </div>
-        ) : (
-          <dl style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 40px', margin: '14px 0 0' }}>
-            <div>
-              <dt style={label}>Name</dt>
-              <dd style={{ margin: 0, fontSize: 14, fontWeight: 800, color: needsName ? '#8C2F1C' : '#1A0A00' }}>{needsName ? 'Not set yet' : me.name}</dd>
-            </div>
-            <div>
-              <dt style={label}>Email</dt>
-              <dd style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1A0A00' }}>{me.email || '—'}</dd>
-            </div>
-            <div>
-              <dt style={label}>Role</dt>
-              <dd style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1A0A00' }}>{me.isMain ? 'Main Admin' : 'Admin'}</dd>
-            </div>
-          </dl>
-        )}
       </section>
 
-      <div className="admin-settings-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1fr)', gap: 20, alignItems: 'start' }}>
-        {/* ── Admins ── */}
-        <section style={card} aria-label="Admins">
-          <h3 style={cardTitle}><ShieldCheck size={16} style={{ color: '#A8481A' }} /> Admins{admins ? ` (${admins.length})` : ''}</h3>
-          <p style={cardHint}>Every admin can do everything on the admin dashboard. Only the main admin can add or remove admins.</p>
-          {admins === null ? <SkeletonRows count={2} label="Loading admins" /> : (
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {admins.map((a) => {
-                const showEmail = a.email && a.email !== a.name;
-                return (
-                  <li key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#F2E4D0', borderRadius: 14, padding: '10px 12px' }}>
-                    <span aria-hidden="true" style={{
-                      width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: a.is_main_admin ? '#1A0A00' : '#FDF6EE', color: a.is_main_admin ? '#E8A265' : '#A8481A',
-                      border: '1px solid rgba(180,81,30,0.25)', fontSize: 12.5, fontWeight: 900,
-                    }}>{initials(a.name)}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: '#1A0A00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {a.name}{a.id === myId && <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>(you)</span>}
-                      </p>
-                      <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {showEmail ? `${a.email} · ` : ''}Added {formatDate(a.created_at)}
-                      </p>
-                    </div>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, padding: '4px 9px', borderRadius: 999,
-                      fontSize: 10.5, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase',
-                      background: a.is_main_admin ? 'rgba(180,81,30,0.14)' : 'rgba(26,10,0,0.06)', color: a.is_main_admin ? '#A8481A' : '#7A3A18',
-                    }}>{a.is_main_admin && <Crown size={12} />}{a.is_main_admin ? 'Main' : 'Admin'}</span>
+      {/* ── Admins ── */}
+      <section style={{ ...card, padding: 0, overflow: 'hidden' }} aria-label="Admins">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
+          <div>
+            <h3 style={cardTitle}><ShieldCheck size={16} style={{ color: '#A8481A' }} /> Admins
+              {admins && <span style={{ marginLeft: 4, padding: '1px 9px', borderRadius: 999, background: '#F2E4D0', fontSize: 11.5, fontWeight: 900, color: '#A8481A' }}>{admins.length}</span>}
+            </h3>
+            <p style={{ ...cardHint, margin: '4px 0 0' }}>Every admin can do everything on the dashboard. Only the main admin can add or remove admins.</p>
+          </div>
+          <button type="button" onClick={() => { setAdding(true); setError(''); }} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            boxShadow: '0 6px 18px rgba(180,81,30,0.3)',
+          }}><Plus size={15} /> Add Admin</button>
+        </div>
+        {admins === null ? <div style={{ padding: '1rem 1.5rem' }}><SkeletonRows count={2} label="Loading admins" /></div> : (
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {admins.map((a, i) => {
+              const showEmail = a.email && a.email !== a.name;
+              return (
+                <li key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 1.5rem', borderTop: i ? '1px solid rgba(180,81,30,0.1)' : 'none', flexWrap: 'wrap' }}>
+                  <span aria-hidden="true" style={{
+                    width: 42, height: 42, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: a.is_main_admin ? '#1A0A00' : '#F2E4D0', color: a.is_main_admin ? '#E8A265' : '#A8481A', fontSize: 13, fontWeight: 900,
+                  }}>{initials(a.name)}</span>
+                  <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {a.name}{a.id === myId && <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>(you)</span>}
+                    </p>
+                    {showEmail && <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.email}</p>}
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', minWidth: 120 }}>Added {formatDate(a.created_at)}</span>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, minWidth: 64, justifyContent: 'center',
+                    fontSize: 10.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    background: a.is_main_admin ? 'rgba(180,81,30,0.14)' : 'rgba(26,10,0,0.06)', color: a.is_main_admin ? '#A8481A' : '#7A3A18',
+                  }}>{a.is_main_admin && <Crown size={12} />}{a.is_main_admin ? 'Main' : 'Admin'}</span>
+                  <span style={{ width: 34, flexShrink: 0 }}>
                     {a.id !== myId && (
                       <button type="button" onClick={() => remove(a)} aria-label={`Remove ${a.name} as an admin`} title="Remove as admin" style={{
-                        flexShrink: 0, width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         background: 'rgba(140,47,28,0.08)', color: '#8C2F1C', border: 'none', borderRadius: 10, cursor: 'pointer',
                       }}><Trash2 size={15} /></button>
                     )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
-        {/* ── Add an admin ── */}
-        <section style={card} aria-label="Add an admin">
-          <h3 style={cardTitle}><UserPlus size={16} style={{ color: '#A8481A' }} /> Add an Admin</h3>
-          {!pending ? (
-            <form onSubmit={sendCode} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }} noValidate>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div><label style={label} htmlFor="admin-first">First Name</label><input id="admin-first" data-allow="name" value={form.first_name} onChange={set('first_name')} maxLength={60} style={input} /></div>
-                <div><label style={label} htmlFor="admin-last">Last Name</label><input id="admin-last" data-allow="name" value={form.last_name} onChange={set('last_name')} maxLength={60} style={input} /></div>
-              </div>
-              <div><label style={label} htmlFor="admin-email">Email</label><input id="admin-email" type="email" value={form.email} onChange={set('email')} maxLength={120} placeholder="maria@gmail.com" style={input} /></div>
-              <div>
-                <label style={label} htmlFor="admin-password">Temporary Password</label>
-                <div style={{ position: 'relative' }}>
-                  <input id="admin-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={form.password} onChange={set('password')} style={{ ...input, paddingRight: 40 }} />
-                  <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', display: 'flex' }}>
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
+      {/* ── Add Admin window: 1 Details → 2 Verify email ── */}
+      {adding && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={closeAdding} />
+          <div role="dialog" aria-label="Add an admin" style={{
+            position: 'relative', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto', background: '#FDF6EE',
+            borderRadius: 22, borderTop: '6px solid #B4511E', boxShadow: '0 30px 70px rgba(26,10,0,0.4)', padding: '1.5rem 1.6rem 1.6rem',
+          }}>
+            <button type="button" onClick={closeAdding} aria-label="Close" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', display: 'flex' }}><X size={20} /></button>
+            <h3 style={{ ...cardTitle, fontSize: 17 }}><UserPlus size={18} style={{ color: '#A8481A' }} /> Add an Admin</h3>
+            {/* steps */}
+            <ol style={{ listStyle: 'none', display: 'flex', alignItems: 'center', gap: 8, margin: '14px 0 18px', padding: 0 }}>
+              {[[1, 'Details'], [2, 'Verify email']].map(([n, text], idx) => (
+                <React.Fragment key={n}>
+                  {idx > 0 && <span aria-hidden="true" style={{ flex: 1, height: 2, borderRadius: 2, background: step >= n ? '#B4511E' : 'rgba(180,81,30,0.2)' }} />}
+                  <li style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 900, color: step >= n ? '#1A0A00' : 'rgba(122,58,24,0.6)' }} aria-current={step === n ? 'step' : undefined}>
+                    <span style={{ width: 24, height: 24, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, background: step >= n ? '#1A0A00' : 'rgba(180,81,30,0.14)', color: step >= n ? '#E8A265' : '#A8481A' }}>{n}</span>
+                    {text}
+                  </li>
+                </React.Fragment>
+              ))}
+            </ol>
+
+            {!pending ? (
+              <form onSubmit={sendCode} style={{ display: 'flex', flexDirection: 'column', gap: 12 }} noValidate>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div><label style={label} htmlFor="admin-first">First Name</label><input id="admin-first" data-allow="name" value={form.first_name} onChange={set('first_name')} maxLength={60} style={input} autoFocus /></div>
+                  <div><label style={label} htmlFor="admin-last">Last Name</label><input id="admin-last" data-allow="name" value={form.last_name} onChange={set('last_name')} maxLength={60} style={input} /></div>
                 </div>
-                {form.password && <PasswordChecklist password={form.password} />}
-                <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>Share it with them privately. They can change it from their name at the top right.</p>
-              </div>
-              <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, background: '#F2E4D0', borderRadius: 10, padding: '8px 10px' }}>
-                To verify the email, we'll send them a 6-digit code. Ask them for it to finish.
-              </p>
-              {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
-              <button type="submit" disabled={busy} style={primaryBtn(busy)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MailCheck size={14} />} Send Code</button>
-            </form>
-          ) : (
-            <form onSubmit={verifyCode} style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 14 }} noValidate>
-              <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: '#1A0A00', lineHeight: 1.55 }}>
-                We emailed a 6-digit code to <strong>{pending.sentTo}</strong>. Ask <strong>{form.first_name.trim() || 'them'}</strong> for it and enter it here. It's valid for 10 minutes.
-              </p>
-              <OtpInput value={code} onChange={(v) => { setCode(v); setError(''); }} invalid={!!error} autoFocus />
-              {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
-              <button type="submit" disabled={busy || code.length !== 6} style={primaryBtn(busy || code.length !== 6)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={14} />} Verify &amp; Add Admin</button>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => { setPending(null); setError(''); }} className="text-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
-                  <ArrowLeft size={13} /> Change details
-                </button>
-                <button type="button" onClick={resend} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Send a new code</button>
-              </div>
-            </form>
-          )}
-        </section>
-      </div>
-      <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}} @media (max-width: 980px){.admin-settings-grid{grid-template-columns:minmax(0,1fr) !important}}'}</style>
+                <div><label style={label} htmlFor="admin-email">Email</label><input id="admin-email" type="email" value={form.email} onChange={set('email')} maxLength={120} placeholder="maria@gmail.com" style={input} /></div>
+                <div>
+                  <label style={label} htmlFor="admin-password">Temporary Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <input id="admin-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={form.password} onChange={set('password')} style={{ ...input, paddingRight: 40 }} />
+                    <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', display: 'flex' }}>
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  {form.password && <PasswordChecklist password={form.password} />}
+                  <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>Share it with them privately. They can change it from their name at the top right.</p>
+                </div>
+                {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
+                <button type="submit" disabled={busy} style={primaryBtn(busy)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MailCheck size={14} />} Send Verification Code</button>
+              </form>
+            ) : (
+              <form onSubmit={verifyCode} style={{ display: 'flex', flexDirection: 'column', gap: 14 }} noValidate>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
+                  <MailCheck size={18} style={{ color: '#A8481A', flexShrink: 0, marginTop: 1 }} />
+                  <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: '#1A0A00', lineHeight: 1.55 }}>
+                    We emailed a 6-digit code to <strong>{pending.sentTo}</strong>. Ask <strong>{form.first_name.trim() || 'them'}</strong> for it and enter it below. It's valid for 10 minutes.
+                  </p>
+                </div>
+                <OtpInput value={code} onChange={(v) => { setCode(v); setError(''); }} invalid={!!error} autoFocus />
+                {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C', textAlign: 'center' }}>{error}</p>}
+                <button type="submit" disabled={busy || code.length !== 6} style={primaryBtn(busy || code.length !== 6)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={14} />} Verify &amp; Add Admin</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => { setPending(null); setError(''); }} className="text-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
+                    <ArrowLeft size={13} /> Change details
+                  </button>
+                  <button type="button" onClick={resend} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Send a new code</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+      <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>
   );
 };
