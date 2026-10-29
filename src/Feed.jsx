@@ -518,7 +518,7 @@ const FeedPostCard = ({
       <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {isTourPost || !post.author || post.author.role === 'admin' ? (
-            <BrandAvatar size={42} radius={12} />
+            <BrandAvatar size={42} />
           ) : (
             <div style={{
               width: 42, height: 42, borderRadius: 12, flexShrink: 0, overflow: 'hidden',

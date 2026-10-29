@@ -1,7 +1,7 @@
-import logoIcon from '../assets/newIcon.png';
+import adminLogo from '../assets/adminLogo.png';
 
-// Bandang IBAYO's picture wherever the agency (or an admin) appears: the logo
-// on the dark brand background.
+// Bandang IBAYO's picture wherever the agency (or an admin) appears: the
+// round "Bandang Ibayo - Leave No Trace" logo.
 const BrandAvatar = ({ size = 36, radius = '50%', style }) => (
   <span
     aria-hidden="true"
@@ -11,7 +11,7 @@ const BrandAvatar = ({ size = 36, radius = '50%', style }) => (
       ...style,
     }}
   >
-    <img src={logoIcon} alt="" style={{ width: '82%', height: '82%', objectFit: 'contain' }} />
+    <img src={adminLogo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
   </span>
 );
 
