@@ -176,17 +176,9 @@ export const downloadReportPDF = async (report) => {
   y = 186;
 
   const fig = Object.fromEntries(report.summary.map(([label, value, isMoney]) => [label, isMoney ? php(value) : String(value)]));
-  heading('Key Figures');
-  cards(report.summary.map(([label, value, isMoney]) => [label, isMoney ? php(value) : String(value)]));
-
   if (report.insights.length) {
     heading('Highlights');
     report.insights.forEach((line) => para(`-  ${line}`));
-  }
-
-  if (report.alerts?.length) {
-    heading('Needs Attention');
-    report.alerts.forEach((line) => para(`-  ${line}`));
   }
 
   heading('Payments');
