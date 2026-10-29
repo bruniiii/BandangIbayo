@@ -100,7 +100,7 @@ function LandingPage() {
             src={logoIcon} 
             alt="BANDANG IBAYO" 
             className="nav-brand-logo"
-            style={{ width: 68, height: 68, objectFit: 'contain', flexShrink: 0 }} 
+            style={{ width: 44, height: 44, objectFit: 'contain', flexShrink: 0 }} 
           />
           <span className="nav-brand-text font-display" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span>
@@ -235,7 +235,7 @@ function LandingPage() {
 
         @media (max-width: 640px) {
           .site-nav { padding: 0 1.25rem !important; height: 60px !important; }
-          .nav-brand-logo { width: 44px !important; height: 44px !important; }
+          .nav-brand-logo { width: 36px !important; height: 36px !important; }
           .nav-brand-text { font-size: 14px !important; }
           .nav-links { gap: 12px !important; }
           .nav-cta { padding: 8px 16px !important; font-size: 12px !important; }

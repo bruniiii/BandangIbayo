@@ -59,7 +59,7 @@ const PublicNav = ({ session }) => {
     padding: '0 clamp(1rem,5vw,4rem)', height: 64, gap: 12,
   }}>
     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textDecoration: 'none' }}>
-      <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }} />
+      <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }} />
       <span className="public-nav-brand font-display" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap' }}>
         Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span>
       </span>

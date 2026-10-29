@@ -716,8 +716,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
               src={logoIcon}
               alt="BANDANG IBAYO"
               style={{
-                width: 78,
-                height: 78,
+                width: 64,
+                height: 64,
                 objectFit: 'contain',
               }}
             />

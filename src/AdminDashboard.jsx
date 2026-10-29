@@ -440,8 +440,8 @@ const AdminDashboard = () => {
               src={logoIcon}
               alt="BANDANG IBAYO"
               style={{
-                width: sidebarExpanded ? 44 : 36,
-                height: sidebarExpanded ? 44 : 36,
+                width: sidebarExpanded ? 40 : 34,
+                height: sidebarExpanded ? 40 : 34,
                 objectFit: 'contain',
                 transition: 'width 0.22s, height 0.22s',
                 flexShrink: 0,

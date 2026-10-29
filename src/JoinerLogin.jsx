@@ -313,7 +313,7 @@ const JoinerLogin = () => {
             <img 
                 src={logoIcon} 
                 alt="BANDANG IBAYO" 
-                style={{ width: 78, height: 78, objectFit: 'contain' }} 
+                style={{ width: 64, height: 64, objectFit: 'contain' }} 
               />
           </div>
           <h1 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
