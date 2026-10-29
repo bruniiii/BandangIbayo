@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 // REPORT PDF (admin Reports page: Download PDF)
-// One A4 document with everything on the Reports page: key figures, insights,
-// Sales Summary, Income per Tour, the monthly comparison and forecast, booking
+// One A4 document with everything on the Reports page: a branded cover with
+// the headline figures, highlights, payments, Sales Summary, Income per Tour, the monthly comparison and forecast, booking
 // status and payment splits, tour performance, joiner reviews, cancellations,
 // customers, seasonal trends and the full booking list.
 // Built in the browser with jsPDF (loaded only when downloading). Amounts use
@@ -15,82 +15,121 @@ const signed = (n) => `${n > 0 ? '+' : ''}${n}%`;
 // The built-in PDF fonts only cover basic Latin characters.
 const pdfText = (s) => String(s ?? '').replace(/[ñÑ]/g, (c) => (c === 'ñ' ? 'n' : 'N')).replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—·]/g, '-').replace(/₱/g, 'PHP ').replace(/[^\x20-\x7E]/g, '');
 
-const BRAND = [26, 10, 0];       // espresso
-const ACCENT = [180, 81, 30];    // burnt sienna
-const MUTED = [122, 58, 24];     // rust
+const BRAND = [26, 10, 0];       // espresso (headings, cover)
+const ACCENT = [180, 81, 30];    // burnt sienna (markers only)
+const MUTED = [122, 58, 24];     // rust (secondary text)
 const PANEL = [242, 228, 208];   // parchment
-const STRIPE = [253, 246, 238];  // cream
+const STRIPE = [253, 249, 244];  // very light cream (zebra rows)
+const INK = [40, 30, 24];        // body text
+const GREY = [118, 108, 100];    // notes, captions
+const RULE = [226, 214, 200];    // hairlines
+const AMBER = [232, 162, 101];
+
+// The logo as a data URL for jsPDF (null if it can't be loaded).
+const loadLogo = async () => {
+  try {
+    const { default: url } = await import('./assets/newIcon.png');
+    const blob = await (await fetch(url)).blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
 
 export const downloadReportPDF = async (report) => {
-  const { jsPDF } = await import('jspdf');
+  const [{ jsPDF }, logo] = await Promise.all([import('jspdf'), loadLogo()]);
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
-  const left = 40;
-  const right = pageW - 40;
+  const left = 48;
+  const right = pageW - 48;
   const width = right - left;
-  const top = 64;
-  const bottom = pageH - 50;
+  const top = 76;
+  const bottom = pageH - 56;
   let y = 0;
 
-  const font = (size, style = 'normal', color = BRAND) => doc.setFont('helvetica', style).setFontSize(size).setTextColor(...color);
+  const font = (size, style = 'normal', color = INK) => doc.setFont('helvetica', style).setFontSize(size).setTextColor(...color);
+  const hair = (x1, y1, x2, y2, color = RULE, w = 0.6) => doc.setDrawColor(...color).setLineWidth(w).line(x1, y1, x2, y2);
   const newPage = () => {
     doc.addPage();
     y = top;
   };
   const ensure = (space) => { if (y + space > bottom) newPage(); };
 
-  // Every page but the cover: a thin header; every page: the footer.
+  // Every page but the cover: a running header; every page: the footer.
   const decorate = () => {
     const pages = doc.getNumberOfPages();
     for (let i = 1; i <= pages; i++) {
       doc.setPage(i);
       if (i > 1) {
-        font(8, 'bold', ACCENT);
-        doc.text('BANDANG IBAYO', left, 34);
-        font(8, 'normal', MUTED);
-        doc.text('Business Report', right, 34, { align: 'right' });
-        doc.setDrawColor(...PANEL).setLineWidth(0.8).line(left, 42, right, 42);
+        if (logo) doc.addImage(logo, 'PNG', left, 26, 18, 18);
+        font(8.5, 'bold', BRAND);
+        doc.text('Bandang IBAYO', left + (logo ? 24 : 0), 38);
+        font(8, 'normal', GREY);
+        doc.text(pdfText(`Business Report  |  ${report.rangeLabel}`), right, 38, { align: 'right' });
+        hair(left, 52, right, 52);
       }
-      doc.setDrawColor(...PANEL).setLineWidth(0.8).line(left, pageH - 36, right, pageH - 36);
-      font(7.5, 'normal', MUTED);
-      doc.text(pdfText(`Generated ${report.generatedAt} - Confidential, for Bandang IBAYO admins`), left, pageH - 24);
-      doc.text(`Page ${i} of ${pages}`, right, pageH - 24, { align: 'right' });
+      hair(left, pageH - 40, right, pageH - 40);
+      font(7.5, 'normal', GREY);
+      doc.text(pdfText(`Confidential - for Bandang IBAYO admins only. Generated ${report.generatedAt}.`), left, pageH - 26);
+      font(7.5, 'bold', BRAND);
+      doc.text(`Page ${i} of ${pages}`, right, pageH - 26, { align: 'right' });
     }
   };
 
-  // Section title with a numbered accent bar.
+  // Section title: a small numbered accent block, the title, an optional note
+  // on the right, and a hairline under it. It always starts with room for
+  // some content after it, so a title is never left alone at a page bottom.
   let sectionNo = 0;
-  const heading = (title, note) => {
-    ensure(60);
-    y += 14;
-    sectionNo += 1;
-    doc.setFillColor(...ACCENT).rect(left, y - 11, 4, 16, 'F');
-    font(12, 'bold');
-    doc.text(pdfText(`${sectionNo}. ${title}`), left + 12, y + 1);
-    if (note) { font(8, 'normal', MUTED); doc.text(pdfText(note), right, y + 1, { align: 'right' }); }
+  // need: how much room the section's first part takes (default: a few lines).
+  const heading = (title, note, need = 120) => {
+    ensure(need);
     y += 18;
+    sectionNo += 1;
+    doc.setFillColor(...ACCENT).roundedRect(left, y - 12, 18, 16, 2, 2, 'F');
+    font(8.5, 'bold', [253, 246, 238]);
+    doc.text(String(sectionNo).padStart(2, '0'), left + 9, y - 1, { align: 'center' });
+    font(13, 'bold', BRAND);
+    doc.text(pdfText(title), left + 26, y);
+    if (note) { font(8, 'normal', GREY); doc.text(pdfText(note), right, y, { align: 'right' }); }
+    hair(left, y + 8, right, y + 8);
+    y += 26;
+  };
+  // A small label above a sub-part of a section (a table or a chart).
+  const subhead = (text, keepWithNext = 50) => {
+    y += 6;
+    ensure(24 + keepWithNext);
+    font(7.5, 'bold', MUTED);
+    doc.text(pdfText(text.toUpperCase()), left, y);
+    y += 16;
   };
   // keepWithNext: room for what follows too (a table's title stays with its table).
-  const para = (text, size = 9, color = BRAND, keepWithNext = 0) => {
+  const para = (text, size = 9, color = INK, keepWithNext = 0) => {
     font(size, 'normal', color);
     const lines = doc.splitTextToSize(pdfText(text), width);
-    ensure(lines.length * (size + 3) + 4 + keepWithNext);
+    ensure(lines.length * (size + 3.5) + 4 + keepWithNext);
     doc.text(lines, left, y);
-    y += lines.length * (size + 3) + 4;
+    y += lines.length * (size + 3.5) + 4;
   };
 
   // Table: columns = [{ label, width (share of the page), align }]; rows = arrays.
+  // A light header, hairlines between rows, faint zebra stripes, and a bold total.
   const table = (columns, rows, { emptyText = 'No data yet', totalRow = null } = {}) => {
     const total = columns.reduce((s, c) => s + c.width, 0);
     const cols = columns.map((c) => ({ ...c, w: (c.width / total) * width }));
-    const rowH = 17;
+    const rowH = 18;
     const drawHeader = () => {
-      doc.setFillColor(...BRAND).rect(left, y - 12, width, rowH, 'F');
-      font(7.5, 'bold', [253, 246, 238]);
+      doc.setFillColor(...PANEL).rect(left, y - 12, width, rowH, 'F');
+      hair(left, y - 12, right, y - 12, ACCENT, 1.2);
+      font(7, 'bold', BRAND);
       let x = left;
       cols.forEach((c) => {
-        const tx = c.align === 'right' ? x + c.w - 6 : x + 6;
+        const tx = c.align === 'right' ? x + c.w - 7 : x + 7;
         doc.text(pdfText(c.label.toUpperCase()), tx, y, c.align === 'right' ? { align: 'right' } : undefined);
         x += c.w;
       });
@@ -98,95 +137,131 @@ export const downloadReportPDF = async (report) => {
     };
     const drawRow = (row, i, bold = false) => {
       if (y + rowH > bottom) { newPage(); drawHeader(); }
-      if (bold) doc.setFillColor(...PANEL).rect(left, y - 12, width, rowH, 'F');
-      else if (i % 2 === 1) doc.setFillColor(...STRIPE).rect(left, y - 12, width, rowH, 'F');
-      font(8, bold ? 'bold' : 'normal');
+      if (bold) {
+        hair(left, y - 12, right, y - 12, BRAND, 0.9);
+      } else if (i % 2 === 1) {
+        doc.setFillColor(...STRIPE).rect(left, y - 12, width, rowH, 'F');
+      }
+      font(8, bold ? 'bold' : 'normal', bold ? BRAND : INK);
       let x = left;
       row.forEach((cell, ci) => {
         const c = cols[ci];
-        const fitted = doc.splitTextToSize(pdfText(cell), c.w - 12)[0] || '';
-        const tx = c.align === 'right' ? x + c.w - 6 : x + 6;
+        const fitted = doc.splitTextToSize(pdfText(cell), c.w - 14)[0] || '';
+        const tx = c.align === 'right' ? x + c.w - 7 : x + 7;
         doc.text(fitted, tx, y, c.align === 'right' ? { align: 'right' } : undefined);
         x += c.w;
       });
+      if (!bold) hair(left, y + 6, right, y + 6, RULE, 0.4);
       y += rowH;
     };
     y += 6;
     ensure(rowH * 3);
     drawHeader();
-    if (!rows.length) drawRow([emptyText, ...cols.slice(1).map(() => '')], 0);
+    if (!rows.length) {
+      font(8, 'italic', GREY);
+      doc.text(pdfText(emptyText), left + 7, y);
+      hair(left, y + 6, right, y + 6, RULE, 0.4);
+      y += rowH;
+    }
     rows.forEach((row, i) => drawRow(row, i));
     if (totalRow) drawRow(totalRow, 0, true);
-    doc.setDrawColor(...PANEL).setLineWidth(0.6).line(left, y - 12, right, y - 12);
-    y += 8;
+    y += 10;
   };
 
-  // A row of figure cards.
+  // A row of figure tiles: white, hairline border, an accent line on top.
   const cards = (items, perRow = 4) => {
     const gap = 10;
     const w = (width - gap * (perRow - 1)) / perRow;
-    const h = 52;
+    const h = 56;
     for (let i = 0; i < items.length; i += perRow) {
-      ensure(h + 10);
+      ensure(h + 12);
       items.slice(i, i + perRow).forEach(([label, value, sub], j) => {
         const x = left + j * (w + gap);
-        doc.setFillColor(...STRIPE).setDrawColor(...PANEL).setLineWidth(0.8).roundedRect(x, y, w, h, 6, 6, 'FD');
-        doc.setFillColor(...ACCENT).rect(x, y + 8, 2.5, h - 16, 'F');
-        font(7, 'bold', MUTED);
+        doc.setFillColor(255, 255, 255).setDrawColor(...RULE).setLineWidth(0.7).rect(x, y, w, h, 'FD');
+        doc.setFillColor(...ACCENT).rect(x, y, w, 2.2, 'F');
+        font(6.8, 'bold', GREY);
         // One line only: a long label is shortened so it never runs into the value.
-        const lines = doc.splitTextToSize(pdfText(String(label).toUpperCase()), w - 16);
-        doc.text(lines.length > 1 ? `${lines[0].replace(/\s*\S*$/, '')}...` : lines[0] || '', x + 10, y + 15);
-        font(12.5, 'bold');
-        doc.text(doc.splitTextToSize(pdfText(value), w - 16)[0] || '', x + 10, y + 32);
-        if (sub) { font(7, 'normal', MUTED); doc.text(doc.splitTextToSize(pdfText(sub), w - 16)[0] || '', x + 10, y + 44); }
+        const lines = doc.splitTextToSize(pdfText(String(label).toUpperCase()), w - 18);
+        doc.text(lines.length > 1 ? `${lines[0].replace(/\s*\S*$/, '')}...` : lines[0] || '', x + 9, y + 16);
+        font(13, 'bold', BRAND);
+        doc.text(doc.splitTextToSize(pdfText(value), w - 18)[0] || '', x + 9, y + 34);
+        if (sub) { font(6.8, 'normal', GREY); doc.text(doc.splitTextToSize(pdfText(sub), w - 18)[0] || '', x + 9, y + 46); }
       });
-      y += h + 10;
+      y += h + 12;
     }
   };
 
-  // A simple horizontal bar list (label, value, bar).
+  // A simple horizontal bar list (label, bar, value).
   const bars = (items, { money = false, color = ACCENT } = {}) => {
     const max = Math.max(1, ...items.map(([, v]) => Number(v) || 0));
-    const labelW = width * 0.38;
-    const barW = width * 0.44;
+    const labelW = width * 0.32;
+    const barW = width * 0.5;
     items.forEach(([label, value]) => {
       ensure(16);
-      font(8.5);
+      font(8.5, 'normal', INK);
       doc.text(doc.splitTextToSize(pdfText(label), labelW - 8)[0] || '', left, y);
-      doc.setFillColor(...PANEL).rect(left + labelW, y - 7, barW, 8, 'F');
-      doc.setFillColor(...color).rect(left + labelW, y - 7, Math.max(1, (barW * (Number(value) || 0)) / max), 8, 'F');
-      font(8.5, 'bold');
+      doc.setFillColor(...STRIPE).setDrawColor(...RULE).setLineWidth(0.4).rect(left + labelW, y - 7.5, barW, 9, 'FD');
+      if (Number(value) > 0) doc.setFillColor(...color).rect(left + labelW, y - 7.5, (barW * (Number(value) || 0)) / max, 9, 'F');
+      font(8.5, 'bold', BRAND);
       doc.text(pdfText(money ? php(value) : String(value)), right, y, { align: 'right' });
-      y += 15;
+      y += 16;
     });
-    y += 4;
+    y += 6;
   };
 
-  // ── Cover ──
-  doc.setFillColor(...BRAND).rect(0, 0, pageW, 150, 'F');
-  doc.setFillColor(...ACCENT).rect(0, 150, pageW, 5, 'F');
-  font(26, 'bold', [253, 246, 238]);
-  doc.text('Bandang IBAYO', left, 66);
-  font(11, 'bold', [232, 162, 101]);
-  doc.text('BUSINESS REPORT', left, 88);
-  font(9, 'normal', [232, 210, 190]);
-  doc.text(pdfText(`Period: ${report.rangeLabel}`), left, 110);
-  doc.text(pdfText(`Generated: ${report.generatedAt}`), left, 124);
-  doc.text(pdfText(`Filters: ${report.filtersLabel}`), right, 110, { align: 'right' });
-  y = 186;
-
+  // ── Cover: the brand band, then the report details ──
   const fig = Object.fromEntries(report.summary.map(([label, value, isMoney]) => [label, isMoney ? php(value) : String(value)]));
-  heading('Key Figures');
-  cards(report.summary.map(([label, value, isMoney]) => [label, isMoney ? php(value) : String(value)]));
+  doc.setFillColor(...BRAND).rect(0, 0, pageW, 168, 'F');
+  doc.setFillColor(...ACCENT).rect(0, 168, pageW, 4, 'F');
+  if (logo) doc.addImage(logo, 'PNG', left, 40, 46, 46);
+  const tx = left + (logo ? 60 : 0);
+  font(22, 'bold', [253, 246, 238]);
+  doc.text('Bandang IBAYO', tx, 62);
+  font(9, 'bold', AMBER);
+  doc.setCharSpace(2);
+  doc.text('BUSINESS REPORT', tx, 80);
+  doc.setCharSpace(0);
+  font(8.5, 'normal', [232, 210, 190]);
+  doc.text('Your budget travel partner', tx, 96);
+  // Headline figures on the right of the band.
+  if (fig['Total revenue']) {
+    font(7, 'bold', [232, 210, 190]);
+    doc.text('TOTAL REVENUE', right, 56, { align: 'right' });
+    font(18, 'bold', [253, 246, 238]);
+    doc.text(pdfText(fig['Total revenue']), right, 76, { align: 'right' });
+    font(8.5, 'normal', AMBER);
+    const n = Number(fig['Total bookings']) || 0;
+    doc.text(`${n} booking${n === 1 ? '' : 's'}`, right, 92, { align: 'right' });
+  }
+  // Report details: three columns under the band.
+  const meta = [['Reporting period', report.rangeLabel], ['Filters', report.filtersLabel], ['Generated', report.generatedAt]];
+  const colW = width / meta.length;
+  meta.forEach(([label, value], i) => {
+    const x = left + i * colW;
+    font(6.8, 'bold', [200, 160, 125]);
+    doc.text(label.toUpperCase(), x, 132);
+    font(9, 'bold', [253, 246, 238]);
+    doc.text(doc.splitTextToSize(pdfText(value), colW - 14)[0] || '', x, 146);
+  });
+  y = 204;
 
+  // Highlights: a boxed summary at the top of the report.
   if (report.insights.length) {
     heading('Highlights');
-    report.insights.forEach((line) => para(`-  ${line}`));
-  }
-
-  if (report.alerts?.length) {
-    heading('Needs Attention');
-    report.alerts.forEach((line) => para(`-  ${line}`));
+    font(9, 'normal', INK);
+    const lines = report.insights.map((line) => doc.splitTextToSize(pdfText(line), width - 40));
+    const boxH = lines.reduce((h, l) => h + l.length * 12.5 + 5, 0) + 16;
+    ensure(boxH + 6);
+    doc.setFillColor(...STRIPE).setDrawColor(...RULE).setLineWidth(0.6).rect(left, y - 8, width, boxH, 'FD');
+    doc.setFillColor(...ACCENT).rect(left, y - 8, 3, boxH, 'F');
+    let ly = y + 8;
+    lines.forEach((l) => {
+      doc.setFillColor(...ACCENT).circle(left + 18, ly - 3, 1.8, 'F');
+      font(9, 'normal', INK);
+      doc.text(l, left + 28, ly);
+      ly += l.length * 12.5 + 5;
+    });
+    y += boxH + 8;
   }
 
   heading('Payments');
@@ -211,7 +286,7 @@ export const downloadReportPDF = async (report) => {
       { emptyText: `No paid bookings in ${sales.monthLabel}` },
     );
     if (sales.balances.length) {
-      para(`Unpaid balances (${sales.balances.length})`, 9, MUTED, 60);
+      subhead(`Unpaid balances (${sales.balances.length})`, 60);
       table(
         [{ label: 'Name', width: 3 }, { label: 'Reference', width: 2.4 }, { label: 'Tour', width: 3 }, { label: 'Tour date', width: 1.8 }, { label: 'Balance', width: 2, align: 'right' }],
         sales.balances.map((r) => [r.name, r.ref, r.what, r.date || '-', php(r.amount)]),
@@ -257,8 +332,8 @@ export const downloadReportPDF = async (report) => {
 
   if (report.statusBreakdown?.length || report.methodSplit?.length) {
     heading('Bookings at a Glance');
-    if (report.statusBreakdown?.length) { para('Booking status', 9, MUTED, 40); bars(report.statusBreakdown); }
-    if (report.methodSplit?.length) { para('Payment method', 9, MUTED, 40); bars(report.methodSplit); }
+    if (report.statusBreakdown?.length) { subhead('Booking status', 40); bars(report.statusBreakdown); }
+    if (report.methodSplit?.length) { subhead('Payment method', 40); bars(report.methodSplit); }
   }
 
   heading('Tour Performance');
@@ -272,9 +347,9 @@ export const downloadReportPDF = async (report) => {
   const rv = report.reviews;
   if (rv) {
     heading('Joiner Reviews', rv.count ? `${rv.average.toFixed(1)} average from ${rv.count} review${rv.count === 1 ? '' : 's'}` : '');
-    if (!rv.count) para('No reviews yet.', 9, MUTED);
+    if (!rv.count) para('No reviews yet.', 9, GREY);
     else {
-      bars(rv.stars.map((s) => [s.label, s.value]), { color: [232, 162, 101] });
+      bars(rv.stars.map((s) => [s.label, s.value]), { color: AMBER });
       table(
         [{ label: 'Joiner', width: 2.2 }, { label: 'Tour', width: 2.6 }, { label: 'Stars', width: 0.9, align: 'right' }, { label: 'Review', width: 5.2 }, { label: 'Date', width: 1.7 }],
         rv.latest.map((r) => [r.name, r.tour, String(r.rating), r.comment || '-', r.date]),
@@ -295,19 +370,20 @@ export const downloadReportPDF = async (report) => {
       ['Returning joiners', String(cu.returningCount), 'Booked more than once'],
     ], 2);
     if (cu.topCustomers.length) {
-      para('Top customers', 9, MUTED, 60);
+      subhead('Top customers', 60);
       table(
         [{ label: 'Joiner', width: 4 }, { label: 'Tours', width: 1.2, align: 'right' }, { label: 'Spent', width: 2.4, align: 'right' }],
         cu.topCustomers.map((c) => [c.name, String(c.tours), php(c.spend)]),
       );
     }
-    if (cu.topLocations.length) { para('Top locations', 9, MUTED, 40); bars(cu.topLocations.map((l) => [l.label, l.value])); }
+    if (cu.topLocations.length) { subhead('Top locations', 40); bars(cu.topLocations.map((l) => [l.label, l.value])); }
   }
 
   if (report.seasonal) {
-    heading('Seasonal Trends', 'All-time bookings by calendar month');
+    heading('Seasonal Trends', 'All-time bookings by calendar month', 70 + report.seasonal.data.length * 16);
+    para(`Peak season: ${report.seasonal.peak.join(', ') || '-'}.  Low season: ${report.seasonal.low.join(', ') || '-'}.`, 9, GREY, report.seasonal.data.length * 16 + 10);
+    y += 4;
     bars(report.seasonal.data.map((d) => [d.label, d.value]), { color: MUTED });
-    para(`Peak season: ${report.seasonal.peak.join(', ') || '-'}.  Low season: ${report.seasonal.low.join(', ') || '-'}.`, 9, MUTED);
   }
 
   heading(`All Bookings (${report.bookings.length})`);
@@ -316,13 +392,6 @@ export const downloadReportPDF = async (report) => {
     report.bookings.map((b) => [b.number, b.date, b.joiner, b.tour, String(b.pax), php(b.total).replace('PHP ', ''), php(b.paid).replace('PHP ', ''), b.status]),
     { emptyText: 'No bookings yet' },
   );
-
-  // The headline numbers on the cover.
-  if (fig['Total revenue']) {
-    doc.setPage(1);
-    font(8, 'bold', [232, 162, 101]);
-    doc.text(pdfText(`Total revenue ${fig['Total revenue']}  |  ${fig['Total bookings'] || 0} bookings`), right, 124, { align: 'right' });
-  }
 
   decorate();
   doc.save(`bandang-ibayo-report-${fileDate()}.pdf`);
