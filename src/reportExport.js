@@ -233,8 +233,8 @@ export const downloadReportPDF = async (report) => {
     const n = Number(fig['Total bookings']) || 0;
     doc.text(`${n} booking${n === 1 ? '' : 's'}`, right, 92, { align: 'right' });
   }
-  // Report details: three columns under the band.
-  const meta = [['Reporting period', report.rangeLabel], ['Filters', report.filtersLabel], ['Generated', report.generatedAt]];
+  // Report details: two columns under the band.
+  const meta = [['Reporting period', report.rangeLabel], ['Generated', report.generatedAt]];
   const colW = width / meta.length;
   meta.forEach(([label, value], i) => {
     const x = left + i * colW;
