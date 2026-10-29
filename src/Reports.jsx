@@ -126,8 +126,8 @@ const Reports = () => {
   const [costPct] = useState(60);
 
 
-  const fetchAll = useCallback(async (silent) => {
-    if (!silent) setLoading(true);
+  // Loads quietly after the first time (the page starts in its loading state).
+  const fetchAll = useCallback(async () => {
     // NOTE: bookings uses `select('*, tours(...))')` rather than an explicit column
     // list — if a specific column doesn't exist yet on the live table, PostgREST
     // rejects the whole request and we'd otherwise silently show "0 bookings".
@@ -155,7 +155,9 @@ const Reports = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchAll(false); }, [fetchAll]);
+  // Loads data when the page opens; its state updates happen after the request returns.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   // ── real-time: refresh silently + surface a small "what changed" toast ──
   useEffect(() => {
@@ -168,15 +170,15 @@ const Reports = () => {
       .channel('admin-reports-live')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, () => {
         if (!firstLoad.current) flash('New booking received');
-        fetchAll(true);
+        fetchAll();
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bookings' }, (payload) => {
         if (!firstLoad.current && payload.new?.payment_status === 'Complete') flash('Payment verified');
-        fetchAll(true);
+        fetchAll();
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'bookings' }, () => fetchAll(true))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tours' }, () => fetchAll(true))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, () => fetchAll(true))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'bookings' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tours' }, () => fetchAll())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews' }, () => fetchAll())
       .subscribe();
     firstLoad.current = false;
     return () => { supabase.removeChannel(channel); clearTimeout(noticeTimer.current); };
@@ -342,14 +344,6 @@ const Reports = () => {
       failedPending: bookings.filter((b) => getDerivedStatus(b) === 'Pending').length,
     };
   }, [bookings]);
-
-  const formatDuration = (ms) => {
-    if (ms == null) return 'No data yet';
-    const hrs = Math.floor(ms / 3600000);
-    const mins = Math.round((ms % 3600000) / 60000);
-    if (hrs === 0) return `${mins} min${mins !== 1 ? 's' : ''}`;
-    return `${hrs} hr${hrs !== 1 ? 's' : ''} ${mins} min${mins !== 1 ? 's' : ''}`;
-  };
 
 
   // ── tour performance table (bookings, revenue, pax, completion %, rating) ──
@@ -1234,11 +1228,11 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   if (total === 0) return <EmptyChartNotice />;
 
-  let cumulative = 0;
-  const stops = segments.map((seg) => {
-    const startPct = (cumulative / total) * 100;
-    cumulative += seg.value;
-    const endPct = (cumulative / total) * 100;
+  // Each segment runs from the total of the ones before it to that plus its own value.
+  const stops = segments.map((seg, i) => {
+    const before = segments.slice(0, i).reduce((sum, s) => sum + s.value, 0);
+    const startPct = (before / total) * 100;
+    const endPct = ((before + seg.value) / total) * 100;
     return `${seg.color} ${startPct}% ${endPct}%`;
   }).join(', ');
 

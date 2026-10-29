@@ -20,7 +20,7 @@ import Reports from './Reports';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/logo.png';
-import BrandAvatar from './ui/BrandAvatar';
+import AdminAccountMenu from './AdminAccountMenu';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import { formatPeso, archivePastTours } from './tourUtils';
@@ -531,20 +531,8 @@ const AdminDashboard = () => {
                   submissions, cancellations, reviews, requests, registrations */}
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
-              {/* admin chip */}
-              <div
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
-                  background: '#F2E4D0',
-                  border: '1px solid rgba(180,81,30,0.18)',
-                  borderRadius: 14, padding: '8px 14px',
-                }}>
-                <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>Bandang IBAYO</p>
-                </div>
-                <BrandAvatar size={38} style={{ boxShadow: '0 4px 12px rgba(26,10,0,0.22)' }} />
-              </div>
+              {/* admin chip: who's signed in + Change Password */}
+              <AdminAccountMenu />
             </div>
           </div>
 

@@ -65,15 +65,16 @@ const JoinerAccounts = () => {
   const [sentVersion, setSentVersion] = useState(0); // reloads the sent-messages list after sending
   const [showAllSent, setShowAllSent] = useState(false); // every message sent, all joiners
 
-  // Start with a clean composer every time a different joiner is opened.
-  useEffect(() => {
+  // Opens (or closes, with null) a joiner's details, with a clean composer.
+  const openJoiner = (joiner) => {
+    setSelected(joiner);
     setComposing(false);
     setSubject('');
     setBody('');
     setAlsoNotify(true);
     setSending(false);
     setEmailStatus(null);
-  }, [selected]);
+  };
 
   const handleSendEmail = async () => {
     if (!selected?.email) return;
@@ -109,8 +110,8 @@ const JoinerAccounts = () => {
     setEmailStatus({ type: 'success', text: `Email sent to ${selected.email}.` });
   };
 
+  // Loads quietly after the first time (the page starts in its loading state).
   const fetchJoiners = async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -152,6 +153,8 @@ const JoinerAccounts = () => {
     setLoading(false);
   };
 
+  // Loads data when the page opens; its state updates happen after the request returns.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchJoiners(); }, []);
 
   // Live updates — new registrations / edited profiles appear without a manual refresh.
@@ -291,7 +294,7 @@ const JoinerAccounts = () => {
                 {filtered.map((p) => (
                   <tr
                     key={p.id}
-                    onClick={() => { if (p.archiveReason !== 'deleted') setSelected(p); }}
+                    onClick={() => { if (p.archiveReason !== 'deleted') openJoiner(p); }}
                     style={{ borderBottom: '1px solid rgba(180,81,30,0.08)', cursor: p.archiveReason === 'deleted' ? 'default' : 'pointer' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(180,81,30,0.05)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -370,7 +373,7 @@ const JoinerAccounts = () => {
       {/* detail modal */}
       {selected && (
         <div
-          onClick={() => setSelected(null)}
+          onClick={() => openJoiner(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 300,
             background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(4px)',
@@ -388,7 +391,7 @@ const JoinerAccounts = () => {
             }}
           >
             <button
-              onClick={() => setSelected(null)}
+              onClick={() => openJoiner(null)}
               style={{
                 position: 'absolute', top: 18, right: 18, background: 'none', border: 'none',
                 cursor: 'pointer', color: 'rgba(122,58,24,0.85)',

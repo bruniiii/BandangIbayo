@@ -126,8 +126,8 @@ const AdminExclusiveTours = ({ type = 'exclusive' }) => {
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [selected, setSelected] = useState(null);
 
+  // Loads quietly after the first time (the page starts in its loading state).
   const fetchRequests = useCallback(async () => {
-    setLoading(true);
     // Requests whose package wasn't ready in time become Rejected first.
     await supabase.rpc('run_overdue_requests').then(() => {}, () => {});
     const { data, error } = await supabase
@@ -145,6 +145,8 @@ const AdminExclusiveTours = ({ type = 'exclusive' }) => {
     setLoading(false);
   }, [type]);
 
+  // Loads data when the page opens; its state updates happen after the request returns.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
   useEffect(() => {

@@ -212,7 +212,6 @@ const useIsMobile = (breakpoint = 900) => {
 
 const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingConsole, onClose }) => {
   const isMobile = useIsMobile();
-  const images = Array.isArray(tour.image_urls) ? tour.image_urls : (tour.image ? [tour.image] : []);
   const activeStop = meetupStops.find(s => s.status === 'CURRENTLY HERE') || meetupStops.find(s => s.status !== 'ARRIVED');
   const isCompleted = meetupStops.length > 0 && meetupStops.every(s => s.status === 'ARRIVED');
 

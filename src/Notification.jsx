@@ -30,10 +30,13 @@ const timeAgo = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
-const fullDateTime = (dateStr) =>
-  new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  });
+// Today's and yesterday's dates, for grouping read notifications.
+const dayLabels = () => {
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  return { todayStr: now.toDateString(), yesterdayStr: yesterday.toDateString() };
+};
 
 // ── notification "type" → icon / accent color / friendly label ──
 // Covers every type ever inserted from either the admin or joiner side
@@ -197,8 +200,7 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
   const unread = filtered.filter((n) => !n.is_read);
   const read = filtered.filter((n) => n.is_read);
 
-  const todayStr = new Date().toDateString();
-  const yesterdayStr = new Date(Date.now() - 86400000).toDateString();
+  const { todayStr, yesterdayStr } = dayLabels();
   const groups = { today: [], yesterday: [], earlier: [] };
   read.forEach((n) => {
     const d = new Date(n.created_at).toDateString();

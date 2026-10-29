@@ -69,8 +69,9 @@ const BookingManagement = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
  
+  // Loads quietly: the page starts in its loading state, and later reloads
+  // (live updates, after an action) just swap in the new rows.
   const fetchBookings = async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from('bookings')
       .select(`
@@ -131,6 +132,8 @@ const BookingManagement = () => {
   }, []);
 
   useEffect(() => {
+    // Loads data when the page opens; its state updates happen after the request returns.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBookings();
  
     const channel = supabase
@@ -143,7 +146,6 @@ const BookingManagement = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
  
   // ── unique tours available for the Tour filter, narrowed by the selected date ──
@@ -159,12 +161,10 @@ const BookingManagement = () => {
     return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title));
   }, [bookings, dateFilter]);
  
-  // If the selected date no longer includes the currently selected tour, reset the tour filter.
-  useEffect(() => {
-    if (tourFilter !== 'All Tours' && !tourOptions.some(t => String(t.id) === String(tourFilter))) {
-      setTourFilter('All Tours');
-    }
-  }, [dateFilter, tourOptions, tourFilter]);
+  // The chosen tour counts only while the selected date still includes it;
+  // otherwise the filter acts as All Tours.
+  const activeTourFilter = tourFilter !== 'All Tours' && !tourOptions.some(t => String(t.id) === String(tourFilter))
+    ? 'All Tours' : tourFilter;
  
   const filteredBookings = bookings.filter(b => {
     const joinerName = b.profiles
@@ -178,7 +178,7 @@ const BookingManagement = () => {
     const matchesStatus = statusFilter === 'All Status' || shown === statusFilter
       || (statusFilter === 'Balance Due' && owesBalance(b));
     const matchesMethod = methodFilter === 'All Methods' || b.payment_method === methodFilter;
-    const matchesTour = tourFilter === 'All Tours' || String(b.tour_id) === String(tourFilter);
+    const matchesTour = activeTourFilter === 'All Tours' || String(b.tour_id) === String(activeTourFilter);
     const matchesDate = !dateFilter || b.tours?.start_date === dateFilter;
     return matchesSearch && matchesStatus && matchesMethod && matchesTour && matchesDate;
   });
@@ -348,7 +348,7 @@ const BookingManagement = () => {
         {/* Tour */}
         <div style={{ position: 'relative', minWidth: 200 }}>
           <select
-            value={tourFilter} onChange={e => setTourFilter(e.target.value)}
+            value={activeTourFilter} onChange={e => setTourFilter(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
           >
             <option value="All Tours">All Tours</option>
@@ -405,7 +405,7 @@ const BookingManagement = () => {
                 ))
               ) : (
                 <div style={{ gridColumn: '1 / -1' }}>
-                  {(searchTerm || statusFilter !== 'All Status' || methodFilter !== 'All Methods' || tourFilter !== 'All Tours' || dateFilter) ? (
+                  {(searchTerm || statusFilter !== 'All Status' || methodFilter !== 'All Methods' || activeTourFilter !== 'All Tours' || dateFilter) ? (
                     <EmptyState
                       icon={SearchX}
                       title="No bookings match your filters"
