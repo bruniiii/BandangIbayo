@@ -76,7 +76,7 @@ const ForgotPassword = () => {
         borderTop: '7px solid #B4511E',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 64, height: 64, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
+          <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 56, height: 56, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
           <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
             Reset Your Password
           </h1>
