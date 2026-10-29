@@ -32,5 +32,9 @@ from (values
               where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'notifications')),
   ('20261118 more admins (Admin Settings, processed by)',
      exists (select 1 from information_schema.columns
-              where table_schema = 'public' and table_name = 'profiles' and column_name = 'is_main_admin'))
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'is_main_admin')),
+  ('20261119 remove another main admin',
+     coalesce((select pg_get_functiondef(p.oid) not ilike '%Main admins can''t be removed%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'remove_admin' limit 1), false))
 ) as u(update_file, installed);
