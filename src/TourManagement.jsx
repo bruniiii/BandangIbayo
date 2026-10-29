@@ -7,7 +7,7 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, isOnSale, rateChecks, RATE_HINT, MAX_TOUR_DAYS } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, isOnSale, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS } from './tourUtils';
 import PriceTag from './ui/PriceTag';
 import { moneyInputProps, blockSignKeys, moneyField, moneyNumber, moneyDisplay } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
@@ -23,6 +23,7 @@ import { addDaysYmd } from './dateRange';
 import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
 import { PICKUP_OPTIONS } from './pickupPoints';
+import PickupCheckboxes from './ui/PickupCheckboxes';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -285,7 +286,8 @@ const TourManagement = () => {
       ]),
       ['pickup_0', pickups.length === 0 ? 'Tick at least one pickup point, so joiners can choose where to be picked up.' : ''],
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
-      ['group_size', groupSize > 200 ? 'Max slots looks too high. Please check the number.' : ''],
+      // (An older tour keeps a bigger number as long as it isn't changed.)
+      ['group_size', groupSize > MAX_TOUR_SLOTS && groupSize !== Number(editingTour?.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots per date.` : ''],
       ['group_size', groupSize < mostBooked.booked ? `${mostBooked.booked} joiner${mostBooked.booked === 1 ? ' has' : 's have'} already booked one of the dates, so max slots can't be lower than ${mostBooked.booked}.` : ''],
       ['description', textError(formData.get('description'), 'Description', { required: false, max: 5000 })],
     ]);
@@ -889,35 +891,18 @@ const TourManagement = () => {
                 {/* Pickup points: joiners pick one when booking. Their times (ETAs) are set in Tracking Management. */}
                 <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points *</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {pickupChoices.map((place, i) => {
-                      const on = pickupPicked.includes(place);
-                      return (
-                        <label key={place} style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none',
-                          padding: '9px 14px', borderRadius: 12, fontSize: 12.5, fontWeight: 800,
-                          background: on ? 'rgba(180,81,30,0.12)' : '#F2E4D0', color: on ? '#A8481A' : '#7A3A18',
-                          border: `1px solid ${on ? 'rgba(180,81,30,0.45)' : 'rgba(180,81,30,0.18)'}`,
-                        }}>
-                          <input
-                            type="checkbox"
-                            name={i === 0 ? 'pickup_0' : undefined}
-                            checked={on}
-                            onChange={() => { setPickupPicked((list) => (list.includes(place) ? list.filter((x) => x !== place) : [...list, place])); setFormDirty(true); }}
-                            style={{ width: 16, height: 16, accentColor: '#B4511E', margin: 0 }}
-                          />
-                          {place}
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <PickupCheckboxes
+                    choices={pickupChoices}
+                    value={pickupPicked}
+                    onToggle={(place) => { setPickupPicked((list) => (list.includes(place) ? list.filter((x) => x !== place) : [...list, place])); setFormDirty(true); }}
+                  />
                   <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 0 0' }}>
                     Tick at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management.
                   </p>
                 </div>
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <ModalInput label="Max Slots per Date" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} defaultValue={formTour?.group_size || 18} required />
+                  <ModalInput label={`Max Slots per Date (up to ${MAX_TOUR_SLOTS})`} name="group_size" type="number" min="1" max={Math.max(MAX_TOUR_SLOTS, Number(formTour?.group_size) || 0)} step="1" onKeyDown={blockSignKeys} defaultValue={formTour?.group_size || MAX_TOUR_SLOTS} required />
                   <div>
                     <label style={labelStyle}>Difficulty</label>
                     <select name="difficulty" defaultValue={formTour?.difficulty || 'Easy'}

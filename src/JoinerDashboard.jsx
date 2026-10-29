@@ -62,7 +62,6 @@ const NAV_ITEMS = [
   { icon: <Globe size={18} strokeWidth={2} />,       label: 'Request a Tour' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
-  { icon: <Inbox size={18} strokeWidth={2} />,       label: 'Messages' },
   { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
 ];
 
@@ -74,14 +73,13 @@ const PAGE_INFO = {
   'Feed':             { icon: Rss,          title: 'Community Feed',   subtitle: 'Updates, announcements & newly posted tours' },
   'Explore Tours':    { icon: Compass,      title: 'Explore Tours',    subtitle: 'Find your next adventure and pick a date' },
   'My Bookings':      { icon: ShoppingBag,  title: 'My Bookings',      subtitle: 'Track your adventures and manage your reservations' },
-  'Group Chat':       { icon: MessagesSquare, title: 'Group Chat',      subtitle: 'Chat with everyone on your tour and the Bandang IBAYO team' },
+  'Group Chat':       { icon: MessagesSquare, title: 'Group Chat',      subtitle: 'Chat with your tour group, and read messages from Bandang IBAYO' },
   'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
   'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
   'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: 'Book a private group trip, just for your group' },
   'Request a Tour':   { icon: Globe,        title: 'Request a Tour',   subtitle: "Suggest a destination we don't offer yet" },
   'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
   'Profile Settings': { icon: User,         title: 'Profile Settings', subtitle: 'Manage your account information and preferences' },
-  'Messages':         { icon: Inbox,        title: 'Messages',         subtitle: 'Emails and tour updates from Bandang IBAYO' },
   'Notification':     { icon: Bell,         title: 'Notifications',    subtitle: 'Updates on your bookings, requests & account' },
 };
 
@@ -115,8 +113,11 @@ const JoinerDashboard = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   // Group chat: unread badge, and "open this tour's chat" from elsewhere (My Bookings).
   const chatUnread = useChatUnread();
-  // Unread messages from the admin (Messages page); re-checked on every page change.
-  const [inboxUnread, setInboxUnread] = useAdminInboxUnread(activeTab);
+  // Group Chat has two tabs: the tour group chats, and messages from the admin.
+  const [chatView, setChatView] = useState('chats'); // 'chats' | 'messages'
+  // Unread messages from the admin; re-checked on every page change.
+  const [inboxUnread, setInboxUnread] = useAdminInboxUnread(`${activeTab}-${chatView}`);
+  const readingMessages = activeTab === 'Group Chat' && chatView === 'messages';
   const clearInboxUnread = useCallback(() => setInboxUnread(0), [setInboxUnread]);
   const [chatTourId, setChatTourId] = useState(null);
   const tourScrollRef = useRef(null);
@@ -275,7 +276,7 @@ const JoinerDashboard = () => {
   };
 
   useEffect(() => {
-    const open = (e) => { setChatTourId(e.detail?.tourId ?? null); handleNavClick('Group Chat'); };
+    const open = (e) => { setChatTourId(e.detail?.tourId ?? null); setChatView('chats'); handleNavClick('Group Chat'); };
     window.addEventListener(OPEN_CHAT, open);
     return () => window.removeEventListener(OPEN_CHAT, open);
   });
@@ -315,6 +316,7 @@ const JoinerDashboard = () => {
         handleNavClick('Feed');
         break;
       case 'chat':
+        setChatView('chats');
         handleNavClick('Group Chat');
         break;
       case 'account':
@@ -638,7 +640,7 @@ const JoinerDashboard = () => {
               active={activeTab === label}
               collapsed={!sidebarExpanded}
               onClick={() => handleNavClick(label)}
-              badge={label === 'Group Chat' ? chatUnread : label === 'Messages' && activeTab !== 'Messages' ? inboxUnread : 0}
+              badge={label === 'Group Chat' ? chatUnread + (readingMessages ? 0 : inboxUnread) : 0}
             />
           ))}
         </nav>
@@ -980,7 +982,25 @@ const JoinerDashboard = () => {
           ) : activeTab === 'My Bookings' ? (
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} openBookingId={openBookingId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Group Chat' ? (
-            <GroupChat key={chatTourId || 'chats'} initialTourId={chatTourId} onExplore={() => handleNavClick('Explore Tours')} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div role="tablist" aria-label="Group chat or messages" style={{ display: 'flex', gap: 6, background: '#F2E4D0', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%' }}>
+                {[['chats', 'Group Chats', chatUnread], ['messages', 'Messages from Bandang IBAYO', inboxUnread]].map(([view, label, count]) => (
+                  <button key={view} type="button" role="tab" aria-selected={chatView === view} onClick={() => setChatView(view)} style={{
+                    display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
+                    fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    background: chatView === view ? '#1A0A00' : 'transparent', color: chatView === view ? '#FDF6EE' : '#7A3A18',
+                  }}>
+                    {view === 'chats' ? <MessagesSquare size={14} /> : <Inbox size={14} />} {label}
+                    {count > 0 && !(view === 'messages' && chatView === 'messages') && (
+                      <span aria-label={`${count} unread`} style={{ background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{count > 99 ? '99+' : count}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {chatView === 'messages'
+                ? <AdminInbox onRead={clearInboxUnread} />
+                : <GroupChat key={chatTourId || 'chats'} initialTourId={chatTourId} onExplore={() => handleNavClick('Explore Tours')} />}
+            </div>
           ) : activeTab === 'Calendar' ? (
             <TourCalendar
               initialDate={calendarTarget}
@@ -999,8 +1019,6 @@ const JoinerDashboard = () => {
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
             <JoinerTracking onExplore={() => handleNavClick('Explore Tours')} />
-          ) : activeTab === 'Messages' ? (
-            <AdminInbox onRead={clearInboxUnread} />
           ) : activeTab === 'Notification' ? (
             <Notification isAdmin={false} onNavigate={handleNotificationNavigate} clearPaymentNotices />
           ) : (

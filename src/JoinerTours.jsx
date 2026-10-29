@@ -967,9 +967,18 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     // The joiner's own active booking on this date: booked joiners can't join its waitlist.
     const [myBookingNumber, setMyBookingNumber] = useState(null);
 
-    const isFullyBooked = tour.available_slots <= 0;
-    const isAlmostFull = !isFullyBooked && tour.available_slots <= 3;
-    const maxBookingLimit = Math.min(tour.available_slots || 0, 10);
+    // Slots left on this date, re-checked when the window opens so the
+    // Number of Persons choices match what's really left.
+    const [liveSlots, setLiveSlots] = useState(tour.available_slots || 0);
+    useEffect(() => {
+        let active = true;
+        withAvailableSlots([tour]).then(([fresh]) => { if (active && fresh) setLiveSlots(fresh.available_slots); });
+        return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tour.id]);
+    const isFullyBooked = liveSlots <= 0;
+    const isAlmostFull = !isFullyBooked && liveSlots <= 3;
+    const maxBookingLimit = Math.max(0, liveSlots);
     // On sale on this date: 5% off the Joiner Rate (the database charges the same).
     const subtotal = effectivePrice(tour) * numPersons;
     const downpaymentAmount = downpaymentFor(subtotal);
@@ -1057,7 +1066,9 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
         if (!user) { toast.info('Please log in to book a tour.'); setIsBooking(false); return; }
 
         const [fresh] = await withAvailableSlots([tour]);
+        setLiveSlots(fresh.available_slots);
         if (numPersons > fresh.available_slots) {
+            if (fresh.available_slots > 0) handlePersonsChange(fresh.available_slots);
             setSlotError(fresh.available_slots <= 0
                 ? "Sorry, this tour is now fully booked."
                 : `Only ${fresh.available_slots} slot${fresh.available_slots > 1 ? 's' : ''} remaining. Please reduce the number of persons.`);
@@ -1280,7 +1291,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         <AlertCircle size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
 
-                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Only {tour.available_slots} slot{tour.available_slots > 1 ? 's' : ''} left!</p>
+                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Only {liveSlots} slot{liveSlots > 1 ? 's' : ''} left!</p>
 
                                     </div>
 

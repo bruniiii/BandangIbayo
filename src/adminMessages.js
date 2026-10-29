@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
+import { formatDateRange } from './tourUtils';
 
 // ─────────────────────────────────────────────
 // ADMIN MESSAGES: a copy of every message an admin sends a joiner (Email a
@@ -51,4 +52,20 @@ export const useAdminInboxUnread = (refreshKey) => {
     return () => { alive = false; };
   }, [refreshKey]);
   return [count, setCount];
+};
+
+// Tour titles (with dates) for the tour updates in a list of messages.
+export const useTourNames = (rows) => {
+  const [names, setNames] = useState({});
+  const ids = [...new Set((rows || []).filter((m) => m.source === 'tour' && m.tour_id).map((m) => m.tour_id))].sort().join(',');
+  useEffect(() => {
+    if (!ids) return undefined;
+    let alive = true;
+    supabase.from('tours').select('id, title, start_date, duration').in('id', ids.split(',')).then(({ data }) => {
+      if (!alive) return;
+      setNames(Object.fromEntries((data || []).map((t) => [String(t.id), `${t.title}${t.start_date ? ` (${formatDateRange(t.start_date, t.duration)})` : ''}`])));
+    });
+    return () => { alive = false; };
+  }, [ids]);
+  return names;
 };

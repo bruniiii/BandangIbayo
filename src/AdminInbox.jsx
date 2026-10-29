@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Inbox } from 'lucide-react';
 import { supabase } from './supabaseClient';
-import { fetchAdminMessages, markAdminMessagesRead } from './adminMessages';
+import { fetchAdminMessages, markAdminMessagesRead, useTourNames } from './adminMessages';
 import { MessageItem } from './ui/SentMessages';
 import EmptyState from './ui/EmptyState';
 import { SkeletonRows } from './ui/Skeleton';
@@ -10,6 +10,7 @@ import { SkeletonRows } from './ui/Skeleton';
 // updates from Message Joiners). Opening the page marks them as read.
 const AdminInbox = ({ onRead }) => {
   const [rows, setRows] = useState(null);
+  const tourNames = useTourNames(rows);
 
   useEffect(() => {
     let alive = true;
@@ -31,7 +32,7 @@ const AdminInbox = ({ onRead }) => {
   return (
     <div style={{ background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)' }}>
       <ul style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {rows.map((m) => <MessageItem key={m.id} m={m} unread={!m.read_at} />)}
+        {rows.map((m) => <MessageItem key={m.id} m={m} unread={!m.read_at} tourName={m.source === 'tour' ? tourNames[m.tour_id] : ''} />)}
       </ul>
     </div>
   );
