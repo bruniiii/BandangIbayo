@@ -110,14 +110,21 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
     if (!quiet) setLoadingRoster(true);
     const { data, error } = await supabase
       .from('bookings')
-      .select('id, booking_number, full_name, contact_number, slots_booked, payment_status, booking_status, checked_in_at, profiles(first_name, last_name, phone_number)')
+      .select('id, user_id, booking_number, full_name, contact_number, slots_booked, payment_status, booking_status, checked_in_at')
       .eq('tour_id', id)
       .eq('payment_status', 'Complete')
       .not('booking_status', 'in', '("Cancelled","Rejected")')
       .order('full_name', { ascending: true });
+    if (error) { setLoadingRoster(false); if (!quiet) toast.error("Couldn't load the joiner list", error.message); return; }
+    // The account holders' names and numbers, for bookings saved without them
+    // (loaded separately: bookings and profiles aren't linked in the database).
+    const ids = [...new Set((data || []).map((b) => b.user_id).filter(Boolean))];
+    const { data: people } = ids.length
+      ? await supabase.from('profiles').select('id, first_name, last_name, phone_number').in('id', ids)
+      : { data: [] };
+    const byId = Object.fromEntries((people || []).map((p) => [p.id, p]));
     setLoadingRoster(false);
-    if (error) { if (!quiet) toast.error("Couldn't load the joiner list", error.message); return; }
-    setRoster(data || []);
+    setRoster((data || []).map((b) => ({ ...b, profiles: byId[b.user_id] || null })));
   }, []);
 
   useEffect(() => {
