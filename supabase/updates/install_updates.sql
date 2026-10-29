@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- All database updates from 20261111 to 20261118, in order, in one go.
+-- All database updates from 20261111 to 20261119, in order, in one go.
 --
 -- Paste the whole file into the Supabase SQL Editor and click Run.
 -- It runs as one transaction: if anything fails, nothing is changed, and the
@@ -8,7 +8,7 @@
 -- Afterwards, run supabase/updates/check_updates.sql: every row should say
 -- "installed".
 --
--- Generated from supabase/migrations/20261111…20261118 — edit those, not this.
+-- Generated from supabase/migrations/20261111…20261119 — edit those, not this.
 -- ─────────────────────────────────────────────
 
 begin;
@@ -1183,6 +1183,38 @@ drop trigger if exists zz_exclusive_requests_stamp_processed_by on public.exclus
 create trigger zz_exclusive_requests_stamp_processed_by
   before update on public.exclusive_requests
   for each row execute function public.stamp_processed_by();
+
+
+-- ════════════ 20261119000000_remove_main_admin.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- Admin Settings: a main admin can also remove another main admin
+--
+-- (Every admin that existed when 20261118 ran became a main admin.) A main
+-- admin still can't remove themselves, so there's always at least one.
+--
+-- Run after 20261118000000_admin_accounts.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create or replace function public.remove_admin(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_main_admin() then
+    raise exception 'Only the main admin can remove admins.';
+  end if;
+  if p_id = auth.uid() then
+    raise exception 'You can''t remove yourself.';
+  end if;
+  update public.profiles set role = 'joiner', is_main_admin = false where id = p_id and role = 'admin';
+end;
+$$;
+
+revoke all on function public.remove_admin(uuid) from public, anon;
+grant execute on function public.remove_admin(uuid) to authenticated;
 
 
 commit;
