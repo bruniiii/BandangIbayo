@@ -19,7 +19,7 @@ import JoinerAccounts from './Joineraccounts';
 import Reports from './Reports';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
-import logoIcon from './assets/adminLogo.png';
+import logoIcon from './assets/logo.png';
 import BrandAvatar from './ui/BrandAvatar';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';

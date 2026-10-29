@@ -14,7 +14,7 @@ import PriceTag from './ui/PriceTag';
 import { TripDatePicker } from './ui/TripDates';
 import { MoreTourFilters } from './ui/TourFilters';
 import { applyTripFilters, useTripFilters } from './tripFilters';
-import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/logo.png';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRegion, Skel } from './ui/Skeleton';

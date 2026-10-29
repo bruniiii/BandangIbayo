@@ -10,7 +10,7 @@ import GoogleButton, { OrDivider } from './ui/GoogleButton';
 
 // "Continue with Google" is turned off for now; set to true to show it again.
 const SHOW_GOOGLE_LOGIN = false;
- import logoIcon from './assets/newIcon.png';
+ import logoIcon from './assets/logo.png';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark

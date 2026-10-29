@@ -27,7 +27,7 @@ import {
 import PasswordChecklist from './PasswordChecklist';
 import AddressFields from './AddressFields';
 import { composeAddress } from './phAddress';
-import logoIcon from './assets/newIcon.png';
+import logoIcon from './assets/logo.png';
 import PasswordField from './ui/PasswordField';
 import RequiredMark from './ui/RequiredMark';
 import { phoneInputProps } from './ui/phoneField';
