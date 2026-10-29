@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatYmdRange } from '../dateRange';
+import { formatYmdRange, addDaysYmd } from '../dateRange';
 
 // A calendar for picking trip dates: tap the first day, then the last day.
 // Tapping the same day twice makes it a one-day trip. Days before `min`
-// can't be picked. Dates are 'YYYY-MM-DD' strings.
+// can't be picked, and with maxDays the last day can be at most that many
+// days from the first (counting both). Dates are 'YYYY-MM-DD' strings.
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const pad = (n) => String(n).padStart(2, '0');
 const ymd = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
-const DateRangePicker = ({ name, start, end, min, onChange, style }) => {
+const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, style }) => {
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState('');
   const first = start || min;
@@ -27,8 +28,10 @@ const DateRangePicker = ({ name, start, end, min, onChange, style }) => {
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc); };
   }, [open]);
 
+  // A day past maxDays from the first day starts the trip over from that day.
   const pick = (day) => {
-    if (!start || end || day < start) {
+    const tooLong = !!(maxDays && start && day > addDaysYmd(start, maxDays - 1));
+    if (!start || end || day < start || tooLong) {
       onChange({ start: day, end: '' });
     } else {
       onChange({ start, end: day });

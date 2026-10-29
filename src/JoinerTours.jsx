@@ -20,10 +20,12 @@ import {
 
   Eye, ImageIcon, Loader2, CheckCircle2, X, AlertCircle, Star,
 
-  CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check
+  CreditCard, Smartphone, Receipt, Upload, ArrowLeft, Check, BedDouble
 
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
+import { AccommodationSelect } from './ui/Accommodation';
+import { cleanAccommodation } from './accommodation';
 import { SkeletonTourCards } from './ui/Skeleton';
 import ItineraryTimeline from './ui/ItineraryTimeline';
 
@@ -936,6 +938,10 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     const [pickupPoints, setPickupPoints] = useState(null); // null = loading
     const [pickupPoint, setPickupPoint] = useState('');
     const [pickupError, setPickupError] = useState('');
+    // Accommodation, when the tour offers a choice (Tent, AC Room, Non-AC Room).
+    const [accommodation, setAccommodation] = useState('');
+    const [accommodationError, setAccommodationError] = useState('');
+    const accommodationChoices = cleanAccommodation(tour.accommodation_options);
     useEffect(() => {
         let active = true;
         supabase.rpc('tour_pickup_points', { p_tour_id: tour.id })
@@ -1012,28 +1018,38 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     // Nothing is reserved here: slots are held only once the joiner picks a
     // payment type and goes to PayMongo (start_online_booking). These checks just
     // stop a joiner from starting checkout for a tour that's full or already booked.
-    const handleBookThisTour = async () => {
-        setSlotError("");
+    // The names pop-up: every person joining needs a full name and contact number.
+    const checkCompanions = () => {
         setCompanionError("");
         if (companions.some((c) => !c.full_name.trim() || !c.contact_number.trim())) {
             setCompanionError("Please enter the name and contact number of each person joining you.");
-            return;
+            return false;
         }
         // Typing mistakes in the companions' details (wrong number format, one-word names, the same person twice).
         for (let i = 0; i < companions.length; i++) {
             const c = companions[i];
             const problem = fullNameError(c.full_name, `Person ${i + 2}'s name`)
                 || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
-            if (problem) { setCompanionError(problem); return; }
+            if (problem) { setCompanionError(problem); return false; }
         }
         const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
         const repeated = names.find((n, i) => names.indexOf(n) !== i);
         if (repeated) {
             setCompanionError(`"${companions[names.indexOf(repeated)].full_name.trim()}" is entered more than once. Each person joining needs their own details.`);
-            return;
+            return false;
         }
+        return true;
+    };
+
+    const handleBookThisTour = async () => {
+        setSlotError("");
+        setCompanionError("");
         if (pickupPoints?.length && !pickupPoint) {
             setPickupError('Please choose your pickup point.');
+            return;
+        }
+        if (accommodationChoices.length && !accommodation) {
+            setAccommodationError('Please choose your accommodation.');
             return;
         }
         setIsBooking(true);
@@ -1063,7 +1079,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
         }
 
         setIsBooking(false);
-        setPaymentStep('proceed');
+        // Booking for a group: enter everyone's names in a pop-up first.
+        setPaymentStep(companions.length > 0 ? 'names' : 'proceed');
     };
 
     const handleJoinWaitlist = async () => {
@@ -1094,6 +1111,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             slots: numPersons,
             paymentType: type,
             companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
+            accommodation: accommodation || null,
         });
         if (!ok) {
             toast.error("Couldn't start the payment", error);
@@ -1316,6 +1334,15 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                 </div>
                             )}
 
+                            {!isFullyBooked && accommodationChoices.length > 0 && (
+                                <AccommodationSelect
+                                    options={accommodationChoices}
+                                    value={accommodation}
+                                    onChange={(v) => { setAccommodation(v); setAccommodationError(''); }}
+                                    error={accommodationError}
+                                />
+                            )}
+
                             {!isFullyBooked && (
 
                                 <div style={{ marginBottom: 20 }}>
@@ -1381,7 +1408,9 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                     )}
 
                                     {companions.length > 0 && (
-                                        <CompanionFields companions={companions} onChange={updateCompanion} error={companionError} />
+                                        <p style={{ marginTop: 8, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
+                                            Next, you'll enter the name and contact number of the {companions.length} {companions.length === 1 ? 'person' : 'people'} joining you.
+                                        </p>
                                     )}
 
                                 </div>
@@ -1593,7 +1622,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                     onProceed={() => setPaymentStep('choose')}
 
-                    onCancel={() => setPaymentStep(null)}  // back to this tour's details, choices kept
+                    accommodation={accommodation}
+                    onCancel={() => setPaymentStep(companions.length > 0 ? 'names' : null)}  // back a step, choices kept
 
                     formatDateRange={formatDateRange}
 
@@ -1602,6 +1632,16 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             )}
 
 
+
+            {paymentStep === 'names' && (
+                <CompanionsModal
+                    companions={companions}
+                    onChange={updateCompanion}
+                    error={companionError}
+                    onBack={() => setPaymentStep(null)}
+                    onContinue={() => { if (checkCompanions()) setPaymentStep('proceed'); }}
+                />
+            )}
 
             {paymentStep === 'choose' && (
 
@@ -1652,7 +1692,7 @@ const overlayBackdrop = {
 
 
 
-const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, subtotal, onProceed, onCancel, formatDateRange }) => {
+const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, subtotal, onProceed, onCancel, formatDateRange }) => {
 
   return (
 
@@ -1708,6 +1748,11 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, subtotal, onProc
             {pickupPoint && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
                 <MapPin size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> Pickup: {pickupPoint}
+              </div>
+            )}
+            {accommodation && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+                <BedDouble size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> Accommodation: {accommodation}
               </div>
             )}
 
@@ -1819,7 +1864,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                 </p>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', marginTop: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.18)', borderRadius: 14, padding: '10px 12px' }}>
                     <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
-                    <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations need the agency's approval and close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
+                    <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
                 </label>
 
             </div>
@@ -1914,6 +1959,36 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 /* ─────────────────────────────────────────────
    GROUP BOOKING: details of everyone else joining
 ───────────────────────────────────────────── */
+// Pop-up before payment: the names and numbers of everyone joining.
+const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) => (
+    <div style={overlayBackdrop}>
+        <div role="dialog" aria-modal="true" aria-labelledby="companions-title" style={{
+            background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E',
+        }}>
+            <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <button onClick={onBack} aria-label="Back to tour details" style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+                    <ArrowLeft size={14} /> Back
+                </button>
+                <div>
+                    <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>Your group</p>
+                    <h3 id="companions-title" style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>Who's joining you?</h3>
+                    <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
+                        Enter the full name and contact number of each person, then continue to payment.
+                    </p>
+                </div>
+                <CompanionFields companions={companions} onChange={onChange} error={error} />
+                <button type="button" onClick={onContinue} style={{
+                    width: '100%', padding: '14px 0', background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer',
+                    fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
+                }}>
+                    Continue to Payment
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 const CompanionFields = ({ companions, onChange, error }) => {
     const inputStyle = {
         width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
@@ -1922,10 +1997,7 @@ const CompanionFields = ({ companions, onChange, error }) => {
         fontFamily: 'inherit', outline: 'none',
     };
     return (
-        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0 }}>
-                Who's joining you?
-            </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {companions.map((c, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>

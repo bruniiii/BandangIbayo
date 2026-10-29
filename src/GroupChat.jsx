@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import BrandAvatar from './ui/BrandAvatar';
 import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { maskSensitiveWords } from './profanity';
 import { toast } from './ui/toast';
 import EmptyState from './ui/EmptyState';
 import { SkeletonRows } from './ui/Skeleton';
@@ -329,8 +330,10 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
 
   const send = async (e) => {
     e?.preventDefault();
-    const body = text.trim();
+    // Offensive words are replaced with **** (the database does the same).
+    const body = maskSensitiveWords(text.trim());
     if (!body || sending) return;
+    if (body !== text.trim()) toast.info('Some words were hidden', 'Offensive words are blocked in the group chat.');
     setSending(true);
     const row = { tour_id: tourId, body, ...(replyTo ? { reply_to: replyTo.id } : {}) };
     const { data, error } = await supabase.from('tour_chat_messages').insert([row]).select().single();

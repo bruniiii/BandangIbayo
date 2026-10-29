@@ -3,15 +3,15 @@
 // Online payments through PayMongo Checkout (GCash, Maya, cards, GrabPay).
 //
 // Logged-in joiner actions (Authorization: Bearer <user token>), body { action, ... }:
-//   - "create-checkout"  { tourId, slots, paymentType: "full"|"down", companions, returnBaseUrl }
+//   - "create-checkout"  { tourId, slots, paymentType: "full"|"down", companions, accommodation?, returnBaseUrl }
 //        holds the slots for 30 minutes (start_online_booking) and opens a PayMongo checkout
 //   - "pay-balance"      { bookingId, returnBaseUrl }   checkout for a downpayment's remaining balance
 //   - "verify-checkout"  { bookingId }   re-checks the booking's checkouts with PayMongo (used when
 //                                        the joiner comes back from PayMongo, and from My Bookings)
 //   - "cancel-checkout"  { bookingId }   joiner backed out: expires the checkout, frees the slots
-//   - "pay-held"         { bookingId, paymentType: "full"|"down", companions, returnBaseUrl }
+//   - "pay-held"         { bookingId, paymentType: "full"|"down", companions, accommodation?, returnBaseUrl }
 //        pays for slots the agency held for a tour the joiner requested (held for 2 days)
-//   - "pay-exclusive"    { requestId, returnBaseUrl }   50% downpayment for an approved exclusive
+//   - "pay-exclusive"    { requestId, accommodation?, returnBaseUrl }   50% downpayment for an approved exclusive
 //                        tour, from the package price the agency sent (never from the request body)
 //                        (part: "balance" pays the rest of the package price after it)
 //   - "verify-exclusive" { requestId }   re-checks those payments with PayMongo
@@ -219,7 +219,19 @@ async function loadOwnBooking(bookingId: unknown, userId: string) {
   return booking;
 }
 
+// The accommodation the joiner chose, checked against what the tour (or
+// package) offers. Tours that offer none take none.
+function chosenAccommodation(options: unknown, choice: unknown) {
+  const offered = Array.isArray(options) ? options.map(String) : [];
+  if (!offered.length) return null;
+  const pick = typeof choice === "string" ? choice.trim() : "";
+  if (!offered.includes(pick)) throw new HttpError(400, "Please choose your accommodation.");
+  return pick;
+}
+
 async function createCheckout(userId: string, p: any) {
+  const { data: offered } = await supabase.from("tours").select("accommodation_options").eq("id", p.tourId).maybeSingle();
+  const accommodation = chosenAccommodation(offered?.accommodation_options, p.accommodation);
   const { data: booking, error } = await supabase.rpc("start_online_booking", {
     p_user_id: userId,
     p_tour_id: p.tourId,
@@ -228,6 +240,7 @@ async function createCheckout(userId: string, p: any) {
     p_companions: p.companions ?? [],
   });
   if (error) throw new HttpError(409, error.message);
+  if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
 
   const { data: tour } = await supabase.from("tours").select("id, title").eq("id", booking.tour_id).single();
   const full = p.paymentType === "full";
@@ -289,6 +302,8 @@ async function payHeld(userId: string, p: any) {
     const result = await closeCheckout(booking.paymongo_checkout_id);
     if (result.status !== "unpaid") return { alreadyPaid: true };
   }
+  const { data: offered } = await supabase.from("tours").select("accommodation_options").eq("id", booking.tour_id).maybeSingle();
+  const accommodation = chosenAccommodation(offered?.accommodation_options, p.accommodation);
   const { data: prepared, error } = await supabase.rpc("prepare_held_booking", {
     p_booking_id: booking.id,
     p_user_id: userId,
@@ -296,6 +311,7 @@ async function payHeld(userId: string, p: any) {
     p_companions: p.companions ?? [],
   });
   if (error) throw new HttpError(409, error.message);
+  if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
 
   const full = p.paymentType === "full";
   const amount = full ? Number(prepared.total_price) : Math.round(Number(prepared.total_price) * 40) / 100;
@@ -469,6 +485,11 @@ async function payExclusive(userId: string, p: any) {
   if (p.part === "balance") return await payExclusiveBalance(request, p);
   if (request.payment_status === "Paid") return { alreadyPaid: true };
   const { price, downpayment } = exclusiveAmounts(request);
+  // Exclusive packages always offer at least one accommodation to choose from.
+  const accommodation = chosenAccommodation(request.package_details?.accommodation_options, p.accommodation);
+  if (accommodation && accommodation !== request.accommodation) {
+    await supabase.from("exclusive_requests").update({ accommodation }).eq("id", request.id);
+  }
 
   // An earlier checkout may already be paid, or still usable for the same amount.
   if (request.paymongo_checkout_id) {

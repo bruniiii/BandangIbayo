@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry } from './notifications';
+import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry, fetchNotificationsSeenAt, markNotificationsSeen, unseenCount } from './notifications';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
 import { Bell, CheckCheck, Compass, Loader2, X, ArrowRight, Clock } from 'lucide-react';
@@ -32,6 +32,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [viewingNotification, setViewingNotification] = useState(null);
+  const [seenAt, setSeenAt] = useState(0);
   const wrapperRef = useRef(null);
 
   const fetchNotifications = useCallback(async (uid) => {
@@ -42,6 +43,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
       .order('created_at', { ascending: false })
       .limit(150); // the same rows as the Notification page, so the unread count matches
     if (!error) setNotifications(clearPaymentNotices ? clearOldPaymentNotices(data || []) : (data || []));
+    setSeenAt(await fetchNotificationsSeenAt(uid));
     setLoading(false);
   }, [clearPaymentNotices]);
 
@@ -90,6 +92,15 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
   }, []);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  // The badge: new notifications since the bell or Notification page was last opened.
+  const badgeCount = unseenCount(notifications, seenAt);
+
+  const toggleOpen = () => {
+    setOpen((v) => {
+      if (!v && userId) { setSeenAt(Date.now()); markNotificationsSeen(userId); }
+      return !v;
+    });
+  };
 
   const markAsRead = async (id) => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, is_read: true } : n)));
@@ -109,7 +120,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
     <>
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={toggleOpen}
         title="Notifications"
         style={{
           position: 'relative',
@@ -120,7 +131,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
         }}
       >
         <Bell size={17} />
-        {unreadCount > 0 && (
+        {badgeCount > 0 && (
           <span style={{
             position: 'absolute', top: -4, right: -4,
             minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
@@ -129,7 +140,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(180,81,30,0.4)',
           }}>
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {badgeCount > 9 ? '9+' : badgeCount}
           </span>
         )}
       </button>

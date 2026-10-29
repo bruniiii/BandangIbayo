@@ -28,7 +28,8 @@ export const JoinerTracking = ({ onExplore }) => {
             .from('bookings')
             .select('tour_id')
             .eq('user_id', user.id)
-            .not('booking_status', 'in', '("Cancelled","Rejected")');
+            .not('booking_status', 'in', '("Cancelled","Rejected")')
+            .is('cancellation_requested_at', null); // a cancelled booking's tour leaves Tracking
 
           if (bookedData && bookedData.length > 0) {
             targetTourIds = [...new Set(bookedData.map(b => b.tour_id).filter(Boolean))];

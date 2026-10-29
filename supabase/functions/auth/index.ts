@@ -113,6 +113,12 @@ async function checkPassword(email: string, password: string) {
   return data.user;
 }
 
+// Keeps work running after the reply is sent (Supabase Edge Runtime).
+const inBackground = (task: Promise<unknown>) => {
+  const rt = (globalThis as any).EdgeRuntime;
+  if (rt?.waitUntil) rt.waitUntil(task); else task.catch(() => {});
+};
+
 // ───────────── Codes ─────────────
 async function sendCode(email: string, name: string, code: string, purpose: "login" | "signup" = "login") {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
@@ -248,12 +254,13 @@ async function accountFor(email: string) {
 
 const ALREADY_REGISTERED = 'This email is already registered. Please log in, or use "Forgot password?" on the login page.';
 
-async function usernameTaken(username: unknown, exceptUserId?: string) {
+// The accounts already using this username.
+async function usernameOwners(username: unknown): Promise<string[]> {
   const name = String(username ?? "").trim();
-  if (!name) return false;
+  if (!name) return [];
   const pattern = name.replace(/[\\%_*]/g, (c) => "\\" + c);
   const { data } = await admin.from("profiles").select("id, username").ilike("username", pattern).limit(10);
-  return (data ?? []).some((r: any) => String(r.username ?? "").toLowerCase() === name.toLowerCase() && r.id !== exceptUserId);
+  return (data ?? []).filter((r: any) => String(r.username ?? "").toLowerCase() === name.toLowerCase()).map((r: any) => String(r.id));
 }
 
 async function signup(p: any) {
@@ -267,15 +274,17 @@ async function signup(p: any) {
 
   // A verified account can't be registered again. (An unverified one, left by
   // the old sign-up, is taken over once the code is entered.)
-  const existing = await accountFor(email);
+  const [existing, takenBy] = await Promise.all([accountFor(email), usernameOwners(profile.username)]);
   if (existing?.confirmed) throw new HttpError(409, ALREADY_REGISTERED, { field: "email" });
-  if (await usernameTaken(profile.username, existing?.id)) {
+  if (takenBy.some((id) => id !== existing?.id)) {
     throw new HttpError(409, "This username is already taken. Please choose another one.", { field: "username" });
   }
 
   // One waiting registration per email; old ones are cleared out.
-  await admin.from("signup_challenges").delete().eq("email", email);
-  await admin.from("signup_challenges").delete().lt("expires_at", new Date(Date.now() - 86400000).toISOString());
+  await Promise.all([
+    admin.from("signup_challenges").delete().eq("email", email),
+    admin.from("signup_challenges").delete().lt("expires_at", new Date(Date.now() - 86400000).toISOString()),
+  ]);
   const challengeId = crypto.randomUUID();
   const code = newCode();
   const { error } = await admin.from("signup_challenges").insert({
@@ -286,7 +295,10 @@ async function signup(p: any) {
     expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
   });
   if (error) throw new Error(error.message);
-  await sendCode(email, String(profile.first_name ?? ""), code, "signup");
+  // The email goes out in the background so the form doesn't wait on Gmail;
+  // if it fails, "Resend code" sends another.
+  inBackground(sendCode(email, String(profile.first_name ?? ""), code, "signup")
+    .catch((err) => console.error("auth: signup code email failed", err)));
   return { challengeId, sentTo: maskEmail(email), expiresInMinutes: CODE_MINUTES };
 }
 

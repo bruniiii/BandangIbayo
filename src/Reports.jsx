@@ -4,13 +4,13 @@ import EmptyState from './ui/EmptyState';
 import { SearchX } from 'lucide-react';
 import { toast } from './ui/toast';
 import { formatPeso } from './tourUtils';
-import { downloadReportCSV, downloadReportPDF } from './reportExport';
+import { downloadReportPDF } from './reportExport';
 import SalesSummary from './SalesSummary';
 import TourIncome from './TourIncome';
 import {
   Loader2, Calendar, Users, Clock, XCircle, AlertCircle,
   TrendingUp, TrendingDown, ClipboardList,
-  Star, Printer, Download, Bell, Sparkles, PieChart,
+  Star, Printer, Bell, Sparkles, PieChart,
   ArrowRight, Trophy, ThumbsDown, FileText,
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
@@ -137,7 +137,7 @@ const Reports = () => {
         .order('created_at', { ascending: true }),
       supabase.from('tours').select('id, title, destination, price, group_size, is_archived, start_date'),
       supabase.from('profiles').select('id, first_name, last_name, username, address, created_at').neq('role', 'admin'),
-      supabase.from('reviews').select('tour_id, rating'),
+      supabase.from('reviews').select('id, tour_id, user_id, rating, comment, created_at, tours ( title )').order('created_at', { ascending: false }),
     ]);
 
     const errors = [];
@@ -529,8 +529,30 @@ const Reports = () => {
     return list.slice(0, 5);
   }, [monthlyComparison, bestTour, stats, methodSegments, nearlyFullTours, soldOutTours]);
 
+  // ── joiner reviews: average, star breakdown and the latest ones ──
+  const reviewSummary = useMemo(() => {
+    const profileMap = new Map(profiles.map((p) => [p.id, p]));
+    const count = reviews.length;
+    const average = count ? reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / count : 0;
+    const stars = [5, 4, 3, 2, 1].map((n) => ({ label: `${n} star${n === 1 ? '' : 's'}`, value: reviews.filter((r) => Number(r.rating) === n).length }));
+    const latest = reviews.slice(0, 8).map((r) => ({
+      name: displayJoiner(profileMap.get(r.user_id), 'Joiner'),
+      tour: r.tours?.title || 'Tour',
+      rating: Number(r.rating) || 0,
+      comment: r.comment || '',
+      date: r.created_at ? new Date(r.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+    }));
+    return { count, average, stars, latest };
+  }, [reviews, profiles]);
+
+  // Sales Summary and Income per Tour pass up what they show, for the PDF.
+  const [salesData, setSalesData] = useState(null);
+  const [incomeData, setIncomeData] = useState(null);
+  const onSalesData = useCallback((d) => setSalesData(d), []);
+  const onIncomeData = useCallback((d) => setIncomeData(d), []);
+
   // ── notifications ──
-  // ── downloadable report (CSV / PDF): exactly what's on screen for the chosen range and filters ──
+  // ── the downloadable PDF: everything on this page ──
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const buildReport = () => {
     const filters = [
@@ -564,6 +586,29 @@ const Reports = () => {
       ],
       tours: tourPerformance,
       insights,
+      sales: salesData,
+      income: incomeData,
+      comparison: {
+        thisLabel: monthlyComparison.thisMonthLabel,
+        lastLabel: monthlyComparison.lastMonthLabel,
+        rows: [
+          ['Bookings', 'bookings', 'bookingsChangePct', false],
+          ['Revenue', 'revenue', 'revenueChangePct', true],
+          ['Joiners (pax)', 'pax', 'paxChangePct', false],
+          ['Cancellations', 'cancellations', 'cancellationChangePct', false],
+        ].map(([label, key, change, isMoney]) => {
+          const last = monthlyComparison.series[key].lastMonth.at(-1) || 0;
+          const now = monthlyComparison.series[key].thisMonth.at(-1) || 0;
+          return { label, last, now, change: monthlyComparison[change], isMoney };
+        }),
+      },
+      forecast,
+      statusBreakdown: statusSegments.map((x) => [x.label, x.value]),
+      methodSplit: methodSegments.map((x) => [x.label, x.value]),
+      cancellations: cancellationReasons,
+      customers: customerAnalytics,
+      seasonal: seasonalTrends,
+      reviews: reviewSummary,
       bookings: bookings.map((b) => {
         const status = getDerivedStatus(b);
         return {
@@ -629,15 +674,14 @@ const Reports = () => {
 
         {/* export controls */}
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <ExportButton icon={<Download size={13} />} label="Download CSV" onClick={() => downloadReportCSV(buildReport())} disabled={loading} />
           <ExportButton icon={<FileText size={13} />} label={downloadingPdf ? 'Preparing PDF…' : 'Download PDF'} onClick={handleDownloadPdf} disabled={loading || downloadingPdf} />
           <ExportButton icon={<Printer size={13} />} label="Print" onClick={() => window.print()} />
         </div>
       </div>
 
-      <SalesSummary />
+      <SalesSummary onData={onSalesData} />
 
-      <TourIncome />
+      <TourIncome onData={onIncomeData} />
 
       {/* ── Fetch Error Banner (surfaces silent Supabase query failures instead of just showing 0 data) ── */}
       {fetchErrors.length > 0 && (
@@ -817,6 +861,42 @@ const Reports = () => {
                     <HighlightCard icon={<ThumbsDown size={16} />} label="Lowest Performing Tour" title={worstTour.title} sub={`${worstTour.bookingsCount} bookings · ${peso(worstTour.revenue)}`} tone="warn" />
                   )}
                 </div>
+              </div>
+
+              {/* ── Joiner Reviews ── */}
+              <div style={{
+                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
+                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+              }}>
+                <SectionTitle icon={<Star size={14} />}>Joiner Reviews</SectionTitle>
+                {reviewSummary.count === 0 ? <EmptyChartNotice /> : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
+                    <div>
+                      <p style={{ fontSize: 34, fontWeight: 900, color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {reviewSummary.average.toFixed(1)} <Star size={24} fill="#E8A265" color="#E8A265" />
+                      </p>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: '2px 0 14px' }}>
+                        Average of {reviewSummary.count} review{reviewSummary.count === 1 ? '' : 's'}
+                      </p>
+                      <HorizontalBarChart data={reviewSummary.stars} color="#E8A265" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>Latest reviews</p>
+                      {reviewSummary.latest.map((r, i) => (
+                        <div key={i} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 14px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                            <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name} · {r.tour}</p>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>
+                              <Star size={12} fill="#E8A265" color="#E8A265" /> {r.rating}
+                            </span>
+                          </div>
+                          {r.comment && <p style={{ fontSize: 12, fontWeight: 500, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.5 }}>“{r.comment}”</p>}
+                          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0' }}>{r.date}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* ── Cancellation Analytics ── */}

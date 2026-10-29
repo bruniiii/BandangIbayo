@@ -5,12 +5,12 @@ import { SearchX, Inbox } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from "./notifications";
-import { formatPeso, requestNotApprovedReason } from './tourUtils';
+import { formatPeso, requestOverdueReason, requestStatusLabel, requestPaymentLabel, REQUEST_REVIEW_DAYS, EXCLUSIVE_APPROVAL_CUTOFF_DAYS } from './tourUtils';
 import PackageTourForm from './PackageTourForm';
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
   Phone, Mail, Wallet, Home, ChevronDown, CheckCircle2, XCircle,
-  Clock, MessageSquare, ArrowRight, FileText, Send, PencilLine, Package,
+  Clock, FileText, Send, PencilLine, Package,
 } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
@@ -45,23 +45,29 @@ const formatDateTime = (d) => {
 };
 
 const STATUS_STYLES = {
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  'For Approval': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
   Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
+  'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Confirmed: { bg: '#1A0A00', color: '#E8A265' },
+  'Downpayment Paid': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
   'Fully Paid': { bg: 'rgba(122,58,24,0.16)', color: '#7A3A18' },
-  'Not Approved': { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };
 
 // Exclusive tours are confirmed once the joiner pays 50% of the package price,
 // and fully paid once the balance is in too.
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
-// Pending requests whose date passed, or is less than 2 weeks away, can't be
-// approved any more: they show as "Not Approved".
-const shownStatus = (request) => {
-  if (requestNotApprovedReason(request)) return 'Not Approved';
-  if (request.payment_status !== 'Paid') return request.status;
-  return request.balance_settled ? 'Fully Paid' : 'Confirmed';
+// For Approval (just sent) → Approved → Tour Confirmed (package sent), or
+// Rejected (by an admin, or automatically when the package wasn't ready in time).
+const shownStatus = requestStatusLabel;
+
+// The last day to send the package: 1 month after the request, and at least
+// 2 weeks before the trip, whichever comes first.
+const reviewDeadline = (request) => {
+  const byMonth = request.created_at ? new Date(new Date(request.created_at).getTime() + REQUEST_REVIEW_DAYS * 86400e3) : null;
+  const byTrip = request.preferred_date ? new Date(`${request.preferred_date}T00:00:00+08:00`) : null;
+  if (byTrip) byTrip.setDate(byTrip.getDate() - EXCLUSIVE_APPROVAL_CUTOFF_DAYS);
+  const dates = [byMonth, byTrip].filter(Boolean);
+  return dates.length ? new Date(Math.min(...dates.map((d) => d.getTime()))) : null;
 };
 
 const StatusBadge = ({ status, large = false }) => {
@@ -111,19 +117,23 @@ const inputStyle = {
 /* ─────────────────────────────────────────────
    ADMIN EXCLUSIVE / REQUESTED TOURS
 ───────────────────────────────────────────── */
-const AdminExclusiveTours = () => {
+// type: 'exclusive' (Exclusive Tours page) or 'request' (Requested Tours page).
+const AdminExclusiveTours = ({ type = 'exclusive' }) => {
+  const isExclusivePage = type === 'exclusive';
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
-  const [typeFilter, setTypeFilter] = useState('All Types');
   const [selected, setSelected] = useState(null);
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
+    // Requests whose package wasn't ready in time become Rejected first.
+    await supabase.rpc('run_overdue_requests').then(() => {}, () => {});
     const { data, error } = await supabase
       .from('exclusive_requests')
       .select('*')
+      .eq('request_type', type)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -133,27 +143,26 @@ const AdminExclusiveTours = () => {
     }
     setRequests(data || []);
     setLoading(false);
-  }, []);
+  }, [type]);
 
   useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
   useEffect(() => {
     const channel = supabase
-      .channel('admin-exclusive-requests-realtime')
+      .channel(`admin-requests-${type}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'exclusive_requests' }, () => fetchRequests())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [fetchRequests]);
+  }, [fetchRequests, type]);
 
   const filtered = requests.filter(r => {
     const q = searchQuery.trim().toLowerCase();
     const matchesSearch = !q || `${r.full_name || ''} ${r.destination || ''} ${r.email || ''}`.toLowerCase().includes(q);
-    const matchesStatus = statusFilter === 'All Status' || shownStatus(r) === statusFilter;
-    const matchesType = typeFilter === 'All Types' || r.request_type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    const matchesStatus = statusFilter === 'All Status' || shownStatus(r) === statusFilter || requestPaymentLabel(r) === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
-  const pendingCount = requests.filter(r => r.status === 'Pending' && !requestNotApprovedReason(r)).length;
+  const pendingCount = requests.filter(r => shownStatus(r) === 'For Approval').length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -192,23 +201,12 @@ const AdminExclusiveTours = () => {
               style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
             >
               <option value="All Status">All Status</option>
-              <option value="Pending">Pending</option>
+              <option value="For Approval">For Approval</option>
               <option value="Approved">Approved</option>
-              <option value="Confirmed">Confirmed</option>
-              <option value="Fully Paid">Fully Paid</option>
+              <option value="Tour Confirmed">Tour Confirmed</option>
+              {isExclusivePage && <option value="Downpayment Paid">Downpayment Paid</option>}
+              {isExclusivePage && <option value="Fully Paid">Fully Paid</option>}
               <option value="Rejected">Rejected</option>
-              <option value="Not Approved">Not Approved</option>
-            </select>
-            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
-          </div>
-          <div style={{ position: 'relative', minWidth: 175 }}>
-            <select
-              value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-              style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
-            >
-              <option value="All Types">All Types</option>
-              <option value="exclusive">Exclusive Tour</option>
-              <option value="request">Requested Tour</option>
             </select>
             <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
           </div>
@@ -219,15 +217,15 @@ const AdminExclusiveTours = () => {
           {loading ? (
             <SkeletonRows count={5} label="Loading requests" />
           ) : filtered.length === 0 ? (
-            (searchQuery || statusFilter !== 'All Status' || typeFilter !== 'All Types') ? (
+            (searchQuery || statusFilter !== 'All Status') ? (
               <EmptyState
                 icon={SearchX}
                 title="No requests match your filters"
-                message="Try another search, status or request type."
-                action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setStatusFilter('All Status'); setTypeFilter('All Types'); } }}
+                message="Try another search or status."
+                action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setStatusFilter('All Status'); } }}
               />
             ) : (
-              <EmptyState icon={Inbox} title="No requests yet" message="Exclusive tour and custom trip requests from joiners will show up here." />
+              <EmptyState icon={Inbox} title="No requests yet" message={isExclusivePage ? 'Exclusive tour requests from joiners will show up here.' : 'Tour requests (new destinations) from joiners will show up here.'} />
             )
           ) : (
             filtered.map(r => (
@@ -290,8 +288,9 @@ const RequestRow = ({ request, onView }) => {
         <Calendar size={13} style={{ color: '#A8481A' }} /> {tripDates(request)}
       </div>
 
-      <div style={{ marginLeft: 'auto' }}>
+      <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         <StatusBadge status={shownStatus(request)} />
+        {requestPaymentLabel(request) && <StatusBadge status={requestPaymentLabel(request)} />}
       </div>
     </div>
   );
@@ -433,16 +432,17 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
 };
 
 const RequestDetailModal = ({ request, onClose, onResolved }) => {
-  const [adminResponse, setAdminResponse] = useState(request.admin_response || '');
   const [submitting, setSubmitting] = useState(null); // 'approve' | 'reject' | null
 
-  const notApprovedReason = requestNotApprovedReason(request);
-  const isPending = request.status === 'Pending' && !notApprovedReason;
+  const overdueReason = requestOverdueReason(request);
+  const isPending = request.status === 'Pending' && !overdueReason;
   const isExclusive = request.request_type === 'exclusive';
-  const isApproved = request.status === 'Approved';
-  // A requested tour open to other joiners: its package is posted on Explore
-  // Tours, with the requester's slots held for 2 days (see PackageTourForm).
-  const isOpenRequest = request.request_type === 'request' && request.tour_type === 'joiner';
+  const isApproved = request.status === 'Approved' && !overdueReason;
+  // A requested tour: its package is posted on Explore Tours, with the
+  // requester's slots held for 2 days (see PackageTourForm).
+  const isOpenRequest = request.request_type === 'request';
+  const deadline = reviewDeadline(request);
+  const people = Array.isArray(request.participants) ? request.participants : [];
 
   // ── Tour Package Details (the same form as Create New Tour) ──
   const [showPackageForm, setShowPackageForm] = useState(false);
@@ -465,7 +465,6 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         .from('exclusive_requests')
         .update({
           status: newStatus,
-          admin_response: adminResponse.trim() || null,
           reviewed_by: adminUser?.id || null,
           reviewed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -480,17 +479,11 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         ? `${typeLabel} Approved 🎉`
         : `${typeLabel} Update`;
 
-      let message;
-      if (newStatus === 'Approved') {
-        message = isExclusive
-          ? `Great news! Your exclusive tour request for ${request.destination} has been approved. Our team will reach out to finalize your itinerary, pricing, and downpayment details.`
-          : `Great news! Your request to add ${request.destination} has been approved${request.tour_type === 'joiner' ? ' and will be opened for booking on Explore Tours soon.' : '. Our team will reach out with a custom price list.'}`;
-      } else {
-        message = `Your ${typeLabel.toLowerCase()} for ${request.destination} was not approved at this time.`;
-      }
-      if (adminResponse.trim()) {
-        message += ` Note from our team: "${adminResponse.trim()}"`;
-      }
+      const message = newStatus === 'Approved'
+        ? (isExclusive
+          ? `Great news! Your exclusive tour request for ${request.destination} has been approved. We're preparing your tour package; you'll be notified once it's ready.`
+          : `Great news! Your request to add ${request.destination} has been approved and will be opened for booking on Explore Tours soon, with your slots held for you.`)
+        : `Your ${typeLabel.toLowerCase()} for ${request.destination} was not approved at this time.`;
 
       if (request.user_id) {
         await notifyUser(request.user_id, {
@@ -551,10 +544,25 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             <DetailRow icon={<Users size={14} />} label="Group Size" value={request.group_size ? `${request.group_size} pax` : null} />
             <DetailRow icon={<Calendar size={14} />} label={request.preferred_end_date ? 'Preferred Dates' : 'Preferred Date'} value={tripDates(request)} />
             {isExclusive && request.alternate_date && <DetailRow icon={<Calendar size={14} />} label="Alternate Date" value={formatDate(request.alternate_date)} />}
-            {isExclusive && <DetailRow icon={<Home size={14} />} label="Accommodation" value={request.accommodation} />}
+            {isExclusive && request.accommodation && request.payment_status === 'Paid' && <DetailRow icon={<Home size={14} />} label="Accommodation (chosen)" value={request.accommodation} />}
             {isExclusive && <DetailRow icon={<Wallet size={14} />} label="Budget" value={request.budget ? `${formatPeso(Number(request.budget))}` : null} />}
-            {!isExclusive && <DetailRow icon={<ArrowRight size={14} />} label="Tour Type Preference" value={request.tour_type === 'joiner' ? 'Open to other joiners' : request.tour_type === 'exclusive' ? 'Exclusive for their group' : null} />}
+            {!packageSentAt && request.status !== 'Rejected' && !overdueReason && deadline && (
+              <DetailRow icon={<Clock size={14} />} label="Send the package by" value={formatDate(deadline)} />
+            )}
           </div>
+
+          {isExclusive && people.length > 0 && (
+            <div>
+              <p style={labelStyle}>Who's Coming ({people.length})</p>
+              <div style={{ background: '#F2E4D0', borderRadius: 16, padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {people.map((p, i) => (
+                  <p key={i} style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: 0 }}>
+                    {i + 1}. <strong>{p.full_name}</strong>{p.contact_number ? <span style={{ color: '#7A3A18' }}> · {p.contact_number}</span> : null}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
 
           {request.notes && (
             <div>
@@ -572,41 +580,19 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             {request.reviewed_at && <> · Reviewed {formatDateTime(request.reviewed_at)}</>}
           </div>
 
-          {notApprovedReason && (
+          {overdueReason && (
             <div style={{
               background: 'rgba(26,10,0,0.05)', borderRadius: 16, padding: '1rem 1.25rem',
               border: '1px solid rgba(26,10,0,0.15)', display: 'flex', gap: 12, alignItems: 'flex-start',
             }}>
               <XCircle size={18} style={{ color: '#7A3A18', flexShrink: 0, marginTop: 1 }} />
               <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
-                <strong style={{ color: '#1A0A00' }}>Not approved.</strong> {notApprovedReason} Requests can only be approved at least 2 weeks before the preferred date.
+                <strong style={{ color: '#1A0A00' }}>Rejected automatically.</strong> {overdueReason} The tour package must be sent within 1 month of the request, and at least 2 weeks before the trip.
               </p>
             </div>
           )}
 
-          {/* Admin response / notify field */}
-          <div>
-            <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <MessageSquare size={12} /> Note to Joiner (included in their notification)
-            </p>
-            <textarea
-              value={adminResponse}
-              onChange={(e) => setAdminResponse(e.target.value)}
-              placeholder={isPending ? "Optional message the joiner will see — e.g. pricing details, next steps, or reason for rejection." : ''}
-              readOnly={!isPending}
-              rows={3}
-              style={{
-                width: '100%', boxSizing: 'border-box',
-                background: isPending ? '#F2E4D0' : 'rgba(122,58,24,0.06)',
-                border: '1px solid rgba(180,81,30,0.18)',
-                borderRadius: 14, padding: '12px 14px',
-                fontSize: 13, fontWeight: 500, color: '#1A0A00',
-                fontFamily: 'inherit', outline: 'none', resize: 'vertical',
-              }}
-            />
-          </div>
-
-          {!isPending && !notApprovedReason && (
+          {!isPending && !overdueReason && (
             <div style={{
               background: request.status === 'Approved' ? 'rgba(180,81,30,0.08)' : 'rgba(140,47,28,0.07)',
               borderRadius: 16, padding: '1rem 1.25rem',
@@ -618,7 +604,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 : <XCircle size={18} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />}
               <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
                 This request has already been {request.status.toLowerCase()} and the joiner has been notified.
-                {request.request_type === 'request' && request.status === 'Approved' && request.tour_type === 'joiner' && (
+                {request.request_type === 'request' && request.status === 'Approved' && !packageSentAt && (
                   <> Send the tour package below to post it on <strong>Explore Tours</strong> so joiners can book it.</>
                 )}
               </p>

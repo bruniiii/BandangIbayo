@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { maskSensitiveWords } from './profanity';
 import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -235,8 +236,16 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
   const handleSubmit = async () => {
     if (!selectedTourId || rating === 0) { toast.info('Almost there', 'Please choose a tour and give it a star rating.'); return; }
     if (comment.trim().length > REVIEW_MAX) { toast.error('Review is too long', `${REVIEW_MAX} characters at most.`); return; }
+    // Offensive words are replaced with **** (the database does the same).
+    const cleanComment = maskSensitiveWords(comment.trim());
     // Reviews can't be deleted, so a last look before it goes up.
-    if (!(await confirmDialog({ title: `Post your ${rating}-star review?`, message: "Reviews can't be edited or deleted after posting.", confirmLabel: 'Post Review', cancelLabel: 'Keep Editing' }))) return;
+    if (!(await confirmDialog({
+      title: `Post your ${rating}-star review?`,
+      message: cleanComment !== comment.trim()
+        ? "Some words were hidden because offensive words aren't allowed in reviews. Reviews can't be edited or deleted after posting."
+        : "Reviews can't be edited or deleted after posting.",
+      confirmLabel: 'Post Review', cancelLabel: 'Keep Editing',
+    }))) return;
     setSubmitting(true);
     try {
       const media = mediaItems.length ? await uploadReviewMedia() : [];
@@ -245,7 +254,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
         tour_id: selectedTourId,
         user_id: currentUserId,
         rating,
-        comment: comment.trim() || null,
+        comment: cleanComment || null,
         media,
       }]);
       if (error) throw error;

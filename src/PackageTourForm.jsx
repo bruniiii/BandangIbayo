@@ -4,19 +4,25 @@ import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from './notifications';
-import { formatPeso, formatPickupTime, todayManila } from './tourUtils';
-import { moneyInputProps, blockSignKeys, cleanMoney } from './moneyInput';
+import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, MAX_TOUR_DAYS } from './tourUtils';
+import { moneyField, blockSignKeys } from './moneyInput';
+import { AccommodationCheckboxes } from './ui/Accommodation';
+import { cleanAccommodation } from './accommodation';
+import { formatYmdRange, daysLabel, tripDays as countDays } from './dateRange';
 import { checkFields, textError, mediaFileError } from './validation';
 import { BAG_TAG_FEE, expenseItems } from './tourExpenses';
 import { X, Trash2, UploadCloud, Loader2 } from 'lucide-react';
 
 // ─────────────────────────────────────────────
-// TOUR PACKAGE FORM (admin, Exclusive Requests)
+// TOUR PACKAGE FORM (admin, Exclusive Tours / Requested Tours)
 // The same form as "Create New Tour" in Tour Management, for an approved request:
-//  - Tour request (open to other joiners): saving it posts the tour on Explore
-//    Tours (with its Regular Rate, expenses and pickup points) and holds the
-//    requester's slots for 2 days (hold_requested_slots) so they get priority.
-//  - Exclusive tour: saved as the package the joiner pays a 50% downpayment on.
+//  - REQUESTED TOUR: saving it posts the tour on Explore Tours (Regular Rate
+//    ₱1,300–₱7,500, Joiner Rate ₱1,800–₱7,500, accommodation, expenses and
+//    pickup points) and holds the requester's slots for 2 days
+//    (hold_requested_slots) so they get priority.
+//  - EXCLUSIVE TOUR: the package the joiner pays a 50% downpayment on. Its
+//    dates and group size are the joiner's; the admin ticks the accommodation
+//    the joiner can choose from.
 // ─────────────────────────────────────────────
 
 const addDays = (ymd, n) => {
@@ -42,7 +48,7 @@ const key = () => Math.random().toString(36).slice(2);
 const APPROVAL_DAYS = 14;
 
 const PackageTourForm = ({ request, onClose, onSent }) => {
-  const isOpenRequest = request.request_type === 'request' && request.tour_type === 'joiner';
+  const isOpenRequest = request.request_type === 'request';
   const pkg = request.package_details || {};
   const tourId = pkg.tour_id || null;
   const minStart = isOpenRequest ? addDays(todayManila(), APPROVAL_DAYS) : todayManila();
@@ -52,20 +58,24 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     destination: pkg.destination || request.destination || '',
     price: pkg.price ?? (isOpenRequest ? '' : (request.budget || '')),
     regular_rate: pkg.regular_rate ?? '',
-    group_size: pkg.group_size ?? (isOpenRequest ? Math.max(18, Number(request.group_size) || 0) : (Number(request.group_size) || '')),
+    // Exclusive tours keep the joiner's group size and dates.
+    group_size: isOpenRequest ? (pkg.group_size ?? Math.max(18, Number(request.group_size) || 0)) : (Number(request.group_size) || ''),
     difficulty: pkg.difficulty || 'Easy',
-    accommodation: pkg.accommodation || request.accommodation || '',
     description: pkg.description || pkg.additional_notes || '',
     inclusions: pkg.inclusions || '',
     exclusions: pkg.exclusions || '',
     things_to_bring: pkg.things_to_bring || '',
     itinerary: pkg.itinerary || '',
     important_note: pkg.important_note || '',
-    start_date: pkg.start_date || request.preferred_date || '',
-    end_date: pkg.end_date || request.preferred_end_date || request.preferred_date || '',
+    start_date: isOpenRequest ? (pkg.start_date || request.preferred_date || '') : (request.preferred_date || pkg.start_date || ''),
+    end_date: isOpenRequest
+      ? (pkg.end_date || request.preferred_end_date || request.preferred_date || '')
+      : (request.preferred_end_date || request.preferred_date || pkg.end_date || ''),
     van_rent: pkg.expenses?.van_rent ?? '',
     tour_guide: pkg.expenses?.tour_guide ?? '',
   }));
+  const [accommodation, setAccommodation] = useState(() => cleanAccommodation(pkg.accommodation_options));
+  const [accommodationError, setAccommodationError] = useState('');
   const [others, setOthers] = useState(() => (pkg.expenses?.others || []).map((o) => ({ key: key(), name: o.name, amount: String(o.amount) })));
   const [pickups, setPickups] = useState(() => {
     const saved = Array.isArray(pkg.pickup_points) ? pkg.pickup_points : [];
@@ -94,7 +104,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   }, [tourId]);
 
   const set = (field) => (e) => { setForm((f) => ({ ...f, [field]: e.target.value })); setDirty(true); };
-  const setMoney = (field) => (e) => { setForm((f) => ({ ...f, [field]: cleanMoney(e.target.value) })); setDirty(true); };
+  // Price fields show 000,000,000.00; the form keeps the plain number.
+  const money = (field) => moneyField(form[field], (v) => { setForm((f) => ({ ...f, [field]: v })); setDirty(true); });
 
   const close = async () => {
     if (dirty && !(await confirmDialog({ title: 'Discard your changes?', message: "The package details you entered won't be saved.", confirmLabel: 'Discard Changes', cancelLabel: 'Keep Editing', tone: 'danger' }))) return;
@@ -140,11 +151,9 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     const ok = checkFields(formEl, [
       ['title', textError(form.title, 'Tour title', { min: 3, max: 120 })],
       ['destination', textError(form.destination, 'Destination', { min: 2, max: 120 })],
-      ...(isOpenRequest ? [
-        ['regular_rate', !(regular >= 1000) ? 'The Regular Rate must be at least ₱1,000.' : regular > 7500 ? 'The Regular Rate can be at most ₱7,500.' : ''],
-        ['price', !(price > 0) ? 'Please enter the Joiner Rate.' : price < regular + 500 ? `The Joiner Rate must be at least ₱500 more than the Regular Rate (at least ${formatPeso(regular + 500)}).` : price > 8000 ? 'The Joiner Rate can be at most ₱8,000.' : ''],
-      ] : [
+      ...(isOpenRequest ? rateChecks(form.regular_rate === '' ? NaN : regular, form.price === '' ? NaN : price) : [
         ['price', !(price > 0) ? 'Please enter the package price.' : price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
+        ['regular_rate', !(regular > 0) ? 'Please enter the Regular Rate.' : regular > 1000000 ? 'That rate looks too high. Please check for an extra zero.' : ''],
       ]),
       ['van_rent', !(van >= 15000) ? 'Van Rent must be at least ₱15,000.' : van > 30000 ? 'Van Rent can be at most ₱30,000.' : ''],
       ['tour_guide', !(guide >= 1300) ? 'Tour Guide must be at least ₱1,300.' : guide > 2000 ? 'Tour Guide can be at most ₱2,000.' : ''],
@@ -154,7 +163,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ]),
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
         ? (isOpenRequest ? 'The tour must start at least 2 weeks from today.' : "The start date can't be in the past.") : ''],
-      ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > 30 ? 'A tour longer than 30 days looks like a typo. Please check the dates.' : ''],
+      ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
       ['pickup_0', stops.length === 0 ? 'Add at least one pickup point.' : ''],
       ...pickups.map((r, i) => {
         const loc = r.location.trim().toLowerCase();
@@ -165,6 +174,11 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['description', textError(form.description, 'Description', { required: false, max: 5000 })],
     ]);
     if (!ok) return;
+    if (!isOpenRequest && accommodation.length === 0) {
+      setAccommodationError('Tick at least one accommodation for the joiner to choose from.');
+      formEl.querySelector('[name="accommodation_options"]')?.focus();
+      return;
+    }
 
     if (!(await confirmDialog(isOpenRequest
       ? (tourId
@@ -189,7 +203,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         destination: form.destination.trim(),
         price: Math.round(price * 100) / 100,
         group_size: slots,
-        difficulty: form.difficulty,
+        ...(isOpenRequest ? { difficulty: form.difficulty } : {}),
+        accommodation_options: cleanAccommodation(accommodation),
         description: form.description,
         inclusions: form.inclusions,
         exclusions: form.exclusions,
@@ -212,7 +227,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       const sentAt = new Date().toISOString();
       const packageDetails = {
         ...details,
-        ...(isOpenRequest ? { regular_rate: Math.round(regular * 100) / 100, tour_id: savedTourId, held_booking_id: heldBooking?.id ?? pkg.held_booking_id ?? null } : { accommodation: form.accommodation }),
+        regular_rate: Math.round(regular * 100) / 100,
+        ...(isOpenRequest ? { tour_id: savedTourId, held_booking_id: heldBooking?.id ?? pkg.held_booking_id ?? null } : {}),
         expenses,
         pickup_points,
         image_urls,
@@ -227,8 +243,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         await notifyUser(request.user_id, {
           title: isOpenRequest ? 'Your requested tour was updated' : (packageSent() ? 'Your tour package was updated 📋' : 'Your Tour Package Details 📋'),
           message: isOpenRequest
-            ? `${details.title} on Explore Tours has new details. Open Exclusive Tours to see them.`
-            : packageMessage({ details: { ...details, accommodation: form.accommodation }, expenses }),
+            ? `${details.title} on Explore Tours has new details. Open Request a Tour to see them.`
+            : packageMessage({ details, expenses }),
           type: 'exclusive_package',
           related_id: request.id,
         });
@@ -264,8 +280,11 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         </button>
 
         <div className="responsive-modal-padding" style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
+          <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>
+            {isOpenRequest ? 'Requested Tour' : 'Exclusive Tour'}
+          </p>
           <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 6px' }}>
-            {isOpenRequest ? (tourId ? 'Edit Requested Tour' : 'Post Requested Tour') : 'Exclusive Tour Package'}
+            {isOpenRequest ? (tourId ? 'Edit the Tour' : 'Create & Post the Tour') : (packageSent() ? 'Edit the Tour Package' : 'Create the Tour Package')}
           </h2>
           <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 24px', lineHeight: 1.6 }}>
             {isOpenRequest
@@ -303,27 +322,34 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <Field label="Destination" name="destination" data-allow="place" value={form.destination} onChange={set('destination')} maxLength={120} />
-              {isOpenRequest
-                ? <Field label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="₱1,500 – ₱8,000" value={form.price} onChange={setMoney('price')} />
-                : <Field label="Package Price (₱, whole group)" name="price" {...moneyInputProps} placeholder="e.g. 55000" value={form.price} onChange={setMoney('price')} />}
+              <Field label="Regular Rate (₱)" name="regular_rate" {...money('regular_rate')} placeholder={isOpenRequest ? '1,300.00 – 7,500.00' : 'e.g. 45,000.00'} />
             </div>
             {isOpenRequest ? (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
-                <Field label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="₱1,000 – ₱7,500" value={form.regular_rate} onChange={setMoney('regular_rate')} />
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
-                  Admins only, never shown to joiners. ₱1,000 to ₱7,500; the Joiner Rate (what joiners pay, up to ₱8,000) must be at least ₱500 more.
-                </p>
+                <Field label="Joiner Rate (₱)" name="price" {...money('price')} placeholder="1,800.00 – 7,500.00" />
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>{RATE_HINT}</p>
               </div>
             ) : (
-              <Field label="Accommodation" name="accommodation" value={form.accommodation} onChange={set('accommodation')} placeholder="e.g. AC Room, Private CR" maxLength={200} />
+              <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
+                <Field label="Package Price (₱, whole group)" name="price" {...money('price')} placeholder="e.g. 55,000.00" />
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
+                  The Package Price is what the joiner pays (50% downpayment first). The Regular Rate is for admins only.
+                </p>
+              </div>
             )}
+            <AccommodationCheckboxes
+              value={accommodation}
+              required={!isOpenRequest}
+              error={accommodationError}
+              onChange={(v) => { setAccommodation(v); setAccommodationError(''); setDirty(true); }}
+            />
 
             {/* Expenses */}
             <div style={sectionBox}>
               <label style={{ ...labelStyle, opacity: 1 }}>Expenses</label>
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                <Field label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder="₱15,000 – ₱30,000" value={form.van_rent} onChange={setMoney('van_rent')} />
-                <Field label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder="₱1,300 – ₱2,000" value={form.tour_guide} onChange={setMoney('tour_guide')} />
+                <Field label="Van Rent (₱)" name="van_rent" {...money('van_rent')} placeholder="15,000.00 – 30,000.00" />
+                <Field label="Tour Guide (₱)" name="tour_guide" {...money('tour_guide')} placeholder="1,300.00 – 2,000.00" />
                 <div>
                   <label style={labelStyle}>Bag Tag (₱)</label>
                   <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>{BAG_TAG_FEE.toFixed(2)} <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span></p>
@@ -338,8 +364,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                   </div>
                   <div>
                     <label style={labelStyle}>Amount (₱)</label>
-                    <input name={`other_amount_${i}`} {...moneyInputProps} value={o.amount}
-                      onChange={(e) => { const v = cleanMoney(e.target.value); setOthers((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: v } : x))); setDirty(true); }} style={inputStyle} />
+                    <input name={`other_amount_${i}`} {...moneyField(o.amount, (v) => { setOthers((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: v } : x))); setDirty(true); })} style={inputStyle} />
                   </div>
                   <button type="button" aria-label="Remove this expense" onClick={() => { setOthers((rows) => rows.filter((x) => x.key !== o.key)); setDirty(true); }} style={iconBtn(false)}>
                     <Trash2 size={15} />
@@ -354,8 +379,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             <div style={sectionBox}>
               <label style={{ ...labelStyle, opacity: 1 }}>Tour Dates</label>
               <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
-                Filled in from the request. {isOpenRequest ? 'It must start at least 2 weeks from today.' : 'Change them if you agreed on other dates.'}
+                {isOpenRequest ? `Filled in from the request. It must start at least 2 weeks from today and last at most ${MAX_TOUR_DAYS} days.` : "The joiner's requested dates."}
               </p>
+              {!isOpenRequest ? (
+                <p style={{ ...inputStyle, margin: 0, background: '#FDF6EE' }}>
+                  {form.start_date ? `${formatYmdRange(form.start_date, form.end_date || form.start_date)} · ${daysLabel(countDays(form.start_date, form.end_date || form.start_date))}` : 'No dates in the request'}
+                </p>
+              ) : (
               <div className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'end', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(180,81,30,0.14)' }}>
                 <div>
                   <label style={labelStyle}>Start Date</label>
@@ -363,12 +393,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                 </div>
                 <div>
                   <label style={labelStyle}>End Date</label>
-                  <input type="date" name="end_date" min={form.start_date || minStart} value={form.end_date} onChange={set('end_date')} style={inputStyle} />
+                  <input type="date" name="end_date" min={form.start_date || minStart} max={form.start_date ? addDays(form.start_date, MAX_TOUR_DAYS - 1) : undefined} value={form.end_date} onChange={set('end_date')} style={inputStyle} />
                 </div>
                 {durationOf(form.start_date, form.end_date) && (
                   <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>{durationOf(form.start_date, form.end_date)}</p>
                 )}
               </div>
+              )}
             </div>
 
             {/* Pickup points */}
@@ -392,17 +423,26 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               <button type="button" onClick={() => { setPickups((rows) => [...rows, { key: key(), location: '', time: '' }]); setDirty(true); }} style={addBtn}>+ Add Pickup Point</button>
             </div>
 
-            <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label={isOpenRequest ? 'Max Slots' : 'Group Size'} name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} value={form.group_size} onChange={set('group_size')} />
-              <div>
-                <label style={labelStyle}>Difficulty</label>
-                <select name="difficulty" value={form.difficulty} onChange={set('difficulty')} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
-                  <option value="Easy">Easy</option>
-                  <option value="Moderate">Moderate</option>
-                  <option value="Challenging">Challenging</option>
-                </select>
+            {isOpenRequest ? (
+              <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <Field label="Max Slots" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} value={form.group_size} onChange={set('group_size')} />
+                <div>
+                  <label style={labelStyle}>Difficulty</label>
+                  <select name="difficulty" value={form.difficulty} onChange={set('difficulty')} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
+                    <option value="Easy">Easy</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Challenging">Challenging</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div>
+                <label style={labelStyle}>Group Size</label>
+                <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>
+                  {request.group_size || '—'} {Number(request.group_size) === 1 ? 'person' : 'people'} <span style={{ fontWeight: 600, color: '#7A3A18' }}>(from the request)</span>
+                </p>
+              </div>
+            )}
 
             <div>
               <label style={labelStyle}>Tour Description</label>
@@ -510,7 +550,7 @@ const packageMessage = ({ details, expenses }) => {
   const lines = [`📍 ${details.title} — ${details.destination}`];
   lines.push(`📅 ${details.start_date}${details.end_date && details.end_date !== details.start_date ? ` to ${details.end_date}` : ''}`);
   lines.push(`💰 Package price: ${formatPeso(details.price)}`);
-  if (details.accommodation) lines.push(`🏨 Accommodation: ${details.accommodation}`);
+  if (details.accommodation_options?.length) lines.push(`🏨 Accommodation (you choose when you pay): ${details.accommodation_options.join(', ')}`);
   if (details.itinerary) lines.push(`🗺️ Itinerary:\n${details.itinerary}`);
   if (details.inclusions) lines.push(`✅ Inclusions:\n${details.inclusions}`);
   if (details.exclusions) lines.push(`❌ Exclusions:\n${details.exclusions}`);

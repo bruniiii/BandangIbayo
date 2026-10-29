@@ -37,7 +37,8 @@ export const formatPhPhone = (raw) => {
   let digits = text.replace(/\D/g, '');
   if (text.trim().startsWith('+63') || (digits.startsWith('63') && digits.length > 10)) digits = digits.slice(2);
   else if (digits.startsWith('0')) digits = digits.slice(1);
-  digits = digits.slice(0, 10);
+  // The number after +63 can't start with 0.
+  digits = digits.replace(/^0+/, '').slice(0, 10);
   if (!digits) return text.startsWith('+63 ') ? '+63 ' : '';
   return '+63 ' + [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6)].filter(Boolean).join(' ');
 };

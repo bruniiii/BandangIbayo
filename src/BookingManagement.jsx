@@ -237,7 +237,7 @@ const BookingManagement = () => {
           <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#8C2F1C', margin: '0 0 10px' }}>
             <AlertCircle size={16} style={{ flexShrink: 0 }} />
             {pendingCancels.length} cancellation request{pendingCancels.length === 1 ? '' : 's'} waiting for you.
-            <span style={{ fontWeight: 600, color: '#7A3A18' }}>Approve or decline within {CANCELLATION_APPROVAL_HOURS} hours, or it's approved automatically.</span>
+            <span style={{ fontWeight: 600, color: '#7A3A18' }}>Approve them, or they're approved automatically within {CANCELLATION_APPROVAL_HOURS} hours.</span>
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {pendingCancels.map((b) => (
@@ -622,27 +622,19 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
   const cancelRequested = !!booking.cancellation_requested_at && !isCancelled && !isRejected && booking.booking_status !== 'Rejected';
   const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : cancelRequested ? 'Cancellation Requested' : booking.payment_status);
   const shownStatus = derivedStatus === 'Complete' && owesBalance(booking) ? 'Downpayment Paid' : derivedStatus;
-  const [deciding, setDeciding] = useState(null); // 'approve' | 'decline'
+  const [deciding, setDeciding] = useState(null); // 'approve' while saving
 
-  // The joiner asked to cancel: approve (frees their slots) or decline (keeps the booking).
-  const decideCancellation = async (approve) => {
-    if (!(await confirmDialog(approve
-      ? { title: 'Approve this cancellation?', message: `${booking.booking_number} will be cancelled and its ${booking.slots_booked} slot${booking.slots_booked === 1 ? '' : 's'} released. Payments are non-refundable.`, confirmLabel: 'Approve Cancellation', cancelLabel: 'Go Back', tone: 'danger' }
-      : { title: 'Decline this cancellation?', message: 'The booking stays as it is, and the joiner is told their request was declined.', confirmLabel: 'Decline Request', cancelLabel: 'Go Back' }))) return;
-    setDeciding(approve ? 'approve' : 'decline');
-    const { error } = await supabase.from('bookings')
-      .update(approve ? { booking_status: 'Cancelled' } : { cancellation_requested_at: null })
-      .eq('id', booking.id);
+  // An older cancellation request: approve it (frees their slots).
+  const decideCancellation = async () => {
+    if (!(await confirmDialog({ title: 'Approve this cancellation?', message: `${booking.booking_number} will be cancelled and its ${booking.slots_booked} slot${booking.slots_booked === 1 ? '' : 's'} released. Payments are non-refundable.`, confirmLabel: 'Approve Cancellation', cancelLabel: 'Go Back', tone: 'danger' }))) return;
+    setDeciding('approve');
+    const { error } = await supabase.from('bookings').update({ booking_status: 'Cancelled' }).eq('id', booking.id);
     setDeciding(null);
     if (error) { toast.error("Couldn't update the booking", error.message); return; }
-    notifyUser(booking.user_id, approve
-      ? { title: 'Cancellation Approved', message: `Your cancellation for ${booking.tours?.title || 'your tour'} (${booking.booking_number}) has been approved, and your slot has been released.`, type: 'cancellation', related_id: booking.id }
-      : { title: 'Cancellation Declined', message: `Your request to cancel ${booking.tours?.title || 'your tour'} (${booking.booking_number}) was declined, so your booking stays active. Please message us if you have questions.`, type: 'cancellation', related_id: booking.id });
-    if (approve) {
-      sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
-      sendCancellationApprovedEmail({ bookingId: booking.id });
-    }
-    toast.success(approve ? 'Cancellation approved' : 'Request declined', approve ? 'The slots were released and the joiner was notified and emailed.' : 'The booking stays active and the joiner was notified.');
+    notifyUser(booking.user_id, { title: 'Cancellation Approved', message: `Your cancellation for ${booking.tours?.title || 'your tour'} (${booking.booking_number}) has been approved, and your slot has been released.`, type: 'cancellation', related_id: booking.id });
+    sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
+    sendCancellationApprovedEmail({ bookingId: booking.id });
+    toast.success('Cancellation approved', 'The slots were released and the joiner was notified and emailed.');
     onChanged?.();
   };
  
@@ -666,14 +658,14 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
   };
  
   // The same till-style receipt joiners download, opened to print.
-  const handlePrintReceipt = () => {
+  const handlePrintReceipt = (part = 'payment') => {
     printReceipt({
       ...booking,
       full_name: joinerName,
       balance_settled: balanceSettled || booking.balance_settled,
       balance_settled_at: balanceSettledAt || booking.balance_settled_at,
       amount_paid: balanceSettled ? subtotal : booking.amount_paid,
-    }, booking.tours).catch((e) => toast.error("Couldn't create the receipt", e.message));
+    }, booking.tours, part).catch((e) => toast.error("Couldn't create the receipt", e.message));
   };
  
  
@@ -875,7 +867,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
             />
           )}
  
-          {/* Cancellation request: approve or decline */}
+          {/* An older cancellation request (sent before cancellations became instant): approve it */}
           {cancelRequested && (
             <div style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -884,16 +876,13 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   <p style={{ fontSize: 13.5, fontWeight: 900, color: '#8C2F1C', margin: 0 }}>Cancellation requested</p>
                   <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0', lineHeight: 1.6 }}>
                     Asked {formatDateTime(booking.cancellation_requested_at)}. Reason: “{booking.cancellation_reason || '—'}”.
-                    {' '}The slots stay held until you decide. If no one decides within 12 hours, it's approved automatically.
+                    {' '}Joiners' cancellations are now instant; this older request is approved automatically within 12 hours if you don't approve it first.
                   </p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => decideCancellation(true)} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: '#8C2F1C', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <button type="button" onClick={decideCancellation} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: '#8C2F1C', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {deciding === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve Cancellation
-                </button>
-                <button type="button" onClick={() => decideCancellation(false)} disabled={!!deciding} style={{ flex: '1 1 160px', padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(180,81,30,0.3)', background: '#FDF6EE', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                  {deciding === 'decline' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Decline
                 </button>
               </div>
             </div>
@@ -1012,20 +1001,25 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                       : 'Payment received in full.'}
                   </p>
                 </div>
-                <button
-                  onClick={handlePrintReceipt}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '13px 26px',
-                    background: '#1A0A00', color: '#E8A265',
-                    border: 'none', borderRadius: 999, cursor: 'pointer',
-                    fontFamily: 'inherit', fontWeight: 900,
-                    fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                    boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
-                  }}
-                >
-                  <Printer size={14} /> Print Receipt
-                </button>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {[['payment', isDownpayment ? 'Downpayment Receipt' : 'Print Receipt'], ...(isDownpayment ? [['balance', 'Balance Receipt']] : [])].map(([part, text]) => (
+                    <button
+                      key={part}
+                      onClick={() => handlePrintReceipt(part)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '13px 22px',
+                        background: '#1A0A00', color: '#E8A265',
+                        border: 'none', borderRadius: 999, cursor: 'pointer',
+                        fontFamily: 'inherit', fontWeight: 900,
+                        fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
+                        boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
+                      }}
+                    >
+                      <Printer size={14} /> {text}
+                    </button>
+                  ))}
+                </div>
               </>
             )}
           </div>
@@ -1280,18 +1274,16 @@ const STATUS_STYLES = {
   Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
 };
  
+// Plain colored text (no pill), so it doesn't look like a button.
 // wrap: long labels (e.g. Cancellation Requested) go onto two lines instead of
 // spilling into the next column.
 const StatusBadge = ({ status, large = false, wrap = false }) => {
-  const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
+  const { color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
-      background: large ? color : bg,
       color: large ? '#FDF6EE' : color,
-      borderRadius: 999,
-      padding: large ? '7px 18px' : '4px 12px',
-      fontSize: large ? 11 : 9,
+      fontSize: large ? 12 : 11,
       fontWeight: 900, letterSpacing: wrap ? '0.1em' : '0.16em', textTransform: 'uppercase',
       whiteSpace: wrap ? 'normal' : 'nowrap', lineHeight: wrap ? 1.35 : undefined, maxWidth: '100%',
     }}>
@@ -1306,12 +1298,11 @@ const BALANCE_STATUS_STYLES = {
 };
  
 const BalanceStatusBadge = ({ status }) => {
-  const { bg, color } = BALANCE_STATUS_STYLES[status] || BALANCE_STATUS_STYLES['Balance Due'];
+  const { color } = BALANCE_STATUS_STYLES[status] || BALANCE_STATUS_STYLES['Balance Due'];
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
-      background: bg, color, borderRadius: 999,
-      padding: '3px 10px', fontSize: 11,
+      color, fontSize: 11,
       fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
@@ -1327,14 +1318,13 @@ const PAYMENT_METHOD_STYLES = {
  
 const PaymentMethodBadge = ({ method }) => {
   if (!method) return <span style={{ color: '#7A3A18', fontSize: 11, fontWeight: 700 }}>—</span>;
-  const { bg, color } = PAYMENT_METHOD_STYLES[method] || { bg: 'rgba(180,81,30,0.1)', color: '#7A3A18' };
+  const { color } = PAYMENT_METHOD_STYLES[method] || { color: '#7A3A18' };
   const Icon = method === 'Downpayment' ? Wallet : CreditCard;
   return (
-    // Sized to its text (not stretched to the column), like the status badges beside it.
+    // Plain text with an icon (no pill), sized to its text.
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5, alignSelf: 'flex-start', width: 'fit-content',
-      background: bg, color, borderRadius: 999,
-      padding: '4px 11px', fontSize: 10, fontWeight: 900,
+      color, fontSize: 11, fontWeight: 900,
       letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
     }}>
       <Icon size={11} /> {method}

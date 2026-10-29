@@ -163,3 +163,34 @@ export const nextPaymentNoticeExpiry = (list) => {
     .map((n) => PAYMENT_NOTICE_MS - (Date.now() - new Date(n.created_at).getTime()));
   return waits.length ? Math.max(1000, Math.min(...waits) + 500) : null;
 };
+
+/* ── The bell's count clears once notifications are viewed ──
+   Opening the bell or the Notification page records when the user last
+   looked (profiles.notifications_seen_at, so it's the same on every device;
+   this browser keeps a copy too). The bell counts only unread notifications
+   that arrived after that. */
+const seenKey = (userId) => `ibayo-notifications-seen:${userId}`;
+
+const localSeen = (userId) => {
+  try { return Number(localStorage.getItem(seenKey(userId))) || 0; } catch { return 0; }
+};
+
+// When the user last viewed their notifications (ms since 1970), or 0.
+export const fetchNotificationsSeenAt = async (userId) => {
+  if (!userId) return 0;
+  const { data } = await supabase.from('profiles').select('notifications_seen_at').eq('id', userId).maybeSingle();
+  const remote = data?.notifications_seen_at ? new Date(data.notifications_seen_at).getTime() : 0;
+  return Math.max(remote, localSeen(userId));
+};
+
+export const markNotificationsSeen = async (userId) => {
+  if (!userId) return;
+  try { localStorage.setItem(seenKey(userId), String(Date.now())); } catch { /* private mode */ }
+  notificationsChanged();
+  const { error } = await supabase.rpc('mark_notifications_seen');
+  if (error) console.warn('Could not save when notifications were viewed:', error.message);
+};
+
+// Unread notifications that arrived after the user last looked.
+export const unseenCount = (list, seenAt) =>
+  list.filter((n) => !n.is_read && new Date(n.created_at).getTime() > seenAt).length;

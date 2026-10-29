@@ -111,17 +111,47 @@ export const TRIP_REQUEST_LEAD_DAYS = 21;
 // before its date. Keep in sync with exclusive_requests_guard_approval().
 export const EXCLUSIVE_APPROVAL_CUTOFF_DAYS = 14;
 
-// A pending request that can no longer be approved: its date has passed, or
-// it's less than 2 weeks away. Shown as "Not Approved" to admins and joiners.
-export const requestNotApprovedReason = (request) => {
-  if (!request || request.status !== 'Pending' || !request.preferred_date) return null;
-  const today = todayManila();
-  if (request.preferred_date < today) return 'The preferred date has already passed.';
-  const [y, m, d] = today.split('-').map(Number);
-  const cutoff = new Date(Date.UTC(y, m - 1, d + EXCLUSIVE_APPROVAL_CUTOFF_DAYS)).toISOString().slice(0, 10);
-  if (request.preferred_date < cutoff) return 'It was not approved at least 2 weeks before the preferred date.';
+// The agency has this many days to review a request and send its tour package.
+// Keep in sync with reject_overdue_requests() in the database.
+export const REQUEST_REVIEW_DAYS = 30;
+
+const plusDays = (ymd, n) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+};
+
+// Why a request is rejected automatically: no tour package was sent within
+// 1 month of the request, or by 2 weeks before the trip date. The database
+// marks these Rejected too (reject_overdue_requests); until it runs, they're
+// shown as Rejected anyway.
+export const requestOverdueReason = (request) => {
+  if (!request || request.package_sent_at || !['Pending', 'Approved'].includes(request.status)) return null;
+  if (request.preferred_date && request.preferred_date < plusDays(todayManila(), EXCLUSIVE_APPROVAL_CUTOFF_DAYS)) {
+    return "The tour package wasn't ready at least 2 weeks before the trip date.";
+  }
+  if (request.created_at && Date.now() - new Date(request.created_at).getTime() > REQUEST_REVIEW_DAYS * 86400e3) {
+    return "The tour package wasn't ready within 1 month of the request.";
+  }
   return null;
 };
+
+// What admins and joiners see: For Approval → Approved → Tour Confirmed (the
+// package was sent), or Rejected.
+export const requestStatusLabel = (request) => {
+  if (request.status === 'Rejected' || requestOverdueReason(request)) return 'Rejected';
+  if (request.status === 'Pending') return 'For Approval';
+  if (request.package_sent_at) return 'Tour Confirmed';
+  return 'Approved';
+};
+
+// Exclusive tours only: how much is paid.
+export const requestPaymentLabel = (request) => {
+  if (request.request_type !== 'exclusive' || request.payment_status !== 'Paid') return null;
+  return request.balance_settled ? 'Fully Paid' : 'Downpayment Paid';
+};
+
+// A request the joiner can still change (the agency hasn't approved it yet).
+export const requestEditable = (request) => request.status === 'Pending' && !requestOverdueReason(request);
 
 // Last day a joiner can cancel (YYYY-MM-DD), and whether that's still possible today.
 export const cancellationDeadline = (startDate) => {
@@ -193,3 +223,31 @@ export const formatPickupTime = (value) => {
   const h = Number(m[1]);
   return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
 };
+
+// ── Tour rates (Tour Management and requested tours; not exclusive tours) ──
+// Keep in sync with tour_rates_check_limit() and tours_check_price_limit().
+export const REGULAR_RATE_MIN = 1300;
+export const REGULAR_RATE_MAX = 7500;
+export const JOINER_RATE_MIN = 1800;
+export const JOINER_RATE_MAX = 7500;
+// The Joiner Rate stays at least this much above the Regular Rate.
+export const JOINER_RATE_MARGIN = 500;
+export const RATE_HINT = `Admins only, never shown to joiners. Regular Rate ₱1,300.00 – ₱7,500.00; Joiner Rate (what joiners pay) ₱1,800.00 – ₱7,500.00, at least ₱${JOINER_RATE_MARGIN} more than the Regular Rate.`;
+
+const centavosOnly = (n) => Math.abs(Math.round(n * 100) - n * 100) <= 1e-6;
+
+// [field, message] checks for checkFields() on the Regular Rate and Joiner Rate.
+export const rateChecks = (regular, joiner, { regularField = 'regular_rate', joinerField = 'price' } = {}) => [
+  [regularField, !Number.isFinite(regular) ? 'Please enter the Regular Rate.'
+    : regular < REGULAR_RATE_MIN ? `The Regular Rate must be at least ${formatPeso(REGULAR_RATE_MIN)}.`
+      : regular > REGULAR_RATE_MAX ? `The Regular Rate can be at most ${formatPeso(REGULAR_RATE_MAX)}.`
+        : !centavosOnly(regular) ? 'The Regular Rate can have at most 2 decimal places (centavos).' : ''],
+  [joinerField, !Number.isFinite(joiner) ? 'Please enter the Joiner Rate.'
+    : joiner < JOINER_RATE_MIN ? `The Joiner Rate must be at least ${formatPeso(JOINER_RATE_MIN)}.`
+      : joiner > JOINER_RATE_MAX ? `The Joiner Rate can be at most ${formatPeso(JOINER_RATE_MAX)}.`
+        : !centavosOnly(joiner) ? 'The Joiner Rate can have at most 2 decimal places (centavos).'
+          : Number.isFinite(regular) && joiner < regular + JOINER_RATE_MARGIN ? `The Joiner Rate must be at least ₱${JOINER_RATE_MARGIN} more than the Regular Rate (at least ${formatPeso(regular + JOINER_RATE_MARGIN)}).` : ''],
+];
+
+// Tours (and requested trips) last at most 1 week.
+export const MAX_TOUR_DAYS = 7;

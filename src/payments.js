@@ -19,8 +19,8 @@ const callPayments = async (action, body = {}) => {
 const returnBaseUrl = () => window.location.origin;
 
 // Holds the slots for 30 minutes and returns PayMongo's checkout page URL.
-export const startCheckout = ({ tourId, slots, paymentType, companions }) =>
-  callPayments('create-checkout', { tourId, slots, paymentType, companions, returnBaseUrl: returnBaseUrl() });
+export const startCheckout = ({ tourId, slots, paymentType, companions, accommodation = null }) =>
+  callPayments('create-checkout', { tourId, slots, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
 
 export const startBalanceCheckout = ({ bookingId }) =>
   callPayments('pay-balance', { bookingId, returnBaseUrl: returnBaseUrl() });
@@ -32,13 +32,14 @@ export const verifyCheckout = ({ bookingId }) => callPayments('verify-checkout',
 export const cancelCheckout = ({ bookingId }) => callPayments('cancel-checkout', { bookingId });
 
 // Slots held for a joiner's requested tour: pay full or 40% downpayment.
-export const payHeldBooking = ({ bookingId, paymentType, companions }) =>
-  callPayments('pay-held', { bookingId, paymentType, companions, returnBaseUrl: returnBaseUrl() });
+export const payHeldBooking = ({ bookingId, paymentType, companions, accommodation = null }) =>
+  callPayments('pay-held', { bookingId, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
 
 // Exclusive tours: the 50% downpayment, worked out on the server from the
 // package price the agency sent. Returns { checkoutUrl } or { alreadyPaid }.
-export const startExclusiveDownpayment = ({ requestId }) =>
-  callPayments('pay-exclusive', { requestId, returnBaseUrl: returnBaseUrl() });
+// accommodation: the joiner's choice from the package's options.
+export const startExclusiveDownpayment = ({ requestId, accommodation = null }) =>
+  callPayments('pay-exclusive', { requestId, accommodation, returnBaseUrl: returnBaseUrl() });
 // The rest of the package price, after the downpayment.
 export const startExclusiveBalance = ({ requestId }) =>
   callPayments('pay-exclusive', { requestId, part: 'balance', returnBaseUrl: returnBaseUrl() });

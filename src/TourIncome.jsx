@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { TrendingUp, Download, ChevronDown, AlertCircle } from 'lucide-react';
+import { TrendingUp, ChevronDown, AlertCircle } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
@@ -29,9 +29,9 @@ const monthOptions = () => {
 // Losses as "−₱1,000.00".
 const money = (n) => (n < 0 ? `−${formatPeso(-n)}` : formatPeso(n));
 const paidOf = (b) => (b.payment_method === 'Downpayment' && !b.balance_settled ? Number(b.amount_paid) || 0 : Number(b.total_price) || 0);
-const csvCell = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 
-const TourIncome = () => {
+// onData: gets the rows shown (for the Reports PDF).
+const TourIncome = ({ onData }) => {
   const [tours, setTours] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [expenses, setExpenses] = useState({});
@@ -79,27 +79,11 @@ const TourIncome = () => {
 
   const totals = rows.reduce((s, r) => ({ fees: s.fees + r.fees, exp: s.exp + r.expTotal, income: s.income + r.income }), { fees: 0, exp: 0, income: 0 });
 
-  const download = () => {
-    const lines = [[`Income per tour: ${monthLabel(month)}`], []];
-    rows.forEach((r) => {
-      lines.push([r.tour.title, formatYmdRange(r.tour.start_date, r.tour.end_date)]);
-      lines.push(['#', 'Name', 'Joiners', 'Event fee', 'Paid', 'Balance']);
-      r.active.forEach((b, i) => lines.push([i + 1, b.full_name, b.slots_booked || 1, Number(b.total_price) || 0, paidOf(b), Math.max(0, (Number(b.total_price) || 0) - paidOf(b))]));
-      r.cancelled.forEach((b) => lines.push(['Cancelled', b.full_name, b.slots_booked || 1, paidOf(b), paidOf(b), 0]));
-      lines.push(['', 'Total', r.pax, r.fees, r.collected, r.toCollect]);
-      lines.push(['Expenses']);
-      expenseItems(r.expenses).forEach((i) => lines.push([i.label, i.amount]));
-      lines.push(['Total expenses', r.expTotal]);
-      lines.push(['Income', r.income]);
-      lines.push([]);
-    });
-    lines.push(['Month total', 'Joiner fees', totals.fees, 'Expenses', totals.exp, 'Income', totals.income]);
-    const csv = '﻿' + lines.map((row) => row.map(csvCell).join(',')).join('\r\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url; a.download = `tour-income-${month}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
+  // Reports' Download PDF includes this table.
+  useEffect(() => {
+    if (!loading) onData?.({ monthLabel: monthLabel(month), rows, totals });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, month, rows, totals.fees, totals.exp, totals.income, onData]);
 
   return (
     <section aria-labelledby="tour-income-title" style={card}>
@@ -112,9 +96,6 @@ const TourIncome = () => {
           <select aria-label="Tour month" value={month} onChange={(e) => { setMonth(e.target.value); setOpen(null); }} style={selectStyle}>
             {monthOptions().map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
           </select>
-          <button type="button" onClick={download} disabled={loading || !rows.length} style={downloadBtn(loading || !rows.length)}>
-            <Download size={14} /> Download
-          </button>
         </div>
       </div>
 
@@ -236,10 +217,6 @@ const Stat = ({ label, value, tone }) => (
 
 const card = { background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.05)' };
 const selectStyle = { background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '9px 12px', fontSize: 12.5, fontWeight: 800, color: '#1A0A00', fontFamily: 'inherit', cursor: 'pointer' };
-const downloadBtn = (disabled) => ({
-  display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '9px 16px',
-  fontSize: 12, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.6 : 1, fontFamily: 'inherit',
-});
 const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 6px' };
 const muted = { fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 };
 const table = { width: '100%', borderCollapse: 'collapse', fontSize: 12.5, minWidth: 560 };

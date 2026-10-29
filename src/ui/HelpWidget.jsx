@@ -35,7 +35,7 @@ const FAQS = [
   },
   {
     q: 'Can I cancel or move my booking?',
-    a: 'You can request a cancellation up to 14 days before the tour. Bandang IBAYO approves it within 12 hours. Payments are non-refundable. If the same trip runs on another date, you can move your booking there instead and your payment carries over.',
+    a: 'You can cancel up to 14 days before the tour: open the booking in My Bookings, choose a reason and confirm. It is cancelled right away. Payments are non-refundable. If the same trip runs on another date, you can move your booking there instead and your payment carries over.',
   },
   {
     q: 'What if the tour is full?',

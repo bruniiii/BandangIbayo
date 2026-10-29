@@ -6,11 +6,12 @@ import { archivePastTours } from './tourUtils';
 
 import { nameError, phoneError, cleanName, normalizePhone, formatPhPhone } from './validation';
 import {
-  MapPin, Trash2, Archive, RefreshCw, History, X, Calendar,
+  MapPin, Trash2, History, X, Calendar, ScanLine,
   Armchair, Compass, ImageIcon, Loader2, Truck, Check, CheckCircle2,
   Navigation, Clock, Send, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
+import AdminCheckIn from './AdminCheckIn';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 
 const PALETTE = {
@@ -53,7 +54,7 @@ export const AdminTrackingControls = () => {
   const [loading, setLoading] = useState(true);
   const [loadingConsole, setLoadingConsole] = useState(false);
   const [trackingLogs, setTrackingLogs] = useState([]);
-  const [confirmAction, setConfirmAction] = useState(null);
+  const [checkInTourId, setCheckInTourId] = useState(null);
   const [advancing, setAdvancing] = useState(false);
   const [clearingFeed, setClearingFeed] = useState(false);
 
@@ -155,19 +156,7 @@ export const AdminTrackingControls = () => {
     return () => { supabase.removeChannel(channel); };
   }, [activeTour, fetchTrackingConsole]);
 
-  // Toggle Archive Status
-  const executeToggleArchive = async () => {
-    if (!confirmAction) return;
-    const { id, isArchived } = confirmAction;
-    const { error } = await supabase.from('tours').update({ is_archived: !isArchived }).eq('id', id);
-    if (error) {
-      toast.error("Couldn't update archive status", error.message);
-    } else {
-      fetchTours();
-      if (activeTour?.id === id) setActiveTour(null);
-    }
-    setConfirmAction(null);
-  };
+
 
   const handleSaveVehicleInfo = async (e) => {
     e.preventDefault();
@@ -398,7 +387,7 @@ export const AdminTrackingControls = () => {
             key={tour.id}
             tour={tour}
             onTrack={() => setActiveTour(tour)}
-            onConfirmArchive={() => setConfirmAction({ id: tour.id, isArchived: tour.is_archived })}
+            onCheckIn={() => setCheckInTourId(tour.id)}
           />
         ))}
       </div>
@@ -427,47 +416,29 @@ export const AdminTrackingControls = () => {
           onAdvanceStop={advanceToNextStop}
           onClearFeed={handleClearTrackingFeed}
           clearingFeed={clearingFeed}
-          onRequestArchive={() => setConfirmAction({ id: activeTour.id, isArchived: activeTour.is_archived })}
           onClose={() => { setActiveTour(null); setIsLogisticsSaved(false); }}
         />
       )}
 
-      {/* ── Archive / Restore Confirmation Modal ── */}
-      {confirmAction && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 10050,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)', padding: 16,
-        }}>
+      {/* ── Check-in for one tour (scan QR codes, joiner list) ── */}
+      {checkInTourId != null && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={() => setCheckInTourId(null)} />
           <div style={{
-            background: '#FDF6EE', padding: '3rem',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-            textAlign: 'center', width: '100%', maxWidth: 420,
-            borderTop: `8px solid ${confirmAction.isArchived ? '#B4511E' : '#E8A265'}`,
+            position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 1150, borderRadius: 28,
+            boxShadow: '0 32px 80px rgba(26,10,0,0.4)', maxHeight: '92dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
-            <div style={{
-              width: 80, height: 80, borderRadius: '50%',
-              background: confirmAction.isArchived ? '#B4511E' : '#1A0A00',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px', color: '#FDF6EE',
-            }}>
-              {confirmAction.isArchived ? <RefreshCw size={36} /> : <Archive size={36} />}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#1A0A00' }}>
+                <ScanLine size={16} style={{ color: '#A8481A' }} /> Check-in
+              </p>
+              <button type="button" onClick={() => setCheckInTourId(null)} aria-label="Close" style={{
+                background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: '50%', width: 34, height: 34,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1A0A00',
+              }}><X size={18} /></button>
             </div>
-            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', margin: '0 0 10px', textTransform: 'uppercase' }}>
-              {confirmAction.isArchived ? 'Restore Tour?' : 'Archive Tour?'}
-            </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6, margin: '0 0 24px' }}>
-              {confirmAction.isArchived
-                ? 'This tour will be moved back to the active listings.'
-                : 'This tour will be archived and hidden from the active list.'}
-            </p>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmAction(null)} style={{ flex: 1, padding: '12px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#7A3A18', textTransform: 'uppercase' }}>
-                Cancel
-              </button>
-              <button onClick={executeToggleArchive} style={{ flex: 1, padding: '12px 0', background: '#B4511E', border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5, cursor: 'pointer', color: '#FDF6EE', textTransform: 'uppercase', boxShadow: '0 6px 20px rgba(180,81,30,0.3)' }}>
-                {confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}
-              </button>
+            <div style={{ overflowY: 'auto', padding: '1.5rem' }}>
+              <AdminCheckIn tourId={checkInTourId} />
             </div>
           </div>
         </div>
@@ -476,7 +447,7 @@ export const AdminTrackingControls = () => {
   );
 };
 
-const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
+const TrackingTourCard = ({ tour, onTrack, onCheckIn }) => {
   const [hovered, setHovered] = useState(false);
   const displayImage = Array.isArray(tour?.image_urls) && tour.image_urls.length > 0
     ? tour.image_urls[0]
@@ -518,7 +489,7 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginTop: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 2fr', gap: 8, marginTop: 14 }}>
           <button
             onClick={onTrack}
             style={{
@@ -531,17 +502,15 @@ const TrackingTourCard = ({ tour, onTrack, onConfirmArchive }) => {
             <Navigation size={13} /> Manage ETA
           </button>
           <button
-            onClick={onConfirmArchive}
+            onClick={onCheckIn}
             style={{
               padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
-              textTransform: 'uppercase', background: tour?.is_archived ? '#B4511E' : '#F2E4D0',
-              color: tour?.is_archived ? '#FDF6EE' : '#7A3A18',
+              textTransform: 'uppercase', background: '#F2E4D0', color: '#7A3A18',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
             }}
           >
-            {tour?.is_archived ? <RefreshCw size={11} /> : <Archive size={11} />}
-            {tour?.is_archived ? 'Restore' : 'Archive'}
+            <ScanLine size={12} /> Check-in
           </button>
         </div>
       </div>
@@ -632,7 +601,7 @@ const TrackingConsoleModal = ({
   driverName, setDriverName, driverContact, setDriverContact,
   onSaveVehicleInfo, onDeleteStop,
   onStopFieldChange, onUpdateStopDetails,
-  onAdvanceStop, onClearFeed, clearingFeed, onRequestArchive, onClose,
+  onAdvanceStop, onClearFeed, clearingFeed, onClose,
 }) => {
   const safeStops = Array.isArray(meetupStops) ? meetupStops : [];
   const safeLogs = Array.isArray(trackingLogs) ? trackingLogs : [];
@@ -652,20 +621,6 @@ const TrackingConsoleModal = ({
       }}>
         {/* Top Controls */}
         <div style={{ position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 50, display: 'flex', gap: isMobile ? 8 : 12 }}>
-          <button
-            type="button"
-            onClick={onRequestArchive}
-            title={tour?.is_archived ? 'Restore Tour' : 'Archive Tour'}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, background: '#FDF6EE',
-              border: '1px solid rgba(180,81,30,0.3)', borderRadius: 999,
-              padding: isMobile ? '8px' : '7px 14px',
-              cursor: 'pointer', color: '#7A3A18', fontWeight: 900, fontSize: 11, textTransform: 'uppercase',
-            }}
-          >
-            {tour?.is_archived ? <RefreshCw size={12} /> : <Archive size={12} />}
-            {!isMobile && (tour?.is_archived ? 'Restore Tour' : 'Archive Tour')}
-          </button>
           <button
             type="button"
             onClick={onClose}
