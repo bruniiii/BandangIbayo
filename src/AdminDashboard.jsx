@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, User, MessagesSquare
+  ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare
 } from 'lucide-react';
 import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
@@ -14,7 +14,6 @@ import { toast } from './ui/toast';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
 import Feed from './Feed';
-import ProfileSettings from './Profilesettings.jsx';
 import Reviews from './Reviews';
 import JoinerAccounts from './Joineraccounts';
 import Reports from './Reports';
@@ -534,13 +533,11 @@ const AdminDashboard = () => {
 
               {/* admin chip */}
               <div
-                onClick={() => handleNavClick('Profile Settings')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   background: '#F2E4D0',
                   border: '1px solid rgba(180,81,30,0.18)',
                   borderRadius: 14, padding: '8px 14px',
-                  cursor: 'pointer',
                 }}>
                 <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
                   <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>Administrator</p>
@@ -847,7 +844,6 @@ const AdminDashboard = () => {
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
-          {activeTab === 'Profile Settings' && <ProfileSettings />}
           {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
           
 
@@ -863,7 +859,6 @@ const AdminDashboard = () => {
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
            activeTab !== 'Group Chats' &&
-           activeTab !== 'Profile Settings' &&
            activeTab !== 'Notification' && (
             <div style={{
               height: '100%', minHeight: 400,
@@ -918,7 +913,6 @@ const PAGE_INFO = {
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
-  'Profile Settings':    { icon: User,            title: 'Profile Settings',    subtitle: 'Manage your account information and preferences' },
 };
 
 // ─── Nav Item ────────────────────────────────────────────────────────────────
