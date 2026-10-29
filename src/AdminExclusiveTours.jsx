@@ -551,7 +551,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             )}
           </div>
 
-          {isExclusive && people.length > 0 && (
+          {people.length > 0 && (
             <div>
               <p style={labelStyle}>Who's Coming ({people.length})</p>
               <div style={{ background: '#F2E4D0', borderRadius: 16, padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 4 }}>

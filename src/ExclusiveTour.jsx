@@ -86,12 +86,12 @@ const earliestTripDate = () => addDaysPH(TRIP_REQUEST_LEAD_DAYS);
 const sameName = (a, b) => cleanName(a || '').toLowerCase() === cleanName(b || '').toLowerCase();
 
 // Typing mistakes shared by both request forms: wrong phone format, past
-// dates, trips longer than a week, an impossible group size. Exclusive tours
-// also check each person's name and number.
+// dates, trips longer than a week, an impossible group size, and each
+// person's name and number.
 const checkRequestFields = (formEl, form, type) => {
   const size = Number(form.groupSize);
   const days = tripDays(form.preferredDate, form.preferredEndDate);
-  const people = type === 'exclusive' ? form.participants : [];
+  const people = form.participants;
   return checkFields(formEl, [
     ['fullName', fullNameError(form.fullName, 'Full name')],
     ['contact', phoneError(form.contact, 'Contact number')],
@@ -102,8 +102,8 @@ const checkRequestFields = (formEl, form, type) => {
     ['preferredDate', form.preferredDate && !form.preferredEndDate ? 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).' : ''],
     ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
     ...people.flatMap((p, i) => [
-      [`participant_name_${i}`, fullNameError(p.full_name, `Person ${i + 1}'s name`)],
-      [`participant_contact_${i}`, phoneError(p.contact_number, `Person ${i + 1}'s contact number`)],
+      [`participant_name_${i}`, fullNameError(p.full_name, `Name of person ${i + 1}`)],
+      [`participant_contact_${i}`, phoneError(p.contact_number, `Contact number of person ${i + 1}`)],
       [`participant_name_${i}`, people.findIndex((o) => sameName(o.full_name, p.full_name)) !== i ? 'This person is listed twice. Each person needs their own details.' : ''],
     ]),
     ['notes', textError(form.notes, 'Notes', { required: false, max: 2000 })],
@@ -237,8 +237,13 @@ const blankForm = (startDate = '') => ({
   budget: '', notes: '', participants: [], agreeTerms: false,
 });
 
-// An existing request, as the form edits it.
-const formFromRequest = (r) => ({
+// An existing request, as the form edits it (older requests without names get
+// a row per person, the requester first).
+const formFromRequest = (r) => {
+  const form = formFromRequestFields(r);
+  return form.participants.length ? form : { ...form, participants: sizeParticipants([], Number(form.groupSize), form) };
+};
+const formFromRequestFields = (r) => ({
   fullName: r.full_name || '',
   contact: formatPhPhone(r.contact_number || ''),
   email: r.email || '',
@@ -274,12 +279,13 @@ const requestFields = (type, form) => {
     trip_days: days || null,
     notes: form.notes,
   };
+  // Everyone in the group: name and number (both kinds of request).
+  row.participants = form.participants.map((p) => ({
+    full_name: cleanName(p.full_name),
+    contact_number: normalizePhone(p.contact_number) || p.contact_number.trim(),
+  }));
   if (type === 'exclusive') {
     row.budget = form.budget === '' ? null : Number(form.budget);
-    row.participants = form.participants.map((p) => ({
-      full_name: cleanName(p.full_name),
-      contact_number: normalizePhone(p.contact_number) || p.contact_number.trim(),
-    }));
   } else {
     row.region = form.region || null;
   }
@@ -328,7 +334,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
   const setGroupSize = (e) => {
     const value = e.target.value;
-    setForm((prev) => ({ ...prev, groupSize: value, participants: isExclusive ? sizeParticipants(prev.participants, Number(value), prev) : prev.participants }));
+    setForm((prev) => ({ ...prev, groupSize: value, participants: sizeParticipants(prev.participants, Number(value), prev) }));
   };
   const setParticipant = (i, field, value) =>
     setForm((prev) => ({ ...prev, participants: prev.participants.map((p, j) => (j === i ? { ...p, [field]: value } : p)) }));
@@ -439,7 +445,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         {sectionTitle(2, isExclusive ? 'Trip Details' : 'Destination & Tour Details')}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} required />
-          <InputField name="groupSize" label={isExclusive ? 'Number of Participants' : 'Estimated Group Size'} type="number" min="1" max={MAX_GROUP} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
+          <InputField name="groupSize" label="Number of Participants" type="number" min="1" max={MAX_GROUP} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
           <TripDatesFields form={form} setForm={setForm} />
           {isExclusive && (
             <InputField
@@ -455,7 +461,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
             />
           )}
         </div>
-        {isExclusive && form.participants.length > 0 && (
+        {form.participants.length > 0 && (
           <ParticipantsFields participants={form.participants} onChange={setParticipant} />
         )}
         <TextAreaField name="notes"
@@ -729,7 +735,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
             </p>
           )}
 
-          {isExclusive && people.length > 0 && (
+          {people.length > 0 && (
             <PackageDetail label="Who's coming" icon={<Users size={11} />}>
               {people.map((p, i) => `${i + 1}. ${p.full_name}${p.contact_number ? ` · ${formatPhPhone(p.contact_number)}` : ''}`).join('\n')}
             </PackageDetail>
