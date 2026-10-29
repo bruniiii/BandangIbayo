@@ -251,3 +251,9 @@ export const rateChecks = (regular, joiner, { regularField = 'regular_rate', joi
 
 // Tours (and requested trips) last at most 1 week.
 export const MAX_TOUR_DAYS = 7;
+
+// A tour (one van) takes at most 14 joiners per date. Exclusive tours can be
+// bigger: every 14 people ride another van, up to 5 vans.
+export const MAX_TOUR_SLOTS = 14;
+export const VAN_SEATS = 14;
+export const MAX_VANS = 5;

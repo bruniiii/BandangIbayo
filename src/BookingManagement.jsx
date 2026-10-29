@@ -83,6 +83,9 @@ const BookingManagement = () => {
           price
         )
       `)
+      // Unpaid checkouts aren't bookings yet: they're held only while the
+      // joiner pays, and cancelled automatically if they don't.
+      .not('payment_status', 'in', '("Awaiting Payment","Expired")')
       .order('created_at', { ascending: false });
  
     if (error) {
@@ -326,7 +329,6 @@ const BookingManagement = () => {
             <option value="Rejected">Rejected</option>
             <option value="Cancellation Requested">Cancellation Requested</option>
             <option value="Cancelled">Cancelled</option>
-            <option value="Awaiting Payment">Awaiting Payment</option>
             <option value="Balance Due">Balance Due</option>
           </select>
           <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />

@@ -248,9 +248,9 @@ const AdminDashboard = () => {
       { count: pendingExclusiveCount },
       { data: pendingExclusiveRaw },
     ] = await Promise.all([
-      supabase.from('bookings').select('*', { count: 'exact', head: true }),
-      supabase.from('bookings').select('*', { count: 'exact', head: true }).gte('tour_date', monthStart).lt('tour_date', monthEnd),
-      supabase.from('bookings').select('*', { count: 'exact', head: true }).gte('tour_date', lastMonthStart).lt('tour_date', monthStart),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")'),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('tour_date', monthStart).lt('tour_date', monthEnd),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('tour_date', lastMonthStart).lt('tour_date', monthStart),
       supabase.from('tours').select('*', { count: 'exact', head: true }).gte('start_date', nextMonthStart).lt('start_date', nextMonthEnd).eq('is_archived', false),
       supabase.from('tours').select('*', { count: 'exact', head: true }).eq('is_archived', false),
       supabase.from('bookings').select('*', { count: 'exact', head: true }).in('payment_status', ['Pending', 'Verification Pending']),

@@ -53,7 +53,7 @@ const JoinerAccounts = () => {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
-  const [showBulk, setShowBulk] = useState(false); // "Email a Joiner" picker
+  const [showBulk, setShowBulk] = useState(false); // "Message a Joiner" picker
 
   // ── manual email composer (inside the detail modal) ──
   const [composing, setComposing] = useState(false);
@@ -220,7 +220,7 @@ const JoinerAccounts = () => {
             opacity: (loading || joiners.length === 0) ? 0.5 : 1,
           }}
         >
-          <Mail size={14} /> Email a Joiner
+          <Mail size={14} /> Message a Joiner
         </button>
         <button
           onClick={() => setShowAllSent(true)}
@@ -455,7 +455,7 @@ const JoinerAccounts = () => {
                     fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                   }}
                 >
-                  <Mail size={14} /> Send Email to Joiner
+                  <Mail size={14} /> Send
                 </button>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -684,7 +684,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               <Mail size={17} />
             </div>
             <div>
-              <h3 style={{ fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0, letterSpacing: '-0.02em' }}>Email a Joiner</h3>
+              <h3 style={{ fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0, letterSpacing: '-0.02em' }}>Message a Joiner</h3>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
                 Choose who to message — sent from bandangibayo@gmail.com
               </p>

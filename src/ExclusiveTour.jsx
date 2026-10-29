@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import {
-  formatPeso, TRIP_REQUEST_LEAD_DAYS, MAX_TOUR_DAYS,
+  formatPeso, TRIP_REQUEST_LEAD_DAYS, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, VAN_SEATS, MAX_VANS,
   requestOverdueReason, requestStatusLabel, requestPaymentLabel, requestEditable,
 } from './tourUtils';
 import { expenseItems } from './tourExpenses';
@@ -41,8 +41,11 @@ const MAX_EXCLUSIVE_BUDGET = 100000;
 // Share of the package price paid up front to confirm an exclusive tour
 // (the payments function uses the same rate).
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
-// Exclusive tours: the most people a group can have.
-const MAX_GROUP = 100;
+// The most people a group can have: a requested tour fits one van (14);
+// an exclusive tour can fill up to 5 vans of 14 (70).
+const MAX_GROUP = VAN_SEATS * MAX_VANS;
+const maxGroupFor = (type) => (type === 'request' ? MAX_TOUR_SLOTS : MAX_GROUP);
+const vansFor = (size) => Math.ceil(size / VAN_SEATS);
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -97,7 +100,10 @@ const checkRequestFields = (formEl, form, type) => {
     ['contact', phoneError(form.contact, 'Contact number')],
     ['email', emailError(form.email)],
     ['destination', textError(form.destination, 'Destination', { min: 2, max: 150 })],
-    ['groupSize', !Number.isInteger(size) || size < 1 ? 'Group size must be a whole number, at least 1.' : size > MAX_GROUP ? `For groups over ${MAX_GROUP}, please contact us directly.` : ''],
+    ['groupSize', !Number.isInteger(size) || size < 1 ? 'Group size must be a whole number, at least 1.'
+      : size > maxGroupFor(type) ? (type === 'request'
+        ? `A requested tour takes at most ${MAX_TOUR_SLOTS} people (one van).`
+        : `Exclusive tours fit up to ${MAX_VANS} vans of ${VAN_SEATS} (${MAX_GROUP} people). For a bigger group, please message us.`) : ''],
     ['preferredDate', !form.preferredDate ? 'Please choose your trip dates.' : form.preferredDate < earliestTripDate() ? 'Trips can be booked from 3 weeks ahead. Please pick a later date.' : ''],
     ['preferredDate', form.preferredDate && !form.preferredEndDate ? 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).' : ''],
     ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
@@ -199,15 +205,28 @@ const TripDatesFields = ({ form, setForm }) => (
   </>
 );
 
-// Exclusive tours: the name and number of each person in the group.
-const ParticipantsFields = ({ participants, onChange }) => (
+// The name and number of each person in the group. Exclusive groups over 14
+// are split into vans of 14 (person 15 onward rides the second van, and so on).
+const ParticipantsFields = ({ participants, onChange, showVans = false }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
     <label style={labelStyle}>Who's Coming <span style={{ color: '#A8481A' }}>*</span></label>
     <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '-2px 0 4px' }}>
       The full name and contact number of each person in your group (you're person 1).
     </p>
+    {showVans && participants.length > VAN_SEATS && (
+      <p role="note" style={{ margin: '0 0 4px', background: 'rgba(180,81,30,0.1)', border: '1px solid rgba(180,81,30,0.3)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
+        A van fits {VAN_SEATS} people, so your group of {participants.length} needs {vansFor(participants.length)} vans.
+        {' '}Persons {VAN_SEATS + 1}–{Math.min(participants.length, VAN_SEATS * 2)} ride the second van{participants.length > VAN_SEATS * 2 ? ', and so on' : ''}. Up to {MAX_VANS} vans ({MAX_GROUP} people).
+      </p>
+    )}
     {participants.map((p, i) => (
-      <div key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, alignItems: 'end' }}>
+      <React.Fragment key={i}>
+      {showVans && participants.length > VAN_SEATS && i % VAN_SEATS === 0 && (
+        <p style={{ margin: i ? '8px 0 0' : 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A' }}>
+          Van {i / VAN_SEATS + 1} · Persons {i + 1}–{Math.min(participants.length, i + VAN_SEATS)}
+        </p>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, alignItems: 'end' }}>
         <InputField
           name={`participant_name_${i}`}
           data-allow="name"
@@ -223,6 +242,7 @@ const ParticipantsFields = ({ participants, onChange }) => (
           {...phoneFieldProps(p.contact_number, (v) => onChange(i, 'contact_number', v))}
         />
       </div>
+      </React.Fragment>
     ))}
   </div>
 );
@@ -334,7 +354,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
   const setGroupSize = (e) => {
     const value = e.target.value;
-    setForm((prev) => ({ ...prev, groupSize: value, participants: sizeParticipants(prev.participants, Number(value), prev) }));
+    // Rows only up to the most this kind of tour takes; a bigger number is flagged on submit.
+    setForm((prev) => ({ ...prev, groupSize: value, participants: sizeParticipants(prev.participants, Math.min(Number(value), maxGroupFor(type)), prev) }));
   };
   const setParticipant = (i, field, value) =>
     setForm((prev) => ({ ...prev, participants: prev.participants.map((p, j) => (j === i ? { ...p, [field]: value } : p)) }));
@@ -445,7 +466,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         {sectionTitle(2, isExclusive ? 'Trip Details' : 'Destination & Tour Details')}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} required />
-          <InputField name="groupSize" label="Number of Participants" type="number" min="1" max={MAX_GROUP} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
+          <InputField name="groupSize" label={isExclusive ? 'Number of Participants' : `Number of Participants (up to ${MAX_TOUR_SLOTS})`} type="number" min="1" max={maxGroupFor(type)} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
           <TripDatesFields form={form} setForm={setForm} />
           {isExclusive && (
             <InputField
@@ -462,7 +483,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           )}
         </div>
         {form.participants.length > 0 && (
-          <ParticipantsFields participants={form.participants} onChange={setParticipant} />
+          <ParticipantsFields participants={form.participants} onChange={setParticipant} showVans={isExclusive} />
         )}
         <TextAreaField name="notes"
           label={isExclusive ? 'Special Notes / Requests' : 'Additional Details / Preferences'}

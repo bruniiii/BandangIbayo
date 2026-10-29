@@ -4,7 +4,9 @@ import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from './notifications';
-import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, MAX_TOUR_DAYS } from './tourUtils';
+import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS } from './tourUtils';
+import { PICKUP_OPTIONS } from './pickupPoints';
+import PickupCheckboxes from './ui/PickupCheckboxes';
 import { moneyField, blockSignKeys } from './moneyInput';
 import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
@@ -59,7 +61,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     price: pkg.price ?? (isOpenRequest ? '' : (request.budget || '')),
     regular_rate: pkg.regular_rate ?? '',
     // Exclusive tours keep the joiner's group size and dates.
-    group_size: isOpenRequest ? (pkg.group_size ?? Math.max(18, Number(request.group_size) || 0)) : (Number(request.group_size) || ''),
+    group_size: isOpenRequest ? (pkg.group_size ?? MAX_TOUR_SLOTS) : (Number(request.group_size) || ''),
     difficulty: pkg.difficulty || 'Easy',
     description: pkg.description || pkg.additional_notes || '',
     inclusions: pkg.inclusions || '',
@@ -87,6 +89,20 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   const [dirty, setDirty] = useState(false);
   const savingRef = useRef(false);
   const packageSent = () => !!request.package_sent_at;
+  // Requested tours: the rest of the form opens once the tour has a photo.
+  const locked = isOpenRequest && gallery.length === 0 && newFiles.length === 0;
+  // Requested tours: pickup points are ticked from the fixed list (plus any older custom point).
+  const pickedPlaces = pickups.map((r) => r.location.trim()).filter(Boolean);
+  const pickupChoices = [...PICKUP_OPTIONS, ...pickedPlaces.filter((n) => !PICKUP_OPTIONS.includes(n))];
+  const togglePickup = (place) => {
+    setPickups((rows) => {
+      const kept = rows.filter((r) => r.location.trim());
+      return kept.some((r) => r.location.trim() === place)
+        ? kept.filter((r) => r.location.trim() !== place)
+        : [...kept, { key: key(), location: place, time: '' }];
+    });
+    setDirty(true);
+  };
 
   // A posted tour's pickup points and photos live on the tour itself.
   useEffect(() => {
@@ -137,6 +153,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   const submit = async (e) => {
     e.preventDefault();
     if (savingRef.current) return;
+    if (locked) { toast.error('Add a photo first', 'Upload at least one photo of the tour.'); return; }
     const formEl = e.target;
     const price = Number(form.price);
     const regular = Number(form.regular_rate);
@@ -164,12 +181,12 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
         ? (isOpenRequest ? 'The tour must start at least 2 weeks from today.' : "The start date can't be in the past.") : ''],
       ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
-      ['pickup_0', stops.length === 0 ? 'Add at least one pickup point.' : ''],
+      ['pickup_0', stops.length === 0 ? (isOpenRequest ? 'Tick at least one pickup point.' : 'Add at least one pickup point.') : ''],
       ...pickups.map((r, i) => {
         const loc = r.location.trim().toLowerCase();
         return [`pickup_${i}`, loc && pickups.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
       }),
-      ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : slots > 200 ? 'That looks too high. Please check the number.'
+      ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : isOpenRequest && slots > MAX_TOUR_SLOTS && slots !== Number(pkg.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots.` : slots > 200 ? 'That looks too high. Please check the number.'
         : isOpenRequest && slots < requestedSlots ? `Max slots must fit the requester's group of ${requestedSlots}.` : ''],
       ['description', textError(form.description, 'Description', { required: false, max: 5000 })],
     ]);
@@ -318,6 +335,12 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               </div>
             </div>
 
+            {locked && (
+              <p role="status" style={{ margin: '-8px 0 0', fontSize: 12.5, fontWeight: 800, color: '#8C2F1C' }}>
+                Upload at least one photo first. The other fields open after that.
+              </p>
+            )}
+            <fieldset disabled={locked} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20, opacity: locked ? 0.45 : 1, cursor: locked ? 'not-allowed' : undefined }}>
             <Field label="Tour Title" name="title" value={form.title} onChange={set('title')} placeholder="e.g., Mt. Pulag" maxLength={120} />
 
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -404,7 +427,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
             {/* Pickup points */}
             <div style={sectionBox}>
-              <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points</label>
+              <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points{isOpenRequest ? ' *' : ''}</label>
+              {isOpenRequest ? (
+                <>
+                  <PickupCheckboxes choices={pickupChoices} value={pickedPlaces} onToggle={togglePickup} />
+                  <p style={hint}>Tick at least one. Joiners choose one of these when they book.</p>
+                </>
+              ) : (<>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {pickups.map((r, i) => (
                   <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
@@ -421,11 +450,12 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                 ))}
               </div>
               <button type="button" onClick={() => { setPickups((rows) => [...rows, { key: key(), location: '', time: '' }]); setDirty(true); }} style={addBtn}>+ Add Pickup Point</button>
+              </>)}
             </div>
 
             {isOpenRequest ? (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <Field label="Max Slots" name="group_size" type="number" min="1" step="1" onKeyDown={blockSignKeys} value={form.group_size} onChange={set('group_size')} />
+                <Field label={`Max Slots (up to ${MAX_TOUR_SLOTS})`} name="group_size" type="number" min="1" max={MAX_TOUR_SLOTS} step="1" onKeyDown={blockSignKeys} value={form.group_size} onChange={set('group_size')} />
                 <div>
                   <label style={labelStyle}>Difficulty</label>
                   <select name="difficulty" value={form.difficulty} onChange={set('difficulty')} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
@@ -476,6 +506,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               <textarea name="important_note" value={form.important_note} onChange={set('important_note')} rows="2"
                 style={{ ...inputStyle, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
             </div>
+            </fieldset>
           </div>
         </div>
 
