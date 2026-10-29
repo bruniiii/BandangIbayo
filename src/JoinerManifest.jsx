@@ -8,6 +8,7 @@ import { UsersRound } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
 import { notifyUser } from './notifications';
 import { sendCustomEmail } from './Email';
+import { logAdminMessages } from './adminMessages';
 import { confirmDialog } from './ui/ConfirmDialog';
 
 // ─────────────────────────────────────────────
@@ -233,12 +234,18 @@ const MessageJoiners = ({ tour, bookings, onDone }) => {
     setSending(true);
     let emailed = 0;
     const failed = [];
+    const sentLog = [];
     await Promise.all(userIds.map(async (userId) => {
       await notifyUser(userId, { title, message: `${tour.title} (${when}): ${body}`, type: 'tour' });
-      if (!alsoEmail) return;
-      const { ok } = await sendCustomEmail({ userId, subject: title, message: `${tour.title}, ${when}\n\n${body}` });
-      if (ok) emailed++; else failed.push(userId);
+      let ok = false;
+      if (alsoEmail) {
+        ({ ok } = await sendCustomEmail({ userId, subject: title, message: `${tour.title}, ${when}\n\n${body}` }));
+        if (ok) emailed++; else failed.push(userId);
+      }
+      sentLog.push({ userId, subject: title, message: `${tour.title} (${when})\n\n${body}`, source: 'tour', tourId: tour.id, emailed: ok });
     }));
+    // A copy for the admin's history and the joiner's Messages page.
+    await logAdminMessages(sentLog);
     setSending(false);
     if (failed.length) {
       toast.error(`${failed.length} email${failed.length === 1 ? '' : 's'} didn't send`, `Everyone still got the notification. ${emailed} email${emailed === 1 ? '' : 's'} went out.`);

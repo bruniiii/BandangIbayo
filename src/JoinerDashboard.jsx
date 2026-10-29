@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2, MessagesSquare, Globe
+  Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2, MessagesSquare, Globe, Inbox
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
-import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, groupTripDates, formatDateRange as formatTourDates } from './tourUtils';
+import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, groupTripDates, formatDateRange as formatTourDates, requestStatusLabel, requestPaymentLabel, requestOverdueReason } from './tourUtils';
+import { formatYmdRange } from './dateRange';
 import PriceTag from './ui/PriceTag';
 import { verifyCheckout, cancelCheckout, verifyExclusivePayment } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
@@ -22,6 +23,8 @@ import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
+import AdminInbox from './AdminInbox';
+import { useAdminInboxUnread } from './adminMessages';
 import HelpWidget from './ui/HelpWidget';
 import { useChatUnread, OPEN_CHAT } from './chatStore';
 import { ReviewCard } from './ui/ReviewCards';
@@ -59,6 +62,7 @@ const NAV_ITEMS = [
   { icon: <Globe size={18} strokeWidth={2} />,       label: 'Request a Tour' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
+  { icon: <Inbox size={18} strokeWidth={2} />,       label: 'Messages' },
   { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
 ];
 
@@ -77,6 +81,7 @@ const PAGE_INFO = {
   'Request a Tour':   { icon: Globe,        title: 'Request a Tour',   subtitle: "Suggest a destination we don't offer yet" },
   'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
   'Profile Settings': { icon: User,         title: 'Profile Settings', subtitle: 'Manage your account information and preferences' },
+  'Messages':         { icon: Inbox,        title: 'Messages',         subtitle: 'Emails and tour updates from Bandang IBAYO' },
   'Notification':     { icon: Bell,         title: 'Notifications',    subtitle: 'Updates on your bookings, requests & account' },
 };
 
@@ -110,6 +115,9 @@ const JoinerDashboard = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   // Group chat: unread badge, and "open this tour's chat" from elsewhere (My Bookings).
   const chatUnread = useChatUnread();
+  // Unread messages from the admin (Messages page); re-checked on every page change.
+  const [inboxUnread, setInboxUnread] = useAdminInboxUnread(activeTab);
+  const clearInboxUnread = useCallback(() => setInboxUnread(0), [setInboxUnread]);
   const [chatTourId, setChatTourId] = useState(null);
   const tourScrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -630,7 +638,7 @@ const JoinerDashboard = () => {
               active={activeTab === label}
               collapsed={!sidebarExpanded}
               onClick={() => handleNavClick(label)}
-              badge={label === 'Group Chat' ? chatUnread : 0}
+              badge={label === 'Group Chat' ? chatUnread : label === 'Messages' && activeTab !== 'Messages' ? inboxUnread : 0}
             />
           ))}
         </nav>
@@ -959,6 +967,7 @@ const JoinerDashboard = () => {
                     stop={trackingStop}
                     onClick={() => setActiveTab('Tracking')}
                   />
+                  <MyRequestsCard onOpen={(type) => setActiveTab(type === 'request' ? 'Request a Tour' : 'Exclusive Tours')} />
                 </div>
               </div>
 
@@ -990,6 +999,8 @@ const JoinerDashboard = () => {
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
             <JoinerTracking onExplore={() => handleNavClick('Explore Tours')} />
+          ) : activeTab === 'Messages' ? (
+            <AdminInbox onRead={clearInboxUnread} />
           ) : activeTab === 'Notification' ? (
             <Notification isAdmin={false} onNavigate={handleNotificationNavigate} clearPaymentNotices />
           ) : (
@@ -1425,6 +1436,104 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
           }}>
             {stop.status}
           </span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── EXCLUSIVE / REQUESTED TOURS CARD ── */
+// The joiner's latest Exclusive Tour and Request a Tour requests: where each
+// one is (For Approval, Approved, Tour Confirmed, Rejected) and whether the
+// tour package has arrived. Tapping one opens its page.
+const REQUEST_STATUS_COLORS = {
+  'For Approval': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  Approved: { bg: 'rgba(31,138,92,0.14)', color: '#1F6B47' },
+  'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
+  Rejected: { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
+};
+
+const requestNote = (r, label) => {
+  if (label === 'Rejected') return requestOverdueReason(r) || 'This request was not approved.';
+  if (label === 'For Approval') return 'Waiting for Bandang IBAYO to review it.';
+  if (label === 'Approved') return "Approved! We're preparing your tour package.";
+  if (r.request_type === 'request') return 'Your tour is posted. Your slots are held, pay to confirm them.';
+  const paid = requestPaymentLabel(r);
+  return paid ? `Tour package sent · ${paid}` : 'Your tour package is ready. Open it to see the details and pay.';
+};
+
+const MyRequestsCard = ({ onOpen }) => {
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { if (alive) setRows([]); return; }
+      const { data } = await supabase
+        .from('exclusive_requests')
+        .select('id, request_type, destination, status, package_sent_at, preferred_date, preferred_end_date, created_at, payment_status, balance_settled')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3);
+      if (alive) setRows(data || []);
+    })().catch(() => { if (alive) setRows([]); });
+    return () => { alive = false; };
+  }, []);
+
+  return (
+    <div style={{
+      background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
+      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+        <Sparkles size={15} style={{ color: '#A8481A' }} />
+        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
+          Exclusive &amp; Requested Tours
+        </span>
+      </div>
+
+      {rows === null ? (
+        <SkeletonLines lines={3} label="Loading your requests" />
+      ) : rows.length === 0 ? (
+        <>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 12px' }}>
+            No requests yet. Plan a private trip or ask us to open a tour.
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[['exclusive', 'Exclusive Tour'], ['request', 'Request a Tour']].map(([type, label]) => (
+              <button key={type} type="button" onClick={() => onOpen(type)} style={{
+                flex: '1 1 120px', padding: '9px 10px', borderRadius: 10, border: '1px solid rgba(180,81,30,0.3)', background: 'transparent',
+                color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+              }}>{label}</button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {rows.map((r) => {
+            const label = requestStatusLabel(r);
+            const tone = REQUEST_STATUS_COLORS[label] || REQUEST_STATUS_COLORS['For Approval'];
+            return (
+              <button key={r.id} type="button" onClick={() => onOpen(r.request_type)} style={{
+                textAlign: 'left', width: '100%', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 14,
+                padding: '10px 12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 5,
+              }}>
+                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+                    {r.request_type === 'request' ? 'Requested Tour' : 'Exclusive Tour'}
+                  </span>
+                  <span style={{ fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, background: tone.bg, color: tone.color, whiteSpace: 'nowrap' }}>{label}</span>
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.destination || 'Tour request'}</span>
+                {r.preferred_date && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <CalendarIcon size={11} style={{ color: '#A8481A' }} /> {formatYmdRange(r.preferred_date, r.preferred_end_date || r.preferred_date)}
+                  </span>
+                )}
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: label === 'Rejected' ? '#8C2F1C' : '#7A3A18', lineHeight: 1.4 }}>{requestNote(r, label)}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

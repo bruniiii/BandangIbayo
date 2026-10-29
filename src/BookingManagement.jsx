@@ -894,8 +894,15 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               color="#1A0A00" bg="rgba(26,10,0,0.05)"
               icon={<XCircle size={20} />}
               title="Booking Cancelled"
-              text={booking.cancellation_reason ? `Cancelled at the joiner's request (“${booking.cancellation_reason}”). The slot has been released back to the tour.` : 'This booking was cancelled. The slot has been released back to the tour.'}
-            />
+              text={booking.cancellation_reason ? "Cancelled at the joiner's request. The slot has been released back to the tour." : 'This booking was cancelled. The slot has been released back to the tour.'}
+            >
+              {booking.cancellation_reason && (
+                <div style={{ marginTop: 12, background: '#FDF6EE', border: '1.5px solid rgba(140,47,28,0.35)', borderLeft: '5px solid #8C2F1C', borderRadius: 12, padding: '12px 14px' }}>
+                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8C2F1C' }}>Joiner's reason for cancelling</p>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.5, wordBreak: 'break-word' }}>“{booking.cancellation_reason}”</p>
+                </div>
+              )}
+            </Notice>
           )}
  
           {/* Confirmed Notice */}
@@ -1248,15 +1255,16 @@ const InfoItem = ({ label, value, mono = false }) => (
   </div>
 );
  
-const Notice = ({ color, bg, icon, title, text }) => (
+const Notice = ({ color, bg, icon, title, text, children }) => (
   <div style={{
     background: bg, borderRadius: 18, padding: '1.25rem 1.5rem',
     border: `1px solid ${color}33`, display: 'flex', gap: 14,
   }}>
     <span style={{ color, flexShrink: 0, marginTop: 1 }}>{icon}</span>
-    <div>
+    <div style={{ flex: 1, minWidth: 0 }}>
       <p style={{ fontSize: 13, fontWeight: 900, color, margin: '0 0 4px' }}>{title}</p>
       <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, lineHeight: 1.6 }}>{text}</p>
+      {children}
     </div>
   </div>
 );

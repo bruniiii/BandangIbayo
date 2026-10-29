@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
-import { archivePastTours } from './tourUtils';
+import { archivePastTours, todayManila } from './tourUtils';
 
 import { nameError, phoneError, cleanName, normalizePhone, formatPhPhone } from './validation';
 import {
@@ -386,6 +386,7 @@ export const AdminTrackingControls = () => {
           <TrackingTourCard
             key={tour.id}
             tour={tour}
+            badge={tripBadge(tour, toursList)}
             onTrack={() => setActiveTour(tour)}
             onCheckIn={() => setCheckInTourId(tour.id)}
           />
@@ -447,7 +448,18 @@ export const AdminTrackingControls = () => {
   );
 };
 
-const TrackingTourCard = ({ tour, onTrack, onCheckIn }) => {
+// The card's corner label: Archived, On-going (today is within the tour's
+// dates) or Next Trip (the soonest tour that hasn't started). Others get none.
+const tripBadge = (tour, tours, today = todayManila()) => {
+  if (tour?.is_archived) return 'Archived';
+  const start = tour?.start_date;
+  if (!start) return '';
+  if (start <= today && (tour.end_date || start) >= today) return 'On-going';
+  const next = tours.map((t) => t.start_date).filter((d) => d && d > today).sort()[0];
+  return start === next ? 'Next Trip' : '';
+};
+
+const TrackingTourCard = ({ tour, badge, onTrack, onCheckIn }) => {
   const [hovered, setHovered] = useState(false);
   const displayImage = Array.isArray(tour?.image_urls) && tour.image_urls.length > 0
     ? tour.image_urls[0]
@@ -473,9 +485,11 @@ const TrackingTourCard = ({ tour, onTrack, onCheckIn }) => {
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
         )}
-        <span style={{ position: 'absolute', top: 12, right: 12, background: tour?.is_archived ? '#7A3A18' : PALETTE.burntSienna, color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Compass size={10} /> {tour?.is_archived ? 'Archived' : 'Tracking'}
-        </span>
+        {badge && (
+          <span style={{ position: 'absolute', top: 12, right: 12, background: badge === 'Archived' ? '#7A3A18' : badge === 'On-going' ? '#1F8A5C' : PALETTE.burntSienna, color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Compass size={10} /> {badge}
+          </span>
+        )}
       </div>
 
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

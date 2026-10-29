@@ -684,7 +684,8 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             <PackageTourForm
               request={{ ...request, package_details: pkg, package_sent_at: packageSentAt }}
               onClose={() => setShowPackageForm(false)}
-              onSent={({ pkg: saved, sentAt }) => { setPkg(saved); setPackageSentAt(sentAt); setShowPackageForm(false); }}
+              // Once the package is sent, close the request and go back to the list.
+              onSent={({ pkg: saved, sentAt }) => { setPkg(saved); setPackageSentAt(sentAt); setShowPackageForm(false); onResolved(); }}
             />
           )}
 
