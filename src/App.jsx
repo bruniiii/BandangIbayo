@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase, openedFromResetLink } from './supabaseClient';
 import { FaFacebook } from "react-icons/fa"; 
@@ -8,17 +8,20 @@ import {
 } from 'lucide-react';
 import logoIcon from './assets/logo.png';
  
-import JoinerLogin from './JoinerLogin'; 
-import JoinerRegister from './JoinerRegister';
-import AuthCallback from './AuthCallback';
+// Pages other than the landing page load only when they're opened, so the
+// landing page doesn't download the whole app first.
+const JoinerLogin = lazy(() => import('./JoinerLogin'));
+const JoinerRegister = lazy(() => import('./JoinerRegister'));
+const AuthCallback = lazy(() => import('./AuthCallback'));
 import HelpWidget from './ui/HelpWidget';
-import AdminDashboard from './AdminDashboard';
+const AdminDashboard = lazy(() => import('./AdminDashboard'));
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
-import JoinerDashboard from './JoinerDashboard';
-import ForgotPassword from './ForgotPassword';
-import ResetPassword from './ResetPassword';
-import { PublicTourList, PublicTourDetail } from './PublicTours';
+const JoinerDashboard = lazy(() => import('./JoinerDashboard'));
+const ForgotPassword = lazy(() => import('./ForgotPassword'));
+const ResetPassword = lazy(() => import('./ResetPassword'));
+const PublicTourList = lazy(() => import('./PublicTours').then((m) => ({ default: m.PublicTourList })));
+const PublicTourDetail = lazy(() => import('./PublicTours').then((m) => ({ default: m.PublicTourDetail })));
 import { todayManila, groupTripDates, weekdayRange } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import PriceTag from './ui/PriceTag';
@@ -199,7 +202,7 @@ function LandingPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 80px rgba(180,81,30,0.2)',
             }}>
-              <img src="/sampLOGO.png" alt="Bandang IBAYO" style={{ width: 340, height: 340, objectFit: 'contain' }}/>
+              <img src="/hero-logo.webp" alt="Bandang IBAYO" width={340} height={340} fetchPriority="high" decoding="async" style={{ width: 340, height: 340, objectFit: 'contain' }}/>
             </div>
           </div>
  
@@ -282,7 +285,7 @@ function LandingPage() {
                 }}>
                   <div style={{ height: 220, overflow: 'hidden', position: 'relative', background: '#2D1B0E' }}>
                     <Link to={`/tours/${tour.id}`} aria-label={tour.title} style={{ position: 'absolute', inset: 0, zIndex: 1 }} />
-                    <img src={tour.image_urls?.[0] || '/LogoLS.png'} alt={tour.title} className="tour-card-img" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}/>
+                    <img src={tour.image_urls?.[0] || '/tour-placeholder.webp'} alt={tour.title} className="tour-card-img" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s' }}/>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,10,0,0.55) 0%, transparent 55%)' }}/>
                     {tour.difficulty && (
                       <span style={{
@@ -527,6 +530,14 @@ function LandingPage() {
   );
 }
  
+// Shown for a moment while a page's code loads.
+const PageLoading = () => (
+  <div role="status" aria-label="Loading" style={{ minHeight: '100dvh', background: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <img src={logoIcon} alt="" width={56} height={56} style={{ opacity: 0.85, animation: 'ibayo-pulse 1.2s ease-in-out infinite' }} />
+    <style>{'@keyframes ibayo-pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}'}</style>
+  </div>
+);
+
 export default function App() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -547,6 +558,7 @@ export default function App() {
   }, []);
 
   return (
+    <Suspense fallback={<PageLoading />}>
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<JoinerLogin />} />
@@ -561,5 +573,6 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<LandingPage />} />
     </Routes>
+    </Suspense>
   );
 }
