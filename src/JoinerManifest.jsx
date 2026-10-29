@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Printer, X, Loader2, MapPin, Truck, Users, Megaphone, Send } from 'lucide-react';
+import { Printer, X, Loader2, MapPin, Truck, Users, Megaphone, Send } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { formatDateRange, formatPeso } from './tourUtils';
@@ -15,8 +15,8 @@ import { confirmDialog } from './ui/ConfirmDialog';
 // JOINER LIST (manifest) for one tour, for drivers and guides.
 // Everyone on an active booking: the person who booked plus their
 // companions, with contact numbers, payment status and balance due,
-// plus the tour's pickup points and vehicle. Download as CSV, or
-// print / save as PDF from the browser's print dialog.
+// plus the tour's pickup points and vehicle. Print / save as PDF from the
+// browser's print dialog.
 // ─────────────────────────────────────────────
 
 const balanceDue = (b) =>
@@ -37,13 +37,6 @@ const toPeople = (bookings) => bookings.flatMap((b) => [
     role: `With ${b.full_name}`, payment: '', balance: 0,
   })),
 ]);
-
-const csvCell = (v) => {
-  const s = String(v ?? '');
-  // Stop spreadsheet apps from treating a cell as a formula.
-  const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
-  return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
-};
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -72,30 +65,6 @@ const JoinerListModal = ({ tour, onClose }) => {
 
   const people = data ? toPeople(data.bookings) : [];
   const fileBase = `joiners-${(tour.title || 'tour').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${tour.start_date}`;
-
-  const downloadCsv = () => {
-    const lines = [
-      [tour.title, formatDateRange(tour.start_date, tour.duration), tour.destination],
-      [],
-      ['#', 'Name', 'Contact number', 'Booking number', 'Booked / with', 'Payment status', 'Balance due'],
-      ...people.map((p, i) => [i + 1, p.name, p.contact, p.booking, p.role, p.payment, p.balance ? p.balance : '']),
-      [],
-      ['Pickup point', 'ETA', 'Note'],
-      ...data.stops.map((s) => [s.location_name, s.scheduled_time, s.note]),
-    ];
-    if (data.vehicle) {
-      lines.push([], ['Vehicle', 'Plate number', 'Driver', 'Driver contact'],
-        [data.vehicle.car_type, data.vehicle.plate_number, data.vehicle.driver_name, data.vehicle.driver_contact]);
-    }
-    // BOM so Excel reads ₱ and ñ correctly.
-    const blob = new Blob(['﻿' + lines.map((r) => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${fileBase}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const printList = () => {
     const w = window.open('', '_blank');
@@ -140,7 +109,6 @@ const JoinerListModal = ({ tour, onClose }) => {
           ) : (
             <>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                <button type="button" onClick={downloadCsv} style={actionButton('#1A0A00')}><Download size={14} /> Download CSV</button>
                 <button type="button" onClick={printList} style={actionButton('#A8481A')}><Printer size={14} /> Print / Save as PDF</button>
                 <button type="button" onClick={() => setComposing((v) => !v)} disabled={!data.bookings.length} aria-expanded={composing}
                   style={{ ...actionButton('#FDF6EE'), color: '#1A0A00', border: '1px solid rgba(122,58,24,0.35)', opacity: data.bookings.length ? 1 : 0.5 }}>
