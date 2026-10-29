@@ -7,9 +7,9 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, isOnSale } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, isOnSale, rateChecks, RATE_HINT, MAX_TOUR_DAYS } from './tourUtils';
 import PriceTag from './ui/PriceTag';
-import { moneyInputProps, blockSignKeys, cleanMoney } from './moneyInput';
+import { moneyInputProps, blockSignKeys, moneyField, moneyNumber, moneyDisplay } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import {
   Plus, Edit, Archive, Eye, MapPin, Clock, Users, X, Search,
@@ -19,6 +19,9 @@ import {
 } from 'lucide-react';
 import { SkeletonTourCards } from './ui/Skeleton';
 import ItineraryTimeline from './ui/ItineraryTimeline';
+import { addDaysYmd } from './dateRange';
+import { AccommodationCheckboxes } from './ui/Accommodation';
+import { cleanAccommodation } from './accommodation';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -83,6 +86,8 @@ const TourManagement = () => {
   const [otherExpenses, setOtherExpenses] = useState([]);
   // The Joiner Rate as typed (the field itself is uncontrolled), for the sale price preview.
   const [formTourPrice, setFormTourPrice] = useState('');
+  // Accommodation joiners can choose from (Tent, AC Room, Non-AC Room); none means no choice.
+  const [formAccommodation, setFormAccommodation] = useState([]);
   const blankExpense = () => ({ key: `e-${Math.random()}`, name: '', amount: '' });
   // Opens the form for a new trip, or for a trip's details and dates (withNewDate adds an empty date to fill in).
   const openTourForm = (trip = null, { withNewDate = false } = {}) => {
@@ -97,6 +102,7 @@ const TourManagement = () => {
     const others = Array.isArray(trip?.expenses?.others) ? trip.expenses.others : [];
     setOtherExpenses(others.map((o) => ({ key: `e-${Math.random()}`, name: o.name, amount: String(o.amount) })));
     setFormTourPrice(trip?.price ?? '');
+    setFormAccommodation(cleanAccommodation(trip?.accommodation_options));
     setFormDirty(false);
     setShowModal(true);
   };
@@ -225,10 +231,10 @@ const TourManagement = () => {
     if (savingRef.current) return;
     const formEl    = e.target;
     const formData  = new FormData(formEl);
-    const price     = Number(formData.get('price'));
-    const regularRate = Number(formData.get('regular_rate'));
-    const vanRent = Number(formData.get('van_rent'));
-    const tourGuide = Number(formData.get('tour_guide'));
+    const price     = moneyNumber(formData.get('price'));
+    const regularRate = moneyNumber(formData.get('regular_rate'));
+    const vanRent = moneyNumber(formData.get('van_rent'));
+    const tourGuide = moneyNumber(formData.get('tour_guide'));
     const pickups = pickupRows.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location);
     const pickupNames = pickups.map((r) => r.location.toLowerCase());
     const groupSize = Number(formData.get('group_size'));
@@ -245,7 +251,7 @@ const TourManagement = () => {
         [`start_date_${i}`, dateRows.findIndex((o) => o.start_date === r.start_date) !== i ? `${label}This trip already has a date starting that day.` : ''],
         [`end_date_${i}`, !r.end_date ? `${label}Pick an end date.` : ''],
         [`end_date_${i}`, r.end_date < r.start_date ? `${label}The end date can't be before the start date.` : ''],
-        [`end_date_${i}`, tripDays > 30 ? `${label}A tour longer than 30 days looks like a typo. Please check the dates.` : ''],
+        [`end_date_${i}`, tripDays > MAX_TOUR_DAYS ? `${label}A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
         // Sale (5% off the Joiner Rate) on this date only, ending by the day the tour starts.
         [`sale_starts_${i}`, r.sale && !r.sale_starts ? `${label}Pick when the sale starts.` : ''],
         [`sale_ends_${i}`, r.sale && !r.sale_ends ? `${label}Pick when the sale ends.` : ''],
@@ -260,13 +266,7 @@ const TourManagement = () => {
     const ok = dateRows.length > 0 && checkFields(formEl, [
       ['title', textError(formData.get('title'), 'Tour title', { min: 3, max: 120 })],
       ['destination', textError(formData.get('destination'), 'Destination', { min: 2, max: 120 })],
-      ['regular_rate', !Number.isFinite(regularRate) || regularRate < 1000 ? 'The Regular Rate must be at least ₱1,000.' : ''],
-      ['regular_rate', Math.abs(Math.round(regularRate * 100) - regularRate * 100) > 1e-6 ? 'The Regular Rate can have at most 2 decimal places (centavos).' : ''],
-      ['regular_rate', regularRate > 7500 ? 'The Regular Rate can be at most ₱7,500.' : ''],
-      ['price', !Number.isFinite(price) || price <= 0 ? 'Please enter a price above ₱0. Tours can\'t be free.' : ''],
-      ['price', Number.isFinite(regularRate) && regularRate >= 1000 && price < regularRate + 500 ? `The Joiner Rate must be at least ₱500 more than the Regular Rate (at least ${formatPeso(regularRate + 500)}).` : ''],
-      ['price', Math.abs(Math.round(price * 100) - price * 100) > 1e-6 ? 'Price can have at most 2 decimal places (centavos).' : ''],
-      ['price', price > 8000 ? 'The Joiner Rate can be at most ₱8,000.' : ''],
+      ...rateChecks(regularRate, price),
       ...dateChecks,
       ['van_rent', !Number.isFinite(vanRent) || vanRent < 15000 ? 'Van Rent must be at least ₱15,000.' : ''],
       ['van_rent', vanRent > 30000 ? 'Van Rent can be at most ₱30,000.' : ''],
@@ -316,6 +316,7 @@ const TourManagement = () => {
       itinerary:      formData.get('itinerary'),
       important_note: formData.get('important_note'),
       image_urls:     finalGallery,
+      accommodation_options: cleanAccommodation(formAccommodation),
       is_archived:    false,
     };
     const withDates = (r) => ({
@@ -742,21 +743,23 @@ const TourManagement = () => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} required />
-                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="₱1,500 – ₱8,000" defaultValue={formTour?.price} onChange={(e) => setFormTourPrice(e.target.value)} required />
+                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="1,800.00 – 7,500.00" defaultValue={moneyDisplay(formTour?.price)} onChange={(e) => setFormTourPrice(String(moneyNumber(e.target.value) || ''))} required />
                 </div>
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
-                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="₱1,000 – ₱7,500" defaultValue={formTour?.regular_rate ?? ''} required />
+                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="1,300.00 – 7,500.00" defaultValue={moneyDisplay(formTour?.regular_rate)} required />
                   <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
-                    Admins only, never shown to joiners. ₱1,000 to ₱7,500; the Joiner Rate (what joiners pay, up to ₱8,000) must be at least ₱500 more.
+                    {RATE_HINT}
                   </p>
                 </div>
+
+                <AccommodationCheckboxes value={formAccommodation} onChange={(v) => { setFormAccommodation(v); setFormDirty(true); }} />
 
                 {/* Expenses: what this trip costs (booked joiners see the item names only, no prices; used for income in Reports). */}
                 <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Expenses</label>
                   <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                    <ModalInput label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder="₱15,000 – ₱30,000" defaultValue={formTour?.expenses?.van_rent ?? ''} onChange={() => setFormDirty(true)} required />
-                    <ModalInput label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder="₱1,300 – ₱2,000" defaultValue={formTour?.expenses?.tour_guide ?? ''} onChange={() => setFormDirty(true)} required />
+                    <ModalInput label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder="15,000.00 – 30,000.00" defaultValue={moneyDisplay(formTour?.expenses?.van_rent)} onChange={() => setFormDirty(true)} required />
+                    <ModalInput label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder="1,300.00 – 2,000.00" defaultValue={moneyDisplay(formTour?.expenses?.tour_guide)} onChange={() => setFormDirty(true)} required />
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 5 }}>Bag Tag (₱)</label>
                       <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>260.00 <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span></p>
@@ -772,8 +775,7 @@ const TourManagement = () => {
                       </div>
                       <div>
                         <label style={labelStyle}>Amount (₱)</label>
-                        <input name={`other_amount_${i}`} {...moneyInputProps} value={o.amount}
-                          onChange={(e) => { const v = cleanMoney(e.target.value); setOtherExpenses((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: v } : x))); setFormDirty(true); }}
+                        <input name={`other_amount_${i}`} {...moneyField(o.amount, (v) => { setOtherExpenses((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: v } : x))); setFormDirty(true); })}
                           style={inputStyle} />
                       </div>
                       <button type="button" aria-label="Remove this expense" onClick={() => { setOtherExpenses((rows) => rows.filter((x) => x.key !== o.key)); setFormDirty(true); }}
@@ -813,7 +815,7 @@ const TourManagement = () => {
                           </div>
                           <div>
                             <label style={labelStyle}>End Date</label>
-                            <input type="date" name={`end_date_${i}`} min={r.start_date || minDate} value={r.end_date} onChange={(e) => updateDateRow(r.key, 'end_date', e.target.value)}
+                            <input type="date" name={`end_date_${i}`} min={r.start_date || minDate} max={r.start_date ? addDaysYmd(r.start_date, MAX_TOUR_DAYS - 1) : undefined} value={r.end_date} onChange={(e) => updateDateRow(r.key, 'end_date', e.target.value)}
                               style={inputStyle} required />
                           </div>
                           <button

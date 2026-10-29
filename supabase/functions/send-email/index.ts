@@ -199,7 +199,8 @@ async function runReminders(date: string, dryRun: boolean) {
   const errors: string[] = [];
 
   for (const b of list as any[]) {
-    if (!b.email || b.email === "N/A") { skipped++; continue; }
+    const to = await recipientFor(b.user_id, b.email === "N/A" ? null : b.email);
+    if (!to) { skipped++; continue; }
 
     const p = profileMap[b.user_id];
     const profileName = p ? `${p.first_name || ""} ${p.last_name || ""}`.trim() : "";
@@ -211,7 +212,7 @@ async function runReminders(date: string, dryRun: boolean) {
     try {
       await transporter.sendMail({
         from: `"Bandang IBAYO" <${GMAIL_USER}>`,
-        to: b.email,
+        to,
         replyTo: GMAIL_USER,
         subject: `Reminder: ${tour.title} starts tomorrow 🚐 (${b.booking_number})`,
         html: buildEmail({ name, booking: b, tour, vehicle: vehicleByTour[b.tour_id], stops: stopsByTour[b.tour_id] }),
@@ -311,8 +312,15 @@ const displayName = (profile: any, fallback?: string | null) => {
   return n || (fallback && fallback !== "N/A" ? fallback : "Traveler");
 };
 
-// Who the email goes to: the address on the record, else the account's login email.
+// Who the email goes to: the joiner's primary email when they chose their
+// second email in Profile Settings, else the address on the record, else the
+// account's login email.
 async function recipientFor(userId: string | null, recordEmail?: string | null) {
+  if (userId) {
+    const { data: p } = await supabase.from("profiles").select("secondary_email, primary_email").eq("id", userId).maybeSingle();
+    const chosen = p?.primary_email === "secondary" ? usableEmail(p?.secondary_email) : null;
+    if (chosen) return chosen;
+  }
   const direct = usableEmail(recordEmail);
   if (direct) return direct;
   if (!userId) return null;
@@ -624,8 +632,28 @@ async function removeFolder(bucket: string, folder: string) {
 async function deleteAccount(userId: string, payload: any) {
   if (payload.confirm !== "DELETE") throw new HttpError(400, "Please confirm by typing DELETE.");
 
+  // Admins see deleted accounts under Joiner Accounts → Archived: keep a short
+  // note (name, username, email and dates), nothing else.
+  const [{ data: who }, { data: login }] = await Promise.all([
+    supabase.from("profiles").select("first_name, last_name, username, role, created_at").eq("id", userId).maybeSingle(),
+    supabase.auth.admin.getUserById(userId),
+  ]);
+
   const { data: purged, error } = await supabase.rpc("purge_user_data", { p_user_id: userId });
   if (error) throw new HttpError(409, error.message);
+
+  if (who?.role !== "admin") {
+    const { error: archiveError } = await supabase.from("archived_accounts").insert({
+      user_id: userId,
+      full_name: `${who?.first_name || ""} ${who?.last_name || ""}`.trim() || null,
+      username: who?.username || null,
+      email: login?.user?.email || null,
+      registered_at: who?.created_at || login?.user?.created_at || null,
+      last_sign_in_at: login?.user?.last_sign_in_at || null,
+      reason: "deleted",
+    });
+    if (archiveError) console.error("send-email[delete-account]: couldn't record the archived account", archiveError.message);
+  }
 
   const receipts = ((purged?.receipts ?? []) as string[]).map(receiptStoragePath).filter(Boolean) as string[];
   if (receipts.length) await supabase.storage.from("booking-receipts").remove(receipts);

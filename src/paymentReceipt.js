@@ -4,8 +4,10 @@ import { fetchTourExpenses, expenseItems } from './tourExpenses';
 
 // ─────────────────────────────────────────────
 // PAYMENT RECEIPTS (PDF), in the style of a printed till receipt: narrow
-// paper, a centered header, QTY / DESC / AMT lines, the amount paid in big
+// paper, a centered header, QTY / DESC / AMOUNT lines, the amount paid in big
 // type, totals and the booking's check-in QR.
+// A downpayment gets its own receipt (with the remaining balance), and once
+// the balance is paid there's a second receipt for that payment.
 // Generated in the browser; jsPDF is loaded only when a receipt is made.
 // Amounts use "PHP" because the PDF's built-in fonts have no peso sign.
 // This acknowledges a payment; it is not a BIR-registered official receipt.
@@ -16,7 +18,7 @@ const manila = (d, opts) => new Date(d).toLocaleString('en-US', { timeZone: 'Asi
 const dateOf = (d) => manila(d, { month: '2-digit', day: '2-digit', year: 'numeric' });
 const timeOf = (d) => manila(d, { hour: '2-digit', minute: '2-digit', hour12: true });
 
-export const receiptNumber = (booking) => `R-${booking.booking_number}`;
+export const receiptNumber = (booking, part = 'payment') => `R-${booking.booking_number}${part === 'balance' ? '-BAL' : ''}`;
 
 export const balanceRemaining = (booking) =>
   booking.payment_method === 'Downpayment' && !booking.balance_settled
@@ -73,7 +75,7 @@ const makePen = (doc, W) => {
     },
     columns() {
       font(8);
-      doc.text('QTY', L, y); doc.text('DESC', L + 30, y); doc.text('AMT', R, y, { align: 'right' });
+      doc.text('QTY', L, y); doc.text('DESC', L + 30, y); doc.text('AMOUNT', R, y, { align: 'right' });
       y += 6;
       this.dashes();
     },
@@ -90,13 +92,13 @@ const makePen = (doc, W) => {
     total(label, value, size = 8.5) {
       font(size);
       doc.text(String(label), L + 30, y);
-      doc.text(String(value), L + 120, y);
+      doc.text(String(value), R, y, { align: 'right' });
       y += size + 7;
     },
     big(label, value) {
-      font(15);
-      doc.text(String(label), L + 30, y);
-      doc.text(String(value), L + 82, y);
+      font(13);
+      doc.text(String(label), L, y);
+      doc.text(String(value), R, y, { align: 'right' });
       y += 22;
     },
     qr(dataUrl, caption) {
@@ -133,63 +135,87 @@ const expenseLines = (pen, expenses) => {
   const items = expenseItems(expenses);
   if (!items.length) return;
   pen.gap(2);
-  pen.pair('INCLUDED', '', 7.5);
+  pen.pair('INCLUSION', '', 7.5);
   items.forEach((i) => pen.item('', i.label, 'Included'));
 };
 
 // ── Tour booking receipt ──────────────────────
-const bookingReceipt = async (booking, tour, { expenses } = {}) => {
+// The downpayment a booking started with (40% of the total, as charged).
+const downpaymentOf = (total) => Math.round(total * 40) / 100;
+// Whether a booking has a second receipt for its paid balance.
+export const hasBalanceReceipt = (booking) => booking.payment_method === 'Downpayment' && !!booking.balance_settled;
+
+// part: 'payment' (the full payment or the downpayment) or 'balance' (the
+// remaining balance, once it's paid).
+const bookingReceipt = async (booking, tour, { expenses, part = 'payment' } = {}) => {
   const exp = expenses === undefined ? await fetchTourExpenses(booking.tour_id) : expenses;
-  const paidAt = booking.balance_settled_at || booking.paid_online_at || booking.updated_at || booking.created_at || new Date();
   const pax = booking.slots_booked || 1;
   const discount = Number(booking.sale_discount) || 0;
   const total = Number(booking.total_price) || 0;
-  const paid = Number(booking.amount_paid ?? total) || 0;
-  const balance = balanceRemaining(booking);
+  const isDown = booking.payment_method === 'Downpayment';
+  const settled = isDown && !!booking.balance_settled;
+  const isBalance = part === 'balance' && settled;
+  // What this receipt is for, and what was still owed after it.
+  const down = isDown ? (settled ? downpaymentOf(total) : Number(booking.amount_paid ?? 0) || 0) : 0;
+  const paidNow = isBalance ? Math.max(0, total - down) : isDown ? down : Number(booking.amount_paid ?? total) || 0;
+  const paidSoFar = isBalance ? total : paidNow;
+  const remaining = isBalance ? 0 : isDown ? Math.max(0, total - down) : 0;
+  const paidAt = isBalance
+    ? (booking.balance_settled_at || new Date())
+    : (booking.paid_online_at || booking.updated_at || booking.created_at || new Date());
   const companions = (booking.companions || []).map((c) => c.full_name).filter(Boolean);
-  const method = booking.paymongo_payment_id ? 'ONLINE' : 'GCASH';
+  // Paid online through PayMongo, or recorded by the agency (a balance paid on the day).
+  const method = (isBalance ? booking.paymongo_balance_payment_id : booking.paymongo_payment_id) ? 'ONLINE'
+    : isBalance ? 'PAID ON THE DAY' : 'GCASH';
+  const kind = isBalance ? 'BALANCE PAYMENT' : String(booking.payment_method || 'Full Payment').toUpperCase();
   const qr = await qrImage(checkinQrText(booking));
 
   return buildReceipt({
-    filename: `receipt-${booking.booking_number}.pdf`,
+    filename: `receipt-${booking.booking_number}${isBalance ? '-balance' : ''}.pdf`,
     draw: (pen) => {
       header(pen);
+      if (isBalance) pen.center('BALANCE RECEIPT', 9);
       pen.pair(dateOf(paidAt), timeOf(paidAt));
       pen.pair(`BOOKING ${booking.booking_number || '—'}`, '');
       pen.pair(`JOINER ${String(booking.full_name || '—').toUpperCase()}`, '');
-      pen.pair(`${method} · ${String(booking.payment_method || 'Full Payment').toUpperCase()}`, '');
-      if (booking.paymongo_payment_id) pen.pair(`REF ${booking.paymongo_payment_id}`, '', 7);
-      else if (booking.gcash_reference_no) pen.pair(`REF ${booking.gcash_reference_no}`, '', 7);
+      pen.pair(`${method} · ${kind}`, '');
+      if (!isBalance && booking.paymongo_payment_id) pen.pair(`REF ${booking.paymongo_payment_id}`, '', 7);
+      else if (isBalance && booking.paymongo_balance_payment_id) pen.pair(`REF ${booking.paymongo_balance_payment_id}`, '', 7);
+      else if (!isBalance && booking.gcash_reference_no) pen.pair(`REF ${booking.gcash_reference_no}`, '', 7);
       pen.gap(4);
       pen.columns();
       pen.item(pax, `${tour?.title || 'Tour'} (${formatDateRange(tour?.start_date, tour?.duration)})`, php(total + discount));
       if (discount > 0) pen.item('', 'Sale discount (5%)', `- ${php(discount)}`);
+      if (booking.accommodation) pen.item('', `Accommodation: ${booking.accommodation}`, '');
       if (booking.pickup_point) pen.item('', `Pickup: ${booking.pickup_point}`, '');
       if (companions.length) pen.item('', `With: ${companions.join(', ')}`, '');
       expenseLines(pen, exp);
       pen.gap(10);
-      pen.big('AMT', php(paid));
+      pen.big('AMOUNT', php(paidNow));
       pen.total('SUBTOTAL', php(total + discount));
       if (discount > 0) pen.total('DISCOUNT', `- ${php(discount)}`);
       pen.total('TOTAL', php(total));
-      pen.total('PAID', php(paid));
-      pen.total('BALANCE', balance > 0 ? php(balance) : 'PHP 0.00');
-      if (balance > 0) pen.note('Balance due on or before the tour date.');
+      if (isBalance) pen.total('DOWNPAYMENT', php(down));
+      pen.total(isBalance ? 'BALANCE PAID' : 'PAID', php(paidNow));
+      if (isBalance) pen.total('TOTAL PAID', php(paidSoFar));
+      if (remaining > 0) pen.total('REMAINING BALANCE', php(remaining));
+      if (remaining > 0) pen.note(settled ? `Balance paid on ${dateOf(booking.balance_settled_at || new Date())}. See the balance receipt.` : 'Balance due on or before the tour date.');
+      else if (isBalance) pen.note('Fully paid. Thank you!');
       return footer(pen, qr, 'Show this QR at check-in on the tour day',
-        `${receiptNumber(booking)} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Payments are non-refundable. Not a BIR-registered official receipt.`);
+        `${receiptNumber(booking, isBalance ? 'balance' : 'payment')} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Payments are non-refundable. Not a BIR-registered official receipt.`);
     },
   });
 };
 
-export const downloadReceipt = async (booking, tour) => {
-  const { doc, filename } = await bookingReceipt(booking, tour);
+export const downloadReceipt = async (booking, tour, part = 'payment') => {
+  const { doc, filename } = await bookingReceipt(booking, tour, { part });
   doc.save(filename);
 };
 
 // Admin "Print Receipt": the same receipt, opened in a new tab to print.
-export const printReceipt = async (booking, tour) => {
+export const printReceipt = async (booking, tour, part = 'payment') => {
   const win = window.open('', '_blank'); // opened now, so the browser doesn't block it
-  const { doc } = await bookingReceipt(booking, tour);
+  const { doc } = await bookingReceipt(booking, tour, { part });
   doc.autoPrint();
   const url = doc.output('bloburl');
   if (win) win.location.href = url; else window.open(url, '_blank');
@@ -198,37 +224,46 @@ export const printReceipt = async (booking, tour) => {
 // ── Exclusive tour receipt (50% downpayment, then the balance) ──
 export const exclusiveReceiptNumber = (request) => `R-EX-${String(request.id).slice(0, 8).toUpperCase()}`;
 
-export const downloadExclusiveReceipt = async (request) => {
+// part: 'payment' (the 50% downpayment) or 'balance' (the rest, once paid).
+export const downloadExclusiveReceipt = async (request, part = 'payment') => {
   const pkg = request.package_details || {};
   const price = Number(pkg.price) || 0;
-  const paid = Number(request.amount_paid) || 0;
-  const balance = request.balance_settled ? 0 : Math.max(0, price - paid);
+  const isBalance = part === 'balance' && !!request.balance_settled;
+  const down = Number(request.downpayment_amount) || Math.round(price * 50) / 100;
+  const paidNow = isBalance ? (Number(request.balance_amount) || Math.max(0, price - down)) : down;
+  const remaining = isBalance ? 0 : Math.max(0, price - down);
   const start = pkg.start_date || request.preferred_date;
   const end = pkg.end_date || request.preferred_end_date || start;
-  const paidAt = request.balance_paid_at || request.paid_at || new Date();
-  const code = exclusiveReceiptNumber(request);
+  const paidAt = (isBalance ? request.balance_paid_at : request.paid_at) || new Date();
+  const code = `${exclusiveReceiptNumber(request)}${isBalance ? '-BAL' : ''}`;
   const qr = await qrImage(code);
+  const ref = isBalance ? request.balance_paymongo_payment_id : request.paymongo_payment_id;
 
   const { doc, filename } = await buildReceipt({
-    filename: `receipt-exclusive-${String(request.id).slice(0, 8)}.pdf`,
+    filename: `receipt-exclusive-${String(request.id).slice(0, 8)}${isBalance ? '-balance' : ''}.pdf`,
     draw: (pen) => {
       header(pen);
+      if (isBalance) pen.center('BALANCE RECEIPT', 9);
       pen.pair(dateOf(paidAt), timeOf(paidAt));
       pen.pair('EXCLUSIVE TOUR', '');
       pen.pair(`JOINER ${String(request.full_name || '—').toUpperCase()}`, '');
-      pen.pair(`${request.paymongo_payment_id ? 'ONLINE' : 'RECORDED'} · 50% DOWNPAYMENT`, '');
-      if (request.paymongo_payment_id) pen.pair(`REF ${request.paymongo_payment_id}`, '', 7);
+      pen.pair(`${ref ? 'ONLINE' : 'RECORDED'} · ${isBalance ? 'BALANCE PAYMENT' : '50% DOWNPAYMENT'}`, '');
+      if (ref) pen.pair(`REF ${ref}`, '', 7);
       pen.gap(4);
       pen.columns();
       pen.item(request.group_size || 1, `${pkg.title || pkg.destination || request.destination}${start ? ` (${formatYmdRange(start, end)})` : ''}`, php(price));
-      if (pkg.accommodation) pen.item('', `Accommodation: ${pkg.accommodation}`, '');
+      const room = request.accommodation || pkg.accommodation;
+      if (room) pen.item('', `Accommodation: ${room}`, '');
       expenseLines(pen, pkg.expenses);
       pen.gap(10);
-      pen.big('AMT', php(paid));
+      pen.big('AMOUNT', php(paidNow));
       pen.total('SUBTOTAL', php(price));
-      pen.total('PAID', php(paid));
-      pen.total('BALANCE', balance > 0 ? php(balance) : 'PHP 0.00');
-      if (balance > 0) pen.note('Balance due before the trip.');
+      if (isBalance) pen.total('DOWNPAYMENT', php(down));
+      pen.total(isBalance ? 'BALANCE PAID' : 'PAID', php(paidNow));
+      if (isBalance) pen.total('TOTAL PAID', php(down + paidNow));
+      if (remaining > 0) pen.total('REMAINING BALANCE', php(remaining));
+      if (remaining > 0) pen.note(request.balance_settled ? `Balance paid on ${dateOf(request.balance_paid_at || new Date())}. See the balance receipt.` : 'Balance due before the trip.');
+      else if (isBalance) pen.note('Fully paid. Thank you!');
       return footer(pen, qr, code,
         `${code} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Payments are non-refundable. Not a BIR-registered official receipt.`);
     },

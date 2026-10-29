@@ -227,7 +227,6 @@ const JoinerRegister = ({ mode = 'register' }) => {
       const address = composeAddress({ street, barangay, city, province });
 
       // Catch typing mistakes field by field; the first problem is shown at its field.
-      const hasEmergency = !!(emergencyContactName || emergencyContactNumber);
       const ok = checkFields(form, [
         ['username', usernameError(username)],
         ['firstName', nameError(firstName, 'First name')],
@@ -237,8 +236,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
         ['email', completing ? '' : emailError(email)],
         ['phone', phoneError(phone, 'Phone number')],
         ['dateOfBirth', birthDateError(dateOfBirth)],
-        ['emergencyContactName', hasEmergency ? nameError(emergencyContactName, 'Emergency contact name', { max: 120 }) : ''],
-        ['emergencyContactNumber', hasEmergency ? phoneError(emergencyContactNumber, 'Emergency contact number') : ''],
+        ['emergencyContactName', nameError(emergencyContactName, 'Emergency contact name', { max: 120 })],
+        ['emergencyContactNumber', phoneError(emergencyContactNumber, 'Emergency contact number')],
         ['emergencyContactNumber', samePhone(emergencyContactNumber, phone)
           ? "Your emergency contact should be someone else. This is your own phone number." : ''],
         ['province', province ? '' : 'Please choose your province.'],
@@ -259,14 +258,14 @@ const JoinerRegister = ({ mode = 'register' }) => {
         if (emailInput) emailInput.value = suggested;
       }
 
-      // Usernames must be unique (checked without logging in).
-      const { data: takenBy } = await supabase.rpc('email_for_login', { p_username: username });
-      // Their own email is fine: an unfinished sign-up being restarted (the
-      // server rejects it if that account is already verified).
-      const ownEmail = completing ? String(googleUser?.email || '').toLowerCase() : email;
-      if (takenBy && takenBy.toLowerCase() !== ownEmail) {
-        flagField(form, 'username', 'This username is already taken. Please choose another one.');
-        return;
+      // Usernames must be unique. (A normal registration is checked by the
+      // auth function in the same call that sends the code.)
+      if (completing) {
+        const { data: takenBy } = await supabase.rpc('email_for_login', { p_username: username });
+        if (takenBy && takenBy.toLowerCase() !== String(googleUser?.email || '').toLowerCase()) {
+          flagField(form, 'username', 'This username is already taken. Please choose another one.');
+          return;
+        }
       }
 
       // Google sign-up: save the rest of the profile, then into the dashboard.
@@ -287,7 +286,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             date_of_birth: dateOfBirth || null,
             address, province, city_municipality: city, barangay, street,
             emergency_contact_name: cleanName(emergencyContactName),
-            emergency_contact_number: emergencyContactNumber ? normalizePhone(emergencyContactNumber) : '',
+            emergency_contact_number: normalizePhone(emergencyContactNumber),
             avatar_url: avatarUrl,
           },
         });
@@ -322,7 +321,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             barangay,
             street,
             emergency_contact_name: cleanName(emergencyContactName),
-            emergency_contact_number: emergencyContactNumber ? normalizePhone(emergencyContactNumber) : '',
+            emergency_contact_number: normalizePhone(emergencyContactNumber),
             terms_accepted: true,
       };
 
@@ -1027,13 +1026,14 @@ const JoinerRegister = ({ mode = 'register' }) => {
           >
             <div>
               <label style={labelStyle}>
-                Emergency Contact Name
+                Emergency Contact Name <RequiredMark />
               </label>
               <div style={{ position: 'relative' }}>
                 <UserRound size={16} style={fieldIconStyle} />
                 <input
                   name="emergencyContactName"
-                data-allow="name"
+                  data-allow="name"
+                  required
                   type="text"
                   placeholder="e.g. Maria Dela Cruz"
                   maxLength={120}
@@ -1045,13 +1045,14 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
             <div>
               <label style={labelStyle}>
-                Emergency Contact Number
+                Emergency Contact Number <RequiredMark />
               </label>
               <div style={{ position: 'relative' }}>
                 <Phone size={16} style={fieldIconStyle} />
                 <input
                   name="emergencyContactNumber"
                   {...phoneInputProps}
+                  required
                   style={inputWithIconStyle}
                 />
               </div>
@@ -1191,10 +1192,12 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
           {/* SUBMIT */}
           <button
-            disabled={loading}
+            disabled={loading || !agreedToTerms}
+            title={agreedToTerms ? undefined : 'Tick the Terms & Conditions box first'}
             type="submit"
             style={{
               width: '100%',
+              opacity: agreedToTerms ? 1 : 0.5,
               background: loading
                 ? '#A8481A'
                 : '#A8481A',
@@ -1206,8 +1209,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
               padding: '16px',
               borderRadius: 12,
               border: 'none',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: loading
+              cursor: loading || !agreedToTerms ? 'not-allowed' : 'pointer',
+              boxShadow: loading || !agreedToTerms
                 ? 'none'
                 : '0 8px 24px rgba(168,72,26,0.38)',
               display: 'flex',

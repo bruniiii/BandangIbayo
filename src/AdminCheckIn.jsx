@@ -64,7 +64,8 @@ const describe = (r) => {
   }
 };
 
-const AdminCheckIn = () => {
+// tourId: open on this tour (from Tracking Management's Check-in button).
+const AdminCheckIn = ({ tourId: startTourId = null }) => {
   const [tours, setTours] = useState([]);
   const [toursLoaded, setToursLoaded] = useState(false);
   const [tourId, setTourId] = useState('');
@@ -97,11 +98,12 @@ const AdminCheckIn = () => {
       const list = data || [];
       setTours(list);
       const today = todayManila();
-      const current = list.find((t) => t.start_date <= today && (t.end_date || t.start_date) >= today)
+      const current = (startTourId != null && list.find((t) => String(t.id) === String(startTourId)))
+        || list.find((t) => t.start_date <= today && (t.end_date || t.start_date) >= today)
         || list.find((t) => t.start_date >= today) || list[0];
       if (current) setTourId(String(current.id));
     })();
-  }, []);
+  }, [startTourId]);
 
   const loadRoster = useCallback(async (id, quiet = false) => {
     if (!id) { setRoster([]); return; }

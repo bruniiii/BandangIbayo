@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
-import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare } from 'lucide-react';
+import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare, BedDouble } from 'lucide-react';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
-import { notifyAdmins } from './notifications';
 import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
-import { downloadReceipt, balanceRemaining } from './paymentReceipt';
+import { downloadReceipt, balanceRemaining, hasBalanceReceipt } from './paymentReceipt';
+import { AccommodationSelect } from './ui/Accommodation';
+import { cleanAccommodation } from './accommodation';
 import { verifyCheckout, cancelCheckout, startBalanceCheckout, payHeldBooking } from './payments';
 import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
 import { phoneFieldProps } from './ui/phoneField';
@@ -88,6 +89,7 @@ const MyBookings = ({ onExplore, openBookingId = null }) => {
           price,
           sale_starts,
           sale_ends,
+          accommodation_options,
           things_to_bring,
           important_note
         )
@@ -327,6 +329,20 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
 };
 
 /* ─── Booking Detail Modal ─── */
+// Reasons a joiner can pick when cancelling; "Other" asks them to type one.
+const CANCEL_REASONS = [
+  'Schedule conflict / change of plans',
+  'Work or school commitments',
+  'Personal or family emergency',
+  'Health reasons / feeling unwell',
+  'Financial reasons',
+  'Weather or safety concerns',
+  'Travel companion(s) can’t join',
+  'Booked the wrong tour or date',
+  'No longer interested in this tour',
+];
+const OTHER_REASON = 'Other (please specify)';
+
 const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess }) => {
   const tour = booking.tours || {};
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -336,11 +352,13 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
   const [agreedNoRefund, setAgreedNoRefund] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
 
-  // Sends a cancellation request: the slots stay held until the agency approves
-  // it (within 12 hours, or it's approved automatically).
+  const [otherReason, setOtherReason] = useState('');
+  const reasonText = cancelReason === OTHER_REASON ? otherReason.trim() : cancelReason;
+
+  // Cancels the booking right away (cancel_my_booking): the slots are released,
+  // the joiner leaves the tour's chat and tracking, and the admins are told.
   const handleCancelBooking = async () => {
-    // At least a few words, so the agency knows why (e.g. not just "x").
-    if (cancelReason.trim().length < 5) {
+    if (!cancelReason || (cancelReason === OTHER_REASON && otherReason.trim().length < 5)) {
       setReasonError(true);
       return;
     }
@@ -348,50 +366,35 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
       setAgreeError(true);
       return;
     }
+    if (!(await confirmDialog({
+      title: 'Cancel this booking now?',
+      message: `${booking.booking_number} is cancelled right away and your slot${booking.slots_booked === 1 ? ' is' : 's are'} released. The amount you paid won't be refunded.`,
+      confirmLabel: 'Cancel Booking', cancelLabel: 'Keep Booking', tone: 'danger',
+    }))) return;
 
     setCancelling(true);
-    const reason = cancelReason.trim();
-    let { error } = await supabase
-      .from('bookings')
-      .update({ cancellation_reason: reason, cancellation_requested_at: new Date().toISOString() })
-      .eq('id', booking.id);
-    let requested = true;
-    // Database without 20261026000000_cancellation_requests.sql yet: cancel right away, as before.
-    if (error && /cancellation_requested_at/.test(error.message || '')) {
-      requested = false;
-      ({ error } = await supabase.from('bookings')
-        .update({ booking_status: 'Cancelled', cancellation_reason: reason })
-        .eq('id', booking.id));
-    }
-
+    const reason = cancelReason === OTHER_REASON ? `Other: ${otherReason.trim()}` : cancelReason;
+    const { error } = await supabase.rpc('cancel_my_booking', { p_booking_id: booking.id, p_reason: reason });
+    setCancelling(false);
     if (error) {
       toast.error("Couldn't cancel your booking", error.message);
-    } else if (requested) {
-      // The admins are notified by the database (bookings_notify_cancellation_request).
-      toast.success('Cancellation requested', `We'll review it within ${CANCELLATION_APPROVAL_HOURS} hours. Your slot stays reserved until then.`);
-      onCancelSuccess();
-    } else {
-      notifyAdmins({
-        title: 'Booking Cancellation',
-        message: `A joiner cancelled their booking for ${tour.title || 'a tour'} (${booking.booking_number}). Reason: ${reason}`,
-        type: 'cancellation',
-        related_id: booking.id,
-      });
-      sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
-      toast.success('Booking cancelled', `${booking.booking_number} has been cancelled.`);
-      onCancelSuccess();
+      return;
     }
-    setCancelling(false);
+    // The admins are notified by the database.
+    sendWaitlistOpeningsEmail({ tourId: booking.tour_id });
+    toast.success('Booking cancelled', `${booking.booking_number} has been cancelled.`);
+    onCancelSuccess();
   };
 
   const [downloadingReceipt, setDownloadingReceipt] = useState(false);
   const isPaymentConfirmed = booking.payment_status === 'Complete' &&
                              booking.booking_status !== 'Cancelled' &&
                              booking.booking_status !== 'Rejected';
-  const handleDownloadReceipt = async () => {
-    setDownloadingReceipt(true);
+  // part: 'payment' (full payment / downpayment) or 'balance' (the paid balance).
+  const handleDownloadReceipt = async (part = 'payment') => {
+    setDownloadingReceipt(part);
     try {
-      await downloadReceipt(booking, tour);
+      await downloadReceipt(booking, tour, part);
     } catch (err) {
       toast.error("Couldn't create the receipt", String(err?.message || err));
     }
@@ -527,6 +530,11 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 {booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
                   <PickupPointSection booking={booking} tour={tour} />
                 )}
+                {booking.accommodation && (
+                  <ViewSection title="Accommodation" icon={<BedDouble size={14} style={{ color: '#A8481A' }} />}>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{booking.accommodation}</p>
+                  </ViewSection>
+                )}
 
                 {isPaymentConfirmed && <TourExpensesSection tourId={booking.tour_id} />}
 
@@ -603,7 +611,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </div>
                       <div>
                         <h4 style={{ fontSize: 13, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
-                        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>The agency approves cancellations within {CANCELLATION_APPROVAL_HOURS} hours. The amount you paid won't be refunded.</p>
+                        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>Your booking is cancelled right away. The amount you paid won't be refunded.</p>
                       </div>
                     </div>
 
@@ -614,22 +622,41 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       }}>
                         <MessageSquare size={12} /> Reason for Cancellation <span style={{ color: '#8C2F1C' }}>*</span>
                       </label>
-                      <textarea
+                      <select
                         value={cancelReason}
-                        maxLength={500}
+                        aria-label="Reason for cancellation"
                         onChange={(e) => { setCancelReason(e.target.value); setReasonError(false); }}
-                        placeholder="Please tell us why you're cancelling this tour..."
-                        rows={3}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
-                          background: '#FDF6EE', border: `2px solid ${reasonError ? '#8C2F1C' : 'rgba(180,81,30,0.2)'}`,
-                          borderRadius: 16, fontSize: 13, color: '#1A0A00', resize: 'none',
-                          outline: 'none', fontFamily: 'inherit', fontWeight: 500,
+                          background: '#FDF6EE', border: `2px solid ${reasonError && !cancelReason ? '#8C2F1C' : 'rgba(180,81,30,0.2)'}`,
+                          borderRadius: 16, fontSize: 13, color: '#1A0A00', cursor: 'pointer',
+                          outline: 'none', fontFamily: 'inherit', fontWeight: 600,
                         }}
-                      />
+                      >
+                        <option value="">Choose a reason…</option>
+                        {CANCEL_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                        <option value={OTHER_REASON}>{OTHER_REASON}</option>
+                      </select>
+                      {cancelReason === OTHER_REASON && (
+                        <textarea
+                          value={otherReason}
+                          maxLength={500}
+                          required
+                          aria-label="Please specify your reason"
+                          onChange={(e) => { setOtherReason(e.target.value); setReasonError(false); }}
+                          placeholder="Please specify your reason…"
+                          rows={3}
+                          style={{
+                            width: '100%', boxSizing: 'border-box', padding: '12px 14px', marginTop: 10,
+                            background: '#FDF6EE', border: `2px solid ${reasonError ? '#8C2F1C' : 'rgba(180,81,30,0.2)'}`,
+                            borderRadius: 16, fontSize: 13, color: '#1A0A00', resize: 'none',
+                            outline: 'none', fontFamily: 'inherit', fontWeight: 500,
+                          }}
+                        />
+                      )}
                       {reasonError && (
                         <p style={{ fontSize: 11.5, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 0' }}>
-                          ⚠ Please give a short reason (at least 5 characters) before cancelling.
+                          ⚠ {cancelReason === OTHER_REASON ? 'Please specify your reason (at least 5 characters).' : 'Please choose a reason for cancelling.'}
                         </p>
                       )}
                     </div>
@@ -642,8 +669,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         style={{ width: 18, height: 18, marginTop: 1, accentColor: '#8C2F1C', flexShrink: 0 }}
                       />
                       <span>
-                        I understand that all payments are <strong>non-refundable</strong>, and that my cancellation is final once
-                        Bandang IBAYO approves it (within {CANCELLATION_APPROVAL_HOURS} hours).
+                        I understand that all payments are <strong>non-refundable</strong>, and that my cancellation is final.
                       </span>
                     </label>
                     {agreeError && (
@@ -654,7 +680,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                       <button
-                        onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setReasonError(false); setAgreedNoRefund(false); setAgreeError(false); }}
+                        onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setOtherReason(''); setReasonError(false); setAgreedNoRefund(false); setAgreeError(false); }}
                         style={{
                           flex: '1 1 170px', minHeight: 48, padding: '12px 14px', background: '#F2E4D0', color: '#7A3A18',
                           border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, cursor: 'pointer',
@@ -668,10 +694,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       </button>
                       <button
                         onClick={handleCancelBooking}
-                        disabled={cancelling}
+                        disabled={cancelling || !agreedNoRefund || !reasonText}
+                        title={agreedNoRefund ? undefined : 'Tick the box above first'}
                         style={{
                           flex: '1 1 170px', minHeight: 48, padding: '12px 14px', background: '#C0362C', color: '#FFFFFF',
-                          border: 'none', borderRadius: 14, cursor: cancelling ? 'default' : 'pointer', fontFamily: 'inherit',
+                          opacity: agreedNoRefund && reasonText ? 1 : 0.5,
+                          border: 'none', borderRadius: 14, cursor: cancelling || !agreedNoRefund || !reasonText ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                           fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           transition: 'background 0.2s',
@@ -681,7 +709,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       >
                         {cancelling
                           ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                          : <><Trash2 size={15} style={{ flexShrink: 0 }} /> Request Cancellation</>
+                          : <><Trash2 size={15} style={{ flexShrink: 0 }} /> Cancel Booking</>
                         }
                       </button>
                     </div>
@@ -712,8 +740,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 {isPaymentConfirmed && (
                   <button
                     type="button"
-                    onClick={handleDownloadReceipt}
-                    disabled={downloadingReceipt}
+                    onClick={() => handleDownloadReceipt('payment')}
+                    disabled={!!downloadingReceipt}
                     style={{
                       flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#1A0A00', color: '#FDF6EE',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
@@ -721,7 +749,24 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}
                   >
-                    {downloadingReceipt ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={14} />} Download Receipt
+                    {downloadingReceipt === 'payment' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={14} />}
+                    {booking.payment_method === 'Downpayment' ? 'Downpayment Receipt' : 'Download Receipt'}
+                  </button>
+                )}
+                {/* A second receipt once the remaining balance is paid */}
+                {isPaymentConfirmed && hasBalanceReceipt(booking) && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadReceipt('balance')}
+                    disabled={!!downloadingReceipt}
+                    style={{
+                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#B4511E', color: '#FDF6EE',
+                      border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                      fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    }}
+                  >
+                    {downloadingReceipt === 'balance' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <FileDown size={14} />} Balance Receipt
                   </button>
                 )}
                 {canCancel && !showCancelConfirm && (
@@ -839,6 +884,8 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(null); // 'pay' | 'cancel'
   const [problem, setProblem] = useState('');
+  const [accommodation, setAccommodation] = useState(booking.accommodation || '');
+  const accommodationChoices = cleanAccommodation(booking.tours?.accommodation_options);
   // Today's price for this date (5% off while it's on sale), the same as the database charges.
   const total = (booking.tours ? effectivePrice(booking.tours) * (booking.slots_booked || 1) : 0) || Number(booking.total_price || 0);
   // A date on sale is paid in full (no downpayment).
@@ -850,20 +897,33 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
 
   const setCompanion = (i, field, value) => setCompanions((rows) => rows.map((c, j) => (j === i ? { ...c, [field]: value } : c)));
 
-  const pay = async () => {
-    setProblem('');
+  // Booking for a group: the names are entered in a pop-up, then payment opens.
+  const [namesOpen, setNamesOpen] = useState(false);
+  const [namesProblem, setNamesProblem] = useState('');
+  const namesError = () => {
     for (let i = 0; i < companions.length; i++) {
       const c = companions[i];
       const err = fullNameError(c.full_name, `Person ${i + 2}'s name`) || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
-      if (err) { setProblem(err); return; }
+      if (err) return err;
     }
     const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
-    if (names.some((n, i) => names.indexOf(n) !== i)) { setProblem('Each person joining needs their own name.'); return; }
+    if (names.some((n, i) => names.indexOf(n) !== i)) return 'Each person joining needs their own name.';
+    return '';
+  };
+
+  const pay = async ({ namesDone = false } = {}) => {
+    setProblem('');
+    if (accommodationChoices.length && !accommodation) { setProblem('Please choose your accommodation.'); return; }
+    if (companions.length && !namesDone) { setNamesProblem(''); setNamesOpen(true); return; }
+    const err = namesError();
+    if (err) { setNamesProblem(err); setNamesOpen(true); return; }
+    setNamesOpen(false);
     setBusy('pay');
     const { ok, data, error } = await payHeldBooking({
       bookingId: booking.id,
       paymentType: onSale ? 'full' : paymentType,
       companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
+      accommodation: accommodation || null,
     });
     if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
     if (data.alreadyPaid) { toast.success('Already paid', 'Your booking is confirmed.'); setBusy(null); onChanged(); return; }
@@ -905,27 +965,57 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       )}
 
       {companions.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
-          <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>Who's joining you</p>
-          {companions.map((c, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
-              <input aria-label={`Person ${i + 2}'s full name`} data-allow="name" placeholder={`Person ${i + 2}'s full name`} value={c.full_name} maxLength={120}
-                onChange={(e) => setCompanion(i, 'full_name', e.target.value)} style={field} />
-              <input {...phoneFieldProps(c.contact_number, (v) => setCompanion(i, 'contact_number', v))} aria-label={`Person ${i + 2}'s contact number`} style={field} />
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+          When you pay, you'll enter the name and contact number of the {companions.length} {companions.length === 1 ? 'person' : 'people'} joining you.
+        </p>
+      )}
+
+      {namesOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)' }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
+            background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E', padding: '2rem',
+            display: 'flex', flexDirection: 'column', gap: 14,
+          }}>
+            <div>
+              <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>Your group</p>
+              <h3 id="held-names-title" style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Who's joining you?</h3>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>Enter each person's full name and contact number, then continue to payment.</p>
             </div>
-          ))}
+            {companions.map((c, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>
+                <input aria-label={`Person ${i + 2}'s full name`} data-allow="name" placeholder="Full name" value={c.full_name} maxLength={120}
+                  onChange={(e) => { setCompanion(i, 'full_name', e.target.value); setNamesProblem(''); }} style={field} />
+                <input {...phoneFieldProps(c.contact_number, (v) => { setCompanion(i, 'contact_number', v); setNamesProblem(''); })} aria-label={`Person ${i + 2}'s contact number`} style={field} />
+              </div>
+            ))}
+            {namesProblem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{namesProblem}</p>}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => setNamesOpen(false)} style={{
+                flex: 1, minWidth: 120, padding: '13px 0', borderRadius: 14, border: '1px solid rgba(180,81,30,0.25)', background: '#F2E4D0', color: '#1A0A00',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+              }}>Back</button>
+              <button type="button" onClick={() => pay({ namesDone: true })} style={{
+                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+              }}>Continue to Payment</button>
+            </div>
+          </div>
         </div>
       )}
 
+      <AccommodationSelect id={`held-accommodation-${booking.id}`} options={accommodationChoices} value={accommodation} onChange={(v) => { setAccommodation(v); setProblem(''); }} />
+
       <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 12px', cursor: 'pointer' }}>
         <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
-        <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations need the agency's approval and close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
+        <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
       </label>
 
       {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '0 0 10px' }}>{problem}</p>}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-        <button type="button" disabled={busy !== null || !agreed} onClick={pay} title={agreed ? undefined : 'Tick the agreement above first'} style={{
+        <button type="button" disabled={busy !== null || !agreed} onClick={() => pay()} title={agreed ? undefined : 'Tick the agreement above first'} style={{
           flex: 2, minWidth: 180, padding: '12px 0', borderRadius: 14, border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           background: '#B4511E', color: '#FDF6EE', cursor: agreed ? 'pointer' : 'not-allowed', opacity: agreed ? 1 : 0.5,

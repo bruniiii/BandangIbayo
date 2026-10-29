@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2, MessagesSquare
+  Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, ArrowRight, MapPin, ImageIcon, CheckCircle2, Users, Eye, Bell, Wallet, Sparkles, Loader2, MessagesSquare, Globe
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import SidebarPinButton from './ui/SidebarPinButton';
+import { useSidebarPin } from './ui/useSidebarPin';
 import { withAvailableSlots, formatPeso, archivePastTours, notEndedFilter, groupTripDates, formatDateRange as formatTourDates } from './tourUtils';
 import PriceTag from './ui/PriceTag';
 import { verifyCheckout, cancelCheckout, verifyExclusivePayment } from './payments';
@@ -54,6 +56,7 @@ const NAV_ITEMS = [
   { icon: <CalendarIcon size={18} strokeWidth={2} />,label: 'Calendar' },
   { icon: <Clock size={18} strokeWidth={2} />,       label: 'Tracking' },
   { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Exclusive Tours' },
+  { icon: <Globe size={18} strokeWidth={2} />,       label: 'Request a Tour' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
   { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
@@ -70,7 +73,8 @@ const PAGE_INFO = {
   'Group Chat':       { icon: MessagesSquare, title: 'Group Chat',      subtitle: 'Chat with everyone on your tour and the Bandang IBAYO team' },
   'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
   'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
-  'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: "Book a private group trip, or suggest a destination we don't offer yet" },
+  'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: 'Book a private group trip, just for your group' },
+  'Request a Tour':   { icon: Globe,        title: 'Request a Tour',   subtitle: "Suggest a destination we don't offer yet" },
   'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
   'Profile Settings': { icon: User,         title: 'Profile Settings', subtitle: 'Manage your account information and preferences' },
   'Notification':     { icon: Bell,         title: 'Notifications',    subtitle: 'Updates on your bookings, requests & account' },
@@ -212,7 +216,8 @@ const JoinerDashboard = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const sidebarExpanded = isMobile ? true : sidebarHovered;
+  const [sidebarPinned, toggleSidebarPin] = useSidebarPin();
+  const sidebarExpanded = isMobile ? true : (sidebarPinned || sidebarHovered);
 
   // Mouse wheel over the tour row scrolls it sideways (until it reaches an
   // end, then the page scrolls as usual). Trackpads and touch already swipe.
@@ -267,11 +272,21 @@ const JoinerDashboard = () => {
     return () => window.removeEventListener(OPEN_CHAT, open);
   });
 
+  // A notification about a request opens Exclusive Tours or Request a Tour, whichever it's on.
+  const openRequestPage = async (requestId) => {
+    let page = 'Exclusive Tours';
+    if (requestId) {
+      const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
+      if (data?.request_type === 'request') page = 'Request a Tour';
+    }
+    handleNavClick(page);
+  };
+
   const handleNotificationNavigate = (notification) => {
     switch (notification.type) {
       case 'exclusive_request':
       case 'exclusive_package':
-        handleNavClick('Exclusive Tours');
+        openRequestPage(notification.related_id);
         break;
       case 'booking':
       case 'payment':
@@ -531,6 +546,7 @@ const JoinerDashboard = () => {
           transition: 'width 0.25s ease',
           overflow: 'visible',
         }}>
+        {!isMobile && sidebarExpanded && <SidebarPinButton pinned={sidebarPinned} onToggle={toggleSidebarPin} />}
         {isMobile && mobileNavOpen && (
           <button
             onClick={() => setMobileNavOpen(false)}
@@ -959,10 +975,15 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Calendar' ? (
             <TourCalendar
               initialDate={calendarTarget}
-              onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab('Exclusive Tours'); }}
+              onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab(form === 'request' ? 'Request a Tour' : 'Exclusive Tours'); }}
             />
-          ) : activeTab === 'Exclusive Tours' ? (
-            <ExclusiveTour key={exclusiveKey} start={exclusiveStart} onOpenBooking={(id) => { setBookingsFilter(null); setOpenBookingId(id); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }} />
+          ) : activeTab === 'Exclusive Tours' || activeTab === 'Request a Tour' ? (
+            <ExclusiveTour
+              key={`${activeTab}-${exclusiveKey}`}
+              type={activeTab === 'Request a Tour' ? 'request' : 'exclusive'}
+              start={exclusiveStart}
+              onOpenBooking={(id) => { setBookingsFilter(null); setOpenBookingId(id); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }}
+            />
           ) : activeTab === 'Reviews' ? (
             <Reviews isAdmin={false} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Profile Settings' ? (

@@ -40,7 +40,12 @@ const formatDate = (d) => {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
+// Joiners are archived when they haven't logged in for 2 years, or when they
+// deleted their account (see joiner_login_activity and archived_accounts).
 const JoinerAccounts = () => {
+  const [view, setView] = useState('active'); // 'active' | 'archived'
+  const [activity, setActivity] = useState({}); // id → { last_sign_in_at, inactive }
+  const [deletedAccounts, setDeletedAccounts] = useState([]);
   const [joiners, setJoiners] = useState([]);
   const [bookingCounts, setBookingCounts] = useState({});
   const [loading, setLoading] = useState(true);
@@ -114,6 +119,16 @@ const JoinerAccounts = () => {
 
     setJoiners(data || []);
 
+    // Login activity (for the 2-year rule) and deleted accounts.
+    const [{ data: logins, error: loginError }, { data: deleted, error: deletedError }] = await Promise.all([
+      supabase.rpc('joiner_login_activity'),
+      supabase.from('archived_accounts').select('*').order('archived_at', { ascending: false }),
+    ]);
+    if (loginError) console.error('Error fetching login activity:', loginError.message);
+    else setActivity(Object.fromEntries((logins || []).map((a) => [a.id, a])));
+    if (deletedError) console.error('Error fetching archived accounts:', deletedError.message);
+    else setDeletedAccounts(deleted || []);
+
     const ids = (data || []).map(p => p.id);
     if (ids.length) {
       const { data: bookings, error: bookingsError } = await supabase
@@ -142,14 +157,25 @@ const JoinerAccounts = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  const activeJoiners = useMemo(() => joiners.filter((p) => !activity[p.id]?.inactive), [joiners, activity]);
+  // Archived: inactive for 2 years (still have an account), then deleted accounts.
+  const archived = useMemo(() => [
+    ...joiners.filter((p) => activity[p.id]?.inactive).map((p) => ({ ...p, archiveReason: 'inactive', last_sign_in_at: activity[p.id]?.last_sign_in_at })),
+    ...deletedAccounts.map((a) => ({
+      id: `deleted-${a.id}`, first_name: a.full_name || '', last_name: '', username: a.username, email: a.email,
+      created_at: a.registered_at, last_sign_in_at: a.last_sign_in_at, archived_at: a.archived_at, archiveReason: 'deleted',
+    })),
+  ], [joiners, activity, deletedAccounts]);
+
   const filtered = useMemo(() => {
+    const list = view === 'archived' ? archived : activeJoiners;
     const q = query.trim().toLowerCase();
-    if (!q) return joiners;
-    return joiners.filter(p => {
+    if (!q) return list;
+    return list.filter(p => {
       const haystack = `${p.first_name || ''} ${p.last_name || ''} ${p.username || ''} ${p.email || ''} ${p.phone_number || ''}`.toLowerCase();
       return haystack.includes(q);
     });
-  }, [joiners, query]);
+  }, [view, archived, activeJoiners, query]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -158,8 +184,21 @@ const JoinerAccounts = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
         <div>
           <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
-            {loading ? <Skel w={140} h={11} /> : `${joiners.length} registered joiner${joiners.length !== 1 ? 's' : ''}`}
+            {loading ? <Skel w={140} h={11} /> : view === 'archived'
+              ? `${archived.length} archived account${archived.length !== 1 ? 's' : ''}`
+              : `${activeJoiners.length} active joiner${activeJoiners.length !== 1 ? 's' : ''}`}
           </p>
+          <div role="tablist" aria-label="Joiner accounts" style={{ display: 'inline-flex', background: '#F2E4D0', padding: 4, borderRadius: 12, border: '1px solid rgba(180,81,30,0.14)', marginTop: 8 }}>
+            {[['active', 'Active'], ['archived', 'Archived']].map(([key, label]) => (
+              <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
+                padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: view === key ? '#1A0A00' : 'transparent', color: view === key ? '#FDF6EE' : '#7A3A18',
+              }}>
+                {label}{key === 'archived' && archived.length ? ` (${archived.length})` : ''}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -211,6 +250,8 @@ const JoinerAccounts = () => {
               message={`No joiner's name, username or email matches "${query}".`}
               action={{ label: 'Clear Search', onClick: () => setQuery('') }}
             />
+          ) : view === 'archived' ? (
+            <EmptyState icon={Users} title="No archived accounts" message="Joiners who haven't logged in for 2 years, or who deleted their account, show up here." />
           ) : (
             <EmptyState icon={Users} title="No joiners registered yet" message="New joiner accounts will show up here as soon as they sign up." />
           )
@@ -219,7 +260,7 @@ const JoinerAccounts = () => {
             <table className="joiners-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
-                  {['Joiner', 'Contact', 'Address', 'Bookings', 'Joined', ''].map((h) => (
+                  {(view === 'archived' ? ['Joiner', 'Contact', 'Archived Because', 'Last Login', 'Joined', ''] : ['Joiner', 'Contact', 'Address', 'Bookings', 'Last Login', '']).map((h) => (
                     <th key={h} style={{
                       textAlign: 'left', padding: '14px 20px', fontSize: 11.5, fontWeight: 800,
                       letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
@@ -233,8 +274,8 @@ const JoinerAccounts = () => {
                 {filtered.map((p) => (
                   <tr
                     key={p.id}
-                    onClick={() => setSelected(p)}
-                    style={{ borderBottom: '1px solid rgba(180,81,30,0.08)', cursor: 'pointer' }}
+                    onClick={() => { if (p.archiveReason !== 'deleted') setSelected(p); }}
+                    style={{ borderBottom: '1px solid rgba(180,81,30,0.08)', cursor: p.archiveReason === 'deleted' ? 'default' : 'pointer' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(180,81,30,0.05)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
@@ -263,25 +304,43 @@ const JoinerAccounts = () => {
                       <p style={{ fontSize: 12, color: '#1A0A00', margin: 0 }}>{p.email || '—'}</p>
                       <p style={{ fontSize: 11.5, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{p.phone_number || '—'}</p>
                     </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <p style={{ fontSize: 12, color: '#1A0A00', opacity: 0.9, margin: 0 }}>{p.address || '—'}</p>
-                    </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        minWidth: 26, height: 26, padding: '0 8px', borderRadius: 999,
-                        background: '#F2E4D0', color: '#7A3A18', fontSize: 12, fontWeight: 800,
-                      }}>
-                        {bookingCounts[p.id] || 0}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
-                        {formatDate(p.created_at)}
-                      </p>
-                    </td>
+                    {view === 'archived' ? (
+                      <>
+                        <td style={{ padding: '14px 20px' }}>
+                          <p style={{ fontSize: 12, fontWeight: 800, color: p.archiveReason === 'deleted' ? '#8C2F1C' : '#8C5216', margin: 0 }}>
+                            {p.archiveReason === 'deleted' ? `Deleted their account${p.archived_at ? ` (${formatDate(p.archived_at)})` : ''}` : 'No login for 2+ years'}
+                          </p>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>{p.last_sign_in_at ? formatDate(p.last_sign_in_at) : 'Never'}</p>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>{formatDate(p.created_at)}</p>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td style={{ padding: '14px 20px' }}>
+                          <p style={{ fontSize: 12, color: '#1A0A00', opacity: 0.9, margin: 0 }}>{p.address || '—'}</p>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            minWidth: 26, height: 26, padding: '0 8px', borderRadius: 999,
+                            background: '#F2E4D0', color: '#7A3A18', fontSize: 12, fontWeight: 800,
+                          }}>
+                            {bookingCounts[p.id] || 0}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+                            {activity[p.id]?.last_sign_in_at ? formatDate(activity[p.id].last_sign_in_at) : '—'}
+                          </p>
+                        </td>
+                      </>
+                    )}
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      <ChevronRight size={16} color="rgba(122,58,24,0.85)" />
+                      {p.archiveReason !== 'deleted' && <ChevronRight size={16} color="rgba(122,58,24,0.85)" />}
                     </td>
                   </tr>
                 ))}
@@ -347,6 +406,7 @@ const JoinerAccounts = () => {
               <DetailRow icon={<ShieldAlert size={14} />} label="Emergency Contact" value={[selected.emergency_contact_name, selected.emergency_contact_number].filter(Boolean).join(' · ') || null} />
               <DetailRow icon={<Compass size={14} />} label="Total Bookings" value={String(bookingCounts[selected.id] || 0)} />
               <DetailRow icon={<Calendar size={14} />} label="Registered On" value={formatDate(selected.created_at)} />
+              <DetailRow icon={<Calendar size={14} />} label="Last Login" value={activity[selected.id]?.last_sign_in_at ? formatDate(activity[selected.id].last_sign_in_at) : 'Never'} />
             </div>
 
             {/* ── Email joiner ── */}

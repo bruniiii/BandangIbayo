@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
-  LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, ScanLine, User, MessagesSquare
+  LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
+  ArrowUpRight, MapPin, Wallet, ImageIcon, User, MessagesSquare
 } from 'lucide-react';
 import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import SidebarPinButton from './ui/SidebarPinButton';
+import { useSidebarPin } from './ui/useSidebarPin';
 import { toast } from './ui/toast';
 import TourManagement from './TourManagement';
 import BookingManagement from './BookingManagement';
@@ -16,7 +18,6 @@ import ProfileSettings from './Profilesettings.jsx';
 import Reviews from './Reviews';
 import JoinerAccounts from './Joineraccounts';
 import Reports from './Reports';
-import AdminCheckIn from './AdminCheckIn';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/newIcon.png';
@@ -87,9 +88,9 @@ const NAV_ITEMS = [
   { icon: <Map size={18} strokeWidth={2} />,             label: 'Tour Management' },
   { icon: <Calendar size={18} strokeWidth={2} />,        label: 'Booking Management' },
   { icon: <Users size={18} strokeWidth={2} />,           label: 'Joiner Accounts' },
-  { icon: <Globe size={18} strokeWidth={2} />,           label: 'Exclusive Requests' },
+  { icon: <Shield size={18} strokeWidth={2} />,          label: 'Exclusive Tours' },
+  { icon: <Globe size={18} strokeWidth={2} />,           label: 'Requested Tours' },
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
-  { icon: <ScanLine size={18} strokeWidth={2} />,        label: 'Check-in' },
   { icon: <MessagesSquare size={18} strokeWidth={2} />,  label: 'Group Chats' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
@@ -127,11 +128,22 @@ const AdminDashboard = () => {
  
   // On mobile the sidebar is always shown at full width (as a drawer),
   // on desktop it expands only while the cursor is hovering over it.
-  const sidebarExpanded = isMobile ? true : sidebarHovered;
+  const [sidebarPinned, toggleSidebarPin] = useSidebarPin();
+  const sidebarExpanded = isMobile ? true : (sidebarPinned || sidebarHovered);
  
   const handleNavClick = (label) => {
     setActiveTab(label);
     if (isMobile) setMobileNavOpen(false);
+  };
+
+  // A request notification opens Exclusive Tours or Requested Tours, whichever it's on.
+  const openRequestPage = async (requestId) => {
+    let page = 'Exclusive Tours';
+    if (requestId) {
+      const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
+      if (data?.request_type === 'request') page = 'Requested Tours';
+    }
+    handleNavClick(page);
   };
 
   // Routes a clicked notification to the module it's about — a new
@@ -144,7 +156,8 @@ const AdminDashboard = () => {
         handleNavClick('Booking Management');
         break;
       case 'exclusive_request':
-        handleNavClick('Exclusive Requests');
+      case 'exclusive_package':
+        openRequestPage(notification.related_id);
         break;
       case 'feed':
         handleNavClick('Feed');
@@ -378,6 +391,7 @@ const AdminDashboard = () => {
           transition: 'width 0.25s ease',
           overflow: 'visible',
         }}>
+        {!isMobile && sidebarExpanded && <SidebarPinButton pinned={sidebarPinned} onToggle={toggleSidebarPin} />}
         {isMobile && mobileNavOpen && (
           <button
             onClick={() => setMobileNavOpen(false)}
@@ -708,9 +722,9 @@ const AdminDashboard = () => {
                   {/* Exclusive / Requested Tours */}
                   <ModuleCard
                     icon={<Globe size={16} />}
-                    title="Exclusive Requests"
-                    metaLabel={`${snippets.pendingExclusiveCount} pending`}
-                    onViewAll={() => handleNavClick('Exclusive Requests')}
+                    title="Exclusive & Requested Tours"
+                    metaLabel={`${snippets.pendingExclusiveCount} for approval`}
+                    onViewAll={() => handleNavClick(snippets.pendingExclusiveRequests[0]?.request_type === 'request' ? 'Requested Tours' : 'Exclusive Tours')}
                     loading={loadingStats}
                     empty={snippets.pendingExclusiveRequests.length === 0}
                     emptyText="Nothing awaiting review."
@@ -825,11 +839,11 @@ const AdminDashboard = () => {
           {activeTab === 'Tour Management' && <TourManagement />}
           {activeTab === 'Booking Management' && <BookingManagement />}
           {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
-          {activeTab === 'Exclusive Requests' && <AdminExclusiveTours />}
+          {activeTab === 'Exclusive Tours' && <AdminExclusiveTours key="exclusive" type="exclusive" />}
+          {activeTab === 'Requested Tours' && <AdminExclusiveTours key="request" type="request" />}
           {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
           {activeTab === 'Group Chats' && <GroupChat isAdmin />}
           {activeTab === 'Reports' && <Reports />}
-          {activeTab === 'Check-in' && <AdminCheckIn />}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
           )}
@@ -844,10 +858,10 @@ const AdminDashboard = () => {
            activeTab !== 'Booking Management' &&
            activeTab !== 'Reviews' &&
            activeTab !== 'Joiner Accounts' &&
-           activeTab !== 'Exclusive Requests' &&
+           activeTab !== 'Exclusive Tours' &&
+           activeTab !== 'Requested Tours' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
-           activeTab !== 'Check-in' &&
            activeTab !== 'Group Chats' &&
            activeTab !== 'Profile Settings' &&
            activeTab !== 'Notification' && (
@@ -897,9 +911,9 @@ const PAGE_INFO = {
   'Tour Management':     { icon: Map,             title: 'Tour Management',     subtitle: 'Create tours, add dates and manage your postings' },
   'Booking Management':  { icon: Calendar,        title: 'Booking Management',  subtitle: 'Verify payments, track downpayments and update booking status' },
   'Joiner Accounts':     { icon: Users,           title: 'Joiner Accounts',     subtitle: 'Everyone registered as a joiner' },
-  'Exclusive Requests':  { icon: Globe,           title: 'Exclusive Requests',  subtitle: 'Private-group requests and new destination suggestions from joiners' },
-  'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners" },
-  'Check-in':            { icon: ScanLine,        title: 'Check-in',            subtitle: "Scan each joiner's QR on the day of the tour. One QR covers their whole group." },
+  'Exclusive Tours':     { icon: Shield,          title: 'Exclusive Tours',     subtitle: 'Private-group tour requests from joiners' },
+  'Requested Tours':     { icon: Globe,           title: 'Requested Tours',     subtitle: 'New destinations joiners asked for, posted on Explore Tours once ready' },
+  'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners, and check them in on the day" },
   'Group Chats':         { icon: MessagesSquare,  title: 'Group Chats',         subtitle: 'Chat with the joiners of each tour date' },
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },

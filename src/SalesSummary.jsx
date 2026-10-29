@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Wallet, AlertCircle, Users, Download, ChevronDown } from 'lucide-react';
+import { Wallet, AlertCircle, Users, ChevronDown } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
@@ -7,7 +7,7 @@ import { toast } from './ui/toast';
 
 // ─────────────────────────────────────────────
 // SALES SUMMARY (top of Reports): money actually collected in a month, per
-// tour, and every unpaid balance, with a CSV download.
+// tour, and every unpaid balance (included in the Reports PDF).
 //
 // Collected = what the agency has received: the full price for full payments,
 // the downpayment for downpayment bookings (plus the balance once settled),
@@ -41,12 +41,7 @@ const balanceOf = (b) => (
     : 0
 );
 
-const csvCell = (v) => {
-  const s = String(v ?? '');
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
-
-const SalesSummary = () => {
+const SalesSummary = ({ onData }) => {
   const [bookings, setBookings] = useState([]);
   const [exclusives, setExclusives] = useState([]);
   const [rates, setRates] = useState({}); // tour id → Regular Rate
@@ -133,32 +128,10 @@ const SalesSummary = () => {
     };
   }, [bookings, exclusives, rates, month]);
 
-  const download = () => {
-    const lines = [
-      [`Sales summary: ${monthLabel(month)}`],
-      ['Money collected', summary.collected],
-      ['From tour bookings', summary.toursCollected],
-      ['From exclusive tours', summary.exclusiveCollected],
-      ['Paid bookings', summary.bookings],
-      ['Joiners', summary.pax],
-      ['Revenue at Regular Rate (tours)', summary.regularTotal],
-      [],
-      ['Per tour'],
-      ['Tour', 'Tour date', 'Bookings', 'Joiners', 'Collected', 'Balance still due', 'At Regular Rate'],
-      ...summary.perTour.map((t) => [t.title, t.start || '', t.bookings, t.pax, t.collected, t.balance, t.hasRate ? t.regular : 'not set']),
-      [],
-      ['Unpaid balances (all months)', summary.balanceTotal],
-      ['Type', 'Name', 'Reference', 'Contact', 'Tour', 'Tour date', 'Balance'],
-      ...summary.balances.map((r) => [r.kind, r.name, r.ref, r.contact, r.what, r.date, r.amount]),
-    ];
-    const csv = '﻿' + lines.map((row) => row.map(csvCell).join(',')).join('\r\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sales-summary-${month}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  // Reports' Download PDF includes this summary.
+  useEffect(() => {
+    if (!loading) onData?.({ monthLabel: monthLabel(month), ...summary });
+  }, [loading, month, summary, onData]);
 
   return (
     <section aria-labelledby="sales-summary-title" style={card}>
@@ -171,9 +144,6 @@ const SalesSummary = () => {
           <select aria-label="Month" value={month} onChange={(e) => setMonth(e.target.value)} style={selectStyle}>
             {lastMonths(12).map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
           </select>
-          <button type="button" onClick={download} disabled={loading} style={downloadBtn(loading)}>
-            <Download size={14} /> Download
-          </button>
         </div>
       </div>
 
@@ -264,11 +234,6 @@ const selectStyle = {
   background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '9px 12px',
   fontSize: 12.5, fontWeight: 800, color: '#1A0A00', fontFamily: 'inherit', cursor: 'pointer',
 };
-const downloadBtn = (disabled) => ({
-  display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1A0A00', color: '#FDF6EE', border: 'none',
-  borderRadius: 12, padding: '9px 16px', fontSize: 12, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase',
-  cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.6 : 1, fontFamily: 'inherit',
-});
 const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', margin: '20px 0 8px' };
 const toggleBtn = {
   ...subTitle, display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0,

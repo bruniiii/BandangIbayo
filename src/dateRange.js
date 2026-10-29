@@ -21,3 +21,9 @@ export const formatYmdRange = (start, end) => {
 };
 
 export const daysLabel = (n) => (n ? `${n} day${n === 1 ? '' : 's'}` : '');
+
+// "YYYY-MM-DD" plus n days.
+export const addDaysYmd = (ymd, n) => {
+  const [y, m, d] = String(ymd).split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+};

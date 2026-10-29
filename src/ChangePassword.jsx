@@ -56,6 +56,8 @@ const PasswordInput = ({ id, value, onChange, autoComplete, minLength }) => {
 };
 
 const ChangePassword = () => {
+  // The form opens only after "Change Password" is clicked.
+  const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -80,7 +82,35 @@ const ChangePassword = () => {
     setNext('');
     setConfirm('');
     setMessage({ text: 'Your password has been changed. Use the new one the next time you log in.', tone: 'success' });
+    setOpen(false);
   };
+
+  const close = () => { setOpen(false); setCurrent(''); setNext(''); setConfirm(''); };
+
+  if (!open) {
+    return (
+      <div style={{
+        background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap',
+      }}>
+        <div>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>
+            <KeyRound size={17} style={{ color: '#A8481A' }} /> Password
+          </h3>
+          <p style={{ fontSize: 12, color: message.tone === 'success' && message.text ? '#3F5D62' : '#7A3A18', opacity: 0.9, margin: '4px 0 0', fontWeight: message.text ? 700 : 400 }}>
+            {message.text && message.tone === 'success' ? message.text : 'Keep your account safe with a strong password.'}
+          </p>
+        </div>
+        <button type="button" onClick={() => { setMessage({ text: '', tone: 'error' }); setOpen(true); }} style={{
+          display: 'flex', alignItems: 'center', gap: 8, background: '#1A0A00', color: '#E8A265', fontWeight: 900, fontSize: 12,
+          letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', borderRadius: 12, padding: '12px 22px', cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          <KeyRound size={15} /> Change Password
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} style={{
@@ -127,7 +157,11 @@ const ChangePassword = () => {
         </p>
       )}
 
-      <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+      <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
+        <button type="button" onClick={close} disabled={saving} style={{
+          background: '#F2E4D0', color: '#1A0A00', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+          border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, padding: '13px 22px', cursor: 'pointer', fontFamily: 'inherit',
+        }}>Cancel</button>
         <button type="submit" disabled={saving} style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: saving ? 'rgba(26,10,0,0.5)' : '#1A0A00',

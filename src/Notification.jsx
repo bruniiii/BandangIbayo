@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry } from './notifications';
+import { notificationsChanged, onNotificationsChanged, clearOldPaymentNotices, nextPaymentNoticeExpiry, markNotificationsSeen } from './notifications';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -53,7 +53,17 @@ const TYPE_META = {
 
 const metaFor = (type) => TYPE_META[type] || TYPE_META.default;
 
-const FILTERABLE_TYPES = Object.keys(TYPE_META).filter((t) => t !== 'default');
+// The filter menu. Joiners see everything about their tours (bookings,
+// payments, cancellations, tracking, chat) under "Tour"; admins see each type
+// except Tracking.
+const JOINER_TOUR_TYPES = ['tour', 'booking', 'payment', 'cancellation', 'tracking', 'chat'];
+const JOINER_FILTERS = ['tour', 'exclusive_request', 'exclusive_package', 'review'];
+const ADMIN_FILTERS = Object.keys(TYPE_META).filter((t) => t !== 'default' && t !== 'tracking');
+const matchesFilter = (type, filter, isAdmin) => {
+  const t = type || 'default';
+  if (!isAdmin && filter === 'tour') return JOINER_TOUR_TYPES.includes(t);
+  return t === filter;
+};
 
 /* ─────────────────────────────────────────────
    NOTIFICATIONS  (full-page module — shared by AdminDashboard & JoinerDashboard)
@@ -61,7 +71,7 @@ const FILTERABLE_TYPES = Object.keys(TYPE_META).filter((t) => t !== 'default');
    and joiners each just see their own
    feed of everything that's happened to their account, Facebook-style.
 ───────────────────────────────────────────── */
-const Notifications = ({ onNavigate, clearPaymentNotices = false }) => {
+const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = false }) => {
   const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -108,6 +118,13 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false }) => {
     if (!userId) return undefined;
     return onNotificationsChanged(() => fetchNotifications(userId));
   }, [userId, fetchNotifications]);
+
+  // Viewing this page clears the bell's count, including for notifications
+  // that arrive while it's open.
+  const newestAt = notifications[0]?.created_at;
+  useEffect(() => {
+    if (userId) markNotificationsSeen(userId);
+  }, [userId, newestAt]);
 
   // Payment notices disappear 3 minutes after they arrive (joiners only).
   useEffect(() => {
@@ -167,7 +184,7 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false }) => {
 
   const filtered = notifications.filter((n) => {
     if (tab === 'unread' && n.is_read) return false;
-    if (typeFilter !== 'All Types' && (n.type || 'default') !== typeFilter) return false;
+    if (typeFilter !== 'All Types' && !matchesFilter(n.type, typeFilter, isAdmin)) return false;
     return true;
   });
 
@@ -250,7 +267,7 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false }) => {
         <div style={{ position: 'relative' }}>
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={selectStyle}>
             <option value="All Types">All Activity</option>
-            {FILTERABLE_TYPES.map((t) => (
+            {(isAdmin ? ADMIN_FILTERS : JOINER_FILTERS).map((t) => (
               <option key={t} value={t}>{metaFor(t).label}</option>
             ))}
           </select>
