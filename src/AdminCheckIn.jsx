@@ -86,13 +86,14 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
   useEffect(() => { tourIdRef.current = tourId; }, [tourId]);
 
   // Tours that are on now or coming up (past ones are archived automatically).
+  // Opened from a tour's Check-in button: just that tour.
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('tours')
-        .select('id, title, destination, start_date, end_date, duration')
-        .eq('is_archived', false)
-        .order('start_date', { ascending: true });
+        .select('id, title, destination, start_date, end_date, duration');
+      query = startTourId != null ? query.eq('id', startTourId) : query.eq('is_archived', false);
+      const { data, error } = await query.order('start_date', { ascending: true });
       setToursLoaded(true);
       if (error) { toast.error("Couldn't load tours", error.message); return; }
       const list = data || [];
@@ -300,6 +301,11 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
           {/* Scanner */}
           <div style={card}>
             <label htmlFor="checkin-tour" style={label}>Tour</label>
+            {startTourId != null ? (
+              <p id="checkin-tour" style={{ ...field, marginBottom: tour && !checkInOpen(tour) ? 10 : 16, cursor: 'default' }}>
+                {tour ? `${tour.title} — ${tourDates(tour)}` : 'Tour not found'}
+              </p>
+            ) : (
             <select
               id="checkin-tour"
               value={tourId}
@@ -312,6 +318,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                 </option>
               ))}
             </select>
+            )}
 
             {tour && !checkInOpen(tour) && (
               <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C5216', background: 'rgba(232,162,101,0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
