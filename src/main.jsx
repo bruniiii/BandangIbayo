@@ -17,7 +17,7 @@ setupInstallApp();
 
 // Any error nothing else caught pops up too, instead of failing silently.
 // (Browser noise like ResizeObserver warnings and cancelled requests is skipped.)
-const isNoise = (msg) => /ResizeObserver loop|AbortError|Lock broken|Load failed|Script error/i.test(String(msg || ''));
+const isNoise = (msg) => /ResizeObserver loop|AbortError|Lock broken|Acquiring process lock|Load failed|Script error/i.test(String(msg || ''));
 window.addEventListener('error', (e) => {
   if (!isNoise(e.message)) reportError('Something went wrong', e.error || e.message);
 });
