@@ -903,7 +903,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
   const namesError = () => {
     for (let i = 0; i < companions.length; i++) {
       const c = companions[i];
-      const err = fullNameError(c.full_name, `Person ${i + 2}'s name`) || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
+      const err = fullNameError(c.full_name, `Person ${i + 2}'s name`) || phoneError(c.contact_number, `Person ${i + 2}'s contact number`, { mobile: true });
       if (err) return err;
     }
     const names = companions.map((c) => cleanName(c.full_name).toLowerCase());

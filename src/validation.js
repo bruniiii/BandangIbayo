@@ -22,11 +22,14 @@ export const normalizePhone = (raw) => {
   return null;
 };
 
-export const phoneError = (raw, label = 'Phone number', { required = true } = {}) => {
+// mobile: only a mobile number (+63 9XX XXX XXXX), e.g. for the people joining a booking.
+export const phoneError = (raw, label = 'Phone number', { required = true, mobile = false } = {}) => {
   const value = String(raw ?? '').trim();
   if (!value) return required ? `Please enter the ${label.toLowerCase()}.` : '';
   if (/[a-z]/i.test(value)) return `${label} can only have numbers.`;
-  if (!normalizePhone(value)) return `${label} doesn't look right. Use a Philippine number like 0917 123 4567 or +63 917 123 4567.`;
+  const number = normalizePhone(value);
+  if (!number) return `${label} doesn't look right. Use a Philippine number like 0917 123 4567 or +63 917 123 4567.`;
+  if (mobile && !number.startsWith('09')) return `${label} must be a mobile number starting with 9 after +63, like +63 917 123 4567.`;
   return '';
 };
 

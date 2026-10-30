@@ -109,7 +109,7 @@ const checkRequestFields = (formEl, form, type) => {
     ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
     ...people.flatMap((p, i) => [
       [`participant_name_${i}`, fullNameError(p.full_name, `Name of person ${i + 1}`)],
-      [`participant_contact_${i}`, phoneError(p.contact_number, `Contact number of person ${i + 1}`)],
+      [`participant_contact_${i}`, phoneError(p.contact_number, `Contact number of person ${i + 1}`, { mobile: true })],
       [`participant_name_${i}`, people.findIndex((o) => sameName(o.full_name, p.full_name)) !== i ? 'This person is listed twice. Each person needs their own details.' : ''],
     ]),
     ['notes', textError(form.notes, 'Notes', { required: false, max: 2000 })],

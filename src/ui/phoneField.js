@@ -7,8 +7,8 @@ import { formatPhPhone } from '../validation';
 // save the number in the usual 09XXXXXXXXX form via normalizePhone().
 // ─────────────────────────────────────────────
 
-// Keys that would only be dropped are never typed at all: letters, a 0 right
-// after +63, and digits past the 10 that fit.
+// Keys that would only be dropped are never typed at all: letters, anything
+// but a 9 right after +63, and digits past the 10 that fit.
 const NAV_KEYS = ['Backspace', 'Delete', 'Tab', 'Enter', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
 export const blockPhoneKeys = (e) => {
   if (e.ctrlKey || e.metaKey || e.altKey || NAV_KEYS.includes(e.key) || e.key.length !== 1) return;
@@ -17,9 +17,11 @@ export const blockPhoneKeys = (e) => {
   const value = String(el.value || '');
   const selected = el.selectionStart !== el.selectionEnd;
   const digits = value.replace(/^\+63\s?/, '').replace(/\D/g, '');
-  // A 0 as the first digit after +63 (an empty field gets "+63 " on focus).
+  // The first digit after +63 must be a 9 (mobile numbers: +63 9XX XXX XXXX).
+  // An empty field gets "+63 " on focus.
   const caret = el.selectionStart ?? value.length;
-  if (e.key === '0' && (digits.length === 0 || caret <= (value.startsWith('+63') ? 4 : 0))) { e.preventDefault(); return; }
+  const atStart = digits.length === 0 || caret <= (value.startsWith('+63') ? 4 : 0);
+  if (atStart && e.key !== '9') { e.preventDefault(); return; }
   if (!selected && digits.length >= 10) e.preventDefault();
 };
 

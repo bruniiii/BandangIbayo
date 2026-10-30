@@ -142,10 +142,11 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             return false;
         }
         // Typing mistakes in the companions' details (wrong number format, one-word names, the same person twice).
+        // Two people may share a contact number (e.g. a mother and her child).
         for (let i = 0; i < companions.length; i++) {
             const c = companions[i];
             const problem = fullNameError(c.full_name, `Person ${i + 2}'s name`)
-                || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
+                || phoneError(c.contact_number, `Person ${i + 2}'s contact number`, { mobile: true });
             if (problem) { setCompanionError(problem); return false; }
         }
         const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
