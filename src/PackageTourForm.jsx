@@ -5,7 +5,6 @@ import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from './notifications';
 import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf } from './tourUtils';
-import { PICKUP_OPTIONS } from './pickupPoints';
 import { ListField, ItineraryField } from './ui/TourListFields';
 import { parseItinerary, serializeItinerary, itineraryDays } from './itinerary';
 import { moneyField, blockSignKeys } from './moneyInput';
@@ -94,7 +93,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   const packageSent = () => !!request.package_sent_at;
   // Requested tours: the rest of the form opens once the tour has a photo.
   const locked = isOpenRequest && gallery.length === 0 && newFiles.length === 0;
-  // Pickup points: typed one at a time and added (the usual points are suggested).
+  // Pickup points: typed one at a time and added.
   // Each keeps its time (ETA) if one was already set.
   const pickedPlaces = pickups.map((r) => r.location.trim()).filter(Boolean);
   const setPickedPlaces = (places) => {
@@ -428,8 +427,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                 label="Pickup Points" required name="pickup_new" maxLength={120}
                 items={pickedPlaces}
                 onChange={setPickedPlaces}
-                placeholder="Type a pickup point, e.g. SM Mall of Asia (MOA)"
-                suggestions={PICKUP_OPTIONS}
+                placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
                 hint="Add at least one. Joiners choose one of these when they book. Set each stop's time in Tracking Management."
               />
             </div>

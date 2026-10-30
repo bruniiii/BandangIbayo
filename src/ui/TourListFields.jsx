@@ -29,11 +29,9 @@ const iconBtn = {
 };
 
 // items: array of strings. name: the text box's name (for error bubbles).
-// suggestions: optional list offered while typing (e.g. usual pickup points).
 // locked: items that can't be removed, with the reason as a tooltip.
-export const ListField = ({ label, items, onChange, name, placeholder, suggestions, maxLength = 200, required = false, locked = {}, hint }) => {
+export const ListField = ({ label, items, onChange, name, placeholder, maxLength = 200, required = false, locked = {}, hint }) => {
   const [draft, setDraft] = useState('');
-  const listId = suggestions ? `${name}-suggestions` : undefined;
   const add = () => {
     const v = draft.trim();
     if (!v) return;
@@ -62,7 +60,7 @@ export const ListField = ({ label, items, onChange, name, placeholder, suggestio
       )}
       <div style={{ display: 'flex', gap: 8 }}>
         <input
-          id={name} name={name} value={draft} maxLength={maxLength} placeholder={placeholder} list={listId}
+          id={name} name={name} value={draft} maxLength={maxLength} placeholder={placeholder}
           onChange={(e) => setDraft(e.target.value)}
           // Enter adds the item instead of submitting the whole form.
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
@@ -70,11 +68,6 @@ export const ListField = ({ label, items, onChange, name, placeholder, suggestio
         />
         <button type="button" onClick={add} disabled={!draft.trim()} style={addBtnStyle(!draft.trim())}><Plus size={13} /> Add</button>
       </div>
-      {suggestions && (
-        <datalist id={listId}>
-          {suggestions.filter((s) => !items.includes(s)).map((s) => <option key={s} value={s} />)}
-        </datalist>
-      )}
       {hint && <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>{hint}</p>}
     </div>
   );

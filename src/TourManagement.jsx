@@ -15,7 +15,6 @@ import { SkeletonTourCards } from './ui/Skeleton';
 import { addDaysYmd } from './dateRange';
 import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
-import { PICKUP_OPTIONS } from './pickupPoints';
 import { ListField, ItineraryField } from './ui/TourListFields';
 import { parseItinerary, serializeItinerary, itineraryDays } from './itinerary';
 import { tripDays } from './dateRange';
@@ -82,7 +81,7 @@ const TourManagement = () => {
 
   const blankDateRow = () => ({ key: `new-${Math.random()}`, start_date: '', end_date: '', booked: 0, sale: false, sale_starts: '', sale_ends: '' });
   // Pickup points joiners choose from when booking (saved as each date's pickup stops).
-  // The admin types each one and clicks Add (the usual points are suggested).
+  // The admin types each one and clicks Add.
   const [pickupPicked, setPickupPicked] = useState([]);
   // Inclusions, Exclusions and Things to Bring: one item per line, added one at a time.
   const [formLists, setFormLists] = useState({ inclusions: [], exclusions: [], things_to_bring: [] });
@@ -903,8 +902,7 @@ const TourManagement = () => {
                     label="Pickup Points" required name="pickup_new" maxLength={120}
                     items={pickupPicked}
                     onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
-                    placeholder="Type a pickup point, e.g. SM Mall of Asia (MOA)"
-                    suggestions={PICKUP_OPTIONS}
+                    placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
                     hint="Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."
                   />
                 </div>
