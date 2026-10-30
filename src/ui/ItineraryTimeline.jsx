@@ -5,15 +5,12 @@ import { dateOfDay, shortDate } from '../itinerary';
 // Itinerary text ("Day 1:" headers + "TIME – Activity" or "START – END –
 // Activity" lines) as timeline rows grouped by day. Each day opens and
 // closes by tapping its header; the first day starts open.
-// "Morning – …", "Afternoon – …" and "Evening – …" lines (from the tour form's
-// itinerary boxes) show the part of the day as their label.
 // startDate: the tour date's first day, so each "Day N" also shows its date
 // (Day 0 is the day before).
 
 // A leading time or time range (e.g. "04:00 AM", "08:15 AM – 11:00 AM", or the
 // Filipino "12:00nn"/"12:00mn"), then ":" or "-"/"–", then the activity.
 const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
-const PERIOD_PREFIX_RE = /^(morning|afternoon|evening)\s*[:–-]\s*(.+)$/i;
 const isDayHeader = (line) => /^day\b/i.test(line);
 
 const parseDays = (text) => {
@@ -28,11 +25,6 @@ const parseDays = (text) => {
     if (!current) {
       current = { label: null, items: [] };
       days.push(current);
-    }
-    const period = line.match(PERIOD_PREFIX_RE);
-    if (period) {
-      current.items.push({ time: period[1][0].toUpperCase() + period[1].slice(1).toLowerCase(), activity: period[2].trim() });
-      return;
     }
     const match = line.match(TIME_PREFIX_RE);
     current.items.push(match

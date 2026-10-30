@@ -86,7 +86,7 @@ const TourManagement = () => {
   // Inclusions, Exclusions and Things to Bring: one item per line, added one at a time.
   const [formLists, setFormLists] = useState({ inclusions: [], exclusions: [], things_to_bring: [] });
   const setList = (field) => (items) => { setFormLists((l) => ({ ...l, [field]: items })); setFormDirty(true); };
-  // Itinerary: { [day]: { morning, afternoon, evening } }, Day 0 = the day before.
+  // Itinerary: { [day]: text }, Day 0 = the day before.
   const [formItinerary, setFormItinerary] = useState({});
   // Other expenses besides van, guide and bag tag (e.g. entrance fee, jeep).
   const [otherExpenses, setOtherExpenses] = useState([]);

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Trash2, Plus } from 'lucide-react';
-import { PERIODS, itineraryDays, shortDate } from '../itinerary';
+import { itineraryDays, shortDate } from '../itinerary';
 
 // ─────────────────────────────────────────────
 // Tour form fields (admin):
 //  - ListField: type one item, click ADD; each item can be removed. Used for
 //    Inclusions, Exclusions, Things to Bring and Pickup Points.
 //  - ItineraryField: one box per day (Day 0 = the day before the tour, then
-//    every tour date), each with Morning, Afternoon and Evening.
+//    every tour date).
 // ─────────────────────────────────────────────
 
 const labelStyle = {
@@ -73,11 +73,11 @@ export const ListField = ({ label, items, onChange, name, placeholder, maxLength
   );
 };
 
-// value: { [day]: { morning, afternoon, evening } } (see itinerary.js).
+// value: { [day]: text } (see itinerary.js).
 // start / end: the tour's dates (the first date, if the trip has several).
 export const ItineraryField = ({ start, end, value, onChange, note }) => {
   const days = itineraryDays(start, end);
-  const set = (day, period, text) => onChange({ ...value, [day]: { morning: '', afternoon: '', evening: '', ...value[day], [period]: text } });
+  const set = (day, text) => onChange({ ...value, [day]: text });
   return (
     <div>
       <label style={labelStyle}>Itinerary</label>
@@ -93,26 +93,19 @@ export const ItineraryField = ({ start, end, value, onChange, note }) => {
                 <span style={{ background: '#1A0A00', color: '#FDF6EE', borderRadius: 999, padding: '3px 12px', fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Day {day}</span>
                 <span style={{ fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>{shortDate(date)}{day === 0 ? ' · the day before' : ''}</span>
               </legend>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {PERIODS.map(([key, label]) => (
-                  <div key={key} className="itinerary-period-row" style={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr)', gap: 10, alignItems: 'start' }}>
-                    <label htmlFor={`itinerary_${day}_${key}`} style={{ ...labelStyle, margin: '11px 0 0', letterSpacing: '0.12em' }}>{label}</label>
-                    <textarea
-                      id={`itinerary_${day}_${key}`} name={`itinerary_${day}_${key}`} rows={1} maxLength={1000}
-                      value={value[day]?.[key] || ''}
-                      onChange={(e) => set(day, key, e.target.value)}
-                      placeholder={day === 0 ? (key === 'evening' ? 'e.g. Meet up at the pickup point, travel overnight' : 'Optional') : `What happens in the ${label.toLowerCase()}`}
-                      style={{ ...inputStyle, minHeight: 40, resize: 'vertical' }}
-                    />
-                  </div>
-                ))}
-              </div>
+              <textarea
+                id={`itinerary_${day}`} name={`itinerary_${day}`} rows={3} maxLength={3000}
+                aria-label={`Day ${day} itinerary`}
+                value={value[day] || ''}
+                onChange={(e) => set(day, e.target.value)}
+                placeholder={day === 0 ? 'e.g. 10:00 PM – Meet up at the pickup point, travel overnight' : 'e.g. 04:00 AM – Start the hike (one activity per line)'}
+                style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
+              />
             </fieldset>
           ))}
         </div>
       )}
       {note && <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>{note}</p>}
-      <style>{'@media (max-width: 520px) { .itinerary-period-row { grid-template-columns: 1fr !important; gap: 4px !important; } .itinerary-period-row label { margin-top: 0 !important; } }'}</style>
     </div>
   );
 };

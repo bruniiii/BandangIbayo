@@ -83,7 +83,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     const saved = Array.isArray(pkg.pickup_points) ? pkg.pickup_points : [];
     return saved.map((p) => ({ key: key(), location: p.location, time: to24h(p.time) }));
   });
-  // Itinerary: { [day]: { morning, afternoon, evening } }, Day 0 = the day before.
+  // Itinerary: { [day]: text }, Day 0 = the day before.
   const [itinerary, setItinerary] = useState(() => parseItinerary(pkg.itinerary));
   const [gallery, setGallery] = useState(() => (Array.isArray(pkg.image_urls) ? pkg.image_urls : []));
   const [newFiles, setNewFiles] = useState([]);
