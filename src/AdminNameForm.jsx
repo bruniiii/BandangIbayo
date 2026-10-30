@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { nameError } from './validation';
 import { adminMeChanged } from './adminMe';
+import { usePopupError } from './ui/usePopupError';
 
 // ─────────────────────────────────────────────
 // An admin's own name: shown at the top right and on the receipts of the
@@ -20,6 +21,7 @@ const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
   const [first, setFirst] = useState('');
   const [last, setLast] = useState('');
   const [error, setError] = useState('');
+  usePopupError(error);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {

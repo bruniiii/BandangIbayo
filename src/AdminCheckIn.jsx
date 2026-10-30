@@ -309,7 +309,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             <select
               id="checkin-tour"
               value={tourId}
-              onChange={(e) => setTourId(e.target.value)}
+              onChange={(e) => { setTourId(e.target.value); stopCamera(); }}
               style={{ ...field, marginBottom: tour && !checkInOpen(tour) ? 10 : 16 }}
             >
               {tours.map((t) => (
@@ -344,7 +344,16 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
               {cameraOn
                 ? <button type="button" onClick={stopCamera} style={secondaryBtn()}><CameraOff size={15} /> Stop Camera</button>
-                : <button type="button" onClick={startCamera} disabled={!tourId} style={primaryBtn(!tourId)}><Camera size={15} /> Start Scanning</button>}
+                : (() => {
+                  // Scanning opens on the day the tour starts.
+                  const locked = !tourId || !checkInOpen(tour);
+                  return (
+                    <button type="button" onClick={startCamera} disabled={locked} aria-disabled={locked} style={{ ...primaryBtn(locked), cursor: locked ? 'not-allowed' : 'pointer' }}
+                      title={tour && !checkInOpen(tour) ? `Scanning opens on the day of the tour (${tourDates(tour)})` : undefined}>
+                      <Camera size={15} /> Start Scanning
+                    </button>
+                  );
+                })()}
             </div>
 
             <form onSubmit={submitManual} style={{ marginTop: 18 }}>

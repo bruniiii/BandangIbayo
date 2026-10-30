@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { SearchX, ClipboardList } from 'lucide-react';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { formatPeso, CANCELLATION_APPROVAL_HOURS } from './tourUtils';
@@ -57,7 +57,7 @@ const BookingManagement = () => {
       .order('created_at', { ascending: false });
  
     if (error) {
-      console.error('Error fetching bookings:', error.message);
+      reportError("Couldn't load bookings", error.message);
       setLoading(false);
       return;
     }

@@ -44,6 +44,8 @@ const SITE_URL = (Deno.env.get("SITE_URL") ?? "").replace(/\/+$/, "");
 const PAYMENT_METHODS = (Deno.env.get("PAYMONGO_PAYMENT_METHODS") ?? "gcash,paymaya,card,grab_pay")
   .split(",").map((m) => m.trim()).filter(Boolean);
 const PAYMONGO_API = "https://api.paymongo.com/v1";
+// Tour downpayment (percent of the total). Exclusive tours have their own rate below.
+const DOWNPAYMENT_PERCENT = 50;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -244,12 +246,12 @@ async function createCheckout(userId: string, p: any) {
 
   const { data: tour } = await supabase.from("tours").select("id, title").eq("id", booking.tour_id).single();
   const full = p.paymentType === "full";
-  const amount = full ? Number(booking.total_price) : Math.round(Number(booking.total_price) * 40) / 100; // 40%, to the centavo
+  const amount = full ? Number(booking.total_price) : Math.round(Number(booking.total_price) * DOWNPAYMENT_PERCENT) / 100; // 50%, to the centavo
 
   try {
     const session = await createSession({
       booking, tour, amount, kind: "booking", base: returnBase(p.returnBaseUrl),
-      label: full ? "Full payment" : "40% downpayment",
+      label: full ? "Full payment" : "50% downpayment",
     });
     await supabase.from("bookings")
       .update({ paymongo_checkout_id: session.id, paymongo_checkout_url: session.url })
@@ -314,10 +316,10 @@ async function payHeld(userId: string, p: any) {
   if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
 
   const full = p.paymentType === "full";
-  const amount = full ? Number(prepared.total_price) : Math.round(Number(prepared.total_price) * 40) / 100;
+  const amount = full ? Number(prepared.total_price) : Math.round(Number(prepared.total_price) * DOWNPAYMENT_PERCENT) / 100;
   const session = await createSession({
     booking: prepared, tour: booking.tours, amount, kind: "booking", base: returnBase(p.returnBaseUrl),
-    label: full ? "Full payment" : "40% downpayment",
+    label: full ? "Full payment" : "50% downpayment",
   });
   await supabase.from("bookings")
     .update({ paymongo_checkout_id: session.id, paymongo_checkout_url: session.url })

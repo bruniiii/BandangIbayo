@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { archivePastTours, todayManila } from './tourUtils';
 
@@ -83,7 +83,7 @@ export const AdminTrackingControls = () => {
         setToursList(data);
       }
     } catch (err) {
-      console.error(err);
+      reportError("Couldn't load the tours", err);
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,7 @@ export const AdminTrackingControls = () => {
       setMeetupStops(savedStopsRef.current);
       setTrackingLogs(Array.isArray(logs) ? logs : []);
     } catch (err) {
-      console.error('Error loading tracking console:', err.message);
+      reportError("Couldn't load tracking console", err.message);
     } finally {
       setLoadingConsole(false);
     }

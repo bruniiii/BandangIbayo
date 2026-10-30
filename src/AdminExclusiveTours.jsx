@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { SearchX, Inbox } from 'lucide-react';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from "./notifications";
 import { formatPeso, requestOverdueReason, requestStatusLabel, requestPaymentLabel, REQUEST_REVIEW_DAYS, EXCLUSIVE_APPROVAL_CUTOFF_DAYS } from './tourUtils';
@@ -137,7 +137,7 @@ const AdminExclusiveTours = ({ type = 'exclusive' }) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching exclusive requests:', error.message);
+      reportError("Couldn't load exclusive requests", error.message);
       setLoading(false);
       return;
     }

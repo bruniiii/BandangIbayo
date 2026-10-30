@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { reportError } from './ui/toast';
 
 // Archives tours whose end date has passed (archive_past_tours() in the
 // database, which also runs nightly), and sends joiners their "Pickup Starts
@@ -33,7 +34,7 @@ export const DEFAULT_GROUP_SIZE = 15;
 // for logged-out visitors without exposing anyone's bookings.
 export const withAvailableSlots = async (tours) => {
   const { data, error } = await supabase.rpc('tour_slots_booked');
-  if (error) console.error('Error fetching slot counts:', error.message);
+  if (error) reportError("Couldn't load slot counts", error.message);
   const bookedByTour = Object.fromEntries((data || []).map((r) => [r.tour_id, Number(r.slots_booked) || 0]));
 
   return (tours || []).map((tour) => {
@@ -182,8 +183,21 @@ export const effectivePrice = (tour) => (isOnSale(tour) ? salePriceOf(tour.price
 export const tripOnSale = (trip) => (trip?.dates?.length ? trip.dates.some((d) => isOnSale(d)) : isOnSale(trip));
 export const tripAllOnSale = (trip) => (trip?.dates?.length ? trip.dates.every((d) => isOnSale(d)) : isOnSale(trip));
 
-// 40% downpayment, rounded to the centavo (same rule as the database and payments function).
-export const downpaymentFor = (total) => Math.round((Number(total) || 0) * 40) / 100;
+// Inclusions, Exclusions, Things to Bring: saved one item per line.
+export const linesOf = (text) => (text || '').split('\n').map((x) => x.trim()).filter(Boolean);
+
+// 50% downpayment, rounded to the centavo (same rule as the payments function).
+export const DOWNPAYMENT_PERCENT = 50;
+export const downpaymentFor = (total) => Math.round((Number(total) || 0) * DOWNPAYMENT_PERCENT) / 100;
+
+// The downpayment a booking actually paid. Bookings from before the switch to
+// 50% paid 40%; the database remembers it (bookings.downpayment_amount).
+export const bookingDownpayment = (booking) => {
+  const total = Number(booking?.total_price) || 0;
+  if (booking?.downpayment_amount != null) return Number(booking.downpayment_amount) || 0;
+  if (!booking?.balance_settled && booking?.amount_paid != null && Number(booking.amount_paid) < total) return Number(booking.amount_paid) || 0;
+  return downpaymentFor(total);
+};
 
 // One trip, many dates: tours with the same title, destination and price are
 // the same trip on different dates. Each date is still its own tour row (so

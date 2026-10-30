@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────
-// PICKUP POINTS: the admin ticks which of these a tour stops at, and joiners
-// choose one of those when they book. Saved as the tour's tour_meetups.
+// PICKUP POINTS: suggested to the admin while adding a tour's pickup points; joiners
+// choose one of the tour's points when they book. Saved as the tour's tour_meetups.
 // ─────────────────────────────────────────────
 
 export const PICKUP_OPTIONS = [

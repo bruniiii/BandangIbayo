@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { safeNextPath } from './tourUtils';
 import { passwordErrorMessage } from './passwordPolicy';
@@ -135,12 +135,12 @@ const JoinerRegister = ({ mode = 'register' }) => {
           .eq('id', userId);
 
         if (avatarUpdateError) {
-          console.error('Avatar database update failed:', avatarUpdateError);
+          reportError("Couldn't save your profile photo", avatarUpdateError);
           toast.info('Account created, photo not saved', 'You can add your profile picture later in Profile Settings.');
         }
       }
     } catch (avatarError) {
-      console.error('Avatar upload failed:', avatarError);
+      reportError("Couldn't upload your profile photo", avatarError);
       toast.info('Account created, photo not uploaded', 'You can add your profile picture later in Profile Settings.');
     }
   };
@@ -273,7 +273,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
         let avatarUrl = googleName.avatar || null;
         if (avatarFile) {
           try { avatarUrl = (await uploadAvatar(googleUser.id, avatarFile)) || avatarUrl; }
-          catch (avatarError) { console.error('Avatar upload failed:', avatarError); }
+          catch (avatarError) { reportError("Couldn't upload your profile photo", avatarError); }
         }
         const { error: saveError } = await supabase.rpc('complete_my_profile', {
           p: {
@@ -396,7 +396,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
         setNeedsEmailConfirmation(true);
       }
     } catch (err) {
-      console.error('Registration error:', err);
+      reportError("Couldn't create your account", err);
       toast.error('Registration failed', err?.message || 'Please try again.');
     } finally {
       setLoading(false);

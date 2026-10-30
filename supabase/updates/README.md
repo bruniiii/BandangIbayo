@@ -6,7 +6,7 @@
 2. Paste all of `check_updates.sql` and click **Run**. Each row says `installed` or `NOT YET`.
 3. If any row says `NOT YET`: open a new query, paste all of
    `install_updates.sql` and click **Run**. It installs every update
-   from 20261111 to 20261119 in order. If something fails, nothing is changed and
+   from 20261111 to 20261120 in order. If something fails, nothing is changed and
    the error says which part. It's safe to run even if some are already installed.
 4. Run `check_updates.sql` again. Every row should now say `installed`.
 

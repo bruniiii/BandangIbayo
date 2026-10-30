@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { maskSensitiveWords } from './profanity';
 import { shrinkImage } from './imageCompress';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { todayManila } from './tourUtils';
 import { mediaFileError } from './validation';
@@ -93,13 +93,13 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
       .select('*, tours(id, title, destination, start_date, end_date)')
       .order('created_at', { ascending: false });
 
-    if (error) { console.error('Error fetching reviews:', error.message); setLoading(false); return; }
+    if (error) { reportError("Couldn't load reviews", error.message); setLoading(false); return; }
 
     const userIds = [...new Set((data || []).map(r => r.user_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = userIds.length
       ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url').in('id', userIds)
       : { data: [] };
-    if (profilesError) console.error('Error fetching review authors:', profilesError.message);
+    if (profilesError) reportError("Couldn't load review authors", profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
 
     // "Helpful" counts, and whether the viewer marked each one (review_helpful_counts()).

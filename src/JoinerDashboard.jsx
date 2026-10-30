@@ -33,6 +33,7 @@ import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory } from './useTabHistory';
 import { Skel } from './ui/Skeleton';
 import { PulseStat, NextTripCard, TripReadinessCard, CalendarWidget, TrackingSnippet, MyRequestsCard, HomeReviews } from './HomeWidgets';
+import { reportError } from './ui/toast';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -370,7 +371,7 @@ const JoinerDashboard = () => {
         });
       }
     } catch (err) {
-      console.error('Error fetching user profile:', err);
+      reportError("Couldn't load user profile", err);
     }
   }, [navigate]);
 
@@ -471,7 +472,7 @@ const JoinerDashboard = () => {
 
       setFeaturedTours(updatedTours);
     } catch (err) {
-      console.error("Dashboard engine critical fetch error:", err);
+      reportError("Couldn't load your dashboard", err);
     } finally {
       setLoadingHome(false);
     }

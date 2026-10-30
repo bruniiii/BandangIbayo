@@ -249,7 +249,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
                 <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
                   <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
-                    <ItineraryTimeline text={tour.itinerary} />
+                    <ItineraryTimeline text={tour.itinerary} startDate={tour.dates?.length > 1 ? null : tour.start_date} />
                   </ViewSection>
                 </div>
 

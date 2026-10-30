@@ -18,6 +18,7 @@ import logoIcon from './assets/logo.png';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRegion, Skel } from './ui/Skeleton';
+import { reportError } from './ui/toast';
 
 // ─────────────────────────────────────────────
 // PUBLIC TOUR PAGES (no login needed)
@@ -129,7 +130,7 @@ export const PublicTourList = () => {
     document.title = `Tours | ${SITE_TITLE}`;
     const load = async () => {
       const { data, error } = await fetchOpenTours();
-      if (error) console.error('Error fetching tours:', error.message);
+      if (error) reportError("Couldn't load tours", error.message);
       setTours(groupTripDates(await withAvailableSlots(data)));
       setLoading(false);
     };
@@ -389,7 +390,7 @@ export const PublicTourDetail = () => {
 
             <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
               <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
-                <ItineraryTimeline text={tour.itinerary} />
+                <ItineraryTimeline text={tour.itinerary} startDate={tour.dates?.length > 1 ? null : tour.start_date} />
               </ViewSection>
             </div>
 
@@ -421,7 +422,7 @@ export const PublicTourDetail = () => {
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)' }}>Price per joiner</div>
               <PriceTag tour={tour} size={34} color="#FDF6EE" mutedColor="rgba(232,210,190,0.75)" align="flex-start" />
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or 40% downpayment online (GCash, Maya, card)</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or 50% downpayment online (GCash, Maya, card)</div>
             </div>
 
             {tour.dates.length > 1 && (

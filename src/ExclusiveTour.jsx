@@ -850,7 +850,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
                     <Calendar size={11} /> Itinerary
                   </p>
                   <div style={{ background: '#FDF6EE', borderRadius: 14, padding: 10 }}>
-                    <ItineraryTimeline text={pkg.itinerary} />
+                    <ItineraryTimeline text={pkg.itinerary} startDate={pkg.start_date} />
                   </div>
                 </div>
               ) : (

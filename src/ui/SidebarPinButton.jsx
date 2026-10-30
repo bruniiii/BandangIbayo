@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pin, PinOff } from 'lucide-react';
+import { Book, BookOpen } from 'lucide-react';
 
 // Keeps the desktop sidebar open (pinned) or back to opening on hover.
+// The book is open while the sidebar is pinned open, closed when it isn't.
 const SidebarPinButton = ({ pinned, onToggle }) => (
   <button
     type="button"
@@ -18,7 +19,7 @@ const SidebarPinButton = ({ pinned, onToggle }) => (
       color: pinned ? '#FDF6EE' : '#E8A265',
     }}
   >
-    {pinned ? <PinOff size={14} /> : <Pin size={14} />}
+    {pinned ? <BookOpen size={15} /> : <Book size={15} />}
   </button>
 );
 

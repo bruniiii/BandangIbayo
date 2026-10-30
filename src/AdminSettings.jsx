@@ -12,6 +12,7 @@ import { SkeletonRows } from './ui/Skeleton';
 import { useAdminMe } from './adminMe';
 import AdminNameForm from './AdminNameForm';
 import BrandAvatar from './ui/BrandAvatar';
+import { usePopupError } from './ui/usePopupError';
 
 // ─────────────────────────────────────────────
 // ADMIN SETTINGS (main admin only): the list of admins, adding an admin (a new
@@ -45,6 +46,7 @@ const AdminSettings = () => {
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  usePopupError(error);
   const [busy, setBusy] = useState(false);
   // After "Send Code": { challengeId, sentTo } until the right code is entered.
   const [pending, setPending] = useState(null);

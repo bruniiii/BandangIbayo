@@ -1,4 +1,4 @@
-import { formatDateRange } from './tourUtils';
+import { formatDateRange, bookingDownpayment } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { fetchTourExpenses, expenseItems } from './tourExpenses';
 
@@ -151,8 +151,8 @@ const processedBy = (adminName, paidOnline) =>
   String(adminName || '').trim() || (paidOnline ? 'Online (PayMongo)' : 'Bandang IBAYO');
 
 // ── Tour booking receipt ──────────────────────
-// The downpayment a booking started with (40% of the total, as charged).
-const downpaymentOf = (total) => Math.round(total * 40) / 100;
+// The downpayment a booking started with (as charged: 50%, or 40% for older bookings).
+const downpaymentOf = (booking) => bookingDownpayment(booking);
 // Whether a booking has a second receipt for its paid balance.
 export const hasBalanceReceipt = (booking) => booking.payment_method === 'Downpayment' && !!booking.balance_settled;
 
@@ -167,7 +167,7 @@ const bookingReceipt = async (booking, tour, { expenses, part = 'payment' } = {}
   const settled = isDown && !!booking.balance_settled;
   const isBalance = part === 'balance' && settled;
   // What this receipt is for, and what was still owed after it.
-  const down = isDown ? (settled ? downpaymentOf(total) : Number(booking.amount_paid ?? 0) || 0) : 0;
+  const down = isDown ? (settled ? downpaymentOf(booking) : Number(booking.amount_paid ?? 0) || 0) : 0;
   const paidNow = isBalance ? Math.max(0, total - down) : isDown ? down : Number(booking.amount_paid ?? total) || 0;
   const paidSoFar = isBalance ? total : paidNow;
   const remaining = isBalance ? 0 : isDown ? Math.max(0, total - down) : 0;

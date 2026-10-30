@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { mediaFileError } from './validation';
 import EmptyState from './ui/EmptyState';
@@ -84,7 +84,7 @@ const Feed = ({ isAdmin = false }) => {
   const fetchReactions = useCallback(async (postIds) => {
     if (!postIds.length) { setReactionsMap({}); return; }
     const { data, error } = await supabase.from('feed_reactions').select('id, post_id, user_id, emoji').in('post_id', postIds);
-    if (error) { console.error('Error fetching reactions:', error.message); return; }
+    if (error) { reportError("Couldn't load reactions", error.message); return; }
     const map = {};
     postIds.forEach(id => { map[id] = []; });
     (data || []).forEach(r => { (map[r.post_id] ||= []).push(r); });
@@ -98,13 +98,13 @@ const Feed = ({ isAdmin = false }) => {
       .select('*')
       .in('post_id', postIds)
       .order('created_at', { ascending: true });
-    if (error) { console.error('Error fetching comments:', error.message); return; }
+    if (error) { reportError("Couldn't load comments", error.message); return; }
 
     const authorIds = [...new Set((data || []).map(c => c.user_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = authorIds.length
       ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
       : { data: [] };
-    if (profilesError) console.error('Error fetching comment authors:', profilesError.message);
+    if (profilesError) reportError("Couldn't load comment authors", profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
 
     const map = {};
@@ -122,13 +122,13 @@ const Feed = ({ isAdmin = false }) => {
       .order('created_at', { ascending: false });
     // `media` (jsonb array of { url, type }) comes back automatically via '*'
 
-    if (error) { console.error('Error fetching feed:', error.message); setLoading(false); return; }
+    if (error) { reportError("Couldn't load feed", error.message); setLoading(false); return; }
 
     const authorIds = [...new Set((data || []).map(p => p.author_id).filter(Boolean))];
     const { data: profilesData, error: profilesError } = authorIds.length
       ? await supabase.from('public_profiles').select('id, first_name, last_name, username, avatar_url, role').in('id', authorIds)
       : { data: [] };
-    if (profilesError) console.error('Error fetching post authors:', profilesError.message);
+    if (profilesError) reportError("Couldn't load post authors", profilesError.message);
     const profileMap = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
 
     const weekAgo = Date.now() - TOUR_POST_DAYS * 86400e3;

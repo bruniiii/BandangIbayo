@@ -7,6 +7,7 @@ import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
 import OtpInput from './ui/OtpInput';
 import PasswordField from './ui/PasswordField';
 import GoogleButton, { OrDivider } from './ui/GoogleButton';
+import { usePopupError } from './ui/usePopupError';
 
 // "Continue with Google" is turned off for now; set to true to show it again.
 const SHOW_GOOGLE_LOGIN = false;
@@ -53,6 +54,7 @@ const JoinerLogin = () => {
   const [challenge, setChallenge] = useState(null); // { challengeId, sentTo, expiresInMinutes }
   const [code, setCode] = useState('');
   const [message, setMessage] = useState({ text: '', tone: 'error' });
+  usePopupError(message.tone === 'error' ? message.text : '');
   const [resending, setResending] = useState(false);
 
   const showError = (text) => setMessage({ text, tone: 'error' });

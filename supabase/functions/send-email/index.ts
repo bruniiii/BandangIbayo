@@ -252,7 +252,7 @@ const wrapper = (title: string, titleColor: string, bodyHtml: string) => `
 
 // What the joiner says they paid: the amount they submitted, else what their payment option requires.
 const amountSubmitted = (b: any) =>
-  b.amount_paid ?? (b.payment_method === "Downpayment" ? Math.round((b.total_price || 0) * 40) / 100 : b.total_price || 0);
+  b.amount_paid ?? (b.payment_method === "Downpayment" ? Math.round((b.total_price || 0) * 50) / 100 : b.total_price || 0);
 
 const bookingSubmittedEmail = (name: string, b: any, tour: any) => ({
   subject: `Booking Received — ${b.booking_number}`,

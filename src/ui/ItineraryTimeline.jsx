@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { dateOfDay, shortDate } from '../itinerary';
 
 // Itinerary text ("Day 1:" headers + "TIME – Activity" or "START – END –
 // Activity" lines) as timeline rows grouped by day. Each day opens and
 // closes by tapping its header; the first day starts open.
+// "Morning – …", "Afternoon – …" and "Evening – …" lines (from the tour form's
+// itinerary boxes) show the part of the day as their label.
+// startDate: the tour date's first day, so each "Day N" also shows its date
+// (Day 0 is the day before).
 
 // A leading time or time range (e.g. "04:00 AM", "08:15 AM – 11:00 AM", or the
 // Filipino "12:00nn"/"12:00mn"), then ":" or "-"/"–", then the activity.
 const TIME_PREFIX_RE = /^(\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn)(?:\s*[–-]\s*\d{1,2}:\d{2}\s?(?:[AP]M|nn|mn))?)\s*[:–-]\s*(.+)$/i;
+const PERIOD_PREFIX_RE = /^(morning|afternoon|evening)\s*[:–-]\s*(.+)$/i;
 const isDayHeader = (line) => /^day\b/i.test(line);
 
 const parseDays = (text) => {
@@ -22,6 +28,11 @@ const parseDays = (text) => {
     if (!current) {
       current = { label: null, items: [] };
       days.push(current);
+    }
+    const period = line.match(PERIOD_PREFIX_RE);
+    if (period) {
+      current.items.push({ time: period[1][0].toUpperCase() + period[1].slice(1).toLowerCase(), activity: period[2].trim() });
+      return;
     }
     const match = line.match(TIME_PREFIX_RE);
     current.items.push(match
@@ -51,7 +62,13 @@ const Items = ({ items }) => (
   </div>
 );
 
-const ItineraryTimeline = ({ text }) => {
+// "Day 2" → "Day 2 · Sat, Oct 26" when the tour's start date is known.
+const withDate = (label, startDate) => {
+  const m = /^day\s*(\d+)$/i.exec(label.trim());
+  return m && startDate ? `${label} · ${shortDate(dateOfDay(startDate, Number(m[1])))}` : label;
+};
+
+const ItineraryTimeline = ({ text, startDate = null }) => {
   const days = parseDays(text);
   const [open, setOpen] = useState(() => new Set([0]));
 
@@ -87,7 +104,7 @@ const ItineraryTimeline = ({ text }) => {
                 display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
                 borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
                 letterSpacing: '0.15em', textTransform: 'uppercase',
-              }}>{day.label}</span>
+              }}>{withDate(day.label, startDate)}</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 800, color: '#7A3A18', whiteSpace: 'nowrap' }}>
                 {day.items.length} {day.items.length === 1 ? 'stop' : 'stops'}
                 <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />

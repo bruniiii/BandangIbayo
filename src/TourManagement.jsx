@@ -3,11 +3,11 @@ import { supabase } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
 import EmptyState from './ui/EmptyState';
 import { SearchX, Map as MapIcon, CalendarPlus } from 'lucide-react';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf } from './tourUtils';
 import { moneyInputProps, blockSignKeys, moneyField, moneyNumber, moneyDisplay } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import { Plus, Edit, Archive, X, Search, Loader2, Trash2, UploadCloud, RefreshCw, History, ChevronDown } from 'lucide-react';
@@ -16,7 +16,9 @@ import { addDaysYmd } from './dateRange';
 import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
 import { PICKUP_OPTIONS } from './pickupPoints';
-import PickupCheckboxes from './ui/PickupCheckboxes';
+import { ListField, ItineraryField } from './ui/TourListFields';
+import { parseItinerary, serializeItinerary, itineraryDays } from './itinerary';
+import { tripDays } from './dateRange';
 import { TourCard } from './TourCard';
 import { TourViewModal } from './TourViewModal';
 
@@ -80,9 +82,13 @@ const TourManagement = () => {
 
   const blankDateRow = () => ({ key: `new-${Math.random()}`, start_date: '', end_date: '', booked: 0, sale: false, sale_starts: '', sale_ends: '' });
   // Pickup points joiners choose from when booking (saved as each date's pickup stops).
-  // pickupChoices: the fixed list, plus any older custom point this tour still has.
-  const [pickupChoices, setPickupChoices] = useState(PICKUP_OPTIONS);
+  // The admin types each one and clicks Add (the usual points are suggested).
   const [pickupPicked, setPickupPicked] = useState([]);
+  // Inclusions, Exclusions and Things to Bring: one item per line, added one at a time.
+  const [formLists, setFormLists] = useState({ inclusions: [], exclusions: [], things_to_bring: [] });
+  const setList = (field) => (items) => { setFormLists((l) => ({ ...l, [field]: items })); setFormDirty(true); };
+  // Itinerary: { [day]: { morning, afternoon, evening } }, Day 0 = the day before.
+  const [formItinerary, setFormItinerary] = useState({});
   // Other expenses besides van, guide and bag tag (e.g. entrance fee, jeep).
   const [otherExpenses, setOtherExpenses] = useState([]);
   // The Joiner Rate as typed (the field itself is uncontrolled), for the sale price preview.
@@ -100,8 +106,9 @@ const TourManagement = () => {
     setDateRows(trip ? (withNewDate ? [...saved, blankDateRow()] : saved) : [blankDateRow()]);
     const stops = trip?.pickup_points || [];
     const stopNames = [...new Set(stops.map((m) => m.location_name.trim()).filter(Boolean))];
-    setPickupChoices([...PICKUP_OPTIONS, ...stopNames.filter((n) => !PICKUP_OPTIONS.includes(n))]);
     setPickupPicked(stopNames);
+    setFormLists({ inclusions: linesOf(trip?.inclusions), exclusions: linesOf(trip?.exclusions), things_to_bring: linesOf(trip?.things_to_bring) });
+    setFormItinerary(parseItinerary(trip?.itinerary));
     const others = Array.isArray(trip?.expenses?.others) ? trip.expenses.others : [];
     setOtherExpenses(others.map((o) => ({ key: `e-${Math.random()}`, name: o.name, amount: String(o.amount) })));
     setFormTourPrice(trip?.price ?? '');
@@ -111,6 +118,11 @@ const TourManagement = () => {
   };
   const updateDateRow = (key, field, value) => { setDateRows((rows) => rows.map((r) => (r.key === key ? { ...r, [field]: value } : r))); setFormDirty(true); };
   const removeDateRow = (key) => { setDateRows((rows) => rows.filter((r) => r.key !== key)); setFormDirty(true); };
+  // The itinerary's days follow the first date; a trip with several dates uses its longest one.
+  const firstDate = dateRows.find((r) => r.start_date) || null;
+  const longestTrip = Math.max(0, ...dateRows.filter((r) => r.start_date && r.end_date && r.end_date >= r.start_date).map((r) => tripDays(r.start_date, r.end_date)));
+  const itineraryStart = firstDate?.start_date || '';
+  const itineraryEnd = itineraryStart && longestTrip ? addDaysYmd(itineraryStart, longestTrip - 1) : '';
 
   const getMinStartDate = () => {
     const date = new Date();
@@ -127,7 +139,7 @@ const TourManagement = () => {
       .eq('is_archived', currentTab === 'archive')
       .order('start_date', { ascending: currentTab !== 'archive' });
  
-    if (error) { console.error('Error fetching tours:', error.message); setLoading(false); return; }
+    if (error) { reportError("Couldn't load tours", error.message); setLoading(false); return; }
  
     const [{ data: bookingsData }, { data: ratesData }, { data: stopsData }, { data: expensesData }] = await Promise.all([
       supabase
@@ -239,7 +251,7 @@ const TourManagement = () => {
     const regularRate = moneyNumber(formData.get('regular_rate'));
     const vanRent = moneyNumber(formData.get('van_rent'));
     const tourGuide = moneyNumber(formData.get('tour_guide'));
-    const pickups = pickupChoices.filter((n) => pickupPicked.includes(n)).map((location) => ({ location }));
+    const pickups = pickupPicked.map((location) => ({ location }));
     const pickupNames = pickups.map((r) => r.location.toLowerCase());
     const groupSize = Number(formData.get('group_size'));
     const minStart  = getMinStartDate();
@@ -280,7 +292,7 @@ const TourManagement = () => {
         [`other_name_${i}`, (o.name.trim() || o.amount) && !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
         [`other_amount_${i}`, o.name.trim() && !(Number(o.amount) >= 0 && String(o.amount).trim() !== '') ? 'Enter the amount (₱0 or more).' : ''],
       ]),
-      ['pickup_0', pickups.length === 0 ? 'Tick at least one pickup point, so joiners can choose where to be picked up.' : ''],
+      ['pickup_new', pickups.length === 0 ? 'Add at least one pickup point, so joiners can choose where to be picked up.' : ''],
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
       // (An older tour keeps a bigger number as long as it isn't changed.)
       ['group_size', groupSize > MAX_TOUR_SLOTS && groupSize !== Number(editingTour?.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots per date.` : ''],
@@ -311,10 +323,11 @@ const TourManagement = () => {
       destination:    String(formData.get('destination')).trim(),
       group_size:     groupSize,
       difficulty:     formData.get('difficulty'),
-      inclusions:     formData.get('inclusions'),
-      exclusions:     formData.get('exclusions'),
-      things_to_bring: formData.get('things_to_bring'),
-      itinerary:      formData.get('itinerary'),
+      inclusions:     formLists.inclusions.join('\n'),
+      exclusions:     formLists.exclusions.join('\n'),
+      things_to_bring: formLists.things_to_bring.join('\n'),
+      // Only the days the tour has (Day 0 to its last day).
+      itinerary:      serializeItinerary(Object.fromEntries(itineraryDays(itineraryStart, itineraryEnd).map(({ day }) => [day, formItinerary[day]]).filter(([, v]) => v))),
       important_note: formData.get('important_note'),
       image_urls:     finalGallery,
       accommodation_options: cleanAccommodation(formAccommodation),
@@ -393,7 +406,7 @@ const TourManagement = () => {
         post_type: 'tour',
         tour_id: inserted[0].id,
       }]);
-      if (feedError) console.error('Error auto-posting tour to feed:', feedError.message);
+      if (feedError) reportError("Tour saved, but it wasn't posted to the feed", feedError.message);
     }
 
     toast.success(isNewTour ? 'Tour created' : 'Tour saved', isNewTour ? 'It\'s now open for booking and posted to the feed.' : added.length ? `${added.length} new date${added.length > 1 ? 's are' : ' is'} open for booking.` : '');
@@ -886,15 +899,14 @@ const TourManagement = () => {
 
                 {/* Pickup points: joiners pick one when booking. Their times (ETAs) are set in Tracking Management. */}
                 <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
-                  <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points *</label>
-                  <PickupCheckboxes
-                    choices={pickupChoices}
-                    value={pickupPicked}
-                    onToggle={(place) => { setPickupPicked((list) => (list.includes(place) ? list.filter((x) => x !== place) : [...list, place])); setFormDirty(true); }}
+                  <ListField
+                    label="Pickup Points" required name="pickup_new" maxLength={120}
+                    items={pickupPicked}
+                    onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
+                    placeholder="Type a pickup point, e.g. SM Mall of Asia (MOA)"
+                    suggestions={PICKUP_OPTIONS}
+                    hint="Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."
                   />
-                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 0 0' }}>
-                    Tick at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management.
-                  </p>
                 </div>
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -916,13 +928,16 @@ const TourManagement = () => {
                     style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
                 </div>
  
-                {[['inclusions', 'Inclusions'], ['exclusions', 'Exclusions'], ['things_to_bring', 'Things to Bring'], ['itinerary', 'Itinerary']].map(([field, title]) => (
-                  <div key={field}>
-                    <label style={labelStyle}>{title}</label>
-                    <textarea name={field} defaultValue={formTour?.[field]}
-                      style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
-                  </div>
+                {[['inclusions', 'Inclusions', 'e.g. Van transfers'], ['exclusions', 'Exclusions', 'e.g. Meals not mentioned'], ['things_to_bring', 'Things to Bring', 'e.g. Valid ID']].map(([field, title, example]) => (
+                  <ListField key={field} label={title} name={`${field}_new`} items={formLists[field]} onChange={setList(field)} placeholder={`Type one, then click Add (${example})`} />
                 ))}
+
+                <ItineraryField
+                  start={itineraryStart} end={itineraryEnd}
+                  value={formItinerary}
+                  onChange={(v) => { setFormItinerary(v); setFormDirty(true); }}
+                  note={dateRows.filter((r) => r.start_date).length > 1 ? 'The dates shown are for the first date of this trip. Every other date follows the same days.' : ''}
+                />
  
                 <div>
                   <label style={{ ...labelStyle, color: '#A8481A', opacity: 1 }}>Important Notes</label>

@@ -36,5 +36,8 @@ from (values
   ('20261119 remove another main admin',
      coalesce((select pg_get_functiondef(p.oid) not ilike '%Main admins can''t be removed%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                where n.nspname = 'public' and p.proname = 'remove_admin' limit 1), false))
+                where n.nspname = 'public' and p.proname = 'remove_admin' limit 1), false)),
+  ('20261120 50% downpayment (remembers older 40% ones)',
+     exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'bookings' and column_name = 'downpayment_amount'))
 ) as u(update_file, installed);

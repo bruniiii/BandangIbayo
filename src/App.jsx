@@ -27,6 +27,7 @@ import { ReviewCard } from './ui/ReviewCards';
 import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
 import { SkeletonTourCards } from './ui/Skeleton';
+import { reportError } from './ui/toast';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -79,7 +80,7 @@ function LandingPage() {
         .eq('is_archived', false)
         .gte('start_date', todayManila())
         .order('start_date', { ascending: true });
-      if (error) console.error('Error fetching tours:', error.message);
+      if (error) reportError("Couldn't load tours", error.message);
       else setTours(groupTripDates(data, { openFirst: false })); // one card per trip, however many dates it has
       setLoading(false);
     };

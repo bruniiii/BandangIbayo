@@ -4,6 +4,7 @@ import { Trash2, Loader2, ShieldCheck } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { deleteMyAccount } from './Email';
+import { usePopupError } from './ui/usePopupError';
 
 // ─────────────────────────────────────────────
 // YOUR DATA (Data Privacy Act of 2012): a joiner can delete their account
@@ -18,6 +19,7 @@ const MyData = () => {
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+  usePopupError(error);
 
   const handleDelete = async () => {
     setDeleting(true);

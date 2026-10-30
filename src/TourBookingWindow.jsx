@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import WeatherNotice from './ui/WeatherNotice';
 import { supabase } from './supabaseClient';
-import { toast } from './ui/toast';
-import { withAvailableSlots, formatPeso, downpaymentFor, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
+import { toast, reportError } from './ui/toast';
+import { withAvailableSlots, formatPeso, downpaymentFor, DOWNPAYMENT_PERCENT, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
 import { TripDatePicker } from './ui/TripDates';
 import { startCheckout } from './payments';
 import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
@@ -238,7 +238,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
         // Save the chosen pickup point on the new booking (it can still be changed in My Bookings).
         if (pickupPoint && data.bookingId) {
             const { error: pickupSaveError } = await supabase.from('bookings').update({ pickup_point: pickupPoint }).eq('id', data.bookingId);
-            if (pickupSaveError) console.error('Pickup point not saved:', pickupSaveError.message);
+            if (pickupSaveError) reportError("Your pickup point wasn't saved", pickupSaveError.message);
         }
         window.location.assign(data.checkoutUrl);
     };
@@ -654,7 +654,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
 
-                                        <ItineraryTimeline text={tour.itinerary} />
+                                        <ItineraryTimeline text={tour.itinerary} startDate={tour.start_date} />
 
                                     </ViewSection>
 
@@ -1041,7 +1041,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Downpayment (40%)</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Downpayment ({DOWNPAYMENT_PERCENT}%)</span>
 
                         <span style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
 
@@ -1049,7 +1049,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
+                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 50% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
                 )}

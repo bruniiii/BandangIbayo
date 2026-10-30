@@ -4,6 +4,7 @@ import PasswordChecklist from './PasswordChecklist';
 import { passwordErrorMessage } from './passwordPolicy';
 import { changePassword } from './authApi';
 import { toast } from './ui/toast';
+import { usePopupError } from './ui/usePopupError';
 
 // ─────────────────────────────────────────────
 // CHANGE PASSWORD (Profile Settings)
@@ -66,6 +67,7 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
   const [confirm, setConfirm] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', tone: 'error' });
+  usePopupError(message.tone === 'error' ? message.text : '');
 
   const handleSubmit = async (e) => {
     e.preventDefault();

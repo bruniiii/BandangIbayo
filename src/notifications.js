@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { reportError } from './ui/toast';
 
 /* ─────────────────────────────────────────────
    NOTIFICATIONS HELPER
@@ -60,9 +61,9 @@ export const notifyUser = async (userId, { title, message, type = null, related_
       type,
       related_id,
     }]);
-    if (error) console.error('Error creating notification:', error.message);
+    if (error) reportError("Couldn't send a notification", error.message);
   } catch (err) {
-    console.error('Error creating notification:', err.message);
+    reportError("Couldn't send a notification", err.message);
   }
 };
 
@@ -89,9 +90,9 @@ export const notifyAdmins = async ({ title, message, type = null, related_id = n
       related_id,
     }));
     const { error: insertError } = await supabase.from('notifications').insert(rows);
-    if (insertError) console.error('Error notifying admins:', insertError.message);
+    if (insertError) reportError("Couldn't notify the admins", insertError.message);
   } catch (err) {
-    console.error('Error notifying admins:', err.message);
+    reportError("Couldn't notify the admins", err.message);
   }
 };
 
@@ -117,9 +118,9 @@ export const notifyAllJoiners = async ({ title, message, type = null, related_id
       related_id,
     }));
     const { error: insertError } = await supabase.from('notifications').insert(rows);
-    if (insertError) console.error('Error notifying joiners:', insertError.message);
+    if (insertError) reportError("Couldn't notify the joiners", insertError.message);
   } catch (err) {
-    console.error('Error notifying joiners:', err.message);
+    reportError("Couldn't notify the joiners", err.message);
   }
 };
 /* ── Keeping the bell and the Notification page in sync ──
@@ -169,7 +170,7 @@ export const clearOldPaymentNotices = (list) => {
   const old = list.filter((n) => isOldPaymentNotice(n, now));
   if (old.length) {
     supabase.from('notifications').delete().in('id', old.map((n) => n.id))
-      .then(({ error }) => { if (error) console.warn('Could not clear old payment notices:', error.message); });
+      .then(({ error }) => { if (error) reportError("Couldn't clear old payment notices", error.message); });
   }
   return old.length ? list.filter((n) => !isOldPaymentNotice(n, now)) : list;
 };
@@ -205,7 +206,7 @@ export const markNotificationsSeen = async (userId) => {
   try { localStorage.setItem(seenKey(userId), String(Date.now())); } catch { /* private mode */ }
   notificationsChanged();
   const { error } = await supabase.rpc('mark_notifications_seen');
-  if (error) console.warn('Could not save when notifications were viewed:', error.message);
+  if (error) reportError("Couldn't mark notifications as seen", error.message);
 };
 
 // Unread notifications that arrived after the user last looked.

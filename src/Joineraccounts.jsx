@@ -12,6 +12,7 @@ import {
   ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle,
 } from 'lucide-react';
 import { SkeletonRows, Skel } from './ui/Skeleton';
+import { reportError } from './ui/toast';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -119,7 +120,7 @@ const JoinerAccounts = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching joiner accounts:', error.message);
+      reportError("Couldn't load joiner accounts", error.message);
       setLoading(false);
       return;
     }
@@ -131,9 +132,9 @@ const JoinerAccounts = () => {
       supabase.rpc('joiner_login_activity'),
       supabase.from('archived_accounts').select('*').order('archived_at', { ascending: false }),
     ]);
-    if (loginError) console.error('Error fetching login activity:', loginError.message);
+    if (loginError) reportError("Couldn't load login activity", loginError.message);
     else setActivity(Object.fromEntries((logins || []).map((a) => [a.id, a])));
-    if (deletedError) console.error('Error fetching archived accounts:', deletedError.message);
+    if (deletedError) reportError("Couldn't load archived accounts", deletedError.message);
     else setDeletedAccounts(deleted || []);
 
     const ids = (data || []).map(p => p.id);
@@ -143,7 +144,7 @@ const JoinerAccounts = () => {
         .select('user_id')
         .in('user_id', ids);
       if (bookingsError) {
-        console.error('Error fetching booking counts:', bookingsError.message);
+        reportError("Couldn't load booking counts", bookingsError.message);
       } else {
         const counts = {};
         (bookings || []).forEach(b => { counts[b.user_id] = (counts[b.user_id] || 0) + 1; });

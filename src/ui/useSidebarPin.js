@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { reportError } from './toast';
 
 // ─────────────────────────────────────────────
 // SIDEBAR PIN: each user chooses whether the desktop sidebar stays open
@@ -42,7 +43,7 @@ export const useSidebarPin = () => {
     writeLocal(userId, next);
     if (userId) {
       supabase.auth.updateUser({ data: { sidebar_pinned: next } })
-        .then(({ error }) => { if (error) console.warn('Could not save the sidebar setting:', error.message); });
+        .then(({ error }) => { if (error) reportError("Couldn't save the sidebar setting", error.message); });
     }
   }, [userId, pinned]);
 

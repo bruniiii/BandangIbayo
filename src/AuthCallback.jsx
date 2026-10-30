@@ -4,6 +4,7 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { safeNextPath } from './tourUtils';
 import { profileIsComplete } from './googleAuth';
+import { usePopupError } from './ui/usePopupError';
 
 // ─────────────────────────────────────────────
 // /auth/callback: where Google sends the browser back after "Continue with
@@ -28,6 +29,7 @@ const AuthCallback = () => {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
     return params.get('error_description') || hash.get('error_description') || '';
   });
+  usePopupError(error);
 
   useEffect(() => {
     if (error) return undefined;

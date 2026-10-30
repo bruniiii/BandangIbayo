@@ -6,6 +6,7 @@ import {
   ChevronRight, ImageIcon, Loader2, Check, CheckCircle2, Truck, Phone, Navigation, Clock
 } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
+import { reportError } from './ui/toast';
 
 export const JoinerTracking = ({ onExplore }) => {
   const [activeTour, setActiveTour] = useState(null);
@@ -59,7 +60,7 @@ export const JoinerTracking = ({ onExplore }) => {
 
         setToursList(fallbackTours || []);
       } catch (err) {
-        console.error('Error loading tracked tours:', err.message);
+        reportError("Couldn't load tracked tours", err.message);
       } finally {
         setLoading(false);
       }
@@ -80,7 +81,7 @@ export const JoinerTracking = ({ onExplore }) => {
       setMeetupStops(stops || []);
       setLogs(trackingLogs || []);
     } catch (err) {
-      console.error('Error loading tracking:', err.message);
+      reportError("Couldn't load tracking", err.message);
     } finally {
       setLoadingConsole(false);
     }

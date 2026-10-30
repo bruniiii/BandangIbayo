@@ -52,3 +52,19 @@ export const toast = {
 };
 
 export default toast;
+
+// ── Errors always pop up ──
+// For problems that used to go only to the browser console (a list that
+// didn't load, a background save that failed). The same error shown twice
+// replaces the first one instead of stacking.
+export const errorText = (err) => {
+  if (!err) return '';
+  if (typeof err === 'string') return err;
+  return err.message || err.error_description || err.error || String(err);
+};
+
+export const reportError = (title, err) => {
+  const message = errorText(err);
+  console.error(title, err);
+  return show('error', title, message, { id: `err:${title}|${message}` });
+};
