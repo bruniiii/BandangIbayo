@@ -22,8 +22,10 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
         borderRadius: 22, overflow: 'hidden',
         border: '1px solid rgba(180,81,30,0.12)',
         boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
-        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-        transition: 'all 0.25s',
+        // Grows a little when the mouse is over it.
+        transform: hovered ? 'translateY(-4px) scale(1.04)' : 'none',
+        position: 'relative', zIndex: hovered ? 2 : 'auto',
+        transition: 'transform 0.25s, box-shadow 0.25s',
         display: 'flex', flexDirection: 'column',
       }}
       onMouseEnter={() => setHovered(true)}

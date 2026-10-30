@@ -221,7 +221,7 @@ function LandingPage() {
         .btn-text-link { transition: color 0.2s ease; }
         .btn-text-link:hover { color: #A8481A !important; }
         .tour-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .tour-card:hover { transform: translateY(-6px); box-shadow: 0 16px 36px rgba(26,10,0,0.14); }
+        .tour-card:hover { transform: translateY(-6px) scale(1.04); box-shadow: 0 16px 36px rgba(26,10,0,0.14); position: relative; z-index: 2; }
         .tour-card:hover .tour-card-img { transform: scale(1.07); }
         .type-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
         .type-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(26,10,0,0.1); }

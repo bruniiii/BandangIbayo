@@ -222,6 +222,7 @@ export const PublicTourList = () => {
                 key={tour.id}
                 tour={tour}
                 formatDateRange={formatDateRange}
+                showFavorite={false}
                 onDetails={() => navigate(`/tours/${tour.id}`)}
               />
             ))}
