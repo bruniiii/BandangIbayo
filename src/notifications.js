@@ -106,7 +106,7 @@ export const notifyAllJoiners = async ({ title, message, type = null, related_id
     const { data: joiners, error } = await supabase
       .from('public_profiles')
       .select('id')
-      .neq('role', 'admin');
+      .not('role', 'in', '(admin,archived_admin)');
     if (error) throw error;
     if (!joiners || joiners.length === 0) return;
 

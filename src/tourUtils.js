@@ -183,6 +183,9 @@ export const effectivePrice = (tour) => (isOnSale(tour) ? salePriceOf(tour.price
 export const tripOnSale = (trip) => (trip?.dates?.length ? trip.dates.some((d) => isOnSale(d)) : isOnSale(trip));
 export const tripAllOnSale = (trip) => (trip?.dates?.length ? trip.dates.every((d) => isOnSale(d)) : isOnSale(trip));
 
+// Admins (and archived admins' old posts and messages) show as Bandang IBAYO.
+export const isStaffRole = (role) => role === 'admin' || role === 'archived_admin';
+
 // Inclusions, Exclusions, Things to Bring: saved one item per line.
 export const linesOf = (text) => (text || '').split('\n').map((x) => x.trim()).filter(Boolean);
 

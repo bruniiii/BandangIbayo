@@ -132,7 +132,7 @@ const Reports = () => {
         .select('*, tours ( id, title, destination, price, group_size, is_archived )')
         .order('created_at', { ascending: true }),
       supabase.from('tours').select('id, title, destination, price, group_size, is_archived, start_date'),
-      supabase.from('profiles').select('id, first_name, last_name, username, address, created_at').neq('role', 'admin'),
+      supabase.from('profiles').select('id, first_name, last_name, username, address, created_at').not('role', 'in', '(admin,archived_admin)'),
       supabase.from('reviews').select('id, tour_id, user_id, rating, comment, created_at, tours ( title )').order('created_at', { ascending: false }),
     ]);
 

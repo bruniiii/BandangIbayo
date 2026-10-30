@@ -119,6 +119,15 @@ const JoinerLogin = () => {
       return;
     }
 
+    // An archived admin can't log in until the main admin restores them.
+    if (profile.role === 'archived_admin') {
+      await supabase.auth.signOut();
+      setLoading(false);
+      setChallenge(null);
+      showError("This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+      return;
+    }
+
     const role = profile.role === 'admin' ? 'admin' : 'joiner';
     setSuccessRole(role);
     setIsSuccess(true);

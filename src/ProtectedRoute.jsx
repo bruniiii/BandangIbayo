@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { toast } from './ui/toast';
 
 const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
   const [session, setSession] = useState(null);
@@ -9,7 +10,16 @@ const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
 
   useEffect(() => {
     // 1. Check if a user session exists on load
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      // An archived admin (still signed in from before) is signed out.
+      if (session) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+        if (profile?.role === 'archived_admin') {
+          await supabase.auth.signOut();
+          toast.error('This admin account was archived', 'Ask the main admin to restore it.');
+          session = null;
+        }
+      }
       setSession(session);
       setLoading(false);
     });

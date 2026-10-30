@@ -41,6 +41,7 @@ const AuthCallback = () => {
       const next = safeNextPath(params.get('next'));
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
       if (cancelled) return;
+      if (profile?.role === 'archived_admin') { await supabase.auth.signOut(); setError("This admin account was archived, so it can't log in. Ask the main admin to restore it."); return; }
       if (profile?.role === 'admin') navigate('/admin/dashboard', { replace: true });
       else if (!profileIsComplete(profile)) navigate(`/complete-profile${next ? `?next=${encodeURIComponent(next)}` : ''}`, { replace: true });
       else navigate(next || '/dashboard', { replace: true });

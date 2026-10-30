@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { isStaffRole } from './tourUtils';
 import { shrinkImage } from './imageCompress';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -47,7 +48,7 @@ const timeAgo = (dateStr) => {
 
 const displayName = (profile, fallback = 'Bandang IBAYO') => {
   if (!profile) return fallback;
-  if (profile.role === 'admin') return 'Bandang IBAYO';
+  if (isStaffRole(profile.role)) return 'Bandang IBAYO';
   const combo = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
   if (combo) return combo;
   if (profile.username) return profile.username;
@@ -517,7 +518,7 @@ const FeedPostCard = ({
     }}>
       <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {isTourPost || !post.author || post.author.role === 'admin' ? (
+          {isTourPost || !post.author || isStaffRole(post.author.role) ? (
             <BrandAvatar size={42} />
           ) : (
             <div style={{
@@ -533,7 +534,7 @@ const FeedPostCard = ({
           <div>
             <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
               {displayName(post.author)}
-              {post.author?.role === 'admin' && (
+              {isStaffRole(post.author?.role) && (
                 <span style={{
                   marginLeft: 8, background: '#B4511E', color: '#FDF6EE',
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -751,7 +752,7 @@ const FeedPostCard = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
               {comments.map(c => (
                 <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  {c.author?.role === 'admin' ? <BrandAvatar size={28} /> : <div style={{
+                  {isStaffRole(c.author?.role) ? <BrandAvatar size={28} /> : <div style={{
                     width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
                     background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: '#E8A265', fontWeight: 900, fontSize: 11,

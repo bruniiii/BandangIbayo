@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, UserPlus, Trash2, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail } from 'lucide-react';
+import { ShieldCheck, UserPlus, Archive, ArchiveRestore, ChevronDown, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -16,8 +16,9 @@ import { usePopupError } from './ui/usePopupError';
 
 // ─────────────────────────────────────────────
 // ADMIN SETTINGS (main admin only): the list of admins, adding an admin (a new
-// account, or an existing one by email) and removing one. Every admin can do
-// everything else; only their name differs (top-right card, receipts).
+// account), archiving one (they can't log in, nothing is deleted) and
+// restoring an archived admin. Every admin can do everything else; only their
+// name differs (top-right card, receipts).
 // ─────────────────────────────────────────────
 
 const card = {
@@ -43,6 +44,8 @@ const AdminSettings = () => {
   const me = useAdminMe();
   const [myId, setMyId] = useState(null);
   const [admins, setAdmins] = useState(null);
+  const [archived, setArchived] = useState([]);
+  const [showArchived, setShowArchived] = useState(false);
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -63,6 +66,9 @@ const AdminSettings = () => {
     const { data, error: err } = await supabase.rpc('list_admins');
     if (err) { toast.error("Couldn't load the admins", err.message); setAdmins([]); return; }
     setAdmins(data || []);
+    const { data: old, error: oldErr } = await supabase.rpc('list_archived_admins');
+    if (oldErr) toast.error("Couldn't load the archived admins", oldErr.message);
+    setArchived(old || []);
   }, []);
   // eslint-disable-next-line react-hooks/set-state-in-effect -- loads data when the page opens; state updates happen after the request
   useEffect(() => { load(); }, [load]);
@@ -111,15 +117,27 @@ const AdminSettings = () => {
     toast.info('New code sent', `Sent to ${result.data.sentTo}.`);
   };
 
-  const remove = async (a) => {
+  const archive = async (a) => {
     if (!(await confirmDialog({
-      title: `Remove ${a.name} as an admin?`,
-      message: "They'll no longer see the admin dashboard. Their account stays, as a joiner account, and you can make it an admin again later.",
-      confirmLabel: 'Remove Admin', cancelLabel: 'Keep', tone: 'danger',
+      title: `Archive ${a.name}?`,
+      message: "They won't be able to log in or open the admin dashboard. Nothing is deleted: their name stays on the receipts they processed, and you can restore them anytime from Archived Admins.",
+      confirmLabel: 'Archive Admin', cancelLabel: 'Keep', tone: 'danger',
     }))) return;
-    const { error: err } = await supabase.rpc('remove_admin', { p_id: a.id });
-    if (err) { toast.error("Couldn't remove the admin", err.message); return; }
-    toast.success('Admin removed', `${a.name} is no longer an admin.`);
+    const { error: err } = await supabase.rpc('archive_admin', { p_id: a.id });
+    if (err) { toast.error("Couldn't archive the admin", err.message); return; }
+    toast.success('Admin archived', `${a.name} can't log in now. Restore them from Archived Admins anytime.`);
+    load();
+  };
+
+  const restore = async (a) => {
+    if (!(await confirmDialog({
+      title: `Restore ${a.name}?`,
+      message: `They'll be able to log in and use the admin dashboard again${a.was_main_admin ? ', as a main admin' : ''}, with the same password as before.`,
+      confirmLabel: 'Restore Admin', cancelLabel: 'Cancel',
+    }))) return;
+    const { error: err } = await supabase.rpc('restore_admin', { p_id: a.id });
+    if (err) { toast.error("Couldn't restore the admin", err.message); return; }
+    toast.success('Admin restored', `${a.name} can log in again.`);
     load();
   };
 
@@ -186,7 +204,7 @@ const AdminSettings = () => {
             <h3 style={cardTitle}><ShieldCheck size={16} style={{ color: '#A8481A' }} /> Admins
               {admins && <span style={{ marginLeft: 4, padding: '1px 9px', borderRadius: 999, background: '#F2E4D0', fontSize: 11.5, fontWeight: 900, color: '#A8481A' }}>{admins.length}</span>}
             </h3>
-            <p style={{ ...cardHint, margin: '4px 0 0' }}>Every admin can do everything on the dashboard. Only the main admin can add or remove admins.</p>
+            <p style={{ ...cardHint, margin: '4px 0 0' }}>Every admin can do everything on the dashboard. Only the main admin can add, archive or restore admins.</p>
           </div>
           <button type="button" onClick={() => { setAdding(true); setError(''); }} style={{
             display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, border: 'none', cursor: 'pointer',
@@ -218,10 +236,10 @@ const AdminSettings = () => {
                   }}>{a.is_main_admin && <Crown size={12} />}{a.is_main_admin ? 'Main' : 'Admin'}</span>
                   <span style={{ width: 34, flexShrink: 0 }}>
                     {a.id !== myId && (
-                      <button type="button" onClick={() => remove(a)} aria-label={`Remove ${a.name} as an admin`} title="Remove as admin" style={{
+                      <button type="button" onClick={() => archive(a)} aria-label={`Archive ${a.name}`} title="Archive this admin" style={{
                         width: 34, height: 34, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         background: 'rgba(140,47,28,0.08)', color: '#8C2F1C', border: 'none', borderRadius: 10, cursor: 'pointer',
-                      }}><Trash2 size={15} /></button>
+                      }}><Archive size={15} /></button>
                     )}
                   </span>
                 </li>
@@ -229,6 +247,43 @@ const AdminSettings = () => {
             })}
           </ul>
         )}
+
+        {/* Archived admins: can't log in until restored. */}
+        <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)' }}>
+          <button type="button" onClick={() => setShowArchived((v) => !v)} aria-expanded={showArchived} style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '12px 1.5rem',
+            background: 'rgba(242,228,208,0.45)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+          }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18' }}>
+              <Archive size={14} /> Archived Admins
+              <span style={{ padding: '1px 9px', borderRadius: 999, background: '#F2E4D0', fontSize: 11.5, color: '#A8481A' }}>{archived.length}</span>
+            </span>
+            <ChevronDown size={16} style={{ color: '#7A3A18', transition: 'transform 0.2s', transform: showArchived ? 'rotate(180deg)' : 'none' }} />
+          </button>
+          {showArchived && (archived.length === 0 ? (
+            <p style={{ margin: 0, padding: '12px 1.5rem 16px', fontSize: 12.5, fontWeight: 600, color: '#7A3A18' }}>No archived admins. Admins you archive are kept here, and you can restore them anytime.</p>
+          ) : (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {archived.map((a) => (
+                <li key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 1.5rem', borderTop: '1px solid rgba(180,81,30,0.1)', flexWrap: 'wrap' }}>
+                  <span aria-hidden="true" style={{
+                    width: 42, height: 42, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'rgba(26,10,0,0.06)', color: 'rgba(122,58,24,0.8)', fontSize: 13, fontWeight: 900,
+                  }}>{initials(a.name)}</span>
+                  <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</p>
+                    {a.email && a.email !== a.name && <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.email}</p>}
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', minWidth: 120 }}>Archived {formatDate(a.archived_at)}</span>
+                  <button type="button" onClick={() => restore(a)} aria-label={`Restore ${a.name}`} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: 'pointer',
+                    background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  }}><ArchiveRestore size={14} /> Restore</button>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
       </section>
 
       {/* ── Add Admin window: 1 Details → 2 Verify email ── */}

@@ -116,7 +116,7 @@ const JoinerAccounts = () => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .neq('role', 'admin')
+      .not('role', 'in', '(admin,archived_admin)')
       .order('created_at', { ascending: false });
 
     if (error) {
