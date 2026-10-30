@@ -18,6 +18,7 @@ import ProfileSettings from './Profilesettings.jsx';
 import logoIcon from './assets/logo.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
+import FavoritesButton from './ui/FavoritesButton';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
 import AdminInbox from './AdminInbox';
@@ -260,6 +261,13 @@ const JoinerDashboard = () => {
   const scrollTours = (direction) => {
     const row = tourScrollRef.current;
     if (row) row.scrollBy({ left: direction * row.clientWidth * 0.8, behavior: 'smooth' });
+  };
+
+  // A tour picked from Favorites: open Explore Tours on that tour's booking window.
+  const openFavoriteTour = (id) => {
+    setMobileNavOpen(false);
+    setActiveTab('Explore Tours');
+    setBookTourId(String(id));
   };
 
   const handleNavClick = (label) => {
@@ -689,6 +697,7 @@ const JoinerDashboard = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <FavoritesButton onOpenTour={openFavoriteTour} />
               <NotificationBell onNotificationClick={handleNotificationNavigate} clearPaymentNotices />
 
               {/* dynamic user chip matching the Reviews identity */}
@@ -975,7 +984,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Feed' ? (
             <Feed isAdmin={false} />
           ) : activeTab === 'Explore Tours' ? (
-            <JoinerTours initialTourId={bookTourId} />
+            <JoinerTours key={bookTourId || 'tours'} initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} openBookingId={openBookingId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Messages' ? (

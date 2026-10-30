@@ -15,6 +15,7 @@ import { SkeletonTourCards } from './ui/Skeleton';
 import ItineraryTimeline from './ui/ItineraryTimeline';
 import { ViewSection, ChecklistGrid, TourImageCarousel } from './TourDetailParts';
 import { DetailedTourModal } from './TourBookingWindow';
+import FavoriteStar from './ui/FavoriteStar';
 
 // ── PALETTE ──────────────────────────────────────────────
 
@@ -440,6 +441,10 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
           }}>{tour.difficulty}</span>
 
         </div>
+
+        {/* Favorite: save this tour to book later (the star beside the bell lists them). */}
+
+        <FavoriteStar trip={tour} style={{ position: 'absolute', bottom: 12, right: 12 }} />
 
         <div style={{ position: 'absolute', top: 12, right: 12 }}>
 

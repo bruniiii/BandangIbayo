@@ -48,5 +48,7 @@ from (values
                     and pg_get_constraintdef(oid) ilike '%archived_admin%')),
   ('20261122 deactivate / reactivate account',
      exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-              where n.nspname = 'public' and p.proname = 'reactivate_my_account'))
+              where n.nspname = 'public' and p.proname = 'reactivate_my_account')),
+  ('20261123 favorite tours',
+     to_regclass('public.tour_favorites') is not null)
 ) as u(update_file, installed);
