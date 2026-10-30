@@ -8,6 +8,27 @@
 -- Run after 20261120000000_downpayment_50.sql. Safe to run more than once.
 -- ─────────────────────────────────────────────
 
+-- Your database has a rule that a profile's role can only be 'admin' or
+-- 'joiner'. Replace it with one that also allows 'archived_admin'.
+do $$
+declare
+  c record;
+begin
+  for c in
+    select con.conname
+      from pg_constraint con
+     where con.conrelid = 'public.profiles'::regclass
+       and con.contype = 'c'
+       and pg_get_constraintdef(con.oid) ilike '%role%'
+       and pg_get_constraintdef(con.oid) not ilike '%primary_email%'
+  loop
+    execute format('alter table public.profiles drop constraint %I', c.conname);
+  end loop;
+end;
+$$;
+alter table public.profiles
+  add constraint role_check check (role is null or role in ('joiner', 'admin', 'archived_admin')) not valid;
+
 alter table public.profiles add column if not exists admin_archived_at timestamptz;
 alter table public.profiles add column if not exists archived_was_main boolean not null default false;
 

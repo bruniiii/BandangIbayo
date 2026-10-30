@@ -42,5 +42,8 @@ from (values
               where table_schema = 'public' and table_name = 'bookings' and column_name = 'downpayment_amount')),
   ('20261121 archive and restore admins',
      exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-              where n.nspname = 'public' and p.proname = 'restore_admin'))
+              where n.nspname = 'public' and p.proname = 'restore_admin')
+     and exists (select 1 from pg_constraint
+                  where conrelid = 'public.profiles'::regclass and conname = 'role_check'
+                    and pg_get_constraintdef(oid) ilike '%archived_admin%'))
 ) as u(update_file, installed);
