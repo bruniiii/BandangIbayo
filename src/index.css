@@ -191,5 +191,5 @@ input::-ms-clear { display: none; }
 /* Tour cards grow a little when the mouse is over them. */
 .grow-card { transition: transform 0.25s, box-shadow 0.25s; position: relative; }
 @media (hover: hover) {
-  .grow-card:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 12px 30px rgba(26,10,0,0.14) !important; z-index: 2; }
+  .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(26,10,0,0.14) !important; z-index: 2; }
 }

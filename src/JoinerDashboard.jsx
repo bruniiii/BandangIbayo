@@ -885,7 +885,7 @@ const JoinerDashboard = () => {
                   <div
                     ref={tourScrollRef}
                     className="tour-packages-scroll"
-                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', padding: '10px 8px 14px', margin: '-10px -8px 0' }}
+                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', padding: '14px 12px 18px', margin: '-14px -12px 0' }}
                   >
                     {loadingHome && featuredTours.length === 0 && [0, 1, 2, 3].map((i) => (
                       <div key={`skel-${i}`} aria-hidden="true" style={{ flex: '0 0 220px', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)' }}>
