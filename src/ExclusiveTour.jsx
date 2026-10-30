@@ -13,7 +13,7 @@ import { moneyField, blockSignKeys } from './moneyInput';
 import {
   MapPin, Calendar, ChevronDown, CheckCircle2,
   FileText, Send, Shield, Star, ArrowRight, XCircle, MessageSquare,
-  Globe, Loader2, CreditCard, FileDown, PencilLine, X, BedDouble, Users,
+  Globe, Loader2, CreditCard, FileDown, PencilLine, X, BedDouble, Users, Plus,
 } from 'lucide-react';
 import { startExclusiveDownpayment, startExclusiveBalance } from './payments';
 import { phoneFieldProps } from './ui/phoneField';
@@ -1126,18 +1126,60 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
 // `start` comes from the joiner calendar: { form, date: 'YYYY-MM-DD' }.
 const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking }) => {
   const [refreshKey, setRefreshKey] = useState(0);
+  // The form stays hidden until the joiner clicks the button (or picks a date
+  // on the calendar, which opens it filled in).
+  const [showForm, setShowForm] = useState(!!start?.date);
+  const [prevStart, setPrevStart] = useState(start);
+  if (start !== prevStart) { setPrevStart(start); if (start?.date) setShowForm(true); }
+  const isExclusive = type === 'exclusive';
+  const newLabel = isExclusive ? 'New Exclusive Tour Request' : 'Request a Tour';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
       {/* Your Submitted Requests (at the top): status, admin updates, tour package details */}
       <MyRequestsSection type={type} refreshKey={refreshKey} onOpenBooking={onOpenBooking} />
 
-      <div style={{
-        background: '#FDF6EE', borderRadius: 24, padding: '2rem 2.25rem',
-        border: '1px solid rgba(180,81,30,0.12)', borderTop: '8px solid #B4511E',
-        boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
-      }}>
-        <RequestForm key={type} type={type} startDate={start?.date} onSaved={() => setRefreshKey((k) => k + 1)} />
-      </div>
+      {!showForm ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
+          background: '#FDF6EE', borderRadius: 24, padding: '1.4rem 1.75rem',
+          border: '1px solid rgba(180,81,30,0.12)', borderLeft: '6px solid #B4511E', boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+        }}>
+          <div style={{ minWidth: 0, flex: '1 1 260px' }}>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00' }}>
+              {isExclusive ? 'Planning a private trip for your group?' : "Can't find the tour you want?"}
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+              {isExclusive
+                ? 'Send us your destination, dates and group size, and we\'ll prepare a package just for you.'
+                : 'Tell us where and when you want to go, and we\'ll set up the tour for you and other joiners.'}
+            </p>
+          </div>
+          <button type="button" onClick={() => setShowForm(true)} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, height: 44, padding: '0 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            boxShadow: '0 6px 18px rgba(180,81,30,0.3)',
+          }}><Plus size={15} /> {newLabel}</button>
+        </div>
+      ) : (
+        <div style={{
+          position: 'relative',
+          background: '#FDF6EE', borderRadius: 24, padding: '2rem 2.25rem',
+          border: '1px solid rgba(180,81,30,0.12)', borderTop: '8px solid #B4511E',
+          boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A0A00' }}>{newLabel}</h3>
+            <button type="button" onClick={async () => {
+              if (await confirmDialog({ title: 'Close the form?', message: "What you've typed won't be sent.", confirmLabel: 'Close Form', cancelLabel: 'Keep Editing' })) setShowForm(false);
+            }} aria-label="Close the form" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
+              background: 'transparent', color: '#7A3A18', border: '1px solid rgba(180,81,30,0.25)',
+              fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}><X size={14} /> Close</button>
+          </div>
+          <RequestForm key={type} type={type} startDate={start?.date} onSaved={() => { setRefreshKey((k) => k + 1); setShowForm(false); }} />
+        </div>
+      )}
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>
   );
