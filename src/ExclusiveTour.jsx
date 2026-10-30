@@ -1024,6 +1024,8 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   const [editing, setEditing] = useState(null);
+  // Status toggle: show one status at a time (same as the admin pages).
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const fetchRequests = useCallback(async (uid) => {
     // Requests the agency didn't finish in time become Rejected (safe to run any time).
@@ -1075,8 +1077,38 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
           {type === 'exclusive' ? 'Track your exclusive tour requests' : 'Track your tour requests'}, plus any updates from our team. You can edit a request until it's approved.
         </p>
       </div>
+      <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid'] : []), 'Rejected'].map((st) => {
+          const on = statusFilter === st;
+          const count = st === 'All' ? requests.length : requests.filter((q) => requestStatusLabel(q) === st || requestPaymentLabel(q) === st).length;
+          const tone = STATUS_STYLES[st];
+          return (
+            <button
+              key={st} type="button" role="tab" aria-selected={on} onClick={() => setStatusFilter(st)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#E8A265' : '#7A3A18',
+                border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.2)'}`,
+                boxShadow: on ? '0 6px 16px rgba(26,10,0,0.18)' : 'none', transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              {st}
+              <span style={{
+                minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10.5, letterSpacing: 0, background: on ? 'rgba(232,162,101,0.2)' : (tone?.bg || 'rgba(180,81,30,0.1)'), color: on ? '#E8A265' : (tone?.color || '#A8481A'),
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {requests.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} onEdit={setEditing} />)}
+        {(() => {
+          const shown = statusFilter === 'All' ? requests : requests.filter((q) => requestStatusLabel(q) === statusFilter || requestPaymentLabel(q) === statusFilter);
+          return shown.length
+            ? shown.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} onEdit={setEditing} />)
+            : <p style={{ margin: 0, padding: '14px 16px', borderRadius: 14, background: 'rgba(242,228,208,0.5)', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>No requests marked "{statusFilter}" yet.</p>;
+        })()}
       </div>
       {editing && (
         <EditRequestModal
