@@ -4,6 +4,9 @@ import { withAvailableSlots, formatDateRange, archivePastTours, notEndedFilter, 
 import PriceTag from './ui/PriceTag';
 import { TripDateLines } from './ui/TripDates';
 import { MoreTourFilters } from './ui/TourFilters';
+
+// The search and filter box on Explore Tours is hidden for now.
+const SHOW_FILTERS = false;
 import { applyTripFilters, useTripFilters } from './tripFilters';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
@@ -202,7 +205,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
 
 
-      {/* ── Filters ── */}
+      {/* ── Filters (hidden for now; set SHOW_FILTERS to true to bring them back) ── */}
 
       <div style={{
 
@@ -214,7 +217,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
         boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
 
-        display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
+        display: SHOW_FILTERS ? 'flex' : 'none', flexWrap: 'wrap', gap: 12, alignItems: 'center',
 
         marginBottom: 24,
 
