@@ -4,6 +4,9 @@ import { withAvailableSlots, formatDateRange, archivePastTours, notEndedFilter, 
 import PriceTag from './ui/PriceTag';
 import { TripDateLines } from './ui/TripDates';
 import { MoreTourFilters } from './ui/TourFilters';
+
+// The search and filter box on Explore Tours is hidden for now.
+const SHOW_FILTERS = false;
 import { applyTripFilters, useTripFilters } from './tripFilters';
 import EmptyState from './ui/EmptyState';
 import { SearchX, CalendarClock as CalendarClockIcon } from 'lucide-react';
@@ -12,6 +15,7 @@ import { SkeletonTourCards } from './ui/Skeleton';
 import ItineraryTimeline from './ui/ItineraryTimeline';
 import { ViewSection, ChecklistGrid, TourImageCarousel } from './TourDetailParts';
 import { DetailedTourModal } from './TourBookingWindow';
+import FavoriteStar from './ui/FavoriteStar';
 
 // ── PALETTE ──────────────────────────────────────────────
 
@@ -202,7 +206,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
 
 
-      {/* ── Filters ── */}
+      {/* ── Filters (hidden for now; set SHOW_FILTERS to true to bring them back) ── */}
 
       <div style={{
 
@@ -214,7 +218,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
         boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
 
-        display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
+        display: SHOW_FILTERS ? 'flex' : 'none', flexWrap: 'wrap', gap: 12, alignItems: 'center',
 
         marginBottom: 24,
 
@@ -371,7 +375,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
  
 
-const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
+const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true }) => {
 
   const [hovered, setHovered] = useState(false);
 
@@ -396,9 +400,10 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
 
         boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
 
-        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-
-        transition: 'all 0.25s',
+        // Grows a little when the mouse is over it.
+        transform: hovered ? 'translateY(-5px) scale(1.07)' : 'none',
+        position: 'relative', zIndex: hovered ? 2 : 'auto',
+        transition: 'transform 0.25s, box-shadow 0.25s',
 
         display: 'flex', flexDirection: 'column',
 
@@ -437,6 +442,10 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange }) => {
           }}>{tour.difficulty}</span>
 
         </div>
+
+        {/* Favorite: save this tour to book later (the star beside the bell lists them). */}
+
+        {showFavorite && <FavoriteStar trip={tour} style={{ position: 'absolute', bottom: 12, right: 12 }} />}
 
         <div style={{ position: 'absolute', top: 12, right: 12 }}>
 

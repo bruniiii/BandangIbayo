@@ -31,7 +31,7 @@ export const verifyCheckout = ({ bookingId }) => callPayments('verify-checkout',
 // The joiner backed out of an unfinished checkout: frees the held slots.
 export const cancelCheckout = ({ bookingId }) => callPayments('cancel-checkout', { bookingId });
 
-// Slots held for a joiner's requested tour: pay full or 40% downpayment.
+// Slots held for a joiner's requested tour: pay full or 50% downpayment.
 export const payHeldBooking = ({ bookingId, paymentType, companions, accommodation = null }) =>
   callPayments('pay-held', { bookingId, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
 

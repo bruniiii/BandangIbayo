@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import { formatDateRange } from './tourUtils';
+import { reportError } from './ui/toast';
 
 // ─────────────────────────────────────────────
 // ADMIN MESSAGES: a copy of every message an admin sends a joiner (Email a
@@ -22,7 +23,7 @@ export const logAdminMessages = async (rows) => {
   }));
   if (!list.length) return;
   const { error } = await supabase.from('admin_messages').insert(list);
-  if (error) console.error("Couldn't save the sent message:", error.message);
+  if (error) reportError("Couldn't save the sent message", error.message);
 };
 
 // Messages sent to one joiner (or everyone, without userId), newest first.

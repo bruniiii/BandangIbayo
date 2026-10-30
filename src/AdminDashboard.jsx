@@ -266,7 +266,7 @@ const AdminDashboard = () => {
       supabase.from('bookings').select('total_price').eq('payment_status', 'Complete').gte('created_at', lastMonthStart).lt('created_at', monthStart),
       supabase.from('tours').select('id, title, destination, start_date, group_size, image_urls').eq('is_archived', false).order('start_date', { ascending: true }).limit(3),
       supabase.from('bookings').select('id, booking_number, full_name, user_id, total_price, payment_method, created_at, tour_id, tours(title)').in('payment_status', ['Pending', 'Verification Pending']).order('created_at', { ascending: false }).limit(4),
-      supabase.from('profiles').select('id, first_name, last_name, username, avatar_url, created_at').neq('role', 'admin').order('created_at', { ascending: false }).limit(4),
+      supabase.from('profiles').select('id, first_name, last_name, username, avatar_url, created_at').not('role', 'in', '(admin,archived_admin)').order('created_at', { ascending: false }).limit(4),
       supabase.from('reviews').select('rating'),
       supabase.from('reviews').select('id, rating, comment, created_at, user_id, tour_id, tours(title)').order('created_at', { ascending: false }).limit(1),
       supabase.from('feed_posts').select('id, content, created_at, author_id, post_type, media, image_url').order('created_at', { ascending: false }).limit(1),
@@ -909,7 +909,7 @@ const PAGE_INFO = {
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
-  'Admin Settings':      { icon: ShieldCheck,     title: 'Admin Settings',      subtitle: 'Add or remove the people who can use the admin dashboard' },
+  'Admin Settings':      { icon: ShieldCheck,     title: 'Admin Settings',      subtitle: 'Add, archive or restore the people who can use the admin dashboard' },
 };
 
 // ─── Nav Item ────────────────────────────────────────────────────────────────

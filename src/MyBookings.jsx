@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare, BedDouble } from 'lucide-react';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale, downpaymentFor, DOWNPAYMENT_PERCENT } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import { downloadReceipt, balanceRemaining, hasBalanceReceipt } from './paymentReceipt';
 import { AccommodationSelect } from './ui/Accommodation';
@@ -98,7 +98,7 @@ const MyBookings = ({ onExplore, openBookingId = null }) => {
       .order('created_at', { ascending: false });
  
     if (error) {
-      console.error('Error fetching bookings:', error.message);
+      reportError("Couldn't load bookings", error.message);
     } else {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -875,7 +875,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 };
 
 // The joiner requested this tour, so the agency held their group's slots when
-// it was posted. They choose full payment or a 40% downpayment, name the
+// it was posted. They choose full payment or a 50% downpayment, name the
 // people joining them, and pay before the hold runs out (or the slots go to others).
 const HeldSlotsPayment = ({ booking, onChanged }) => {
   const others = Math.max(0, (booking.slots_booked || 1) - 1);
@@ -890,7 +890,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
   const total = (booking.tours ? effectivePrice(booking.tours) * (booking.slots_booked || 1) : 0) || Number(booking.total_price || 0);
   // A date on sale is paid in full (no downpayment).
   const onSale = !!booking.tours && isOnSale(booking.tours);
-  const amount = paymentType === 'full' || onSale ? total : Math.round(total * 40) / 100;
+  const amount = paymentType === 'full' || onSale ? total : downpaymentFor(total);
   const until = booking.hold_expires_at
     ? new Date(booking.hold_expires_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
     : null;
@@ -903,7 +903,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
   const namesError = () => {
     for (let i = 0; i < companions.length; i++) {
       const c = companions[i];
-      const err = fullNameError(c.full_name, `Person ${i + 2}'s name`) || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
+      const err = fullNameError(c.full_name, `Person ${i + 2}'s name`) || phoneError(c.contact_number, `Person ${i + 2}'s contact number`, { mobile: true });
       if (err) return err;
     }
     const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
@@ -953,7 +953,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       </p>
 
       <div role="radiogroup" aria-label="Payment" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-        {[['full', 'Full payment', total], ...(onSale ? [] : [['down', '40% downpayment', Math.round(total * 40) / 100]])].map(([key, label, value]) => (
+        {[['full', 'Full payment', total], ...(onSale ? [] : [['down', `${DOWNPAYMENT_PERCENT}% downpayment`, downpaymentFor(total)]])].map(([key, label, value]) => (
           <button key={key} type="button" role="radio" aria-checked={paymentType === key} onClick={() => setPaymentType(key)} style={choice(paymentType === key)}>
             <span style={{ display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A8481A' }}>{label}</span>
             <span style={{ display: 'block', fontSize: 16, fontWeight: 900 }}>{formatPeso(value)}</span>
@@ -1133,7 +1133,7 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
         .gt('start_date', todayManila())
         .neq('id', booking.tour_id)
         .order('start_date', { ascending: true });
-      if (error) console.error('Error loading other dates:', error.message);
+      if (error) reportError("Couldn't load other dates", error.message);
       const withSlots = await withAvailableSlots(data || []);
       if (!cancelled) setOptions(withSlots.filter((t) => t.available_slots >= booking.slots_booked));
     })();

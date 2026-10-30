@@ -18,6 +18,7 @@ import ProfileSettings from './Profilesettings.jsx';
 import logoIcon from './assets/logo.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
+import FavoritesButton from './ui/FavoritesButton';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
 import AdminInbox from './AdminInbox';
@@ -33,6 +34,7 @@ import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory } from './useTabHistory';
 import { Skel } from './ui/Skeleton';
 import { PulseStat, NextTripCard, TripReadinessCard, CalendarWidget, TrackingSnippet, MyRequestsCard, HomeReviews } from './HomeWidgets';
+import { reportError } from './ui/toast';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -261,6 +263,13 @@ const JoinerDashboard = () => {
     if (row) row.scrollBy({ left: direction * row.clientWidth * 0.8, behavior: 'smooth' });
   };
 
+  // A tour picked from Favorites: open Explore Tours on that tour's booking window.
+  const openFavoriteTour = (id) => {
+    setMobileNavOpen(false);
+    setActiveTab('Explore Tours');
+    setBookTourId(String(id));
+  };
+
   const handleNavClick = (label) => {
     setBookTourId(null);
     setBookingsFilter(null);
@@ -370,7 +379,7 @@ const JoinerDashboard = () => {
         });
       }
     } catch (err) {
-      console.error('Error fetching user profile:', err);
+      reportError("Couldn't load user profile", err);
     }
   }, [navigate]);
 
@@ -471,7 +480,7 @@ const JoinerDashboard = () => {
 
       setFeaturedTours(updatedTours);
     } catch (err) {
-      console.error("Dashboard engine critical fetch error:", err);
+      reportError("Couldn't load your dashboard", err);
     } finally {
       setLoadingHome(false);
     }
@@ -688,6 +697,7 @@ const JoinerDashboard = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <FavoritesButton onOpenTour={openFavoriteTour} />
               <NotificationBell onNotificationClick={handleNotificationNavigate} clearPaymentNotices />
 
               {/* dynamic user chip matching the Reviews identity */}
@@ -875,7 +885,7 @@ const JoinerDashboard = () => {
                   <div
                     ref={tourScrollRef}
                     className="tour-packages-scroll"
-                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', paddingBottom: 12 }}
+                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', padding: '14px 12px 18px', margin: '-14px -12px 0' }}
                   >
                     {loadingHome && featuredTours.length === 0 && [0, 1, 2, 3].map((i) => (
                       <div key={`skel-${i}`} aria-hidden="true" style={{ flex: '0 0 220px', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)' }}>
@@ -889,7 +899,7 @@ const JoinerDashboard = () => {
                       const dates = tour.dates || [tour];
                       const isFull = dates.every((d) => d.available_slots <= 0);
                       return (
-                        <div key={tour.id} style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
+                        <div key={tour.id} className="grow-card" style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
                           <div style={{ height: 115, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                             {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={32} /></div>}
                             <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
@@ -974,7 +984,7 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Feed' ? (
             <Feed isAdmin={false} />
           ) : activeTab === 'Explore Tours' ? (
-            <JoinerTours initialTourId={bookTourId} />
+            <JoinerTours key={bookTourId || 'tours'} initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} openBookingId={openBookingId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Messages' ? (

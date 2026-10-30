@@ -7,6 +7,7 @@ import { clearLoginLock } from './authApi';
 import { Loader2, CheckCircle2, Lock } from 'lucide-react';
 import logoIcon from './assets/logo.png';
 import PasswordField from './ui/PasswordField';
+import { usePopupError } from './ui/usePopupError';
 
 const inputStyle = {
   width: '100%',
@@ -45,6 +46,7 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
+  usePopupError(error);
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Mail, Megaphone, ChevronDown } from 'lucide-react';
 import { fetchAdminMessages, messageSourceLabel, useTourNames } from '../adminMessages';
 import { SkeletonLines } from './Skeleton';
+import { usePopupError } from './usePopupError';
 
 // Admin: messages already sent to one joiner (userId), or to everyone
 // (names maps joiner ids to names). Tap a message to read it in full.
@@ -40,6 +41,7 @@ export const MessageItem = ({ m, to = '', unread = false, admin = false, tourNam
 const SentMessages = ({ userId = null, names = null, limit = 50 }) => {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState('');
+  usePopupError(error);
 
   useEffect(() => {
     let alive = true;

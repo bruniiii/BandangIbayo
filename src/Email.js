@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { reportError } from './ui/toast';
 
 // ─────────────────────────────────────────────
 // EMAIL HELPER
@@ -32,7 +33,7 @@ const send = async (body) => {
     return { ok: true };
   } catch (err) {
     const error = await errorDetail(err);
-    console.error(`Error sending ${body.type} email:`, error);
+    reportError(`Couldn't send the ${body.type} email`, error);
     return { ok: false, error };
   }
 };

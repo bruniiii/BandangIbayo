@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from './notifications';
-import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS } from './tourUtils';
-import { PICKUP_OPTIONS } from './pickupPoints';
-import PickupCheckboxes from './ui/PickupCheckboxes';
+import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf } from './tourUtils';
+import { ListField, ItineraryField } from './ui/TourListFields';
+import { parseItinerary, serializeItinerary, itineraryDays } from './itinerary';
 import { moneyField, blockSignKeys } from './moneyInput';
 import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
@@ -81,8 +81,10 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   const [others, setOthers] = useState(() => (pkg.expenses?.others || []).map((o) => ({ key: key(), name: o.name, amount: String(o.amount) })));
   const [pickups, setPickups] = useState(() => {
     const saved = Array.isArray(pkg.pickup_points) ? pkg.pickup_points : [];
-    return saved.length ? saved.map((p) => ({ key: key(), location: p.location, time: to24h(p.time) })) : [{ key: key(), location: '', time: '' }];
+    return saved.map((p) => ({ key: key(), location: p.location, time: to24h(p.time) }));
   });
+  // Itinerary: { [day]: text }, Day 0 = the day before.
+  const [itinerary, setItinerary] = useState(() => parseItinerary(pkg.itinerary));
   const [gallery, setGallery] = useState(() => (Array.isArray(pkg.image_urls) ? pkg.image_urls : []));
   const [newFiles, setNewFiles] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -91,18 +93,15 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   const packageSent = () => !!request.package_sent_at;
   // Requested tours: the rest of the form opens once the tour has a photo.
   const locked = isOpenRequest && gallery.length === 0 && newFiles.length === 0;
-  // Requested tours: pickup points are ticked from the fixed list (plus any older custom point).
+  // Pickup points: typed one at a time and added.
+  // Each keeps its time (ETA) if one was already set.
   const pickedPlaces = pickups.map((r) => r.location.trim()).filter(Boolean);
-  const pickupChoices = [...PICKUP_OPTIONS, ...pickedPlaces.filter((n) => !PICKUP_OPTIONS.includes(n))];
-  const togglePickup = (place) => {
-    setPickups((rows) => {
-      const kept = rows.filter((r) => r.location.trim());
-      return kept.some((r) => r.location.trim() === place)
-        ? kept.filter((r) => r.location.trim() !== place)
-        : [...kept, { key: key(), location: place, time: '' }];
-    });
+  const setPickedPlaces = (places) => {
+    setPickups((rows) => places.map((place) => rows.find((r) => r.location.trim() === place) || { key: key(), location: place, time: '' }));
     setDirty(true);
   };
+  // Inclusions, Exclusions, Things to Bring: one item per line.
+  const setLines = (field) => (items) => { setForm((f) => ({ ...f, [field]: items.join('\n') })); setDirty(true); };
 
   // A posted tour's pickup points and photos live on the tour itself.
   useEffect(() => {
@@ -181,11 +180,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
         ? (isOpenRequest ? 'The tour must start at least 2 weeks from today.' : "The start date can't be in the past.") : ''],
       ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
-      ['pickup_0', stops.length === 0 ? (isOpenRequest ? 'Tick at least one pickup point.' : 'Add at least one pickup point.') : ''],
-      ...pickups.map((r, i) => {
-        const loc = r.location.trim().toLowerCase();
-        return [`pickup_${i}`, loc && pickups.findIndex((x) => x.location.trim().toLowerCase() === loc) !== i ? 'This pickup point is listed twice.' : ''];
-      }),
+      ['pickup_new', stops.length === 0 ? 'Add at least one pickup point.' : ''],
       ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : isOpenRequest && slots > MAX_TOUR_SLOTS && slots !== Number(pkg.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots.` : slots > 200 ? 'That looks too high. Please check the number.'
         : isOpenRequest && slots < requestedSlots ? `Max slots must fit the requester's group of ${requestedSlots}.` : ''],
       ['description', textError(form.description, 'Description', { required: false, max: 5000 })],
@@ -226,7 +221,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         inclusions: form.inclusions,
         exclusions: form.exclusions,
         things_to_bring: form.things_to_bring,
-        itinerary: form.itinerary,
+        // Only the days the tour has (Day 0 to its last day).
+        itinerary: serializeItinerary(Object.fromEntries(itineraryDays(form.start_date, form.end_date).map(({ day }) => [day, itinerary[day]]).filter(([, v]) => v))),
         important_note: form.important_note,
         start_date: form.start_date,
         end_date: form.end_date,
@@ -427,30 +423,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
             {/* Pickup points */}
             <div style={sectionBox}>
-              <label style={{ ...labelStyle, opacity: 1 }}>Pickup Points{isOpenRequest ? ' *' : ''}</label>
-              {isOpenRequest ? (
-                <>
-                  <PickupCheckboxes choices={pickupChoices} value={pickedPlaces} onToggle={togglePickup} />
-                  <p style={hint}>Tick at least one. Joiners choose one of these when they book.</p>
-                </>
-              ) : (<>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {pickups.map((r, i) => (
-                  <div key={r.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 40px', gap: 10, alignItems: 'end' }}>
-                    <div>
-                      <label style={labelStyle}>Place {pickups.length > 1 ? i + 1 : ''}</label>
-                      <input name={`pickup_${i}`} value={r.location} maxLength={120} placeholder="e.g. Shell Mindanao Ave, QC"
-                        onChange={(e) => { const v = e.target.value; setPickups((rows) => rows.map((x) => (x.key === r.key ? { ...x, location: v } : x))); setDirty(true); }} style={inputStyle} />
-                    </div>
-                    <button type="button" aria-label={`Remove pickup point ${i + 1}`} disabled={pickups.length === 1}
-                      onClick={() => { setPickups((rows) => rows.filter((x) => x.key !== r.key)); setDirty(true); }} style={iconBtn(pickups.length === 1)}>
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button type="button" onClick={() => { setPickups((rows) => [...rows, { key: key(), location: '', time: '' }]); setDirty(true); }} style={addBtn}>+ Add Pickup Point</button>
-              </>)}
+              <ListField
+                label="Pickup Points" required name="pickup_new" maxLength={120}
+                items={pickedPlaces}
+                onChange={setPickedPlaces}
+                placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
+                hint="Add at least one. Joiners choose one of these when they book. Set each stop's time in Tracking Management."
+              />
             </div>
 
             {isOpenRequest ? (
@@ -479,12 +458,15 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               <textarea name="description" value={form.description} onChange={set('description')} style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
             </div>
 
-            {[['inclusions', 'Inclusions'], ['exclusions', 'Exclusions'], ['things_to_bring', 'Things to Bring'], ['itinerary', 'Itinerary']].map(([field, title]) => (
-              <div key={field}>
-                <label style={labelStyle}>{title}</label>
-                <textarea name={field} value={form[field]} onChange={set(field)} style={{ ...inputStyle, minHeight: 100, resize: 'vertical' }} />
-              </div>
+            {[['inclusions', 'Inclusions', 'e.g. Van transfers'], ['exclusions', 'Exclusions', 'e.g. Meals not mentioned'], ['things_to_bring', 'Things to Bring', 'e.g. Valid ID']].map(([field, title, example]) => (
+              <ListField key={field} label={title} name={`${field}_new`} items={linesOf(form[field])} onChange={setLines(field)} placeholder={`Type one, then click Add (${example})`} />
             ))}
+
+            <ItineraryField
+              start={form.start_date} end={form.end_date}
+              value={itinerary}
+              onChange={(v) => { setItinerary(v); setDirty(true); }}
+            />
 
             <div>
               <label style={{ ...labelStyle, color: '#A8481A', opacity: 1 }}>Important Notes</label>
@@ -556,7 +538,7 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
       post_type: 'tour',
       tour_id: id,
     }]);
-    if (feedError) console.error('Error auto-posting tour to feed:', feedError.message);
+    if (feedError) reportError("Tour saved, but it wasn't posted to the feed", feedError.message);
   }
   return id;
 };

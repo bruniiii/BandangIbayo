@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
+import { reportError } from './ui/toast';
 
 // GCash receipts from before online payments live in the private
 // `booking-receipts` bucket, one folder per joiner (<user id>/<file>).
@@ -24,7 +25,7 @@ export const useReceiptUrl = (value) => {
     const path = receiptPath(value);
     if (!path) return undefined;
     supabase.storage.from(BUCKET).createSignedUrl(path, 60 * 60).then(({ data, error }) => {
-      if (error) console.error('Error loading receipt:', error.message);
+      if (error) reportError("Couldn't load receipt", error.message);
       if (active) setUrl(data?.signedUrl || null);
     });
     return () => { active = false; };

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import WeatherNotice from './ui/WeatherNotice';
 import { supabase } from './supabaseClient';
-import { toast } from './ui/toast';
-import { withAvailableSlots, formatPeso, downpaymentFor, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
+import { toast, reportError } from './ui/toast';
+import { withAvailableSlots, formatPeso, downpaymentFor, DOWNPAYMENT_PERCENT, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
 import { TripDatePicker } from './ui/TripDates';
 import { startCheckout } from './payments';
 import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
@@ -11,6 +11,7 @@ import { phoneFieldProps } from './ui/phoneField';
 import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
 import ItineraryTimeline from './ui/ItineraryTimeline';
+import PrettySelect from './ui/PrettySelect';
 import { ViewSection, ChecklistGrid, TourImageCarousel } from './TourDetailParts';
 
 // ─────────────────────────────────────────────
@@ -141,10 +142,11 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             return false;
         }
         // Typing mistakes in the companions' details (wrong number format, one-word names, the same person twice).
+        // Two people may share a contact number (e.g. a mother and her child).
         for (let i = 0; i < companions.length; i++) {
             const c = companions[i];
             const problem = fullNameError(c.full_name, `Person ${i + 2}'s name`)
-                || phoneError(c.contact_number, `Person ${i + 2}'s contact number`);
+                || phoneError(c.contact_number, `Person ${i + 2}'s contact number`, { mobile: true });
             if (problem) { setCompanionError(problem); return false; }
         }
         const names = companions.map((c) => cleanName(c.full_name).toLowerCase());
@@ -238,7 +240,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
         // Save the chosen pickup point on the new booking (it can still be changed in My Bookings).
         if (pickupPoint && data.bookingId) {
             const { error: pickupSaveError } = await supabase.from('bookings').update({ pickup_point: pickupPoint }).eq('id', data.bookingId);
-            if (pickupSaveError) console.error('Pickup point not saved:', pickupSaveError.message);
+            if (pickupSaveError) reportError("Your pickup point wasn't saved", pickupSaveError.message);
         }
         window.location.assign(data.checkoutUrl);
     };
@@ -422,29 +424,15 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                         </p>
                                     ) : (
                                         <>
-                                            <div style={{ position: 'relative' }}>
-                                                <select
-                                                    id="pickup-point"
-                                                    value={pickupPoint}
-                                                    onChange={(e) => { setPickupPoint(e.target.value); setPickupError(''); }}
-                                                    aria-invalid={!!pickupError}
-                                                    style={{
-                                                        width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
-                                                        border: `1px solid ${pickupError ? '#8C2F1C' : 'rgba(180,81,30,0.18)'}`,
-                                                        borderRadius: 14, padding: '12px 14px', paddingRight: 34,
-                                                        fontSize: 13, fontWeight: 700, color: pickupPoint ? '#1A0A00' : '#7A3A18',
-                                                        fontFamily: 'inherit', outline: 'none', appearance: 'none', cursor: 'pointer',
-                                                    }}
-                                                >
-                                                    <option value="">Choose your pickup point</option>
-                                                    {pickupPoints.map((p) => (
-                                                        <option key={p.location_name} value={p.location_name}>
-                                                            {p.location_name}{p.scheduled_time ? ` · ${formatPickupTime(p.scheduled_time)}` : ''}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#A8481A', pointerEvents: 'none' }} />
-                                            </div>
+                                            <PrettySelect
+                                                id="pickup-point"
+                                                icon={MapPin}
+                                                value={pickupPoint}
+                                                placeholder="Choose your pickup point"
+                                                invalid={!!pickupError}
+                                                onChange={(v) => { setPickupPoint(v); setPickupError(''); }}
+                                                options={pickupPoints.map((p) => ({ value: p.location_name, label: p.location_name, hint: p.scheduled_time ? formatPickupTime(p.scheduled_time) : '' }))}
+                                            />
                                             {pickupError && <p role="alert" style={{ fontSize: 12, fontWeight: 800, color: '#8C2F1C', margin: '6px 2px 0' }}>{pickupError}</p>}
                                         </>
                                     )}
@@ -474,45 +462,13 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     }}>Number of Persons</label>
 
-                                    <div style={{ position: 'relative' }}>
-
-                                        <select
-
-                                            value={numPersons}
-
-                                            onChange={(e) => handlePersonsChange(parseInt(e.target.value))}
-
-                                            style={{
-
-                                                width: '100%', boxSizing: 'border-box',
-
-                                                background: '#FDF6EE',
-
-                                                border: '1px solid rgba(180,81,30,0.18)',
-
-                                                borderRadius: 14, padding: '12px 14px',
-
-                                                fontSize: 13, fontWeight: 700,
-
-                                                color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
-
-                                                appearance: 'none', cursor: 'pointer', paddingRight: 34,
-
-                                            }}
-
-                                        >
-
-                                            {[...Array(maxBookingLimit)].map((_, i) => (
-
-                                                <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'Person' : 'Persons'}</option>
-
-                                            ))}
-
-                                        </select>
-
-                                        <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#A8481A' }} />
-
-                                    </div>
+                                    <PrettySelect
+                                        ariaLabel="Number of persons"
+                                        icon={Users}
+                                        value={numPersons}
+                                        onChange={(v) => handlePersonsChange(Number(v))}
+                                        options={[...Array(maxBookingLimit)].map((_, i) => ({ value: i + 1, label: `${i + 1} ${i === 0 ? 'Person' : 'Persons'}` }))}
+                                    />
 
                                     {slotError && (
 
@@ -654,7 +610,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
 
-                                        <ItineraryTimeline text={tour.itinerary} />
+                                        <ItineraryTimeline text={tour.itinerary} startDate={tour.start_date} />
 
                                     </ViewSection>
 
@@ -1041,7 +997,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Downpayment (40%)</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Downpayment ({DOWNPAYMENT_PERCENT}%)</span>
 
                         <span style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
 
@@ -1049,7 +1005,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 40% now; pay the rest online later or in person on the tour day</p>
+                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 50% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
                 )}
@@ -1167,16 +1123,14 @@ const WaitlistPanel = ({ entry, bookingNumber, slots, onSlotsChange, busy, onJoi
                 <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
                     This tour is full. Join the waitlist and we'll let you know if a slot opens.
                 </p>
-                <select
-                    aria-label="Slots needed"
+                <PrettySelect
+                    ariaLabel="Slots needed"
+                    icon={Users}
+                    compact
                     value={slots}
-                    onChange={(e) => onSlotsChange(parseInt(e.target.value))}
-                    style={{ width: '100%', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '10px 12px', fontSize: 12, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit' }}
-                >
-                    {[...Array(10)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>{i + 1} {i === 0 ? 'Person' : 'Persons'}</option>
-                    ))}
-                </select>
+                    onChange={(v) => onSlotsChange(Number(v))}
+                    options={[...Array(10)].map((_, i) => ({ value: i + 1, label: `${i + 1} ${i === 0 ? 'Person' : 'Persons'}` }))}
+                />
                 <button type="button" onClick={onJoin} disabled={busy} style={waitlistButton(true)}>
                     {busy ? 'Joining…' : 'Join Waitlist'}
                 </button>

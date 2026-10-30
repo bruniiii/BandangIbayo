@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { SearchX } from 'lucide-react';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { formatPeso } from './tourUtils';
 import { downloadReportPDF } from './reportExport';
 import SalesSummary from './SalesSummary';
@@ -132,15 +132,15 @@ const Reports = () => {
         .select('*, tours ( id, title, destination, price, group_size, is_archived )')
         .order('created_at', { ascending: true }),
       supabase.from('tours').select('id, title, destination, price, group_size, is_archived, start_date'),
-      supabase.from('profiles').select('id, first_name, last_name, username, address, created_at').neq('role', 'admin'),
+      supabase.from('profiles').select('id, first_name, last_name, username, address, created_at').not('role', 'in', '(admin,archived_admin)'),
       supabase.from('reviews').select('id, tour_id, user_id, rating, comment, created_at, tours ( title )').order('created_at', { ascending: false }),
     ]);
 
     const errors = [];
-    if (bookingsRes.error) { console.error('Error fetching bookings for reports:', bookingsRes.error.message); errors.push(`Bookings: ${bookingsRes.error.message}`); }
-    if (toursRes.error) { console.error('Error fetching tours for reports:', toursRes.error.message); errors.push(`Tours: ${toursRes.error.message}`); }
-    if (profilesRes.error) { console.error('Error fetching profiles for reports:', profilesRes.error.message); errors.push(`Profiles: ${profilesRes.error.message}`); }
-    if (reviewsRes.error) { console.error('Error fetching reviews for reports:', reviewsRes.error.message); errors.push(`Reviews: ${reviewsRes.error.message}`); }
+    if (bookingsRes.error) { reportError("Couldn't load bookings for reports", bookingsRes.error.message); errors.push(`Bookings: ${bookingsRes.error.message}`); }
+    if (toursRes.error) { reportError("Couldn't load tours for reports", toursRes.error.message); errors.push(`Tours: ${toursRes.error.message}`); }
+    if (profilesRes.error) { reportError("Couldn't load profiles for reports", profilesRes.error.message); errors.push(`Profiles: ${profilesRes.error.message}`); }
+    if (reviewsRes.error) { reportError("Couldn't load reviews for reports", reviewsRes.error.message); errors.push(`Reviews: ${reviewsRes.error.message}`); }
     setFetchErrors(errors);
 
     setAllBookings(bookingsRes.data || []);

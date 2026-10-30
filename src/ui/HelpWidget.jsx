@@ -31,7 +31,7 @@ const FAQS = [
   },
   {
     q: 'How can I pay? Can I pay a downpayment?',
-    a: 'Pay online with GCash, Maya, card or GrabPay. You can pay in full or a 40% downpayment. The rest can be paid online from My Bookings or on the day of the tour.',
+    a: 'Pay online with GCash, Maya, card or GrabPay. You can pay in full or a 50% downpayment. The rest can be paid online from My Bookings or on the day of the tour.',
   },
   {
     q: 'Can I cancel or move my booking?',
@@ -70,7 +70,7 @@ const FAQS = [
 const GUIDE = [
   { Icon: UserPlus, title: 'Create your account', points: ['Tap Join Now and fill in your details.', 'Enter the 6-digit code we email you.', 'Log in with your username or email.'] },
   { Icon: Compass, title: 'Find a tour', points: ['Open Explore Tours, or use the Calendar to see tours by date.', 'Filter by month, price or trip length.', 'Tap a tour to see the itinerary, inclusions and things to bring.'] },
-  { Icon: CreditCard, title: 'Book and pay', points: ['Pick a date, your pickup point and how many people are coming.', 'Choose full payment or a 40% downpayment.', 'Pay with GCash, Maya, card or GrabPay. Your receipt is in My Bookings.'] },
+  { Icon: CreditCard, title: 'Book and pay', points: ['Pick a date, your pickup point and how many people are coming.', 'Choose full payment or a 50% downpayment.', 'Pay with GCash, Maya, card or GrabPay. Your receipt is in My Bookings.'] },
   { Icon: Backpack, title: 'Get ready', points: ['We remind you the evening before, with the meeting time and pickup point.', 'Tick off your packing list in My Bookings.', 'Chat with your group in Group Chat.'] },
   { Icon: QrCode, title: 'On tour day', points: ['Show your check-in QR to the coordinator.', 'Follow the van and pickup times under Tracking.', 'Pay any remaining balance if you haven\'t yet.'] },
   { Icon: Star, title: 'After the trip', points: ['Rate your trip and share photos in Reviews.', 'Book your next adventure!'] },

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Printer, X, Loader2, MapPin, Truck, Users, Megaphone, Send } from 'lucide-react';
 import { supabase } from './supabaseClient';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { formatDateRange, formatPeso } from './tourUtils';
 import EmptyState from './ui/EmptyState';
 import { UsersRound } from 'lucide-react';
@@ -57,7 +57,7 @@ const JoinerListModal = ({ tour, onClose }) => {
         supabase.from('tour_meetups').select('location_name, scheduled_time, note').eq('tour_id', tour.id).order('created_at', { ascending: true }),
         supabase.from('tour_vehicles').select('car_type, plate_number, driver_name, driver_contact').eq('tour_id', tour.id).maybeSingle(),
       ]);
-      if (error) console.error('Error loading joiner list:', error.message);
+      if (error) reportError("Couldn't load joiner list", error.message);
       if (active) setData({ bookings: bookings || [], stops: stops || [], vehicle: vehicle || null });
     })();
     return () => { active = false; };

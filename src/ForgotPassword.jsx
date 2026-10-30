@@ -5,6 +5,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { Loader2, CheckCircle2, Mail } from 'lucide-react';
 import logoIcon from './assets/logo.png';
 import { emailError, emailSuggestion } from './validation';
+import { usePopupError } from './ui/usePopupError';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00 espresso dark · #A8481A burnt sienna · #FDF6EE cream
@@ -40,6 +41,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  usePopupError(error);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

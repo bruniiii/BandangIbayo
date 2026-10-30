@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- All database updates from 20261111 to 20261119, in order, in one go.
+-- All database updates from 20261111 to 20261123, in order, in one go.
 --
 -- Paste the whole file into the Supabase SQL Editor and click Run.
 -- It runs as one transaction: if anything fails, nothing is changed, and the
@@ -8,7 +8,7 @@
 -- Afterwards, run supabase/updates/check_updates.sql: every row should say
 -- "installed".
 --
--- Generated from supabase/migrations/20261111…20261119 — edit those, not this.
+-- Generated from supabase/migrations/20261111…20261123 — edit those, not this.
 -- ─────────────────────────────────────────────
 
 begin;
@@ -1215,6 +1215,251 @@ $$;
 
 revoke all on function public.remove_admin(uuid) from public, anon;
 grant execute on function public.remove_admin(uuid) to authenticated;
+
+
+
+-- ════════════ 20261120000000_downpayment_50.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- Tour downpayment is now 50% (it was 40%)
+--
+-- bookings.downpayment_amount remembers what a joiner actually paid as their
+-- downpayment, so older 40% bookings keep showing the right amounts on their
+-- receipts after the switch. It's filled in automatically when a downpayment
+-- is paid; existing bookings are filled in below.
+--
+-- Run after 20261119000000_remove_main_admin.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+alter table public.bookings add column if not exists downpayment_amount numeric(12,2);
+
+create or replace function public.bookings_remember_downpayment()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.payment_method = 'Downpayment'
+     and new.payment_status = 'Complete'
+     and new.downpayment_amount is null
+     and not coalesce(new.balance_settled, false)
+     and new.amount_paid is not null then
+    new.downpayment_amount := new.amount_paid;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists zz_bookings_remember_downpayment on public.bookings;
+create trigger zz_bookings_remember_downpayment
+  before insert or update on public.bookings
+  for each row execute function public.bookings_remember_downpayment();
+
+-- Bookings from before this update: still owing → what they paid; balance
+-- already paid → the 40% they were charged then.
+update public.bookings
+set downpayment_amount = case
+      when coalesce(balance_settled, false) then round(coalesce(total_price, 0) * 0.4, 2)
+      else amount_paid
+    end
+where payment_method = 'Downpayment'
+  and payment_status = 'Complete'
+  and downpayment_amount is null
+  and (coalesce(balance_settled, false) or amount_paid is not null);
+
+
+
+-- ════════════ 20261121000000_archive_admins.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- Admin Settings: archive an admin instead of removing them, and restore them
+--
+-- An archived admin's role is 'archived_admin': they can't open the admin
+-- dashboard (or log in at all), but their account, name and history stay.
+-- The main admin can restore them later, as the kind of admin they were.
+--
+-- Run after 20261120000000_downpayment_50.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+-- Your database has a rule that a profile's role can only be 'admin' or
+-- 'joiner'. Replace it with one that also allows 'archived_admin'.
+do $$
+declare
+  c record;
+begin
+  for c in
+    select con.conname
+      from pg_constraint con
+     where con.conrelid = 'public.profiles'::regclass
+       and con.contype = 'c'
+       and pg_get_constraintdef(con.oid) ilike '%role%'
+       and pg_get_constraintdef(con.oid) not ilike '%primary_email%'
+  loop
+    execute format('alter table public.profiles drop constraint %I', c.conname);
+  end loop;
+end;
+$$;
+alter table public.profiles
+  add constraint role_check check (role is null or role in ('joiner', 'admin', 'archived_admin')) not valid;
+
+alter table public.profiles add column if not exists admin_archived_at timestamptz;
+alter table public.profiles add column if not exists archived_was_main boolean not null default false;
+
+create or replace function public.archive_admin(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_main_admin() then
+    raise exception 'Only the main admin can archive admins.';
+  end if;
+  if p_id = auth.uid() then
+    raise exception 'You can''t archive yourself.';
+  end if;
+  update public.profiles
+     set archived_was_main = is_main_admin, role = 'archived_admin', is_main_admin = false, admin_archived_at = now()
+   where id = p_id and role = 'admin';
+  if not found then
+    raise exception 'That account isn''t an admin.';
+  end if;
+end;
+$$;
+
+create or replace function public.restore_admin(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_main_admin() then
+    raise exception 'Only the main admin can restore admins.';
+  end if;
+  update public.profiles
+     set role = 'admin', is_main_admin = archived_was_main, archived_was_main = false, admin_archived_at = null
+   where id = p_id and role = 'archived_admin';
+  if not found then
+    raise exception 'That admin isn''t archived.';
+  end if;
+end;
+$$;
+
+create or replace function public.list_archived_admins()
+returns table (id uuid, name text, email text, was_main_admin boolean, archived_at timestamptz)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.id, public.admin_display_name(p.id), u.email::text, p.archived_was_main, p.admin_archived_at
+    from public.profiles p join auth.users u on u.id = p.id
+   where p.role = 'archived_admin' and public.is_main_admin()
+   order by p.admin_archived_at desc;
+$$;
+
+revoke all on function public.archive_admin(uuid) from public, anon;
+revoke all on function public.restore_admin(uuid) from public, anon;
+revoke all on function public.list_archived_admins() from public, anon;
+grant execute on function public.archive_admin(uuid) to authenticated;
+grant execute on function public.restore_admin(uuid) to authenticated;
+grant execute on function public.list_archived_admins() to authenticated;
+
+
+
+-- ════════════ 20261122000000_deactivate_account.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- Joiners: deactivate your account (instead of deleting it), reactivate later
+--
+-- profiles.deactivated_at is set while the account is deactivated. The joiner
+-- can't use the site until they log in again and choose to reactivate it.
+-- Nothing is deleted: bookings, reviews and profile details stay.
+--
+-- Run after 20261121000000_archive_admins.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+alter table public.profiles add column if not exists deactivated_at timestamptz;
+
+create or replace function public.deactivate_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Please log in first.';
+  end if;
+  if exists (select 1 from public.profiles where id = auth.uid() and role in ('admin', 'archived_admin')) then
+    raise exception 'Admin accounts can''t be deactivated here.';
+  end if;
+  if exists (
+    select 1
+      from public.bookings b join public.tours t on t.id = b.tour_id
+     where b.user_id = auth.uid()
+       and b.booking_status not in ('Cancelled', 'Rejected')
+       and coalesce(t.end_date, t.start_date) >= (now() at time zone 'Asia/Manila')::date
+  ) then
+    raise exception 'You have an upcoming booking. You can deactivate your account after your trip, or once the booking is cancelled.';
+  end if;
+  update public.profiles set deactivated_at = now() where id = auth.uid();
+end;
+$$;
+
+create or replace function public.reactivate_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Please log in first.';
+  end if;
+  update public.profiles set deactivated_at = null where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.deactivate_my_account() from public, anon;
+revoke all on function public.reactivate_my_account() from public, anon;
+grant execute on function public.deactivate_my_account() to authenticated;
+grant execute on function public.reactivate_my_account() to authenticated;
+
+
+
+-- ════════════ 20261123000000_tour_favorites.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- Favorites: joiners star tours on Explore Tours to book later.
+-- Each joiner only sees and changes their own favorites.
+--
+-- Run after 20261122000000_deactivate_account.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create table if not exists public.tour_favorites (
+  user_id    uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  tour_id    bigint not null references public.tours(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, tour_id)
+);
+
+alter table public.tour_favorites enable row level security;
+
+drop policy if exists "Joiners see their own favorites" on public.tour_favorites;
+create policy "Joiners see their own favorites"
+  on public.tour_favorites for select using (user_id = auth.uid());
+
+drop policy if exists "Joiners add their own favorites" on public.tour_favorites;
+create policy "Joiners add their own favorites"
+  on public.tour_favorites for insert with check (user_id = auth.uid());
+
+drop policy if exists "Joiners remove their own favorites" on public.tour_favorites;
+create policy "Joiners remove their own favorites"
+  on public.tour_favorites for delete using (user_id = auth.uid());
+
+grant select, insert, delete on public.tour_favorites to authenticated;
 
 
 commit;

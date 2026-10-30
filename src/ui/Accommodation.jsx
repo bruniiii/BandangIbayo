@@ -1,5 +1,6 @@
 import React from 'react';
-import { ChevronDown, BedDouble } from 'lucide-react';
+import { BedDouble } from 'lucide-react';
+import PrettySelect from './PrettySelect';
 
 import { ACCOMMODATION_OPTIONS, cleanAccommodation } from '../accommodation';
 
@@ -55,26 +56,15 @@ export const AccommodationSelect = ({ options = [], value, onChange, error = '',
   return (
     <div style={{ marginBottom: 16 }}>
       <label htmlFor={id} style={label}>Accommodation</label>
-      <div style={{ position: 'relative' }}>
-        <BedDouble size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#A8481A', pointerEvents: 'none' }} />
-        <select
-          id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          aria-invalid={!!error}
-          style={{
-            width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
-            border: `1px solid ${error ? '#8C2F1C' : 'rgba(180,81,30,0.18)'}`,
-            borderRadius: 14, padding: '12px 34px 12px 36px',
-            fontSize: 13, fontWeight: 700, color: value ? '#1A0A00' : '#7A3A18',
-            fontFamily: 'inherit', outline: 'none', appearance: 'none', cursor: 'pointer',
-          }}
-        >
-          <option value="">Choose your accommodation</option>
-          {choices.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-        <ChevronDown size={15} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#A8481A', pointerEvents: 'none' }} />
-      </div>
+      <PrettySelect
+        id={id}
+        icon={BedDouble}
+        value={value}
+        placeholder="Choose your accommodation"
+        invalid={!!error}
+        onChange={onChange}
+        options={choices.map((o) => ({ value: o, label: o }))}
+      />
       {error && <p role="alert" style={{ fontSize: 12, fontWeight: 800, color: '#8C2F1C', margin: '6px 2px 0' }}>{error}</p>}
     </div>
   );

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { toast } from './ui/toast';
+import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
 import { printReceipt } from './paymentReceipt';
-import { formatPeso, downpaymentFor, formatDateRange as formatTourDates } from './tourUtils';
+import { formatPeso, bookingDownpayment, formatDateRange as formatTourDates } from './tourUtils';
 import { MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Hash, User, CreditCard, AlertCircle, Image as ImageIcon, Wallet, Printer, Users, History } from 'lucide-react';
 import { SkeletonLines } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
@@ -90,7 +90,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
   const subtotal = booking.total_price || 0;
   const amountPaid = balanceSettled ? subtotal : (booking.amount_paid || subtotal);
-  const downpaymentAmount = downpaymentFor(subtotal);
+  const downpaymentAmount = bookingDownpayment(booking);
   const balance = booking.payment_method === 'Downpayment' ? subtotal - downpaymentAmount : 0;
   const isDownpayment = booking.payment_method === 'Downpayment';
  
@@ -235,7 +235,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 {booking.payment_method === 'Downpayment' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Downpayment (40%)</span>
+                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Downpayment ({subtotal ? Math.round((downpaymentAmount / subtotal) * 100) : 50}%)</span>
                       <span style={{ fontWeight: 700, color: '#8C5216' }}>{formatPeso(downpaymentAmount)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
@@ -659,7 +659,7 @@ const BookingActivity = ({ bookingId }) => {
       .eq('booking_id', bookingId)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
-        if (error) console.error('Error loading booking activity:', error.message);
+        if (error) reportError("Couldn't load booking activity", error.message);
         if (active) setEntries(data || []);
       });
     return () => { active = false; };

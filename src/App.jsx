@@ -27,6 +27,7 @@ import { ReviewCard } from './ui/ReviewCards';
 import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
 import { SkeletonTourCards } from './ui/Skeleton';
+import { reportError } from './ui/toast';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -79,7 +80,7 @@ function LandingPage() {
         .eq('is_archived', false)
         .gte('start_date', todayManila())
         .order('start_date', { ascending: true });
-      if (error) console.error('Error fetching tours:', error.message);
+      if (error) reportError("Couldn't load tours", error.message);
       else setTours(groupTripDates(data, { openFirst: false })); // one card per trip, however many dates it has
       setLoading(false);
     };
@@ -220,7 +221,7 @@ function LandingPage() {
         .btn-text-link { transition: color 0.2s ease; }
         .btn-text-link:hover { color: #A8481A !important; }
         .tour-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .tour-card:hover { transform: translateY(-6px); box-shadow: 0 16px 36px rgba(26,10,0,0.14); }
+        .tour-card:hover { transform: translateY(-6px) scale(1.07); box-shadow: 0 16px 36px rgba(26,10,0,0.14); position: relative; z-index: 2; }
         .tour-card:hover .tour-card-img { transform: scale(1.07); }
         .type-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
         .type-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(26,10,0,0.1); }

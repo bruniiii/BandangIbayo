@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import BrandAvatar from './ui/BrandAvatar';
 import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { isStaffRole } from './tourUtils';
 import { maskSensitiveWords } from './profanity';
 import { toast } from './ui/toast';
 import EmptyState from './ui/EmptyState';
@@ -37,14 +38,14 @@ const shortTime = (iso) => {
 
 const nameFor = (profile, isAdminViewer) => {
   if (!profile) return 'Former joiner';
-  if (profile.role === 'admin') return 'Bandang IBAYO';
+  if (isStaffRole(profile.role)) return 'Bandang IBAYO';
   const first = (profile.first_name || '').trim();
   const last = (profile.last_name || '').trim();
   if (isAdminViewer) return `${first} ${last}`.trim() || profile.username || 'Joiner';
   return `${first}${last ? ` ${last[0]}.` : ''}`.trim() || profile.username || 'Joiner';
 };
 const initialsOf = (profile) => {
-  if (profile?.role === 'admin') return 'BI';
+  if (isStaffRole(profile?.role)) return 'BI';
   return `${(profile?.first_name || '?')[0]}${(profile?.last_name || '')[0] || ''}`.toUpperCase();
 };
 
@@ -383,7 +384,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
           const newDay = !prev || dayOf(prev.created_at) !== dayOf(m.created_at);
           const mine = m.user_id && m.user_id === me;
           const author = profiles[m.user_id];
-          const fromAdmin = author?.role === 'admin';
+          const fromAdmin = isStaffRole(author?.role);
           const sameAuthor = prev && !newDay && prev.user_id === m.user_id;
           return (
             <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(232,162,101,0.28)' : 'transparent' }}>
@@ -629,8 +630,8 @@ const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narr
             const isMe = r.user_id === me;
             return (
               <li key={r.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px' }}>
-                {p?.role === 'admin' ? <BrandAvatar size={36} /> : <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: p?.role === 'admin' ? '#B4511E' : '#1A0A00', color: p?.role === 'admin' ? '#FDF6EE' : '#E8A265', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                  {p?.avatar_url && p.role !== 'admin' ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
+                {isStaffRole(p?.role) ? <BrandAvatar size={36} /> : <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: isStaffRole(p?.role) ? '#B4511E' : '#1A0A00', color: isStaffRole(p?.role) ? '#FDF6EE' : '#E8A265', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {p?.avatar_url && !isStaffRole(p.role) ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
                 </span>}
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{nameOf(r.user_id)}</span>

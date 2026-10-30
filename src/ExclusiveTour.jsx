@@ -13,7 +13,7 @@ import { moneyField, blockSignKeys } from './moneyInput';
 import {
   MapPin, Calendar, ChevronDown, CheckCircle2,
   FileText, Send, Shield, Star, ArrowRight, XCircle, MessageSquare,
-  Globe, Loader2, CreditCard, FileDown, PencilLine, X, BedDouble, Users,
+  Globe, Loader2, CreditCard, FileDown, PencilLine, X, BedDouble, Users, Plus,
 } from 'lucide-react';
 import { startExclusiveDownpayment, startExclusiveBalance } from './payments';
 import { phoneFieldProps } from './ui/phoneField';
@@ -109,7 +109,7 @@ const checkRequestFields = (formEl, form, type) => {
     ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
     ...people.flatMap((p, i) => [
       [`participant_name_${i}`, fullNameError(p.full_name, `Name of person ${i + 1}`)],
-      [`participant_contact_${i}`, phoneError(p.contact_number, `Contact number of person ${i + 1}`)],
+      [`participant_contact_${i}`, phoneError(p.contact_number, `Contact number of person ${i + 1}`, { mobile: true })],
       [`participant_name_${i}`, people.findIndex((o) => sameName(o.full_name, p.full_name)) !== i ? 'This person is listed twice. Each person needs their own details.' : ''],
     ]),
     ['notes', textError(form.notes, 'Notes', { required: false, max: 2000 })],
@@ -850,7 +850,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
                     <Calendar size={11} /> Itinerary
                   </p>
                   <div style={{ background: '#FDF6EE', borderRadius: 14, padding: 10 }}>
-                    <ItineraryTimeline text={pkg.itinerary} />
+                    <ItineraryTimeline text={pkg.itinerary} startDate={pkg.start_date} />
                   </div>
                 </div>
               ) : (
@@ -1024,6 +1024,8 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   const [editing, setEditing] = useState(null);
+  // Status toggle: show one status at a time (same as the admin pages).
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const fetchRequests = useCallback(async (uid) => {
     // Requests the agency didn't finish in time become Rejected (safe to run any time).
@@ -1075,8 +1077,38 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
           {type === 'exclusive' ? 'Track your exclusive tour requests' : 'Track your tour requests'}, plus any updates from our team. You can edit a request until it's approved.
         </p>
       </div>
+      <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid'] : []), 'Rejected'].map((st) => {
+          const on = statusFilter === st;
+          const count = st === 'All' ? requests.length : requests.filter((q) => requestStatusLabel(q) === st || requestPaymentLabel(q) === st).length;
+          const tone = STATUS_STYLES[st];
+          return (
+            <button
+              key={st} type="button" role="tab" aria-selected={on} onClick={() => setStatusFilter(st)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#E8A265' : '#7A3A18',
+                border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.2)'}`,
+                boxShadow: on ? '0 6px 16px rgba(26,10,0,0.18)' : 'none', transition: 'background 0.15s, color 0.15s',
+              }}
+            >
+              {st}
+              <span style={{
+                minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10.5, letterSpacing: 0, background: on ? 'rgba(232,162,101,0.2)' : (tone?.bg || 'rgba(180,81,30,0.1)'), color: on ? '#E8A265' : (tone?.color || '#A8481A'),
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {requests.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} onEdit={setEditing} />)}
+        {(() => {
+          const shown = statusFilter === 'All' ? requests : requests.filter((q) => requestStatusLabel(q) === statusFilter || requestPaymentLabel(q) === statusFilter);
+          return shown.length
+            ? shown.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} onEdit={setEditing} />)
+            : <p style={{ margin: 0, padding: '14px 16px', borderRadius: 14, background: 'rgba(242,228,208,0.5)', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>No requests marked "{statusFilter}" yet.</p>;
+        })()}
       </div>
       {editing && (
         <EditRequestModal
@@ -1094,18 +1126,60 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
 // `start` comes from the joiner calendar: { form, date: 'YYYY-MM-DD' }.
 const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking }) => {
   const [refreshKey, setRefreshKey] = useState(0);
+  // The form stays hidden until the joiner clicks the button (or picks a date
+  // on the calendar, which opens it filled in).
+  const [showForm, setShowForm] = useState(!!start?.date);
+  const [prevStart, setPrevStart] = useState(start);
+  if (start !== prevStart) { setPrevStart(start); if (start?.date) setShowForm(true); }
+  const isExclusive = type === 'exclusive';
+  const newLabel = isExclusive ? 'New Exclusive Tour Request' : 'Request a Tour';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
       {/* Your Submitted Requests (at the top): status, admin updates, tour package details */}
       <MyRequestsSection type={type} refreshKey={refreshKey} onOpenBooking={onOpenBooking} />
 
-      <div style={{
-        background: '#FDF6EE', borderRadius: 24, padding: '2rem 2.25rem',
-        border: '1px solid rgba(180,81,30,0.12)', borderTop: '8px solid #B4511E',
-        boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
-      }}>
-        <RequestForm key={type} type={type} startDate={start?.date} onSaved={() => setRefreshKey((k) => k + 1)} />
-      </div>
+      {!showForm ? (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
+          background: '#FDF6EE', borderRadius: 24, padding: '1.4rem 1.75rem',
+          border: '1px solid rgba(180,81,30,0.12)', borderLeft: '6px solid #B4511E', boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+        }}>
+          <div style={{ minWidth: 0, flex: '1 1 260px' }}>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00' }}>
+              {isExclusive ? 'Planning a private trip for your group?' : "Can't find the tour you want?"}
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+              {isExclusive
+                ? 'Send us your destination, dates and group size, and we\'ll prepare a package just for you.'
+                : 'Tell us where and when you want to go, and we\'ll set up the tour for you and other joiners.'}
+            </p>
+          </div>
+          <button type="button" onClick={() => setShowForm(true)} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, height: 44, padding: '0 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            boxShadow: '0 6px 18px rgba(180,81,30,0.3)',
+          }}><Plus size={15} /> {newLabel}</button>
+        </div>
+      ) : (
+        <div style={{
+          position: 'relative',
+          background: '#FDF6EE', borderRadius: 24, padding: '2rem 2.25rem',
+          border: '1px solid rgba(180,81,30,0.12)', borderTop: '8px solid #B4511E',
+          boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: '#1A0A00' }}>{newLabel}</h3>
+            <button type="button" onClick={async () => {
+              if (await confirmDialog({ title: 'Close the form?', message: "What you've typed won't be sent.", confirmLabel: 'Close Form', cancelLabel: 'Keep Editing' })) setShowForm(false);
+            }} aria-label="Close the form" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, height: 36, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
+              background: 'transparent', color: '#7A3A18', border: '1px solid rgba(180,81,30,0.25)',
+              fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}><X size={14} /> Close</button>
+          </div>
+          <RequestForm key={type} type={type} startDate={start?.date} onSaved={() => { setRefreshKey((k) => k + 1); setShowForm(false); }} />
+        </div>
+      )}
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>
   );

@@ -14,6 +14,15 @@ export const openedFromResetLink =
 // (a sleeping background tab, a slow connection) has it "stolen" by another,
 // and every request waiting on it fails with "AbortError: Lock broken by
 // another request with the 'steal' option" (seen on Reports).
+//
+// While the session is being renewed (a network call that can be slow on
+// mobile data), other requests wait their turn. Supabase lets them wait only
+// 5 seconds, then they fail with "Acquiring process lock … timed out"; here
+// they wait up to 30 seconds instead.
+const LOCK_WAIT_MS = 30000;
+const patientLock = (name, acquireTimeout, fn) =>
+  processLock(name, acquireTimeout < 0 ? acquireTimeout : Math.max(acquireTimeout, LOCK_WAIT_MS), fn);
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { lock: processLock },
+  auth: { lock: patientLock },
 });
