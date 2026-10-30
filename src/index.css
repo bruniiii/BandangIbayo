@@ -168,3 +168,22 @@ input::-ms-clear { display: none; }
   .help-widget-panel { left: 12px !important; right: 12px !important; width: auto !important; max-width: none !important; bottom: 84px !important; }
   .help-widget-button { right: 14px !important; bottom: 14px !important; height: 54px !important; }
 }
+
+/* ── Scrollbars (everywhere) ──
+   A thin rounded bar that sits inside the box it scrolls, with space around
+   it and no arrow buttons, instead of the browser's plain bar on the edge. */
+/* Firefox only: in Chrome/Edge these two would switch off the styles below. */
+@supports (-moz-appearance: none) {
+  * { scrollbar-width: thin; scrollbar-color: rgba(122, 58, 24, 0.45) transparent; }
+}
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(122, 58, 24, 0.4);
+  border: 4px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(122, 58, 24, 0.65); }
+*::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+*::-webkit-scrollbar-corner { background: transparent; }

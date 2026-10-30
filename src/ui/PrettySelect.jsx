@@ -85,7 +85,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
           style={{
             position: 'absolute', zIndex: 50, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), left: 0, right: 0, margin: 0, padding: 6, listStyle: 'none',
             background: '#FFFDF9', borderRadius: 16, border: '1px solid rgba(180,81,30,0.2)', boxShadow: '0 18px 40px rgba(26,10,0,0.18)',
-            maxHeight: 264, overflowY: 'auto', animation: 'ps-in 0.14s ease-out',
+            maxHeight: 264, overflowY: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable', animation: 'ps-in 0.14s ease-out',
           }}
         >
           <style>{'@keyframes ps-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }'}</style>
