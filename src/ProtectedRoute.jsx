@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
+import { askToReactivate } from './reactivate';
 
 const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
   const [session, setSession] = useState(null);
@@ -13,10 +14,13 @@ const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       // An archived admin (still signed in from before) is signed out.
       if (session) {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).maybeSingle();
+        const { data: profile } = await supabase.from('profiles').select('role, deactivated_at').eq('id', session.user.id).maybeSingle();
         if (profile?.role === 'archived_admin') {
           await supabase.auth.signOut();
           toast.error('This admin account was archived', 'Ask the main admin to restore it.');
+          session = null;
+        } else if (profile?.deactivated_at && !(await askToReactivate())) {
+          // Deactivated (e.g. still logged in on another device): reactivate or log out.
           session = null;
         }
       }

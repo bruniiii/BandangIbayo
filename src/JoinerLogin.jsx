@@ -8,6 +8,7 @@ import OtpInput from './ui/OtpInput';
 import PasswordField from './ui/PasswordField';
 import GoogleButton, { OrDivider } from './ui/GoogleButton';
 import { usePopupError } from './ui/usePopupError';
+import { askToReactivate } from './reactivate';
 
 // "Continue with Google" is turned off for now; set to true to show it again.
 const SHOW_GOOGLE_LOGIN = false;
@@ -106,7 +107,7 @@ const JoinerLogin = () => {
   const finishLogin = async (user) => {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, deactivated_at')
       .eq('id', user.id)
       .single();
 
@@ -125,6 +126,14 @@ const JoinerLogin = () => {
       setLoading(false);
       setChallenge(null);
       showError("This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+      return;
+    }
+
+    // A deactivated account: reactivate it, or stay logged out.
+    if (profile.deactivated_at && !(await askToReactivate())) {
+      setLoading(false);
+      setChallenge(null);
+      showError('Your account is still deactivated. Log in again anytime to reactivate it.');
       return;
     }
 

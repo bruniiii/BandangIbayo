@@ -45,5 +45,8 @@ from (values
               where n.nspname = 'public' and p.proname = 'restore_admin')
      and exists (select 1 from pg_constraint
                   where conrelid = 'public.profiles'::regclass and conname = 'role_check'
-                    and pg_get_constraintdef(oid) ilike '%archived_admin%'))
+                    and pg_get_constraintdef(oid) ilike '%archived_admin%')),
+  ('20261122 deactivate / reactivate account',
+     exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'reactivate_my_account'))
 ) as u(update_file, installed);
