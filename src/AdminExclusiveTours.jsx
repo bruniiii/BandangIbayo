@@ -197,21 +197,34 @@ const AdminExclusiveTours = ({ type = 'exclusive' }) => {
               style={{ ...inputStyle, paddingLeft: 36 }}
             />
           </div>
-          <div style={{ position: 'relative', minWidth: 160 }}>
-            <select
-              value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
-            >
-              <option value="All Status">All Status</option>
-              <option value="For Approval">For Approval</option>
-              <option value="Approved">Approved</option>
-              <option value="Tour Confirmed">Tour Confirmed</option>
-              {isExclusivePage && <option value="Downpayment Paid">Downpayment Paid</option>}
-              {isExclusivePage && <option value="Fully Paid">Fully Paid</option>}
-              <option value="Rejected">Rejected</option>
-            </select>
-            <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
-          </div>
+
+        </div>
+
+        {/* ── Status toggle: show one status at a time ── */}
+        <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '-8px 0 20px' }}>
+          {['All Status', 'For Approval', 'Approved', 'Tour Confirmed', ...(isExclusivePage ? ['Downpayment Paid', 'Fully Paid'] : []), 'Rejected'].map((st) => {
+            const on = statusFilter === st;
+            const count = st === 'All Status' ? requests.length : requests.filter((r) => shownStatus(r) === st || requestPaymentLabel(r) === st).length;
+            const tone = STATUS_STYLES[st];
+            return (
+              <button
+                key={st} type="button" role="tab" aria-selected={on} onClick={() => setStatusFilter(st)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8, height: 38, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
+                  fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#E8A265' : '#7A3A18',
+                  border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.2)'}`,
+                  boxShadow: on ? '0 6px 16px rgba(26,10,0,0.18)' : 'none', transition: 'background 0.15s, color 0.15s',
+                }}
+              >
+                {st === 'All Status' ? 'All' : st}
+                <span style={{
+                  minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10.5, letterSpacing: 0, background: on ? 'rgba(232,162,101,0.2)' : (tone?.bg || 'rgba(180,81,30,0.1)'), color: on ? '#E8A265' : (tone?.color || '#A8481A'),
+                }}>{count}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* ── List ── */}
