@@ -193,3 +193,12 @@ input::-ms-clear { display: none; }
 @media (hover: hover) {
   .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(26,10,0,0.14) !important; z-index: 2; }
 }
+
+/* PCs and laptops (mouse, not touch): the page never gets narrower than
+   620px. A smaller window scrolls sideways instead of squeezing the layout
+   further. Phones and tablets aren't affected. */
+@media (hover: hover) and (pointer: fine) {
+  html, body { min-width: 620px; }
+  .admin-dashboard-container,
+  .joiner-dashboard-container { min-width: 620px; position: absolute !important; }
+}
