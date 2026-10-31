@@ -9,27 +9,22 @@ html, body {
 }
 button, input, select, textarea { font-family: inherit; }
 
-/* Headings use DM Serif Display, an elegant high-contrast serif (it has a
-   single regular weight, so the bold set in component styles is reset
-   instead of faked). Small ALL-CAPS section labels stay in the body font,
-   Outfit, where a display serif would be hard to read.
-   .font-display gives any element the heading face; .font-accent is the
-   italic highlight used for a word or two inside a heading. */
+/* Headings use the same font as the rest of the site (Outfit), bold, so
+   they match the body text. .font-display gives any element the heading
+   look; .font-accent is the highlight used for a word inside a heading. */
 h1, h2, h3, h4, .font-display {
-  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-  font-weight: 400 !important;
-  font-synthesis: none;
-  letter-spacing: -0.005em;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-weight: 800 !important;
+  letter-spacing: -0.015em;
 }
 h1[style*="uppercase"], h2[style*="uppercase"], h3[style*="uppercase"], h4[style*="uppercase"] {
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   font-weight: 700 !important;
 }
 .font-accent {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-style: italic;
-  font-weight: 400 !important;
-  font-synthesis: none;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 800 !important;
 }
 ::placeholder { color: rgba(122,58,24,0.7); opacity: 1; }
 ::selection { background: rgba(196,92,38,0.25); color: #1A0A00; }
