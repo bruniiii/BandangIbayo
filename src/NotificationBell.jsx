@@ -99,7 +99,9 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  // The bell's list shows only unread notifications (all of them).
+  const unread = notifications.filter(n => !n.is_read);
+  const unreadCount = unread.length;
   // The badge: new notifications since the bell or Notification page was last opened.
   const badgeCount = unseenCount(notifications, seenAt);
 
@@ -173,7 +175,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
               {/* New = arrived since you last looked (the badge); unread = not clicked yet. */}
               {!loading && (
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: '3px 0 0' }}>
-                  {newWhenOpened} new · {unreadCount} unread
+                  {unreadCount} unread{newWhenOpened ? ` · ${newWhenOpened} new` : ''}
                 </p>
               )}
             </div>
@@ -195,12 +197,12 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loading ? (
               <div style={{ padding: '0 16px' }}><SkeletonRows count={3} boxed={false} label="Loading notifications" /></div>
-            ) : notifications.length === 0 ? (
+            ) : unread.length === 0 ? (
               <div style={{ padding: 12 }}>
-                <EmptyState compact icon={BellRing} title="You're all caught up" message="New updates about your bookings will appear here." />
+                <EmptyState compact icon={BellRing} title="You're all caught up" message="No unread notifications. Read ones are on the Notification page." />
               </div>
             ) : (
-              notifications.slice(0, 30).map(n => (
+              unread.map(n => (
                 <div
                   key={n.id}
                   onClick={() => {
