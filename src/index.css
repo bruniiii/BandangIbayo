@@ -197,3 +197,40 @@ input::-ms-clear { display: none; }
   .admin-dashboard-container,
   .joiner-dashboard-container { min-width: 620px; position: absolute !important; }
 }
+
+/* No zooming on phones: double-tap zoom is off (pinch is off via the
+   viewport tag), and on touch screens every text box uses at least 16px text,
+   so iPhones don't zoom in when one is tapped. */
+html { touch-action: manipulation; }
+@media (pointer: coarse) {
+  input, select, textarea { font-size: max(16px, 1em) !important; }
+}
+
+/* Phones: long text and peso amounts inside the dashboards wrap instead of
+   pushing past their card (only where they would otherwise overflow), and
+   flex/grid items are allowed to shrink. */
+@media (max-width: 640px) {
+  .dashboard-content p, .dashboard-content span, .dashboard-content h3, .dashboard-content h4,
+  .dashboard-content td, .dashboard-content th, [role="dialog"] p, [role="dialog"] span { overflow-wrap: anywhere; }
+}
+
+/* Phones: wide tables (class "stack-table") become one card per row, each
+   value with its column name, so nothing scrolls sideways. */
+@media (max-width: 640px) {
+  table.stack-table { min-width: 0 !important; }
+  table.stack-table thead { display: none; }
+  table.stack-table, table.stack-table tbody, table.stack-table tr, table.stack-table td { display: block; width: 100%; box-sizing: border-box; }
+  table.stack-table tr { padding: 8px 0; border-bottom: 1px solid rgba(180,81,30,0.14); }
+  table.stack-table td { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 4px !important; border: none !important; text-align: right; overflow-wrap: anywhere; }
+  table.stack-table td::before { content: attr(data-label); flex-shrink: 0; max-width: 45%; text-align: left; font-size: 10.5px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #7A3A18; }
+}
+
+/* Small phones: the bell/account buttons keep their size and a long page
+   title is shortened with "…" instead of running under them. */
+@media (max-width: 480px) {
+  .dashboard-topbar { gap: 8px !important; }
+  .dashboard-topbar > div:first-child { flex: 1 1 auto; min-width: 0; gap: 8px !important; }
+  .dashboard-topbar > div:last-child { flex-shrink: 0; gap: 8px !important; }
+  .page-header h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px !important; }
+  .page-header > div[aria-hidden] { display: none !important; }
+}

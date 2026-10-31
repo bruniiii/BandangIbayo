@@ -199,15 +199,16 @@ const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: data.length > 40 ? 3 : 8, height, overflowX: 'auto', paddingBottom: 6 }}>
+    // Bars shrink to fit the card (no sideways scrolling on phones).
+    <div className="bar-chart" style={{ display: 'flex', alignItems: 'flex-end', gap: data.length > 40 ? 2 : 'clamp(2px, 1.2vw, 8px)', height, paddingBottom: 6, minWidth: 0 }}>
       {data.map((d, i) => (
         <div
           key={d.key || i}
           title={`${d.label}: ${d.value}`}
           style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'flex-end', minWidth: data.length > 40 ? 8 : 24,
-            flex: 1, height: '100%',
+            justifyContent: 'flex-end', minWidth: 0,
+            flex: '1 1 0', height: '100%',
           }}
         >
           <span style={{ fontSize: 11, fontWeight: 800, color: '#1A0A00', opacity: d.value ? 0.7 : 0, marginBottom: 4 }}>
@@ -221,7 +222,7 @@ const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
             transition: 'height 0.3s',
           }} />
           <span style={{
-            fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9,
+            fontSize: 'clamp(8px, 2.6vw, 11px)', fontWeight: 800, color: '#7A3A18', opacity: 0.9,
             marginTop: 8, whiteSpace: 'nowrap',
           }}>
             {i % labelStep === 0 ? d.label : ''}

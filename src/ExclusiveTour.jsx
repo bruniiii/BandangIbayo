@@ -226,7 +226,7 @@ const ParticipantsFields = ({ participants, onChange, showVans = false }) => (
           Van {i / VAN_SEATS + 1} · Persons {i + 1}–{Math.min(participants.length, i + VAN_SEATS)}
         </p>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, alignItems: 'end' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 10, alignItems: 'end' }}>
         <InputField
           name={`participant_name_${i}`}
           data-allow="name"
@@ -459,7 +459,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {sectionTitle(1, isExclusive ? 'Contact Information' : 'Your Information')}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
           <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
           <InputField name="contact" label="Contact Number" {...phoneFieldProps(form.contact, (v) => setForm((prev) => ({ ...prev, contact: v })))} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
@@ -468,7 +468,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {sectionTitle(2, isExclusive ? 'Trip Details' : 'Destination & Tour Details')}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} required />
           <InputField name="groupSize" label={isExclusive ? 'Number of Participants' : `Number of Participants (up to ${MAX_TOUR_SLOTS})`} type="number" min="1" max={maxGroupFor(type)} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
           <TripDatesFields form={form} setForm={setForm} />
@@ -820,7 +820,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: 14 }}>
                 {pkg.price != null && pkg.price !== '' && (
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 3px' }}>
@@ -857,7 +857,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
                 <PackageDetail label="Itinerary" icon={<Calendar size={11} />}>{pkg.itinerary}</PackageDetail>
               ))}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14 }}>
                 {pkg.inclusions && (
                   <PackageDetail label="Inclusions" icon={<CheckCircle2 size={11} />}>
                     {pkg.inclusions}

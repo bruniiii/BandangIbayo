@@ -32,7 +32,7 @@ const AddressFields = ({ defaultValue = {}, onChange, selectStyle, inputStyle, l
   else if (!barangaysByCity) barangayPlaceholder = 'Loading…';
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14 }}>
       <div>
         <label style={labelStyle} htmlFor="address-province">Province {star}</label>
         <SearchSelect

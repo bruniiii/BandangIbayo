@@ -901,7 +901,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(130px, 1fr))',
+                'repeat(auto-fit, minmax(min(130px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -959,7 +959,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -997,7 +997,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -1020,7 +1020,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -1072,7 +1072,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >

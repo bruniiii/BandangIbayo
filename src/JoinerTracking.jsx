@@ -111,7 +111,7 @@ export const JoinerTracking = ({ onExplore }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
         {loading ? (
           <SkeletonTourCards count={3} label="Loading trips" />
         ) : toursList.length === 0 ? (

@@ -15,6 +15,19 @@ installInputFilter();
 // Add to home screen (see installApp.js).
 setupInstallApp();
 
+// No pinch zoom on iPhones/iPads (Safari ignores user-scalable=no).
+['gesturestart', 'gesturechange'].forEach((type) => document.addEventListener(type, (e) => e.preventDefault(), { passive: false }));
+
+// Tables marked "stack-table" turn into cards on phones (see index.css):
+// each cell gets its column name as a label.
+const labelTables = () => document.querySelectorAll('table.stack-table').forEach((t) => {
+  const heads = [...t.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+  t.querySelectorAll('tbody tr').forEach((tr) => [...tr.children].forEach((td, i) => {
+    if (heads[i] && td.getAttribute('data-label') !== heads[i]) td.setAttribute('data-label', heads[i]);
+  }));
+});
+new MutationObserver(labelTables).observe(document.documentElement, { childList: true, subtree: true });
+
 // Any error nothing else caught pops up too, instead of failing silently.
 // (Browser noise like ResizeObserver warnings and cancelled requests is skipped.)
 const isNoise = (msg) => /ResizeObserver loop|AbortError|Lock broken|Acquiring process lock|Load failed|Script error/i.test(String(msg || ''));

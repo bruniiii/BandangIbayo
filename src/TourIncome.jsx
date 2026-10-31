@@ -105,13 +105,13 @@ const TourIncome = ({ onData }) => {
         <p style={muted}>No tours with paid joiners in {monthLabel(month)}.</p>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))', gap: 12, marginBottom: 14 }}>
             <Stat label="Joiner fees" value={formatPeso(totals.fees)} />
             <Stat label="Expenses" value={formatPeso(totals.exp)} />
             <Stat label="Income" value={money(totals.income)} tone={totals.income < 0 ? 'bad' : 'good'} />
           </div>
           <div style={{ overflowX: 'auto' }}>
-            <table style={table}>
+            <table className="stack-table" style={table}>
               <thead>
                 <tr>{['Tour', 'Date', 'Joiners', 'Joiner fees', 'Expenses', 'Income', ''].map((h) => <th key={h} style={th}>{h}</th>)}</tr>
               </thead>
@@ -154,7 +154,7 @@ const TourIncome = ({ onData }) => {
 
 // One tour's breakdown, laid out like the spreadsheet: joiners on the left, expenses and income on the right.
 const Breakdown = ({ row }) => (
-  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18, paddingTop: 10 }}>
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 18, paddingTop: 10 }}>
     <div>
       <p style={subTitle}>Joiners</p>
       <table style={{ ...table, minWidth: 0 }}>

@@ -510,7 +510,7 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
       )}
 
       {reviews === null ? (
-        <SkeletonRegion label="Loading reviews" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+        <SkeletonRegion label="Loading reviews" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 }}>
           {[0, 1, 2].map((i) => (
             <div key={i} style={{ background: '#FDF6EE', borderRadius: 18, padding: '1.1rem 1.2rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 9 }}>
               <Skel w="40%" h={12} /><Skel w="95%" h={10} /><Skel w="80%" h={10} />
@@ -523,7 +523,7 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
           No reviews yet. Joiners can review a tour once it's finished.
         </p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 14 }}>
           {reviews.map((r) => <ReviewCard key={r.id} review={r} compact />)}
         </div>
       )}
