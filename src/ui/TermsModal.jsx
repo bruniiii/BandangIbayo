@@ -209,6 +209,7 @@ const TermsModal = ({ onClose, onAgree }) => (
         </div>
       </div>
 
+      {onAgree && (
       <div
         style={{
           padding: '1.25rem 2rem',
@@ -218,25 +219,7 @@ const TermsModal = ({ onClose, onAgree }) => (
           flexShrink: 0,
         }}
       >
-        <button
-          onClick={onClose}
-          style={{
-            flex: 1,
-            padding: '13px 0',
-            background: '#F2E4D0',
-            border: '1px solid rgba(180,81,30,0.18)',
-            borderRadius: 999,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontWeight: 900,
-            fontSize: 11.5,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color: '#7A3A18',
-          }}
-        >
-          Close
-        </button>
+
 
         {onAgree && (
         <button
@@ -261,6 +244,7 @@ const TermsModal = ({ onClose, onAgree }) => (
         </button>
         )}
       </div>
+      )}
     </div>
   </div>
 );

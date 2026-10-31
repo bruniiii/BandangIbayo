@@ -46,7 +46,7 @@ const LandingReviews = () => {
   const reviews = usePublicReviews(6);
   if (!reviews || reviews.length === 0) return null;
   return (
-    <section style={{ background: '#FDF6EE', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
+    <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Joiner Stories</span>
@@ -88,7 +88,7 @@ function LandingPage() {
   }, []);
  
   return (
-    <div style={{ background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
+    <div className="nature-bg" style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
  
       {/* ── NAV ── */}
       <nav className="site-nav" style={{
@@ -260,7 +260,7 @@ function LandingPage() {
       `}</style>
  
       {/* ── FEATURED TOURS ── */}
-      <section style={{ background: '#FDF6EE', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
+      <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: 16 }}>
             <div>
@@ -355,7 +355,7 @@ function LandingPage() {
       </section>
  
       {/* ── TOUR TYPE GRID ── */}
-      <section style={{ background: '#FDF6EE', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
+      <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>           
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>

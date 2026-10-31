@@ -234,3 +234,21 @@ html { touch-action: manipulation; }
   .page-header h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px !important; }
   .page-header > div[aria-hidden] { display: none !important; }
 }
+
+/* A footer with no buttons in it isn't shown. */
+.hide-when-empty:empty { display: none !important; }
+
+/* Blurred nature photo (mountains and forest, public/nature-bg.webp, 5 KB)
+   behind the landing page and both dashboards. A cream overlay keeps the
+   cards and text easy to read. */
+.nature-bg {
+  background: linear-gradient(rgba(253,246,238,0.55), rgba(253,246,238,0.55)), url('/nature-bg.webp') center / cover fixed, #FDF6EE;
+}
+.dashboard-content {
+  background: linear-gradient(rgba(253,246,238,0.86), rgba(253,246,238,0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, #FDF6EE !important;
+  background-attachment: fixed !important;
+}
+@media (pointer: coarse) {
+  /* Phones don't support fixed backgrounds well: let it scroll with the page. */
+  .nature-bg, .dashboard-content { background-attachment: scroll !important; }
+}

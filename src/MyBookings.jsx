@@ -718,25 +718,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 )}
               </div>
 
-              {/* Footer actions */}
-              <div style={{
+              {/* Footer actions (hidden when there's nothing to do) */}
+              <div className="hide-when-empty" style={{
                 marginTop: 'auto', padding: '1.25rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
                 background: '#F2E4D0', display: 'flex', flexWrap: 'wrap', gap: 12,
               }}>
-                {/* Labels stay on one line; when there's no room the buttons wrap to a new row. */}
-                <button
-                  onClick={onClose}
-                  style={{
-                    flex: '1 1 110px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#FDF6EE', color: '#1A0A00',
-                    border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, cursor: 'pointer',
-                    fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
-                    transition: 'background 0.2s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#FDF6EE'}
-                >
-                  Close
-                </button>
+                {/* Labels stay on one line; when there's no room the buttons wrap to a new row. (The X closes it.) */}
                 {/* Receipt once the payment has been verified */}
                 {isPaymentConfirmed && (
                   <button

@@ -833,17 +833,6 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
         {/* footer */}
         <div style={{ display: 'flex', gap: 10, padding: '1rem 1.5rem', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
           <button
-            onClick={onClose}
-            disabled={sending}
-            style={{
-              flex: 1, padding: '12px 0', background: '#FDF6EE', color: '#7A3A18',
-              border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999, cursor: 'pointer',
-              fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-            }}
-          >
-            Close
-          </button>
-          <button
             onClick={handleSend}
             disabled={sending}
             style={{

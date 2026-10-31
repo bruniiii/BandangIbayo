@@ -5,7 +5,8 @@ import PriceTag from './ui/PriceTag';
 import { TripDateLines } from './ui/TripDates';
 import { MoreTourFilters } from './ui/TourFilters';
 
-// The search and filter box on Explore Tours is hidden for now.
+// The old search and filter box (month, price, length…) is hidden; only the
+// Difficulty filter below it is shown.
 const SHOW_FILTERS = false;
 import { applyTripFilters, useTripFilters } from './tripFilters';
 import EmptyState from './ui/EmptyState';
@@ -16,6 +17,8 @@ import ItineraryTimeline from './ui/ItineraryTimeline';
 import { ViewSection, ChecklistGrid, TourImageCarousel } from './TourDetailParts';
 import { DetailedTourModal } from './TourBookingWindow';
 import FavoriteStar from './ui/FavoriteStar';
+import PrettySelect from './ui/PrettySelect';
+import { Mountain } from 'lucide-react';
 
 // ── PALETTE ──────────────────────────────────────────────
 
@@ -312,6 +315,21 @@ const JoinerTours = ({ initialTourId = null }) => {
       </div>
 
 
+
+      {/* ── Difficulty: the only filter shown on Explore Tours ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Difficulty</span>
+        <div style={{ width: 220, maxWidth: '100%' }}>
+          <PrettySelect
+            ariaLabel="Filter by difficulty"
+            icon={Mountain}
+            compact
+            value={difficultyFilter}
+            onChange={setDifficultyFilter}
+            options={[['All Difficulty', 'All difficulty'], ['Easy', 'Easy'], ['Moderate', 'Moderate'], ['Challenging', 'Challenging']].map(([value, label]) => ({ value, label }))}
+          />
+        </div>
+      </div>
 
       {/* ── Tour Grid ── */}
 
