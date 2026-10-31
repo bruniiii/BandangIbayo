@@ -31,7 +31,8 @@ const MonthComparisonChart = ({ comparison }) => {
   const path = (arr) => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   const change = comparison[metric.change];
   const good = metric.lowerIsBetter ? change <= 0 : change >= 0;
-  const ticks = [0, 0.5, 1].map((t) => Math.round(max * t));
+  // Gridlines at 0, half and the top (once each: with a top of 1, half rounds to 1 too).
+  const ticks = [...new Set([0, 0.5, 1].map((t) => Math.round(max * t)))];
   const thisTotal = thisMonth[thisMonth.length - 1] || 0;
   const lastTotal = lastMonth[lastMonth.length - 1] || 0;
   const hover = hoverDay != null ? { day: hoverDay + 1, now: thisMonth[hoverDay], before: lastMonth[hoverDay] } : null;
@@ -121,7 +122,8 @@ const ForecastChart = ({ forecast }) => {
   const y = (v) => padT + (1 - v / max) * (H - padT - padB);
   const line = (pts) => pts.map(([i, v], k) => `${k ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   const last = actual.length - 1;
-  const ticks = [0, 0.5, 1].map((t) => Math.round(max * t));
+  // Gridlines at 0, half and the top (once each: with a top of 1, half rounds to 1 too).
+  const ticks = [...new Set([0, 0.5, 1].map((t) => Math.round(max * t)))];
 
   return (
     <div>

@@ -15,6 +15,18 @@ const subscribe = (l) => { listeners.add(l); return () => listeners.delete(l); }
 const getState = () => state;
 let loading = null;
 
+// A different person logging in (or logging out) starts from an empty list,
+// so nobody sees the previous person's favorites.
+let currentUser;
+supabase.auth.onAuthStateChange((_event, session) => {
+  const id = session?.user?.id || null;
+  if (currentUser !== undefined && id !== currentUser) {
+    state = { ids: new Set(), loaded: false };
+    emit();
+  }
+  currentUser = id;
+});
+
 export const loadFavorites = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
