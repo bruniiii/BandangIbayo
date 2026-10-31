@@ -328,18 +328,6 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
         background: '#F2E4D0', display: 'flex', gap: 10, flexShrink: 0, justifyContent: 'flex-end',
       }}>
         <button
-          onClick={onClose}
-          style={{
-            padding: '12px 20px',
-            background: 'transparent', color: '#7A3A18',
-            border: '1px solid rgba(180,81,30,0.2)', borderRadius: 999, cursor: 'pointer',
-            fontFamily: 'inherit', fontWeight: 900,
-            fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-          }}
-        >
-          Close
-        </button>
-        <button
           onClick={onNavigate}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
