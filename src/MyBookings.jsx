@@ -52,10 +52,11 @@ const useIsMobile = (breakpoint = 640) => {
   return isMobile;
 };
 
-const MyBookings = ({ onExplore, openBookingId = null }) => {
+// initialFilter: 'upcoming' | 'completed' | 'cancelled' opens that tab.
+const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Upcoming'); 
+  const [activeTab, setActiveTab] = useState(() => ({ completed: 'Completed', cancelled: 'Cancelled' }[initialFilter] || 'Upcoming')); 
   const [selectedBooking, setSelectedBooking] = useState(null);
  
   const formatDate = (dateString) => {

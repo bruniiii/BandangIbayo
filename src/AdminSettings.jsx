@@ -286,6 +286,8 @@ const AdminSettings = () => {
         </div>
       </section>
 
+      <AutoArchiveSetting />
+
       {/* ── Add Admin window: 1 Details → 2 Verify email ── */}
       {adding && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -354,6 +356,79 @@ const AdminSettings = () => {
       )}
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>
+  );
+};
+
+// ── Archive inactive joiners automatically ──
+// Saved in app_settings; the database archives joiners with no login for
+// this long every day (archive_inactive_joiners). Default: on, 2 years.
+const ARCHIVE_OPTIONS = [[180, '6 months'], [365, '1 year'], [548, '1½ years'], [730, '2 years'], [1095, '3 years'], [1825, '5 years']];
+
+const AutoArchiveSetting = () => {
+  const [enabled, setEnabled] = useState(true);
+  const [days, setDays] = useState(730);
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    supabase.from('app_settings').select('key, value').in('key', ['inactive_archive_enabled', 'inactive_archive_days']).then(({ data, error }) => {
+      if (!active) return;
+      if (error) { toast.error("Couldn't load the archive setting", error.message); return; }
+      const get = (k) => (data || []).find((r) => r.key === k)?.value;
+      if (get('inactive_archive_enabled') != null) setEnabled(get('inactive_archive_enabled') === true);
+      if (get('inactive_archive_days') != null) setDays(Number(get('inactive_archive_days')) || 730);
+      setLoaded(true);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const save = async (nextEnabled, nextDays) => {
+    const label = ARCHIVE_OPTIONS.find(([d]) => d === nextDays)?.[1] || `${nextDays} days`;
+    if (!(await confirmDialog(nextEnabled
+      ? { title: `Archive joiners after ${label} without a login?`, message: 'Joiners who haven\'t logged in for this long are archived automatically every day. They can\'t log in until an admin restores them. Joiners close to the limit get a yellow warning in Joiner Accounts.', confirmLabel: 'Save Setting', cancelLabel: 'Cancel' }
+      : { title: 'Turn off automatic archiving?', message: 'Inactive joiners will no longer be archived automatically. Accounts already archived stay archived.', confirmLabel: 'Turn Off', cancelLabel: 'Keep It On' }))) return;
+    setSaving(true);
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('app_settings').upsert([
+      { key: 'inactive_archive_enabled', value: nextEnabled, updated_at: now },
+      { key: 'inactive_archive_days', value: nextDays, updated_at: now },
+    ], { onConflict: 'key' });
+    setSaving(false);
+    if (error) { toast.error("Couldn't save the setting", error.message); return; }
+    setEnabled(nextEnabled); setDays(nextDays);
+    toast.success('Setting saved', nextEnabled ? `Joiners are archived after ${label} without a login.` : 'Automatic archiving is off.');
+  };
+
+  return (
+    <section style={card} aria-label="Archive inactive joiners">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+          <h3 style={cardTitle}><Archive size={16} style={{ color: '#A8481A' }} /> Archive Inactive Joiners</h3>
+          <p style={{ ...cardHint, margin: '4px 0 0' }}>
+            Automatically archive joiner accounts that haven't logged in for a while. Archived joiners can't log in until an admin restores them in Joiner Accounts.
+          </p>
+        </div>
+        <button type="button" role="switch" aria-checked={enabled} disabled={!loaded || saving} onClick={() => save(!enabled, days)}
+          style={{
+            flexShrink: 0, width: 52, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer', position: 'relative',
+            background: enabled ? '#B4511E' : 'rgba(122,58,24,0.25)', transition: 'background 0.2s', opacity: loaded ? 1 : 0.5,
+          }}
+          aria-label={enabled ? 'Turn off automatic archiving' : 'Turn on automatic archiving'}>
+          <span style={{ position: 'absolute', top: 3, left: enabled ? 25 : 3, width: 24, height: 24, borderRadius: '50%', background: '#FDF6EE', transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(26,10,0,0.25)' }} />
+        </button>
+      </div>
+      {enabled && (
+        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <label htmlFor="archive-after" style={{ ...label, margin: 0 }}>Archive after no login for</label>
+          <select id="archive-after" value={days} disabled={!loaded || saving} onChange={(e) => save(true, Number(e.target.value))}
+            style={{ ...input, width: 'auto', cursor: 'pointer' }}>
+            {ARCHIVE_OPTIONS.map(([d, l]) => <option key={d} value={d}>{l}{d === 730 ? ' (default)' : ''}</option>)}
+            {!ARCHIVE_OPTIONS.some(([d]) => d === days) && <option value={days}>{days} days</option>}
+          </select>
+        </div>
+      )}
+    </section>
   );
 };
 

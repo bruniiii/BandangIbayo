@@ -306,8 +306,10 @@ const requestFields = (type, form) => {
   }));
   if (type === 'exclusive') {
     row.budget = form.budget === '' ? null : Number(form.budget);
-  } else {
-    row.region = form.region || null;
+  } else if (form.region) {
+    // Only sent when filled in (the form has no region box today), so a
+    // database without that column still saves the request.
+    row.region = form.region;
   }
   return row;
 };
@@ -401,7 +403,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
       .insert([{ ...fields, user_id: user.id, request_type: type }])
       .select();
     if (error) {
-      toast.error("Couldn't submit your request", error.message);
+      // A clear pop-up saying why, so the joiner (and the admin) can act on it.
+      toast.error(isExclusive ? "Your exclusive tour request wasn't sent" : "Your tour request wasn't sent", `${error.message} Please try again. If it keeps happening, message Bandang IBAYO.`);
       setLoading(false);
       return;
     }

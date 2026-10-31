@@ -620,6 +620,39 @@ async function runTripEmails() {
   return out;
 }
 
+// ───────────── 15 minutes before departure ─────────────
+// notify_departure_soon() (every 5 minutes) notifies joiners in the app and
+// logs 'departure-15'; this emails the same bookings once ('departure-15-email').
+async function runDepartureEmails() {
+  const since = new Date(Date.now() - 30 * 60000).toISOString();
+  await supabase.rpc("notify_departure_soon");
+  const { data: due, error } = await supabase.from("email_log").select("ref").eq("kind", "departure-15").gte("sent_at", since);
+  if (error) throw new Error(error.message);
+  const results: string[] = [];
+  for (const row of due ?? []) {
+    const { data: b } = await supabase.from("bookings")
+      .select("id, user_id, email, full_name, booking_number, pickup_point, tour_id, tours ( title, start_date )")
+      .eq("id", row.ref).maybeSingle();
+    if (!b) { results.push("skipped"); continue; }
+    const tour = Array.isArray(b.tours) ? b.tours[0] : b.tours;
+    const { data: stops } = await supabase.from("tour_meetups").select("location_name, scheduled_time")
+      .eq("tour_id", b.tour_id).order("created_at", { ascending: true });
+    const stop = (stops ?? []).find((s: any) => String(s.location_name).trim().toLowerCase() === String(b.pickup_point ?? "").trim().toLowerCase()) ?? (stops ?? [])[0];
+    results.push(await sendOnce("departure-15-email", String(b.id), await recipientFor(b.user_id, b.email),
+      `⏰ Your pickup is in 15 minutes — ${tour?.title ?? "your tour"}`,
+      wrapper("Your pickup is in 15 minutes ⏰", "#C45C26", `
+        <p>Hi ${esc(await nameOf(b.user_id, b.full_name))},</p>
+        <p>Your pickup for <strong>${esc(tour?.title)}</strong> is coming up${stop ? ` at <strong>${esc(stop.location_name)}</strong>${stop.scheduled_time ? `, <strong>${esc(stop.scheduled_time)}</strong>` : ""}` : ""}.</p>
+        <p>Please be at the pickup point now. You can see where the van is under <strong>Tracking</strong>.</p>
+        <p style="color:#7A3A18;">Booking ${esc(b.booking_number)}</p>
+        ${button("Open Tracking")}
+      `)));
+  }
+  const out = { sent: results.filter((r) => r === "sent").length, checked: results.length };
+  console.log("send-email[departure-emails]:", out);
+  return out;
+}
+
 // The hourly job's secret: the CRON_SECRET function secret, or the one the
 // migration stored in public.app_secrets.
 async function isScheduler(req: Request) {
@@ -648,43 +681,18 @@ async function removeFolder(bucket: string, folder: string) {
   return paths.length;
 }
 
+// "Delete my account" archives the account instead of deleting it: the data
+// stays, the joiner can't log in, and an admin can restore it from Joiner
+// Accounts → Archived.
 async function deleteAccount(userId: string, payload: any) {
   if (payload.confirm !== "DELETE") throw new HttpError(400, "Please confirm by typing DELETE.");
-
-  // Admins see deleted accounts under Joiner Accounts → Archived: keep a short
-  // note (name, username, email and dates), nothing else.
-  const [{ data: who }, { data: login }] = await Promise.all([
-    supabase.from("profiles").select("first_name, last_name, username, role, created_at").eq("id", userId).maybeSingle(),
-    supabase.auth.admin.getUserById(userId),
-  ]);
-
-  const { data: purged, error } = await supabase.rpc("purge_user_data", { p_user_id: userId });
+  const { data: who } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (who?.role === "admin" || who?.role === "archived_admin") throw new HttpError(403, "Admin accounts can't be archived here.");
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("profiles")
+    .update({ archived_at: now, archive_reason: "deleted", deactivated_at: now }).eq("id", userId);
   if (error) throw new HttpError(409, error.message);
-
-  if (who?.role !== "admin") {
-    const { error: archiveError } = await supabase.from("archived_accounts").insert({
-      user_id: userId,
-      full_name: `${who?.first_name || ""} ${who?.last_name || ""}`.trim() || null,
-      username: who?.username || null,
-      email: login?.user?.email || null,
-      registered_at: who?.created_at || login?.user?.created_at || null,
-      last_sign_in_at: login?.user?.last_sign_in_at || null,
-      reason: "deleted",
-    });
-    if (archiveError) console.error("send-email[delete-account]: couldn't record the archived account", archiveError.message);
-  }
-
-  const receipts = ((purged?.receipts ?? []) as string[]).map(receiptStoragePath).filter(Boolean) as string[];
-  if (receipts.length) await supabase.storage.from("booking-receipts").remove(receipts);
-  const files = receipts.length
-    + await removeFolder("booking-receipts", userId)
-    + await removeFolder("tours", `avatars/${userId}`)
-    + await removeFolder("tours", `review-media/${userId}`);
-
-  const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-  if (authError) throw new Error("Your data was removed, but the login could not be deleted: " + authError.message);
-
-  console.log("send-email[delete-account]:", { userId, bookingsKept: purged?.bookings_kept, files });
+  console.log("send-email[delete-account]: archived", { userId });
   return { success: true };
 }
 
@@ -743,6 +751,10 @@ Deno.serve(async (req) => {
     }
 
     // ── Reminder mode (service-role only) ──
+    if (payload.action === "departure-emails") {
+      if (!(await isScheduler(req))) return reply({ error: "Forbidden: only the scheduler can start this" }, 403);
+      return reply(await runDepartureEmails());
+    }
     if (payload.action === "scheduled") {
       if (!(await isScheduler(req))) return reply({ error: "Forbidden: only the scheduler can start this" }, 403);
       return reply(await runTripEmails());

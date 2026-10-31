@@ -391,6 +391,9 @@ create policy "archived_accounts_admin_read" on public.archived_accounts
   for select to authenticated using (public.is_admin());
 
 -- Admins: every joiner's last login, for the 2-year inactivity rule.
+-- (Dropped first: 20261124 gives it more columns, and re-running this file
+-- after that must not fail.)
+drop function if exists public.joiner_login_activity();
 create or replace function public.joiner_login_activity()
 returns table (id uuid, last_sign_in_at timestamptz, inactive boolean)
 language plpgsql

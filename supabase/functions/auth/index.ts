@@ -255,10 +255,14 @@ async function accountFor(email: string) {
   const { data, error } = await admin.rpc("auth_account_for_email", { p_email: email });
   if (error) throw new Error(error.message);
   const row = Array.isArray(data) ? data[0] : data;
-  return row?.id ? { id: String(row.id), confirmed: Boolean(row.confirmed) } : null;
+  if (row?.id) return { id: String(row.id), confirmed: Boolean(row.confirmed) };
+  // One email, one account: an account that was deleted before archiving
+  // existed is still on record (archived_accounts), so its email stays taken.
+  const { data: old } = await admin.from("archived_accounts").select("user_id").ilike("email", email.replace(/[\\%_]/g, (c) => "\\" + c)).limit(1);
+  return old?.length ? { id: String(old[0].user_id ?? "archived"), confirmed: true } : null;
 }
 
-const ALREADY_REGISTERED = 'This email is already registered. Please log in, or use "Forgot password?" on the login page.';
+const ALREADY_REGISTERED = "An account with this email already exists. Log in or reset your password instead.";
 
 // The accounts already using this username.
 async function usernameOwners(username: unknown): Promise<string[]> {
@@ -348,6 +352,11 @@ async function verifySignup(p: any) {
       if (/already|registered|exists/i.test(created.error.message)) throw new HttpError(409, ALREADY_REGISTERED, { field: "email" });
       throw new HttpError(400, created.error.message);
     }
+    // The database copies only some details into the profile when an account
+    // is made; save all of them (date of birth, emergency contact, address…).
+    const { terms_accepted: _t, ...profileRow } = profile;
+    const { error: saveError } = await admin.from("profiles").upsert({ id: created.data.user.id, email, ...profileRow }, { onConflict: "id" });
+    if (saveError) console.error("signup: couldn't save the profile details", saveError.message);
   }
   await admin.from("signup_challenges").delete().eq("id", challenge.id);
   return await startSession(email);

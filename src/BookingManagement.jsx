@@ -453,10 +453,13 @@ const BookingManagement = () => {
             if (!error) {
               toast.success('Balance marked as paid', `${selectedBooking.booking_number} is now paid in full.`);
               await fetchBookings();
-              notifyUser(selectedBooking.user_id, {
+              // Not type 'payment' (those clear themselves after 3 minutes):
+              // the joiner should see that their cash balance was confirmed.
+              const paidBalance = Math.max(0, Number(fullAmount) - Number(selectedBooking.amount_paid || 0));
+              await notifyUser(selectedBooking.user_id, {
                 title: 'Balance Payment Confirmed',
-                message: `Your remaining balance for ${selectedBooking.tours?.title} (${selectedBooking.booking_number}) has been marked as paid in full.`,
-                type: 'payment',
+                message: `Your balance payment of ${formatPeso(paidBalance)} has been confirmed. ${selectedBooking.tours?.title || 'Your tour'} (${selectedBooking.booking_number}) is now fully paid.`,
+                type: 'booking',
                 related_id: selectedBooking.id,
               });
               return data;

@@ -204,7 +204,7 @@ const MessageJoiners = ({ tour, bookings, onDone }) => {
     const failed = [];
     const sentLog = [];
     await Promise.all(userIds.map(async (userId) => {
-      await notifyUser(userId, { title, message: `${tour.title} (${when}): ${body}`, type: 'tour' });
+      await notifyUser(userId, { title, message: `${tour.title} (${when}): ${body}`, type: 'admin_message' });
       let ok = false;
       if (alsoEmail) {
         ({ ok } = await sendCustomEmail({ userId, subject: title, message: `${tour.title}, ${when}\n\n${body}` }));

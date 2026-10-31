@@ -9,10 +9,10 @@ import { logAdminMessages } from './adminMessages';
 import SentMessages from './ui/SentMessages';
 import {
   Search, Loader2, Users, Mail, Phone, Calendar, MapPin,
-  ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle,
+  ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle, AlertTriangle, RotateCcw,
 } from 'lucide-react';
 import { SkeletonRows, Skel } from './ui/Skeleton';
-import { reportError } from './ui/toast';
+import { reportError, toast } from './ui/toast';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -43,8 +43,12 @@ const formatDate = (d) => {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
-// Joiners are archived when they haven't logged in for 2 years, or when they
-// deleted their account (see joiner_login_activity and archived_accounts).
+// Archived joiners: they deactivated their account, or had no login for the
+// time set in Admin Settings (archived automatically), or deleted it before
+// archiving existed (archived_accounts). Admins restore archived accounts.
+// Active joiners close to the inactivity limit get a yellow warning badge.
+const WARN_DAYS = 30;
+const ARCHIVE_REASONS = { deactivated: 'Deactivated their account', deleted: 'Deleted their account', inactive: 'No login for a long time' };
 const JoinerAccounts = () => {
   const [view, setView] = useState('active'); // 'active' | 'archived'
   const [activity, setActivity] = useState({}); // id → { last_sign_in_at, inactive }
@@ -86,29 +90,27 @@ const JoinerAccounts = () => {
     setSending(true);
     setEmailStatus(null);
 
+    // The message always reaches the joiner's Messages page (and a
+    // notification); the email is sent on top of that. Before, a failed email
+    // meant the joiner got nothing at all.
     const { ok, error } = await sendCustomEmail({
       userId: selected.id,
       subject: subject.trim(),
       message: body.trim(),
     });
-
-    if (!ok) {
-      setSending(false);
-      setEmailStatus({ type: 'error', text: `Email failed to send: ${error}` });
-      return;
-    }
-
+    await logAdminMessages([{ userId: selected.id, subject: subject.trim(), message: body.trim(), source: 'email', emailed: ok }]);
     if (alsoNotify) {
-      await notifyUser(selected.id, { title: subject.trim(), message: body.trim() });
+      await notifyUser(selected.id, { title: subject.trim(), message: body.trim(), type: 'admin_message' });
     }
-    await logAdminMessages([{ userId: selected.id, subject: subject.trim(), message: body.trim(), source: 'email', emailed: true }]);
     setSentVersion((v) => v + 1);
 
     setSending(false);
     setSubject('');
     setBody('');
     setComposing(false);
-    setEmailStatus({ type: 'success', text: `Email sent to ${selected.email}.` });
+    setEmailStatus(ok
+      ? { type: 'success', text: `Sent. ${fullName(selected)} can read it in Messages, and an email went to ${selected.email}.` }
+      : { type: 'error', text: `Sent to ${fullName(selected)}'s Messages${alsoNotify ? ' with a notification' : ''}, but the email didn't go out: ${error}` });
   };
 
   // Loads quietly after the first time (the page starts in its loading state).
@@ -127,7 +129,9 @@ const JoinerAccounts = () => {
 
     setJoiners(data || []);
 
-    // Login activity (for the 2-year rule) and deleted accounts.
+    // Archive anyone past the inactivity limit first (the daily job does this
+    // too), then load login activity and accounts deleted before archiving.
+    await supabase.rpc('archive_inactive_joiners').then(() => {}, () => {});
     const [{ data: logins, error: loginError }, { data: deleted, error: deletedError }] = await Promise.all([
       supabase.rpc('joiner_login_activity'),
       supabase.from('archived_accounts').select('*').order('archived_at', { ascending: false }),
@@ -167,15 +171,30 @@ const JoinerAccounts = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const activeJoiners = useMemo(() => joiners.filter((p) => !activity[p.id]?.inactive), [joiners, activity]);
-  // Archived: inactive for 2 years (still have an account), then deleted accounts.
+  const activeJoiners = useMemo(() => joiners.filter((p) => !(p.archived_at || activity[p.id]?.inactive)), [joiners, activity]);
+  // Archived: accounts on record (restorable), then ones deleted before archiving existed.
   const archived = useMemo(() => [
-    ...joiners.filter((p) => activity[p.id]?.inactive).map((p) => ({ ...p, archiveReason: 'inactive', last_sign_in_at: activity[p.id]?.last_sign_in_at })),
+    ...joiners.filter((p) => p.archived_at || activity[p.id]?.inactive).map((p) => ({
+      ...p, archiveReason: p.archive_reason || activity[p.id]?.archive_reason || 'inactive',
+      archived_at: p.archived_at || activity[p.id]?.archived_at, last_sign_in_at: activity[p.id]?.last_sign_in_at,
+    })),
     ...deletedAccounts.map((a) => ({
       id: `deleted-${a.id}`, first_name: a.full_name || '', last_name: '', username: a.username, email: a.email,
       created_at: a.registered_at, last_sign_in_at: a.last_sign_in_at, archived_at: a.archived_at, archiveReason: 'deleted',
     })),
   ], [joiners, activity, deletedAccounts]);
+
+  const restore = async (p) => {
+    if (!(await confirmDialog({
+      title: `Restore ${fullName(p)}?`,
+      message: 'They can log in and book again right away. Their profile and bookings are just as they were.',
+      confirmLabel: 'Restore Account', cancelLabel: 'Cancel',
+    }))) return;
+    const { error } = await supabase.rpc('restore_joiner', { p_id: p.id });
+    if (error) { toast.error("Couldn't restore the account", error.message); return; }
+    toast.success('Account restored', `${fullName(p)} can log in again.`);
+    fetchJoiners();
+  };
 
   const filtered = useMemo(() => {
     const list = view === 'archived' ? archived : activeJoiners;
@@ -272,7 +291,7 @@ const JoinerAccounts = () => {
               action={{ label: 'Clear Search', onClick: () => setQuery('') }}
             />
           ) : view === 'archived' ? (
-            <EmptyState icon={Users} title="No archived accounts" message="Joiners who haven't logged in for 2 years, or who deleted their account, show up here." />
+            <EmptyState icon={Users} title="No archived accounts" message="Joiners who deactivate their account, or don't log in for the time set in Admin Settings, show up here." />
           ) : (
             <EmptyState icon={Users} title="No joiners registered yet" message="New joiner accounts will show up here as soon as they sign up." />
           )
@@ -328,8 +347,8 @@ const JoinerAccounts = () => {
                     {view === 'archived' ? (
                       <>
                         <td style={{ padding: '14px 20px' }}>
-                          <p style={{ fontSize: 12, fontWeight: 800, color: p.archiveReason === 'deleted' ? '#8C2F1C' : '#8C5216', margin: 0 }}>
-                            {p.archiveReason === 'deleted' ? `Deleted their account${p.archived_at ? ` (${formatDate(p.archived_at)})` : ''}` : 'No login for 2+ years'}
+                          <p style={{ fontSize: 12, fontWeight: 800, color: p.archiveReason === 'inactive' ? '#8C5216' : '#8C2F1C', margin: 0 }}>
+                            {ARCHIVE_REASONS[p.archiveReason] || 'Archived'}{p.archived_at ? ` (${formatDate(p.archived_at)})` : ''}
                           </p>
                         </td>
                         <td style={{ padding: '14px 20px' }}>
@@ -357,11 +376,25 @@ const JoinerAccounts = () => {
                           <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
                             {activity[p.id]?.last_sign_in_at ? formatDate(activity[p.id].last_sign_in_at) : '—'}
                           </p>
+                          {/* Close to being archived for inactivity. */}
+                          {activity[p.id]?.days_left != null && activity[p.id].days_left <= WARN_DAYS && (
+                            <span title="This account will be archived automatically if they don't log in" style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 5, padding: '3px 9px', borderRadius: 999,
+                              background: '#FCE7A6', color: '#7A5200', border: '1px solid #E8C25A', fontSize: 10.5, fontWeight: 900, whiteSpace: 'nowrap',
+                            }}>
+                              <AlertTriangle size={11} /> Archived in {Math.max(0, activity[p.id].days_left)} day{activity[p.id].days_left === 1 ? '' : 's'}
+                            </span>
+                          )}
                         </td>
                       </>
                     )}
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                      {p.archiveReason !== 'deleted' && <ChevronRight size={16} color="rgba(122,58,24,0.85)" />}
+                      {view === 'archived' && !String(p.id).startsWith('deleted-') ? (
+                        <button type="button" onClick={(e) => { e.stopPropagation(); restore(p); }} style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                          background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                        }}><RotateCcw size={13} /> Restore</button>
+                      ) : p.archiveReason !== 'deleted' && <ChevronRight size={16} color="rgba(122,58,24,0.85)" />}
                     </td>
                   </tr>
                 ))}
@@ -625,16 +658,14 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
     let sent = 0;
     for (let i = 0; i < recipients.length; i++) {
       const p = recipients[i];
+      // Always delivered to Messages (+ notification); the email is extra.
       const { ok, error } = await sendCustomEmail({
         userId: p.id, subject: subject.trim(), message: body.trim(),
       });
-      if (ok) {
-        sent++;
-        if (alsoNotify) await notifyUser(p.id, { title: subject.trim(), message: body.trim() });
-        await logAdminMessages([{ userId: p.id, subject: subject.trim(), message: body.trim(), source: 'email', emailed: true }]);
-      } else {
-        failed.push({ p, error });
-      }
+      await logAdminMessages([{ userId: p.id, subject: subject.trim(), message: body.trim(), source: 'email', emailed: ok }]);
+      if (alsoNotify) await notifyUser(p.id, { title: subject.trim(), message: body.trim(), type: 'admin_message' });
+      if (ok) sent++;
+      else failed.push({ p, error });
       setProgress(i + 1);
     }
 
@@ -643,13 +674,14 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
       setPicked(new Set());
       setSubject('');
       setBody('');
-      setStatus({ type: 'success', text: `Email sent to ${sent} joiner${sent !== 1 ? 's' : ''}.` });
+      setStatus({ type: 'success', text: `Sent to ${recipients.length} joiner${recipients.length !== 1 ? 's' : ''}: in their Messages and by email.` });
     } else {
-      // keep only the failed ones selected so the admin can simply press Send again
-      setPicked(new Set(failed.map((f) => f.p.id)));
+      setPicked(new Set());
+      setSubject('');
+      setBody('');
       setStatus({
         type: 'error',
-        text: `${sent} sent, ${failed.length} failed (${failed.map((f) => fullName(f.p)).join(', ')}). Reason: ${failed[0].error}. The failed joiners are still selected — press Send to retry.`,
+        text: `Everyone got it in their Messages${alsoNotify ? ' with a notification' : ''}. ${sent} email${sent === 1 ? '' : 's'} went out; ${failed.length} didn't (${failed.map((f) => fullName(f.p)).join(', ')}). Reason: ${failed[0].error}.`,
       });
     }
   };
