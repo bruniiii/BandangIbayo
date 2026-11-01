@@ -29,8 +29,10 @@ const call = async (body) => {
 // Username/email + password → signs the browser in: { ok, data: { user, session } }.
 // An auth function deployed before the code step was removed answers with
 // { challengeId, sentTo, expiresInMinutes } instead: data.challenge holds it.
-export const loginStart = async (identifier, password) => {
-  const result = await call({ action: 'login', identifier, password });
+// restore: the joiner chose to restore their archived account (asked after
+// the first try answers { archived: true, archiveReason }).
+export const loginStart = async (identifier, password, { restore = false } = {}) => {
+  const result = await call({ action: 'login', identifier, password, ...(restore ? { restore: true } : {}) });
   if (!result.ok) return result;
   if (result.data?.challengeId) return { ok: true, data: { challenge: result.data } };
   const { data, error } = await supabase.auth.setSession(result.data);

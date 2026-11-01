@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- All database updates from 20261111 to 20261126, in order, in one go.
+-- All database updates from 20261111 to 20261129, in order, in one go.
 --
 -- Paste the whole file into the Supabase SQL Editor and click Run.
 -- It runs as one transaction: if anything fails, nothing is changed, and the
@@ -8,7 +8,7 @@
 -- Afterwards, run supabase/updates/check_updates.sql: every row should say
 -- "installed".
 --
--- Generated from supabase/migrations/20261111…20261126 — edit those, not this.
+-- Generated from supabase/migrations/20261111…20261129 — edit those, not this.
 -- ─────────────────────────────────────────────
 
 begin;
@@ -1827,6 +1827,204 @@ $$;
 
 revoke all on function public.list_archived_admins() from public, anon;
 grant execute on function public.list_archived_admins() to authenticated;
+
+
+
+-- ════════════ 20261127000000_one_tour_per_day.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- One tour per day
+--
+-- Two tours (that haven't ended and aren't archived) can't share a day.
+-- tours_no_overlap() checks every new date, changed date and restored
+-- tour, whoever saves it (Tour Management, a requested tour's auto-post, SQL).
+--
+-- First, tours that already overlap are spread out: going from the earliest,
+-- a date that lands on a day already taken moves 1 week later (same weekday)
+-- until its days are free. Dates that already have bookings are never moved.
+--
+-- Run after 20261126000000_restore_admin_verify.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+drop trigger if exists tours_no_overlap on public.tours;
+
+-- ── Spread out the tours that overlap today ──
+do $$
+declare
+  r record;
+  v_today date := (now() at time zone 'Asia/Manila')::date;
+  v_kept daterange[] := '{}';
+  v_range daterange;
+  v_weeks int;
+  v_booked boolean;
+begin
+  for r in
+    select id, title, start_date, coalesce(end_date, start_date) as end_date
+      from public.tours
+     where not coalesce(is_archived, false)
+       and start_date is not null
+       and coalesce(end_date, start_date) >= v_today
+     order by start_date, id
+  loop
+    v_booked := exists (select 1 from public.bookings b
+                         where b.tour_id = r.id and coalesce(b.booking_status, '') not in ('Cancelled', 'Rejected'));
+    v_weeks := 0;
+    v_range := daterange(r.start_date, r.end_date, '[]');
+    while not v_booked
+          and exists (select 1 from unnest(v_kept) k where k && v_range)
+          and v_weeks < 104 loop
+      v_weeks := v_weeks + 1;
+      v_range := daterange(r.start_date + 7 * v_weeks, r.end_date + 7 * v_weeks, '[]');
+    end loop;
+    if v_weeks > 0 then
+      update public.tours
+         set start_date = r.start_date + 7 * v_weeks,
+             end_date = r.end_date + 7 * v_weeks
+       where id = r.id;
+      raise notice 'Moved % from % to % (it overlapped another tour)', r.title, r.start_date, r.start_date + 7 * v_weeks;
+    elsif v_booked and exists (select 1 from unnest(v_kept) k where k && v_range) then
+      raise notice 'Left % on % as it is: it already has bookings. Move it or the other tour by hand.', r.title, r.start_date;
+    end if;
+    v_kept := v_kept || v_range;
+  end loop;
+end $$;
+
+-- ── From now on: no two tours on the same day ──
+create or replace function public.tours_no_overlap()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_other text;
+begin
+  if coalesce(new.is_archived, false) or new.start_date is null then
+    return new;
+  end if;
+  -- Ended tours never block anything.
+  if coalesce(new.end_date, new.start_date) < (now() at time zone 'Asia/Manila')::date then
+    return new;
+  end if;
+  if tg_op = 'UPDATE'
+     and new.start_date is not distinct from old.start_date
+     and new.end_date is not distinct from old.end_date
+     and coalesce(new.is_archived, false) = coalesce(old.is_archived, false) then
+    return new;
+  end if;
+
+  v_other := (
+    select format('%s (%s)', t.title,
+             case when coalesce(t.end_date, t.start_date) = t.start_date
+                  then to_char(t.start_date, 'Mon DD, YYYY')
+                  else to_char(t.start_date, 'Mon DD') || ' – ' || to_char(t.end_date, 'Mon DD, YYYY') end)
+      from public.tours t
+     where t.id is distinct from new.id
+       and not coalesce(t.is_archived, false)
+       and t.start_date is not null
+       and daterange(t.start_date, coalesce(t.end_date, t.start_date), '[]')
+           && daterange(new.start_date, coalesce(new.end_date, new.start_date), '[]')
+     order by t.start_date
+     limit 1);
+
+  if v_other is not null then
+    raise exception 'Only one tour per day: % is already on those days. Pick other dates.', v_other;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger tours_no_overlap
+  before insert or update on public.tours
+  for each row execute function public.tours_no_overlap();
+
+
+
+-- ════════════ 20261128000000_joiner_restores_account.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- Joiners decide whether to restore their archived account
+--
+-- An archived joiner (deactivated, deleted, or no login for a long time) is
+-- asked when they log in with the right password whether they want their
+-- account back. Only their "yes" restores it; admins no longer restore
+-- joiners. The password login does it in the auth function; this function
+-- does it for Sign in with Google (the joiner is already signed in then).
+--
+-- Run after 20261127000000_one_tour_per_day.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create or replace function public.reactivate_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Please log in first.';
+  end if;
+  if exists (select 1 from public.profiles where id = auth.uid() and role in ('admin', 'archived_admin')) then
+    raise exception 'Admin accounts are restored by the main admin.';
+  end if;
+  update public.profiles
+     set archived_at = null, archive_reason = null, deactivated_at = null
+   where id = auth.uid() and archived_at is not null;
+end;
+$$;
+
+revoke all on function public.reactivate_my_account() from public, anon;
+grant execute on function public.reactivate_my_account() to authenticated;
+
+
+
+-- ════════════ 20261129000000_feed_post_cooldown.sql ════════════
+
+-- ─────────────────────────────────────────────
+-- Joiners wait 48 hours between feed posts
+--
+-- A joiner can share one post, then wait 2 days (48 hours) before the next.
+-- profiles.last_feed_post_at remembers the last one, so deleting a post
+-- doesn't reset the wait. Admins can post any time.
+--
+-- Run after 20261128000000_joiner_restores_account.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+alter table public.profiles add column if not exists last_feed_post_at timestamptz;
+
+create or replace function public.feed_posts_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_last timestamptz;
+  v_next timestamptz;
+begin
+  if not public.is_client_request() or public.is_admin() then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    -- 48 hours since their last post (even one they deleted since).
+    v_last := greatest(
+      (select last_feed_post_at from public.profiles where id = auth.uid()),
+      (select max(created_at) from public.feed_posts where author_id = auth.uid()));
+    v_next := v_last + interval '48 hours';
+    if v_next is not null and v_next > now() then
+      raise exception 'You can share a new post every 48 hours. You can post again on %.',
+        to_char(v_next at time zone 'Asia/Manila', 'Mon DD, YYYY "at" FMHH12:MI AM');
+    end if;
+    update public.profiles set last_feed_post_at = now() where id = auth.uid();
+
+    new.author_id := auth.uid();
+    new.status := 'Pending';
+    new.post_type := 'post';
+    new.tour_id := null;
+    return new;
+  end if;
+  raise exception 'Only Bandang IBAYO can change posts.';
+end;
+$$;
 
 
 commit;

@@ -58,5 +58,14 @@ from (values
               where n.nspname = 'public' and p.proname = 'notify_departure_soon')),
   ('20261126 restored admins verify their email',
      exists (select 1 from information_schema.columns
-              where table_schema = 'public' and table_name = 'profiles' and column_name = 'admin_restore_pending_at'))
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'admin_restore_pending_at')),
+  ('20261127 one tour per day',
+     exists (select 1 from pg_trigger where tgname = 'tours_no_overlap' and tgrelid = 'public.tours'::regclass)),
+  ('20261128 joiners restore their own account',
+     coalesce((select pg_get_functiondef(p.oid) not ilike '%Contact Bandang Ibayo%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'reactivate_my_account' limit 1), false)),
+  ('20261129 joiners post once every 48 hours',
+     exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'last_feed_post_at'))
 ) as u(update_file, installed);

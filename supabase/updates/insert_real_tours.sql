@@ -174,7 +174,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     17000, 1500, '[]'::jsonb,
-    array[('2026-12-05'::date, '2026-12-06'::date), ('2027-01-09'::date, '2027-01-10'::date), ('2027-02-06'::date, '2027-02-07'::date)]::pg_temp.tour_date[]
+    array[('2026-11-28'::date, '2026-11-29'::date), ('2027-01-30'::date, '2027-01-31'::date), ('2027-03-20'::date, '2027-03-21'::date)]::pg_temp.tour_date[]
   );
   -- Mt. Ulap Eco-Trail
   perform pg_temp.add_tour(
@@ -244,7 +244,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     16000, 1300, '[]'::jsonb,
-    array[('2026-11-28'::date, '2026-11-28'::date), ('2026-12-19'::date, '2026-12-19'::date), ('2027-01-23'::date, '2027-01-23'::date)]::pg_temp.tour_date[]
+    array[('2026-12-05'::date, '2026-12-05'::date), ('2026-12-13'::date, '2026-12-13'::date), ('2026-12-20'::date, '2026-12-20'::date)]::pg_temp.tour_date[]
   );
   -- Mt. Batulao (New Trail)
   perform pg_temp.add_tour(
@@ -310,7 +310,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     15000, 1300, '[]'::jsonb,
-    array[('2026-12-12'::date, '2026-12-12'::date), ('2027-01-16'::date, '2027-01-16'::date), ('2027-02-13'::date, '2027-02-13'::date)]::pg_temp.tour_date[]
+    array[('2026-12-06'::date, '2026-12-06'::date), ('2026-12-12'::date, '2026-12-12'::date), ('2026-12-27'::date, '2026-12-27'::date)]::pg_temp.tour_date[]
   );
   -- Mt. Pinatubo Crater Lake
   perform pg_temp.add_tour(
@@ -379,7 +379,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     15000, 1500, '[{"name": "4x4 Jeep Rental", "amount": 10500}]'::jsonb,
-    array[('2026-12-05'::date, '2026-12-05'::date), ('2027-01-09'::date, '2027-01-09'::date), ('2027-02-06'::date, '2027-02-06'::date)]::pg_temp.tour_date[]
+    array[('2026-12-19'::date, '2026-12-19'::date), ('2027-02-06'::date, '2027-02-06'::date), ('2027-02-14'::date, '2027-02-14'::date)]::pg_temp.tour_date[]
   );
   -- Mt. Daraitan & Tinipak River
   perform pg_temp.add_tour(
@@ -446,7 +446,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     15000, 1300, '[]'::jsonb,
-    array[('2026-11-28'::date, '2026-11-28'::date), ('2026-12-19'::date, '2026-12-19'::date), ('2027-01-30'::date, '2027-01-30'::date)]::pg_temp.tour_date[]
+    array[('2026-12-26'::date, '2026-12-26'::date), ('2027-02-07'::date, '2027-02-07'::date), ('2027-02-13'::date, '2027-02-13'::date)]::pg_temp.tour_date[]
   );
   -- Sagada Highlights Tour
   perform pg_temp.add_tour(
@@ -518,7 +518,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     25000, 1500, '[]'::jsonb,
-    array[('2026-12-11'::date, '2026-12-13'::date), ('2027-01-15'::date, '2027-01-17'::date), ('2027-02-12'::date, '2027-02-14'::date)]::pg_temp.tour_date[]
+    array[('2027-01-01'::date, '2027-01-03'::date), ('2027-02-19'::date, '2027-02-21'::date), ('2027-03-26'::date, '2027-03-28'::date)]::pg_temp.tour_date[]
   );
   -- Mt. Tapulao (Highest Peak of Zambales)
   perform pg_temp.add_tour(
@@ -599,7 +599,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     18000, 2000, '[]'::jsonb,
-    array[('2026-12-12'::date, '2026-12-13'::date), ('2027-01-23'::date, '2027-01-24'::date), ('2027-02-13'::date, '2027-02-14'::date)]::pg_temp.tour_date[]
+    array[('2027-01-09'::date, '2027-01-10'::date), ('2027-02-27'::date, '2027-02-28'::date), ('2027-04-03'::date, '2027-04-04'::date)]::pg_temp.tour_date[]
   );
   -- Anawangin & Nagsasa Cove Camping
   perform pg_temp.add_tour(
@@ -670,7 +670,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     16000, 1300, '[{"name": "Boat Rental", "amount": 6000}]'::jsonb,
-    array[('2026-11-28'::date, '2026-11-29'::date), ('2027-01-02'::date, '2027-01-03'::date), ('2027-01-30'::date, '2027-01-31'::date)]::pg_temp.tour_date[]
+    array[('2027-01-16'::date, '2027-01-17'::date), ('2027-03-06'::date, '2027-03-07'::date), ('2027-04-10'::date, '2027-04-11'::date)]::pg_temp.tour_date[]
   );
   -- Calaguas Island Beach Camping
   perform pg_temp.add_tour(
@@ -742,7 +742,7 @@ Leave No Trace Principles
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
     28000, 1500, '[{"name": "Boat Rental", "amount": 9000}]'::jsonb,
-    array[('2026-12-18'::date, '2026-12-20'::date), ('2027-01-22'::date, '2027-01-24'::date), ('2027-02-12'::date, '2027-02-14'::date)]::pg_temp.tour_date[]
+    array[('2027-01-22'::date, '2027-01-24'::date), ('2027-03-12'::date, '2027-03-14'::date), ('2027-04-16'::date, '2027-04-18'::date)]::pg_temp.tour_date[]
   );
 end $$;
 

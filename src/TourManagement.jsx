@@ -269,6 +269,21 @@ const TourManagement = ({ openTourId = null }) => {
     const pickupNames = pickups.map((r) => r.location.toLowerCase());
     const groupSize = Number(formData.get('group_size'));
     const minStart  = getMinStartDate();
+    // One tour per day: the other tours on the calendar (not archived, not over yet).
+    const today = todayManila();
+    const ownIds = (editingTour?.dates || []).map((d) => d.id);
+    const { data: otherTours } = await supabase.from('tours')
+      .select('id, title, start_date, end_date, duration').eq('is_archived', false).gte('end_date', today);
+    const overlaps = (a, b) => a.start_date <= (b.end_date || b.start_date) && (a.end_date || a.start_date) >= b.start_date;
+    const overlapError = (r, i, label) => {
+      if (!r.start_date || !r.end_date || r.end_date < today) return '';
+      // Saved dates of an archived trip stay archived, so they don't take up days.
+      if (r.id && editingTour?.is_archived) return '';
+      const hit = (otherTours || []).find((t) => !ownIds.includes(t.id) && overlaps(r, t));
+      if (hit) return `${label}${hit.title} is already on ${formatTourDates(hit.start_date, hit.duration)}. Only one tour per day: pick other dates.`;
+      const twin = dateRows.findIndex((o, j) => j !== i && o.start_date && o.end_date && overlaps(r, o));
+      return twin !== -1 ? `${label}These days overlap Date ${twin + 1} of this trip. Only one tour per day.` : '';
+    };
     // Each date's typing mistakes, shown at that date's field. A saved date may
     // keep its start date even if it's now less than 3 weeks away.
     const dateChecks = dateRows.flatMap((r, i) => {
@@ -282,6 +297,7 @@ const TourManagement = ({ openTourId = null }) => {
         [`end_date_${i}`, !r.end_date ? `${label}Pick an end date.` : ''],
         [`end_date_${i}`, r.end_date < r.start_date ? `${label}The end date can't be before the start date.` : ''],
         [`end_date_${i}`, tripDays > MAX_TOUR_DAYS ? `${label}A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
+        [`start_date_${i}`, r.end_date >= r.start_date ? overlapError(r, i, label) : ''],
         // Sale (5% off the Joiner Rate) on this date only, ending by the day the tour starts.
         [`sale_starts_${i}`, r.sale && !r.sale_starts ? `${label}Pick when the sale starts.` : ''],
         [`sale_ends_${i}`, r.sale && !r.sale_ends ? `${label}Pick when the sale ends.` : ''],

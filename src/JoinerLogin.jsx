@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { askRestoreAccount, restoreMyAccount } from './restoreAccount';
 import { safeNextPath } from './tourUtils';
 import { Loader2, CheckCircle2, MailCheck, ArrowLeft } from 'lucide-react';
 import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
@@ -73,7 +74,17 @@ const JoinerLogin = () => {
     const password = formData.get('password');
 
     // The server counts wrong passwords (3 → locked for 15 minutes) and signs you in.
-    const result = await loginStart(identifier, password);
+    let result = await loginStart(identifier, password);
+    // An archived joiner with the right password: they decide whether to restore it.
+    if (!result.ok && result.archived) {
+      if (await askRestoreAccount(result.archiveReason)) {
+        result = await loginStart(identifier, password, { restore: true });
+      } else {
+        setLoading(false);
+        showError('Your account stays archived. Log in again any time to restore it.');
+        return;
+      }
+    }
     if (!result.ok) {
       setLoading(false);
       if (result.field === 'identifier') {
@@ -130,14 +141,17 @@ const JoinerLogin = () => {
       return;
     }
 
-    // An archived joiner (deactivated, or no login for a long time) can't log
-    // in until an admin restores the account.
+    // An archived joiner (deactivated, or no login for a long time) chooses
+    // whether to restore the account.
     if (profile.archived_at) {
-      await supabase.auth.signOut();
-      setLoading(false);
-      setChallenge(null);
-      showError('This account is archived. Contact Bandang Ibayo to restore it.');
-      return;
+      const restoreError = (await askRestoreAccount(profile.archive_reason)) ? await restoreMyAccount() : 'Your account stays archived. Log in again any time to restore it.';
+      if (restoreError) {
+        await supabase.auth.signOut();
+        setLoading(false);
+        setChallenge(null);
+        showError(restoreError);
+        return;
+      }
     }
 
     const role = profile.role === 'admin' ? 'admin' : 'joiner';

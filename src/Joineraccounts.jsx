@@ -13,7 +13,7 @@ import {
   ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle, AlertTriangle, RotateCcw,
 } from 'lucide-react';
 import { SkeletonRows, Skel } from './ui/Skeleton';
-import { reportError, toast } from './ui/toast';
+import { reportError } from './ui/toast';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -46,7 +46,7 @@ const formatDate = (d) => {
 
 // Archived joiners: they deactivated their account, or had no login for the
 // time set in Admin Settings (archived automatically), or deleted it before
-// archiving existed (archived_accounts). Admins restore archived accounts.
+// archiving existed (archived_accounts). Joiners restore their own account when they log in again.
 // Active joiners close to the inactivity limit get a yellow warning badge.
 const WARN_DAYS = 30;
 const ARCHIVE_REASONS = { deactivated: 'Deactivated their account', deleted: 'Deleted their account', inactive: 'No login for a long time' };
@@ -186,18 +186,6 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
       created_at: a.registered_at, last_sign_in_at: a.last_sign_in_at, archived_at: a.archived_at, archiveReason: 'deleted',
     })),
   ], [joiners, activity, deletedAccounts]);
-
-  const restore = async (p) => {
-    if (!(await confirmDialog({
-      title: `Restore ${fullName(p)}?`,
-      message: 'They can log in and book again right away. Their profile and bookings are just as they were.',
-      confirmLabel: 'Restore Account', cancelLabel: 'Cancel',
-    }))) return;
-    const { error } = await supabase.rpc('restore_joiner', { p_id: p.id });
-    if (error) { toast.error("Couldn't restore the account", error.message); return; }
-    toast.success('Account restored', `${fullName(p)} can log in again.`);
-    fetchJoiners();
-  };
 
   const filtered = useMemo(() => {
     const list = view === 'archived' ? archived : activeJoiners;
@@ -393,10 +381,10 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                     )}
                     <td style={{ padding: '14px 20px', textAlign: 'right' }}>
                       {view === 'archived' && !String(p.id).startsWith('deleted-') ? (
-                        <button type="button" onClick={(e) => { e.stopPropagation(); restore(p); }} style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                          background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-                        }}><RotateCcw size={13} /> Restore</button>
+                        // The joiner decides: they're asked when they log in again.
+                        <span title="The joiner is asked whether to restore it when they log in again." style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', whiteSpace: 'nowrap',
+                        }}><RotateCcw size={13} /> Restores when they log in</span>
                       ) : p.archiveReason !== 'deleted' && <ChevronRight size={16} color="rgba(122,58,24,0.85)" />}
                     </td>
                   </tr>
