@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { CANCEL_REASONS, OTHER_REASON } from './cancelReasons';
 import { supabase, currentUser } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare, BedDouble } from 'lucide-react';
@@ -337,19 +338,6 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
 };
 
 /* ─── Booking Detail Modal ─── */
-// Reasons a joiner can pick when cancelling; "Other" asks them to type one.
-const CANCEL_REASONS = [
-  'Schedule conflict / change of plans',
-  'Work or school commitments',
-  'Personal or family emergency',
-  'Health reasons / feeling unwell',
-  'Financial reasons',
-  'Weather or safety concerns',
-  'Travel companion(s) can’t join',
-  'Booked the wrong tour or date',
-  'No longer interested in this tour',
-];
-const OTHER_REASON = 'Other (please specify)';
 
 const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess }) => {
   const tour = booking.tours || {};

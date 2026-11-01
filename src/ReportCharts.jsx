@@ -314,6 +314,67 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
   );
 };
 
+// Pie chart: each slice is one share of the whole, with a thin gap between
+// slices, a hover tooltip and a legend with counts and percentages.
+//   segments: [{ label, value, color }]
+const PieChart = ({ segments, size = 180 }) => {
+  const [hover, setHover] = useState(null);
+  const total = segments.reduce((sum, s) => sum + s.value, 0);
+  if (total === 0) return <EmptyChartNotice />;
+  const r = size / 2;
+  const pct = (v) => Math.round((v / total) * 100);
+  const slices = segments.map((seg, i) => {
+    // Starts at 12 o'clock; each slice begins where the ones before it end.
+    const before = segments.slice(0, i).reduce((sum, s) => sum + s.value, 0);
+    const sweep = (seg.value / total) * Math.PI * 2;
+    const a0 = -Math.PI / 2 + (before / total) * Math.PI * 2; const a1 = a0 + sweep;
+    const p = (a) => `${r + r * Math.cos(a)} ${r + r * Math.sin(a)}`;
+    const d = sweep >= Math.PI * 2 - 1e-6
+      ? `M ${r} 0 A ${r} ${r} 0 1 1 ${r - 0.01} 0 Z`
+      : `M ${r} ${r} L ${p(a0)} A ${r} ${r} 0 ${sweep > Math.PI ? 1 : 0} 1 ${p(a1)} Z`;
+    return { ...seg, d };
+  });
+  const active = hover != null ? slices[hover] : null;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
+      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img"
+          aria-label={`Pie chart: ${slices.map((s) => `${s.label} ${s.value} (${pct(s.value)}%)`).join(', ')}`}>
+          {slices.map((s, i) => (
+            <path key={s.label} d={s.d} fill={s.color} stroke="#FDF6EE" strokeWidth={2} strokeLinejoin="round"
+              opacity={hover == null || hover === i ? 1 : 0.45}
+              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+              style={{ cursor: 'default', transition: 'opacity 0.15s' }} />
+          ))}
+        </svg>
+        {active && (
+          <div role="tooltip" style={{
+            position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', maxWidth: 260, textAlign: 'center',
+            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 700,
+            whiteSpace: 'normal', width: 'max-content', lineHeight: 1.35, boxShadow: '0 6px 18px rgba(26,10,0,0.25)', zIndex: 2,
+          }}>
+            {active.label}: {active.value} ({pct(active.value)}%)
+          </div>
+        )}
+      </div>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 9, minWidth: 0, flex: '1 1 220px' }}>
+        {slices.map((s, i) => (
+          <li key={s.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+            style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, fontWeight: 700, color: '#1A0A00', opacity: hover == null || hover === i ? 1 : 0.55 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, background: s.color, flexShrink: 0 }} />
+            <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{s.label}</span>
+            <span style={{ marginLeft: 'auto', color: '#7A3A18', fontWeight: 800, whiteSpace: 'nowrap' }}>{s.value} · {pct(s.value)}%</span>
+          </li>
+        ))}
+        <li style={{ fontSize: 11.5, fontWeight: 800, color: '#7A3A18', borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 8 }}>
+          Total: {total}
+        </li>
+      </ul>
+    </div>
+  );
+};
+
 const FunnelChart = ({ steps }) => {
   const max = Math.max(1, steps[0]?.value || 1);
   return (
@@ -427,6 +488,7 @@ export {
   BarChart,
   HorizontalBarChart,
   DonutChart,
+  PieChart,
   FunnelChart,
   EmptyChartNotice,
   SectionTitle,

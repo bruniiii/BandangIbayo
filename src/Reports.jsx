@@ -9,7 +9,8 @@ import SalesSummary from './SalesSummary';
 import TourIncome from './TourIncome';
 import { Calendar, Users, Clock, XCircle, AlertCircle, TrendingUp, TrendingDown, ClipboardList, Star, Printer, Bell, Sparkles, PieChart, Trophy, ThumbsDown, FileText } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
-import { MonthComparisonChart, ForecastChart, BarChart, HorizontalBarChart, DonutChart, EmptyChartNotice, SectionTitle, MiniMetric, HighlightCard, ExportButton } from './ReportCharts';
+import { CANCEL_REASONS } from './cancelReasons';
+import { MonthComparisonChart, ForecastChart, BarChart, HorizontalBarChart, DonutChart, PieChart as ReasonPie, EmptyChartNotice, SectionTitle, MiniMetric, HighlightCard, ExportButton } from './ReportCharts';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -32,6 +33,10 @@ const CHART_COLORS = {
   new: '#A8481A',
   returning: '#1A0A00',
 };
+
+// Pie slices (checked for color-blind readers on the cream background); gray = Other.
+const PIE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+const PIE_OTHER = '#A39A90';
 
 const peso = formatPeso;
 const pct = (n) => `${Number.isFinite(n) ? Math.round(n) : 0}%`;
@@ -422,10 +427,32 @@ const Reports = () => {
       const reason = b.cancellation_reason.trim();
       map.set(reason, (map.get(reason) || 0) + 1);
     });
-    const sorted = Array.from(map.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+    // The reasons from the list keep their own slice; typed ("Other: …") and
+    // older free-text reasons share one "Other" slice.
+    const known = new Map(CANCEL_REASONS.map((r) => [r.toLowerCase(), r]));
+    let typed = 0;
+    const listed = new Map();
+    map.forEach((value, reason) => {
+      const name = known.get(reason.toLowerCase());
+      if (name) listed.set(name, (listed.get(name) || 0) + value);
+      else typed += value;
+    });
+    const sorted = Array.from(listed.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
     const top = sorted.slice(0, 6);
-    const otherCount = sorted.slice(6).reduce((s, r) => s + r.value, 0);
-    if (otherCount > 0) top.push({ label: 'Other', value: otherCount });
+    const otherCount = typed + sorted.slice(6).reduce((s, r) => s + r.value, 0);
+    // Each reason keeps the same color every time (its place in the list);
+    // a reason past the 8 colors takes one no other slice is using. Other is gray.
+    const used = new Set();
+    top.forEach((r) => {
+      const i = CANCEL_REASONS.indexOf(r.label);
+      if (i < PIE_COLORS.length) { r.color = PIE_COLORS[i]; used.add(i); }
+    });
+    top.forEach((r) => {
+      if (r.color) return;
+      const free = PIE_COLORS.findIndex((_, i) => !used.has(i));
+      used.add(free); r.color = PIE_COLORS[free];
+    });
+    if (otherCount > 0) top.push({ label: 'Other', value: otherCount, color: PIE_OTHER });
     return { total: cancelled.length, breakdown: top };
   }, [bookings]);
 
@@ -899,7 +926,7 @@ const Reports = () => {
                   border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
                 }}>
                   <SectionTitle icon={<XCircle size={14} />}>Cancellation Analytics</SectionTitle>
-                  <HorizontalBarChart data={cancellationReasons.breakdown} color="#8C2F1C" />
+                  <ReasonPie segments={cancellationReasons.breakdown} />
                 </div>
               )}
 
