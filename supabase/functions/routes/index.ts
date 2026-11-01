@@ -7,6 +7,10 @@
 //   - { action: "route", points: [[lng, lat], …] }
 //       → { coords: [[lng, lat], …], distance_km, duration_min, legs: [{ distance_km, duration_min }] }
 //       The driving road through the points, in order (legs: point to point).
+//   - { action: "places-along", coords: [[lng, lat], …] }
+//       → { places: [{ name, kind, lat, lng, city }] }
+//       Possible pickup points within 300 m of the road, from OpenStreetMap
+//       (free, no key): gas stations, malls, bus terminals, fast food.
 //
 // The OpenRouteService key stays here, never in the website:
 //   supabase secrets set ORS_API_KEY=<your key from openrouteservice.org>
@@ -20,6 +24,10 @@ const ORS_API_KEY = Deno.env.get("ORS_API_KEY") ?? "";
 // working, point this at the new address (no code change needed):
 //   supabase secrets set ORS_BASE_URL=<the new address>
 const ORS = (Deno.env.get("ORS_BASE_URL") ?? "https://api.openrouteservice.org").replace(/\/+$/, "");
+
+// OpenStreetMap places (Overpass, free). Another server can be set with
+//   supabase secrets set OVERPASS_URL=<address>
+const OVERPASS = Deno.env.get("OVERPASS_URL") ?? "https://overpass-api.de/api/interpreter";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -87,6 +95,48 @@ async function route(p: any) {
   };
 }
 
+// What kind of pickup point an OpenStreetMap place is.
+const kindOf = (t: Record<string, string>) =>
+  t.amenity === "fuel" ? "gas" :
+  t.shop === "mall" || t.shop === "department_store" ? "mall" :
+  t.amenity === "bus_station" ? "terminal" :
+  t.amenity === "fast_food" ? "food" : "other";
+
+async function placesAlong(p: any) {
+  const coords = Array.isArray(p.coords) ? p.coords : [];
+  if (coords.length < 2) throw new HttpError(400, "Find the route first.");
+  // The road as "lat,lng,lat,lng,…" (at most ~250 points keeps the query small).
+  const step = Math.max(1, Math.ceil(coords.length / 250));
+  const line = coords.filter((_: unknown, i: number) => i % step === 0 || i === coords.length - 1)
+    .map(([lng, lat]: number[]) => `${round(lat, 5)},${round(lng, 5)}`).join(",");
+  const around = `(around:300,${line})`;
+  const query = `[out:json][timeout:40];(
+    nwr${around}["amenity"="fuel"]["name"];
+    nwr${around}["shop"="mall"]["name"];
+    nwr${around}["shop"="department_store"]["name"];
+    nwr${around}["amenity"="bus_station"]["name"];
+    nwr${around}["amenity"="fast_food"]["name"~"McDonald|Jollibee|Chowking|KFC|Mang Inasal|Greenwich",i];
+  );out center tags 600;`;
+  const res = await fetch(OVERPASS, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "data=" + encodeURIComponent(query),
+  });
+  if (!res.ok) throw new HttpError(502, `The map's place list is busy (${res.status}). Please try again in a minute.`);
+  const body = await res.json().catch(() => ({}));
+  const places = (body.elements ?? []).map((e: any) => {
+    const t = e.tags ?? {};
+    return {
+      name: String(t.name ?? "").trim(),
+      kind: kindOf(t),
+      lat: e.lat ?? e.center?.lat,
+      lng: e.lon ?? e.center?.lon,
+      city: t["addr:city"] || t["addr:municipality"] || t["addr:town"] || "",
+    };
+  }).filter((x: any) => x.name && Number.isFinite(x.lat) && Number.isFinite(x.lng));
+  return { places };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -101,6 +151,7 @@ Deno.serve(async (req) => {
     switch (payload.action) {
       case "geocode": return reply(await geocode(payload));
       case "route": return reply(await route(payload));
+      case "places-along": return reply(await placesAlong(payload));
       default: return reply({ error: "Unknown action" }, 400);
     }
   } catch (err) {

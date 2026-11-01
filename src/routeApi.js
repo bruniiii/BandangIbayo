@@ -30,3 +30,7 @@ export const searchPlaces = (text) => call({ action: 'geocode', text });
 // The driving road through the places, in order: points are { lat, lng }.
 // → { coords: [[lng, lat]…], distance_km, duration_min, legs: [{ distance_km, duration_min }] }
 export const findRoute = (points) => call({ action: 'route', points: points.map((p) => [p.lng, p.lat]) });
+
+// Possible pickup points within 300 m of the road (OpenStreetMap): gas
+// stations, malls, bus terminals, fast food → [{ name, kind, lat, lng, city }].
+export const findPlacesAlongRoute = (coords) => call({ action: 'places-along', coords });

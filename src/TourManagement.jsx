@@ -97,6 +97,8 @@ const TourManagement = ({ openTourId = null }) => {
   const [spotsInfo, setSpotsInfo] = useState({ spots: [], available: false });
   const [formRoute, setFormRoute] = useState(null);
   const [showSpots, setShowSpots] = useState(false);
+  // Places ticked from the map's list (gas stations, malls…): saved as pickup spots on save.
+  const [routePlaces, setRoutePlaces] = useState([]);
   const refreshSpots = useCallback(() => { loadPickupSpots().then(setSpotsInfo); }, []);
   useEffect(() => { refreshSpots(); }, [refreshSpots]);
   // Inclusions, Exclusions and Things to Bring: one item per line, added one at a time.
@@ -123,6 +125,7 @@ const TourManagement = ({ openTourId = null }) => {
     const stopNames = [...new Set(stops.map((m) => m.location_name.trim()).filter(Boolean))];
     setPickupPicked(stopNames);
     setFormRoute(trip?.route || null);
+    setRoutePlaces([]);
     setFormLists({ inclusions: linesOf(trip?.inclusions), exclusions: linesOf(trip?.exclusions), things_to_bring: linesOf(trip?.things_to_bring) });
     setFormItinerary(parseItinerary(trip?.itinerary));
     const others = Array.isArray(trip?.expenses?.others) ? trip.expenses.others : [];
@@ -418,7 +421,19 @@ const TourManagement = ({ openTourId = null }) => {
       // them, and the minutes from the starting point (for Tracking's ETAs).
       const stopInfo = {};
       if (spotsInfo.available) {
-        const spotOf = (n) => spotsInfo.spots.find((sp) => sp.name.trim().toLowerCase() === n.toLowerCase());
+        // Places ticked from the map's list become saved pickup spots (with their location).
+        let allSpots = spotsInfo.spots;
+        const newSpots = routePlaces.filter((pl) => pickups.some((r) => r.location.toLowerCase() === pl.name.toLowerCase())
+          && !allSpots.some((sp) => sp.name.trim().toLowerCase() === pl.name.toLowerCase()));
+        if (newSpots.length) {
+          const { error: spotError } = await supabase.from('pickup_spots')
+            .insert(newSpots.map((pl) => ({ name: pl.name, address: pl.address || null, lat: pl.lat, lng: pl.lng })));
+          if (spotError) toast.error("Some pickup points weren't saved to Pickup Spots", spotError.message);
+          // Their locations are known from the map's list either way.
+          allSpots = [...allSpots, ...newSpots];
+          refreshSpots();
+        }
+        const spotOf = (n) => allSpots.find((sp) => sp.name.trim().toLowerCase() === n.toLowerCase());
         const located = pickups.map((r) => ({ name: r.location, spot: spotOf(r.location) })).filter((x) => x.spot);
         if (formRoute?.coords) {
           located.sort((a, b) => placeOnRoute(a.spot, formRoute.coords).alongKm - placeOnRoute(b.spot, formRoute.coords).alongKm);
@@ -986,6 +1001,7 @@ const TourManagement = ({ openTourId = null }) => {
                       onRouteChange={(r) => { setFormRoute(r); setFormDirty(true); }}
                       picked={pickupPicked}
                       onPickedChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
+                      onAddPlace={(pl) => setRoutePlaces((list) => (list.some((x) => x.name === pl.name) ? list : [...list, pl]))}
                     />
                   )}
                   <ListField
