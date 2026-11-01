@@ -19,7 +19,52 @@ export const bookingForNotification = async (n) => {
     const { data } = await supabase.from('bookings').select(BOOKING_COLS).eq('id', n.related_id).limit(1);
     if (data?.[0]) return data[0];
   }
-  return null;
+  return bookingByTourAndName(n);
+};
+
+// Notices without a booking number ("Isabella Sabado booked Mt. Ulap (2 pax)
+// and paid online."): the booking on the tour named in the text, made by the
+// person named in it, closest in time to the notice.
+const bookingByTourAndName = async (n) => {
+  const text = textOf(n).toLowerCase();
+  const { data: tours } = await supabase.from('tours').select('id, title').limit(1000);
+  const hits = (tours || []).filter((t) => t?.title && text.includes(t.title.toLowerCase()));
+  if (!hits.length) return null;
+  const longest = Math.max(...hits.map((t) => t.title.length));
+  const ids = hits.filter((t) => t.title.length === longest).map((t) => t.id);
+  const { data } = await supabase.from('bookings').select(`${BOOKING_COLS}, full_name`)
+    .in('tour_id', ids).order('created_at', { ascending: false }).limit(500);
+  const named = (data || []).filter((b) => {
+    const name = String(b.full_name || '').trim().toLowerCase();
+    return name && name !== 'n/a' && text.includes(name);
+  });
+  const list = named.length ? named : (data || []);
+  if (!list.length) return null;
+  const at = new Date(n?.created_at || Date.now()).getTime();
+  return [...list].sort((a, b) => Math.abs(new Date(a.created_at) - at) - Math.abs(new Date(b.created_at) - at))[0];
+};
+
+// Admins: the feed post a "New post to review" notice is about (the post by
+// the person named in it, made closest in time to the notice).
+export const postForNotification = async (n) => {
+  const at = new Date(n?.created_at || Date.now()).getTime();
+  const from = new Date(at - 10 * 60 * 1000).toISOString();
+  const to = new Date(at + 2 * 60 * 1000).toISOString();
+  const { data } = await supabase.from('feed_posts').select('id, author_id, created_at, status')
+    .gte('created_at', from).lte('created_at', to).limit(50);
+  if (!data?.length) return null;
+  const authorIds = [...new Set(data.map((p) => p.author_id).filter(Boolean))];
+  const { data: people } = authorIds.length
+    ? await supabase.from('profiles').select('id, first_name, last_name, username').in('id', authorIds)
+    : { data: [] };
+  const text = textOf(n).toLowerCase();
+  const nameOf = (id) => {
+    const p = (people || []).find((x) => x.id === id);
+    return p ? [`${p.first_name || ''} ${p.last_name || ''}`.trim(), p.username].filter(Boolean).map((x) => x.toLowerCase()) : [];
+  };
+  const named = data.filter((p) => nameOf(p.author_id).some((w) => text.includes(w)));
+  const list = named.length ? named : data;
+  return [...list].sort((a, b) => Math.abs(new Date(a.created_at) - at) - Math.abs(new Date(b.created_at) - at))[0];
 };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -8,7 +8,7 @@ import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { bookingForNotification, tourForNotification } from './notificationTarget';
+import { bookingForNotification, tourForNotification, postForNotification } from './notificationTarget';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
 import { useAdminMe } from './adminMe';
@@ -186,9 +186,12 @@ const AdminDashboard = () => {
       case 'exclusive_package':
         openRequestPage(notification.related_id);
         break;
-      case 'feed':
-        openFocused('Feed', 'pending');
+      case 'feed': {
+        // The exact post (still waiting, or already approved); else the waiting list.
+        const post = await postForNotification(notification);
+        openFocused('Feed', post ? `post:${post.id}` : 'pending');
         break;
+      }
       case 'review': {
         const tour = await tourForNotification(notification);
         openFocused('Reviews', tour?.id);

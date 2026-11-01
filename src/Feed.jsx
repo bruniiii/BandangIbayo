@@ -67,7 +67,7 @@ const displayName = (profile, fallback = 'Bandang IBAYO') => {
    isAdmin=true  -> approve / reject / delete any post
    isAdmin=false -> joiners see approved posts plus their own
 ───────────────────────────────────────────── */
-// focus (from a notification): 'pending' = the posts waiting for approval,
+// focus (from a notification): 'post:<id>' = that post, 'pending' = the posts waiting for approval,
 // 'mine' = the joiner's own latest post.
 const Feed = ({ isAdmin = false, focus = null }) => {
   const [posts, setPosts] = useState([]);
@@ -358,9 +358,13 @@ const Feed = ({ isAdmin = false, focus = null }) => {
   useEffect(() => {
     if (!focus || focusDone.current || loading || (focus === 'mine' && !currentUserId)) return;
     focusDone.current = true;
-    const target = focus === 'pending'
+    const postId = String(focus).startsWith('post:') ? String(focus).slice(5) : null;
+    const byId = postId ? posts.find(p => String(p.id) === postId) : null;
+    if (byId && statusOf(byId) === 'Pending') setPendingOpen(true);
+    const target = byId || (focus === 'pending' || postId
       ? posts.find(p => statusOf(p) === 'Pending')
-      : posts.find(p => p.author_id === currentUserId && statusOf(p) !== 'Pending') || posts.find(p => p.author_id === currentUserId);
+      : posts.find(p => p.author_id === currentUserId && statusOf(p) !== 'Pending') || posts.find(p => p.author_id === currentUserId));
+    if (postId && !byId) setPendingOpen(true);
     if (target) flashFocus(`post-${target.id}`);
   }, [focus, loading, posts, currentUserId]);
 
