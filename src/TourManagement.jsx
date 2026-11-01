@@ -8,7 +8,7 @@ import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf, tripForDate } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf, tripForDate, todayManila } from './tourUtils';
 import { moneyInputProps, blockSignKeys, moneyField, moneyNumber, moneyDisplay } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import { Plus, Edit, Archive, X, Search, Loader2, Trash2, UploadCloud, RefreshCw, History, ChevronDown } from 'lucide-react';
@@ -136,6 +136,8 @@ const TourManagement = ({ openTourId = null }) => {
   const fetchTours = useCallback(async () => {
     setLoading(true);
     await archivePastTours();
+    // Tours that already ended go to Tour Archive every time the list loads.
+    await Promise.resolve(supabase.rpc('archive_past_tours')).catch(() => {});
     const { data, error } = await supabase
       .from('tours')
       .select('*')
@@ -209,8 +211,17 @@ const TourManagement = ({ openTourId = null }) => {
   }, [editingTour, showModal]);
  
   const executeToggleArchive = async () => {
-    const { ids, isArchived } = confirmAction;
-    const { error } = await supabase.from('tours').update({ is_archived: !isArchived }).in('id', ids);
+    const { ids, isArchived, dates = [] } = confirmAction;
+    // A date that already ended stays in Tour Archive (it can't be booked anymore).
+    const today = todayManila();
+    const ended = (d) => String(d.end_date || d.start_date || '') < today;
+    const restoreIds = isArchived ? ids.filter((id) => { const d = dates.find((x) => x.id === id); return !d || !ended(d); }) : ids;
+    if (isArchived && restoreIds.length === 0) {
+      toast.info('This tour already ended', 'Tours whose dates have passed stay in Tour Archive. Add a new date to post it again.');
+      setConfirmAction(null);
+      return;
+    }
+    const { error } = await supabase.from('tours').update({ is_archived: !isArchived }).in('id', restoreIds);
     if (error) toast.error("Couldn't update the tour", error.message); else { toast.success(isArchived ? 'Tour restored' : 'Tour archived'); fetchTours(); }
     setConfirmAction(null);
   };
@@ -334,7 +345,6 @@ const TourManagement = ({ openTourId = null }) => {
       important_note: formData.get('important_note'),
       image_urls:     finalGallery,
       accommodation_options: cleanAccommodation(formAccommodation),
-      is_archived:    false,
     };
     const withDates = (r) => ({
       ...shared, start_date: r.start_date, end_date: r.end_date, duration: calculateDuration(r.start_date, r.end_date),
@@ -345,13 +355,14 @@ const TourManagement = ({ openTourId = null }) => {
     const saved = dateRows.filter((r) => r.id);
     const added = dateRows.filter((r) => !r.id);
     const results = await Promise.all([
+      // Saving an archived tour keeps it archived: only Restore brings it back.
       ...saved.map((r) => supabase.from('tours').update(withDates(r)).eq('id', r.id)),
       // Dates taken off the trip are archived, not deleted (only dates nobody booked can be removed).
       ...(removed.length ? [supabase.from('tours').update({ is_archived: true }).in('id', removed.map((d) => d.id))] : []),
     ]);
     let inserted = [];
     if (added.length) {
-      const { data, error } = await supabase.from('tours').insert(added.map(withDates)).select();
+      const { data, error } = await supabase.from('tours').insert(added.map((r) => ({ ...withDates(r), is_archived: false }))).select();
       results.push({ error });
       inserted = data || [];
     }
@@ -648,7 +659,7 @@ const TourManagement = ({ openTourId = null }) => {
               <TourCard
                 key={tour.id}
                 tour={tour}
-                onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived })}
+                onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates })}
                 onView={() => setViewTour(tour)}
                 onEdit={() => openTourForm(tour)}
                 onAddDate={() => openTourForm(tour, { withNewDate: true })}
