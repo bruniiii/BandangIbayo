@@ -160,6 +160,17 @@ async function resolveEmail(identifier: string) {
   return { email, known: Boolean(await findProfileEmail("email", email)) };
 }
 
+// Archived accounts (joiners, or admins not yet restored) can't log in.
+async function assertNotArchived(userId: string) {
+  const { data: who } = await admin.from("profiles").select("role, archived_at, admin_restore_pending_at").eq("id", userId).maybeSingle();
+  if (who?.role === "archived_admin") {
+    throw new HttpError(403, who.admin_restore_pending_at
+      ? "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it."
+      : "This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+  }
+  if (who?.archived_at) throw new HttpError(403, "This account is archived. Contact Bandang Ibayo to restore it.");
+}
+
 async function login(p: any) {
   const identifier = String(p.identifier ?? "").trim();
   const password = String(p.password ?? "");
@@ -176,6 +187,8 @@ async function login(p: any) {
     await recordFailure(email, state);
   }
   await clearLock(email);
+  // Archived accounts can't log in, even with the right password.
+  if (user?.id) await assertNotArchived(user.id);
   return await startSession(email);
 }
 
@@ -220,6 +233,7 @@ async function verify(p: any) {
   await admin.from("login_challenges").delete().eq("id", challenge.id);
   // The code proves the email works: mark it confirmed (new registrations).
   await admin.auth.admin.updateUserById(challenge.user_id, { email_confirm: true });
+  await assertNotArchived(challenge.user_id);
   return await startSession(challenge.email);
 }
 
