@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Route, Loader2, CheckSquare, Square, Fuel, ShoppingBag, Bus, Utensils, Star } from 'lucide-react';
+import { Route, Loader2, CheckSquare, Square, Fuel, ShoppingBag, Bus, Utensils, Star, Store, RotateCcw, Info } from 'lucide-react';
 import PlaceSearch from './PlaceSearch';
 import { findRoute, findPlacesAlongRoute } from '../routeApi';
 import { placeOnRoute, distanceKm } from '../geo';
@@ -28,6 +28,7 @@ const KINDS = [
   { key: 'gas', label: 'Gas stations', icon: Fuel },
   { key: 'mall', label: 'Malls', icon: ShoppingBag },
   { key: 'terminal', label: 'Bus terminals', icon: Bus },
+  { key: 'store', label: 'Convenience stores', icon: Store },
   { key: 'food', label: 'Fast food', icon: Utensils },
 ];
 
@@ -38,7 +39,8 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
   const [error, setError] = useState('');
   const [places, setPlaces] = useState(null); // OpenStreetMap places along the road
   const [placesError, setPlacesError] = useState('');
-  const [show, setShow] = useState({ saved: true, gas: true, mall: true, terminal: true, food: false });
+  const [show, setShow] = useState({ saved: true, gas: true, mall: true, terminal: true, store: false, food: false });
+  const [placesTry, setPlacesTry] = useState(0); // "Try again" looks the places up again
 
   // Places on the road: looked up once per route.
   useEffect(() => {
@@ -46,13 +48,13 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
     let alive = true;
     (async () => {
       setPlaces(null); setPlacesError('');
-      const res = await findPlacesAlongRoute(route.coords);
+      const res = await findPlacesAlongRoute(route);
       if (!alive) return;
       if (res.ok) setPlaces(res.data.places || []);
       else { setPlaces([]); setPlacesError(res.error); }
     })();
     return () => { alive = false; };
-  }, [route]);
+  }, [route, placesTry]);
 
   // Everything along the road, in the order the van passes it.
   const along = useMemo(() => {
@@ -62,7 +64,10 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
       .filter((s) => s.offKm <= 2);
     const fromMap = [];
     (places || []).forEach((p) => {
-      const at = placeOnRoute(p, route.coords);
+      // The server measures on the full road (bends included); older answers didn't.
+      const at = Number.isFinite(p.alongKm) && Number.isFinite(p.offKm)
+        ? { alongKm: p.alongKm, offKm: p.offKm }
+        : placeOnRoute(p, route.coords);
       if (at.offKm > 0.5) return;
       // Already a saved spot (within 60 m), or the same place listed twice (within 1 km).
       if (saved.some((s) => distanceKm(s, p) < 0.06)) return;
@@ -115,6 +120,9 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
         <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
           Where the van leaves from and where it's going. Every possible pickup point on the way is listed, from the start to the destination, for you to tick.
         </p>
+        <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 700, color: '#8C5216', display: 'flex', gap: 6, alignItems: 'flex-start', lineHeight: 1.5 }}>
+          <Info size={13} style={{ flexShrink: 0, marginTop: 2 }} /> Island or boat trip (e.g. Calaguas, Anawangin)? Choose the port or jump-off as the destination, since the van only goes that far.
+        </p>
       </div>
       <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <PlaceSearch label="Starting point" name="route_start" value={start} onChange={(v) => changePlace('start', v)} placeholder="e.g. SM Mall of Asia, Pasay" />
@@ -156,9 +164,13 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
             </p>
           )}
           {placesError && (
-            <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>
-              Couldn't list the places on the road ({placesError}). Your saved spots are still listed below.
-            </p>
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>
+              <span style={{ flex: '1 1 260px' }}>Couldn't list the places on the road: {placesError} Your saved spots are still listed below.</span>
+              <button type="button" onClick={() => setPlacesTry((n) => n + 1)} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}><RotateCcw size={13} /> Try again</button>
+            </div>
           )}
 
           {shown.length === 0 && places !== null ? (

@@ -1,19 +1,23 @@
 // supabase/functions/routes/index.ts
 //
-// Maps for pickup points and tracking (OpenRouteService, free). Admins only.
+// Maps for pickup points and tracking (OpenRouteService + OpenStreetMap, free). Admins only.
 //   - { action: "geocode", text }            → { places: [{ name, label, lat, lng }] }
 //       Places in the Philippines matching the text (for the starting point,
 //       the destination and saved pickup spots).
 //   - { action: "route", points: [[lng, lat], …] }
 //       → { coords: [[lng, lat], …], distance_km, duration_min, legs: [{ distance_km, duration_min }] }
 //       The driving road through the points, in order (legs: point to point).
-//   - { action: "places-along", coords: [[lng, lat], …] }
-//       → { places: [{ name, kind, lat, lng, city }] }
-//       Possible pickup points within 300 m of the road, from OpenStreetMap
-//       (free, no key): gas stations, malls, bus terminals, fast food.
+//       coords keeps the road's shape (bends included) in at most ~400 points.
+//   - { action: "places-along", points: [[lng, lat], …] }   (start and destination)
+//       → { places: [{ name, kind, lat, lng, city, alongKm, offKm }] }
+//       Possible pickup points within 300 m of the road, from OpenStreetMap:
+//       gas stations, malls, bus terminals, convenience stores, fast food.
+//       The road is followed closely (winding mountain roads included), and
+//       alongKm (km from the start) and offKm (km off the road) are measured
+//       on the full road.
 //
 // The OpenRouteService key stays here, never in the website:
-//   supabase secrets set ORS_API_KEY=<your key from openrouteservice.org>
+//   supabase secrets set ORS_API_KEY=<your key from account.heigit.org>
 // Deploy:  supabase functions deploy routes --no-verify-jwt
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -24,10 +28,13 @@ const ORS_API_KEY = Deno.env.get("ORS_API_KEY") ?? "";
 // working, point this at the new address (no code change needed):
 //   supabase secrets set ORS_BASE_URL=<the new address>
 const ORS = (Deno.env.get("ORS_BASE_URL") ?? "https://api.openrouteservice.org").replace(/\/+$/, "");
-
-// OpenStreetMap places (Overpass, free). Another server can be set with
-//   supabase secrets set OVERPASS_URL=<address>
-const OVERPASS = Deno.env.get("OVERPASS_URL") ?? "https://overpass-api.de/api/interpreter";
+// OpenStreetMap places (Overpass, free). Tried in order: when one is busy, the next.
+//   supabase secrets set OVERPASS_URL=<address>   (tried first)
+const OVERPASS_SERVERS = [
+  Deno.env.get("OVERPASS_URL"),
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+].filter(Boolean) as string[];
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -43,14 +50,75 @@ class HttpError extends Error {
 }
 
 const round = (n: number, d = 1) => Math.round(n * 10 ** d) / 10 ** d;
+type Pt = number[]; // [lng, lat]
 
-// Keeps the road light for the map: at most ~400 points, always the first and last.
-const thin = (coords: number[][], max = 400) => {
-  if (coords.length <= max) return coords.map(([lng, lat]) => [round(lng, 5), round(lat, 5)]);
-  const step = (coords.length - 1) / (max - 1);
-  return Array.from({ length: max }, (_, i) => coords[Math.round(i * step)]).map(([lng, lat]) => [round(lng, 5), round(lat, 5)]);
+// ── Road shape ──
+// Flat x/y in km around a latitude (accurate enough along one road).
+const projector = (lat0: number) => {
+  const kx = 111.32 * Math.cos((lat0 * Math.PI) / 180);
+  return ([lng, lat]: Pt) => [lng * kx, lat * 110.57];
 };
 
+// Douglas–Peucker: drops points that are within tolKm of the road's line,
+// so straight stretches use few points and bends keep theirs.
+const simplifyTol = (coords: Pt[], tolKm: number) => {
+  if (coords.length <= 2) return coords;
+  const xy = projector(coords[Math.floor(coords.length / 2)][1]);
+  const p = coords.map(xy);
+  const keep = new Uint8Array(coords.length);
+  keep[0] = 1; keep[coords.length - 1] = 1;
+  const stack: [number, number][] = [[0, coords.length - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop()!;
+    const [ax, ay] = p[a]; const [bx, by] = p[b];
+    const dx = bx - ax; const dy = by - ay; const len2 = dx * dx + dy * dy;
+    let worst = -1; let idx = -1;
+    for (let i = a + 1; i < b; i += 1) {
+      const t = len2 ? Math.max(0, Math.min(1, ((p[i][0] - ax) * dx + (p[i][1] - ay) * dy) / len2)) : 0;
+      const d = Math.hypot(p[i][0] - (ax + t * dx), p[i][1] - (ay + t * dy));
+      if (d > worst) { worst = d; idx = i; }
+    }
+    if (worst > tolKm && idx > 0) { keep[idx] = 1; stack.push([a, idx], [idx, b]); }
+  }
+  return coords.filter((_, i) => keep[i]);
+};
+
+// At most max points, as close to the real road as that allows.
+const evenly = (coords: Pt[], max: number) => {
+  if (coords.length <= max) return coords;
+  const step = (coords.length - 1) / (max - 1);
+  return Array.from({ length: max }, (_, i) => coords[Math.round(i * step)]);
+};
+const simplify = (coords: Pt[], max: number, startTolKm = 0.01) => {
+  let tol = startTolKm;
+  let prev = coords;
+  let out = simplifyTol(coords, tol);
+  while (out.length > max) { prev = out; tol *= 1.6; out = simplifyTol(coords, tol); }
+  // Very winding roads can drop from "too many" to "almost none" in one step:
+  // then keep the last detailed shape, spread evenly to max points.
+  if (out.length < max / 4 && prev.length > max) out = evenly(prev, max);
+  return out.map(([lng, lat]) => [round(lng, 5), round(lat, 5)]);
+};
+
+// How far a place is off the road and how far along it (km), on the full road.
+const placeOnRoad = (lat: number, lng: number, coords: Pt[]) => {
+  const xy = projector(lat);
+  const [px, py] = xy([lng, lat]);
+  let best = { offKm: Infinity, alongKm: 0 };
+  let along = 0;
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    const [ax, ay] = xy(coords[i]); const [bx, by] = xy(coords[i + 1]);
+    const dx = bx - ax; const dy = by - ay; const len2 = dx * dx + dy * dy;
+    const t = len2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2)) : 0;
+    const off = Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+    const seg = Math.sqrt(len2);
+    if (off < best.offKm) best = { offKm: off, alongKm: along + t * seg };
+    along += seg;
+  }
+  return best;
+};
+
+// ── OpenRouteService ──
 async function geocode(p: any) {
   const text = String(p.text ?? "").trim();
   if (text.length < 2) throw new HttpError(400, "Type at least 2 letters of the place.");
@@ -67,11 +135,15 @@ async function geocode(p: any) {
   return { places };
 }
 
-async function route(p: any) {
-  const points = Array.isArray(p.points) ? p.points : [];
-  const ok = points.length >= 2 && points.length <= 50 &&
+const checkPoints = (points: any) => {
+  const ok = Array.isArray(points) && points.length >= 2 && points.length <= 50 &&
     points.every((pt: any) => Array.isArray(pt) && Number.isFinite(pt[0]) && Number.isFinite(pt[1]));
   if (!ok) throw new HttpError(400, "A route needs 2 to 50 places on the map.");
+  return points as Pt[];
+};
+
+// The driving road through the points, with its full shape.
+async function drive(points: Pt[]) {
   const res = await fetch(`${ORS}/v2/directions/driving-car/geojson`, {
     method: "POST",
     headers: { Authorization: ORS_API_KEY, "Content-Type": "application/json", Accept: "application/geo+json" },
@@ -79,61 +151,105 @@ async function route(p: any) {
     body: JSON.stringify({ coordinates: points, instructions: false, radiuses: points.map(() => -1) }),
   });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new HttpError(502, body?.error?.message || `No driving route found (${res.status}).`);
+  if (!res.ok) {
+    const msg = String(body?.error?.message ?? "");
+    const code = Number(body?.error?.code);
+    // No road reaches it: usually an island, or a place across the water.
+    if (code === 2009 || code === 2010 || /could not be found|not.*routable|unreachable/i.test(msg)) {
+      throw new HttpError(422, "No driving road reaches one of these places. For an island or a boat trip (e.g. Calaguas, Anawangin), choose the port or jump-off as the destination.");
+    }
+    throw new HttpError(502, msg || `No driving route found (${res.status}).`);
+  }
   const feature = body.features?.[0];
   if (!feature) throw new HttpError(502, "No driving route found between those places.");
+  return feature;
+}
+
+async function route(p: any) {
+  const feature = await drive(checkPoints(p.points));
   const summary = feature.properties?.summary ?? {};
   const legs = (feature.properties?.segments ?? []).map((s: any) => ({
     distance_km: round((s.distance ?? 0) / 1000),
     duration_min: Math.round((s.duration ?? 0) / 60),
   }));
   return {
-    coords: thin(feature.geometry?.coordinates ?? []),
+    // Bends kept: winding mountain roads (Halsema, Kennon) still look and measure right.
+    coords: simplify(feature.geometry?.coordinates ?? [], 400),
     distance_km: round((summary.distance ?? 0) / 1000),
     duration_min: Math.round((summary.duration ?? 0) / 60),
     legs,
   };
 }
 
+// ── OpenStreetMap places along the road ──
 // What kind of pickup point an OpenStreetMap place is.
 const kindOf = (t: Record<string, string>) =>
   t.amenity === "fuel" ? "gas" :
   t.shop === "mall" || t.shop === "department_store" ? "mall" :
   t.amenity === "bus_station" ? "terminal" :
+  t.shop === "convenience" ? "store" :
   t.amenity === "fast_food" ? "food" : "other";
 
+async function overpass(query: string) {
+  let last = "";
+  for (const url of OVERPASS_SERVERS) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "data=" + encodeURIComponent(query),
+        signal: AbortSignal.timeout(45000),
+      });
+      if (res.ok) {
+        const body = await res.json().catch(() => null);
+        if (body && Array.isArray(body.elements)) return body.elements;
+      }
+      last = `${res.status}`;
+    } catch (err) {
+      last = String((err as Error)?.message || err);
+    }
+  }
+  throw new HttpError(503, `The map's place list is busy right now (${last}). Please try again in a minute.`);
+}
+
 async function placesAlong(p: any) {
-  const coords = Array.isArray(p.coords) ? p.coords : [];
-  if (coords.length < 2) throw new HttpError(400, "Find the route first.");
-  // The road as "lat,lng,lat,lng,…" (at most ~250 points keeps the query small).
-  const step = Math.max(1, Math.ceil(coords.length / 250));
-  const line = coords.filter((_: unknown, i: number) => i % step === 0 || i === coords.length - 1)
-    .map(([lng, lat]: number[]) => `${round(lat, 5)},${round(lng, 5)}`).join(",");
+  // The full road (from the start and destination), or the shape the form already has.
+  let road: Pt[] = [];
+  if (Array.isArray(p.points) && p.points.length >= 2) {
+    road = (await drive(checkPoints(p.points))).geometry?.coordinates ?? [];
+  } else if (Array.isArray(p.coords) && p.coords.length >= 2) {
+    road = p.coords;
+  }
+  if (road.length < 2) throw new HttpError(400, "Find the route first.");
+
+  // The road for the query: within ~40 m of the real one (bends included), at most 900 points.
+  const line = simplify(road, 900, 0.04).map(([lng, lat]) => `${lat},${lng}`).join(",");
   const around = `(around:300,${line})`;
-  const query = `[out:json][timeout:40];(
+  const query = `[out:json][timeout:45];(
     nwr${around}["amenity"="fuel"]["name"];
     nwr${around}["shop"="mall"]["name"];
     nwr${around}["shop"="department_store"]["name"];
     nwr${around}["amenity"="bus_station"]["name"];
+    nwr${around}["shop"="convenience"]["name"~"7-Eleven|7 Eleven|Alfamart|Ministop|Uncle John",i];
     nwr${around}["amenity"="fast_food"]["name"~"McDonald|Jollibee|Chowking|KFC|Mang Inasal|Greenwich",i];
-  );out center tags 600;`;
-  const res = await fetch(OVERPASS, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: "data=" + encodeURIComponent(query),
-  });
-  if (!res.ok) throw new HttpError(502, `The map's place list is busy (${res.status}). Please try again in a minute.`);
-  const body = await res.json().catch(() => ({}));
-  const places = (body.elements ?? []).map((e: any) => {
+  );out center tags 1500;`;
+  const elements = await overpass(query);
+
+  const places = elements.map((e: any) => {
     const t = e.tags ?? {};
+    const lat = e.lat ?? e.center?.lat;
+    const lng = e.lon ?? e.center?.lon;
+    if (!t.name || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    const at = placeOnRoad(lat, lng, road);
     return {
-      name: String(t.name ?? "").trim(),
+      name: String(t.name).trim(),
       kind: kindOf(t),
-      lat: e.lat ?? e.center?.lat,
-      lng: e.lon ?? e.center?.lon,
+      lat, lng,
       city: t["addr:city"] || t["addr:municipality"] || t["addr:town"] || "",
+      alongKm: round(at.alongKm, 2),
+      offKm: round(at.offKm, 3),
     };
-  }).filter((x: any) => x.name && Number.isFinite(x.lat) && Number.isFinite(x.lng));
+  }).filter((x: any) => x && x.offKm <= 0.35);
   return { places };
 }
 

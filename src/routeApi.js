@@ -32,5 +32,12 @@ export const searchPlaces = (text) => call({ action: 'geocode', text });
 export const findRoute = (points) => call({ action: 'route', points: points.map((p) => [p.lng, p.lat]) });
 
 // Possible pickup points within 300 m of the road (OpenStreetMap): gas
-// stations, malls, bus terminals, fast food → [{ name, kind, lat, lng, city }].
-export const findPlacesAlongRoute = (coords) => call({ action: 'places-along', coords });
+// stations, malls, bus terminals, convenience stores, fast food →
+// [{ name, kind, lat, lng, city, alongKm, offKm }]. The server follows the full
+// road from the start to the destination (bends included).
+export const findPlacesAlongRoute = (route) => call({
+  action: 'places-along',
+  ...(route?.start && route?.end
+    ? { points: [[route.start.lng, route.start.lat], [route.end.lng, route.end.lat]] }
+    : { coords: route?.coords }),
+});
