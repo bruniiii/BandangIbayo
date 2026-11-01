@@ -20,6 +20,10 @@ const TOUR_POST_DAYS = 7;
 // Joiners' posts wait for an admin; older posts (before this) have no status.
 const statusOf = (post) => post.status || 'Approved';
 
+// Joiners share one post every 48 hours.
+const POST_GAP_MS = 48 * 60 * 60 * 1000;
+const formatWhen = (d) => new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+
 const REACTIONS = [
   { emoji: '👍', label: 'Like' },
   { emoji: '❤️', label: 'Love' },
@@ -74,6 +78,10 @@ const Feed = ({ isAdmin = false, focus = null }) => {
   const [deletingId, setDeletingId] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const fileInputRef = useRef(null);
+  // Joiners share one post every 48 hours (the database checks it too).
+  const [lastPostAt, setLastPostAt] = useState(null);
+  // Admin: the posts waiting for approval, in a dropdown (opened from a notification).
+  const [pendingOpen, setPendingOpen] = useState(focus === 'pending');
 
   // ── reactions & comments ──
   const [reactionsMap, setReactionsMap] = useState({});   // { postId: [{ id, user_id, emoji }] }
@@ -152,10 +160,14 @@ const Feed = ({ isAdmin = false, focus = null }) => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
+      if (user && !isAdmin) {
+        const { data: me } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        setLastPostAt(me?.last_feed_post_at || null);
+      }
     })();
     setLoading(true);
     fetchPosts();
-  }, [fetchPosts]);
+  }, [fetchPosts, isAdmin]);
 
   // Live updates — new posts (including auto tour posts) appear instantly
   // for whoever else has this feed open.
@@ -212,6 +224,10 @@ const Feed = ({ isAdmin = false, focus = null }) => {
 
   const handlePost = async () => {
     if (!content.trim() && mediaItems.length === 0) return;
+    if (postWaitUntil) {
+      toast.info('One post every 48 hours', `You can post again on ${formatWhen(postWaitUntil)}.`);
+      return;
+    }
     setPosting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -240,6 +256,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
       if (error) throw error;
 
       clearComposer();
+      setLastPostAt(new Date().toISOString());
       fetchPosts();
       if (!isAdmin) toast.success('Post sent for approval', "Bandang IBAYO will review it first. We'll notify you once it's on the feed.");
     } catch (err) {
@@ -328,6 +345,10 @@ const Feed = ({ isAdmin = false, focus = null }) => {
   // Admins: pending posts in their own list, the rest below. Joiners: approved
   // posts plus their own (shown with "Waiting for approval" / "Not approved").
   const pendingPosts = isAdmin ? posts.filter(p => statusOf(p) === 'Pending') : [];
+  // Joiners: when they can share their next post (48 hours after the last one).
+  const lastOwnPost = isAdmin ? null : [lastPostAt, ...posts.filter(p => p.author_id === currentUserId).map(p => p.created_at)]
+    .filter(Boolean).map(d => new Date(d).getTime()).reduce((a, b) => Math.max(a, b), 0);
+  const postWaitUntil = lastOwnPost && lastOwnPost + POST_GAP_MS > Date.now() ? new Date(lastOwnPost + POST_GAP_MS) : null;
   const feedPosts = posts.filter(p => (isAdmin
     ? statusOf(p) !== 'Pending'
     : statusOf(p) === 'Approved' || p.author_id === currentUserId));
@@ -399,7 +420,12 @@ const Feed = ({ isAdmin = false, focus = null }) => {
 
           {!isAdmin && (
             <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 2px 0' }}>
-              Posts are checked by Bandang IBAYO before they appear on the feed.
+              Posts are checked by Bandang IBAYO before they appear on the feed. You can share one post every 48 hours.
+            </p>
+          )}
+          {!isAdmin && postWaitUntil && (
+            <p role="status" style={{ fontSize: 12, fontWeight: 800, color: '#8C5216', background: 'rgba(232,162,101,0.22)', borderRadius: 10, padding: '8px 12px', margin: '8px 0 0' }}>
+              You can post again on {formatWhen(postWaitUntil)}.
             </p>
           )}
 
@@ -460,13 +486,13 @@ const Feed = ({ isAdmin = false, focus = null }) => {
 
             <button
               onClick={handlePost}
-              disabled={posting || (!content.trim() && mediaItems.length === 0)}
+              disabled={posting || !!postWaitUntil || (!content.trim() && mediaItems.length === 0)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: posting || (!content.trim() && mediaItems.length === 0) ? 'rgba(26,10,0,0.35)' : '#1A0A00',
+                background: posting || postWaitUntil || (!content.trim() && mediaItems.length === 0) ? 'rgba(26,10,0,0.35)' : '#1A0A00',
                 color: '#E8A265', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                 textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
-                border: 'none', cursor: posting || (!content.trim() && mediaItems.length === 0) ? 'not-allowed' : 'pointer',
+                border: 'none', cursor: posting || postWaitUntil || (!content.trim() && mediaItems.length === 0) ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(26,10,0,0.22)',
               }}
             >
@@ -481,10 +507,17 @@ const Feed = ({ isAdmin = false, focus = null }) => {
       {/* Admin: joiners' posts waiting for approval */}
       {isAdmin && pendingPosts.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>
-            Waiting for approval ({pendingPosts.length})
-          </p>
-          {pendingPosts.map(post => renderPost(post))}
+          <button type="button" onClick={() => setPendingOpen(o => !o)} aria-expanded={pendingOpen} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%',
+            background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: '14px 18px',
+            cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+          }}>
+            <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+              Waiting for approval ({pendingPosts.length})
+            </span>
+            <ChevronDown size={18} color="#A8481A" style={{ transform: pendingOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+          {pendingOpen && pendingPosts.map(post => renderPost(post))}
           <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', margin: '4px 0' }} />
         </div>
       )}

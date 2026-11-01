@@ -64,5 +64,8 @@ from (values
   ('20261128 joiners restore their own account',
      coalesce((select pg_get_functiondef(p.oid) not ilike '%Contact Bandang Ibayo%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                where n.nspname = 'public' and p.proname = 'reactivate_my_account' limit 1), false))
+                where n.nspname = 'public' and p.proname = 'reactivate_my_account' limit 1), false)),
+  ('20261129 joiners post once every 48 hours',
+     exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'last_feed_post_at'))
 ) as u(update_file, installed);
