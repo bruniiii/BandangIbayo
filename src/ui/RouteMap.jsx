@@ -73,10 +73,12 @@ const RouteMap = ({ route, stops = [], others = [], van = null, height = 300 }) 
       L.marker(ll(van), { icon: dot('#2E7D32', 22, '🚐'), zIndexOffset: 1000 }).bindTooltip('The van', { direction: 'top' }).addTo(g);
       bounds.push(ll(van));
     }
-    if (bounds.length > 1) m.fitBounds(bounds, { padding: [28, 28] });
-    else if (bounds.length === 1) m.setView(bounds[0], 13);
+    // No zoom animation: a window closed mid-animation would leave Leaflet without its map.
+    if (bounds.length > 1) m.fitBounds(bounds, { padding: [28, 28], animate: false });
+    else if (bounds.length === 1) m.setView(bounds[0], 13, { animate: false });
     // The map may have been drawn while hidden (a closed modal): measure again.
-    setTimeout(() => m.invalidateSize(), 50);
+    const t = setTimeout(() => { if (map.current === m) m.invalidateSize({ animate: false }); }, 50);
+    return () => clearTimeout(t);
   }, [route, stops, others, van]);
 
   return (
