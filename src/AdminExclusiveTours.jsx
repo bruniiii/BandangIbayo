@@ -385,7 +385,7 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
     update: { balance_settled: true, balance_amount: balance, amount_paid: paidAmount + balance, balance_paid_at: new Date().toISOString() },
     notify: {
       title: 'Exclusive Tour Fully Paid ✅',
-      message: `We received your ${formatPeso(balance)} balance for your exclusive tour to ${request.destination}. Your tour is fully paid. See you on the trip!`,
+      message: `Your balance payment of ${formatPeso(balance)} has been confirmed. Your exclusive tour to ${request.destination} is fully paid. See you on the trip!`,
     },
     done: 'Balance recorded',
   });

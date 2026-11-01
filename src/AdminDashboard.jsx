@@ -575,7 +575,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* KPI row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 20 }}>
                 <StatCard
                   title="Revenue This Month"
                   value={loadingStats ? <Skel w={140} h={34} style={{ display: 'inline-block' }} /> : peso(stats.revenueThisMonth)}
@@ -623,7 +623,7 @@ const AdminDashboard = () => {
                   </p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20 }}>
 
                   {/* Tour Management */}
                   <ModuleCard
@@ -993,8 +993,9 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
       </div>
     </div>
     <p style={{
-      fontSize: 38, fontWeight: 900, letterSpacing: '-0.04em',
-      color: '#1A0A00', margin: 0, lineHeight: 1,
+      // Shrinks on small screens so big peso amounts stay inside the card.
+      fontSize: 'clamp(22px, 8vw, 38px)', fontWeight: 900, letterSpacing: '-0.04em',
+      color: '#1A0A00', margin: 0, lineHeight: 1.1, overflowWrap: 'anywhere',
     }}>
       {value}
     </p>

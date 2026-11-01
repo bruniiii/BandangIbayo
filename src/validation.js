@@ -33,6 +33,15 @@ export const phoneError = (raw, label = 'Phone number', { required = true, mobil
   return '';
 };
 
+// PayMongo checkout: a Philippine mobile number as "+639XXXXXXXXX" (+63 and
+// exactly 10 digits, the first a 9), or null when it isn't one.
+export const paymongoPhone = (raw) => {
+  let d = String(raw ?? '').replace(/\D/g, '');
+  if (d.length === 12 && d.startsWith('63')) d = d.slice(2);
+  else if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
+  return /^9\d{9}$/.test(d) ? `+63${d}` : null;
+};
+
 // Shows a mobile number as "+63 917 123 4567" while it's typed. Accepts
 // 09…, 639…, +63… or just the 10 digits; anything past 10 digits is dropped.
 export const formatPhPhone = (raw) => {

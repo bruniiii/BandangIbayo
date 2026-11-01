@@ -52,10 +52,11 @@ const useIsMobile = (breakpoint = 640) => {
   return isMobile;
 };
 
-const MyBookings = ({ onExplore, openBookingId = null }) => {
+// initialFilter: 'upcoming' | 'completed' | 'cancelled' opens that tab.
+const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Upcoming'); 
+  const [activeTab, setActiveTab] = useState(() => ({ completed: 'Completed', cancelled: 'Cancelled' }[initialFilter] || 'Upcoming')); 
   const [selectedBooking, setSelectedBooking] = useState(null);
  
   const formatDate = (dateString) => {
@@ -717,25 +718,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 )}
               </div>
 
-              {/* Footer actions */}
-              <div style={{
+              {/* Footer actions (hidden when there's nothing to do) */}
+              <div className="hide-when-empty" style={{
                 marginTop: 'auto', padding: '1.25rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
                 background: '#F2E4D0', display: 'flex', flexWrap: 'wrap', gap: 12,
               }}>
-                {/* Labels stay on one line; when there's no room the buttons wrap to a new row. */}
-                <button
-                  onClick={onClose}
-                  style={{
-                    flex: '1 1 110px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#FDF6EE', color: '#1A0A00',
-                    border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, cursor: 'pointer',
-                    fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
-                    transition: 'background 0.2s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#FDF6EE'}
-                >
-                  Close
-                </button>
+                {/* Labels stay on one line; when there's no room the buttons wrap to a new row. (The X closes it.) */}
                 {/* Receipt once the payment has been verified */}
                 {isPaymentConfirmed && (
                   <button
@@ -825,8 +813,8 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 
   const payBalance = async () => {
     setBusy('balance');
-    const { ok, data, error } = await startBalanceCheckout({ bookingId: booking.id });
-    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
+    const { ok, data, error, cancelled } = await startBalanceCheckout({ bookingId: booking.id });
+    if (!ok) { if (!cancelled) toast.error("Couldn't open the payment page", error); setBusy(null); return; }
     if (data.alreadyPaid) { toast.success('Balance already paid', 'Thank you! Nothing more is due.'); setBusy(null); onChanged(); return; }
     window.location.assign(data.checkoutUrl);
   };
@@ -919,13 +907,13 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
     if (err) { setNamesProblem(err); setNamesOpen(true); return; }
     setNamesOpen(false);
     setBusy('pay');
-    const { ok, data, error } = await payHeldBooking({
+    const { ok, data, error, cancelled } = await payHeldBooking({
       bookingId: booking.id,
       paymentType: onSale ? 'full' : paymentType,
       companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
       accommodation: accommodation || null,
     });
-    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
+    if (!ok) { if (!cancelled) toast.error("Couldn't open the payment page", error); setBusy(null); return; }
     if (data.alreadyPaid) { toast.success('Already paid', 'Your booking is confirmed.'); setBusy(null); onChanged(); return; }
     window.location.assign(data.checkoutUrl);
   };

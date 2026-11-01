@@ -8,7 +8,6 @@ import OtpInput from './ui/OtpInput';
 import PasswordField from './ui/PasswordField';
 import GoogleButton, { OrDivider } from './ui/GoogleButton';
 import { usePopupError } from './ui/usePopupError';
-import { askToReactivate } from './reactivate';
 
 // "Continue with Google" is turned off for now; set to true to show it again.
 const SHOW_GOOGLE_LOGIN = false;
@@ -107,7 +106,7 @@ const JoinerLogin = () => {
   const finishLogin = async (user) => {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, deactivated_at')
+      .select('*') // every column, so login still works before the latest database update
       .eq('id', user.id)
       .single();
 
@@ -125,15 +124,19 @@ const JoinerLogin = () => {
       await supabase.auth.signOut();
       setLoading(false);
       setChallenge(null);
-      showError("This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+      showError(profile.admin_restore_pending_at
+        ? "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it."
+        : "This admin account was archived, so it can't log in. Ask the main admin to restore it.");
       return;
     }
 
-    // A deactivated account: reactivate it, or stay logged out.
-    if (profile.deactivated_at && !(await askToReactivate())) {
+    // An archived joiner (deactivated, or no login for a long time) can't log
+    // in until an admin restores the account.
+    if (profile.archived_at) {
+      await supabase.auth.signOut();
       setLoading(false);
       setChallenge(null);
-      showError('Your account is still deactivated. Log in again anytime to reactivate it.');
+      showError('This account is archived. Contact Bandang Ibayo to restore it.');
       return;
     }
 

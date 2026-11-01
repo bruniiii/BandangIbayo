@@ -160,6 +160,17 @@ async function resolveEmail(identifier: string) {
   return { email, known: Boolean(await findProfileEmail("email", email)) };
 }
 
+// Archived accounts (joiners, or admins not yet restored) can't log in.
+async function assertNotArchived(userId: string) {
+  const { data: who } = await admin.from("profiles").select("role, archived_at, admin_restore_pending_at").eq("id", userId).maybeSingle();
+  if (who?.role === "archived_admin") {
+    throw new HttpError(403, who.admin_restore_pending_at
+      ? "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it."
+      : "This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+  }
+  if (who?.archived_at) throw new HttpError(403, "This account is archived. Contact Bandang Ibayo to restore it.");
+}
+
 async function login(p: any) {
   const identifier = String(p.identifier ?? "").trim();
   const password = String(p.password ?? "");
@@ -176,6 +187,8 @@ async function login(p: any) {
     await recordFailure(email, state);
   }
   await clearLock(email);
+  // Archived accounts can't log in, even with the right password.
+  if (user?.id) await assertNotArchived(user.id);
   return await startSession(email);
 }
 
@@ -220,6 +233,7 @@ async function verify(p: any) {
   await admin.from("login_challenges").delete().eq("id", challenge.id);
   // The code proves the email works: mark it confirmed (new registrations).
   await admin.auth.admin.updateUserById(challenge.user_id, { email_confirm: true });
+  await assertNotArchived(challenge.user_id);
   return await startSession(challenge.email);
 }
 
@@ -255,10 +269,14 @@ async function accountFor(email: string) {
   const { data, error } = await admin.rpc("auth_account_for_email", { p_email: email });
   if (error) throw new Error(error.message);
   const row = Array.isArray(data) ? data[0] : data;
-  return row?.id ? { id: String(row.id), confirmed: Boolean(row.confirmed) } : null;
+  if (row?.id) return { id: String(row.id), confirmed: Boolean(row.confirmed) };
+  // One email, one account: an account that was deleted before archiving
+  // existed is still on record (archived_accounts), so its email stays taken.
+  const { data: old } = await admin.from("archived_accounts").select("user_id").ilike("email", email.replace(/[\\%_]/g, (c) => "\\" + c)).limit(1);
+  return old?.length ? { id: String(old[0].user_id ?? "archived"), confirmed: true } : null;
 }
 
-const ALREADY_REGISTERED = 'This email is already registered. Please log in, or use "Forgot password?" on the login page.';
+const ALREADY_REGISTERED = "An account with this email already exists. Log in or reset your password instead.";
 
 // The accounts already using this username.
 async function usernameOwners(username: unknown): Promise<string[]> {
@@ -348,6 +366,11 @@ async function verifySignup(p: any) {
       if (/already|registered|exists/i.test(created.error.message)) throw new HttpError(409, ALREADY_REGISTERED, { field: "email" });
       throw new HttpError(400, created.error.message);
     }
+    // The database copies only some details into the profile when an account
+    // is made; save all of them (date of birth, emergency contact, address…).
+    const { terms_accepted: _t, ...profileRow } = profile;
+    const { error: saveError } = await admin.from("profiles").upsert({ id: created.data.user.id, email, ...profileRow }, { onConflict: "id" });
+    if (saveError) console.error("signup: couldn't save the profile details", saveError.message);
   }
   await admin.from("signup_challenges").delete().eq("id", challenge.id);
   return await startSession(email);
@@ -366,7 +389,7 @@ async function resendSignup(challenge: any) {
     last_sent_at: new Date().toISOString(),
     expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
   }).eq("id", challenge.id);
-  await sendCode(challenge.email, String(challenge.profile?.first_name ?? ""), code, challenge.profile?.admin_invite ? "admin" : "signup");
+  await sendCode(challenge.email, String(challenge.profile?.first_name ?? ""), code, challenge.profile?.admin_invite || challenge.profile?.restore_admin ? "admin" : "signup");
   return { sentTo: maskEmail(challenge.email) };
 }
 
@@ -456,6 +479,71 @@ async function createAdmin(user: { id: string }, p: any) {
   return { challengeId, sentTo: maskEmail(email), expiresInMinutes: CODE_MINUTES };
 }
 
+// Admin Settings: restoring an archived admin. They stay unable to log in
+// ("Pending verification") until the 6-digit code emailed to them is entered
+// (it expires after CODE_MINUTES). Asking again sends a new code.
+async function restoreAdminStart(user: { id: string }, p: any) {
+  await assertMainAdmin(user.id);
+  const id = String(p.userId ?? "");
+  const { data: target } = await admin.from("profiles").select("id, role, first_name").eq("id", id).maybeSingle();
+  if (!target || target.role !== "archived_admin") throw new HttpError(404, "That admin isn't archived.");
+  const { data: login } = await admin.auth.admin.getUserById(id);
+  const email = String(login?.user?.email ?? "").toLowerCase();
+  if (!email) throw new HttpError(400, "This admin has no email address to verify.");
+
+  const { data: last } = await admin.from("signup_challenges").select("last_sent_at").eq("email", email)
+    .order("last_sent_at", { ascending: false }).limit(1).maybeSingle();
+  if (last?.last_sent_at && Date.now() - new Date(last.last_sent_at).getTime() < 60000) {
+    throw new HttpError(429, "A code was just sent. Please wait a minute before asking for another.");
+  }
+  await admin.from("signup_challenges").delete().eq("email", email);
+  const challengeId = crypto.randomUUID();
+  const code = newCode();
+  const { error } = await admin.from("signup_challenges").insert({
+    id: challengeId,
+    email,
+    profile: { first_name: target.first_name ?? "", restore_admin: true, user_id: id, invited_by: user.id },
+    code_hash: await codeHash(challengeId, code),
+    expires_at: new Date(Date.now() + CODE_MINUTES * 60000).toISOString(),
+  });
+  if (error) throw new Error(error.message);
+  await admin.from("profiles").update({ admin_restore_pending_at: new Date().toISOString() }).eq("id", id);
+  await sendCode(email, String(target.first_name ?? ""), code, "admin");
+  return { sentTo: maskEmail(email), expiresInMinutes: CODE_MINUTES };
+}
+
+async function restoreAdminVerify(user: { id: string }, p: any) {
+  await assertMainAdmin(user.id);
+  const id = String(p.userId ?? "");
+  const { data: login } = await admin.auth.admin.getUserById(id);
+  const email = String(login?.user?.email ?? "").toLowerCase();
+  const { data: challenge } = await admin.from("signup_challenges").select("*").eq("email", email)
+    .order("last_sent_at", { ascending: false }).limit(1).maybeSingle();
+  const profile = (challenge?.profile ?? {}) as Record<string, unknown>;
+  if (!challenge || !profile.restore_admin || profile.user_id !== id || new Date(challenge.expires_at).getTime() < Date.now()) {
+    throw new HttpError(410, "This code has expired. Click \"Resend code\" to get a new one.");
+  }
+  if (challenge.attempts >= MAX_CODE_TRIES) {
+    await admin.from("signup_challenges").delete().eq("id", challenge.id);
+    throw new HttpError(429, "Too many wrong codes. Click \"Resend code\" to get a new one.");
+  }
+  const code = String(p.code ?? "").replace(/\D/g, "");
+  if (code.length !== 6 || (await codeHash(challenge.id, code)) !== challenge.code_hash) {
+    const left = MAX_CODE_TRIES - challenge.attempts - 1;
+    await admin.from("signup_challenges").update({ attempts: challenge.attempts + 1 }).eq("id", challenge.id);
+    throw new HttpError(401, left > 0 ? `That code isn't right. ${left} tr${left === 1 ? "y" : "ies"} left.` : "Too many wrong codes. Click \"Resend code\" to get a new one.");
+  }
+  const { data: target } = await admin.from("profiles").select("role, archived_was_main").eq("id", id).maybeSingle();
+  if (target?.role !== "archived_admin") throw new HttpError(409, "That admin isn't waiting to be restored.");
+  const { error } = await admin.from("profiles").update({
+    role: "admin", is_main_admin: !!target.archived_was_main, archived_was_main: false,
+    admin_archived_at: null, admin_restore_pending_at: null,
+  }).eq("id", id);
+  if (error) throw new HttpError(400, error.message);
+  await admin.from("signup_challenges").delete().eq("id", challenge.id);
+  return { success: true };
+}
+
 async function createAdminVerify(user: { id: string }, p: any) {
   await assertMainAdmin(user.id);
   const challenge = await loadSignup(p.challengeId);
@@ -524,6 +612,8 @@ Deno.serve(async (req) => {
       case "change-password": return reply(await changePassword(userData.user, p));
       case "create-admin": return reply(await createAdmin(userData.user, p));
       case "create-admin-verify": return reply(await createAdminVerify(userData.user, p));
+      case "restore-admin": return reply(await restoreAdminStart(userData.user, p));
+      case "restore-admin-verify": return reply(await restoreAdminVerify(userData.user, p));
       case "password-changed":
         await clearLock(String(userData.user.email ?? "").toLowerCase());
         return reply({ success: true });

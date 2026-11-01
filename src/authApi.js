@@ -70,3 +70,8 @@ export const createAdminAccount = ({ first_name, last_name, email, password }) =
 // Step 2: the code they received (and the password again) → the admin account.
 export const verifyAdminAccount = (challengeId, code, password) =>
   call({ action: 'create-admin-verify', challengeId, code, password });
+
+// Restoring an archived admin: emails them a 6-digit code (asking again sends a
+// new one); the right code makes them an admin again.
+export const restoreAdminAccount = (userId) => call({ action: 'restore-admin', userId });
+export const verifyRestoredAdmin = (userId, code) => call({ action: 'restore-admin-verify', userId, code });

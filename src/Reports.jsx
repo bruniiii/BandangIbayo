@@ -699,14 +699,14 @@ const Reports = () => {
 
       {loading ? (
         <SkeletonRegion label="Loading reports" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
             {[0, 1, 2, 3].map((i) => (
               <div key={i} style={{ background: '#FDF6EE', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <Skel w="50%" h={10} /><Skel w="70%" h={26} /><Skel w="40%" h={10} />
               </div>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 16 }}>
             {[0, 1].map((i) => (
               <div key={i} style={{ background: '#FDF6EE', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Skel w="35%" h={12} /><Skel h={200} r={14} />
@@ -796,7 +796,7 @@ const Reports = () => {
               </div>
 
               {/* ── Donut charts row ── */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20 }}>
                 <div style={{
                   background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
                   border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
@@ -822,7 +822,7 @@ const Reports = () => {
               }}>
                 <SectionTitle icon={<Trophy size={14} />}>Tour Performance</SectionTitle>
                 <div style={{ overflowX: 'auto', marginBottom: 20 }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
+                  <table className="stack-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
                         {['Tour', 'Bookings', 'Revenue', 'Pax', 'Completion', 'Rating'].map((h) => (
@@ -846,7 +846,7 @@ const Reports = () => {
                     </tbody>
                   </table>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 16 }}>
                   {bestTour && (
                     <HighlightCard icon={<Trophy size={16} />} label="Best Selling Tour" title={bestTour.title} sub={`${bestTour.bookingsCount} bookings · ${peso(bestTour.revenue)}`} tone="good" />
                   )}
@@ -863,9 +863,9 @@ const Reports = () => {
               }}>
                 <SectionTitle icon={<Star size={14} />}>Joiner Reviews</SectionTitle>
                 {reviewSummary.count === 0 ? <EmptyChartNotice /> : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 20 }}>
                     <div>
-                      <p style={{ fontSize: 34, fontWeight: 900, color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <p style={{ fontSize: 'clamp(22px, 8vw, 34px)', fontWeight: 900, color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere' }}>
                         {reviewSummary.average.toFixed(1)} <Star size={24} fill="#E8A265" color="#E8A265" />
                       </p>
                       <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: '2px 0 14px' }}>
@@ -909,7 +909,7 @@ const Reports = () => {
                 border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
               }}>
                 <SectionTitle icon={<Users size={14} />}>Customer Analytics</SectionTitle>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>New vs. Returning Joiners</p>
                     <DonutChart segments={[

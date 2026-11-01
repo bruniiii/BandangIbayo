@@ -226,7 +226,7 @@ const ParticipantsFields = ({ participants, onChange, showVans = false }) => (
           Van {i / VAN_SEATS + 1} · Persons {i + 1}–{Math.min(participants.length, i + VAN_SEATS)}
         </p>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, alignItems: 'end' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 10, alignItems: 'end' }}>
         <InputField
           name={`participant_name_${i}`}
           data-allow="name"
@@ -306,8 +306,10 @@ const requestFields = (type, form) => {
   }));
   if (type === 'exclusive') {
     row.budget = form.budget === '' ? null : Number(form.budget);
-  } else {
-    row.region = form.region || null;
+  } else if (form.region) {
+    // Only sent when filled in (the form has no region box today), so a
+    // database without that column still saves the request.
+    row.region = form.region;
   }
   return row;
 };
@@ -401,7 +403,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
       .insert([{ ...fields, user_id: user.id, request_type: type }])
       .select();
     if (error) {
-      toast.error("Couldn't submit your request", error.message);
+      // A clear pop-up saying why, so the joiner (and the admin) can act on it.
+      toast.error(isExclusive ? "Your exclusive tour request wasn't sent" : "Your tour request wasn't sent", `${error.message} Please try again. If it keeps happening, message Bandang IBAYO.`);
       setLoading(false);
       return;
     }
@@ -459,7 +462,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {sectionTitle(1, isExclusive ? 'Contact Information' : 'Your Information')}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
           <InputField name="fullName" data-allow="name" label="Full Name" placeholder="Juan Dela Cruz" value={form.fullName} onChange={set('fullName')} required />
           <InputField name="contact" label="Contact Number" {...phoneFieldProps(form.contact, (v) => setForm((prev) => ({ ...prev, contact: v })))} required />
           <InputField name="email" label="Email Address" type="email" placeholder="juan@email.com" value={form.email} onChange={set('email')} required />
@@ -468,7 +471,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {sectionTitle(2, isExclusive ? 'Trip Details' : 'Destination & Tour Details')}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} required />
           <InputField name="groupSize" label={isExclusive ? 'Number of Participants' : `Number of Participants (up to ${MAX_TOUR_SLOTS})`} type="number" min="1" max={maxGroupFor(type)} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
           <TripDatesFields form={form} setForm={setForm} />
@@ -671,8 +674,10 @@ const PackageDetail = ({ label, icon, color = '#A8481A', children }) => (
   </div>
 );
 
-const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
-  const [expanded, setExpanded] = useState(false);
+// alwaysOpen: shown open, with no dropdown (Request a Tour's only Tour Confirmed request).
+const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false }) => {
+  const [open, setExpanded] = useState(false);
+  const expanded = alwaysOpen || open;
   const isExclusive = request.request_type === 'exclusive';
   const pkg = request.package_details;
   const hasPackage = !!request.package_sent_at && pkg;
@@ -696,10 +701,11 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
       overflow: 'hidden',
     }}>
       <button
-        onClick={() => setExpanded(v => !v)}
+        onClick={alwaysOpen ? undefined : () => setExpanded(v => !v)}
+        aria-expanded={alwaysOpen ? undefined : expanded}
         style={{
           width: '100%', padding: '1rem 1.25rem',
-          background: 'none', border: 'none', cursor: 'pointer',
+          background: 'none', border: 'none', cursor: alwaysOpen ? 'default' : 'pointer',
           display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
           textAlign: 'left', fontFamily: 'inherit',
         }}
@@ -718,13 +724,15 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
         <RequestStatusBadge status={status} />
         {paymentLabel && <RequestStatusBadge status={paymentLabel} />}
 
-        <ChevronDown
-          size={16}
-          style={{
-            color: 'rgba(122,58,24,0.85)', flexShrink: 0,
-            transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s',
-          }}
-        />
+        {!alwaysOpen && (
+          <ChevronDown
+            size={16}
+            style={{
+              color: 'rgba(122,58,24,0.85)', flexShrink: 0,
+              transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s',
+            }}
+          />
+        )}
       </button>
 
       {expanded && (
@@ -820,7 +828,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: 14 }}>
                 {pkg.price != null && pkg.price !== '' && (
                   <div>
                     <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 3px' }}>
@@ -857,7 +865,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit }) => {
                 <PackageDetail label="Itinerary" icon={<Calendar size={11} />}>{pkg.itinerary}</PackageDetail>
               ))}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 14 }}>
                 {pkg.inclusions && (
                   <PackageDetail label="Inclusions" icon={<CheckCircle2 size={11} />}>
                     {pkg.inclusions}
@@ -947,8 +955,8 @@ const DownpaymentPanel = ({ request, price }) => {
 
   const pay = (start, doneTitle, doneText, extra = {}) => async () => {
     setBusy(true);
-    const { ok, data, error } = await start({ requestId: request.id, ...extra });
-    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(false); return; }
+    const { ok, data, error, cancelled } = await start({ requestId: request.id, ...extra });
+    if (!ok) { if (!cancelled) toast.error("Couldn't open the payment page", error); setBusy(false); return; }
     if (data.alreadyPaid) { toast.success(doneTitle, doneText); setBusy(false); return; }
     window.location.assign(data.checkoutUrl);
   };
@@ -1105,8 +1113,11 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {(() => {
           const shown = statusFilter === 'All' ? requests : requests.filter((q) => requestStatusLabel(q) === statusFilter || requestPaymentLabel(q) === statusFilter);
+          // Request a Tour: when only one request is Tour Confirmed, it's shown open (no dropdown).
+          const confirmed = requests.filter((q) => requestStatusLabel(q) === 'Tour Confirmed');
+          const singleConfirmedId = type === 'request' && confirmed.length === 1 ? confirmed[0].id : null;
           return shown.length
-            ? shown.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} onEdit={setEditing} />)
+            ? shown.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} onEdit={setEditing} alwaysOpen={r.id === singleConfirmedId} />)
             : <p style={{ margin: 0, padding: '14px 16px', borderRadius: 14, background: 'rgba(242,228,208,0.5)', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>No requests marked "{statusFilter}" yet.</p>;
         })()}
       </div>

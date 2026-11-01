@@ -20,9 +20,11 @@ const timeOf = (d) => manila(d, { hour: '2-digit', minute: '2-digit', hour12: tr
 
 export const receiptNumber = (booking, part = 'payment') => `R-${booking.booking_number}${part === 'balance' ? '-BAL' : ''}`;
 
+// What's still owed: the total minus every confirmed payment so far. The
+// booking pages, the admin view and the receipts all use this one value.
 export const balanceRemaining = (booking) =>
   booking.payment_method === 'Downpayment' && !booking.balance_settled
-    ? Math.max(0, (booking.total_price || 0) - (booking.amount_paid || 0))
+    ? Math.max(0, Math.round(((Number(booking.total_price) || 0) - (Number(booking.amount_paid) || 0)) * 100) / 100)
     : 0;
 
 // A QR code image (PNG data URL) for the receipt.
@@ -170,7 +172,8 @@ const bookingReceipt = async (booking, tour, { expenses, part = 'payment' } = {}
   const down = isDown ? (settled ? downpaymentOf(booking) : Number(booking.amount_paid ?? 0) || 0) : 0;
   const paidNow = isBalance ? Math.max(0, total - down) : isDown ? down : Number(booking.amount_paid ?? total) || 0;
   const paidSoFar = isBalance ? total : paidNow;
-  const remaining = isBalance ? 0 : isDown ? Math.max(0, total - down) : 0;
+  // Remaining balance: the same value the booking shows (total minus all payments).
+  const remaining = isBalance ? 0 : balanceRemaining(booking);
   const paidAt = isBalance
     ? (booking.balance_settled_at || new Date())
     : (booking.paid_online_at || booking.updated_at || booking.created_at || new Date());
@@ -243,7 +246,10 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
   const isBalance = part === 'balance' && !!request.balance_settled;
   const down = Number(request.downpayment_amount) || Math.round(price * 50) / 100;
   const paidNow = isBalance ? (Number(request.balance_amount) || Math.max(0, price - down)) : down;
-  const remaining = isBalance ? 0 : Math.max(0, price - down);
+  // Remaining balance: the package price minus every payment so far (the same
+  // value shown on the joiner's Exclusive Tours page).
+  const paidTotal = Number(request.amount_paid) || down;
+  const remaining = isBalance || request.balance_settled ? 0 : Math.max(0, Math.round((price - paidTotal) * 100) / 100);
   const start = pkg.start_date || request.preferred_date;
   const end = pkg.end_date || request.preferred_end_date || start;
   const paidAt = (isBalance ? request.balance_paid_at : request.paid_at) || new Date();

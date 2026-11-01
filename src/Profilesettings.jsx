@@ -353,7 +353,7 @@ const ProfileSettings = () => {
           <Skel w={84} h={84} r={999} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}><Skel w="40%" h={16} /><Skel w="30%" h={11} /><Skel w={120} h={30} r={10} /></div>
         </div>
-        <div style={{ background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+        <div style={{ background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 16 }}>
           {Array.from({ length: 6 }, (_, i) => (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 7 }}><Skel w="35%" h={9} /><Skel h={40} r={12} /></div>
           ))}

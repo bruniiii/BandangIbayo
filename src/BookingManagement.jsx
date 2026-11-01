@@ -189,6 +189,14 @@ const BookingManagement = () => {
     display: 'flex', alignItems: 'center',
   };
  
+  // Phones get cards instead of the wide table.
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 720);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth <= 720);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   // ── grid column template shared by header + rows ──
   const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 170px 140px';
  
@@ -348,6 +356,13 @@ const BookingManagement = () => {
       }}>
         {loading ? (
           <div style={{ padding: '0 0.25rem' }}><SkeletonTable rows={7} cols={6} label="Loading bookings" /></div>
+        ) : isNarrow ? (
+          // Phones: one card per booking (the table would be wider than the screen).
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {filteredBookings.length > 0
+              ? filteredBookings.map((booking) => <BookingCard key={booking.id} booking={booking} onView={() => setSelectedBooking(booking)} />)
+              : <EmptyState icon={ClipboardList} title="No bookings to show" message="Try another search or filter." />}
+          </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: bookingGridCols, minWidth: 980 }}>
@@ -438,10 +453,13 @@ const BookingManagement = () => {
             if (!error) {
               toast.success('Balance marked as paid', `${selectedBooking.booking_number} is now paid in full.`);
               await fetchBookings();
-              notifyUser(selectedBooking.user_id, {
+              // Not type 'payment' (those clear themselves after 3 minutes):
+              // the joiner should see that their cash balance was confirmed.
+              const paidBalance = Math.max(0, Number(fullAmount) - Number(selectedBooking.amount_paid || 0));
+              await notifyUser(selectedBooking.user_id, {
                 title: 'Balance Payment Confirmed',
-                message: `Your remaining balance for ${selectedBooking.tours?.title} (${selectedBooking.booking_number}) has been marked as paid in full.`,
-                type: 'payment',
+                message: `Your balance payment of ${formatPeso(paidBalance)} has been confirmed. ${selectedBooking.tours?.title || 'Your tour'} (${selectedBooking.booking_number}) is now fully paid.`,
+                type: 'booking',
                 related_id: selectedBooking.id,
               });
               return data;
@@ -534,4 +552,41 @@ const BookingRow = ({ booking, onView }) => {
   );
 };
  
+/* ─────────────────────────────────────────────
+   BOOKING CARD (phones)
+───────────────────────────────────────────── */
+const BookingCard = ({ booking, onView }) => (
+  <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(180,81,30,0.1)', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div style={{ minWidth: 0, flex: '1 1 160px' }}>
+        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12, margin: 0 }}>{booking.booking_number || '—'}</p>
+        <p style={{ fontWeight: 900, color: '#1A0A00', fontSize: 14, margin: '3px 0 0', overflowWrap: 'anywhere' }}>
+          {booking.profiles ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim() : booking.full_name || '—'}
+        </p>
+        <p style={{ fontWeight: 700, color: '#7A3A18', fontSize: 12, margin: '2px 0 0', overflowWrap: 'anywhere' }}>
+          {booking.tours?.title || '—'} · {booking.slots_booked} pax
+        </p>
+      </div>
+      <div style={{ textAlign: 'right', minWidth: 0, maxWidth: '100%' }}>
+        <p style={{ fontWeight: 900, color: '#A8481A', fontSize: 15, margin: 0, overflowWrap: 'anywhere' }}>{formatPeso(booking.total_price)}</p>
+        {booking.payment_method === 'Downpayment' && (
+          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? '#A8481A' : '#8C5216', margin: '2px 0 0', overflowWrap: 'anywhere' }}>
+            Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
+          </p>
+        )}
+      </div>
+    </div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+      <PaymentMethodBadge method={booking.payment_method} />
+      <StatusBadge status={getShownStatus(booking)} wrap />
+      {getBalanceStatus(booking) && <BalanceStatusBadge status={getBalanceStatus(booking)} />}
+      <button onClick={onView} style={{
+        marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F2E4D0', color: '#1A0A00',
+        border: 'none', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
+        fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '9px 14px',
+      }}><Eye size={12} /> View</button>
+    </div>
+  </div>
+);
+
 export default BookingManagement;

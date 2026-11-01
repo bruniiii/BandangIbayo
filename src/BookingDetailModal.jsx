@@ -5,7 +5,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
-import { printReceipt } from './paymentReceipt';
+import { printReceipt, balanceRemaining } from './paymentReceipt';
 import { formatPeso, bookingDownpayment, formatDateRange as formatTourDates } from './tourUtils';
 import { MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Hash, User, CreditCard, AlertCircle, Image as ImageIcon, Wallet, Printer, Users, History } from 'lucide-react';
 import { SkeletonLines } from './ui/Skeleton';
@@ -91,7 +91,8 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
   const subtotal = booking.total_price || 0;
   const amountPaid = balanceSettled ? subtotal : (booking.amount_paid || subtotal);
   const downpaymentAmount = bookingDownpayment(booking);
-  const balance = booking.payment_method === 'Downpayment' ? subtotal - downpaymentAmount : 0;
+  // Still owed: total minus every payment so far (the same value as the joiner's booking and receipt).
+  const balance = booking.payment_method === 'Downpayment' ? (balanceSettled ? 0 : balanceRemaining(booking)) : 0;
   const isDownpayment = booking.payment_method === 'Downpayment';
  
   const joinerName = profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || '—' : (booking.full_name || '—');

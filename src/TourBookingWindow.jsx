@@ -225,7 +225,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     // Online payment: hold the slots and go to PayMongo's secure checkout page.
     const handleChoosePaymentType = async (type) => {
         setRedirectingToPayment(true);
-        const { ok, data, error } = await startCheckout({
+        const { ok, data, error, cancelled } = await startCheckout({
             tourId: tour.id,
             slots: numPersons,
             paymentType: type,
@@ -233,7 +233,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             accommodation: accommodation || null,
         });
         if (!ok) {
-            toast.error("Couldn't start the payment", error);
+            if (!cancelled) toast.error("Couldn't start the payment", error);
             setRedirectingToPayment(false);
             return;
         }

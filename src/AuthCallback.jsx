@@ -5,7 +5,6 @@ import { supabase } from './supabaseClient';
 import { safeNextPath } from './tourUtils';
 import { profileIsComplete } from './googleAuth';
 import { usePopupError } from './ui/usePopupError';
-import { askToReactivate } from './reactivate';
 
 // ─────────────────────────────────────────────
 // /auth/callback: where Google sends the browser back after "Continue with
@@ -43,7 +42,7 @@ const AuthCallback = () => {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
       if (cancelled) return;
       if (profile?.role === 'archived_admin') { await supabase.auth.signOut(); setError("This admin account was archived, so it can't log in. Ask the main admin to restore it."); return; }
-      if (profile?.deactivated_at && !(await askToReactivate())) { navigate('/login', { replace: true }); return; }
+      if (profile?.archived_at) { await supabase.auth.signOut(); setError('This account is archived. Contact Bandang Ibayo to restore it.'); return; }
       if (cancelled) return;
       if (profile?.role === 'admin') navigate('/admin/dashboard', { replace: true });
       else if (!profileIsComplete(profile)) navigate(`/complete-profile${next ? `?next=${encodeURIComponent(next)}` : ''}`, { replace: true });

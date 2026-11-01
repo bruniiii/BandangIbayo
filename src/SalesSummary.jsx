@@ -147,7 +147,7 @@ const SalesSummary = ({ onData }) => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: 12 }}>
         <Stat icon={<Wallet size={17} />} label={`Collected in ${monthLabel(month)}`} value={loading ? '…' : formatPeso(summary.collected)}
           sub={loading ? '' : summary.exclusiveCollected ? `${formatPeso(summary.toursCollected)} tours · ${formatPeso(summary.exclusiveCollected)} exclusive` : 'From tour bookings'} />
         <Stat icon={<Users size={17} />} label="Paid bookings" value={loading ? '…' : String(summary.bookings)} sub={loading ? '' : `${summary.pax} joiner${summary.pax === 1 ? '' : 's'}`} />
@@ -164,7 +164,7 @@ const SalesSummary = ({ onData }) => {
             <p style={muted}>No payments this month yet.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={table}>
+              <table className="stack-table" style={table}>
                 <thead>
                   <tr>{['Tour', 'Date', 'Joiners', 'Collected', 'At Regular Rate', 'Balance due'].map((h) => <th key={h} style={th}>{h}</th>)}</tr>
                 </thead>
@@ -192,7 +192,7 @@ const SalesSummary = ({ onData }) => {
             <p style={muted}>Everyone is fully paid. 🎉</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={table}>
+              <table className="stack-table" style={table}>
                 <thead>
                   <tr>{['Name', 'Reference', 'Tour', 'Tour date', 'Balance'].map((h) => <th key={h} style={th}>{h}</th>)}</tr>
                 </thead>
@@ -221,7 +221,7 @@ const Stat = ({ icon, label, value, sub, tone }) => (
     <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: tone === 'warn' ? '#8C5216' : '#7A3A18', margin: 0 }}>
       {icon} {label}
     </p>
-    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: '6px 0 0', letterSpacing: '-0.02em' }}>{value}</p>
+    <p style={{ fontSize: 'clamp(18px, 6.5vw, 24px)', fontWeight: 900, color: '#1A0A00', margin: '6px 0 0', letterSpacing: '-0.02em', overflowWrap: 'anywhere' }}>{value}</p>
     {sub && <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>{sub}</p>}
   </div>
 );

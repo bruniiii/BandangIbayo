@@ -3,7 +3,7 @@ import { ShieldCheck, UserPlus, Archive, ArchiveRestore, ChevronDown, Loader2, E
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
-import { createAdminAccount, verifyAdminAccount, resendLoginCode } from './authApi';
+import { createAdminAccount, verifyAdminAccount, resendLoginCode, restoreAdminAccount, verifyRestoredAdmin } from './authApi';
 import OtpInput from './ui/OtpInput';
 import PasswordChecklist from './PasswordChecklist';
 import { passwordErrorMessage } from './passwordPolicy';
@@ -129,17 +129,40 @@ const AdminSettings = () => {
     load();
   };
 
-  const restore = async (a) => {
-    if (!(await confirmDialog({
+  // Restoring: a 6-digit code is emailed to the admin. They stay unable to
+  // log in ("Pending verification") until the code is entered here.
+  const [verifying, setVerifying] = useState(null); // the admin whose code is being entered
+  const [restoreCode, setRestoreCode] = useState('');
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const sendRestoreCode = async (a, again = false) => {
+    if (!again && !(await confirmDialog({
       title: `Restore ${a.name}?`,
-      message: `They'll be able to log in and use the admin dashboard again${a.was_main_admin ? ', as a main admin' : ''}, with the same password as before.`,
-      confirmLabel: 'Restore Admin', cancelLabel: 'Cancel',
+      message: `We'll email a 6-digit code to ${a.email}. They stay unable to log in until the code is entered here (ask them for it). The code expires after 10 minutes.`,
+      confirmLabel: 'Send Code', cancelLabel: 'Cancel',
     }))) return;
-    const { error: err } = await supabase.rpc('restore_admin', { p_id: a.id });
-    if (err) { toast.error("Couldn't restore the admin", err.message); return; }
-    toast.success('Admin restored', `${a.name} can log in again.`);
+    setRestoreBusy(true);
+    const result = await restoreAdminAccount(a.id);
+    setRestoreBusy(false);
+    if (!result.ok) { toast.error("Couldn't send the code", result.error); return; }
+    toast.info(again ? 'New code sent' : 'Code sent', `A 6-digit code went to ${result.data.sentTo}. It expires in ${result.data.expiresInMinutes} minutes.`);
+    setRestoreCode('');
+    setVerifying(a);
     load();
   };
+  const confirmRestoreCode = async (e) => {
+    e?.preventDefault?.();
+    if (restoreCode.length !== 6) { toast.error('Enter the 6-digit code', 'Ask the admin for the code we emailed them.'); return; }
+    setRestoreBusy(true);
+    const result = await verifyRestoredAdmin(verifying.id, restoreCode);
+    setRestoreBusy(false);
+    if (!result.ok) { toast.error("That didn't work", result.error); return; }
+    toast.success('Admin restored', `${verifying.name}'s email is verified. They can log in again.`);
+    setVerifying(null);
+    setRestoreCode('');
+    load();
+  };
+  const pendingAdmins = archived.filter((a) => a.pending);
+  const archivedOnly = archived.filter((a) => !a.pending);
 
   if (me.loaded && !me.isMain) {
     return (
@@ -245,6 +268,30 @@ const AdminSettings = () => {
                 </li>
               );
             })}
+            {pendingAdmins.map((a) => (
+              <li key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 1.5rem', borderTop: '1px solid rgba(180,81,30,0.1)', flexWrap: 'wrap', background: 'rgba(252,231,166,0.25)' }}>
+                <span aria-hidden="true" style={{
+                  width: 42, height: 42, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: '#FCE7A6', color: '#7A5200', fontSize: 13, fontWeight: 900,
+                }}>{initials(a.name)}</span>
+                <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</p>
+                  {a.email && a.email !== a.name && <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.email}</p>}
+                </div>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 999,
+                  fontSize: 10.5, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                  background: '#FCE7A6', color: '#7A5200', border: '1px solid #E8C25A',
+                }}><MailCheck size={12} /> Pending verification</span>
+                <button type="button" onClick={() => { setRestoreCode(''); setVerifying(a); }} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: 'pointer',
+                  background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                }}>Enter Code</button>
+                <button type="button" disabled={restoreBusy} onClick={() => sendRestoreCode(a, true)} className="text-link" style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12 }}>
+                  Resend code
+                </button>
+              </li>
+            ))}
           </ul>
         )}
 
@@ -256,15 +303,15 @@ const AdminSettings = () => {
           }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18' }}>
               <Archive size={14} /> Archived Admins
-              <span style={{ padding: '1px 9px', borderRadius: 999, background: '#F2E4D0', fontSize: 11.5, color: '#A8481A' }}>{archived.length}</span>
+              <span style={{ padding: '1px 9px', borderRadius: 999, background: '#F2E4D0', fontSize: 11.5, color: '#A8481A' }}>{archivedOnly.length}</span>
             </span>
             <ChevronDown size={16} style={{ color: '#7A3A18', transition: 'transform 0.2s', transform: showArchived ? 'rotate(180deg)' : 'none' }} />
           </button>
-          {showArchived && (archived.length === 0 ? (
+          {showArchived && (archivedOnly.length === 0 ? (
             <p style={{ margin: 0, padding: '12px 1.5rem 16px', fontSize: 12.5, fontWeight: 600, color: '#7A3A18' }}>No archived admins. Admins you archive are kept here, and you can restore them anytime.</p>
           ) : (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-              {archived.map((a) => (
+              {archivedOnly.map((a) => (
                 <li key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 1.5rem', borderTop: '1px solid rgba(180,81,30,0.1)', flexWrap: 'wrap' }}>
                   <span aria-hidden="true" style={{
                     width: 42, height: 42, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -275,7 +322,7 @@ const AdminSettings = () => {
                     {a.email && a.email !== a.name && <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.email}</p>}
                   </div>
                   <span style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', minWidth: 120 }}>Archived {formatDate(a.archived_at)}</span>
-                  <button type="button" onClick={() => restore(a)} aria-label={`Restore ${a.name}`} style={{
+                  <button type="button" disabled={restoreBusy} onClick={() => sendRestoreCode(a)} aria-label={`Restore ${a.name}`} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: 'pointer',
                     background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
                   }}><ArchiveRestore size={14} /> Restore</button>
@@ -285,6 +332,33 @@ const AdminSettings = () => {
           ))}
         </div>
       </section>
+
+      <AutoArchiveSetting />
+
+      {/* ── Restore: enter the code the admin received ── */}
+      {verifying && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={() => !restoreBusy && setVerifying(null)} />
+          <form role="dialog" aria-label="Verify the restored admin" onSubmit={confirmRestoreCode} style={{
+            position: 'relative', width: '100%', maxWidth: 420, background: '#FDF6EE', borderRadius: 22, borderTop: '6px solid #B4511E',
+            boxShadow: '0 30px 70px rgba(26,10,0,0.4)', padding: '1.5rem 1.6rem',
+          }}>
+            <button type="button" onClick={() => setVerifying(null)} disabled={restoreBusy} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+            <h3 style={{ ...cardTitle, fontSize: 16 }}><MailCheck size={17} style={{ color: '#A8481A' }} /> Verify {verifying.name}</h3>
+            <p style={{ ...cardHint, margin: '6px 0 16px' }}>
+              Enter the 6-digit code we emailed to <strong>{verifying.email}</strong>. Ask them for it. The code expires 10 minutes after it was sent.
+            </p>
+            <OtpInput value={restoreCode} onChange={setRestoreCode} autoFocus />
+            <button type="submit" disabled={restoreBusy || restoreCode.length !== 6} style={{ ...primaryBtn(restoreBusy || restoreCode.length !== 6), marginTop: 16 }}>
+              {restoreBusy ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={15} />} Verify & Restore
+            </button>
+            <p style={{ margin: '12px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', textAlign: 'center' }}>
+              Didn't get it, or it expired?{' '}
+              <button type="button" disabled={restoreBusy} onClick={() => sendRestoreCode(verifying, true)} className="text-link" style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12 }}>Resend code</button>
+            </p>
+          </form>
+        </div>
+      )}
 
       {/* ── Add Admin window: 1 Details → 2 Verify email ── */}
       {adding && (
@@ -354,6 +428,79 @@ const AdminSettings = () => {
       )}
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>
+  );
+};
+
+// ── Archive inactive joiners automatically ──
+// Saved in app_settings; the database archives joiners with no login for
+// this long every day (archive_inactive_joiners). Default: on, 2 years.
+const ARCHIVE_OPTIONS = [[180, '6 months'], [365, '1 year'], [548, '1½ years'], [730, '2 years'], [1095, '3 years'], [1825, '5 years']];
+
+const AutoArchiveSetting = () => {
+  const [enabled, setEnabled] = useState(true);
+  const [days, setDays] = useState(730);
+  const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    supabase.from('app_settings').select('key, value').in('key', ['inactive_archive_enabled', 'inactive_archive_days']).then(({ data, error }) => {
+      if (!active) return;
+      if (error) { toast.error("Couldn't load the archive setting", error.message); return; }
+      const get = (k) => (data || []).find((r) => r.key === k)?.value;
+      if (get('inactive_archive_enabled') != null) setEnabled(get('inactive_archive_enabled') === true);
+      if (get('inactive_archive_days') != null) setDays(Number(get('inactive_archive_days')) || 730);
+      setLoaded(true);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const save = async (nextEnabled, nextDays) => {
+    const label = ARCHIVE_OPTIONS.find(([d]) => d === nextDays)?.[1] || `${nextDays} days`;
+    if (!(await confirmDialog(nextEnabled
+      ? { title: `Archive joiners after ${label} without a login?`, message: 'Joiners who haven\'t logged in for this long are archived automatically every day. They can\'t log in until an admin restores them. Joiners close to the limit get a yellow warning in Joiner Accounts.', confirmLabel: 'Save Setting', cancelLabel: 'Cancel' }
+      : { title: 'Turn off automatic archiving?', message: 'Inactive joiners will no longer be archived automatically. Accounts already archived stay archived.', confirmLabel: 'Turn Off', cancelLabel: 'Keep It On' }))) return;
+    setSaving(true);
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('app_settings').upsert([
+      { key: 'inactive_archive_enabled', value: nextEnabled, updated_at: now },
+      { key: 'inactive_archive_days', value: nextDays, updated_at: now },
+    ], { onConflict: 'key' });
+    setSaving(false);
+    if (error) { toast.error("Couldn't save the setting", error.message); return; }
+    setEnabled(nextEnabled); setDays(nextDays);
+    toast.success('Setting saved', nextEnabled ? `Joiners are archived after ${label} without a login.` : 'Automatic archiving is off.');
+  };
+
+  return (
+    <section style={card} aria-label="Archive inactive joiners">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+          <h3 style={cardTitle}><Archive size={16} style={{ color: '#A8481A' }} /> Archive Inactive Joiners</h3>
+          <p style={{ ...cardHint, margin: '4px 0 0' }}>
+            Automatically archive joiner accounts that haven't logged in for a while. Archived joiners can't log in until an admin restores them in Joiner Accounts.
+          </p>
+        </div>
+        <button type="button" role="switch" aria-checked={enabled} disabled={!loaded || saving} onClick={() => save(!enabled, days)}
+          style={{
+            flexShrink: 0, width: 52, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer', position: 'relative',
+            background: enabled ? '#B4511E' : 'rgba(122,58,24,0.25)', transition: 'background 0.2s', opacity: loaded ? 1 : 0.5,
+          }}
+          aria-label={enabled ? 'Turn off automatic archiving' : 'Turn on automatic archiving'}>
+          <span style={{ position: 'absolute', top: 3, left: enabled ? 25 : 3, width: 24, height: 24, borderRadius: '50%', background: '#FDF6EE', transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(26,10,0,0.25)' }} />
+        </button>
+      </div>
+      {enabled && (
+        <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <label htmlFor="archive-after" style={{ ...label, margin: 0 }}>Archive after no login for</label>
+          <select id="archive-after" value={days} disabled={!loaded || saving} onChange={(e) => save(true, Number(e.target.value))}
+            style={{ ...input, width: 'auto', cursor: 'pointer' }}>
+            {ARCHIVE_OPTIONS.map(([d, l]) => <option key={d} value={d}>{l}{d === 730 ? ' (default)' : ''}</option>)}
+            {!ARCHIVE_OPTIONS.some(([d]) => d === days) && <option value={days}>{days} days</option>}
+          </select>
+        </div>
+      )}
+    </section>
   );
 };
 

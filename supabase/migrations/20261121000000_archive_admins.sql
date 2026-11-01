@@ -73,6 +73,8 @@ begin
 end;
 $$;
 
+-- (Dropped first: 20261126 adds a column; re-running this must not fail.)
+drop function if exists public.list_archived_admins();
 create or replace function public.list_archived_admins()
 returns table (id uuid, name text, email text, was_main_admin boolean, archived_at timestamptz)
 language sql

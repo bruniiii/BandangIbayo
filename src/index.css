@@ -9,27 +9,22 @@ html, body {
 }
 button, input, select, textarea { font-family: inherit; }
 
-/* Headings use DM Serif Display, an elegant high-contrast serif (it has a
-   single regular weight, so the bold set in component styles is reset
-   instead of faked). Small ALL-CAPS section labels stay in the body font,
-   Outfit, where a display serif would be hard to read.
-   .font-display gives any element the heading face; .font-accent is the
-   italic highlight used for a word or two inside a heading. */
+/* Headings use the same font as the rest of the site (Outfit), bold, so
+   they match the body text. .font-display gives any element the heading
+   look; .font-accent is the highlight used for a word inside a heading. */
 h1, h2, h3, h4, .font-display {
-  font-family: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-  font-weight: 400 !important;
-  font-synthesis: none;
-  letter-spacing: -0.005em;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-weight: 800 !important;
+  letter-spacing: -0.015em;
 }
 h1[style*="uppercase"], h2[style*="uppercase"], h3[style*="uppercase"], h4[style*="uppercase"] {
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   font-weight: 700 !important;
 }
 .font-accent {
-  font-family: 'DM Serif Display', Georgia, serif;
-  font-style: italic;
-  font-weight: 400 !important;
-  font-synthesis: none;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-style: normal;
+  font-weight: 800 !important;
 }
 ::placeholder { color: rgba(122,58,24,0.7); opacity: 1; }
 ::selection { background: rgba(196,92,38,0.25); color: #1A0A00; }
@@ -192,4 +187,68 @@ input::-ms-clear { display: none; }
 .grow-card { transition: transform 0.25s, box-shadow 0.25s; position: relative; }
 @media (hover: hover) {
   .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(26,10,0,0.14) !important; z-index: 2; }
+}
+
+/* PCs and laptops (mouse, not touch): the page never gets narrower than
+   620px. A smaller window scrolls sideways instead of squeezing the layout
+   further. Phones and tablets aren't affected. */
+@media (hover: hover) and (pointer: fine) {
+  html, body { min-width: 620px; }
+  .admin-dashboard-container,
+  .joiner-dashboard-container { min-width: 620px; position: absolute !important; }
+}
+
+/* No zooming on phones: double-tap zoom is off (pinch is off via the
+   viewport tag), and on touch screens every text box uses at least 16px text,
+   so iPhones don't zoom in when one is tapped. */
+html { touch-action: manipulation; }
+@media (pointer: coarse) {
+  input, select, textarea { font-size: max(16px, 1em) !important; }
+}
+
+/* Phones: long text and peso amounts inside the dashboards wrap instead of
+   pushing past their card (only where they would otherwise overflow), and
+   flex/grid items are allowed to shrink. */
+@media (max-width: 640px) {
+  .dashboard-content p, .dashboard-content span, .dashboard-content h3, .dashboard-content h4,
+  .dashboard-content td, .dashboard-content th, [role="dialog"] p, [role="dialog"] span { overflow-wrap: anywhere; }
+}
+
+/* Phones: wide tables (class "stack-table") become one card per row, each
+   value with its column name, so nothing scrolls sideways. */
+@media (max-width: 640px) {
+  table.stack-table { min-width: 0 !important; }
+  table.stack-table thead { display: none; }
+  table.stack-table, table.stack-table tbody, table.stack-table tr, table.stack-table td { display: block; width: 100%; box-sizing: border-box; }
+  table.stack-table tr { padding: 8px 0; border-bottom: 1px solid rgba(180,81,30,0.14); }
+  table.stack-table td { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 4px !important; border: none !important; text-align: right; overflow-wrap: anywhere; }
+  table.stack-table td::before { content: attr(data-label); flex-shrink: 0; max-width: 45%; text-align: left; font-size: 10.5px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #7A3A18; }
+}
+
+/* Small phones: the bell/account buttons keep their size and a long page
+   title is shortened with "…" instead of running under them. */
+@media (max-width: 480px) {
+  .dashboard-topbar { gap: 8px !important; }
+  .dashboard-topbar > div:first-child { flex: 1 1 auto; min-width: 0; gap: 8px !important; }
+  .dashboard-topbar > div:last-child { flex-shrink: 0; gap: 8px !important; }
+  .page-header h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px !important; }
+  .page-header > div[aria-hidden] { display: none !important; }
+}
+
+/* A footer with no buttons in it isn't shown. */
+.hide-when-empty:empty { display: none !important; }
+
+/* Blurred nature photo (mountains and forest, public/nature-bg.webp, 5 KB)
+   behind the landing page and both dashboards. A cream overlay keeps the
+   cards and text easy to read. */
+.nature-bg {
+  background: linear-gradient(rgba(253,246,238,0.55), rgba(253,246,238,0.55)), url('/nature-bg.webp') center / cover fixed, #FDF6EE;
+}
+.dashboard-content {
+  background: linear-gradient(rgba(253,246,238,0.86), rgba(253,246,238,0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, #FDF6EE !important;
+  background-attachment: fixed !important;
+}
+@media (pointer: coarse) {
+  /* Phones don't support fixed backgrounds well: let it scroll with the page. */
+  .nature-bg, .dashboard-content { background-attachment: scroll !important; }
 }

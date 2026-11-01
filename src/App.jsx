@@ -46,14 +46,14 @@ const LandingReviews = () => {
   const reviews = usePublicReviews(6);
   if (!reviews || reviews.length === 0) return null;
   return (
-    <section style={{ background: '#FDF6EE', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
+    <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Joiner Stories</span>
           <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>What Our Joiners Say</h2>
           <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18' }}>Reviews from joiners who have finished a tour with us.</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 24 }}>
           {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
         </div>
       </div>
@@ -88,7 +88,7 @@ function LandingPage() {
   }, []);
  
   return (
-    <div style={{ background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
+    <div className="nature-bg" style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
  
       {/* ── NAV ── */}
       <nav className="site-nav" style={{
@@ -260,7 +260,7 @@ function LandingPage() {
       `}</style>
  
       {/* ── FEATURED TOURS ── */}
-      <section style={{ background: '#FDF6EE', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
+      <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: 16 }}>
             <div>
@@ -276,7 +276,7 @@ function LandingPage() {
           {loading ? (
             <SkeletonTourCards count={3} imageHeight={220} />
           ) : tours.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 28 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 28 }}>
               {tours.map((tour) => (
                 <div key={tour.id} className="tour-card" style={{
                   background: '#FDF6EE', borderRadius: 24, overflow: 'hidden',
@@ -355,7 +355,7 @@ function LandingPage() {
       </section>
  
       {/* ── TOUR TYPE GRID ── */}
-      <section style={{ background: '#FDF6EE', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
+      <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>           
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>
@@ -363,7 +363,7 @@ function LandingPage() {
             </h2>
             <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9 }}>Solo, barkada, or custom — there's a fit for every kind of traveler.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px,1fr))', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 24 }}>
             {[
               { icon: <Users size={32} strokeWidth={1.6}/>, title: 'Joiner Tour', desc: 'Share a van and accommodation with other travelers. Perfect for solo adventurers on a budget.', tag: 'Most Popular', accent: '#A8481A' },
               { icon: <Map size={32} strokeWidth={1.6}/>, title: 'Exclusive Tour', desc: 'Book the entire vehicle for your group. Keep your itinerary private and travel at your own pace.', tag: 'For Groups', accent: '#7A3A18' },
@@ -396,7 +396,7 @@ function LandingPage() {
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>How to Book</h2>
             <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9 }}>No more chaotic Facebook threads. Confirm your seat in minutes.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 32 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 32 }}>
             {[
               { icon: <Map size={28} strokeWidth={1.6}/>, num: '01', title: 'Browse a Tour', desc: 'See prices, itineraries, remaining seats, and verified agency info before committing.' },
               { icon: <CreditCard size={28} strokeWidth={1.6}/>, num: '02', title: 'Book & Pay via GCash', desc: 'Secure your slot instantly. Your seat is confirmed the moment payment clears.' },
@@ -426,7 +426,7 @@ function LandingPage() {
 
       {/* ── WHY CHOOSE US ── */}
       <section style={{ background: '#1A0A00', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)', position: 'relative' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(340px,1fr))', gap: 64, alignItems: 'start', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 64, alignItems: 'start', position: 'relative', zIndex: 1 }}>
           <div>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#E8A265' }}>Why Us</span>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#FDF6EE', margin: '12px 0 36px', lineHeight: 1.1 }}>
@@ -472,7 +472,7 @@ function LandingPage() {
 
       {/* ── ABOUT & CONTACT ── */}
       <section style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 56, alignItems: 'start' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 56, alignItems: 'start' }}>
           <div>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A', display: 'block', marginBottom: 16 }}>About</span>
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2.5rem,4vw,3.8rem)', letterSpacing: '-0.04em', color: '#1A0A00', lineHeight: 1.0, margin: '0 0 20px' }}>

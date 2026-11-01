@@ -7,7 +7,7 @@ import { usePopupError } from './ui/usePopupError';
 
 // ─────────────────────────────────────────────
 // YOUR ACCOUNT: a joiner can deactivate their account (nothing is deleted).
-// Logging in again offers to reactivate it (see JoinerLogin / AuthCallback).
+// The account is archived: it can't log in until an admin restores it.
 // ─────────────────────────────────────────────
 
 const MyData = () => {
@@ -29,7 +29,7 @@ const MyData = () => {
     // Leave the dashboard first, so signing out doesn't bounce to the login page.
     navigate('/', { replace: true });
     await supabase.auth.signOut();
-    toast.success('Your account is deactivated', 'Log in anytime to reactivate it.');
+    toast.success('Your account is deactivated', 'Contact Bandang Ibayo anytime to restore it.');
   };
 
   return (
@@ -39,7 +39,7 @@ const MyData = () => {
           <ShieldCheck size={18} style={{ color: '#A8481A' }} /> Your Account
         </h3>
         <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
-          Taking a break? You can deactivate your account and come back anytime.
+          Taking a break? You can deactivate your account. Bandang Ibayo can restore it when you want to come back.
         </p>
       </div>
 
@@ -57,7 +57,7 @@ const MyData = () => {
           <ul style={{ fontSize: 12, fontWeight: 600, color: '#1A0A00', margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
             <li>You'll be logged out and can't use your account while it's deactivated.</li>
             <li>Nothing is deleted. Your profile, bookings and reviews stay as they are.</li>
-            <li>To come back, just log in again and choose <strong>Reactivate</strong>.</li>
+            <li>To come back, contact Bandang Ibayo and we'll restore your account.</li>
             <li>You can't deactivate while you have an upcoming booking.</li>
           </ul>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

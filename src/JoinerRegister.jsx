@@ -365,7 +365,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
       // Supabase answers a sign-up for an email that's already registered with an
       // empty identity list (so it doesn't reveal accounts to strangers).
       if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        flagField(form, 'email', 'This email is already registered. Please log in, or use "Forgot password?" on the login page.');
+        flagField(form, 'email', 'An account with this email already exists. Log in or reset your password instead.');
         return;
       }
 
@@ -901,7 +901,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(130px, 1fr))',
+                'repeat(auto-fit, minmax(min(130px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -959,7 +959,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -997,7 +997,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -1020,7 +1020,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >
@@ -1072,7 +1072,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(auto-fit, minmax(200px, 1fr))',
+                'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
               gap: 14,
             }}
           >
