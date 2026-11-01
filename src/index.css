@@ -238,7 +238,7 @@ html { touch-action: manipulation; }
 /* A footer with no buttons in it isn't shown. */
 .hide-when-empty:empty { display: none !important; }
 
-/* Blurred nature photo (mountains and forest, public/nature-bg.webp, 5 KB)
+/* Blurred nature photo (beach, hills and sea, public/nature-bg.webp, 26 KB)
    behind the landing page and both dashboards. A cream overlay keeps the
    cards and text easy to read. */
 .nature-bg {
