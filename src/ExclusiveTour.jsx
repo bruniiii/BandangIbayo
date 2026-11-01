@@ -562,7 +562,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           <span style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6 }}>
             I have read and agree to the{' '}
             <button type="button" className="text-link no-touch-size" onClick={(e) => { e.preventDefault(); setShowTerms(true); }}
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 900, color: '#1A0A00' }}>
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 900, color: '#1A0A00', display: 'inline', minHeight: 0, lineHeight: 'inherit', verticalAlign: 'baseline' }}>
               Terms &amp; Conditions
             </button>{' '}and understand the
             non-refundable payment policy. I also acknowledge the medical disclaimer applicable to overland travel.
@@ -577,7 +577,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         />
       )}
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      {/* (On phones, room below the button so the Help button never covers it.) */}
+      <div className="request-submit-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {editing && (
           <button type="button" onClick={onCancel} style={{
             flex: '1 1 140px', padding: '16px 0', background: '#F2E4D0', color: '#1A0A00', borderRadius: 16,
@@ -586,18 +587,19 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         )}
         <button
           type="submit"
+          className="request-submit-btn"
           disabled={!canSubmit}
           title={canSubmit || loading ? undefined : 'Tick the Terms & Conditions box first'}
           style={{
-            flex: '2 1 220px', padding: '16px 0', background: isExclusive ? '#1A0A00' : '#B4511E', color: '#FDF6EE',
-            borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, fontFamily: 'inherit',
-            letterSpacing: '0.18em', textTransform: 'uppercase', cursor: canSubmit ? 'pointer' : 'not-allowed',
+            flex: '2 1 220px', padding: '16px 18px', background: isExclusive ? '#1A0A00' : '#B4511E', color: '#FDF6EE',
+            borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, fontFamily: 'inherit', lineHeight: 1.4,
+            letterSpacing: '0.12em', textTransform: 'uppercase', cursor: canSubmit ? 'pointer' : 'not-allowed',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             boxShadow: '0 6px 20px rgba(26,10,0,0.15)', opacity: canSubmit || loading ? 1 : 0.5,
           }}
         >
           {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : editing ? <CheckCircle2 size={16} /> : isExclusive ? <Send size={16} /> : <ArrowRight size={16} />}
-          {loading ? 'Saving…' : editing ? 'Save Changes' : isExclusive ? 'Submit Exclusive Booking Request' : 'Send Tour Request'}
+          <span style={{ textAlign: 'center' }}>{loading ? 'Saving…' : editing ? 'Save Changes' : isExclusive ? 'Submit Exclusive Booking Request' : 'Send Tour Request'}</span>
         </button>
       </div>
     </form>

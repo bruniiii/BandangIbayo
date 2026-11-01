@@ -1,15 +1,27 @@
 import { supabase, currentUser } from './supabaseClient';
 
 /* Works out which booking or tour a notification is about, so clicking it
-   opens that exact item. Uses related_id when the notification has one, and
-   otherwise the booking number (BK-2026-00115) or the tour name in its text,
-   so older notifications open the right item too. */
+   opens that exact item. Uses the item saved with the notification (ref) or
+   related_id when it has one, and otherwise the booking number
+   (BK-2026-00115) or the tour name in its text, so older notifications open
+   the right item too. */
 
 const BOOKING_NUMBER = /BK-\d{4}-\d+/i;
 const BOOKING_COLS = 'id, tour_id, user_id, booking_status, payment_status, created_at';
 const textOf = (n) => `${n?.title || ''} ${n?.message || ''}`;
 
+// The exact item saved with the notification (20261203): 'booking:<id>' / 'post:<id>'.
+const refOf = (n, kind) => {
+  const m = String(n?.ref || '').match(/^(\w+):(.+)$/);
+  return m && m[1] === kind ? m[2] : null;
+};
+
 export const bookingForNotification = async (n) => {
+  const refId = refOf(n, 'booking');
+  if (refId) {
+    const { data } = await supabase.from('bookings').select(BOOKING_COLS).eq('id', refId).limit(1);
+    if (data?.[0]) return data[0];
+  }
   const number = textOf(n).match(BOOKING_NUMBER)?.[0]?.toUpperCase();
   if (number) {
     const { data } = await supabase.from('bookings').select(BOOKING_COLS).eq('booking_number', number).limit(1);
@@ -47,6 +59,11 @@ const bookingByTourAndName = async (n) => {
 // Admins: the feed post a "New post to review" notice is about (the post by
 // the person named in it, made closest in time to the notice).
 export const postForNotification = async (n) => {
+  const refId = refOf(n, 'post');
+  if (refId) {
+    const { data } = await supabase.from('feed_posts').select('id, author_id, created_at, status').eq('id', refId).limit(1);
+    if (data?.[0]) return data[0];
+  }
   const at = new Date(n?.created_at || Date.now()).getTime();
   const from = new Date(at - 10 * 60 * 1000).toISOString();
   const to = new Date(at + 2 * 60 * 1000).toISOString();

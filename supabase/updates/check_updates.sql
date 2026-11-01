@@ -74,5 +74,7 @@ from (values
      to_regclass('public.van_locations') is not null),
   ('20261202 tracking runs by itself (trip-not-started alert)',
      exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-              where n.nspname = 'public' and p.proname = 'notify_trip_not_started'))
+              where n.nspname = 'public' and p.proname = 'notify_trip_not_started')),
+  ('20261203 reliability (notification links, van leaves at, error log)',
+     to_regclass('public.client_errors') is not null)
 ) as u(update_file, installed);

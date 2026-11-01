@@ -389,6 +389,13 @@ main {
 @media (max-width: 600px) {
   .cal-tour-chip { font-size: 0 !important; padding: 0 !important; height: 5px; }
   .cal-tour-more { display: none; }
+  /* Square-ish day boxes with the date on one line, centered. */
+  .cal-panel { padding: 1.1rem 0.9rem !important; border-radius: 22px !important; }
+  .cal-grid { gap: 5px !important; }
+  .cal-day-btn { height: 54px !important; padding: 6px 4px !important; border-radius: 12px !important; align-items: center; }
+  .cal-day-btn > div { margin-top: auto !important; }
+  .cal-day-num { font-size: 13px !important; letter-spacing: 0; }
+  .cal-weekday { font-size: 10.5px !important; letter-spacing: 0.04em !important; }
 }
 
 /* Admin request window: on phones the Approve/Reject buttons fill the width, Approve on top. */
