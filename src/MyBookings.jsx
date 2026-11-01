@@ -108,7 +108,9 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
         const endDate = new Date(booking.tours?.end_date);
         const isPastTour = endDate < today;
         const isVerified = booking.payment_status === 'Complete' || booking.booking_status === 'Completed';
-        return { ...booking, isActuallyCompleted: isVerified && isPastTour };
+        // A cancelled or rejected booking never counts as a completed trip, even after the tour date.
+        const isCancelled = booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected';
+        return { ...booking, isActuallyCompleted: isVerified && isPastTour && !isCancelled };
       });
  
       setBookings(processedBookings);
