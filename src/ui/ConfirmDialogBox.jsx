@@ -17,7 +17,7 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, onC
 
   const Icon = danger ? AlertTriangle : HelpCircle;
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div onClick={() => onClose(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} />
       <div
         role="alertdialog"
