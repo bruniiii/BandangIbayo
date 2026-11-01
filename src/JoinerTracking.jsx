@@ -8,68 +8,52 @@ import {
 } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 import { reportError } from './ui/toast';
+import { todayManila, formatDateRange } from './tourUtils';
+
+// A trip is over once its last day has passed (Philippine time).
+const isPast = (t) => String(t.end_date || t.start_date || '') < todayManila();
 
 export const JoinerTracking = ({ onExplore, openTourId = null }) => {
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
+  const [view, setView] = useState('current'); // 'current' | 'past'
   // Opened from a notification (pickup reminders): open that tour's tracking.
-  useOpenOnce(openTourId, toursList, setActiveTour);
+  useOpenOnce(openTourId, toursList, (t) => { setView(isPast(t) ? 'past' : 'current'); setActiveTour(t); });
   const [loading, setLoading] = useState(true);
   const [loadingConsole, setLoadingConsole] = useState(false);
   const [logs, setLogs] = useState([]);
   const [meetupStops, setMeetupStops] = useState([]);
   const [vehicleInfo, setVehicleInfo] = useState(null);
 
+  // Only the joiner's own trips: tours they booked (not cancelled or unpaid).
+  // Trips that haven't ended are under Current; finished ones under Past Tracking.
   useEffect(() => {
-    const fetchMyBookedAdventure = async () => {
+    let alive = true;
+    (async () => {
       try {
         setLoading(true);
-        let targetTourIds = [];
         const { data: { user } } = await supabase.auth.getUser();
-
-        if (user) {
-          const { data: bookedData } = await supabase
-            .from('bookings')
-            .select('tour_id')
-            .eq('user_id', user.id)
-            .not('booking_status', 'in', '("Cancelled","Rejected")')
-            .is('cancellation_requested_at', null); // a cancelled booking's tour leaves Tracking
-
-          if (bookedData && bookedData.length > 0) {
-            targetTourIds = [...new Set(bookedData.map(b => b.tour_id).filter(Boolean))];
-          }
-        }
-
-        if (targetTourIds.length > 0) {
-          const { data: finalTours, error: fetchError } = await supabase
-            .from('tours')
-            .select('*')
-            .in('id', targetTourIds)
-            .eq('is_archived', false);
-
-          if (!fetchError && finalTours && finalTours.length > 0) {
-            setToursList(finalTours);
-            setLoading(false);
-            return;
-          }
-        }
-
-        const { data: fallbackTours } = await supabase
-          .from('tours')
-          .select('*')
-          .eq('is_archived', false)
-          .order('start_date', { ascending: true })
-          .limit(1);
-
-        setToursList(fallbackTours || []);
+        if (!user) { if (alive) setToursList([]); return; }
+        const { data: bookedData, error: bookingsError } = await supabase
+          .from('bookings')
+          .select('tour_id, booking_status, payment_status, cancellation_requested_at')
+          .eq('user_id', user.id)
+          .not('booking_status', 'in', '("Cancelled","Rejected")')
+          .not('payment_status', 'in', '("Awaiting Payment","Expired")')
+          .is('cancellation_requested_at', null); // a cancelled booking's tour leaves Tracking
+        if (bookingsError) throw bookingsError;
+        const ids = [...new Set((bookedData || []).map(b => b.tour_id).filter(Boolean))];
+        if (!ids.length) { if (alive) setToursList([]); return; }
+        const { data: tours, error: toursError } = await supabase.from('tours').select('*').in('id', ids);
+        if (toursError) throw toursError;
+        if (alive) setToursList(tours || []);
       } catch (err) {
-        reportError("Couldn't load tracked tours", err.message);
+        reportError("Couldn't load your trips", err.message);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
-    };
-
-    fetchMyBookedAdventure();
+    })();
+    return () => { alive = false; };
   }, []);
 
   const fetchTrackingForTour = useCallback(async (tourId) => {
@@ -112,22 +96,46 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
     return () => { supabase.removeChannel(channel); };
   }, [activeTour, fetchTrackingForTour]);
 
+  const currentTrips = toursList.filter(t => !isPast(t)).sort((a, b) => String(a.start_date).localeCompare(String(b.start_date)));
+  const pastTrips = toursList.filter(isPast).sort((a, b) => String(b.start_date).localeCompare(String(a.start_date)));
+  const shown = view === 'past' ? pastTrips : currentTrips;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div role="tablist" aria-label="Current or past trips" style={{ display: 'flex', gap: 6, background: '#F2E4D0', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%', flexWrap: 'wrap' }}>
+        {[['current', 'Current Trips', currentTrips.length], ['past', 'Past Tracking', pastTrips.length]].map(([key, label, count]) => (
+          <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
+            display: 'flex', alignItems: 'center', gap: 8, border: 'none', borderRadius: 10, padding: '9px 16px', cursor: 'pointer',
+            fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+            background: view === key ? '#1A0A00' : 'transparent', color: view === key ? '#FDF6EE' : '#7A3A18',
+          }}>
+            {label}
+            {!loading && <span style={{ minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, background: view === key ? 'rgba(232,162,101,0.25)' : 'rgba(180,81,30,0.12)', color: view === key ? '#E8A265' : '#A8481A' }}>{count}</span>}
+          </button>
+        ))}
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
         {loading ? (
           <SkeletonTourCards count={3} label="Loading trips" />
-        ) : toursList.length === 0 ? (
+        ) : shown.length === 0 ? (
           <div style={{ gridColumn: '1 / -1' }}>
-            <EmptyState
-              icon={Navigation}
-              title="No trips to track yet"
-              message="Once you book a tour and your payment is confirmed, you can follow the van, pickup stops and live updates here."
-              action={onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
-            />
+            {view === 'past' ? (
+              <EmptyState
+                icon={Navigation}
+                title="No past trips yet"
+                message="After a tour you joined is over, its tracking history (the van, the pickup stops and every update) stays here."
+              />
+            ) : (
+              <EmptyState
+                icon={Navigation}
+                title="No trips to track yet"
+                message="Once you book a tour, you can follow the van, pickup stops and live updates here."
+                action={onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
+              />
+            )}
           </div>
-        ) : toursList.map(tour => (
-          <TrackingTourCard key={tour.id} tour={tour} onTrack={() => setActiveTour(tour)} />
+        ) : shown.map(tour => (
+          <TrackingTourCard key={tour.id} tour={tour} past={view === 'past'} onTrack={() => setActiveTour(tour)} />
         ))}
       </div>
 
@@ -145,7 +153,7 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
   );
 };
 
-const TrackingTourCard = ({ tour, onTrack }) => {
+const TrackingTourCard = ({ tour, onTrack, past = false }) => {
   const [hovered, setHovered] = useState(false);
   const displayImage = Array.isArray(tour.image_urls) && tour.image_urls.length > 0 ? tour.image_urls[0] : (tour.image || '');
 
@@ -167,8 +175,8 @@ const TrackingTourCard = ({ tour, onTrack }) => {
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
         )}
-        <span style={{ position: 'absolute', top: 12, right: 12, background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
-          Tracking
+        <span style={{ position: 'absolute', top: 12, right: 12, background: past ? '#1A0A00' : '#B4511E', color: past ? '#E8A265' : '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
+          {past ? 'Completed' : 'Tracking'}
         </span>
       </div>
 
@@ -179,7 +187,7 @@ const TrackingTourCard = ({ tour, onTrack }) => {
             <MapPin size={11} style={{ color: '#A8481A' }} /> {tour.destination}
           </p>
           <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
-            <Calendar size={11} style={{ color: '#A8481A' }} /> {tour.start_date || tour.date}
+            <Calendar size={11} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration) || tour.start_date || tour.date}
           </p>
         </div>
 
@@ -193,7 +201,7 @@ const TrackingTourCard = ({ tour, onTrack }) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}
         >
-          <Compass size={13} /> View Van ETA & Updates
+          <Compass size={13} /> {past ? 'View Trip History' : 'View Van ETA & Updates'}
         </button>
       </div>
     </div>
