@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, MapPin, ImageIcon, Users, Eye, Bell, Sparkles, MessagesSquare, Globe, Inbox } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { myBookingForNotification, tourForNotification } from './notificationTarget';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
 import { withAvailableSlots, archivePastTours, notEndedFilter, groupTripDates, formatDateRange as formatTourDates } from './tourUtils';
@@ -270,10 +271,20 @@ const JoinerDashboard = () => {
     setBookTourId(String(id));
   };
 
+  // The exact item a clicked notification is about ({ id, n }); n remounts the page so it opens it.
+  const [focus, setFocus] = useState(null);
+  const focusKey = focus ? `focus-${focus.n}` : undefined;
+  const focusId = focus?.id ?? null;
+  const openFocused = (page, id) => {
+    handleNavClick(page);
+    if (id != null) setFocus({ id, n: Date.now() });
+  };
+
   const handleNavClick = (label) => {
     setBookTourId(null);
     setBookingsFilter(null);
     setOpenBookingId(null);
+    setFocus(null);
     setCalendarTarget(null);
     setExclusiveStart(null);
     setActiveTab(label);
@@ -292,11 +303,14 @@ const JoinerDashboard = () => {
     if (requestId) {
       const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
       if (data?.request_type === 'request') page = 'Request a Tour';
+      if (data) { openFocused(page, requestId); return; }
     }
     handleNavClick(page);
   };
 
-  const handleNotificationNavigate = (notification) => {
+  // Opens the exact item a clicked notification is about: the booking's
+  // details in My Bookings, the request, the tour, the review, the message...
+  const handleNotificationNavigate = async (notification) => {
     switch (notification.type) {
       case 'exclusive_request':
       case 'exclusive_package':
@@ -305,36 +319,52 @@ const JoinerDashboard = () => {
       case 'booking':
       case 'payment':
       case 'cancellation': {
-        // Open the matching My Bookings tab: cancelled ones on Cancelled,
-        // finished trips on Completed, everything else on Upcoming.
+        const booking = await myBookingForNotification(notification);
+        // Without a booking, open the tab the notice is about: cancelled ones on
+        // Cancelled, finished trips on Completed, everything else on Upcoming.
         const text = `${notification.title || ''} ${notification.message || ''}`.toLowerCase();
         const tab = notification.type === 'cancellation' || /cancel|reject|weren.t able to verify|released/.test(text) ? 'cancelled'
           : /completed|rate your|how was your|thank you for joining/.test(text) ? 'completed' : 'upcoming';
         handleNavClick('My Bookings');
         setBookingsFilter(tab);
+        setOpenBookingId(booking?.id ?? null);
         setMyBookingsKey((k) => k + 1);
         break;
       }
       case 'admin_message':
         handleNavClick('Messages');
         setChatView('messages');
+        setFocus({ id: { title: notification.title, at: notification.created_at }, n: Date.now() });
         break;
       case 'tour':
+      case 'waitlist': {
+        const tour = await tourForNotification(notification);
         handleNavClick('Explore Tours');
+        if (tour) setBookTourId(String(tour.id));
         break;
-      case 'tracking':
-        handleNavClick('Tracking');
+      }
+      case 'tracking': {
+        const booking = await myBookingForNotification(notification);
+        const tourId = booking?.tour_id ?? (await tourForNotification(notification))?.id;
+        openFocused('Tracking', tourId);
         break;
-      case 'review':
-        handleNavClick('Reviews');
+      }
+      case 'review': {
+        const booking = await myBookingForNotification(notification);
+        const tourId = booking?.tour_id ?? (await tourForNotification(notification))?.id;
+        openFocused('Reviews', tourId);
         break;
+      }
       case 'feed':
-        handleNavClick('Feed');
+        openFocused('Feed', 'mine');
         break;
-      case 'chat':
+      case 'chat': {
+        const tour = await tourForNotification(notification);
+        setChatTourId(tour?.id ?? null);
         setChatView('chats');
         handleNavClick('Messages');
         break;
+      }
       case 'account':
         handleNavClick('Profile Settings');
         break;
@@ -993,7 +1023,7 @@ const JoinerDashboard = () => {
             </div>
 
           ) : activeTab === 'Feed' ? (
-            <Feed isAdmin={false} />
+            <Feed key={focusKey} isAdmin={false} focus={focusId} />
           ) : activeTab === 'Explore Tours' ? (
             <JoinerTours key={bookTourId || 'tours'} initialTourId={bookTourId} />
           ) : activeTab === 'My Bookings' ? (
@@ -1015,7 +1045,7 @@ const JoinerDashboard = () => {
                 ))}
               </div>
               {chatView === 'messages'
-                ? <AdminInbox onRead={clearInboxUnread} />
+                ? <AdminInbox key={focusKey} onRead={clearInboxUnread} focus={focusId} />
                 : <GroupChat key={chatTourId || 'chats'} initialTourId={chatTourId} onExplore={() => handleNavClick('Explore Tours')} />}
             </div>
           ) : activeTab === 'Calendar' ? (
@@ -1025,17 +1055,18 @@ const JoinerDashboard = () => {
             />
           ) : activeTab === 'Exclusive Tours' || activeTab === 'Request a Tour' ? (
             <ExclusiveTour
-              key={`${activeTab}-${exclusiveKey}`}
+              key={`${activeTab}-${exclusiveKey}${focusKey || ''}`}
               type={activeTab === 'Request a Tour' ? 'request' : 'exclusive'}
               start={exclusiveStart}
+              openRequestId={focusId}
               onOpenBooking={(id) => { setBookingsFilter(null); setOpenBookingId(id); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }}
             />
           ) : activeTab === 'Reviews' ? (
-            <Reviews isAdmin={false} onExplore={() => handleNavClick('Explore Tours')} />
+            <Reviews key={focusKey} isAdmin={false} focusTourId={focusId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Profile Settings' ? (
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
-            <JoinerTracking onExplore={() => handleNavClick('Explore Tours')} />
+            <JoinerTracking key={focusKey} openTourId={focusId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Notification' ? (
             <Notification isAdmin={false} onNavigate={handleNotificationNavigate} clearPaymentNotices />
           ) : (

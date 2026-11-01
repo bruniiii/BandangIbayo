@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { useOpenOnce } from './focusTarget';
 import { shrinkImage } from './imageCompress';
 import EmptyState from './ui/EmptyState';
 import { SearchX, Map as MapIcon, CalendarPlus } from 'lucide-react';
@@ -7,7 +8,7 @@ import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
-import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf } from './tourUtils';
+import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf, tripForDate } from './tourUtils';
 import { moneyInputProps, blockSignKeys, moneyField, moneyNumber, moneyDisplay } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import { Plus, Edit, Archive, X, Search, Loader2, Trash2, UploadCloud, RefreshCw, History, ChevronDown } from 'lucide-react';
@@ -34,7 +35,7 @@ import { TourViewModal } from './TourViewModal';
 /* ─────────────────────────────────────────────
    TOUR MANAGEMENT  (Admin)
 ───────────────────────────────────────────── */
-const TourManagement = () => {
+const TourManagement = ({ openTourId = null }) => {
   const [showModal, setShowModal]               = useState(false);
   const [viewTour, setViewTour]                 = useState(null);
   // A trip is one tour posting with one or more dates. Each date is its own
@@ -51,6 +52,9 @@ const TourManagement = () => {
   const [loading, setLoading]                   = useState(true);
   const [uploading, setUploading]               = useState(false);
   const [selectedImage, setSelectedImage]       = useState(null);
+  // Opened from a notification: show that tour (on the right date) once loaded.
+  useOpenOnce(openTourId, tours, (trip) => setViewTour(tripForDate([trip], openTourId) || trip),
+    (trip, id) => String(trip.id) === id || (trip.dates || []).some((d) => String(d.id) === id));
   const [savingTour, setSavingTour] = useState(false);
   const savingRef = useRef(false);                       // stops a double click from creating the tour twice
   const [formDirty, setFormDirty] = useState(false);     // unsaved edits in the tour form

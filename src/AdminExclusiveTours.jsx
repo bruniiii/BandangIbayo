@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
 import { SearchX, Inbox } from 'lucide-react';
 import { toast, reportError } from './ui/toast';
@@ -118,13 +119,15 @@ const inputStyle = {
    ADMIN EXCLUSIVE / REQUESTED TOURS
 ───────────────────────────────────────────── */
 // type: 'exclusive' (Exclusive Tours page) or 'request' (Requested Tours page).
-const AdminExclusiveTours = ({ type = 'exclusive' }) => {
+const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
   const isExclusivePage = type === 'exclusive';
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [selected, setSelected] = useState(null);
+  // Opened from a notification: show that request's details once loaded.
+  useOpenOnce(openRequestId, requests, setSelected);
 
   // Loads quietly after the first time (the page starts in its loading state).
   const fetchRequests = useCallback(async () => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { flashFocus, focusAttr } from './focusTarget';
 import { maskSensitiveWords } from './profanity';
 import { shrinkImage } from './imageCompress';
 import { toast, reportError } from './ui/toast';
@@ -75,7 +76,9 @@ const StarPicker = ({ value, onChange }) => {
   );
 };
 
-const Reviews = ({ isAdmin = false, onExplore }) => {
+// focusTourId (from a notification): opens the review form on that tour if it
+// can still be reviewed, otherwise scrolls to the review of it.
+const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewableTours, setReviewableTours] = useState([]);
@@ -86,6 +89,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
   const [submitting, setSubmitting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
   const mediaInputRef = useRef(null);
+  const [ready, setReady] = useState(false); // reviews and reviewable tours loaded
 
   const fetchReviews = useCallback(async () => {
     const { data, error } = await supabase
@@ -184,6 +188,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
         const { data: myReviews } = await supabase.from('reviews').select('tour_id').eq('user_id', user.id);
         await fetchReviewableTours(user.id, (myReviews || []).map(r => r.tour_id));
       }
+      setReady(true);
     })();
   }, [fetchReviews, fetchReviewableTours, isAdmin]);
 
@@ -194,6 +199,23 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [fetchReviews]);
+
+  // Opened from a notification ("How was your trip?", "We replied to your review").
+  const focusDone = useRef(false);
+  useEffect(() => {
+    if (focusTourId == null || !ready || focusDone.current) return;
+    focusDone.current = true;
+    const tid = String(focusTourId);
+    const reviewable = reviewableTours.find(t => String(t.id) === tid);
+    if (reviewable) {
+      setSelectedTourId(reviewable.id);
+      flashFocus('review-form');
+      return;
+    }
+    const review = reviews.find(r => String(r.tour_id) === tid && r.user_id === currentUserId)
+      || reviews.find(r => String(r.tour_id) === tid);
+    if (review) flashFocus(`review-${review.id}`);
+  }, [focusTourId, ready, reviewableTours, reviews, currentUserId]);
 
   const handleMediaSelect = (e) => {
     const picked = Array.from(e.target.files || []);
@@ -294,7 +316,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
 
       {/* composer — joiner only */}
       {!isAdmin && (
-        <div style={{
+        <div {...focusAttr('review-form')} style={{
           background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
           border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
         }}>
@@ -462,8 +484,8 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
         />
       ) : (
         reviews.map(review => (
+          <div key={review.id} {...focusAttr(`review-${review.id}`)}>
           <ReviewCard
-            key={review.id}
             review={review}
             canReact={!isAdmin && !!currentUserId && review.user_id !== currentUserId}
             busy={helpfulBusy === review.id}
@@ -471,6 +493,7 @@ const Reviews = ({ isAdmin = false, onExplore }) => {
             isAdmin={isAdmin}
             onSaveReply={(text) => saveReply(review, text)}
           />
+          </div>
         ))
       )}
     </div>

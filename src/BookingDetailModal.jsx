@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
+import { focusAttr } from './focusTarget';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
@@ -197,6 +198,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
             </ViewSection>
           )}
  
+          <div {...focusAttr('booking-payment')}>
           <ViewSection title="Payment Information" icon={<CreditCard size={14} />}>
             <div style={{ background: '#F2E4D0', borderRadius: 18, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
  
@@ -312,6 +314,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               )}
             </div>
           </ViewSection>
+          </div>
  
           {/* Rejection Notice */}
           {isRejected && (
@@ -325,7 +328,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
           {/* An older cancellation request (sent before cancellations became instant): approve it */}
           {cancelRequested && (
-            <div style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div {...focusAttr('booking-cancellation')} style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <AlertCircle size={20} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />
                 <div>
@@ -346,6 +349,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
 
           {/* Cancellation Notice */}
           {isCancelled && (
+            <div {...focusAttr('booking-cancellation')}>
             <Notice
               color="#1A0A00" bg="rgba(26,10,0,0.05)"
               icon={<XCircle size={20} />}
@@ -359,6 +363,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 </div>
               )}
             </Notice>
+            </div>
           )}
  
           {/* Confirmed Notice */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { flashFocus, focusAttr } from './focusTarget';
 import { isStaffRole } from './tourUtils';
 import { shrinkImage } from './imageCompress';
 import { toast, reportError } from './ui/toast';
@@ -62,7 +63,9 @@ const displayName = (profile, fallback = 'Bandang IBAYO') => {
    isAdmin=true  -> approve / reject / delete any post
    isAdmin=false -> joiners see approved posts plus their own
 ───────────────────────────────────────────── */
-const Feed = ({ isAdmin = false }) => {
+// focus (from a notification): 'pending' = the posts waiting for approval,
+// 'mine' = the joiner's own latest post.
+const Feed = ({ isAdmin = false, focus = null }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState('');
@@ -329,9 +332,20 @@ const Feed = ({ isAdmin = false }) => {
     ? statusOf(p) !== 'Pending'
     : statusOf(p) === 'Approved' || p.author_id === currentUserId));
 
+  // Opened from a notification: scroll to the post it's about, once loaded.
+  const focusDone = useRef(false);
+  useEffect(() => {
+    if (!focus || focusDone.current || loading || (focus === 'mine' && !currentUserId)) return;
+    focusDone.current = true;
+    const target = focus === 'pending'
+      ? posts.find(p => statusOf(p) === 'Pending')
+      : posts.find(p => p.author_id === currentUserId && statusOf(p) !== 'Pending') || posts.find(p => p.author_id === currentUserId);
+    if (target) flashFocus(`post-${target.id}`);
+  }, [focus, loading, posts, currentUserId]);
+
   const renderPost = (post) => (
+    <div key={post.id} {...focusAttr(`post-${post.id}`)}>
     <FeedPostCard
-      key={post.id}
       post={post}
       status={statusOf(post)}
       isAdmin={isAdmin}
@@ -356,6 +370,7 @@ const Feed = ({ isAdmin = false }) => {
       onAddComment={() => handleAddComment(post.id)}
       commenting={commentingId === post.id}
     />
+    </div>
   );
 
   return (

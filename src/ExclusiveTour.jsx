@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
+import { flashFocus, focusAttr } from './focusTarget';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import {
@@ -675,8 +676,8 @@ const PackageDetail = ({ label, icon, color = '#A8481A', children }) => (
 );
 
 // alwaysOpen: shown open, with no dropdown (Request a Tour's only Tour Confirmed request).
-const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false }) => {
-  const [open, setExpanded] = useState(false);
+const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false, defaultOpen = false }) => {
+  const [open, setExpanded] = useState(defaultOpen);
   const expanded = alwaysOpen || open;
   const isExclusive = request.request_type === 'exclusive';
   const pkg = request.package_details;
@@ -1027,7 +1028,7 @@ const DownpaymentPanel = ({ request, price }) => {
 };
 
 // "Your Submitted Requests" for one type; reloads when refreshKey changes.
-const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
+const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = null }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
@@ -1067,6 +1068,14 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [userId, type, fetchRequests]);
+
+  // Opened from a notification: scroll to that request once (it starts open).
+  const focusedRef = useRef(false);
+  useEffect(() => {
+    if (!openRequestId || loading || focusedRef.current || !requests.length) return;
+    focusedRef.current = true;
+    flashFocus(`request-${openRequestId}`);
+  }, [openRequestId, loading, requests]);
 
   const closeEditor = async () => {
     if (await confirmDialog({ title: 'Discard your changes?', message: "Your request stays as it was.", confirmLabel: 'Discard', cancelLabel: 'Keep Editing', tone: 'danger' })) setEditing(null);
@@ -1117,7 +1126,7 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
           const confirmed = requests.filter((q) => requestStatusLabel(q) === 'Tour Confirmed');
           const singleConfirmedId = type === 'request' && confirmed.length === 1 ? confirmed[0].id : null;
           return shown.length
-            ? shown.map(r => <RequestHistoryCard key={r.id} request={r} onOpenBooking={onOpenBooking} onEdit={setEditing} alwaysOpen={r.id === singleConfirmedId} />)
+            ? shown.map(r => <div key={r.id} {...focusAttr(`request-${r.id}`)}><RequestHistoryCard request={r} defaultOpen={String(r.id) === String(openRequestId)} onOpenBooking={onOpenBooking} onEdit={setEditing} alwaysOpen={r.id === singleConfirmedId} /></div>)
             : <p style={{ margin: 0, padding: '14px 16px', borderRadius: 14, background: 'rgba(242,228,208,0.5)', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>No requests marked "{statusFilter}" yet.</p>;
         })()}
       </div>
@@ -1135,7 +1144,8 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking }) => {
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────────────
 // type: 'exclusive' (Exclusive Tours) or 'request' (Request a Tour).
 // `start` comes from the joiner calendar: { form, date: 'YYYY-MM-DD' }.
-const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking }) => {
+// openRequestId (from a notification): opens and scrolls to that request.
+const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, openRequestId = null }) => {
   const [refreshKey, setRefreshKey] = useState(0);
   // The form stays hidden until the joiner clicks the button (or picks a date
   // on the calendar, which opens it filled in).
@@ -1147,7 +1157,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
       {/* Your Submitted Requests (at the top): status, admin updates, tour package details */}
-      <MyRequestsSection type={type} refreshKey={refreshKey} onOpenBooking={onOpenBooking} />
+      <MyRequestsSection type={type} refreshKey={refreshKey} onOpenBooking={onOpenBooking} openRequestId={openRequestId} />
 
       {!showForm ? (
         <div style={{

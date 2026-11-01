@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
 import {
   MapPin, X, Calendar, Armchair, Compass, ChevronLeft,
@@ -8,9 +9,11 @@ import {
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 import { reportError } from './ui/toast';
 
-export const JoinerTracking = ({ onExplore }) => {
+export const JoinerTracking = ({ onExplore, openTourId = null }) => {
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
+  // Opened from a notification (pickup reminders): open that tour's tracking.
+  useOpenOnce(openTourId, toursList, setActiveTour);
   const [loading, setLoading] = useState(true);
   const [loadingConsole, setLoadingConsole] = useState(false);
   const [logs, setLogs] = useState([]);

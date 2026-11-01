@@ -115,7 +115,12 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
       if (openIdRef.current) {
         const target = processedBookings.find((b) => String(b.id) === String(openIdRef.current));
         openIdRef.current = null;
-        if (target) setSelectedBooking(target);
+        if (target) {
+          // Show it on the tab it belongs to, then open its details.
+          setActiveTab(target.booking_status === 'Cancelled' || target.booking_status === 'Rejected' ? 'Cancelled'
+            : target.isActuallyCompleted ? 'Completed' : 'Upcoming');
+          setSelectedBooking(target);
+        }
       }
     }
     setLoading(false);
