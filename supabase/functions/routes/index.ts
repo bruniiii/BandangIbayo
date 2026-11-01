@@ -16,7 +16,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ORS_API_KEY = Deno.env.get("ORS_API_KEY") ?? "";
-const ORS = "https://api.openrouteservice.org";
+// api.openrouteservice.org is being replaced by api.heigit.org: when it stops
+// working, point this at the new address (no code change needed):
+//   supabase secrets set ORS_BASE_URL=<the new address>
+const ORS = (Deno.env.get("ORS_BASE_URL") ?? "https://api.openrouteservice.org").replace(/\/+$/, "");
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
