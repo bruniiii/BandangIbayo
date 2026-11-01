@@ -249,7 +249,7 @@ begin
         tour_id, user_id, booking_number, full_name, email, contact_number, slots_booked,
         total_price, amount_paid, downpayment_amount, payment_method, payment_status, booking_status,
         balance_settled, cancellation_reason, pickup_point, companions,
-        paid_online_at, checked_in_at, created_at, updated_at
+        paid_online_at, checked_in_at, created_at
       ) values (
         v_tour_id, v_user_ids[v_who],
         'BK-' || to_char(v_created at time zone 'Asia/Manila', 'YYMM') || '-' || lpad(nextval('public.booking_number_seq')::text, 5, '0'),
@@ -261,7 +261,7 @@ begin
         v_pickup, v_companions,
         v_created + interval '3 minutes',
         case when v_cancel then null else pg_temp.ph((v_start - 1) + time '21:05') end,
-        v_created, v_created
+        v_created
       );
       v_booking_id := (select max(id) from public.bookings where tour_id = v_tour_id and user_id = v_user_ids[v_who]);
       if not v_cancel then
