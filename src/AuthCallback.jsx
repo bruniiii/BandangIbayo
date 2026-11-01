@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { askRestoreAccount, restoreMyAccount } from './restoreAccount';
 import { safeNextPath } from './tourUtils';
 import { profileIsComplete } from './googleAuth';
 import { usePopupError } from './ui/usePopupError';
@@ -42,7 +43,12 @@ const AuthCallback = () => {
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
       if (cancelled) return;
       if (profile?.role === 'archived_admin') { await supabase.auth.signOut(); setError("This admin account was archived, so it can't log in. Ask the main admin to restore it."); return; }
-      if (profile?.archived_at) { await supabase.auth.signOut(); setError('This account is archived. Contact Bandang Ibayo to restore it.'); return; }
+      // An archived joiner decides whether to restore the account.
+      if (profile?.archived_at) {
+        const restoreError = (await askRestoreAccount(profile.archive_reason)) ? await restoreMyAccount() : 'Your account stays archived. Sign in again any time to restore it.';
+        if (cancelled) return;
+        if (restoreError) { await supabase.auth.signOut(); setError(restoreError); return; }
+      }
       if (cancelled) return;
       if (profile?.role === 'admin') navigate('/admin/dashboard', { replace: true });
       else if (!profileIsComplete(profile)) navigate(`/complete-profile${next ? `?next=${encodeURIComponent(next)}` : ''}`, { replace: true });

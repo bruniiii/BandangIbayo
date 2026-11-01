@@ -458,7 +458,7 @@ const AutoArchiveSetting = () => {
   const save = async (nextEnabled, nextDays) => {
     const label = ARCHIVE_OPTIONS.find(([d]) => d === nextDays)?.[1] || `${nextDays} days`;
     if (!(await confirmDialog(nextEnabled
-      ? { title: `Archive joiners after ${label} without a login?`, message: 'Joiners who haven\'t logged in for this long are archived automatically every day. They can\'t log in until an admin restores them. Joiners close to the limit get a yellow warning in Joiner Accounts.', confirmLabel: 'Save Setting', cancelLabel: 'Cancel' }
+      ? { title: `Archive joiners after ${label} without a login?`, message: 'Joiners who haven\'t logged in for this long are archived automatically every day. When they log in again, they choose whether to restore their account. Joiners close to the limit get a yellow warning in Joiner Accounts.', confirmLabel: 'Save Setting', cancelLabel: 'Cancel' }
       : { title: 'Turn off automatic archiving?', message: 'Inactive joiners will no longer be archived automatically. Accounts already archived stay archived.', confirmLabel: 'Turn Off', cancelLabel: 'Keep It On' }))) return;
     setSaving(true);
     const now = new Date().toISOString();
@@ -478,7 +478,7 @@ const AutoArchiveSetting = () => {
         <div style={{ flex: '1 1 260px', minWidth: 0 }}>
           <h3 style={cardTitle}><Archive size={16} style={{ color: '#A8481A' }} /> Archive Inactive Joiners</h3>
           <p style={{ ...cardHint, margin: '4px 0 0' }}>
-            Automatically archive joiner accounts that haven't logged in for a while. Archived joiners can't log in until an admin restores them in Joiner Accounts.
+            Automatically archive joiner accounts that haven't logged in for a while. When an archived joiner logs in again, they choose whether to restore their account.
           </p>
         </div>
         <button type="button" role="switch" aria-checked={enabled} disabled={!loaded || saving} onClick={() => save(!enabled, days)}

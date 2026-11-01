@@ -60,5 +60,9 @@ from (values
      exists (select 1 from information_schema.columns
               where table_schema = 'public' and table_name = 'profiles' and column_name = 'admin_restore_pending_at')),
   ('20261127 one tour per day',
-     exists (select 1 from pg_trigger where tgname = 'tours_no_overlap' and tgrelid = 'public.tours'::regclass))
+     exists (select 1 from pg_trigger where tgname = 'tours_no_overlap' and tgrelid = 'public.tours'::regclass)),
+  ('20261128 joiners restore their own account',
+     coalesce((select pg_get_functiondef(p.oid) not ilike '%Contact Bandang Ibayo%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'reactivate_my_account' limit 1), false))
 ) as u(update_file, installed);

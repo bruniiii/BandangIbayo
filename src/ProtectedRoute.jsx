@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
         } else if (profile?.archived_at) {
           // An archived joiner still logged in (e.g. on another device) is logged out.
           await supabase.auth.signOut();
-          toast.error('This account is archived', 'Contact Bandang Ibayo to restore it.');
+          toast.error('This account is archived', 'Log in again to restore it.');
           session = null;
         }
       }

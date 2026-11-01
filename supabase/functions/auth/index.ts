@@ -161,14 +161,25 @@ async function resolveEmail(identifier: string) {
 }
 
 // Archived accounts (joiners, or admins not yet restored) can't log in.
-async function assertNotArchived(userId: string) {
-  const { data: who } = await admin.from("profiles").select("role, archived_at, admin_restore_pending_at").eq("id", userId).maybeSingle();
+// restore: the joiner chose "Restore my account" after typing the right password.
+async function assertNotArchived(userId: string, restore = false) {
+  const { data: who } = await admin.from("profiles").select("role, archived_at, archive_reason, admin_restore_pending_at").eq("id", userId).maybeSingle();
   if (who?.role === "archived_admin") {
     throw new HttpError(403, who.admin_restore_pending_at
       ? "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it."
       : "This admin account was archived, so it can't log in. Ask the main admin to restore it.");
   }
-  if (who?.archived_at) throw new HttpError(403, "This account is archived. Contact Bandang Ibayo to restore it.");
+  if (who?.archived_at) {
+    // The joiner decides: they're asked first, and only their "yes" brings the account back.
+    if (restore) {
+      const { error } = await admin.from("profiles")
+        .update({ archived_at: null, archive_reason: null, deactivated_at: null })
+        .eq("id", userId);
+      if (error) throw new Error(error.message);
+      return;
+    }
+    throw new HttpError(403, "This account is archived. Do you want to restore it?", { archived: true, archiveReason: who.archive_reason ?? null });
+  }
 }
 
 async function login(p: any) {
@@ -188,7 +199,7 @@ async function login(p: any) {
   }
   await clearLock(email);
   // Archived accounts can't log in, even with the right password.
-  if (user?.id) await assertNotArchived(user.id);
+  if (user?.id) await assertNotArchived(user.id, p.restore === true);
   return await startSession(email);
 }
 
@@ -233,7 +244,7 @@ async function verify(p: any) {
   await admin.from("login_challenges").delete().eq("id", challenge.id);
   // The code proves the email works: mark it confirmed (new registrations).
   await admin.auth.admin.updateUserById(challenge.user_id, { email_confirm: true });
-  await assertNotArchived(challenge.user_id);
+  await assertNotArchived(challenge.user_id, p.restore === true);
   return await startSession(challenge.email);
 }
 
