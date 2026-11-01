@@ -30,8 +30,9 @@ declare
   t text;
 begin
   -- Safety check: never run without a main admin to keep.
-  select count(*) into v_main_admins
-  from public.profiles where role = 'admin' and coalesce(is_main_admin, false);
+  -- (Written as  x := (select ...)  so the SQL Editor doesn't mistake it for a new table.)
+  v_main_admins := (select count(*)
+  from public.profiles where role = 'admin' and coalesce(is_main_admin, false));
   if v_main_admins = 0 then
     raise exception 'No main admin found (profiles.role = admin and is_main_admin = true). Nothing was deleted.';
   end if;
@@ -61,7 +62,7 @@ begin
   -- 2. Accounts to remove: every admin except the main admin (archived admins
   --    too), and joiners who never verified their email (or every joiner, if
   --    the switch above is on).
-  select coalesce(array_agg(u.id), '{}') into v_users
+  v_users := (select coalesce(array_agg(u.id), '{}')
   from auth.users u
   left join public.profiles p on p.id = u.id
   where not exists (
@@ -72,7 +73,7 @@ begin
           p.role in ('admin', 'archived_admin')
           or (coalesce(p.role, 'joiner') not in ('admin', 'archived_admin')
               and (v_delete_all_joiners or u.email_confirmed_at is null))
-        );
+        ));
 
   delete from public.profiles where id = any(v_users);
   delete from auth.users where id = any(v_users);

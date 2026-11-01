@@ -35,10 +35,11 @@ begin
     return;
   end if;
 
-  select data_type into v_img_type from information_schema.columns
-   where table_schema = 'public' and table_name = 'tours' and column_name = 'image_urls';
-  select exists (select 1 from information_schema.columns
-   where table_schema = 'public' and table_name = 'tour_meetups' and column_name = 'status') into v_has_status;
+  -- (Written as  x := (select ...)  so the SQL Editor doesn't mistake it for a new table.)
+  v_img_type := (select data_type from information_schema.columns
+   where table_schema = 'public' and table_name = 'tours' and column_name = 'image_urls');
+  v_has_status := exists (select 1 from information_schema.columns
+   where table_schema = 'public' and table_name = 'tour_meetups' and column_name = 'status');
 
   foreach d in array p_dates loop
     insert into public.tours (
@@ -49,7 +50,8 @@ begin
       p_title, p_destination, p_duration, p_joiner_rate, p_group_size, p_difficulty, p_accommodation,
       p_description, p_inclusions, p_exclusions, p_itinerary, p_things_to_bring, p_important_note,
       d.start_date, d.end_date, null, null, false
-    ) returning id into v_id;
+    );
+    v_id := (select max(id) from public.tours where title = p_title and start_date = d.start_date);
     v_first := coalesce(v_first, v_id);
 
     -- No photos yet (an empty list, whatever the column's type).
@@ -75,8 +77,8 @@ begin
   end loop;
 
   -- "New tour posted" on the Community Feed, from the main admin.
-  select id into v_admin from public.profiles
-   where role = 'admin' and coalesce(is_main_admin, false) order by id limit 1;
+  v_admin := (select id from public.profiles
+   where role = 'admin' and coalesce(is_main_admin, false) order by id limit 1);
   insert into public.feed_posts (author_id, content, post_type, tour_id, status)
   values (v_admin, format('New tour posted: %s — %s. Book your slot now!', p_title, p_destination), 'tour', v_first, 'Approved');
 
