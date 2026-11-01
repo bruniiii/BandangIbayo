@@ -89,7 +89,8 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
       <div className="responsive-split-panel" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 32, alignItems: 'start' }}>
  
         {/* ── Calendar Grid ── */}
-        <div style={{
+        <div className="cal-panel" style={{
+          minWidth: 0,
           background: '#FDF6EE',
           padding: '2rem',
           borderRadius: 28,
@@ -125,11 +126,11 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
  
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 14, textAlign: 'center', borderBottom: '1px solid rgba(180,81,30,0.1)', paddingBottom: 12 }}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} style={{ fontSize: 11.5, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
+              <div key={day} className="cal-weekday" style={{ fontSize: 11.5, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
             ))}
           </div>
  
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 8, textAlign: 'left' }}>
+          <div className="cal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 8, textAlign: 'left' }}>
             {calendarDays.map((day, idx) => {
               const dayTours = getToursForDay(new Date(day));
               const isSelected = isSameDay(day, selectedDate);
@@ -139,6 +140,8 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
               return (
                 <button
                   key={idx}
+                  type="button"
+                  className="cal-day-btn"
                   onClick={() => !isPast && setSelectedDate(day)}
                   disabled={isPast}
                   style={{
@@ -157,9 +160,11 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
                     textAlign: 'left'
                   }}
                 >
-                  <span style={{
+                  <span className="cal-day-num" style={{
                     fontSize: 13,
                     fontWeight: 900,
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.2,
                     color: isPast ? '#7A3A18' : isSelected ? '#A8481A' : isCurrentMonth ? '#1A0A00' : 'rgba(122,58,24,0.85)'
                   }}>
                     {format(day, 'd')}
@@ -190,7 +195,7 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
         </div>
  
         {/* ── Daily Sidebar ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%', textAlign: 'left' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%', textAlign: 'left', minWidth: 0 }}>
           <div style={{
             background: '#1A0A00',
             padding: '2rem',
