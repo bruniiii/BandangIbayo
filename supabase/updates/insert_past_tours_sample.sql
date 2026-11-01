@@ -92,7 +92,6 @@ declare
   v_start date;
   v_end date;
   v_days int;
-  v_booking_id bigint;
   v_created timestamptz;
   v_slots int;
   v_total numeric;
@@ -263,11 +262,11 @@ begin
         case when v_cancel then null else pg_temp.ph((v_start - 1) + time '21:05') end,
         v_created
       );
-      v_booking_id := (select max(id) from public.bookings where tour_id = v_tour_id and user_id = v_user_ids[v_who]);
       if not v_cancel then
         v_seats := v_seats + v_slots;
       else
-        update public.bookings set cancellation_requested_at = v_created + interval '2 days' where id = v_booking_id;
+        update public.bookings set cancellation_requested_at = v_created + interval '2 days'
+         where tour_id = v_tour_id and user_id = v_user_ids[v_who];
       end if;
 
       -- Most joiners left a review a day or two after the trip.
