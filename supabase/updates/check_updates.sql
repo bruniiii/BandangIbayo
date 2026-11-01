@@ -58,5 +58,7 @@ from (values
               where n.nspname = 'public' and p.proname = 'notify_departure_soon')),
   ('20261126 restored admins verify their email',
      exists (select 1 from information_schema.columns
-              where table_schema = 'public' and table_name = 'profiles' and column_name = 'admin_restore_pending_at'))
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'admin_restore_pending_at')),
+  ('20261127 one tour per day',
+     exists (select 1 from pg_trigger where tgname = 'tours_no_overlap' and tgrelid = 'public.tours'::regclass))
 ) as u(update_file, installed);
