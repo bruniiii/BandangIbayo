@@ -1,7 +1,7 @@
 -- ═══════════════════════════════════════════════════════════════════════
 -- SAMPLE TOURS: NOV 3–4 AND NOV 6–9, 2026
 --
---   • Mt. Daraitan & Tinipak River (Tanay, Rizal)       Nov 3–4  (2 Days)
+--   • Mt. Daraitan Overnight Camp (Tanay, Rizal)        Nov 3–4  (2 Days)
 --   • Sagada & Banaue Rice Terraces (Mountain Province)  Nov 6–9  (4 Days)
 --
 -- Made the same way as insert_real_tours.sql: Joiner Rate, Regular Rate,
@@ -93,9 +93,9 @@ $fn$;
 do $$
 begin
 
-  -- Mt. Daraitan & Tinipak River (overnight)
+  -- Mt. Daraitan Overnight Camp (summit + Tinipak River)
   perform pg_temp.add_tour(
-    'Mt. Daraitan & Tinipak River', 'Tanay, Rizal', '2 Days',
+    'Mt. Daraitan Overnight Camp', 'Tanay, Rizal', '2 Days',
     2800, 2200, 14, 'Moderate',
     array['Tent']::text[],
     'Major jump-off: Brgy. Daraitan, Tanay, Rizal.
@@ -246,5 +246,5 @@ end $$;
 select title, destination, duration, to_char(start_date, 'Mon DD') || ' – ' || to_char(end_date, 'Mon DD, YYYY') as dates,
   price as joiner_rate, group_size as slots
 from public.tours
-where title in ('Mt. Daraitan & Tinipak River', 'Sagada & Banaue Rice Terraces') and not coalesce(is_archived, false)
+where title in ('Mt. Daraitan Overnight Camp', 'Sagada & Banaue Rice Terraces') and not coalesce(is_archived, false)
 order by start_date;
