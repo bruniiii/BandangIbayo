@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, Star, ChevronLeft, ChevronRight, MapPin, CheckCircle2, Wallet, Sparkles } from 'lucide-react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { formatPeso, requestStatusLabel, requestPaymentLabel, requestOverdueReason } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
@@ -77,7 +77,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
       style={{ ...cardStyle, cursor: 'pointer', position: 'relative', minHeight: 220 }}
     >
       {cover && (
-        <img src={cover} alt={trip.tours.title} style={{
+        <img loading="lazy" decoding="async" src={cover} alt={trip.tours.title} style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%',
           objectFit: 'cover',
         }} />
@@ -394,7 +394,7 @@ const MyRequestsCard = ({ onOpen }) => {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) { if (alive) setRows([]); return; }
       const { data } = await supabase
         .from('exclusive_requests')

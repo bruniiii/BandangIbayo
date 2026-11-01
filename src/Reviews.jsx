@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { flashFocus, focusAttr } from './focusTarget';
 import { maskSensitiveWords } from './profanity';
 import { shrinkImage } from './imageCompress';
@@ -181,7 +181,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
   useEffect(() => {
     setLoading(true);
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       setCurrentUserId(user?.id || null);
       await fetchReviews();
       if (user && !isAdmin) {
@@ -395,7 +395,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                       {item.type === 'video' ? (
                         <video src={item.preview} style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 12 }} muted />
                       ) : (
-                        <img src={item.preview} alt="" style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 12, display: 'block' }} />
+                        <img loading="lazy" decoding="async" src={item.preview} alt="" style={{ width: 84, height: 84, objectFit: 'cover', borderRadius: 12, display: 'block' }} />
                       )}
                       {item.type === 'video' && (
                         <div style={{
@@ -515,7 +515,7 @@ const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply })
           color: '#E8A265', fontWeight: 900, fontSize: 15, overflow: 'hidden',
         }}>
           {review.author?.avatar_url ? (
-            <img src={review.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img loading="lazy" decoding="async" src={review.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             initialsOf(review.author)
           )}
@@ -574,7 +574,7 @@ const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply })
               style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 12, background: '#000' }}
             />
           ) : (
-            <img
+            <img loading="lazy" decoding="async"
               key={idx}
               src={m.url}
               alt=""

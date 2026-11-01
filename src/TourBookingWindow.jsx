@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import WeatherNotice from './ui/WeatherNotice';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { toast, reportError } from './ui/toast';
 import { withAvailableSlots, formatPeso, downpaymentFor, DOWNPAYMENT_PERCENT, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
 import { TripDatePicker } from './ui/TripDates';
@@ -94,7 +94,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     useEffect(() => {
         let active = true;
         (async () => {
-            const { data: { user } } = await supabase.auth.getUser();
+            const user = await currentUser();
             if (!user) return;
             const [{ data }, { data: booking }] = await Promise.all([
                 supabase
@@ -170,7 +170,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             return;
         }
         setIsBooking(true);
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = await currentUser();
         if (!user) { toast.info('Please log in to book a tour.'); setIsBooking(false); return; }
 
         const [fresh] = await withAvailableSlots([tour]);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
 import { SearchX, Inbox } from 'lucide-react';
@@ -476,7 +476,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     }))) return;
     setSubmitting(decision);
     try {
-      const { data: { user: adminUser } } = await supabase.auth.getUser();
+      const adminUser = await currentUser();
       const newStatus = decision === 'approve' ? 'Approved' : 'Rejected';
 
       const { error: updateError } = await supabase

@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { errorDetail } from './Email';
 import { askPaymentPhone } from './ui/PaymentPhone';
 
@@ -23,7 +23,7 @@ const returnBaseUrl = () => window.location.origin;
 // Philippine mobile number, +639XXXXXXXXX), prefilled from their profile.
 // It's sent as PayMongo's billing phone. Cancelling stops the payment.
 const withPaymentPhone = async (action, body) => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await currentUser();
   let saved = '';
   if (user) {
     const { data } = await supabase.from('profiles').select('phone_number').eq('id', user.id).maybeSingle();

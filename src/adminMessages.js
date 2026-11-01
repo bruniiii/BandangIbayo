@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { formatDateRange } from './tourUtils';
 import { reportError } from './ui/toast';
 
@@ -44,7 +44,7 @@ export const useAdminInboxUnread = (refreshKey) => {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) return;
       const { count: n } = await supabase.from('admin_messages').select('id', { count: 'exact', head: true })
         .eq('user_id', user.id).is('read_at', null);

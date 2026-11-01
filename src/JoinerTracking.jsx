@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
 import {
@@ -32,7 +32,7 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
     (async () => {
       try {
         setLoading(true);
-        const { data: { user } } = await supabase.auth.getUser();
+        const user = await currentUser();
         if (!user) { if (alive) setToursList([]); return; }
         const { data: bookedData, error: bookingsError } = await supabase
           .from('bookings')
@@ -171,7 +171,7 @@ const TrackingTourCard = ({ tour, onTrack, past = false }) => {
     >
       <div style={{ height: 186, background: '#F2E4D0', position: 'relative' }}>
         {displayImage ? (
-          <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+          <img loading="lazy" decoding="async" src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
         )}

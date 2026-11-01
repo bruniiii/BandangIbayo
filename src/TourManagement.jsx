@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import { shrinkImage } from './imageCompress';
 import EmptyState from './ui/EmptyState';
@@ -135,9 +135,9 @@ const TourManagement = ({ openTourId = null }) => {
  
   const fetchTours = useCallback(async () => {
     setLoading(true);
-    await archivePastTours();
-    // Tours that already ended go to Tour Archive every time the list loads.
-    await Promise.resolve(supabase.rpc('archive_past_tours')).catch(() => {});
+    // Tours that already ended go to Tour Archive every time the list loads
+    // (both run at the same time, so the list doesn't wait twice).
+    await Promise.all([archivePastTours(), Promise.resolve(supabase.rpc('archive_past_tours')).catch(() => {})]);
     const { data, error } = await supabase
       .from('tours')
       .select('*')
@@ -427,7 +427,7 @@ const TourManagement = ({ openTourId = null }) => {
 
     // Auto-post new tours and new dates to the community feed.
     if (inserted[0]?.id) {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       const { error: feedError } = await supabase.from('feed_posts').insert([{
         author_id: user?.id || null,
         content: isNewTour

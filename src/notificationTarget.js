@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 
 /* Works out which booking or tour a notification is about, so clicking it
    opens that exact item. Uses related_id when the notification has one, and
@@ -61,7 +61,7 @@ export const tourForNotification = async (n) => {
 export const myBookingForNotification = async (n) => {
   const direct = await bookingForNotification(n);
   if (direct) return direct;
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) return null;
   const { data } = await supabase.from('bookings').select(`${BOOKING_COLS}, tours(id, title, start_date)`)
     .eq('user_id', user.id).order('created_at', { ascending: false }).limit(200);

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import BrandAvatar from './ui/BrandAvatar';
 import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive } from 'lucide-react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { isStaffRole } from './tourUtils';
 import { maskSensitiveWords } from './profanity';
 import { toast } from './ui/toast';
@@ -66,7 +66,7 @@ const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
   const [openId, setOpenId] = useState(initialTourId ? String(initialTourId) : null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || null));
+    currentUser().then((u) => setMe(u?.id || null));
   }, []);
 
   // The chat list, refreshed when messages arrive or a chat is read.

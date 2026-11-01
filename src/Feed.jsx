@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { flashFocus, focusAttr } from './focusTarget';
 import { isStaffRole } from './tourUtils';
 import { shrinkImage } from './imageCompress';
@@ -158,7 +158,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       setCurrentUserId(user?.id || null);
       if (user && !isAdmin) {
         const { data: me } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -230,7 +230,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
     }
     setPosting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       const media = [];
       for (const item of mediaItems) {
         const file = item.type === 'video' ? item.file : await shrinkImage(item.file); // photos are resized before upload
@@ -436,7 +436,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
                   {item.type === 'video' ? (
                     <video src={item.preview} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 14 }} muted />
                   ) : (
-                    <img src={item.preview} alt="Preview" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 14, display: 'block' }} />
+                    <img loading="lazy" decoding="async" src={item.preview} alt="Preview" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 14, display: 'block' }} />
                   )}
                   {item.type === 'video' && (
                     <div style={{
@@ -580,7 +580,7 @@ const FeedPostCard = ({
               color: '#E8A265', fontWeight: 900, fontSize: 16,
             }}>
               {post.author.avatar_url
-                ? <img src={post.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ? <img loading="lazy" decoding="async" src={post.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : displayName(post.author).charAt(0).toUpperCase()}
             </div>
           )}
@@ -638,7 +638,7 @@ const FeedPostCard = ({
           {media[0].type === 'video' ? (
             <video src={media[0].url} controls style={{ width: '100%', maxHeight: 340, display: 'block', background: '#000' }} />
           ) : (
-            <img
+            <img loading="lazy" decoding="async"
               src={media[0].url}
               alt=""
               onClick={() => setLightboxIndex(0)}
@@ -658,7 +658,7 @@ const FeedPostCard = ({
             m.type === 'video' ? (
               <video key={idx} src={m.url} controls style={{ width: '100%', height: 160, objectFit: 'cover', background: '#000' }} />
             ) : (
-              <img
+              <img loading="lazy" decoding="async"
                 key={idx}
                 src={m.url}
                 alt=""
@@ -811,7 +811,7 @@ const FeedPostCard = ({
                     color: '#E8A265', fontWeight: 900, fontSize: 11,
                   }}>
                     {c.author?.avatar_url ? (
-                      <img src={c.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img loading="lazy" decoding="async" src={c.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       displayName(c.author, 'Joiner').charAt(0).toUpperCase()
                     )}
@@ -924,7 +924,7 @@ const FeedPostCard = ({
             </button>
           )}
 
-          <img
+          <img loading="lazy" decoding="async"
             src={media[lightboxIndex].url}
             alt=""
             onClick={(e) => e.stopPropagation()}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -531,7 +531,7 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
   }
 
   if (!tourId) {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     const { error: feedError } = await supabase.from('feed_posts').insert([{
       author_id: user?.id || null,
       content: `New tour posted: ${details.title} — ${details.destination}. Requested by a joiner, now open to everyone. Book your slot now!`,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare, BedDouble } from 'lucide-react';
 import { toast, reportError } from './ui/toast';
@@ -72,7 +72,7 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
 
   const fetchMyBookings = useCallback(async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     
     if (!user) { setLoading(false); return; }
  
@@ -275,7 +275,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         borderRadius: 18, overflow: 'hidden', flexShrink: 0, background: '#F2E4D0',
       }}>
         {tour.image_urls?.[0]
-          ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+          ? <img loading="lazy" decoding="async" src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ShoppingBag size={28} /></div>
         }
       </div>
@@ -458,7 +458,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 background: '#EDEAE3', marginBottom: 20, boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
               }}>
                 {tour.image_urls?.[0]
-                  ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                  ? <img loading="lazy" decoding="async" src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
                   : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ShoppingBag size={40} /></div>
                 }
               </div>
