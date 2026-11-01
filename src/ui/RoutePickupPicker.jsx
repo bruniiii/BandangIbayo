@@ -41,6 +41,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
   const [placesError, setPlacesError] = useState('');
   const [show, setShow] = useState({ saved: true, gas: true, mall: true, terminal: true, store: false, food: false });
   const [placesTry, setPlacesTry] = useState(0); // "Try again" looks the places up again
+  const [placesBusy, setPlacesBusy] = useState(false); // waiting to try again by itself
 
   // Places on the road: looked up once per route.
   useEffect(() => {
@@ -48,7 +49,15 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
     let alive = true;
     (async () => {
       setPlaces(null); setPlacesError('');
-      const res = await findPlacesAlongRoute(route);
+      let res = await findPlacesAlongRoute(route);
+      // The free place list is sometimes busy: wait 20 seconds and try once more by itself.
+      if (!res.ok && alive && placesTry === 0) {
+        setPlacesBusy(true);
+        await new Promise((r) => setTimeout(r, 20000));
+        if (!alive) return;
+        setPlacesBusy(false);
+        res = await findPlacesAlongRoute(route);
+      }
       if (!alive) return;
       if (res.ok) setPlaces(res.data.places || []);
       else { setPlaces([]); setPlacesError(res.error); }
@@ -160,7 +169,9 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
 
           {places === null && (
             <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Looking for gas stations, malls and terminals on the way…
+              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> {placesBusy
+                ? 'The map\'s place list is busy. Trying again in a few seconds…'
+                : 'Looking for gas stations, malls and terminals on the way…'}
             </p>
           )}
           {placesError && (

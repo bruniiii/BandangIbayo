@@ -33,6 +33,8 @@ const ORS = (Deno.env.get("ORS_BASE_URL") ?? "https://api.openrouteservice.org")
 const OVERPASS_SERVERS = [
   Deno.env.get("OVERPASS_URL"),
   "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
 ].filter(Boolean) as string[];
 
@@ -190,15 +192,20 @@ const kindOf = (t: Record<string, string>) =>
   t.shop === "convenience" ? "store" :
   t.amenity === "fast_food" ? "food" : "other";
 
+// Asks the OpenStreetMap servers in turn: a busy one ("429 Too Many
+// Requests", a timeout) gets a short pause and the next one is tried. Gives up
+// after about 100 seconds.
 async function overpass(query: string) {
+  const deadline = Date.now() + 100000;
   let last = "";
   for (const url of OVERPASS_SERVERS) {
+    if (Date.now() > deadline) break;
     try {
       const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "BandangIBAYO-tours/1.0" },
         body: "data=" + encodeURIComponent(query),
-        signal: AbortSignal.timeout(45000),
+        signal: AbortSignal.timeout(Math.max(5000, Math.min(30000, deadline - Date.now()))),
       });
       if (res.ok) {
         const body = await res.json().catch(() => null);
@@ -206,8 +213,9 @@ async function overpass(query: string) {
       }
       last = `${res.status}`;
     } catch (err) {
-      last = String((err as Error)?.message || err);
+      last = String((err as Error)?.name === "TimeoutError" ? "timeout" : (err as Error)?.message || err);
     }
+    await new Promise((r) => setTimeout(r, 1500)); // a moment before the next server
   }
   throw new HttpError(503, `The map's place list is busy right now (${last}). Please try again in a minute.`);
 }
@@ -222,18 +230,22 @@ async function placesAlong(p: any) {
   }
   if (road.length < 2) throw new HttpError(400, "Find the route first.");
 
-  // The road for the query: within ~40 m of the real one (bends included), at most 900 points.
-  const line = simplify(road, 900, 0.04).map(([lng, lat]) => `${lat},${lng}`).join(",");
-  const around = `(around:300,${line})`;
-  const query = `[out:json][timeout:45];(
-    nwr${around}["amenity"="fuel"]["name"];
-    nwr${around}["shop"="mall"]["name"];
-    nwr${around}["shop"="department_store"]["name"];
-    nwr${around}["amenity"="bus_station"]["name"];
-    nwr${around}["shop"="convenience"]["name"~"7-Eleven|7 Eleven|Alfamart|Ministop|Uncle John",i];
-    nwr${around}["amenity"="fast_food"]["name"~"McDonald|Jollibee|Chowking|KFC|Mang Inasal|Greenwich",i];
-  );out center tags 1500;`;
-  const elements = await overpass(query);
+  // The road for the query: within ~60 m of the real one (bends included), at most 500 points.
+  const line = simplify(road, 500, 0.06).map(([lng, lat]) => `${lat},${lng}`).join(",");
+  // One light question for every kind at once (the servers limit how much each
+  // site may ask): named amenity/shop places of these kinds within 300 m.
+  const query = `[out:json][timeout:60];
+nwr(around:300,${line})["name"][~"^(amenity|shop)$"~"^(fuel|mall|department_store|bus_station|convenience|fast_food)$"];
+out center tags 2000;`;
+  const BRANDS = {
+    store: /7-?\s?eleven|alfamart|ministop|uncle john/i,
+    food: /mcdonald|jollibee|chowking|kfc|mang inasal|greenwich/i,
+  } as Record<string, RegExp>;
+  const elements = (await overpass(query)).filter((e: any) => {
+    const k = kindOf(e.tags ?? {});
+    // Only the well-known chains for stores and fast food (they're easy to find).
+    return k === "other" ? false : BRANDS[k] ? BRANDS[k].test(String(e.tags?.name ?? "")) : true;
+  });
 
   const places = elements.map((e: any) => {
     const t = e.tags ?? {};
