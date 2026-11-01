@@ -13,6 +13,8 @@ import {
 import { phoneFieldProps } from './ui/phoneField';
 import AdminCheckIn from './AdminCheckIn';
 import RouteTrackingPanel from './ui/RouteTrackingPanel';
+import DriverLinkPanel from './ui/DriverLinkPanel';
+import { useVanLocation } from './useVanLocation';
 import { sortStops } from './geo';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 
@@ -644,6 +646,8 @@ const TrackingConsoleModal = ({
   onAdvanceStop, onClearFeed, clearingFeed, onClose, onAutoFillEtas,
 }) => {
   const safeStops = Array.isArray(meetupStops) ? meetupStops : [];
+  // The van, live, while the driver shares its location.
+  const van = useVanLocation(tour?.id);
   const safeLogs = Array.isArray(trackingLogs) ? trackingLogs : [];
   const activeIdx = safeStops.findIndex(s => s.status !== 'ARRIVED');
   const allArrived = safeStops.length > 0 && activeIdx === -1;
@@ -732,7 +736,9 @@ const TrackingConsoleModal = ({
                 )}
               </div>
 
-              <RouteTrackingPanel tour={tour} stops={safeStops} onAutoFill={onAutoFillEtas} />
+              <RouteTrackingPanel tour={tour} stops={safeStops} onAutoFill={onAutoFillEtas} van={van} />
+
+              <DriverLinkPanel tourId={tour?.id} />
 
               <PickupRoster tourId={tour?.id} stops={safeStops} />
 

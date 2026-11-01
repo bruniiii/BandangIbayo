@@ -69,5 +69,7 @@ from (values
      exists (select 1 from information_schema.columns
               where table_schema = 'public' and table_name = 'profiles' and column_name = 'last_feed_post_at')),
   ('20261130 pickup spots along the route (maps)',
-     to_regclass('public.pickup_spots') is not null)
+     to_regclass('public.pickup_spots') is not null),
+  ('20261201 live van location (driver link)',
+     to_regclass('public.van_locations') is not null)
 ) as u(update_file, installed);

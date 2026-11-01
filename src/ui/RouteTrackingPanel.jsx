@@ -1,6 +1,7 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { Route, Clock, Loader2 } from 'lucide-react';
-import { addMinutesToTime } from '../geo';
+import { addMinutesToTime, distanceKm } from '../geo';
+import { agoText } from '../useVanLocation';
 
 const RouteMap = lazy(() => import('./RouteMap'));
 
@@ -11,6 +12,8 @@ const RouteMap = lazy(() => import('./RouteMap'));
 //   tour:  the tour (tour.route from the tour form)
 //   stops: its pickup stops (lat/lng, minutes_from_start, status)
 //   onAutoFill(updates): admin only; updates = [{ id, scheduled_time }]
+//   van:    the live van location (useVanLocation), or null
+//   myStop: the joiner's pickup point name (shows how far the van is from it)
 // ─────────────────────────────────────────────
 
 const label = { fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6 };
@@ -18,13 +21,23 @@ const label = { fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTra
 // "21:00" (time input) → "9:00 PM"
 const to12h = (hhmm) => addMinutesToTime(hhmm, 0);
 
-const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, height = 260 }) => {
+const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, height = 260, van = null, myStop = '' }) => {
   const [departure, setDeparture] = useState('');
   const [busy, setBusy] = useState(false);
+  // A clock for "updated 2 min ago" (ticks every 30 seconds).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
   const route = tour?.route || null;
   const mapped = stops.filter((s) => Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng)));
   const timed = stops.filter((s) => Number.isFinite(Number(s.minutes_from_start)));
-  if (!route && mapped.length === 0) return null;
+  if (!route && mapped.length === 0 && !van) return null;
+
+  // Live van: how long ago it was seen, and how far it is from the joiner's stop.
+  const vanLive = van && Number.isFinite(Number(van.lat));
+  const stale = vanLive && now - new Date(van.updated_at).getTime() > 10 * 60000;
+  const mine = myStop ? mapped.find((s) => s.location_name.trim().toLowerCase() === myStop.trim().toLowerCase()) : null;
+  const mineKm = vanLive && mine && mine.status !== 'ARRIVED' ? distanceKm({ lat: Number(van.lat), lng: Number(van.lng) }, { lat: Number(mine.lat), lng: Number(mine.lng) }) : null;
+  const speed = Number(van?.speed_kmh) >= 10 ? Number(van.speed_kmh) : 30;
 
   const preview = departure ? timed.map((s) => `${s.location_name} ${addMinutesToTime(departure, Number(s.minutes_from_start))}`) : [];
 
@@ -44,8 +57,18 @@ const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, height = 260 
           {route.distance_km ? ` · ${route.distance_km} km` : ''}
         </p>
       )}
+      {vanLive && (
+        <div role="status" style={{ background: stale ? 'rgba(232,162,101,0.2)' : 'rgba(46,125,50,0.12)', border: `1px solid ${stale ? 'rgba(232,162,101,0.6)' : 'rgba(46,125,50,0.35)'}`, borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, color: stale ? '#8C5216' : '#1F5E36', lineHeight: 1.5 }}>
+          🚐 {stale ? `The van's location was last updated ${agoText(van.updated_at, now)}.` : `Live: the van's location was updated ${agoText(van.updated_at, now)}.`}
+          {mineKm != null && !stale && (
+            <span style={{ display: 'block', color: '#1A0A00' }}>
+              About {mineKm < 1 ? `${Math.round(mineKm * 1000)} m` : `${mineKm.toFixed(1)} km`} from your stop ({mine.location_name}) · about {Math.max(1, Math.round((mineKm / speed) * 60))} min
+            </span>
+          )}
+        </div>
+      )}
       <Suspense fallback={<div style={{ height, borderRadius: 16, background: '#F2E4D0' }} />}>
-        <RouteMap route={route} stops={mapped.map((s) => ({ name: s.location_name, lat: s.lat, lng: s.lng, status: s.status }))} height={height} />
+        <RouteMap route={route} stops={mapped.map((s) => ({ name: s.location_name, lat: s.lat, lng: s.lng, status: s.status }))} van={vanLive ? { lat: Number(van.lat), lng: Number(van.lng) } : null} height={height} />
       </Suspense>
 
       {onAutoFill && timed.length > 0 && (
