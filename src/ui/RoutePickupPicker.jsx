@@ -32,6 +32,14 @@ const KINDS = [
   { key: 'food', label: 'Fast food', icon: Utensils },
 ];
 
+// "250 m from the start", "3.4 km…", "45 km…": places near the start are told apart.
+const fromStart = (km) => {
+  if (!Number.isFinite(km)) return '';
+  if (km < 1) return `${Math.max(10, Math.round((km * 1000) / 10) * 10)} m from the start`;
+  if (km < 10) return `${km.toFixed(1)} km from the start`;
+  return `${Math.round(km)} km from the start`;
+};
+
 const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange, onAddPlace }) => {
   const [start, setStart] = useState(route?.start || null);
   const [end, setEnd] = useState(route?.end || null);
@@ -209,7 +217,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
                         <span style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ display: 'block', fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{s.name}</span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>
-                            <Icon size={12} /> {kind.label.replace(/s$/, '')} · {Math.round(s.alongKm)} km from the start
+                            <Icon size={12} /> {kind.label.replace(/s$/, '')} · {fromStart(s.alongKm)}
                           </span>
                         </span>
                       </button>
