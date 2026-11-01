@@ -10,6 +10,8 @@
 -- Safe to run again: a tour whose title is already there is skipped.
 -- Only one tour per day: if another tour already uses one of these dates,
 -- the SQL Editor says so — move or archive that tour first.
+-- Limits the site checks: Joiner and Regular Rate at most ₱7,500, Van Rent at
+-- most ₱30,000, Tour Guide at most ₱2,000.
 -- Run it in the Supabase SQL Editor: paste it all, click Run.
 -- ═══════════════════════════════════════════════════════════════════════
 
@@ -235,7 +237,7 @@ Leave No Trace Principles
 5. Respect wildlife
 6. Minimize campfire impacts
 7. Be Considerate of other Visitors',
-    32000, 1500, '[{"name": "Homestay (3 nights)", "amount": 21000}, {"name": "Cave Connection Guide", "amount": 4200}]'::jsonb,
+    28000, 1500, '[{"name": "Homestay (3 nights)", "amount": 21000}, {"name": "Cave Connection Guide", "amount": 4200}]'::jsonb,
     array[('2026-11-06'::date, '2026-11-09'::date)]::pg_temp.tour_date[]
   );
 end $$;
