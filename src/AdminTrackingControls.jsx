@@ -154,7 +154,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
     const tourId = activeTour?.id;
     if (!tourId || autoFilledRef.current === tourId || !meetupStops?.length) return;
     if (meetupStops.some((s) => String(s.scheduled_time || '').trim())) return;
-    const departure = departureFromItinerary(activeTour.itinerary);
+    const departure = activeTour.departure_time || departureFromItinerary(activeTour.itinerary);
     const timed = meetupStops.filter((s) => s.minutes_from_start != null && Number.isFinite(Number(s.minutes_from_start)));
     if (!departure || !timed.length) return;
     autoFilledRef.current = tourId;

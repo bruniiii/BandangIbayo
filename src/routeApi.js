@@ -39,7 +39,36 @@ export const findRoute = (points) => call({ action: 'route', points: points.map(
 //   2. OpenStreetMap asked straight from the browser (not blocked like the
 //      shared server address),
 //   3. if the browser can't reach it, the routes function asks instead.
-export const findPlacesAlongRoute = async (route) => {
+// Places already found for the same road (saved for 30 days, shared by the
+// admins, from the 20261203 update), so busy map servers matter less.
+const cacheKey = (route) => (route?.start && route?.end
+  ? [route.start.lat, route.start.lng, route.end.lat, route.end.lng].map((n) => Number(n).toFixed(3)).join(',')
+  : null);
+const savedPlaces = async (key) => {
+  if (!key) return null;
+  try {
+    const { data, error } = await supabase.from('route_place_cache').select('places, saved_at').eq('key', key).maybeSingle();
+    if (error || !Array.isArray(data?.places)) return null;
+    return data.places;
+  } catch { return null; }
+};
+const savePlaces = (key, places) => {
+  if (!key || !Array.isArray(places) || places.length === 0) return;
+  supabase.from('route_place_cache').upsert([{ key, places, saved_at: new Date().toISOString() }], { onConflict: 'key' }).then(() => {}, () => {});
+};
+
+export const findPlacesAlongRoute = async (route, { fresh = false } = {}) => {
+  const key = cacheKey(route);
+  if (!fresh) {
+    const saved = await savedPlaces(key);
+    if (saved) return { ok: true, data: { places: saved, saved: true } };
+  }
+  const result = await findPlacesFresh(route);
+  if (result.ok) savePlaces(key, result.data?.places);
+  return result;
+};
+
+const findPlacesFresh = async (route) => {
   const points = route?.start && route?.end
     ? [[route.start.lng, route.start.lat], [route.end.lng, route.end.lat]]
     : null;

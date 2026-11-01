@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 import Toaster from './ui/Toaster';
+import ErrorBoundary from './ui/ErrorBoundary';
 import { installInputFilter } from './ui/inputFilter';
 import { setupInstallApp } from './installApp';
 import { reportError } from './ui/toast';
+import { logClientError } from './errorLog';
 import './index.css';
 import './App.css';
 
@@ -37,18 +39,25 @@ new MutationObserver(() => {
 // Any error nothing else caught pops up too, instead of failing silently.
 // (Browser noise like ResizeObserver warnings and cancelled requests is skipped.)
 const isNoise = (msg) => /ResizeObserver loop|AbortError|Lock broken|Acquiring process lock|Load failed|Script error/i.test(String(msg || ''));
+// They're also saved for the admins (Admin Settings → Website Errors).
 window.addEventListener('error', (e) => {
-  if (!isNoise(e.message)) reportError('Something went wrong', e.error || e.message);
+  if (isNoise(e.message)) return;
+  reportError('Something went wrong', e.error || e.message);
+  logClientError(e.error || e.message);
 });
 window.addEventListener('unhandledrejection', (e) => {
   const err = e.reason;
-  if (!isNoise(err?.name) && !isNoise(err?.message || err)) reportError('Something went wrong', err);
+  if (isNoise(err?.name) || isNoise(err?.message || err)) return;
+  reportError('Something went wrong', err);
+  logClientError(err);
 });
  
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Router>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
       <Toaster />
     </Router>
   </React.StrictMode>

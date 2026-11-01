@@ -57,7 +57,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
     let alive = true;
     (async () => {
       setPlaces(null); setPlacesError('');
-      let res = await findPlacesAlongRoute(route);
+      let res = await findPlacesAlongRoute(route, { fresh: placesTry > 0 });
       // The free place list is sometimes busy: wait 20 seconds and try once more by itself.
       if (!res.ok && alive && placesTry === 0) {
         setPlacesBusy(true);

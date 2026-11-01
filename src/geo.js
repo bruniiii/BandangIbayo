@@ -119,3 +119,14 @@ export const liveEtas = (stops, van, now = Date.now()) => {
   });
   return out;
 };
+
+// "10:00 PM" (or "22:00") → "22:00" for a time input ('' when it can't be read).
+export const to24h = (time) => {
+  const m = /^(\d{1,2})[:.](\d{2})\s*(AM|PM|NN|MN)?$/i.exec(String(time || '').trim());
+  if (!m) return '';
+  let h = Number(m[1]); const ap = (m[3] || '').toUpperCase();
+  if ((ap === 'PM' || ap === 'NN') && h < 12) h += 12;
+  if ((ap === 'AM' || ap === 'MN') && h === 12) h = 0;
+  if (h > 23 || Number(m[2]) > 59) return '';
+  return `${String(h).padStart(2, '0')}:${m[2]}`;
+};

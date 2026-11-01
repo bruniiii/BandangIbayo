@@ -43,11 +43,8 @@ const DriverTrip = () => {
   const keepAwake = async () => {
     try { wakeRef.current = await navigator.wakeLock?.request('screen'); } catch { /* not supported */ }
   };
-  useEffect(() => {
-    const again = () => { if (sharing && document.visibilityState === 'visible') keepAwake(); };
-    document.addEventListener('visibilitychange', again);
-    return () => document.removeEventListener('visibilitychange', again);
-  }, [sharing]);
+  const [pausedNote, setPausedNote] = useState('');
+  const hiddenAtRef = useRef(null);
 
   // Sends the newest location (every 20 seconds, moving or parked).
   const send = useCallback(async () => {
@@ -67,25 +64,49 @@ const DriverTrip = () => {
     if (data?.arrived) loadInfo();
   }, [token, loadInfo]);
 
-  const start = async () => {
-    if (!('geolocation' in navigator)) { setGpsError("This phone's browser can't share its location."); return; }
-    setGpsError('');
-    await keepAwake();
+  // Follows the phone's location (sends the first one right away).
+  const watch = useCallback(() => {
+    if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
     watchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const first = !latestRef.current;
         latestRef.current = pos;
-        if (first) send(); // the first one right away
+        if (first) send();
       },
       (err) => setGpsError(err.code === 1
         ? 'Location is blocked. Allow location for this website in the phone\'s browser settings, then tap Start Trip again.'
         : 'Waiting for the GPS signal… Make sure Location is turned on.'),
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 },
     );
+  }, [send]);
+
+  const start = async () => {
+    if (!('geolocation' in navigator)) { setGpsError("This phone's browser can't share its location."); return; }
+    setGpsError('');
+    await keepAwake();
+    watch();
     clearInterval(timerRef.current);
     timerRef.current = setInterval(send, SEND_EVERY_MS);
     setSharing(true);
   };
+
+  // Phones stop the location while the screen is off or another app is open.
+  // Back on this page: keep the screen on again, follow the location again and
+  // send it right away, and tell the driver it was paused.
+  useEffect(() => {
+    const onChange = () => {
+      if (!sharing) return;
+      if (document.visibilityState === 'hidden') { hiddenAtRef.current = Date.now(); return; }
+      keepAwake();
+      latestRef.current = null; // the next location is sent at once
+      watch();
+      const away = hiddenAtRef.current ? Math.round((Date.now() - hiddenAtRef.current) / 60000) : 0;
+      hiddenAtRef.current = null;
+      if (away >= 1) setPausedNote(`The location was paused for about ${away} min while this page wasn't on screen. It's sharing again now — keep this page open.`);
+    };
+    document.addEventListener('visibilitychange', onChange);
+    return () => document.removeEventListener('visibilitychange', onChange);
+  }, [sharing, watch]);
 
   const stop = async () => {
     if (!(await confirmDialog({
@@ -149,6 +170,7 @@ const DriverTrip = () => {
           {sharing && !next && <p style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>All pickup stops done. Tap End Trip when everyone has arrived.</p>}
           {status?.arrived && <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#BFF0D6', display: 'flex', alignItems: 'center', gap: 6 }}><CheckCircle2 size={15} /> Arrived at {status.arrived}. Joiners there were told to board.</p>}
           {last && <p style={{ margin: 0, fontSize: 12, fontWeight: 600, opacity: 0.85 }}>Last sent {last.at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}{last.accuracy ? ` · accurate to about ${Math.round(last.accuracy)} m` : ''}</p>}
+          {pausedNote && sharing && <p role="status" style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#FFE2B8' }}>{pausedNote}</p>}
           {gpsError && <p role="alert" style={{ margin: 0, fontSize: 13, fontWeight: 800, color: '#FFD3C2' }}>{gpsError}</p>}
           {!sharing ? (
             <button type="button" onClick={start} style={{

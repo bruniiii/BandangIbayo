@@ -25,7 +25,7 @@ import PickupSpots from './PickupSpots';
 import RoutePickupPicker from './ui/RoutePickupPicker';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
-import { placeOnRoute, departureFromItinerary, addMinutesToTime } from './geo';
+import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h } from './geo';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -101,6 +101,12 @@ const TourManagement = ({ openTourId = null }) => {
   const [routePlaces, setRoutePlaces] = useState([]);
   const refreshSpots = useCallback(() => { loadPickupSpots().then(setSpotsInfo); }, []);
   useEffect(() => { refreshSpots(); }, [refreshSpots]);
+  // "Van leaves at" (time input value, "22:00"); saved once the 20261203 update is installed.
+  const [formDeparture, setFormDeparture] = useState('');
+  const [departureAvailable, setDepartureAvailable] = useState(false);
+  useEffect(() => {
+    supabase.from('tours').select('departure_time').limit(1).then(({ error }) => setDepartureAvailable(!error));
+  }, []);
   // Inclusions, Exclusions and Things to Bring: one item per line, added one at a time.
   const [formLists, setFormLists] = useState({ inclusions: [], exclusions: [], things_to_bring: [] });
   const setList = (field) => (items) => { setFormLists((l) => ({ ...l, [field]: items })); setFormDirty(true); };
@@ -125,6 +131,7 @@ const TourManagement = ({ openTourId = null }) => {
     const stopNames = [...new Set(stops.map((m) => m.location_name.trim()).filter(Boolean))];
     setPickupPicked(stopNames);
     setFormRoute(trip?.route || null);
+    setFormDeparture(to24h(trip?.departure_time));
     setRoutePlaces([]);
     setFormLists({ inclusions: linesOf(trip?.inclusions), exclusions: linesOf(trip?.exclusions), things_to_bring: linesOf(trip?.things_to_bring) });
     setFormItinerary(parseItinerary(trip?.itinerary));
@@ -379,6 +386,7 @@ const TourManagement = ({ openTourId = null }) => {
       accommodation_options: cleanAccommodation(formAccommodation),
       // The van's route (only once the map update is installed).
       ...(spotsInfo.available ? { route: formRoute } : {}),
+      ...(departureAvailable ? { departure_time: formDeparture ? addMinutesToTime(formDeparture, 0) : null } : {}),
     };
     const withDates = (r) => ({
       ...shared, start_date: r.start_date, end_date: r.end_date, duration: calculateDuration(r.start_date, r.end_date),
@@ -446,9 +454,9 @@ const TourManagement = ({ openTourId = null }) => {
             minutes = located.map((_, i) => { total += res.data.legs[i]?.duration_min || 0; return total; });
           }
         }
-        // Each stop's ETA fills itself in: the van leaves at the first time in
-        // the itinerary, plus the driving time to that stop.
-        const departure = departureFromItinerary(shared.itinerary);
+        // Each stop's ETA fills itself in: the van's departure ("Van leaves at",
+        // else the first time in the itinerary) plus the driving time to that stop.
+        const departure = (formDeparture && addMinutesToTime(formDeparture, 0)) || departureFromItinerary(shared.itinerary);
         located.forEach((x, i) => {
           stopInfo[x.name.toLowerCase()] = {
             lat: x.spot.lat, lng: x.spot.lng, route_order: i + 1, minutes_from_start: minutes[i] ?? null,
@@ -1010,13 +1018,24 @@ const TourManagement = ({ openTourId = null }) => {
                       onAddPlace={(pl) => setRoutePlaces((list) => (list.some((x) => x.name === pl.name) ? list : [...list, pl]))}
                     />
                   )}
+                  {departureAvailable && (
+                    <div>
+                      <label style={labelStyle} htmlFor="departure_time">Van leaves at</label>
+                      <input id="departure_time" type="time" name="departure_time" value={formDeparture}
+                        onChange={(e) => { setFormDeparture(e.target.value); setFormDirty(true); }}
+                        style={{ ...inputStyle, maxWidth: 220 }} />
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
+                        When the van leaves the starting point. Each pickup's time is worked out from this and the driving time. Left empty, the first time in the itinerary is used.
+                      </p>
+                    </div>
+                  )}
                   <ListField
                     label="Pickup Points" required name="pickup_new" maxLength={120}
                     items={pickupPicked}
                     onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
                     placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
                     hint={spotsInfo.available
-                      ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. The same points are used for every date of this trip. Each stop's time is set in Tracking Management."
+                      ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. The same points are used for every date of this trip. Each stop's time fills itself in from the departure time and the route."
                       : "Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."}
                   />
                 </div>
