@@ -21,6 +21,8 @@ const JoinerDashboard = lazy(() => import('./JoinerDashboard'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
 const ResetPassword = lazy(() => import('./ResetPassword'));
 const PublicTourList = lazy(() => import('./PublicTours').then((m) => ({ default: m.PublicTourList })));
+// The driver's trip page (live van location), opened from a private link; no login.
+const DriverTrip = lazy(() => import('./DriverTrip'));
 const PublicTourDetail = lazy(() => import('./PublicTours').then((m) => ({ default: m.PublicTourDetail })));
 import { todayManila, groupTripDates, weekdayRange } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
@@ -568,6 +570,7 @@ export default function App() {
       <Route path="/complete-profile" element={<JoinerRegister mode="complete" />} />
       <Route path="/tours" element={<PublicTourList />} />
       <Route path="/tours/:id" element={<PublicTourDetail />} />
+      <Route path="/driver/:token" element={<DriverTrip />} />
       <Route path="/dashboard/*" element={<ProtectedRoute><JoinerDashboard /></ProtectedRoute>} />
       <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

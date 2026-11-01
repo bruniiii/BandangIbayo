@@ -9,6 +9,7 @@ import {
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 import { reportError } from './ui/toast';
 import RouteTrackingPanel from './ui/RouteTrackingPanel';
+import { useVanLocation } from './useVanLocation';
 import { sortStops } from './geo';
 import { todayManila, formatDateRange } from './tourUtils';
 
@@ -38,7 +39,7 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
         if (!user) { if (alive) setToursList([]); return; }
         const { data: bookedData, error: bookingsError } = await supabase
           .from('bookings')
-          .select('tour_id, booking_status, payment_status, cancellation_requested_at')
+          .select('tour_id, booking_status, payment_status, cancellation_requested_at, pickup_point')
           .eq('user_id', user.id)
           .not('booking_status', 'in', '("Cancelled","Rejected")')
           .not('payment_status', 'in', '("Awaiting Payment","Expired")')
@@ -48,7 +49,9 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
         if (!ids.length) { if (alive) setToursList([]); return; }
         const { data: tours, error: toursError } = await supabase.from('tours').select('*').in('id', ids);
         if (toursError) throw toursError;
-        if (alive) setToursList(tours || []);
+        // Each trip remembers the joiner's own pickup point (to show how far the van is from it).
+        const stopOf = Object.fromEntries((bookedData || []).filter((b) => b.pickup_point).map((b) => [String(b.tour_id), b.pickup_point]));
+        if (alive) setToursList((tours || []).map((t) => ({ ...t, myStop: stopOf[String(t.id)] || '' })));
       } catch (err) {
         reportError("Couldn't load your trips", err.message);
       } finally {
@@ -225,6 +228,8 @@ const useIsMobile = (breakpoint = 900) => {
 };
 
 const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingConsole, onClose }) => {
+  // The van, live, while the driver shares its location.
+  const van = useVanLocation(tour?.id);
   const isMobile = useIsMobile();
   const activeStop = meetupStops.find(s => s.status === 'CURRENTLY HERE') || meetupStops.find(s => s.status !== 'ARRIVED');
   const isCompleted = meetupStops.length > 0 && meetupStops.every(s => s.status === 'ARRIVED');
@@ -268,7 +273,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
 
               {/* The van's route and the pickup stops on a map (when the tour has one). */}
               <div style={{ marginBottom: 16 }}>
-                <RouteTrackingPanel tour={tour} stops={meetupStops} height={220} />
+                <RouteTrackingPanel tour={tour} stops={meetupStops} height={220} van={van} myStop={tour.myStop} />
               </div>
 
               {/* Live Status Header Banner */}
