@@ -555,8 +555,8 @@ async function verifyExclusive(userId: string, p: any) {
 async function announceExclusive(updated: any, joiner: { title: string; message: string; subject: string; email: string }, admin: { title: string; message: string }) {
   const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
   const rows = [
-    { user_id: updated.user_id, type: "exclusive_request", title: joiner.title, message: joiner.message },
-    ...(admins ?? []).map((a: any) => ({ user_id: a.id, type: "exclusive_request", title: admin.title, message: admin.message })),
+    { user_id: updated.user_id, type: "exclusive_request", related_id: updated.id, title: joiner.title, message: joiner.message },
+    ...(admins ?? []).map((a: any) => ({ user_id: a.id, type: "exclusive_request", related_id: updated.id, title: admin.title, message: admin.message })),
   ].filter((r) => r.user_id);
   if (rows.length) await supabase.from("notifications").insert(rows);
   if (updated.user_id) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
+import { focusAttr } from './focusTarget';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail, sendCancellationApprovedEmail } from "./Email";
@@ -197,6 +198,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
             </ViewSection>
           )}
  
+          <div {...focusAttr('booking-payment')}>
           <ViewSection title="Payment Information" icon={<CreditCard size={14} />}>
             <div style={{ background: '#F2E4D0', borderRadius: 18, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
  
@@ -209,7 +211,8 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   <p style={labelStyle}>Booking Status</p>
                   <StatusBadge status={shownStatus} wrap />
                 </div>
-                {isDownpayment && isComplete && (
+                {/* A cancelled booking has no balance left to collect. */}
+                {isDownpayment && isComplete && (!isCancelled || balanceSettled) && (
                   <div>
                     <p style={labelStyle}>Balance Status</p>
                     <BalanceStatusBadge status={balanceSettled ? 'Fully Paid' : 'Balance Due'} />
@@ -312,6 +315,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               )}
             </div>
           </ViewSection>
+          </div>
  
           {/* Rejection Notice */}
           {isRejected && (
@@ -325,7 +329,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
           {/* An older cancellation request (sent before cancellations became instant): approve it */}
           {cancelRequested && (
-            <div style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div {...focusAttr('booking-cancellation')} style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <AlertCircle size={20} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />
                 <div>
@@ -346,6 +350,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
 
           {/* Cancellation Notice */}
           {isCancelled && (
+            <div {...focusAttr('booking-cancellation')}>
             <Notice
               color="#1A0A00" bg="rgba(26,10,0,0.05)"
               icon={<XCircle size={20} />}
@@ -359,10 +364,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 </div>
               )}
             </Notice>
+            </div>
           )}
  
-          {/* Confirmed Notice */}
-          {isComplete && (
+          {/* Confirmed Notice (not on a cancelled booking) */}
+          {isComplete && !isCancelled && (
             <Notice
               color="#A8481A" bg="rgba(180,81,30,0.08)"
               icon={<CheckCircle2 size={20} />}
@@ -429,7 +435,36 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
             background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0,
             flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
           }}>
-            {isDownpayment && !balanceSettled ? (
+            {isCancelled ? (
+              // Cancelled: nothing left to collect; the receipts for what was paid stay available.
+              <>
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <p style={labelStyle}>Payment Status</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '4px 0 0', lineHeight: 1.5 }}>
+                    This booking was cancelled, so there's no balance to collect. Payments made are non-refundable.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {[['payment', isDownpayment ? 'Downpayment Receipt' : 'Print Receipt'], ...(isDownpayment && balanceSettled ? [['balance', 'Balance Receipt']] : [])].map(([part, text]) => (
+                    <button
+                      key={part}
+                      onClick={() => handlePrintReceipt(part)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '13px 22px',
+                        background: '#1A0A00', color: '#E8A265',
+                        border: 'none', borderRadius: 999, cursor: 'pointer',
+                        fontFamily: 'inherit', fontWeight: 900,
+                        fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
+                        boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
+                      }}
+                    >
+                      <Printer size={14} /> {text}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : isDownpayment && !balanceSettled ? (
               <>
                 <div style={{ flex: 1, minWidth: 200, background: 'rgba(140,47,28,0.08)', borderRadius: 16, padding: '14px 18px' }}>
                   <p style={{ ...labelStyle, color: '#8C2F1C' }}>Balance Due On Tour Day</p>

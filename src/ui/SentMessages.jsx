@@ -11,11 +11,11 @@ const formatSent = (iso) => new Date(iso).toLocaleString('en-US', {
   month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
 });
 
-export const MessageItem = ({ m, to = '', unread = false, admin = false, tourName = '' }) => {
-  const [open, setOpen] = useState(false);
+export const MessageItem = ({ m, to = '', unread = false, admin = false, tourName = '', defaultOpen = false }) => {
+  const [open, setOpen] = useState(defaultOpen);
   const Icon = m.source === 'tour' ? Megaphone : Mail;
   return (
-    <li style={{ listStyle: 'none', background: unread ? 'rgba(180,81,30,0.1)' : '#F2E4D0', border: `1px solid ${unread ? 'rgba(180,81,30,0.4)' : 'rgba(180,81,30,0.14)'}`, borderRadius: 14 }}>
+    <li data-focus-id={`message-${m.id}`} style={{ listStyle: 'none', background: unread ? 'rgba(180,81,30,0.1)' : '#F2E4D0', border: `1px solid ${unread ? 'rgba(180,81,30,0.4)' : 'rgba(180,81,30,0.14)'}`, borderRadius: 14 }}>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} style={{
         width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
         padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start',

@@ -8,6 +8,7 @@ import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
+import { bookingForNotification, tourForNotification } from './notificationTarget';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
 import { useAdminMe } from './adminMe';
@@ -136,7 +137,13 @@ const AdminDashboard = () => {
   const [sidebarPinned, toggleSidebarPin] = useSidebarPin();
   const sidebarExpanded = isMobile ? true : (sidebarPinned || sidebarHovered);
  
+  // The exact item a clicked notification is about ({ id, n }); n remounts the page so it opens it.
+  const [focus, setFocus] = useState(null);
+  const focusKey = focus ? `focus-${focus.n}` : undefined;
+  const focusId = focus?.id ?? null;
+
   const handleNavClick = (label) => {
+    setFocus(null);
     setActiveTab(label);
     if (isMobile) setMobileNavOpen(false);
   };
@@ -144,38 +151,57 @@ const AdminDashboard = () => {
   // A request notification opens Exclusive Tours or Requested Tours, whichever it's on.
   const openRequestPage = async (requestId) => {
     let page = 'Exclusive Tours';
+    let found = false;
     if (requestId) {
       const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
       if (data?.request_type === 'request') page = 'Requested Tours';
+      found = !!data;
     }
-    handleNavClick(page);
+    openFocused(page, found ? requestId : null);
   };
 
-  // Routes a clicked notification to the module it's about — a new
-  // booking opens Booking Management, a new review opens Reviews, etc.
-  const handleNotificationNavigate = (notification) => {
+  // Opens a page on one item (a booking, a request, a joiner, a tour...).
+  const openFocused = (page, id, section = null) => {
+    handleNavClick(page);
+    if (id != null) setFocus({ id, section, n: Date.now() });
+  };
+
+  // Routes a clicked notification to the exact item it's about: a booking
+  // opens its details in Booking Management, a request opens that request,
+  // a new joiner opens their account, and so on.
+  const handleNotificationNavigate = async (notification) => {
     switch (notification.type) {
       case 'booking':
       case 'payment':
       case 'cancellation':
-        handleNavClick('Booking Management');
+      case 'waitlist': {
+        const booking = await bookingForNotification(notification);
+        const text = `${notification.title || ''} ${notification.message || ''}`;
+        const section = notification.type === 'cancellation' || /cancel/i.test(text) ? 'booking-cancellation'
+          : notification.type === 'payment' || /paid|payment|balance/i.test(text) ? 'booking-payment' : null;
+        openFocused('Booking Management', booking?.id, section);
         break;
+      }
       case 'exclusive_request':
       case 'exclusive_package':
         openRequestPage(notification.related_id);
         break;
       case 'feed':
-        handleNavClick('Feed');
+        openFocused('Feed', 'pending');
         break;
-      case 'review':
-        handleNavClick('Reviews');
+      case 'review': {
+        const tour = await tourForNotification(notification);
+        openFocused('Reviews', tour?.id);
         break;
+      }
       case 'account':
-        handleNavClick('Joiner Accounts');
+        openFocused('Joiner Accounts', notification.related_id);
         break;
-      case 'tour':
-        handleNavClick('Tour Management');
+      case 'tour': {
+        const tour = await tourForNotification(notification);
+        openFocused('Tour Management', tour?.id);
         break;
+      }
       default:
         handleNavClick('Overview');
     }
@@ -826,13 +852,13 @@ const AdminDashboard = () => {
           )}
  
           {/* ROUTED CONTENT VIEWS */}
-          {activeTab === 'Feed' && <Feed isAdmin={true} />}
-          {activeTab === 'Tour Management' && <TourManagement />}
-          {activeTab === 'Booking Management' && <BookingManagement />}
-          {activeTab === 'Joiner Accounts' && <JoinerAccounts />}
-          {activeTab === 'Exclusive Tours' && <AdminExclusiveTours key="exclusive" type="exclusive" />}
-          {activeTab === 'Requested Tours' && <AdminExclusiveTours key="request" type="request" />}
-          {activeTab === 'Reviews' && <Reviews isAdmin={true} />}
+          {activeTab === 'Feed' && <Feed key={focusKey} isAdmin={true} focus={focusId} />}
+          {activeTab === 'Tour Management' && <TourManagement key={focusKey} openTourId={focusId} />}
+          {activeTab === 'Booking Management' && <BookingManagement key={focusKey} openBookingId={focusId} openSection={focus?.section} />}
+          {activeTab === 'Joiner Accounts' && <JoinerAccounts key={focusKey} openJoinerId={focusId} />}
+          {activeTab === 'Exclusive Tours' && <AdminExclusiveTours key={`exclusive${focusKey || ''}`} type="exclusive" openRequestId={focusId} />}
+          {activeTab === 'Requested Tours' && <AdminExclusiveTours key={`request${focusKey || ''}`} type="request" openRequestId={focusId} />}
+          {activeTab === 'Reviews' && <Reviews key={focusKey} isAdmin={true} focusTourId={focusId} />}
           {activeTab === 'Group Chats' && <GroupChat isAdmin />}
           {activeTab === 'Reports' && <Reports />}
           {activeTab === 'Tracking Management' && (

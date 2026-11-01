@@ -11,6 +11,7 @@ import { SkeletonTable } from './ui/Skeleton';
 import { StatusBadge, BalanceStatusBadge, PaymentMethodBadge } from './BookingBadges';
 import { getBalanceStatus, balanceOwed, owesBalance, getShownStatus } from './bookingStatus';
 import { BookingDetailModal } from './BookingDetailModal';
+import { flashFocus, useOpenOnce } from './focusTarget';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -26,7 +27,9 @@ import { BookingDetailModal } from './BookingDetailModal';
 /* ─────────────────────────────────────────────
    BOOKING MANAGEMENT  (Admin)
 ───────────────────────────────────────────── */
-const BookingManagement = () => {
+// openSection: 'booking-cancellation' or 'booking-payment', the part of the
+// booking a notification is about (scrolled to when it opens).
+const BookingManagement = ({ openBookingId = null, openSection = null }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +38,8 @@ const BookingManagement = () => {
   const [tourFilter, setTourFilter] = useState('All Tours');
   const [dateFilter, setDateFilter] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  // Opened from a notification: show that booking's details once loaded.
+  useOpenOnce(openBookingId, bookings, (b) => { setSelectedBooking(b); if (openSection) flashFocus(openSection); });
  
   // Loads quietly: the page starts in its loading state, and later reloads
   // (live updates, after an action) just swap in the new rows.

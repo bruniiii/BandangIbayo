@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from './supabaseClient';
+import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
 import { SearchX } from 'lucide-react';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -49,7 +50,7 @@ const formatDate = (d) => {
 // Active joiners close to the inactivity limit get a yellow warning badge.
 const WARN_DAYS = 30;
 const ARCHIVE_REASONS = { deactivated: 'Deactivated their account', deleted: 'Deleted their account', inactive: 'No login for a long time' };
-const JoinerAccounts = () => {
+const JoinerAccounts = ({ openJoinerId = null }) => {
   const [view, setView] = useState('active'); // 'active' | 'archived'
   const [activity, setActivity] = useState({}); // id → { last_sign_in_at, inactive }
   const [deletedAccounts, setDeletedAccounts] = useState([]);
@@ -80,6 +81,8 @@ const JoinerAccounts = () => {
     setSending(false);
     setEmailStatus(null);
   };
+  // Opened from a notification (a new joiner): show their details once loaded.
+  useOpenOnce(openJoinerId, joiners, openJoiner);
 
   const handleSendEmail = async () => {
     if (!selected?.email) return;
