@@ -515,8 +515,13 @@ const FeedPostCard = ({
   const isTourPost = post.post_type === 'tour';
   const tour = post.tours;
   const coverImage = post.image_url || tour?.image_urls?.[0] || null;
+  // A tour post shows every photo of the tour (tap one to see it full size).
+  const tourPhotos = isTourPost && !post.image_url && Array.isArray(tour?.image_urls)
+    ? tour.image_urls.filter(Boolean).map((url) => ({ url, type: 'image' }))
+    : [];
   const media = Array.isArray(post.media) && post.media.length > 0
     ? post.media
+    : tourPhotos.length ? tourPhotos
     : (coverImage ? [{ url: coverImage, type: 'image' }] : []);
 
   const [lightboxIndex, setLightboxIndex] = useState(null);
