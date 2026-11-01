@@ -25,7 +25,7 @@ import PickupSpots from './PickupSpots';
 import RoutePickupPicker from './ui/RoutePickupPicker';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
-import { placeOnRoute } from './geo';
+import { placeOnRoute, departureFromItinerary, addMinutesToTime } from './geo';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -446,8 +446,14 @@ const TourManagement = ({ openTourId = null }) => {
             minutes = located.map((_, i) => { total += res.data.legs[i]?.duration_min || 0; return total; });
           }
         }
+        // Each stop's ETA fills itself in: the van leaves at the first time in
+        // the itinerary, plus the driving time to that stop.
+        const departure = departureFromItinerary(shared.itinerary);
         located.forEach((x, i) => {
-          stopInfo[x.name.toLowerCase()] = { lat: x.spot.lat, lng: x.spot.lng, route_order: i + 1, minutes_from_start: minutes[i] ?? null };
+          stopInfo[x.name.toLowerCase()] = {
+            lat: x.spot.lat, lng: x.spot.lng, route_order: i + 1, minutes_from_start: minutes[i] ?? null,
+            ...(departure && minutes[i] != null ? { scheduled_time: addMinutesToTime(departure, minutes[i]) } : {}),
+          };
         });
       }
 
@@ -457,7 +463,7 @@ const TourManagement = ({ openTourId = null }) => {
         const existing = [...(editingTour?.dates || [])].find((d) => d.id === id)?.pickup_points || [];
         for (const r of pickups) {
           const match = existing.find((m) => m.location_name.trim().toLowerCase() === r.location.toLowerCase());
-          // No time here: the ETA of each stop is set in Tracking Management.
+          // The ETA comes from the itinerary's first time + the driving time (when the route is known).
           const geo = stopInfo[r.location.toLowerCase()] || (spotsInfo.available ? { lat: null, lng: null, route_order: null, minutes_from_start: null } : {});
           if (!match) {
             await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: r.location, scheduled_time: '', status: 'DEPARTURE', ...geo }]);

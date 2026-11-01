@@ -65,3 +65,57 @@ export const sortStops = (stops) => [...(stops || [])].sort((a, b) => {
   if (ao !== bo) return ao - bo;
   return String(a?.created_at || '').localeCompare(String(b?.created_at || ''));
 });
+
+// When the van leaves: the first time written in the itinerary (the earliest
+// day, usually "Day 0: 09:00pm – Assembly Time…"). "9:00 PM", or '' if none.
+export const departureFromItinerary = (text) => {
+  const lines = String(text || '').split('\n');
+  let day = 1; let best = null;
+  lines.forEach((raw) => {
+    const line = raw.trim();
+    const d = line.match(/^day\s*(\d+)\b/i);
+    if (d) { day = Number(d[1]); return; }
+    const m = line.match(/\b(\d{1,2})[:.](\d{2})\s*(am|pm|nn|mn)?\b/i);
+    if (!m || (best && best.day <= day)) return;
+    let h = Number(m[1]); const min = Number(m[2]); const ap = (m[3] || '').toLowerCase();
+    if (h > 23 || min > 59) return;
+    if ((ap === 'pm' || ap === 'nn') && h < 12) h += 12;
+    if ((ap === 'am' || ap === 'mn') && h === 12) h = 0;
+    best = { day, time: `${h}:${String(min).padStart(2, '0')}` };
+  });
+  return best ? addMinutesToTime(best.time, 0) : '';
+};
+
+// Live ETAs while the driver shares the van's location: the next stop from
+// the van's distance (roads ≈ 1.25 × straight line) and speed, the stops
+// after it from the driving time between stops saved with the tour.
+//   stops: in route order; van: { lat, lng, speed_kmh, updated_at }
+//   → { [stopId]: { minutes, time: "9:42 PM" } }  (empty when the van isn't live)
+export const liveEtas = (stops, van, now = Date.now()) => {
+  const out = {};
+  if (!van || !Number.isFinite(Number(van.lat)) || now - new Date(van.updated_at).getTime() > 10 * 60000) return out;
+  const list = (stops || []).filter(Boolean);
+  const nextIdx = list.findIndex((s) => s.status !== 'ARRIVED');
+  const next = list[nextIdx];
+  if (!next || !Number.isFinite(Number(next.lat)) || !Number.isFinite(Number(next.lng))) return out;
+  const speed = Number(van.speed_kmh) >= 10 ? Number(van.speed_kmh) : 30;
+  const km = distanceKm({ lat: Number(van.lat), lng: Number(van.lng) }, { lat: Number(next.lat), lng: Number(next.lng) }) * 1.25;
+  const first = Math.max(1, Math.round((km / speed) * 60));
+  const clock = (mins) => {
+    const d = new Date(now + mins * 60000);
+    const manila = new Date(d.getTime() + 8 * 3600000);
+    return addMinutesToTime(`${manila.getUTCHours()}:${String(manila.getUTCMinutes()).padStart(2, '0')}`, 0);
+  };
+  const base = Number(next.minutes_from_start);
+  list.slice(nextIdx).forEach((s, i) => {
+    if (s.status === 'ARRIVED') return;
+    let mins = first;
+    if (i > 0) {
+      const m = Number(s.minutes_from_start);
+      if (!Number.isFinite(m) || !Number.isFinite(base) || s.minutes_from_start == null || next.minutes_from_start == null) return;
+      mins = first + Math.max(0, Math.round(m - base));
+    }
+    out[s.id] = { minutes: mins, time: clock(mins) };
+  });
+  return out;
+};

@@ -71,5 +71,8 @@ from (values
   ('20261130 pickup spots along the route (maps)',
      to_regclass('public.pickup_spots') is not null),
   ('20261201 live van location (driver link)',
-     to_regclass('public.van_locations') is not null)
+     to_regclass('public.van_locations') is not null),
+  ('20261202 tracking runs by itself (trip-not-started alert)',
+     exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'notify_trip_not_started'))
 ) as u(update_file, installed);

@@ -200,6 +200,11 @@ const AdminDashboard = () => {
       case 'account':
         openFocused('Joiner Accounts', notification.related_id);
         break;
+      case 'tracking': {
+        const tour = await tourForNotification(notification);
+        openFocused('Tracking Management', tour?.id);
+        break;
+      }
       case 'tour': {
         const tour = await tourForNotification(notification);
         openFocused('Tour Management', tour?.id);
@@ -865,7 +870,7 @@ const AdminDashboard = () => {
           {activeTab === 'Group Chats' && <GroupChat isAdmin />}
           {activeTab === 'Reports' && <Reports />}
           {activeTab === 'Tracking Management' && (
-             <AdminTrackingControls selectedTourId="renugdlntgybazpikmbu" />
+             <AdminTrackingControls key={focusKey} openTourId={focusId} />
           )}
           {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
           {activeTab === 'Admin Settings' && <AdminSettings />}

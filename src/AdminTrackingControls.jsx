@@ -8,15 +8,16 @@ import { nameError, phoneError, cleanName, normalizePhone, formatPhPhone } from 
 import {
   MapPin, Trash2, History, X, Calendar, ScanLine,
   Armchair, Compass, ImageIcon, Loader2, Truck, Check, CheckCircle2,
-  Navigation, Clock, Send, ChevronLeft, ChevronRight
+  Navigation, Clock, Send, ChevronLeft, ChevronRight, ChevronDown
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
 import AdminCheckIn from './AdminCheckIn';
-import RouteTrackingPanel from './ui/RouteTrackingPanel';
+import RouteTrackingPanel, { EtaAutoFill } from './ui/RouteTrackingPanel';
 import DriverLinkPanel from './ui/DriverLinkPanel';
-import { useVanLocation } from './useVanLocation';
-import { sortStops } from './geo';
+import { useVanLocation, useNow, agoText } from './useVanLocation';
+import { sortStops, departureFromItinerary, addMinutesToTime, liveEtas } from './geo';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
+import { useOpenOnce } from './focusTarget';
 
 const PALETTE = {
   espresso: '#1A0A00',
@@ -48,7 +49,7 @@ const inputStyle = {
   outline: 'none',
 };
 
-export const AdminTrackingControls = () => {
+export const AdminTrackingControls = ({ openTourId = null }) => {
   const [currentTab, setCurrentTab] = useState('active'); // 'active' | 'archive'
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
@@ -97,6 +98,9 @@ export const AdminTrackingControls = () => {
     fetchTours();
   }, [fetchTours]);
 
+  // Opened from a notification ("The van hasn't started the trip"): that tour's tracking.
+  useOpenOnce(openTourId, toursList, (t) => setActiveTour(t));
+
   // 2. FETCH TRACKING STATE FOR ACTIVE TOUR
   const fetchTrackingConsole = useCallback(async (tourId) => {
     if (!tourId) return;
@@ -142,6 +146,22 @@ export const AdminTrackingControls = () => {
       fetchTrackingConsole(activeTour.id);
     }
   }, [activeTour, fetchTrackingConsole]);
+
+  // Stops with no ETA yet (tours saved before ETAs filled themselves in): fill
+  // them in once from the itinerary's first time + the driving time.
+  const autoFilledRef = useRef(null);
+  useEffect(() => {
+    const tourId = activeTour?.id;
+    if (!tourId || autoFilledRef.current === tourId || !meetupStops?.length) return;
+    if (meetupStops.some((s) => String(s.scheduled_time || '').trim())) return;
+    const departure = departureFromItinerary(activeTour.itinerary);
+    const timed = meetupStops.filter((s) => s.minutes_from_start != null && Number.isFinite(Number(s.minutes_from_start)));
+    if (!departure || !timed.length) return;
+    autoFilledRef.current = tourId;
+    Promise.all(timed.map((s) => supabase.from('tour_meetups')
+      .update({ scheduled_time: addMinutesToTime(departure, Number(s.minutes_from_start)) }).eq('id', s.id)))
+      .then(() => fetchTrackingConsole(tourId));
+  }, [activeTour, meetupStops, fetchTrackingConsole]);
 
   // Realtime Subscriptions
   useEffect(() => {
@@ -648,6 +668,9 @@ const TrackingConsoleModal = ({
   const safeStops = Array.isArray(meetupStops) ? meetupStops : [];
   // The van, live, while the driver shares its location.
   const van = useVanLocation(tour?.id);
+  const now = useNow();
+  const live = liveEtas(safeStops, van, now);
+  const vanLive = van && now - new Date(van.updated_at).getTime() <= 10 * 60000;
   const safeLogs = Array.isArray(trackingLogs) ? trackingLogs : [];
   const activeIdx = safeStops.findIndex(s => s.status !== 'ARRIVED');
   const allArrived = safeStops.length > 0 && activeIdx === -1;
@@ -736,21 +759,79 @@ const TrackingConsoleModal = ({
                 )}
               </div>
 
-              <RouteTrackingPanel tour={tour} stops={safeStops} onAutoFill={onAutoFillEtas} van={van} />
+              <RouteTrackingPanel tour={tour} stops={safeStops} van={van} />
 
               <DriverLinkPanel tourId={tour?.id} />
 
+              {/* Pickup stops: everything here updates by itself from the driver's phone */}
+              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <MapPin size={14} /> Pickup Stops · Automatic
+                </h4>
+                <p role="status" style={{ fontSize: 11.5, fontWeight: 700, color: vanLive ? '#1F5E36' : '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+                  {allArrived
+                    ? 'Every pickup stop is done.'
+                    : vanLive
+                      ? `🚐 The driver is sharing the van's location (updated ${agoText(van.updated_at, now)}). Stops, ETAs and joiner alerts update by themselves.`
+                      : 'Waiting for the driver: send them the Driver Link above. When they tap Start Trip, the van is dispatched, each stop is marked Arrived when it gets there, ETAs update live and joiners are alerted — all by itself.'}
+                </p>
+                {safeStops.length === 0 ? (
+                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', textAlign: 'center', margin: '14px 0' }}>
+                    No pickup points yet. Add them in Tour Management (Edit Tour).
+                  </p>
+                ) : (
+                  <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {safeStops.map((stop, i) => {
+                      const isArrived = stop.status === 'ARRIVED';
+                      const isCurrent = i === activeIdx;
+                      const badge = STOP_STATUS_STYLES[stop.status] || STOP_STATUS_STYLES.DEPARTURE;
+                      const eta = live[stop.id];
+                      return (
+                        <li key={stop.id || i} style={{
+                          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 12px', borderRadius: 12,
+                          background: isCurrent ? 'rgba(180,81,30,0.06)' : '#FDF6EE',
+                          border: isCurrent ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.14)',
+                        }}>
+                          <span style={{
+                            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                            background: isArrived ? '#1F8A5C' : isCurrent ? '#B4511E' : 'rgba(26,10,0,0.1)',
+                            color: '#FFF', fontSize: 11.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          }}>{isArrived ? <Check size={12} /> : i + 1}</span>
+                          <span style={{ flex: 1, minWidth: 140 }}>
+                            <strong style={{ display: 'block', fontSize: 13, color: '#1A0A00' }}>{stop.location_name}</strong>
+                            <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>
+                              {isArrived
+                                ? `Arrived${stop.arrived_at ? ` ${new Date(stop.arrived_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' })}` : ''}`
+                                : eta
+                                  ? `Live ETA ${eta.time} · about ${eta.minutes} min${stop.scheduled_time ? ` (planned ${stop.scheduled_time})` : ''}`
+                                  : stop.scheduled_time ? `ETA ${stop.scheduled_time}` : 'ETA not set yet'}
+                            </span>
+                          </span>
+                          <span style={{ background: badge.bg, color: badge.color, fontSize: 11, fontWeight: 900, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>
+                            {badge.label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+              </div>
+
               <PickupRoster tourId={tour?.id} stops={safeStops} />
 
-              {/* Manual Stops */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
-                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MapPin size={14} /> Manual Pickup Stops & ETA Dispatch
-                </h4>
+              {/* Manual override: only when the driver's phone can't share its location */}
+              <details style={{ background: '#FFF', padding: '1rem 1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
+                <summary style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', display: 'flex', alignItems: 'center', gap: 6, listStyle: 'none' }}>
+                  <MapPin size={14} /> Manual Override <ChevronDown size={14} style={{ marginLeft: 'auto' }} />
+                </summary>
 
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
-                  Pickup points come from Tour Management (Edit Tour → Pickup Points). Here you can update each stop's ETA and note.
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '12px 0', lineHeight: 1.5 }}>
+                  Only needed if the driver's phone can't share its location (dead battery, no signal). Change a stop's ETA or note, change the departure time, or move the van along by hand.
                 </p>
+
+                <div style={{ marginBottom: 12 }}>
+                  <EtaAutoFill route={tour?.route} stops={safeStops} onAutoFill={onAutoFillEtas} />
+                </div>
 
                 {safeStops.length === 0 ? (
                   <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', opacity: 0.9, textAlign: 'center', margin: '14px 0' }}>
@@ -871,7 +952,7 @@ const TrackingConsoleModal = ({
                     )}
                   </div>
                 )}
-              </div>
+              </details>
             </div>
 
             {/* Live Feed */}
