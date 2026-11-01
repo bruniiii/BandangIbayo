@@ -8,6 +8,9 @@
 //       → { coords: [[lng, lat], …], distance_km, duration_min, legs: [{ distance_km, duration_min }] }
 //       The driving road through the points, in order (legs: point to point).
 //       coords keeps the road's shape (bends included) in at most ~400 points.
+//   - { action: "road-line", points: [[lng, lat], …] }      (start and destination)
+//       → { line: [[lng, lat], …] }  the road within ~60 m of its real shape (≤ 500 points),
+//       for the website to ask OpenStreetMap for the places along it itself.
 //   - { action: "places-along", points: [[lng, lat], …] }   (start and destination)
 //       → { places: [{ name, kind, lat, lng, city, alongKm, offKm }] }
 //       Possible pickup points within 300 m of the road, from OpenStreetMap:
@@ -265,6 +268,16 @@ out center tags 2000;`;
   return { places };
 }
 
+// The road from the start to the destination, close to its real shape
+// (within ~60 m, at most 500 points). The website asks OpenStreetMap for the
+// places along it straight from the browser (the free servers block busy
+// shared addresses like this server's; a person's own connection is fine).
+async function roadLine(p: any) {
+  const road = (await drive(checkPoints(p.points))).geometry?.coordinates ?? [];
+  if (road.length < 2) throw new HttpError(502, "No driving route found between those places.");
+  return { line: simplify(road, 500, 0.06) };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -280,6 +293,7 @@ Deno.serve(async (req) => {
       case "geocode": return reply(await geocode(payload));
       case "route": return reply(await route(payload));
       case "places-along": return reply(await placesAlong(payload));
+      case "road-line": return reply(await roadLine(payload));
       default: return reply({ error: "Unknown action" }, 400);
     }
   } catch (err) {
