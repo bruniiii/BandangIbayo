@@ -55,5 +55,8 @@ from (values
      to_regclass('public.app_settings') is not null),
   ('20261125 reminder 15 minutes before departure',
      exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-              where n.nspname = 'public' and p.proname = 'notify_departure_soon'))
+              where n.nspname = 'public' and p.proname = 'notify_departure_soon')),
+  ('20261126 restored admins verify their email',
+     exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'admin_restore_pending_at'))
 ) as u(update_file, installed);

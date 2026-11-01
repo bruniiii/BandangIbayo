@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { errorDetail } from './Email';
+import { askPaymentPhone } from './ui/PaymentPhone';
 
 // ─────────────────────────────────────────────
 // ONLINE PAYMENTS (PayMongo) — calls the `payments` edge function
@@ -18,12 +19,27 @@ const callPayments = async (action, body = {}) => {
 
 const returnBaseUrl = () => window.location.origin;
 
+// Before any PayMongo checkout: the joiner confirms their contact number (a
+// Philippine mobile number, +639XXXXXXXXX), prefilled from their profile.
+// It's sent as PayMongo's billing phone. Cancelling stops the payment.
+const withPaymentPhone = async (action, body) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  let saved = '';
+  if (user) {
+    const { data } = await supabase.from('profiles').select('phone_number').eq('id', user.id).maybeSingle();
+    saved = data?.phone_number || '';
+  }
+  const phone = await askPaymentPhone(saved);
+  if (!phone) return { ok: false, cancelled: true, error: 'Payment cancelled.' };
+  return callPayments(action, { ...body, phone });
+};
+
 // Holds the slots for 30 minutes and returns PayMongo's checkout page URL.
 export const startCheckout = ({ tourId, slots, paymentType, companions, accommodation = null }) =>
-  callPayments('create-checkout', { tourId, slots, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
+  withPaymentPhone('create-checkout', { tourId, slots, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
 
 export const startBalanceCheckout = ({ bookingId }) =>
-  callPayments('pay-balance', { bookingId, returnBaseUrl: returnBaseUrl() });
+  withPaymentPhone('pay-balance', { bookingId, returnBaseUrl: returnBaseUrl() });
 
 // Asks PayMongo whether the booking's checkout(s) were paid and records it.
 export const verifyCheckout = ({ bookingId }) => callPayments('verify-checkout', { bookingId });
@@ -33,16 +49,16 @@ export const cancelCheckout = ({ bookingId }) => callPayments('cancel-checkout',
 
 // Slots held for a joiner's requested tour: pay full or 50% downpayment.
 export const payHeldBooking = ({ bookingId, paymentType, companions, accommodation = null }) =>
-  callPayments('pay-held', { bookingId, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
+  withPaymentPhone('pay-held', { bookingId, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
 
 // Exclusive tours: the 50% downpayment, worked out on the server from the
 // package price the agency sent. Returns { checkoutUrl } or { alreadyPaid }.
 // accommodation: the joiner's choice from the package's options.
 export const startExclusiveDownpayment = ({ requestId, accommodation = null }) =>
-  callPayments('pay-exclusive', { requestId, accommodation, returnBaseUrl: returnBaseUrl() });
+  withPaymentPhone('pay-exclusive', { requestId, accommodation, returnBaseUrl: returnBaseUrl() });
 // The rest of the package price, after the downpayment.
 export const startExclusiveBalance = ({ requestId }) =>
-  callPayments('pay-exclusive', { requestId, part: 'balance', returnBaseUrl: returnBaseUrl() });
+  withPaymentPhone('pay-exclusive', { requestId, part: 'balance', returnBaseUrl: returnBaseUrl() });
 
 // Coming back from PayMongo: has the downpayment been paid?
 export const verifyExclusivePayment = ({ requestId }) => callPayments('verify-exclusive', { requestId });

@@ -106,7 +106,7 @@ const JoinerLogin = () => {
   const finishLogin = async (user) => {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, archived_at')
+      .select('role, archived_at, admin_restore_pending_at')
       .eq('id', user.id)
       .single();
 
@@ -124,7 +124,9 @@ const JoinerLogin = () => {
       await supabase.auth.signOut();
       setLoading(false);
       setChallenge(null);
-      showError("This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+      showError(profile.admin_restore_pending_at
+        ? "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it."
+        : "This admin account was archived, so it can't log in. Ask the main admin to restore it.");
       return;
     }
 

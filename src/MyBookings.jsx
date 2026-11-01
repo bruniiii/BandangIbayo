@@ -813,8 +813,8 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 
   const payBalance = async () => {
     setBusy('balance');
-    const { ok, data, error } = await startBalanceCheckout({ bookingId: booking.id });
-    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
+    const { ok, data, error, cancelled } = await startBalanceCheckout({ bookingId: booking.id });
+    if (!ok) { if (!cancelled) toast.error("Couldn't open the payment page", error); setBusy(null); return; }
     if (data.alreadyPaid) { toast.success('Balance already paid', 'Thank you! Nothing more is due.'); setBusy(null); onChanged(); return; }
     window.location.assign(data.checkoutUrl);
   };
@@ -907,13 +907,13 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
     if (err) { setNamesProblem(err); setNamesOpen(true); return; }
     setNamesOpen(false);
     setBusy('pay');
-    const { ok, data, error } = await payHeldBooking({
+    const { ok, data, error, cancelled } = await payHeldBooking({
       bookingId: booking.id,
       paymentType: onSale ? 'full' : paymentType,
       companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
       accommodation: accommodation || null,
     });
-    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(null); return; }
+    if (!ok) { if (!cancelled) toast.error("Couldn't open the payment page", error); setBusy(null); return; }
     if (data.alreadyPaid) { toast.success('Already paid', 'Your booking is confirmed.'); setBusy(null); onChanged(); return; }
     window.location.assign(data.checkoutUrl);
   };

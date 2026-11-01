@@ -82,6 +82,29 @@ async function paymongo(method: string, path: string, body?: unknown) {
 
 const centavos = (pesos: number) => Math.round(pesos * 100);
 
+// The joiner's contact number for PayMongo's billing phone: a Philippine
+// mobile number, +63 and exactly 10 digits starting with 9 ("+639XXXXXXXXX",
+// 13 characters). Anything else stops the payment before anything is saved.
+function checkoutPhone(raw: unknown): string {
+  let d = String(raw ?? "").replace(/\D/g, "");
+  if (d.length === 12 && d.startsWith("63")) d = d.slice(2);
+  else if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
+  if (!/^9\d{9}$/.test(d)) {
+    throw new HttpError(400, "Please enter a Philippine mobile number for payment: +63 followed by 10 digits starting with 9, like +63 917 123 4567.");
+  }
+  return `+63${d}`;
+}
+
+// PayMongo billing details (name and email only when we have them).
+const billingFor = (name: unknown, email: unknown, phone: string) => {
+  const billing: Record<string, string> = { phone };
+  const n = String(name ?? "").trim();
+  const e = String(email ?? "").trim();
+  if (n && n.toUpperCase() !== "N/A") billing.name = n.slice(0, 100);
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) billing.email = e;
+  return billing;
+};
+
 // Where PayMongo sends the joiner back. Only our own site (or localhost while testing).
 function returnBase(requested: unknown) {
   const r = typeof requested === "string" ? requested.replace(/\/+$/, "") : "";
@@ -91,9 +114,10 @@ function returnBase(requested: unknown) {
 }
 
 async function createSession(opts: {
-  booking: any; tour: any; amount: number; kind: "booking" | "balance"; label: string; base: string;
+  booking: any; tour: any; amount: number; kind: "booking" | "balance"; label: string; base: string; phone: string;
 }) {
   const { booking, tour, amount, kind, label, base } = opts;
+  const phone = checkoutPhone(opts.phone);
   const back = kind === "booking" ? "payment" : "balance";
   const session = await paymongo("POST", "/checkout_sessions", {
     data: {
@@ -105,6 +129,7 @@ async function createSession(opts: {
           quantity: 1,
         }],
         payment_method_types: PAYMENT_METHODS,
+        billing: billingFor(booking.full_name, booking.email, phone),
         description: `Bandang IBAYO booking ${booking.booking_number}. Payments are non-refundable; bookings can be cancelled up to 14 days before the tour.`,
         reference_number: booking.booking_number,
         metadata: { booking_id: String(booking.id), kind },
@@ -232,6 +257,7 @@ function chosenAccommodation(options: unknown, choice: unknown) {
 }
 
 async function createCheckout(userId: string, p: any) {
+  checkoutPhone(p.phone); // checked before anything is saved
   const { data: offered } = await supabase.from("tours").select("accommodation_options").eq("id", p.tourId).maybeSingle();
   const accommodation = chosenAccommodation(offered?.accommodation_options, p.accommodation);
   const { data: booking, error } = await supabase.rpc("start_online_booking", {
@@ -250,7 +276,7 @@ async function createCheckout(userId: string, p: any) {
 
   try {
     const session = await createSession({
-      booking, tour, amount, kind: "booking", base: returnBase(p.returnBaseUrl),
+      booking, tour, amount, kind: "booking", base: returnBase(p.returnBaseUrl), phone: p.phone,
       label: full ? "Full payment" : "50% downpayment",
     });
     await supabase.from("bookings")
@@ -267,6 +293,7 @@ async function createCheckout(userId: string, p: any) {
 }
 
 async function payBalance(userId: string, p: any) {
+  checkoutPhone(p.phone); // checked before anything is saved
   const booking = await loadOwnBooking(p.bookingId, userId);
   const balance = Math.max(0, Number(booking.total_price || 0) - Number(booking.amount_paid || 0));
   if (booking.payment_method !== "Downpayment" || booking.payment_status !== "Complete"
@@ -282,7 +309,7 @@ async function payBalance(userId: string, p: any) {
   }
 
   const session = await createSession({
-    booking, tour: booking.tours, amount: balance, kind: "balance", base: returnBase(p.returnBaseUrl),
+    booking, tour: booking.tours, amount: balance, kind: "balance", base: returnBase(p.returnBaseUrl), phone: p.phone,
     label: "Remaining balance",
   });
   await supabase.from("bookings")
@@ -294,6 +321,7 @@ async function payBalance(userId: string, p: any) {
 // Slots held for the joiner who requested the tour: they choose full payment
 // or downpayment and name their companions, then pay like any booking.
 async function payHeld(userId: string, p: any) {
+  checkoutPhone(p.phone); // checked before anything is saved
   const booking = await loadOwnBooking(p.bookingId, userId);
   if (!booking.request_id || booking.payment_status !== "Awaiting Payment") {
     throw new HttpError(409, "This booking is not waiting for payment.");
@@ -318,7 +346,7 @@ async function payHeld(userId: string, p: any) {
   const full = p.paymentType === "full";
   const amount = full ? Number(prepared.total_price) : Math.round(Number(prepared.total_price) * DOWNPAYMENT_PERCENT) / 100;
   const session = await createSession({
-    booking: prepared, tour: booking.tours, amount, kind: "booking", base: returnBase(p.returnBaseUrl),
+    booking: prepared, tour: booking.tours, amount, kind: "booking", base: returnBase(p.returnBaseUrl), phone: p.phone,
     label: full ? "Full payment" : "50% downpayment",
   });
   await supabase.from("bookings")
@@ -433,6 +461,7 @@ function exclusiveAmounts(request: any) {
 // A PayMongo checkout for part of an exclusive tour's package price.
 async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "balance", amount: number, price: number) {
   const base = returnBase(p.returnBaseUrl);
+  const phone = checkoutPhone(p.phone);
   const reference = `EX-${String(request.id).slice(0, 8).toUpperCase()}${part === "balance" ? "-BAL" : ""}`;
   const label = part === "balance" ? "remaining balance" : "50% downpayment";
   const session = await paymongo("POST", "/checkout_sessions", {
@@ -445,6 +474,7 @@ async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "ba
           quantity: 1,
         }],
         payment_method_types: PAYMENT_METHODS,
+        billing: billingFor(request.full_name, request.email, phone),
         description: `Bandang IBAYO exclusive tour ${reference}. ${label[0].toUpperCase()}${label.slice(1)} of the ₱${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })} package. Payments are non-refundable.`,
         reference_number: reference,
         metadata: { request_id: String(request.id), kind: part === "balance" ? "exclusive_balance" : "exclusive" },
@@ -483,6 +513,7 @@ async function payExclusiveBalance(request: any, p: any) {
 }
 
 async function payExclusive(userId: string, p: any) {
+  checkoutPhone(p.phone); // checked before anything is saved
   const request = await loadOwnRequest(p.requestId, userId);
   if (p.part === "balance") return await payExclusiveBalance(request, p);
   if (request.payment_status === "Paid") return { alreadyPaid: true };

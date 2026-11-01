@@ -955,8 +955,8 @@ const DownpaymentPanel = ({ request, price }) => {
 
   const pay = (start, doneTitle, doneText, extra = {}) => async () => {
     setBusy(true);
-    const { ok, data, error } = await start({ requestId: request.id, ...extra });
-    if (!ok) { toast.error("Couldn't open the payment page", error); setBusy(false); return; }
+    const { ok, data, error, cancelled } = await start({ requestId: request.id, ...extra });
+    if (!ok) { if (!cancelled) toast.error("Couldn't open the payment page", error); setBusy(false); return; }
     if (data.alreadyPaid) { toast.success(doneTitle, doneText); setBusy(false); return; }
     window.location.assign(data.checkoutUrl);
   };
