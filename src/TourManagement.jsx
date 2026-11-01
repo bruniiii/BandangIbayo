@@ -11,7 +11,7 @@ import JoinerListModal from './JoinerManifest';
 import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf, tripForDate, todayManila } from './tourUtils';
 import { moneyInputProps, blockSignKeys, moneyField, moneyNumber, moneyDisplay } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
-import { Plus, Edit, Archive, X, Search, Loader2, Trash2, UploadCloud, RefreshCw, History, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Archive, X, Search, Loader2, Trash2, UploadCloud, RefreshCw, History, ChevronDown, MapPin } from 'lucide-react';
 import { SkeletonTourCards } from './ui/Skeleton';
 import { addDaysYmd } from './dateRange';
 import { AccommodationCheckboxes } from './ui/Accommodation';
@@ -21,6 +21,11 @@ import { parseItinerary, serializeItinerary, itineraryDays } from './itinerary';
 import { tripDays } from './dateRange';
 import { TourCard } from './TourCard';
 import { TourViewModal } from './TourViewModal';
+import PickupSpots from './PickupSpots';
+import RoutePickupPicker from './ui/RoutePickupPicker';
+import { loadPickupSpots } from './pickupSpots';
+import { findRoute } from './routeApi';
+import { placeOnRoute } from './geo';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -87,6 +92,13 @@ const TourManagement = ({ openTourId = null }) => {
   // Pickup points joiners choose from when booking (saved as each date's pickup stops).
   // The admin types each one and clicks Add.
   const [pickupPicked, setPickupPicked] = useState([]);
+  // Maps: saved pickup spots (available once the 20261130 update is installed),
+  // the tour's route, and the Pickup Spots window.
+  const [spotsInfo, setSpotsInfo] = useState({ spots: [], available: false });
+  const [formRoute, setFormRoute] = useState(null);
+  const [showSpots, setShowSpots] = useState(false);
+  const refreshSpots = useCallback(() => { loadPickupSpots().then(setSpotsInfo); }, []);
+  useEffect(() => { refreshSpots(); }, [refreshSpots]);
   // Inclusions, Exclusions and Things to Bring: one item per line, added one at a time.
   const [formLists, setFormLists] = useState({ inclusions: [], exclusions: [], things_to_bring: [] });
   const setList = (field) => (items) => { setFormLists((l) => ({ ...l, [field]: items })); setFormDirty(true); };
@@ -110,6 +122,7 @@ const TourManagement = ({ openTourId = null }) => {
     const stops = trip?.pickup_points || [];
     const stopNames = [...new Set(stops.map((m) => m.location_name.trim()).filter(Boolean))];
     setPickupPicked(stopNames);
+    setFormRoute(trip?.route || null);
     setFormLists({ inclusions: linesOf(trip?.inclusions), exclusions: linesOf(trip?.exclusions), things_to_bring: linesOf(trip?.things_to_bring) });
     setFormItinerary(parseItinerary(trip?.itinerary));
     const others = Array.isArray(trip?.expenses?.others) ? trip.expenses.others : [];
@@ -361,6 +374,8 @@ const TourManagement = ({ openTourId = null }) => {
       important_note: formData.get('important_note'),
       image_urls:     finalGallery,
       accommodation_options: cleanAccommodation(formAccommodation),
+      // The van's route (only once the map update is installed).
+      ...(spotsInfo.available ? { route: formRoute } : {}),
     };
     const withDates = (r) => ({
       ...shared, start_date: r.start_date, end_date: r.end_date, duration: calculateDuration(r.start_date, r.end_date),
@@ -399,6 +414,28 @@ const TourManagement = ({ openTourId = null }) => {
       })), { onConflict: 'tour_id' });
       if (expError) toast.error("Tour saved, but the expenses weren't", expError.message);
 
+      // Pickup points on the map: where each one is, the order the van reaches
+      // them, and the minutes from the starting point (for Tracking's ETAs).
+      const stopInfo = {};
+      if (spotsInfo.available) {
+        const spotOf = (n) => spotsInfo.spots.find((sp) => sp.name.trim().toLowerCase() === n.toLowerCase());
+        const located = pickups.map((r) => ({ name: r.location, spot: spotOf(r.location) })).filter((x) => x.spot);
+        if (formRoute?.coords) {
+          located.sort((a, b) => placeOnRoute(a.spot, formRoute.coords).alongKm - placeOnRoute(b.spot, formRoute.coords).alongKm);
+        }
+        let minutes = [];
+        if (formRoute?.start && formRoute?.end && located.length) {
+          const res = await findRoute([formRoute.start, ...located.map((x) => x.spot), formRoute.end]);
+          if (res.ok) {
+            let total = 0;
+            minutes = located.map((_, i) => { total += res.data.legs[i]?.duration_min || 0; return total; });
+          }
+        }
+        located.forEach((x, i) => {
+          stopInfo[x.name.toLowerCase()] = { lat: x.spot.lat, lng: x.spot.lng, route_order: i + 1, minutes_from_start: minutes[i] ?? null };
+        });
+      }
+
       // Pickup points: add new ones, remove ones nobody picked.
       const kept = [];
       for (const id of rateIds) {
@@ -406,8 +443,11 @@ const TourManagement = ({ openTourId = null }) => {
         for (const r of pickups) {
           const match = existing.find((m) => m.location_name.trim().toLowerCase() === r.location.toLowerCase());
           // No time here: the ETA of each stop is set in Tracking Management.
+          const geo = stopInfo[r.location.toLowerCase()] || (spotsInfo.available ? { lat: null, lng: null, route_order: null, minutes_from_start: null } : {});
           if (!match) {
-            await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: r.location, scheduled_time: '', status: 'DEPARTURE' }]);
+            await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: r.location, scheduled_time: '', status: 'DEPARTURE', ...geo }]);
+          } else if (spotsInfo.available) {
+            await supabase.from('tour_meetups').update(geo).eq('id', match.id);
           }
         }
         for (const m of existing) {
@@ -598,6 +638,14 @@ const TourManagement = ({ openTourId = null }) => {
             <History size={18} /> Tour Archive
           </button>
         </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {spotsInfo.available && (
+          <button type="button" onClick={() => setShowSpots(true)} style={{
+            display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', color: '#1A0A00',
+            border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
+            fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '12px 20px',
+          }}><MapPin size={15} /> Pickup Spots</button>
+        )}
         <button
           onClick={() => openTourForm()}
           style={{
@@ -615,7 +663,9 @@ const TourManagement = ({ openTourId = null }) => {
         >
           <Plus size={16} strokeWidth={3} /> Create New Tour
         </button>
+        </div>
       </div>
+      {showSpots && <PickupSpots onClose={() => setShowSpots(false)} onChanged={refreshSpots} />}
  
       {/* ── Filters ── */}
       <div style={{
@@ -928,13 +978,24 @@ const TourManagement = ({ openTourId = null }) => {
                 </div>
 
                 {/* Pickup points: joiners pick one when booking. Their times (ETAs) are set in Tracking Management. */}
-                <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
+                <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  {spotsInfo.available && (
+                    <RoutePickupPicker
+                      spots={spotsInfo.spots}
+                      route={formRoute}
+                      onRouteChange={(r) => { setFormRoute(r); setFormDirty(true); }}
+                      picked={pickupPicked}
+                      onPickedChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
+                    />
+                  )}
                   <ListField
                     label="Pickup Points" required name="pickup_new" maxLength={120}
                     items={pickupPicked}
                     onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
                     placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
-                    hint="Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."
+                    hint={spotsInfo.available
+                      ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. The same points are used for every date of this trip. Each stop's time is set in Tracking Management."
+                      : "Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."}
                   />
                 </div>
  

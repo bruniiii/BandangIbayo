@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { phoneFieldProps } from './ui/phoneField';
 import AdminCheckIn from './AdminCheckIn';
+import RouteTrackingPanel from './ui/RouteTrackingPanel';
+import { sortStops } from './geo';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 
 const PALETTE = {
@@ -122,7 +124,8 @@ export const AdminTrackingControls = () => {
         setIsLogisticsSaved(false);
       }
 
-      savedStopsRef.current = Array.isArray(stops) ? stops : [];
+      // In the order the van reaches them (set in the tour form's route).
+      savedStopsRef.current = sortStops(Array.isArray(stops) ? stops : []);
       setMeetupStops(savedStopsRef.current);
       setTrackingLogs(Array.isArray(logs) ? logs : []);
     } catch (err) {
@@ -256,6 +259,28 @@ export const AdminTrackingControls = () => {
     }]);
 
     toast.success('ETA updated', 'Joiners can see the new time on the tracking page.');
+    fetchTrackingConsole(activeTour.id);
+  };
+
+  // Auto-fill ETAs: every stop's time from the departure time and the driving time.
+  const handleAutoFillEtas = async (updates, departure) => {
+    if (!activeTour?.id || !updates.length) return;
+    if (!(await confirmDialog({
+      title: `Set the ETAs for a ${departure} departure?`,
+      message: `${updates.map((u) => `${u.location_name}: ${u.scheduled_time}`).join(' · ')}. Joiners see the new times right away.`,
+      confirmLabel: 'Set ETAs', cancelLabel: 'Cancel',
+    }))) return;
+    const results = await Promise.all(updates.map((u) => supabase.from('tour_meetups').update({ scheduled_time: u.scheduled_time }).eq('id', u.id)));
+    const failed = results.find((r) => r.error);
+    if (failed) { toast.error("Couldn't set the ETAs", failed.error.message); return; }
+    await supabase.from('tour_tracking_logs').insert([{
+      tour_id: activeTour.id,
+      location_name: updates[0].location_name,
+      status: 'DEPARTURE',
+      display_text: `ETA Update: The van leaves at ${departure}. ${updates.map((u) => `[${u.location_name}] ${u.scheduled_time}`).join(', ')}.`,
+      note: '',
+    }]);
+    toast.success('ETAs set', 'Joiners can see the times on the tracking page.');
     fetchTrackingConsole(activeTour.id);
   };
 
@@ -416,6 +441,7 @@ export const AdminTrackingControls = () => {
           onUpdateStopDetails={handleUpdateStopDetails}
           onAdvanceStop={advanceToNextStop}
           onClearFeed={handleClearTrackingFeed}
+          onAutoFillEtas={handleAutoFillEtas}
           clearingFeed={clearingFeed}
           onClose={() => { setActiveTour(null); setIsLogisticsSaved(false); }}
         />
@@ -615,7 +641,7 @@ const TrackingConsoleModal = ({
   driverName, setDriverName, driverContact, setDriverContact,
   onSaveVehicleInfo, onDeleteStop,
   onStopFieldChange, onUpdateStopDetails,
-  onAdvanceStop, onClearFeed, clearingFeed, onClose,
+  onAdvanceStop, onClearFeed, clearingFeed, onClose, onAutoFillEtas,
 }) => {
   const safeStops = Array.isArray(meetupStops) ? meetupStops : [];
   const safeLogs = Array.isArray(trackingLogs) ? trackingLogs : [];
@@ -705,6 +731,8 @@ const TrackingConsoleModal = ({
                   </div>
                 )}
               </div>
+
+              <RouteTrackingPanel tour={tour} stops={safeStops} onAutoFill={onAutoFillEtas} />
 
               <PickupRoster tourId={tour?.id} stops={safeStops} />
 
