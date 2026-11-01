@@ -37,17 +37,21 @@ database so nothing can be lost:
 
 - **Paid Supabase plan:** Supabase saves a backup every day. See them in the
   dashboard: **Database → Backups**.
-- **Free plan (or to keep your own copy):** in a terminal in the project folder:
+- **Free plan (or to keep your own copy):** `supabase db dump` needs Docker
+  Desktop. Without Docker, use PostgreSQL's own `pg_dump`:
+  1. Install the **PostgreSQL 17** command line tools
+     (postgresql.org/download/windows → in the installer tick only
+     **Command Line Tools**).
+  2. In Supabase, click **Connect** (top of the dashboard) → **Session pooler**
+     and copy the connection string. Put your database password in place of
+     `[YOUR-PASSWORD]` (forgot it? Project Settings → Database → Reset).
+  3. In a terminal:
 
-  ```
-  supabase login
-  supabase link --project-ref renugdlntgybazpikmbu
-  supabase db dump -f backup-roles.sql --role-only
-  supabase db dump -f backup-schema.sql
-  supabase db dump -f backup-data.sql --data-only
-  ```
+     ```
+     & "C:\Program Files\PostgreSQL\17\bin\pg_dump.exe" "<connection string>" -n public -f backup.sql
+     ```
 
-  Keep the three files somewhere safe (not in GitHub: they hold joiners'
+  Keep `backup.sql` somewhere safe (not in GitHub: it holds joiners'
   personal details).
 
 ## 4. Practice trip (before the first real tour)
