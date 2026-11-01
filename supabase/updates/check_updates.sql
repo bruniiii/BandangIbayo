@@ -67,5 +67,7 @@ from (values
                 where n.nspname = 'public' and p.proname = 'reactivate_my_account' limit 1), false)),
   ('20261129 joiners post once every 48 hours',
      exists (select 1 from information_schema.columns
-              where table_schema = 'public' and table_name = 'profiles' and column_name = 'last_feed_post_at'))
+              where table_schema = 'public' and table_name = 'profiles' and column_name = 'last_feed_post_at')),
+  ('20261130 pickup spots along the route (maps)',
+     to_regclass('public.pickup_spots') is not null)
 ) as u(update_file, installed);

@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 import { reportError } from './ui/toast';
+import RouteTrackingPanel from './ui/RouteTrackingPanel';
+import { sortStops } from './geo';
 import { todayManila, formatDateRange } from './tourUtils';
 
 // A trip is over once its last day has passed (Philippine time).
@@ -65,7 +67,7 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
         supabase.from('tour_tracking_logs').select('*').eq('tour_id', tourId).order('created_at', { ascending: false }),
       ]);
       setVehicleInfo(vehicle || null);
-      setMeetupStops(stops || []);
+      setMeetupStops(sortStops(stops || []));
       setLogs(trackingLogs || []);
     } catch (err) {
       reportError("Couldn't load tracking", err.message);
@@ -263,6 +265,11 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
               <p style={{ margin: '0 0 16px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <MapPin size={14} style={{ color: '#A8481A' }} /> {tour.destination}
               </p>
+
+              {/* The van's route and the pickup stops on a map (when the tour has one). */}
+              <div style={{ marginBottom: 16 }}>
+                <RouteTrackingPanel tour={tour} stops={meetupStops} height={220} />
+              </div>
 
               {/* Live Status Header Banner */}
               <div style={{
