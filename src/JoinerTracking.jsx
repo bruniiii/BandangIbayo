@@ -9,8 +9,8 @@ import {
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 import { reportError } from './ui/toast';
 import RouteTrackingPanel from './ui/RouteTrackingPanel';
-import { useVanLocation } from './useVanLocation';
-import { sortStops } from './geo';
+import { useVanLocation, useNow } from './useVanLocation';
+import { sortStops, liveEtas } from './geo';
 import { todayManila, formatDateRange } from './tourUtils';
 
 // A trip is over once its last day has passed (Philippine time).
@@ -230,6 +230,10 @@ const useIsMobile = (breakpoint = 900) => {
 const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingConsole, onClose }) => {
   // The van, live, while the driver shares its location.
   const van = useVanLocation(tour?.id);
+  const now = useNow();
+  // Live ETAs from where the van is now (while the driver shares its location).
+  const live = liveEtas(meetupStops, van, now);
+  const etaOf = (stop) => (live[stop.id] ? `${live[stop.id].time} (about ${live[stop.id].minutes} min)` : stop.scheduled_time);
   const isMobile = useIsMobile();
   const activeStop = meetupStops.find(s => s.status === 'CURRENTLY HERE') || meetupStops.find(s => s.status !== 'ARRIVED');
   const isCompleted = meetupStops.length > 0 && meetupStops.every(s => s.status === 'ARRIVED');
@@ -296,7 +300,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                 </h3>
                 {activeStop && !isCompleted && (
                   <p style={{ fontSize: 11, fontWeight: 700, opacity: 0.9, margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Clock size={12} /> Estimated Arrival: {activeStop.scheduled_time}
+                    <Clock size={12} /> Estimated Arrival: {etaOf(activeStop)}
                   </p>
                 )}
               </div>
@@ -361,7 +365,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
                           </div>
                           <div style={{ textAlign: 'right' }}>
                             <span style={{ fontSize: 11, fontWeight: 800, color: isCurrent ? '#A8481A' : '#7A3A18' }}>
-                              ETA: {stop.scheduled_time}
+                              ETA: {stop.status === 'ARRIVED' ? stop.scheduled_time : etaOf(stop)}
                             </span>
                           </div>
                         </div>

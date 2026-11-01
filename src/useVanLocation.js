@@ -33,3 +33,10 @@ export const agoText = (iso, now = Date.now()) => {
   if (min < 60) return `${min} min ago`;
   return `${Math.round(min / 60)} hr ago`;
 };
+
+// A clock for live ETAs and "updated 2 min ago" (ticks every 30 seconds).
+export const useNow = (every = 30000) => {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), every); return () => clearInterval(t); }, [every]);
+  return now;
+};

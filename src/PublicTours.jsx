@@ -12,17 +12,15 @@ import {
 import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, groupTripDates, tripForDate } from './tourUtils';
 import PriceTag from './ui/PriceTag';
 import { TripDatePicker } from './ui/TripDates';
-import { MoreTourFilters } from './ui/TourFilters';
-import { applyTripFilters, useTripFilters } from './tripFilters';
 import logoIcon from './assets/logo.png';
 import EmptyState from './ui/EmptyState';
-import { SearchX, CalendarClock } from 'lucide-react';
+import { CalendarClock } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRegion, Skel } from './ui/Skeleton';
 import { reportError } from './ui/toast';
 
 // ─────────────────────────────────────────────
 // PUBLIC TOUR PAGES (no login needed)
-//   /tours      — every open tour, with search and filters
+//   /tours      — every open tour, by date
 //   /tours/:id  — one tour, with its own shareable link
 // Booking still needs an account: "Book" sends logged-out visitors to
 // login/register first, then straight into that tour's booking window
@@ -122,10 +120,6 @@ export const PublicTourList = () => {
   const navigate = useNavigate();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [difficultyFilter, setDifficultyFilter] = useState('All Difficulty');
-  const [priceSort, setPriceSort] = useState('default');
-
   useEffect(() => {
     document.title = `Tours | ${SITE_TITLE}`;
     const load = async () => {
@@ -137,28 +131,6 @@ export const PublicTourList = () => {
     load();
     return () => { document.title = SITE_TITLE; };
   }, []);
-
-  // Month, price range and trip length (ui/TourFilters.jsx).
-  const { filters: tripFilters, setFilter: setTripFilter, clearFilters: clearTripFilters, active: tripFiltersActive } = useTripFilters();
-  const clearAllFilters = () => { setSearchQuery(''); setDifficultyFilter('All Difficulty'); clearTripFilters(); };
-
-  const q = searchQuery.trim().toLowerCase();
-  const filteredTours = applyTripFilters(tours, tripFilters).filter((t) => {
-    const matchesSearch = !q || t.title?.toLowerCase().includes(q) || t.destination?.toLowerCase().includes(q);
-    const matchesDifficulty = difficultyFilter === 'All Difficulty' || t.difficulty === difficultyFilter;
-    return matchesSearch && matchesDifficulty;
-  }).sort((a, b) => {
-    if (priceSort === 'highToLow') return b.price - a.price;
-    if (priceSort === 'lowToHigh') return a.price - b.price;
-    return 0;
-  });
-
-  const inputStyle = {
-    width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-    border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14,
-    padding: '12px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00',
-    fontFamily: 'inherit', outline: 'none',
-  };
 
   return (
     <div style={pageStyle}>
@@ -180,44 +152,11 @@ export const PublicTourList = () => {
           Browse every joiner tour. Create a free account when you're ready to book.
         </p>
 
-        <div className="public-tour-filters" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-          <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#A8481A' }} />
-            <input
-              type="search"
-              aria-label="Search tours"
-              placeholder="Search by tour or destination…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ ...inputStyle, paddingLeft: 40 }}
-            />
-          </div>
-          <select aria-label="Difficulty" value={difficultyFilter} onChange={(e) => setDifficultyFilter(e.target.value)} style={inputStyle}>
-            <option value="All Difficulty">All Difficulty</option>
-            <option value="Easy">Easy</option>
-            <option value="Moderate">Moderate</option>
-            <option value="Challenging">Challenging</option>
-          </select>
-          <select aria-label="Sort by price" value={priceSort} onChange={(e) => setPriceSort(e.target.value)} style={inputStyle}>
-            <option value="default">Sort by Date</option>
-            <option value="lowToHigh">Price: Low to High</option>
-            <option value="highToLow">Price: High to Low</option>
-          </select>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-          <MoreTourFilters trips={tours} filters={tripFilters} setFilter={setTripFilter} inputStyle={inputStyle} />
-          {(tripFiltersActive || q || difficultyFilter !== 'All Difficulty') && (
-            <button type="button" className="text-link" onClick={clearAllFilters} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, padding: '0 4px' }}>
-              Clear filters
-            </button>
-          )}
-        </div>
-
         {loading ? (
           <SkeletonTourCards count={6} />
-        ) : filteredTours.length > 0 ? (
+        ) : tours.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
-            {filteredTours.map((tour) => (
+            {tours.map((tour) => (
               <JoinerTourCard
                 key={tour.id}
                 tour={tour}
@@ -228,21 +167,12 @@ export const PublicTourList = () => {
             ))}
           </div>
         ) : (
-          tours.length ? (
-            <EmptyState
-              icon={SearchX}
-              title="No tours match your search"
-              message="Try another month, price or destination, or clear the filters to see every open tour."
-              action={{ label: 'Clear Filters', onClick: clearAllFilters }}
-            />
-          ) : (
-            <EmptyState
-              icon={CalendarClock}
-              title="No open tours right now"
-              message="New dates are posted regularly. Create a free account to get notified about new tours."
-              action={{ label: 'Create a Free Account', onClick: () => navigate('/register') }}
-            />
-          )
+          <EmptyState
+            icon={CalendarClock}
+            title="No open tours right now"
+            message="New dates are posted regularly. Create a free account to get notified about new tours."
+            action={{ label: 'Create a Free Account', onClick: () => navigate('/register') }}
+          />
         )}
       </div>
       <style>{publicCss}</style>
@@ -530,8 +460,6 @@ const publicCss = `
     .public-tour-aside { position: static !important; }
     .public-tour-mobilebar { display: flex !important; }
     .public-tour-page .public-main { padding-bottom: 96px !important; }
-    .public-tour-filters { grid-template-columns: 1fr 1fr !important; }
-    .public-tour-filters > :first-child { grid-column: 1 / -1; }
   }
   @media (max-width: 480px) {
     .public-nav-brand { display: none; }
