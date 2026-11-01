@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { errorDetail } from './Email';
+import { placesAlongFromBrowser } from './osmPlaces';
 
 // ─────────────────────────────────────────────
 // MAPS: place search and driving routes, through the `routes` Edge Function
@@ -33,11 +34,22 @@ export const findRoute = (points) => call({ action: 'route', points: points.map(
 
 // Possible pickup points within 300 m of the road (OpenStreetMap): gas
 // stations, malls, bus terminals, convenience stores, fast food →
-// [{ name, kind, lat, lng, city, alongKm, offKm }]. The server follows the full
-// road from the start to the destination (bends included).
-export const findPlacesAlongRoute = (route) => call({
-  action: 'places-along',
-  ...(route?.start && route?.end
-    ? { points: [[route.start.lng, route.start.lat], [route.end.lng, route.end.lat]] }
-    : { coords: route?.coords }),
-});
+// [{ name, kind, lat, lng, city, alongKm, offKm }].
+//   1. the road's close shape from the routes function (or the saved shape),
+//   2. OpenStreetMap asked straight from the browser (not blocked like the
+//      shared server address),
+//   3. if the browser can't reach it, the routes function asks instead.
+export const findPlacesAlongRoute = async (route) => {
+  const points = route?.start && route?.end
+    ? [[route.start.lng, route.start.lat], [route.end.lng, route.end.lat]]
+    : null;
+  let line = route?.coords;
+  if (points) {
+    const road = await call({ action: 'road-line', points });
+    if (road.ok && Array.isArray(road.data?.line) && road.data.line.length > 1) line = road.data.line;
+  }
+  const fromBrowser = await placesAlongFromBrowser(line);
+  if (fromBrowser.ok) return fromBrowser;
+  const viaServer = await call({ action: 'places-along', ...(points ? { points } : { coords: route?.coords }) });
+  return viaServer.ok ? viaServer : fromBrowser;
+};
