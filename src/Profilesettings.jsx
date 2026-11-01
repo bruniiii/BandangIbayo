@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
 import MyData from './MyData';
@@ -155,7 +155,7 @@ const ProfileSettings = () => {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) { setLoading(false); return; }
       setUserId(user.id);
 

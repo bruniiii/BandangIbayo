@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Inbox } from 'lucide-react';
-import { supabase } from './supabaseClient';
+import { currentUser } from './supabaseClient';
 import { flashFocus } from './focusTarget';
 import { fetchAdminMessages, markAdminMessagesRead, useTourNames } from './adminMessages';
 import { MessageItem } from './ui/SentMessages';
@@ -26,7 +26,7 @@ const AdminInbox = ({ onRead, focus = null }) => {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) { if (alive) setRows([]); return; }
       const { data } = await fetchAdminMessages({ userId: user.id, limit: 100 });
       if (!alive) return;

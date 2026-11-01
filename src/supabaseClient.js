@@ -26,3 +26,9 @@ const patientLock = (name, acquireTimeout, fn) =>
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: { lock: patientLock },
 });
+
+// The signed-in user, read from the session saved in the browser (no trip to
+// the server). supabase.auth.getUser() asks the server every time and each
+// call waits its turn, so pages that needed it opened slowly. The database
+// still checks the login on every request.
+export const currentUser = async () => (await supabase.auth.getSession()).data.session?.user ?? null;

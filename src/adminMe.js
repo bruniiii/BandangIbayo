@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 
 // ─────────────────────────────────────────────
 // The signed-in admin: their name (top-right card) and whether they're the
@@ -14,7 +14,7 @@ export const useAdminMe = () => {
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) return;
       const { data } = await supabase.from('profiles')
         .select('first_name, last_name, username, is_main_admin').eq('id', user.id).maybeSingle();

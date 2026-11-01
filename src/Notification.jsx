@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { notificationsChanged, onNotificationsChanged, onNotificationsRefresh, clearOldPaymentNotices, nextPaymentNoticeExpiry, markNotificationsSeen } from './notifications';
 import EmptyState from './ui/EmptyState';
 import { BellRing } from 'lucide-react';
@@ -98,7 +98,7 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) { setLoading(false); return; }
       setUserId(user.id);
       fetchNotifications(user.id);

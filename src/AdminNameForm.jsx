@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Check } from 'lucide-react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
 import { nameError } from './validation';
 import { adminMeChanged } from './adminMe';
@@ -27,7 +27,7 @@ const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) return;
       const { data } = await supabase.from('profiles').select('first_name, last_name').eq('id', user.id).maybeSingle();
       if (!alive) return;
@@ -42,7 +42,7 @@ const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
     const problem = nameError(first, 'First name') || nameError(last, 'Last name');
     if (problem) { setError(problem); return; }
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     const { error: err } = await supabase.from('profiles')
       .update({ first_name: first.trim().replace(/\s+/g, ' '), last_name: last.trim().replace(/\s+/g, ' ') })
       .eq('id', user?.id);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, MapPin, ImageIcon, Users, Eye, Bell, Sparkles, MessagesSquare, Globe, Inbox } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { myBookingForNotification, tourForNotification } from './notificationTarget';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
@@ -392,7 +392,7 @@ const JoinerDashboard = () => {
   // ── FETCH CURRENT USER PROFILE FOR CHIP ──
   const fetchUserProfile = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) return;
 
       const { data: profile } = await supabase
@@ -427,7 +427,7 @@ const JoinerDashboard = () => {
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoadingHome(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
 
       if (user) {
         const { data: userBookings } = await supabase

@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
 
 // ─────────────────────────────────────────────
@@ -17,18 +17,18 @@ let loading = null;
 
 // A different person logging in (or logging out) starts from an empty list,
 // so nobody sees the previous person's favorites.
-let currentUser;
+let lastUserId;
 supabase.auth.onAuthStateChange((_event, session) => {
   const id = session?.user?.id || null;
-  if (currentUser !== undefined && id !== currentUser) {
+  if (lastUserId !== undefined && id !== lastUserId) {
     state = { ids: new Set(), loaded: false };
     emit();
   }
-  currentUser = id;
+  lastUserId = id;
 });
 
 export const loadFavorites = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) return;
   const { data, error } = await supabase.from('tour_favorites').select('tour_id').eq('user_id', user.id);
   if (error) return;

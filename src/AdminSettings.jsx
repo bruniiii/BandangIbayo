@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ShieldCheck, UserPlus, Archive, ArchiveRestore, ChevronDown, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail } from 'lucide-react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { createAdminAccount, verifyAdminAccount, resendLoginCode, restoreAdminAccount, verifyRestoredAdmin } from './authApi';
@@ -60,7 +60,7 @@ const AdminSettings = () => {
 
   // Loads quietly after the first time. Nothing is asked for while signed out.
   const load = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return;
     setMyId(user.id);
     const { data, error: err } = await supabase.rpc('list_admins');

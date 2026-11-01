@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { flashFocus, focusAttr } from './focusTarget';
 import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
@@ -157,7 +157,7 @@ const usePrefilledContact = () => {
   const [contact, setContact] = useState({ fullName: '', contact: '', email: '' });
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) return;
       const { data: profile } = await supabase
         .from('profiles')
@@ -375,7 +375,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
     if (isExclusive && !form.agreeTerms) { toast.info('Please accept the terms and conditions.'); return; }
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) {
       toast.info(`Please log in to submit ${isExclusive ? 'an exclusive tour' : 'a tour'} request.`);
       setLoading(false);
@@ -1051,7 +1051,7 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = nu
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await currentUser();
       if (!user) { setLoading(false); return; }
       setUserId(user.id);
       fetchRequests(user.id);
