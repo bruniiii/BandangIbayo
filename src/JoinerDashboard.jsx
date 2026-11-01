@@ -308,7 +308,7 @@ const JoinerDashboard = () => {
         // Open the matching My Bookings tab: cancelled ones on Cancelled,
         // finished trips on Completed, everything else on Upcoming.
         const text = `${notification.title || ''} ${notification.message || ''}`.toLowerCase();
-        const tab = notification.type === 'cancellation' || /cancel|reject/.test(text) ? 'cancelled'
+        const tab = notification.type === 'cancellation' || /cancel|reject|weren.t able to verify|released/.test(text) ? 'cancelled'
           : /completed|rate your|how was your|thank you for joining/.test(text) ? 'completed' : 'upcoming';
         handleNavClick('My Bookings');
         setBookingsFilter(tab);

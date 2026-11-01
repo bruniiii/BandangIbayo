@@ -26,7 +26,13 @@ const labelTables = () => document.querySelectorAll('table.stack-table').forEach
     if (heads[i] && td.getAttribute('data-label') !== heads[i]) td.setAttribute('data-label', heads[i]);
   }));
 });
-new MutationObserver(labelTables).observe(document.documentElement, { childList: true, subtree: true });
+// Batched: at most once per frame, however many changes happen.
+let labelQueued = false;
+new MutationObserver(() => {
+  if (labelQueued) return;
+  labelQueued = true;
+  requestAnimationFrame(() => { labelQueued = false; labelTables(); });
+}).observe(document.documentElement, { childList: true, subtree: true });
 
 // Any error nothing else caught pops up too, instead of failing silently.
 // (Browser noise like ResizeObserver warnings and cancelled requests is skipped.)

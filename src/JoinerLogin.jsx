@@ -106,7 +106,7 @@ const JoinerLogin = () => {
   const finishLogin = async (user) => {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, archived_at, admin_restore_pending_at')
+      .select('*') // every column, so login still works before the latest database update
       .eq('id', user.id)
       .single();
 

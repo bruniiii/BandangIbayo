@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children, redirectTo = '/login' }) => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       // An archived admin (still signed in from before) is signed out.
       if (session) {
-        const { data: profile } = await supabase.from('profiles').select('role, archived_at').eq('id', session.user.id).maybeSingle();
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
         if (profile?.role === 'archived_admin') {
           await supabase.auth.signOut();
           toast.error('This admin account was archived', 'Ask the main admin to restore it.');
