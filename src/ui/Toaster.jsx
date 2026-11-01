@@ -18,7 +18,7 @@ const Toaster = () => {
     <div
       aria-live="polite"
       style={{
-        position: 'fixed', zIndex: 2000, right: 16, bottom: 16, left: 16,
+        position: 'fixed', zIndex: 200001, right: 16, bottom: 16, left: 16,
         display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10, pointerEvents: 'none',
       }}
       className="toaster"
