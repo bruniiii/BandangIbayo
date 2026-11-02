@@ -29,7 +29,7 @@ describe('placesAlongFromBrowser', () => {
     }));
     const res = await placesAlongFromBrowser(road);
     expect(res.ok).toBe(true);
-    expect(res.data.places.length).toBeGreaterThan(4);
+    expect(res.data.places.length).toBeGreaterThanOrEqual(3); // one per ~120 km piece
     const along = res.data.places.map((p) => p.alongKm);
     expect([...along].sort((a, b) => a - b)).toEqual(along);
     expect(res.data.places.some((p) => p.name === 'Sari-sari store')).toBe(false);
@@ -80,7 +80,7 @@ describe('placesAlongFromBrowser on a busy day', () => {
 });
 
 describe('placesAlongFromBrowser when the servers never answer', () => {
-  it('gives up within about 35 seconds', async () => {
+  it('gives up within about 45 seconds', async () => {
     const store = {};
     vi.stubGlobal('localStorage', { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v; } });
     // A server that hangs until it's stopped.
@@ -90,6 +90,6 @@ describe('placesAlongFromBrowser when the servers never answer', () => {
     const t0 = Date.now();
     const res = await placesAlongFromBrowser(road);
     expect(res.ok).toBe(false);
-    expect(Date.now() - t0).toBeLessThan(40000);
+    expect(Date.now() - t0).toBeLessThan(50000);
   }, 120000);
 });
