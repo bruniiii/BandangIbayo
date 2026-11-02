@@ -77,8 +77,7 @@ const findPlacesFresh = async (route) => {
     const road = await call({ action: 'road-line', points });
     if (road.ok && Array.isArray(road.data?.line) && road.data.line.length > 1) line = road.data.line;
   }
-  const fromBrowser = await placesAlongFromBrowser(line);
-  if (fromBrowser.ok) return fromBrowser;
-  const viaServer = await call({ action: 'places-along', ...(points ? { points } : { coords: route?.coords }) });
-  return viaServer.ok ? viaServer : fromBrowser;
+  // (Only from the browser: the free servers refuse Supabase's shared server
+  // addresses, so asking through the server just failed slowly with 503.)
+  return placesAlongFromBrowser(line);
 };

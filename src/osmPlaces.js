@@ -29,9 +29,9 @@ const BRANDS = {
   food: /mcdonald|jollibee|chowking|kfc|mang inasal|greenwich/i,
 };
 
-// The road in pieces of about 60 km: small questions the busy free servers
+// The road in pieces of about 120 km: small questions the busy free servers
 // answer quickly, instead of one big one they time out on (504).
-const PIECE_KM = 60;
+const PIECE_KM = 120;
 const pieces = (line) => {
   const out = [];
   let cur = [line[0]];
@@ -47,7 +47,7 @@ const pieces = (line) => {
   return out;
 };
 
-// Fewer points for the question: one every ~500 m (the 300 m band around the
+// Fewer points for the question: one every ~1 km (the 300 m band around the
 // line between them still follows the road). A long road's full shape has
 // thousands of points, which made the question too big for the free servers
 // (504 time-outs, 406 refused).
@@ -56,7 +56,7 @@ const thin = (piece) => {
   for (let i = 1; i < piece.length - 1; i += 1) {
     const [lng1, lat1] = out[out.length - 1];
     const [lng2, lat2] = piece[i];
-    if (distanceKm({ lat: lat1, lng: lng1 }, { lat: lat2, lng: lng2 }) >= 0.5) out.push(piece[i]);
+    if (distanceKm({ lat: lat1, lng: lng1 }, { lat: lat2, lng: lng2 }) >= 1) out.push(piece[i]);
   }
   out.push(piece[piece.length - 1]);
   return out;
@@ -80,30 +80,24 @@ const askOne = async (url, query, signal) => {
   }
 };
 
-// One piece: two servers asked at the same time, the first answer wins (the
-// other is stopped); if both fail, the other two. Never past the deadline.
+// One piece: one server at a time (the free servers allow only about two
+// questions at once from the same person, and refuse the rest), the next
+// server if it fails. Never past the deadline.
 const askPiece = async (piece, first, deadline = Infinity) => {
   const pts = thin(piece).map(([lng, lat]) => `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`).join(',');
-  const query = `[out:json][timeout:15];
+  const query = `[out:json][timeout:20];
 nwr(around:300,${pts})["name"][~"^(amenity|shop)$"~"^(fuel|mall|department_store|bus_station|convenience|fast_food)$"];
 out center tags 1000;`;
   let last = 'timeout';
-  for (let k = 0; k < SERVERS.length; k += 2) {
+  for (let k = 0; k < SERVERS.length; k += 1) {
     const left = deadline - Date.now();
     if (left < 2000) break;
     const stop = new AbortController();
-    const timer = setTimeout(() => stop.abort(), Math.min(15000, left));
-    const urls = [SERVERS[(first + k) % SERVERS.length], SERVERS[(first + k + 1) % SERVERS.length]];
-    const result = await new Promise((resolve) => {
-      let pending = urls.length;
-      urls.forEach((url) => askOne(url, query, stop.signal).then((r) => {
-        if (r.ok) resolve(r);
-        else { last = r.error; pending -= 1; if (pending === 0) resolve(null); }
-      }));
-    });
+    const timer = setTimeout(() => stop.abort(), Math.min(20000, left));
+    const r = await askOne(SERVERS[(first + k) % SERVERS.length], query, stop.signal);
     clearTimeout(timer);
-    stop.abort();
-    if (result) return result;
+    if (r.ok) return r;
+    last = r.error;
   }
   return { ok: false, error: last };
 };
@@ -130,10 +124,11 @@ export const placesAlongFromBrowser = async (line) => {
   const cached = readCache(key);
   if (cached) return { ok: true, data: { places: cached } };
 
-  // Three pieces at a time, and never more than 35 seconds in all: then
-  // whatever loaded is shown (the admin can Try again for the rest).
+  // One piece at a time (so no server refuses us for asking too much at once),
+  // and never more than 45 seconds in all: then whatever loaded is shown (the
+  // admin can Try again for the rest).
   const parts = pieces(line);
-  const deadline = Date.now() + 35000;
+  const deadline = Date.now() + 45000;
   const results = new Array(parts.length);
   let next = 0;
   const worker = async () => {
@@ -142,7 +137,7 @@ export const placesAlongFromBrowser = async (line) => {
       results[i] = await askPiece(parts[i], i % SERVERS.length, deadline);
     }
   };
-  await Promise.all([worker(), worker(), worker()]);
+  await worker();
   // Some pieces of a long road may still fail: show what did load (and say
   // so) instead of nothing. Only when every piece failed is it an error.
   const failed = results.filter((r) => !r?.ok);
