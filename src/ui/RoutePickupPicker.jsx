@@ -50,13 +50,14 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
   const [show, setShow] = useState({ saved: true, gas: true, mall: true, terminal: true, store: false, food: false });
   const [placesTry, setPlacesTry] = useState(0); // "Try again" looks the places up again
   const [placesBusy, setPlacesBusy] = useState(false); // waiting to try again by itself
+  const [placesPartial, setPlacesPartial] = useState(false); // some parts of a long road didn't load
 
   // Places on the road: looked up once per route.
   useEffect(() => {
     if (!route?.coords) return undefined;
     let alive = true;
     (async () => {
-      setPlaces(null); setPlacesError('');
+      setPlaces(null); setPlacesError(''); setPlacesPartial(false);
       let res = await findPlacesAlongRoute(route, { fresh: placesTry > 0 });
       // The free place list is sometimes busy: wait 20 seconds and try once more by itself.
       if (!res.ok && alive && placesTry === 0) {
@@ -67,7 +68,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
         res = await findPlacesAlongRoute(route);
       }
       if (!alive) return;
-      if (res.ok) setPlaces(res.data.places || []);
+      if (res.ok) { setPlaces(res.data.places || []); setPlacesPartial(!!res.data.partial); }
       else { setPlaces([]); setPlacesError(res.error); }
     })();
     return () => { alive = false; };
@@ -182,6 +183,15 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
                 : 'Looking for gas stations, malls and terminals on the way…'}
             </p>
           )}
+          {placesPartial && !placesError && (
+            <div role="status" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 12, fontWeight: 700, color: '#8C5216', background: 'rgba(232,162,101,0.2)', borderRadius: 10, padding: '10px 12px' }}>
+              <span style={{ flex: '1 1 240px' }}>Some parts of this long road couldn't be loaded (the free map list is busy), so a few places may be missing.</span>
+              <button type="button" onClick={() => setPlacesTry((n) => n + 1)} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}><RotateCcw size={13} /> Try again</button>
+            </div>
+          )}
           {placesError && (
             <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>
               <span style={{ flex: '1 1 260px' }}>Couldn't list the places on the road: {placesError} Your saved spots are still listed below.</span>
@@ -199,7 +209,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
           ) : shown.length > 0 && (
             <div>
               <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>
-                On the van's way, from {route.start?.name?.split(',')[0] || 'the start'} to {route.end?.name?.split(',')[0] || 'the destination'} — tick the pickup points ({pickedAlong.length} ticked)
+                On the van's way, from {route.start?.name?.split(/[,(]/)[0].trim() || 'the start'} to {route.end?.name?.split(/[,(]/)[0].trim() || 'the destination'} — tick the pickup points ({pickedAlong.length} ticked)
               </p>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 380, overflowY: 'auto' }}>
                 {shown.map((s) => {

@@ -315,7 +315,7 @@ html { touch-action: manipulation; }
 /* Tour form map: the place-type buttons in two neat columns on phones. */
 @media (max-width: 600px) {
   .place-chips { display: grid !important; grid-template-columns: 1fr 1fr; }
-  .place-chips > button { min-height: 36px !important; padding: 6px 10px !important; font-size: 10px !important; letter-spacing: 0.03em !important; justify-content: flex-start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .place-chips > button { min-height: 36px !important; padding: 6px 10px !important; font-size: 10px !important; letter-spacing: 0.03em !important; justify-content: flex-start; text-align: left; white-space: normal; line-height: 1.25; min-width: 0; }
   .place-chips > button svg { flex-shrink: 0; }
 }
 

@@ -49,3 +49,29 @@ describe('placesAlongFromBrowser', () => {
     expect((await placesAlongFromBrowser(null)).ok).toBe(false);
   });
 });
+
+describe('placesAlongFromBrowser on a busy day', () => {
+  it('keeps the pieces that loaded when others fail, and asks with fewer points', async () => {
+    const store = {};
+    vi.stubGlobal('localStorage', { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v; } });
+    let longest = 0;
+    vi.stubGlobal('fetch', vi.fn(async (url, opt) => {
+      const pts = decodeURIComponent(opt.body.slice(5)).match(/around:300,([^)]*)\)/)[1].split(',');
+      longest = Math.max(longest, pts.length / 2);
+      const [lat, lng] = pts.map(Number);
+      if (lat > 15.5) return { ok: false, status: 504, json: async () => ({}) }; // the far part never loads
+      return answer([{ type: 'node', id: Math.round(lat * 1000), lat, lon: lng + 0.001, tags: { amenity: 'fuel', name: 'Shell' } }]);
+    }));
+    // A detailed road: a point every ~80 m.
+    const detailed = Array.from({ length: 4001 }, (_, i) => [121.03 - i * 0.00004, 14.65 + i * 0.00075]);
+    const res = await placesAlongFromBrowser(detailed);
+    expect(res.ok).toBe(true);
+    expect(res.data.partial).toBe(true);
+    expect(res.data.places.length).toBeGreaterThan(0);
+    expect(longest).toBeLessThan(200); // ~60 km piece, a point every ~500 m
+    // Not remembered: Try again asks again.
+    const before = fetch.mock.calls.length;
+    await placesAlongFromBrowser(detailed);
+    expect(fetch.mock.calls.length).toBeGreaterThan(before);
+  }, 120000);
+});
