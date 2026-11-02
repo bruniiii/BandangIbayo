@@ -4,6 +4,9 @@ import { placesAlongFromBrowser } from '../src/osmPlaces';
 // A ~330 km road north of Manila.
 const road = Array.from({ length: 401 }, (_, i) => [121.03 - i * 0.0004, 14.65 + i * 0.0075]);
 
+// The question sent: in the link (GET) or the form (POST).
+const queryOf = (url, opt) => decodeURIComponent(opt?.body ? opt.body.slice(5) : String(url).split('?data=')[1]);
+
 const answer = (elements) => ({ ok: true, status: 200, json: async () => ({ elements }) });
 
 beforeEach(() => {
@@ -18,7 +21,7 @@ describe('placesAlongFromBrowser', () => {
     vi.stubGlobal('fetch', vi.fn(async (url, opt) => {
       n += 1;
       if (n % 3 === 1) return { ok: false, status: 504, json: async () => ({}) };
-      const [lat, lng] = decodeURIComponent(opt.body.slice(5)).match(/around:300,([^)]*)\)/)[1].split(',').map(Number);
+      const [lat, lng] = queryOf(url, opt).match(/around:300,([^)]*)\)/)[1].split(',').map(Number);
       return answer([
         { type: 'node', id: Math.round(lat * 1000), lat, lon: lng + 0.001, tags: { amenity: 'fuel', name: 'Petron' } },
         { type: 'node', id: 9, lat: 14.65, lon: 121.03, tags: { shop: 'convenience', name: 'Sari-sari store' } }, // not a chain: left out
@@ -56,7 +59,7 @@ describe('placesAlongFromBrowser on a busy day', () => {
     vi.stubGlobal('localStorage', { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v; } });
     let longest = 0;
     vi.stubGlobal('fetch', vi.fn(async (url, opt) => {
-      const pts = decodeURIComponent(opt.body.slice(5)).match(/around:300,([^)]*)\)/)[1].split(',');
+      const pts = queryOf(url, opt).match(/around:300,([^)]*)\)/)[1].split(',');
       longest = Math.max(longest, pts.length / 2);
       const [lat, lng] = pts.map(Number);
       if (lat > 15.5) return { ok: false, status: 504, json: async () => ({}) }; // the far part never loads
