@@ -14,6 +14,11 @@ import { formatYmdRange, daysLabel, tripDays as countDays } from './dateRange';
 import { checkFields, textError, mediaFileError } from './validation';
 import { BAG_TAG_FEE, expenseItems } from './tourExpenses';
 import { X, Trash2, UploadCloud, Loader2 } from 'lucide-react';
+import RoutePickupPicker from './ui/RoutePickupPicker';
+import PinPickupButton from './ui/PinPickupButton';
+import { loadPickupSpots } from './pickupSpots';
+import { locateStops } from './pickupStops';
+import { addMinutesToTime } from './geo';
 
 // ─────────────────────────────────────────────
 // TOUR PACKAGE FORM (admin, Exclusive Tours / Requested Tours)
@@ -83,6 +88,20 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     const saved = Array.isArray(pkg.pickup_points) ? pkg.pickup_points : [];
     return saved.map((p) => ({ key: key(), location: p.location, time: to24h(p.time) }));
   });
+  // The van's route, saved Pickup Spots and places picked from the map, like
+  // Tour Management's pickup points (once the map update is installed).
+  const [spotsInfo, setSpotsInfo] = useState({ spots: [], available: false });
+  useEffect(() => { loadPickupSpots().then(setSpotsInfo); }, []);
+  const [route, setRoute] = useState(pkg.route || null);
+  const [routePlaces, setRoutePlaces] = useState([]);
+  const addRoutePlace = (pl) => setRoutePlaces((list) => (list.some((x) => x.name === pl.name) ? list : [...list, pl]));
+  // "Van leaves at" (requested tours: they're posted and tracked like any tour).
+  const [departure, setDeparture] = useState(() => to24h(pkg.departure_time || ''));
+  const [departureAvailable, setDepartureAvailable] = useState(false);
+  useEffect(() => {
+    if (!isOpenRequest) return;
+    supabase.from('tours').select('departure_time').limit(1).then(({ error }) => setDepartureAvailable(!error));
+  }, [isOpenRequest]);
   // Itinerary: { [day]: text }, Day 0 = the day before.
   const [itinerary, setItinerary] = useState(() => parseItinerary(pkg.itinerary));
   const [gallery, setGallery] = useState(() => (Array.isArray(pkg.image_urls) ? pkg.image_urls : []));
@@ -115,11 +134,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     if (!tourId) return undefined;
     let active = true;
     Promise.all([
-      supabase.from('tours').select('image_urls').eq('id', tourId).maybeSingle(),
+      supabase.from('tours').select('*').eq('id', tourId).maybeSingle(),
       supabase.from('tour_meetups').select('location_name, scheduled_time').eq('tour_id', tourId).order('created_at', { ascending: true }),
     ]).then(([{ data: tour }, { data: stops }]) => {
       if (!active) return;
       if (Array.isArray(tour?.image_urls)) setGallery(tour.image_urls);
+      if (tour?.route) setRoute(tour.route);
+      if (tour?.departure_time) setDeparture(to24h(tour.departure_time));
       if (stops?.length) setPickups(stops.map((m) => ({ key: key(), location: m.location_name, time: to24h(m.scheduled_time) })));
     });
     return () => { active = false; };
@@ -215,8 +236,6 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         bag_tag: BAG_TAG_FEE,
         others: extra.map((o) => ({ name: o.name.trim(), amount: Math.round(Number(o.amount) * 100) / 100 })),
       };
-      // Times (ETAs) are set later in Tracking Management; keep any already set.
-      const pickup_points = stops.map((r) => ({ location: r.location, time: r.time ? formatPickupTime(r.time) : '' }));
       const details = {
         title: form.title.trim(),
         destination: form.destination.trim(),
@@ -233,12 +252,29 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         important_note: form.important_note,
         start_date: form.start_date,
         end_date: form.end_date,
+        // The van's route (once the map update is installed) and, for a requested
+        // tour, when the van leaves (once the 20261203 update is installed).
+        ...(spotsInfo.available ? { route } : {}),
+        ...(isOpenRequest && departureAvailable ? { departure_time: departure ? addMinutesToTime(departure, 0) : null } : {}),
       };
+      // Where each pickup point is (map pins, order on the route, ETAs).
+      const stopInfo = spotsInfo.available
+        ? await locateStops({ spots: spotsInfo.spots, routePlaces, names: stops.map((r) => r.location), route, departure, itinerary: details.itinerary })
+        : {};
+      // Times (ETAs) are set later in Tracking Management; keep any already set.
+      const pickup_points = stops.map((r) => {
+        const geo = stopInfo[r.location.toLowerCase()];
+        return {
+          location: r.location,
+          time: r.time ? formatPickupTime(r.time) : (geo?.scheduled_time || ''),
+          ...(geo ? { lat: geo.lat, lng: geo.lng, route_order: geo.route_order, minutes_from_start: geo.minutes_from_start } : {}),
+        };
+      });
 
       let savedTourId = tourId;
       let heldBooking = null;
       if (isOpenRequest) {
-        savedTourId = await saveTour({ tourId, details, image_urls, regular, expenses, pickup_points });
+        savedTourId = await saveTour({ tourId, details, image_urls, regular, expenses, pickup_points, withGeo: spotsInfo.available });
         const { data, error } = await supabase.rpc('hold_requested_slots', { p_request_id: request.id, p_tour_id: savedTourId });
         if (error) toast.error("Tour posted, but the requester's slots weren't held", error.message);
         else heldBooking = data;
@@ -429,14 +465,41 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             </div>
 
             {/* Pickup points */}
-            <div style={sectionBox}>
+            <div style={{ ...sectionBox, display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {spotsInfo.available && (
+                <RoutePickupPicker
+                  spots={spotsInfo.spots}
+                  route={route}
+                  onRouteChange={(r) => { setRoute(r); setDirty(true); }}
+                  picked={pickedPlaces}
+                  onPickedChange={setPickedPlaces}
+                  onAddPlace={addRoutePlace}
+                />
+              )}
+              {isOpenRequest && departureAvailable && (
+                <div>
+                  <label style={labelStyle} htmlFor="package_departure_time">Van leaves at</label>
+                  <input id="package_departure_time" type="time" name="departure_time" value={departure}
+                    onChange={(e) => { setDeparture(e.target.value); setDirty(true); }}
+                    style={{ ...inputStyle, maxWidth: 220 }} />
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
+                    When the van leaves the starting point. Each pickup's time is worked out from this and the driving time. Left empty, the first time in the itinerary is used.
+                  </p>
+                </div>
+              )}
               <ListField
                 label="Pickup Points" required name="pickup_new" maxLength={120}
                 items={pickedPlaces}
                 onChange={setPickedPlaces}
                 placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
-                hint="Add at least one. Joiners choose one of these when they book. Set each stop's time in Tracking Management."
+                hint={spotsInfo.available
+                  ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. Each stop's time fills itself in from the departure time and the route."
+                  : "Add at least one. Joiners choose one of these when they book. Set each stop's time in Tracking Management."}
               />
+              {spotsInfo.available && (
+                <PinPickupButton near={route?.start || route?.end || null} picked={pickedPlaces}
+                  onPickedChange={setPickedPlaces} onAddPlace={addRoutePlace} />
+              )}
             </div>
 
             {isOpenRequest ? (
@@ -507,7 +570,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 // The tour on Explore Tours for a requested tour (like Tour Management saves
 // one): the tour date, its Regular Rate, expenses, pickup points and, the
 // first time, a feed post.
-const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup_points }) => {
+const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup_points, withGeo = false }) => {
   const row = { ...details, image_urls, duration: durationOf(details.start_date, details.end_date), is_archived: false };
   let id = tourId;
   if (id) {
@@ -528,7 +591,12 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
   const names = pickup_points.map((p) => p.location.toLowerCase());
   for (const p of pickup_points) {
     const match = (existing || []).find((m) => m.location_name.trim().toLowerCase() === p.location.toLowerCase());
-    if (!match) await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: p.location, scheduled_time: p.time, status: 'DEPARTURE' }]);
+    // Map pin, order on the route and driving minutes (so tracking can mark it Arrived).
+    const geo = withGeo
+      ? { lat: p.lat ?? null, lng: p.lng ?? null, route_order: p.route_order ?? null, minutes_from_start: p.minutes_from_start ?? null }
+      : {};
+    if (!match) await supabase.from('tour_meetups').insert([{ tour_id: id, location_name: p.location, scheduled_time: p.time, status: 'DEPARTURE', ...geo }]);
+    else if (withGeo) await supabase.from('tour_meetups').update({ ...geo, ...(p.time && !match.scheduled_time ? { scheduled_time: p.time } : {}) }).eq('id', match.id);
   }
   for (const m of existing || []) {
     if (names.includes(m.location_name.trim().toLowerCase())) continue;
