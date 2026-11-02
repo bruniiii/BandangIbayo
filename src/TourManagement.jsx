@@ -81,7 +81,7 @@ const TourManagement = ({ openTourId = null }) => {
   const hasPhoto = tempGallery.length > 0 || newFiles.length > 0;
   // Create Tour / Save Changes stays disabled until the photo, every box
   // marked *, each date and a pickup point are filled in.
-  const [tourFormRef, tourBoxesFilled] = useRequiredFilled();
+  const [tourFormRef, tourBoxesFilled] = useRequiredFilled(['description', 'important_note']);
  
   const formatDateRange = formatTourDates;
  
@@ -102,8 +102,6 @@ const TourManagement = ({ openTourId = null }) => {
   // Pickup points joiners choose from when booking (saved as each date's pickup stops).
   // The admin types each one and clicks Add.
   const [pickupPicked, setPickupPicked] = useState([]);
-  const tourFilled = hasPhoto && tourBoxesFilled && pickupPicked.length > 0
-    && dateRows.length > 0 && dateRows.every((r) => r.start_date && r.end_date && (!r.sale || (r.sale_starts && r.sale_ends)));
   // Maps: saved pickup spots (available once the 20261130 update is installed),
   // the tour's route, and the Pickup Spots window.
   const [spotsInfo, setSpotsInfo] = useState({ spots: [], available: false });
@@ -130,6 +128,13 @@ const TourManagement = ({ openTourId = null }) => {
   const [formTourPrice, setFormTourPrice] = useState('');
   // Accommodation joiners can choose from (Tent, AC Room, Non-AC Room); none means no choice.
   const [formAccommodation, setFormAccommodation] = useState([]);
+  // Create Tour / Save Changes stays disabled until every field is filled
+  // (only "Van leaves at" and extra expenses are optional).
+  const tourFilled = hasPhoto && tourBoxesFilled && pickupPicked.length > 0
+    && dateRows.length > 0 && dateRows.every((r) => r.start_date && r.end_date && (!r.sale || (r.sale_starts && r.sale_ends)))
+    && formAccommodation.length > 0
+    && formLists.inclusions.length > 0 && formLists.exclusions.length > 0 && formLists.things_to_bring.length > 0
+    && Object.values(formItinerary).some((v) => String(v || '').trim());
   const blankExpense = () => ({ key: `e-${Math.random()}`, name: '', amount: '' });
   // Opens the form for a new trip, or for a trip's details and dates (withNewDate adds an empty date to fill in).
   const openTourForm = (trip = null, { withNewDate = false } = {}) => {
@@ -879,13 +884,8 @@ const TourManagement = ({ openTourId = null }) => {
                   </div>
                 </div>
  
-                {/* The rest of the form opens once the tour has at least one photo. */}
-                {!hasPhoto && (
-                  <p role="status" style={{ margin: '-8px 0 0', fontSize: 12.5, fontWeight: 800, color: '#8C2F1C' }}>
-                    Upload at least one photo first. The other fields open after that.
-                  </p>
-                )}
-                <fieldset disabled={!hasPhoto} aria-disabled={!hasPhoto} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20, opacity: hasPhoto ? 1 : 0.45, cursor: hasPhoto ? undefined : 'not-allowed' }}>
+                {/* Every field can be filled in any order; Create Tour stays disabled until all are (photo included). */}
+                <fieldset style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <ModalInput label="Tour Title" name="title" defaultValue={formTour?.title} placeholder="e.g., Mt. Pulag" required />
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -1118,7 +1118,7 @@ const TourManagement = ({ openTourId = null }) => {
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: '#1A0A00',
               }}>Cancel</button>
-              <button type="submit" disabled={uploading || savingTour || !tourFilled} title={tourFilled ? undefined : 'Add a photo and fill in all the boxes marked *, the dates and a pickup point first'} style={{
+              <button type="submit" disabled={uploading || savingTour || !tourFilled} title={tourFilled ? undefined : 'Fill in every field first (photo, details, dates, pickup points, accommodation, lists and itinerary). Only Van leaves at is optional.'} style={{
                 flex: 2, padding: '13px 0',
                 background: '#B4511E', border: 'none', borderRadius: 999,
                 cursor: tourFilled ? 'pointer' : 'not-allowed', fontFamily: 'inherit',

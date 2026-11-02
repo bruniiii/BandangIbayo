@@ -113,11 +113,16 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   const filled = !['title', 'destination', 'price', 'regular_rate', 'van_rent', 'tour_guide', 'start_date', 'end_date', 'group_size'].some((k) => blank(form[k]))
     && pickups.some((r) => r.location.trim())
     && others.every((o) => (blank(o.name) && blank(o.amount)) || (!blank(o.name) && !blank(o.amount)))
-    && (isOpenRequest || accommodation.length > 0);
+    && (isOpenRequest || accommodation.length > 0)
+    // Every field (only "Van leaves at" and extra expenses are optional), and a
+    // requested tour's photo, since it's posted on Explore Tours.
+    && !['description', 'inclusions', 'exclusions', 'things_to_bring', 'important_note'].some((k) => blank(form[k]))
+    && Object.values(itinerary).some((v) => String(v || '').trim())
+    && (!isOpenRequest || (gallery.length + newFiles.length) > 0 && accommodation.length > 0);
   const [dirty, setDirty] = useState(false);
   const savingRef = useRef(false);
   const packageSent = () => !!request.package_sent_at;
-  // Requested tours: the rest of the form opens once the tour has a photo.
+  // Requested tours need a photo (Post Tour stays disabled until there's one).
   const locked = isOpenRequest && gallery.length === 0 && newFiles.length === 0;
   // Pickup points: typed one at a time and added.
   // Each keeps its time (ETA) if one was already set.
@@ -374,12 +379,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               </div>
             </div>
 
-            {locked && (
-              <p role="status" style={{ margin: '-8px 0 0', fontSize: 12.5, fontWeight: 800, color: '#8C2F1C' }}>
-                Upload at least one photo first. The other fields open after that.
-              </p>
-            )}
-            <fieldset disabled={locked} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20, opacity: locked ? 0.45 : 1, cursor: locked ? 'not-allowed' : undefined }}>
+            <fieldset style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
             <Field label="Tour Title" name="title" value={form.title} onChange={set('title')} placeholder="e.g., Mt. Pulag" maxLength={120} />
 
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -552,7 +552,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             flex: 1, padding: '13px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#1A0A00',
           }}>Cancel</button>
-          <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in all the required boxes first'} style={{
+          <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in every field first (photo, details, rates, accommodation, expenses, pickup points, lists and itinerary). Only Van leaves at is optional.'} style={{
             flex: 2, padding: '13px 0', background: '#B4511E', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#FDF6EE',
             boxShadow: '0 6px 20px rgba(180,81,30,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
