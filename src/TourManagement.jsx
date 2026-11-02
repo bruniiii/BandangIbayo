@@ -27,7 +27,7 @@ import RoutePickupPicker from './ui/RoutePickupPicker';
 import PinPickupButton from './ui/PinPickupButton';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
-import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h } from './geo';
+import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h, stopMinutes } from './geo';
 import WeatherActionModal from './WeatherActionModal';
 import { useAdminMe } from './adminMe';
 import NiceSelect from './ui/NiceSelect';
@@ -468,10 +468,7 @@ const TourManagement = ({ openTourId = null }) => {
         let minutes = [];
         if (formRoute?.start && formRoute?.end && located.length) {
           const res = await findRoute([formRoute.start, ...located.map((x) => x.spot), formRoute.end]);
-          if (res.ok) {
-            let total = 0;
-            minutes = located.map((_, i) => { total += res.data.legs[i]?.duration_min || 0; return total; });
-          }
+          if (res.ok) minutes = stopMinutes(res.data, located.map((x) => x.spot));
         }
         // Each stop's ETA fills itself in: the van's departure ("Van leaves at",
         // else the first time in the itinerary) plus the driving time to that stop.
