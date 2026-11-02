@@ -49,7 +49,6 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
   const [placesError, setPlacesError] = useState('');
   const [show, setShow] = useState({ saved: true, gas: true, mall: true, terminal: true, store: false, food: false });
   const [placesTry, setPlacesTry] = useState(0); // "Try again" looks the places up again
-  const [placesBusy, setPlacesBusy] = useState(false); // waiting to try again by itself
   const [placesPartial, setPlacesPartial] = useState(false); // some parts of a long road didn't load
 
   // Places on the road: looked up once per route.
@@ -58,15 +57,9 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
     let alive = true;
     (async () => {
       setPlaces(null); setPlacesError(''); setPlacesPartial(false);
-      let res = await findPlacesAlongRoute(route, { fresh: placesTry > 0 });
-      // The free place list is sometimes busy: wait 20 seconds and try once more by itself.
-      if (!res.ok && alive && placesTry === 0) {
-        setPlacesBusy(true);
-        await new Promise((r) => setTimeout(r, 20000));
-        if (!alive) return;
-        setPlacesBusy(false);
-        res = await findPlacesAlongRoute(route);
-      }
+      // (At most about half a minute; when the free place list is busy, the
+      // admin taps Try again instead of waiting for an automatic retry.)
+      const res = await findPlacesAlongRoute(route, { fresh: placesTry > 0 });
       if (!alive) return;
       if (res.ok) { setPlaces(res.data.places || []); setPlacesPartial(!!res.data.partial); }
       else { setPlaces([]); setPlacesError(res.error); }
@@ -178,9 +171,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
 
           {places === null && (
             <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> {placesBusy
-                ? 'The map\'s place list is busy. Trying again in a few seconds…'
-                : 'Looking for gas stations, malls and terminals on the way…'}
+              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Looking for gas stations, malls and terminals on the way (up to half a minute)… You can keep filling in the form, tick your saved spots or pin a pickup point on the map meanwhile.
             </p>
           )}
           {placesPartial && !placesError && (
