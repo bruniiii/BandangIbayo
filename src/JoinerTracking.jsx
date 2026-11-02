@@ -140,7 +140,7 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
             )}
           </div>
         ) : shown.map(tour => (
-          <TrackingTourCard key={tour.id} tour={tour} past={view === 'past'} onTrack={() => setActiveTour(tour)} />
+          <TrackingTourCard key={tour.id} tour={tour} past={view === 'past'} badge={view === 'past' ? 'Completed' : tripBadge(tour, currentTrips)} onTrack={() => setActiveTour(tour)} />
         ))}
       </div>
 
@@ -158,7 +158,18 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
   );
 };
 
-const TrackingTourCard = ({ tour, onTrack, past = false }) => {
+// The card's corner label, the same as the admin's Tracking Management:
+// On-going (today is within the tour's dates) or Next Trip (the soonest tour
+// that hasn't started). Other upcoming trips get none; past ones say Completed.
+const tripBadge = (tour, tours, today = todayManila()) => {
+  const start = tour?.start_date;
+  if (!start) return '';
+  if (start <= today && (tour.end_date || start) >= today) return 'On-going';
+  const next = tours.map((t) => t.start_date).filter((d) => d && d > today).sort()[0];
+  return start === next ? 'Next Trip' : '';
+};
+
+const TrackingTourCard = ({ tour, onTrack, past = false, badge = '' }) => {
   const [hovered, setHovered] = useState(false);
   const displayImage = Array.isArray(tour.image_urls) && tour.image_urls.length > 0 ? tour.image_urls[0] : (tour.image || '');
 
@@ -180,9 +191,11 @@ const TrackingTourCard = ({ tour, onTrack, past = false }) => {
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
         )}
-        <span style={{ position: 'absolute', top: 12, right: 12, background: past ? '#1A0A00' : '#B4511E', color: past ? '#E8A265' : '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
-          {past ? 'Completed' : 'Tracking'}
-        </span>
+        {badge && (
+          <span style={{ position: 'absolute', top: 12, right: 12, background: past ? '#1A0A00' : badge === 'On-going' ? '#1F8A5C' : '#A8481A', color: past ? '#E8A265' : '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Compass size={10} /> {badge}
+          </span>
+        )}
       </div>
 
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
