@@ -262,6 +262,9 @@ const blankForm = (startDate = '') => ({
 // a row per person, the requester first).
 const formFromRequest = (r) => {
   const form = formFromRequestFields(r);
+  // Request a Tour doesn't ask who's coming: that's asked when the joiner pays
+  // for the held slots (My Bookings), after Bandang IBAYO approves it.
+  if (r.request_type === 'request') return { ...form, participants: [] };
   return form.participants.length ? form : { ...form, participants: sizeParticipants([], Number(form.groupSize), form) };
 };
 const formFromRequestFields = (r) => ({
@@ -300,8 +303,9 @@ const requestFields = (type, form) => {
     trip_days: days || null,
     notes: form.notes,
   };
-  // Everyone in the group: name and number (both kinds of request).
-  row.participants = form.participants.map((p) => ({
+  // Everyone in the group: name and number (exclusive tours).
+  // (Request a Tour: none yet; they're asked when the joiner pays for the held slots.)
+  row.participants = type !== 'exclusive' ? [] : form.participants.map((p) => ({
     full_name: cleanName(p.full_name),
     contact_number: normalizePhone(p.contact_number) || p.contact_number.trim(),
   }));
@@ -362,7 +366,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
   const setGroupSize = (e) => {
     const value = e.target.value;
     // Rows only up to the most this kind of tour takes; a bigger number is flagged on submit.
-    setForm((prev) => ({ ...prev, groupSize: value, participants: sizeParticipants(prev.participants, Math.min(Number(value), maxGroupFor(type)), prev) }));
+    // (Only exclusive tours list each person here; Request a Tour asks later, when paying.)
+    setForm((prev) => ({ ...prev, groupSize: value, participants: type === 'exclusive' ? sizeParticipants(prev.participants, Math.min(Number(value), maxGroupFor(type)), prev) : [] }));
   };
   const setParticipant = (i, field, value) =>
     setForm((prev) => ({ ...prev, participants: prev.participants.map((p, j) => (j === i ? { ...p, [field]: value } : p)) }));
@@ -538,7 +543,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
             {[
               ['Bandang IBAYO reviews your request', 'It shows as For Approval. You can still edit it until then.'],
               ['The tour is prepared and posted on Explore Tours', 'It shows as Tour Confirmed, and other joiners can book it too'],
-              ['Your slots are held for you for 2 days', "Pay in My Bookings to keep them, or they're released"],
+              ['Your slots are held for you for 2 days', "Pay in My Bookings to keep them (you'll enter who's coming then), or they're released"],
             ].map(([step, desc], i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <span style={{
