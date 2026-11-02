@@ -13,6 +13,7 @@ import { SkeletonLines } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
 import { StatusBadge, BalanceStatusBadge, PaymentMethodBadge } from './BookingBadges';
 import { owesBalance } from './bookingStatus';
+import { refundWeatherThroughPaymongo } from './payments';
 
 // ─────────────────────────────────────────────
 // BOOKING DETAILS window (Booking Management → View Info): the joiner,
@@ -40,6 +41,26 @@ const WeatherRefundBox = ({ booking, onSent }) => {
     toast.success('Refund marked as sent', 'The joiner was notified.');
     onSent?.();
   };
+  const viaPaymongo = !!booking.paymongo_payment_id;
+  const [refunding, setRefunding] = useState(false);
+  const refundOnline = async () => {
+    if (!(await confirmDialog({
+      title: `Refund ${formatPeso(booking.weather_refund)} through PayMongo?`,
+      message: `PayMongo sends it back to the joiner's own payment (the GCash, Maya or card they paid with). It can take a few days to reach them. ${booking.booking_number}'s joiner is notified.`,
+      confirmLabel: 'Send Refund', cancelLabel: 'Not Yet',
+    }))) return;
+    setRefunding(true);
+    const res = await refundWeatherThroughPaymongo({ bookingId: booking.id });
+    setRefunding(false);
+    if (!res.ok) { toast.error("PayMongo couldn't send the refund", res.error); return; }
+    if (res.data?.status === 'partial') {
+      toast.info('Part of the refund was sent', `${formatPeso(res.data.refunded)} went back through PayMongo. Send the other ${formatPeso(res.data.left)} by GCash, then Mark as Sent.`);
+    } else {
+      setSent(true);
+      toast.success('Refund sent through PayMongo', 'The joiner was notified.');
+    }
+    onSent?.();
+  };
   return (
     <div style={{ marginTop: 12, background: sent ? 'rgba(31,107,74,0.08)' : 'rgba(63,93,98,0.08)', border: `1.5px solid ${sent ? 'rgba(31,107,74,0.35)' : 'rgba(63,93,98,0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
       <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? '#1F6B4A' : '#3F5D62' }}>
@@ -54,8 +75,19 @@ const WeatherRefundBox = ({ booking, onSent }) => {
         </p>
       ) : (
         <>
+          {viaPaymongo && (
+            <>
+              <button type="button" onClick={refundOnline} disabled={refunding || busy} style={{
+                alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '11px 18px',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: refunding ? 'not-allowed' : 'pointer',
+              }}>{refunding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Wallet size={13} />} Refund through PayMongo</button>
+              <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+                Goes back to the joiner's own payment (GCash, Maya or card). Or send it yourself by GCash below.
+              </p>
+            </>
+          )}
           <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
-            Send it by GCash, then type the GCash reference (optional) and tap Mark Refund as Sent. The joiner gets a notice.
+            {viaPaymongo ? 'Sent it yourself by GCash?' : 'Send it by GCash, then'} Type the GCash reference (optional) and tap Mark Refund as Sent. The joiner gets a notice.
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input aria-label="GCash reference of the refund" placeholder="GCash reference (optional)" value={ref} maxLength={40} onChange={(e) => setRef(e.target.value)}
