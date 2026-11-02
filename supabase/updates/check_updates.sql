@@ -79,5 +79,8 @@ from (values
      to_regclass('public.client_errors') is not null),
   ('20261204 bad weather: postpone / cancel a tour date',
      exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-              where n.nspname = 'public' and p.proname = 'weather_cancel'))
+              where n.nspname = 'public' and p.proname = 'weather_cancel')),
+  ('20261205 stricter Arrived for the van (100 m, twice in a row)',
+     exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'tour_meetups' and column_name = 'arrive_hits'))
 ) as u(update_file, installed);
