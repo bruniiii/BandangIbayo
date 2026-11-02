@@ -320,12 +320,8 @@ main {
     grid-template-columns: 1fr !important;
   }
 
-  /* A tour date in the tour form: start and end stacked, remove button beside them */
-  .tour-date-row {
-    grid-template-columns: 1fr auto !important;
-  }
-  .tour-date-row > div:nth-child(2) { grid-column: 1; grid-row: 2; }
-  .tour-date-row > button { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  /* A tour date in the tour form: start and end dates stacked */
+  .tour-date-row { grid-template-columns: 1fr !important; }
  
   /* 4-column gallery thumbnail grids become 2 columns instead of 1 */
   .responsive-form-grid-4 {
@@ -423,4 +419,14 @@ main {
   .joiners-phone-only { display: block; }
   .joiners-search { flex: 1 1 100%; }
   .joiners-search input { width: 100% !important; }
+  /* Headings on one line; long emails end with "…" instead of breaking mid-word. */
+  .joiners-table th { white-space: nowrap; letter-spacing: 0.08em !important; padding-top: 12px !important; padding-bottom: 12px !important; }
+  .joiners-table td:first-child { max-width: 0; width: 100%; }
+  .joiners-table td:first-child > div > div:last-child { min-width: 0; overflow: hidden; }
+  .joiners-table .joiners-phone-only { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal !important; }
+  .joiners-table td:first-child p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Message a Joiner / Sent Messages side by side, search below. */
+  .joiners-actions { display: grid !important; grid-template-columns: 1fr 1fr; width: 100%; gap: 10px !important; }
+  .joiners-actions > button { justify-content: center; padding: 11px 8px !important; letter-spacing: 0.05em !important; font-size: 10.5px !important; white-space: nowrap; }
+  .joiners-actions > .joiners-search { grid-column: 1 / -1; }
 }

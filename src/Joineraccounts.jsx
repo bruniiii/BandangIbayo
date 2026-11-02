@@ -221,7 +221,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div className="joiners-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <button
           onClick={() => setShowBulk(true)}
           disabled={loading || joiners.length === 0}
@@ -327,7 +327,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                             <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>@{p.username}</p>
                           )}
                           {/* phones only: the Contact column is hidden there */}
-                          <p className="joiners-phone-only" style={{ fontSize: 11.5, color: '#1A0A00', margin: '3px 0 0', overflowWrap: 'anywhere' }}>{p.email || '—'}</p>
+                          <p className="joiners-phone-only" title={p.email || ''} style={{ fontSize: 11.5, color: '#1A0A00', margin: '3px 0 0', overflowWrap: 'anywhere' }}>{p.email || '—'}</p>
                         </div>
                       </div>
                     </td>
