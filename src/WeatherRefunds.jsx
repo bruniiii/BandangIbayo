@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { CloudRain, Check, Loader2 } from 'lucide-react';
+import { CloudRain, Check, Loader2, Wallet } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
+import { refundWeatherThroughPaymongo } from './payments';
 
 // ─────────────────────────────────────────────
 // Booking Management: 50% refunds to send after a weather postponement or
@@ -20,7 +21,7 @@ const WeatherRefunds = () => {
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('bookings')
-      .select('id, booking_number, full_name, gcash_number, amount_paid, weather_refund, weather_refund_status, profiles ( first_name, last_name, phone_number ), tours ( title, start_date, end_date )')
+      .select('id, booking_number, full_name, gcash_number, amount_paid, weather_refund, weather_refund_status, paymongo_payment_id, profiles ( first_name, last_name, phone_number ), tours ( title, start_date, end_date )')
       .eq('weather_refund_status', 'Due').order('created_at', { ascending: true });
     setRows(error ? [] : data || []);
   }, []);
@@ -42,6 +43,21 @@ const WeatherRefunds = () => {
     load();
   };
 
+  const refundOnline = async (b) => {
+    if (!(await confirmDialog({
+      title: `Refund ${formatPeso(b.weather_refund)} through PayMongo?`,
+      message: `${b.booking_number}: PayMongo sends it back to the joiner's own payment (GCash, Maya or card). It can take a few days to reach them. The joiner is notified.`,
+      confirmLabel: 'Send Refund', cancelLabel: 'Not Yet',
+    }))) return;
+    setBusy(b.id);
+    const res = await refundWeatherThroughPaymongo({ bookingId: b.id });
+    setBusy(null);
+    if (!res.ok) { toast.error("PayMongo couldn't send the refund", res.error); return; }
+    if (res.data?.status === 'partial') toast.info('Part of the refund was sent', `${formatPeso(res.data.refunded)} went back through PayMongo. Send the other ${formatPeso(res.data.left)} by GCash, then Mark as sent.`);
+    else toast.success('Refund sent through PayMongo', 'The joiner was notified.');
+    load();
+  };
+
   if (!rows.length) return null;
   const total = rows.reduce((s, b) => s + (Number(b.weather_refund) || 0), 0);
   return (
@@ -49,7 +65,7 @@ const WeatherRefunds = () => {
       <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#3F5D62', margin: '0 0 10px', flexWrap: 'wrap' }}>
         <CloudRain size={16} style={{ flexShrink: 0 }} />
         Weather refunds to send: {rows.length} · {formatPeso(total)}
-        <span style={{ fontWeight: 600, color: '#7A3A18' }}>50% of what each joiner paid. Send by GCash, then mark it as sent.</span>
+        <span style={{ fontWeight: 600, color: '#7A3A18' }}>50% of what each joiner paid. Refund via PayMongo (back to their own payment), or send by GCash and mark it as sent.</span>
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {rows.map((b) => {
@@ -71,6 +87,12 @@ const WeatherRefunds = () => {
                 display: 'inline-flex', alignItems: 'center', gap: 6, background: '#3F5D62', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '9px 14px',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
               }}>{busy === b.id ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={13} />} Mark as sent</button>
+              {b.paymongo_payment_id && (
+                <button type="button" onClick={() => refundOnline(b)} disabled={busy === b.id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '9px 14px',
+                  fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                }}><Wallet size={13} /> Refund via PayMongo</button>
+              )}
             </div>
           );
         })}

@@ -62,3 +62,7 @@ export const startExclusiveBalance = ({ requestId }) =>
 
 // Coming back from PayMongo: has the downpayment been paid?
 export const verifyExclusivePayment = ({ requestId }) => callPayments('verify-exclusive', { requestId });
+
+// Admins: send a weather cancellation's 50% refund back through PayMongo
+// (to the joiner's own GCash / Maya / card payment). { ok, data: { status, refunded, left } }
+export const refundWeatherThroughPaymongo = ({ bookingId }) => callPayments('weather-refund', { bookingId });

@@ -21,7 +21,12 @@
 //                        be paid, then releases the slots. If PayMongo can't be reached the
 //                        hold keeps its slots and is retried on the next run.
 //
-// Payments are non-refundable (Terms, section 2), so there is no refund path anywhere.
+// Payments are non-refundable (Terms, section 2). The one exception: a tour date
+// Bandang IBAYO cancels or postpones for bad weather, where the joiner may take
+// a 50% refund (20261204 update). Admin action:
+//   - "weather-refund"   { bookingId }   sends that 50% back through PayMongo to the
+//        joiner's own payment (GCash, Maya, card…), from the booking's downpayment
+//        first and then its balance payment, marks it Sent and tells the joiner.
 //
 // PayMongo webhook (header Paymongo-Signature): checkout_session.payment.paid.
 //   Payment state is never taken from the request body: the session is always re-fetched
@@ -625,6 +630,76 @@ async function recordExclusivePayment(requestId: string, amount: number, payment
   return { status: "confirmed", kind: "exclusive" };
 }
 
+// ───────────── Weather refund (admins) ─────────────
+// The 50% refund of a weather cancellation, sent back through PayMongo.
+// The booking is claimed first ("Refunding"), so two admins tapping at once
+// can't refund it twice; if PayMongo refuses, it goes back to "Due".
+async function weatherRefund(userId: string, payload: any) {
+  const { data: me } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (me?.role !== "admin") throw new HttpError(403, "Only admins can send refunds.");
+  const bookingId = payload.bookingId;
+  if (!bookingId) throw new HttpError(400, "Which booking?");
+
+  const { data: claimed, error: claimErr } = await supabase.from("bookings")
+    .update({ weather_refund_status: "Refunding" })
+    .eq("id", bookingId).eq("weather_refund_status", "Due")
+    .select("id, user_id, booking_number, weather_refund, paymongo_payment_id, paymongo_balance_payment_id")
+    .maybeSingle();
+  if (claimErr) throw new Error(claimErr.message);
+  if (!claimed) throw new HttpError(409, "This refund isn't waiting to be sent (it may have been sent already).");
+
+  const release = () => supabase.from("bookings").update({ weather_refund_status: "Due" }).eq("id", bookingId);
+  const payments = [claimed.paymongo_payment_id, claimed.paymongo_balance_payment_id].filter(Boolean);
+  if (!payments.length) {
+    await release();
+    throw new HttpError(400, "This booking wasn't paid through PayMongo. Send the refund by GCash and tap Mark as Sent instead.");
+  }
+
+  let left = centavos(Number(claimed.weather_refund) || 0);
+  const refunds: string[] = [];
+  try {
+    for (const paymentId of payments) {
+      if (left <= 0) break;
+      const pay = await paymongo("GET", `/payments/${paymentId}`);
+      const paid = Number(pay?.data?.attributes?.amount) || 0;
+      const already = (pay?.data?.attributes?.refunds ?? []).reduce((s: number, r: any) => s + (Number(r?.attributes?.amount ?? r?.amount) || 0), 0);
+      const amount = Math.min(left, Math.max(0, paid - already));
+      if (amount <= 0) continue;
+      const refund = await paymongo("POST", "/refunds", {
+        data: {
+          attributes: {
+            amount, payment_id: paymentId, reason: "others",
+            notes: `Bandang IBAYO ${claimed.booking_number}: 50% refund (tour date cancelled/postponed for bad weather)`,
+            metadata: { booking_id: String(claimed.id) },
+          },
+        },
+      });
+      refunds.push(refund?.data?.id ?? "refund");
+      left -= amount;
+    }
+  } catch (err) {
+    // Nothing refunded yet: back to "Due" so it can be tried again.
+    // Part refunded: keep the reference and say so; the admin sends the rest by GCash.
+    if (!refunds.length) { await release(); throw err; }
+  }
+  if (!refunds.length) { await release(); throw new HttpError(400, "PayMongo had nothing left to refund on this booking's payments."); }
+
+  const sentPesos = (centavos(Number(claimed.weather_refund) || 0) - left) / 100;
+  const ref = `PayMongo ${refunds.join(", ")}${left > 0 ? ` (₱${(left / 100).toFixed(2)} still to send by GCash)` : ""}`;
+  await supabase.from("bookings").update({
+    weather_refund_status: left > 0 ? "Due" : "Sent", weather_refund_ref: ref, weather_refund_at: new Date().toISOString(),
+    ...(left > 0 ? { weather_refund: left / 100 } : {}),
+  }).eq("id", bookingId);
+  if (claimed.user_id) {
+    await supabase.from("notifications").insert({
+      user_id: claimed.user_id, type: "booking", related_id: null,
+      title: "Refund sent 💸",
+      message: `Your 50% refund of ₱${sentPesos.toLocaleString("en-PH", { minimumFractionDigits: 2 })} for ${claimed.booking_number} was sent back to your payment (GCash, Maya or card) through PayMongo. It can take a few days to show.`,
+    });
+  }
+  return { status: left > 0 ? "partial" : "sent", refunded: sentPesos, left: left / 100, refunds };
+}
+
 // ───────────── Request handler ─────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -648,6 +723,7 @@ Deno.serve(async (req) => {
       case "pay-held": return reply(await payHeld(userId, payload));
       case "pay-exclusive": return reply(await payExclusive(userId, payload));
       case "verify-exclusive": return reply(await verifyExclusive(userId, payload));
+      case "weather-refund": return reply(await weatherRefund(userId, payload));
       default: return reply({ error: "Unknown action" }, 400);
     }
   } catch (err) {
