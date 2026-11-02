@@ -75,10 +75,10 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {allowCurrent && (
               <button type="button" className="no-touch-size" onClick={useCurrent} disabled={locating} style={small}>
-                {locating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <LocateFixed size={12} />} My current location
+                {locating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <LocateFixed size={12} />} Use my location
               </button>
             )}
-            <button type="button" className="no-touch-size" onClick={() => setPicking(true)} style={small}><MapIcon size={12} /> Pick on the map</button>
+            <button type="button" className="no-touch-size" onClick={() => setPicking(true)} style={small}><MapIcon size={12} /> Choose on map</button>
           </div>
           {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>{error}</span>}
           {results?.length > 0 && (

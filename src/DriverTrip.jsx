@@ -191,7 +191,7 @@ const DriverTrip = () => {
 
         {stops.some((s) => s.lat == null || s.lng == null) && (
           <div role="note" style={{ background: 'rgba(232,162,101,0.2)', borderRadius: 14, padding: '10px 14px', fontSize: 12.5, fontWeight: 700, color: '#8C5216', lineHeight: 1.5 }}>
-            Some pickup stops aren't pinned on the map yet, so they can't be marked Arrived by themselves. The admin can pin them in Tour Management → Edit → The Van's Route (search, Pick on the map, or Add a pickup point on the map). The van's location is still shared.
+            Some pickup stops aren't pinned on the map yet, so they can't be marked Arrived by themselves. The admin can pin them in Tour Management → Edit → The Van's Route (search, Choose on map, or "Pickup point not in the list? Pin it on the map"). The van's location is still shared.
           </div>
         )}
 

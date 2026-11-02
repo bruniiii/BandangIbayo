@@ -24,6 +24,7 @@ import { TourCard } from './TourCard';
 import { TourViewModal } from './TourViewModal';
 import PickupSpots from './PickupSpots';
 import RoutePickupPicker from './ui/RoutePickupPicker';
+import PinPickupButton from './ui/PinPickupButton';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
 import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h } from './geo';
@@ -1057,6 +1058,11 @@ const TourManagement = ({ openTourId = null }) => {
                       ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. The same points are used for every date of this trip. Each stop's time fills itself in from the departure time and the route."
                       : "Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."}
                   />
+                  {spotsInfo.available && (
+                    <PinPickupButton near={formRoute?.start || formRoute?.end || null} picked={pickupPicked}
+                      onPickedChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
+                      onAddPlace={(pl) => setRoutePlaces((list) => (list.some((x) => x.name === pl.name) ? list : [...list, pl]))} />
+                  )}
                 </div>
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
