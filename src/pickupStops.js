@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { findRoute } from './routeApi';
-import { placeOnRoute, departureFromItinerary, addMinutesToTime } from './geo';
+import { placeOnRoute, departureFromItinerary, addMinutesToTime, stopMinutes } from './geo';
 
 // ─────────────────────────────────────────────
 // Where each pickup point is, for a tour saved from a tour package (requested
@@ -38,10 +38,7 @@ export const locateStops = async ({ spots = [], routePlaces = [], names = [], ro
   let minutes = [];
   if (route?.start && route?.end && located.length) {
     const res = await findRoute([route.start, ...located.map((x) => x.spot), route.end]);
-    if (res.ok) {
-      let total = 0;
-      minutes = located.map((_, i) => { total += res.data.legs[i]?.duration_min || 0; return total; });
-    }
+    if (res.ok) minutes = stopMinutes(res.data, located.map((x) => x.spot));
   }
   const leaves = (departure && addMinutesToTime(departure, 0)) || departureFromItinerary(itinerary);
   const info = {};

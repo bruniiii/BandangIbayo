@@ -130,3 +130,28 @@ export const to24h = (time) => {
   if (h > 23 || Number(m[2]) > 59) return '';
   return `${String(h).padStart(2, '0')}:${m[2]}`;
 };
+
+// Driving minutes from the start to each stop, from a route through the start,
+// the stops (in order) and the end (findRoute's answer). Uses each leg's time
+// when the route has them; otherwise (the map service sends legs only with
+// turn-by-turn directions) it shares the whole trip's time by how far along
+// the road each stop is. A rough ETA either way; the live van refines it.
+//   route: { coords, distance_km, duration_min, legs }   stops: [{ lat, lng }]
+export const stopMinutes = (route, stops) => {
+  const legs = Array.isArray(route?.legs) ? route.legs : [];
+  if (legs.length >= stops.length && legs.slice(0, stops.length).some((l) => Number(l?.duration_min) > 0)) {
+    let total = 0;
+    return stops.map((_, i) => { total += Number(legs[i]?.duration_min) || 0; return total; });
+  }
+  const coords = route?.coords;
+  const km = Number(route?.distance_km) || 0;
+  const min = Number(route?.duration_min) || 0;
+  if (!Array.isArray(coords) || coords.length < 2 || !km || !min) return stops.map(() => null);
+  let last = 0;
+  return stops.map((s) => {
+    const along = placeOnRoute(s, coords).alongKm;
+    // Never earlier than the stop before it (the stops are in driving order).
+    last = Math.max(last, Math.round((min * along) / km));
+    return last;
+  });
+};

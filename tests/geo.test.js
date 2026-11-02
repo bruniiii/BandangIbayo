@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { placeOnRoute, addMinutesToTime, departureFromItinerary, to24h, liveEtas, sortStops, distanceKm } from '../src/geo';
+import { placeOnRoute, addMinutesToTime, departureFromItinerary, to24h, liveEtas, sortStops, distanceKm, stopMinutes } from '../src/geo';
 
 // A road from Manila going north (lng, lat).
 const road = [[120.98, 14.53], [121.0, 14.6], [121.03, 14.65], [120.9, 15.0], [120.6, 16.4]];
@@ -71,5 +71,24 @@ describe('sortStops / distanceKm', () => {
   it('measures about 111 km per degree of latitude', () => {
     expect(distanceKm({ lat: 14, lng: 121 }, { lat: 15, lng: 121 })).toBeGreaterThan(110);
     expect(distanceKm({ lat: 14, lng: 121 }, { lat: 15, lng: 121 })).toBeLessThan(112);
+  });
+});
+
+describe('stopMinutes', () => {
+  // A straight 100 km road north, driven in 120 minutes.
+  const coords = Array.from({ length: 101 }, (_, i) => [121, 14 + i * 0.009]);
+  const route = { coords, distance_km: 100, duration_min: 120 };
+  it('uses each leg when the route has them', () => {
+    expect(stopMinutes({ ...route, legs: [{ duration_min: 10 }, { duration_min: 20 }, { duration_min: 90 }] }, [{ lat: 14.1, lng: 121 }, { lat: 14.3, lng: 121 }])).toEqual([10, 30]);
+  });
+  it('without legs, shares the trip time by how far along each stop is (not 0 for all)', () => {
+    const m = stopMinutes({ ...route, legs: [] }, [{ lat: 14.09, lng: 121 }, { lat: 14.45, lng: 121 }]);
+    expect(m[0]).toBeGreaterThan(8);
+    expect(m[0]).toBeLessThan(16);
+    expect(m[1]).toBeGreaterThan(55);
+    expect(m[1]).toBeLessThan(65);
+  });
+  it('without a usable route gives no minutes', () => {
+    expect(stopMinutes({ legs: [] }, [{ lat: 14, lng: 121 }])).toEqual([null]);
   });
 });
