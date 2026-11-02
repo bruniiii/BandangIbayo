@@ -4,6 +4,7 @@ import EmptyState from './ui/EmptyState';
 import { SearchX } from 'lucide-react';
 import { toast, reportError } from './ui/toast';
 import { formatPeso } from './tourUtils';
+import { formatYmdRange } from './dateRange';
 import { downloadReportPDF } from './reportExport';
 import SalesSummary from './SalesSummary';
 import TourIncome from './TourIncome';
@@ -134,7 +135,7 @@ const Reports = () => {
     // rejects the whole request and we'd otherwise silently show "0 bookings".
     const [bookingsRes, toursRes, profilesRes, reviewsRes] = await Promise.all([
       supabase.from('bookings')
-        .select('*, tours ( id, title, destination, price, group_size, is_archived )')
+        .select('*, tours ( id, title, destination, price, group_size, is_archived, start_date, end_date )')
         .order('created_at', { ascending: true }),
       supabase.from('tours').select('id, title, destination, price, group_size, is_archived, start_date'),
       supabase.from('profiles').select('id, first_name, last_name, username, address, created_at').not('role', 'in', '(admin,archived_admin)'),
@@ -367,7 +368,7 @@ const Reports = () => {
       const tourId = b.tour_id;
       const title = b.tours?.title || 'Unknown Tour';
       if (!map.has(tourId)) {
-        map.set(tourId, { tourId, title, bookingsCount: 0, revenue: 0, pax: 0, completeCount: 0 });
+        map.set(tourId, { tourId, title, start: b.tours?.start_date || '', end: b.tours?.end_date || '', bookingsCount: 0, revenue: 0, pax: 0, completeCount: 0 });
       }
       const entry = map.get(tourId);
       entry.bookingsCount += 1;
@@ -860,7 +861,10 @@ const Reports = () => {
                     <tbody>
                       {tourPerformance.map((t) => (
                         <tr key={t.tourId || t.title} style={{ borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
-                          <td style={{ padding: '10px 16px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>{t.title}</td>
+                          <td style={{ padding: '10px 16px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>
+                            {t.title}
+                            {t.start && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', marginTop: 2 }}>{formatYmdRange(t.start, t.end)}</span>}
+                          </td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.bookingsCount}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 900, color: '#A8481A', fontSize: 12.5 }}>{peso(t.revenue)}</td>
                           <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.pax}</td>

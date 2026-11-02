@@ -76,5 +76,8 @@ from (values
      exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
               where n.nspname = 'public' and p.proname = 'notify_trip_not_started')),
   ('20261203 reliability (notification links, van leaves at, error log)',
-     to_regclass('public.client_errors') is not null)
+     to_regclass('public.client_errors') is not null),
+  ('20261204 bad weather: postpone / cancel a tour date',
+     exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+              where n.nspname = 'public' and p.proname = 'weather_cancel'))
 ) as u(update_file, installed);

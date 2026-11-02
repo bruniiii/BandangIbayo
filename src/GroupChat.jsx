@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import BrandAvatar from './ui/BrandAvatar';
-import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive } from 'lucide-react';
+import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive, Megaphone } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
 import { isStaffRole } from './tourUtils';
 import { maskSensitiveWords } from './profanity';
@@ -370,6 +370,23 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
         </div>
       </div>
 
+      {/* The latest 📢 announcement (e.g. a weather postponement), pinned under the header. */}
+      {(() => {
+        const pin = [...(messages || [])].reverse().find((m) => m.kind === 'announcement');
+        if (!pin) return null;
+        return (
+          <button type="button" onClick={() => jumpTo(pin.id)} aria-label="Pinned announcement. Tap to see it in the chat" style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            background: '#3F5D62', color: '#FDF6EE', padding: narrow ? '10px 12px' : '10px 16px', flexShrink: 0,
+          }}>
+            <Megaphone size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span style={{ minWidth: 0, fontSize: 12.5, fontWeight: 700, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', whiteSpace: 'pre-line' }}>
+              {pin.body.replace(/^📢\s*/, '')}
+            </span>
+          </button>
+        );
+      })()}
+
       {/* messages */}
       <div onClick={() => setPickerFor(null)} style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: narrow ? '12px 10px' : '14px 16px', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
         <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#7A3A18', textAlign: 'center', margin: '0 0 8px' }}>
@@ -385,7 +402,34 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
           const mine = m.user_id && m.user_id === me;
           const author = profiles[m.user_id];
           const fromAdmin = isStaffRole(author?.role);
-          const sameAuthor = prev && !newDay && prev.user_id === m.user_id;
+          const sameAuthor = prev && !newDay && prev.user_id === m.user_id && !prev.kind && !m.kind;
+          const dayLabel = newDay && (
+            <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A', margin: '12px 0 6px' }}>{dayOf(m.created_at)}</p>
+          );
+          // 📢 Announcements (weather postponements/cancellations): a full-width card.
+          if (m.kind === 'announcement') {
+            return (
+              <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(232,162,101,0.28)' : 'transparent' }}>
+                {dayLabel}
+                <div role="note" style={{ margin: '8px 0', background: 'rgba(63,93,98,0.1)', border: '1px solid rgba(63,93,98,0.35)', borderRadius: 16, padding: '12px 14px' }}>
+                  <p style={{ margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3F5D62' }}>
+                    <Megaphone size={13} /> Announcement · Bandang IBAYO
+                  </p>
+                  <p style={{ margin: 0, fontSize: narrow ? 14.5 : 13.5, fontWeight: 600, color: '#1A0A00', lineHeight: 1.55, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.body}</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 10.5, fontWeight: 600, color: '#3F5D62', textAlign: 'right' }}>{timeOf(m.created_at)}</p>
+                </div>
+              </div>
+            );
+          }
+          // Small centered notes (e.g. "Ana joined from the Nov 12 date").
+          if (m.kind === 'system') {
+            return (
+              <div key={m.id} id={`chat-msg-${m.id}`}>
+                {dayLabel}
+                <p style={{ textAlign: 'center', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: '8px 12px', lineHeight: 1.45 }}>{m.body}</p>
+              </div>
+            );
+          }
           return (
             <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(232,162,101,0.28)' : 'transparent' }}>
               {newDay && (

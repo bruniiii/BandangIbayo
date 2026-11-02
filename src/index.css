@@ -161,7 +161,7 @@ input::-ms-clear { display: none; }
 /* Landing help button: on phones the panel spans the screen width. */
 @media (max-width: 560px) {
   .help-widget-panel { left: 12px !important; right: 12px !important; width: auto !important; max-width: none !important; bottom: 84px !important; }
-  .help-widget-button { right: 14px !important; bottom: 14px !important; height: 54px !important; }
+  .help-widget-button { right: 14px !important; bottom: 14px !important; width: 52px !important; height: 52px !important; }
   .request-submit-row { margin-bottom: 64px; }
   .request-submit-btn { letter-spacing: 0.04em !important; font-size: 10.5px !important; padding: 16px 12px !important; gap: 7px !important; }
 }
@@ -216,15 +216,44 @@ html { touch-action: manipulation; }
   .dashboard-content td, .dashboard-content th, [role="dialog"] p, [role="dialog"] span { overflow-wrap: anywhere; }
 }
 
-/* Phones: wide tables (class "stack-table") become one card per row, each
-   value with its column name, so nothing scrolls sideways. */
+/* Phones: wide tables (class "stack-table") become one card per row: the
+   first column (the tour or person) is the card's title, the other values sit
+   in two columns underneath, each with its column name above it. Nothing
+   scrolls sideways. (Only the table's own rows, not tables inside them.) */
 @media (max-width: 640px) {
-  table.stack-table { min-width: 0 !important; }
-  table.stack-table thead { display: none; }
-  table.stack-table, table.stack-table tbody, table.stack-table tr, table.stack-table td { display: block; width: 100%; box-sizing: border-box; }
-  table.stack-table tr { padding: 8px 0; border-bottom: 1px solid rgba(180,81,30,0.14); }
-  table.stack-table td { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 4px !important; border: none !important; text-align: right; overflow-wrap: anywhere; }
-  table.stack-table td::before { content: attr(data-label); flex-shrink: 0; max-width: 45%; text-align: left; font-size: 10.5px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #7A3A18; }
+  table.stack-table { min-width: 0 !important; border-collapse: separate !important; }
+  table.stack-table > thead { display: none; }
+  table.stack-table, table.stack-table > tbody { display: block; width: 100%; }
+  table.stack-table > tbody > tr {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; box-sizing: border-box; width: 100%;
+    padding: 14px; margin: 0 0 10px; border-radius: 16px;
+    background: rgba(242,228,208,0.55); border: 1px solid rgba(180,81,30,0.14);
+  }
+  table.stack-table > tbody > tr > td {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
+    padding: 0 !important; border: none !important; text-align: left !important; overflow-wrap: anywhere; font-size: 13.5px;
+  }
+  table.stack-table > tbody > tr > td::before {
+    content: attr(data-label); font-size: 10px; font-weight: 900; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #A8481A; line-height: 1.3;
+  }
+  /* The title: the whole width, a little bigger, with a line under it. */
+  table.stack-table > tbody > tr > td:first-child {
+    grid-column: 1 / -1; font-size: 15px; font-weight: 900; color: #1A0A00;
+    padding-bottom: 10px !important; border-bottom: 1px solid rgba(180,81,30,0.16) !important;
+  }
+  table.stack-table > tbody > tr > td:first-child::before,
+  table.stack-table > tbody > tr > td[data-label=""]::before,
+  table.stack-table > tbody > tr > td:not([data-label])::before { display: none; }
+  /* Cells without a column name (a "show more" arrow) and opened details use the whole width. */
+  table.stack-table > tbody > tr > td[data-label=""],
+  table.stack-table > tbody > tr > td:not([data-label]),
+  table.stack-table > tbody > tr > td[colspan] { grid-column: 1 / -1; align-items: center; }
+  table.stack-table > tbody > tr > td[colspan] {
+    align-items: stretch; font-size: inherit; font-weight: inherit;
+    padding-bottom: 0 !important; border-bottom: none !important;
+  }
+  table.stack-table > tbody > tr > td[data-label=""]:last-child { margin-top: -6px; }
 }
 
 /* Small phones: the bell/account buttons keep their size and a long page
@@ -261,3 +290,31 @@ html { touch-action: manipulation; }
   100% { box-shadow: 0 0 0 0 rgba(232,162,101,0); }
 }
 .focus-flash { animation: focusFlash 2.6s ease-out; border-radius: 18px; }
+
+/* Confirm boxes on phones: both buttons full width, the main one on top. */
+@media (max-width: 480px) {
+  .confirm-actions { flex-direction: column-reverse; align-items: stretch; }
+  .confirm-actions > button { width: 100%; justify-content: center; }
+}
+
+/* Tour Management on phones: the Active / Archive tabs on one line, the two
+   buttons side by side below them, and the two filters side by side under
+   the search box. */
+@media (max-width: 600px) {
+  .tm-header { flex-direction: column; align-items: stretch !important; }
+  .tm-tabs { gap: 14px !important; }
+  .tm-tabs > button { white-space: nowrap; font-size: 16px !important; }
+  .tm-actions { display: grid !important; grid-template-columns: 1fr 1fr; }
+  .tm-actions > button { justify-content: center; padding: 12px 10px !important; letter-spacing: 0.06em !important; font-size: 11px !important; white-space: nowrap; }
+  .tm-actions > button:only-child { grid-column: 1 / -1; }
+  .tm-filters { display: grid !important; grid-template-columns: 1fr 1fr; padding: 12px !important; gap: 10px !important; }
+  .tm-filters > :first-child { grid-column: 1 / -1; }
+  .tm-filters > div { min-width: 0 !important; }
+}
+
+/* Tour form map: the place-type buttons in two neat columns on phones. */
+@media (max-width: 600px) {
+  .place-chips { display: grid !important; grid-template-columns: 1fr 1fr; }
+  .place-chips > button { min-height: 36px !important; padding: 6px 10px !important; font-size: 10px !important; letter-spacing: 0.03em !important; justify-content: flex-start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .place-chips > button svg { flex-shrink: 0; }
+}

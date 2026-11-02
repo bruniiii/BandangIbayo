@@ -11,6 +11,7 @@ import { SkeletonTable } from './ui/Skeleton';
 import { StatusBadge, BalanceStatusBadge, PaymentMethodBadge } from './BookingBadges';
 import { getBalanceStatus, balanceOwed, owesBalance, getShownStatus } from './bookingStatus';
 import { BookingDetailModal } from './BookingDetailModal';
+import WeatherRefunds from './WeatherRefunds';
 import { flashFocus, useOpenOnce } from './focusTarget';
 
  
@@ -211,6 +212,9 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
  
+      {/* ── 50% refunds to send after a weather postponement or cancellation ── */}
+      <WeatherRefunds />
+
       {/* ── Cancellation requests waiting for an answer ── */}
       {pendingCancels.length > 0 && (
         <div role="region" aria-label="Cancellation requests" style={{

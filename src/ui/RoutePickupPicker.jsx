@@ -164,7 +164,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
           </Suspense>
 
           {/* Which kinds of places to list. */}
-          <div role="group" aria-label="Show these places" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <div role="group" aria-label="Show these places" className="place-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {KINDS.map(({ key, label, icon: KindIcon }) => { const Icon = KindIcon; return (
               <button key={key} type="button" aria-pressed={show[key]} onClick={() => setShow((v) => ({ ...v, [key]: !v[key] }))} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',

@@ -23,9 +23,11 @@ setupInstallApp();
 // Tables marked "stack-table" turn into cards on phones (see index.css):
 // each cell gets its column name as a label.
 const labelTables = () => document.querySelectorAll('table.stack-table').forEach((t) => {
-  const heads = [...t.querySelectorAll('thead th')].map((th) => th.textContent.trim());
-  t.querySelectorAll('tbody tr').forEach((tr) => [...tr.children].forEach((td, i) => {
-    if (heads[i] && td.getAttribute('data-label') !== heads[i]) td.setAttribute('data-label', heads[i]);
+  const heads = [...t.querySelectorAll(':scope > thead th')].map((th) => th.textContent.trim());
+  t.querySelectorAll(':scope > tbody > tr').forEach((tr) => [...tr.children].forEach((td, i) => {
+    if (td.colSpan > 1) return; // an opened details row, not one column
+    const label = heads[i] ?? '';
+    if (td.getAttribute('data-label') !== label) td.setAttribute('data-label', label);
   }));
 });
 // Batched: at most once per frame, however many changes happen.

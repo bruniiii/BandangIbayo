@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { CalendarPlus } from 'lucide-react';
 import { isOnSale } from './tourUtils';
 import PriceTag from './ui/PriceTag';
-import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw } from 'lucide-react';
+import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, CloudRain } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // TOUR CARD (Tour Management): one trip with its dates, slots and the
 // View / Edit / Add Date / Joiners / Archive actions.
 // ─────────────────────────────────────────────
 
-const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners, formatDateRange }) => {
+const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners, onWeather = null, formatDateRange }) => {
   const [hovered, setHovered] = useState(false);
   const today  = new Date().toISOString().split('T')[0];
   const dates  = tour.dates || [tour];
@@ -92,6 +92,11 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
                         </span>
                       )}
                       {full && <span style={{ background: 'rgba(180,81,30,0.12)', color: '#A8481A', fontSize: 10.5, fontWeight: 900, padding: '1px 7px', borderRadius: 999, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Full</span>}
+                      {d.weather_status && (
+                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? '#8C2F1C' : '#3F5D62', color: '#FDF6EE', fontSize: 10.5, fontWeight: 900, padding: '1px 7px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                          {d.weather_status === 'cancelled' ? 'Cancelled' : 'Postponed'}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <button
@@ -105,6 +110,19 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
                       display: 'flex', alignItems: 'center', gap: 4,
                     }}
                   ><Users size={11} /> Joiners</button>
+                  {onWeather && (
+                    <button
+                      type="button"
+                      onClick={() => onWeather(d)}
+                      title="Bad weather: postpone or cancel this date"
+                      aria-label={`Weather: postpone or cancel ${formatDateRange(d.start_date, d.duration)}`}
+                      style={{
+                        flexShrink: 0, minHeight: 32, width: 34, padding: 0, borderRadius: 8, cursor: 'pointer',
+                        border: '1px solid rgba(63,93,98,0.35)', background: '#FDF6EE', color: '#3F5D62',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    ><CloudRain size={14} /></button>
+                  )}
                 </div>
               );
             })}

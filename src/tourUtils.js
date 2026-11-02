@@ -13,6 +13,8 @@ export const archivePastTours = () => {
     Promise.resolve(supabase.rpc('daily_notices')).catch(() => {});
     // Cancellation requests left unanswered for 12 hours are approved (also every 15 minutes on the server).
     Promise.resolve(supabase.rpc('run_overdue_cancellations')).catch(() => {});
+    // Weather: 48 hours passed without a choice → 50% refund (also every hour on the server).
+    Promise.resolve(supabase.rpc('run_weather_deadlines')).catch(() => {});
   }
   return archiveRun;
 };

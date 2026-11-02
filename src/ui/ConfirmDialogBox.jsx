@@ -45,7 +45,8 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, onC
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: 22 }}>
+        {/* Phones: the two buttons stack full width, the main one on top. */}
+        <div className="confirm-actions" style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: 22 }}>
           <button ref={cancelRef} type="button" onClick={() => onClose(false)} style={secondaryBtn()}>{cancelLabel}</button>
           <button ref={confirmRef} type="button" onClick={() => onClose(true)} style={danger ? dangerBtn() : primaryBtn()}>{confirmLabel}</button>
         </div>

@@ -26,6 +26,8 @@ import RoutePickupPicker from './ui/RoutePickupPicker';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
 import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h } from './geo';
+import WeatherActionModal from './WeatherActionModal';
+import { useAdminMe } from './adminMe';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -52,6 +54,9 @@ const TourManagement = ({ openTourId = null }) => {
   // The form's dates: { key, id (saved dates only), start_date, end_date, booked }.
   const [dateRows, setDateRows]                 = useState([]);
   const [joinerListTour, setJoinerListTour]     = useState(null);
+  // Bad weather: postpone or cancel one date (main admin only).
+  const [weatherDate, setWeatherDate]           = useState(null);
+  const adminMe = useAdminMe();
   const [tours, setTours]                       = useState([]);
   const [filteredTours, setFilteredTours]       = useState([]);
   const [loading, setLoading]                   = useState(true);
@@ -542,6 +547,7 @@ const TourManagement = ({ openTourId = null }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
  
+      {weatherDate && <WeatherActionModal date={weatherDate} onClose={() => setWeatherDate(null)} onDone={fetchTours} />}
       {joinerListTour && (
         <JoinerListModal tour={joinerListTour} onClose={() => setJoinerListTour(null)} />
       )}
@@ -636,12 +642,12 @@ const TourManagement = ({ openTourId = null }) => {
       <div>
 
       {/* ── Header Tabs ── */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      <div className="tm-header" style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap',
         borderBottom: '1px solid rgba(180,81,30,0.15)',
         paddingBottom: 16, marginBottom: 20,
       }}>
-        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+        <div className="tm-tabs" style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
           <button
             onClick={() => setCurrentTab('active')}
             style={{
@@ -667,7 +673,7 @@ const TourManagement = ({ openTourId = null }) => {
             <History size={18} /> Tour Archive
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="tm-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {spotsInfo.available && (
           <button type="button" onClick={() => setShowSpots(true)} style={{
             display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', color: '#1A0A00',
@@ -697,7 +703,7 @@ const TourManagement = ({ openTourId = null }) => {
       {showSpots && <PickupSpots onClose={() => setShowSpots(false)} onChanged={refreshSpots} />}
  
       {/* ── Filters ── */}
-      <div style={{
+      <div className="tm-filters" style={{
         background: '#FDF6EE',
         borderRadius: 20, padding: '14px 18px',
         border: '1px solid rgba(180,81,30,0.12)',
@@ -759,6 +765,7 @@ const TourManagement = ({ openTourId = null }) => {
                 onEdit={() => openTourForm(tour)}
                 onAddDate={() => openTourForm(tour, { withNewDate: true })}
                 onJoiners={(date) => setJoinerListTour(date)}
+                onWeather={adminMe.isMain && currentTab === 'active' ? (date) => setWeatherDate({ ...date, title: tour.title }) : null}
                 formatDateRange={formatDateRange}
               />
             ))
@@ -811,14 +818,16 @@ const TourManagement = ({ openTourId = null }) => {
               display: 'flex', flexDirection: 'column',
             }}
           >
+            {/* Close: a round button with its own background, so it stays clear over the map and text. */}
             <button
-              type="button" onClick={closeTourModal}
+              type="button" onClick={closeTourModal} aria-label="Close"
               style={{
-                position: 'absolute', top: 20, right: 20, zIndex: 10,
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(122,58,24,0.85)',
+                position: 'absolute', top: 14, right: 14, zIndex: 10,
+                width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', cursor: 'pointer',
+                color: '#7A3A18', boxShadow: '0 4px 14px rgba(26,10,0,0.18)',
               }}
-            ><X size={22} /></button>
+            ><X size={20} /></button>
  
             <div className="responsive-modal-padding" style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
               <h2 style={{
@@ -937,9 +946,24 @@ const TourManagement = ({ openTourId = null }) => {
                     {dateRows.map((r, i) => {
                       const minDate = r.id && r.original.start_date < getMinStartDate() ? r.original.start_date : getMinStartDate();
                       return (
-                        <div key={r.key} className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'end', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(180,81,30,0.14)' }}>
+                        <div key={r.key} className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'end', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(180,81,30,0.14)' }}>
+                          {/* With several dates: which one this is, and a way to remove it (not once joiners booked it). */}
+                          {dateRows.length > 1 && (
+                            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>Date {i + 1}</span>
+                              {r.booked > 0 ? (
+                                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>Booked, can't be removed</span>
+                              ) : (
+                                <button type="button" className="no-touch-size" onClick={() => removeDateRow(r.key)} aria-label={`Remove date ${i + 1}`} style={{
+                                  display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 999, cursor: 'pointer',
+                                  border: '1px solid rgba(140,47,28,0.3)', background: 'transparent', color: '#8C2F1C',
+                                  fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+                                }}><Trash2 size={12} /> Remove</button>
+                              )}
+                            </div>
+                          )}
                           <div>
-                            <label style={labelStyle}>Start Date{dateRows.length > 1 ? ` · ${i + 1}` : ''}</label>
+                            <label style={labelStyle}>Start Date</label>
                             <input type="date" name={`start_date_${i}`} min={minDate} value={r.start_date} onChange={(e) => updateDateRow(r.key, 'start_date', e.target.value)}
                               style={inputStyle} required />
                           </div>
@@ -948,18 +972,6 @@ const TourManagement = ({ openTourId = null }) => {
                             <input type="date" name={`end_date_${i}`} min={r.start_date || minDate} max={r.start_date ? addDaysYmd(r.start_date, MAX_TOUR_DAYS - 1) : undefined} value={r.end_date} onChange={(e) => updateDateRow(r.key, 'end_date', e.target.value)}
                               style={inputStyle} required />
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeDateRow(r.key)}
-                            disabled={dateRows.length === 1 || r.booked > 0}
-                            aria-label={`Remove date ${i + 1}`}
-                            title={r.booked > 0 ? `${r.booked} joiner${r.booked === 1 ? ' has' : 's have'} booked this date, so it can't be removed` : dateRows.length === 1 ? 'A tour needs at least one date' : 'Remove this date'}
-                            style={{
-                              width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(122,58,24,0.3)',
-                              background: 'transparent', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: dateRows.length === 1 || r.booked > 0 ? 'not-allowed' : 'pointer', opacity: dateRows.length === 1 || r.booked > 0 ? 0.4 : 1,
-                            }}
-                          ><Trash2 size={15} /></button>
                           <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
                             {[calculateDuration(r.start_date, r.end_date), r.id ? `${r.booked} booked` : 'New date'].filter(Boolean).join(' · ')}
                           </p>
