@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PhotoViewer from './ui/PhotoViewer';
 import { ChevronLeft, ChevronRight, ImageIcon, CheckCircle2, X } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -100,6 +101,10 @@ const TourImageCarousel = ({ images = [] }) => {
 
   const [index, setIndex] = useState(0);
 
+  // The photo open full screen (tap any photo), or null.
+
+  const [viewing, setViewing] = useState(null);
+
   const dragStartX = React.useRef(null);
 
   const hasImages = images.length > 0;
@@ -133,6 +138,10 @@ const TourImageCarousel = ({ images = [] }) => {
     if (Math.abs(delta) > 40) {
 
       delta > 0 ? goTo(index - 1) : goTo(index + 1);
+
+    } else if (hasImages && e.target.tagName === 'IMG') {
+
+      setViewing(index); // a tap (not a swipe) on the photo: open it full screen
 
     }
 
@@ -184,9 +193,9 @@ const TourImageCarousel = ({ images = [] }) => {
 
               <img
 
-                key={i} src={url} draggable={false} alt={`Photo ${i + 1}`}
+                key={i} src={url} draggable={false} alt={`Photo ${i + 1} (tap to view full screen)`}
 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', flexShrink: 0 }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
 
               />
 
@@ -290,11 +299,15 @@ const TourImageCarousel = ({ images = [] }) => {
 
               key={i}
 
-              onClick={() => goTo(i)}
+              role="button" tabIndex={0} aria-label={`View photo ${i + 1} full screen`}
+
+              onClick={() => { goTo(i); setViewing(i); }}
+
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTo(i); setViewing(i); } }}
 
               style={{
 
-                aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
+                aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'zoom-in',
 
                 border: i === index ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.15)',
 
@@ -313,6 +326,8 @@ const TourImageCarousel = ({ images = [] }) => {
         </div>
 
       )}
+
+      {viewing !== null && <PhotoViewer images={images} start={viewing} onClose={() => setViewing(null)} />}
 
     </div>
 

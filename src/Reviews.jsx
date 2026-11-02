@@ -8,6 +8,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { todayManila } from './tourUtils';
 import { mediaFileError } from './validation';
 import EmptyState from './ui/EmptyState';
+import PhotoViewer from './ui/PhotoViewer';
 import BrandAvatar from './ui/BrandAvatar';
 
 const REVIEW_MAX = 1000;
@@ -563,28 +564,7 @@ const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply })
       </p>
     )}
 
-    {Array.isArray(review.media) && review.media.length > 0 && (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-        {review.media.map((m, idx) => (
-          m.type === 'video' ? (
-            <video
-              key={idx}
-              src={m.url}
-              controls
-              style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 12, background: '#000' }}
-            />
-          ) : (
-            <img loading="lazy" decoding="async"
-              key={idx}
-              src={m.url}
-              alt=""
-              style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 12, cursor: 'pointer' }}
-              onClick={() => window.open(m.url, '_blank')}
-            />
-          )
-        ))}
-      </div>
-    )}
+    {Array.isArray(review.media) && review.media.length > 0 && <ReviewMedia media={review.media} />}
 
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
       {canReact ? (
@@ -694,6 +674,26 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
         </button>
       )}
     </>
+  );
+};
+
+// A review's photos and videos: tap a photo to see it full screen.
+const ReviewMedia = ({ media }) => {
+  const [viewing, setViewing] = useState(null);
+  const photos = media.filter((m) => m.type !== 'video').map((m) => m.url);
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+      {media.map((m, idx) => (
+        m.type === 'video' ? (
+          <video key={idx} src={m.url} controls style={{ width: 160, height: 120, objectFit: 'cover', borderRadius: 12, background: '#000' }} />
+        ) : (
+          <img loading="lazy" decoding="async" key={idx} src={m.url} alt="Review photo (tap to view full screen)"
+            style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 12, cursor: 'zoom-in' }}
+            onClick={() => setViewing(photos.indexOf(m.url))} />
+        )
+      ))}
+      {viewing !== null && <PhotoViewer images={photos} start={Math.max(0, viewing)} onClose={() => setViewing(null)} />}
+    </div>
   );
 };
 

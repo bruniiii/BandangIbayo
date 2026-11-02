@@ -69,16 +69,13 @@ const PublicNav = ({ session }) => {
         to="/tours"
         aria-current={onTourList ? 'page' : undefined}
         onClick={() => { if (onTourList) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        style={{
-          fontSize: 13, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#A8481A' : '#7A3A18', textDecoration: 'none',
-          borderBottom: onTourList ? '2px solid #B4511E' : '2px solid transparent', paddingBottom: 2,
-        }}
+        style={{ ...navLink, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#A8481A' : '#7A3A18', borderBottomColor: onTourList ? '#B4511E' : 'transparent' }}
       >
         Tours
       </Link>
       {!session && (
         <>
-          <Link to="/login" style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', textDecoration: 'none' }}>Log in</Link>
+          <Link to="/login" style={navLink}>Log in</Link>
           <Link to="/register" style={navCta}>Join Now</Link>
         </>
       )}
@@ -87,6 +84,12 @@ const PublicNav = ({ session }) => {
   );
 };
 
+// "Tours" and "Log in" at the top: the same size and line, so they sit level.
+const navLink = {
+  display: 'inline-flex', alignItems: 'center', height: 40, boxSizing: 'border-box',
+  fontSize: 13, fontWeight: 700, lineHeight: 1, color: '#7A3A18', textDecoration: 'none',
+  borderTop: '2px solid transparent', borderBottom: '2px solid transparent',
+};
 const navCta = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
@@ -460,6 +463,9 @@ const publicCss = `
     .public-tour-aside { position: static !important; }
     .public-tour-mobilebar { display: flex !important; }
     .public-tour-page .public-main { padding-bottom: 96px !important; }
+    /* The "?" help button sits above the price bar, not on it. */
+    body:has(.public-tour-mobilebar) .help-widget-button { bottom: 96px !important; }
+    body:has(.public-tour-mobilebar) .help-widget-panel { bottom: 160px !important; }
   }
   @media (max-width: 480px) {
     .public-nav-brand { display: none; }

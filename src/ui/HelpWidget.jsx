@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { HelpCircle, X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star } from 'lucide-react';
+import { X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star } from 'lucide-react';
 
 // Where "Message us on Facebook" goes: the Bandang IBAYO Facebook page.
 const FACEBOOK_URL = 'https://www.facebook.com/bandangibayo';
@@ -193,15 +193,14 @@ const HelpWidget = ({ zIndex = 600 }) => {
         aria-label={open ? 'Close help' : 'Help: FAQ and user guide'}
         className="help-widget-button"
         style={{
-          position: 'fixed', zIndex, right: 20, bottom: 20, height: 58, minWidth: 58, padding: '0 20px 0 16px',
-          borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+          position: 'fixed', zIndex, right: 20, bottom: 20, width: 56, height: 56, padding: 0,
+          borderRadius: '50%', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
           background: '#B4511E', color: '#FDF6EE', boxShadow: '0 12px 30px rgba(180,81,30,0.45)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          fontSize: 13, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >
-        {open ? <X size={22} /> : <HelpCircle size={22} />}
-        <span className="help-widget-label">{open ? 'Close' : 'Help'}</span>
+        {/* Just a "?" (an X while the help is open). */}
+        {open ? <X size={24} /> : <span aria-hidden="true" style={{ fontSize: 26, fontWeight: 900, lineHeight: 1 }}>?</span>}
       </button>
     </>
   );

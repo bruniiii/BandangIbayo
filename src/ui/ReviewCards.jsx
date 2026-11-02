@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import PhotoViewer from './PhotoViewer';
 import { Star, Quote, MapPin } from 'lucide-react';
 
 // One joiner review, as shown on the landing page and the joiner homepage
@@ -14,14 +16,20 @@ const Stars = ({ rating, size = 14 }) => (
 const initials = (name) => String(name || '?').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 const monthYear = (iso) => (iso ? new Date(iso).toLocaleDateString('en-PH', { month: 'short', year: 'numeric' }) : '');
 
-export const ReviewCard = ({ review, compact = false }) => (
+export const ReviewCard = ({ review, compact = false }) => {
+  const [viewing, setViewing] = useState(false);
+  return (
   <article style={{
     background: '#FDF6EE', borderRadius: compact ? 18 : 22, padding: compact ? '1.1rem 1.2rem' : '1.5rem',
     border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 18px rgba(26,10,0,0.05)',
     display: 'flex', flexDirection: 'column', gap: compact ? 10 : 14, height: '100%', boxSizing: 'border-box',
   }}>
     {!compact && review.photo_url && (
-      <img src={review.photo_url} alt="" loading="lazy" style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 14 }} />
+      <>
+        <img src={review.photo_url} alt="Review photo (tap to view full screen)" loading="lazy" onClick={() => setViewing(true)}
+          style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 14, cursor: 'zoom-in' }} />
+        {viewing && <PhotoViewer images={[review.photo_url]} onClose={() => setViewing(false)} />}
+      </>
     )}
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
       <Stars rating={review.rating} size={compact ? 13 : 15} />
@@ -50,4 +58,5 @@ export const ReviewCard = ({ review, compact = false }) => (
       </div>
     </div>
   </article>
-);
+  );
+};
