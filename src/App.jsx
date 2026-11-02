@@ -500,11 +500,12 @@ function LandingPage() {
                 color: '#1877F2', textDecoration: 'none', background: '#EFF6FF',
                 border: '1px solid #BFDBFE', borderRadius: 12, padding: '10px 18px',
               }}><FaFacebook size={18}/> Facebook</a>
-              <div style={{
+              {/* Tapping it on a phone starts a call. */}
+              <a href="tel:+639993071958" aria-label="Call Bandang IBAYO at +63 999 307 1958" style={{
                 display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 13,
                 color: '#7A3A18', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.15)',
-                borderRadius: 12, padding: '10px 18px',
-              }}><Phone size={16} style={{ color: '#A8481A' }}/> +63 9XX XXX XXXX</div>
+                borderRadius: 12, padding: '10px 18px', textDecoration: 'none',
+              }}><Phone size={16} style={{ color: '#A8481A' }}/> +63 999 307 1958</a>
             </div>
             </div>
           </div>
