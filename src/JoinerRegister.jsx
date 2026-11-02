@@ -36,6 +36,7 @@ import TermsModal from './ui/TermsModal';
 import { googleNameParts } from './googleAuth';
 import OtpInput from './ui/OtpInput';
 import { signupStart, verifyLoginCode, resendLoginCode } from './authApi';
+import NiceDate from './ui/NiceDate';
 
 // mode="complete" (/complete-profile): after "Continue with Google", the
 // same form without email and password fills in the rest of the profile.
@@ -1009,12 +1010,12 @@ const JoinerRegister = ({ mode = 'register' }) => {
             <div>
               <label style={labelStyle}>Date of Birth</label>
               <div style={{ position: 'relative' }}>
-                <CalendarDays size={16} style={fieldIconStyle} />
-                <input
+                <NiceDate
                   name="dateOfBirth"
-                  type="date"
                   max={todayPH()}
-                  style={inputWithIconStyle}
+                  min="1900-01-01"
+                  placeholder="Choose your date of birth"
+                  aria-label="Date of birth"
                 />
               </div>
             </div>

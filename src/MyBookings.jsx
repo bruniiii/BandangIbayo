@@ -26,6 +26,7 @@ import {
   History, Trash2, ShieldAlert, MessageSquare, Users, CalendarClock, FileDown, CreditCard, Clock, Backpack, Wallet, CheckCircle2
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
+import NiceSelect from './ui/NiceSelect';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -636,7 +637,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       }}>
                         <MessageSquare size={12} /> Reason for Cancellation <span style={{ color: '#8C2F1C' }}>*</span>
                       </label>
-                      <select
+                      <NiceSelect
                         value={cancelReason}
                         aria-label="Reason for cancellation"
                         onChange={(e) => { setCancelReason(e.target.value); setReasonError(false); }}
@@ -647,10 +648,10 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                           outline: 'none', fontFamily: 'inherit', fontWeight: 600,
                         }}
                       >
-                        <option value="">Choose a reason…</option>
+                        <option value="" disabled>Choose a reason…</option>
                         {CANCEL_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
                         <option value={OTHER_REASON}>{OTHER_REASON}</option>
-                      </select>
+                      </NiceSelect>
                       {cancelReason === OTHER_REASON && (
                         <textarea
                           value={otherReason}
@@ -1099,8 +1100,9 @@ const PickupPointSection = ({ booking, tour }) => {
         </p>
       )}
       {canChange && points?.length > 0 && (
-        <select
+        <NiceSelect
           aria-label={current ? 'Change pickup point' : 'Choose pickup point'}
+          icon={MapPin}
           value=""
           disabled={saving}
           onChange={(e) => change(e.target.value)}
@@ -1109,11 +1111,11 @@ const PickupPointSection = ({ booking, tour }) => {
             borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, color: '#7A3A18', fontFamily: 'inherit', cursor: 'pointer',
           }}
         >
-          <option value="">{saving ? 'Saving…' : current ? 'Change pickup point…' : 'Choose your pickup point…'}</option>
+          <option value="" disabled>{saving ? 'Saving…' : current ? 'Change pickup point…' : 'Choose your pickup point…'}</option>
           {points.filter((p) => p.location_name !== current).map((p) => (
             <option key={p.location_name} value={p.location_name}>{p.location_name}{p.scheduled_time ? ` · ${formatPickupTime(p.scheduled_time)}` : ''}</option>
           ))}
-        </select>
+        </NiceSelect>
       )}
     </ViewSection>
   );

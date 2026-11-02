@@ -175,6 +175,15 @@ export const flagField = (form, name, message) => {
     toast.error('Please check this field', message);
     return;
   }
+  // The site's own dropdowns and date pickers keep their value in a hidden
+  // input (no browser bubble there): say it in a toast and point at the box.
+  if (el.type === 'hidden') {
+    toast.error('Please check this field', message);
+    const box = el.parentElement?.querySelector('button');
+    box?.focus({ preventScroll: true });
+    (box || el.parentElement)?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+    return;
+  }
   el.setCustomValidity(message);
   el.reportValidity();
   el.focus({ preventScroll: true });

@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { toast } from './ui/toast';
+import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
 // SALES SUMMARY (top of Reports): money actually collected in a month, per
@@ -141,9 +142,9 @@ const SalesSummary = ({ onData }) => {
           <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>Money actually received, and who still owes a balance.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <select aria-label="Month" value={month} onChange={(e) => setMonth(e.target.value)} style={selectStyle}>
+          <NiceSelect aria-label="Month" value={month} onChange={(e) => setMonth(e.target.value)} style={selectStyle}>
             {lastMonths(12).map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
-          </select>
+          </NiceSelect>
         </div>
       </div>
 

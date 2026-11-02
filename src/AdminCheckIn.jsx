@@ -10,6 +10,7 @@ import {
   ScanLine, Camera, CameraOff, CheckCircle2, AlertTriangle, XCircle, Users, Undo2, Loader2, Search, Phone,
 } from 'lucide-react';
 import { SkeletonLines, SkeletonRows } from './ui/Skeleton';
+import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
 // CHECK-IN (admin)
@@ -306,7 +307,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                 {tour ? `${tour.title} — ${tourDates(tour)}` : 'Tour not found'}
               </p>
             ) : (
-            <select
+            <NiceSelect
               id="checkin-tour"
               value={tourId}
               onChange={(e) => { setTourId(e.target.value); stopCamera(); }}
@@ -317,7 +318,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                   {t.title} — {tourDates(t)}{t.start_date <= todayManila() && (t.end_date || t.start_date) >= todayManila() ? ' · today' : ''}
                 </option>
               ))}
-            </select>
+            </NiceSelect>
             )}
 
             {tour && !checkInOpen(tour) && (

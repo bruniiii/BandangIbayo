@@ -5,6 +5,7 @@ import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { expenseItems, expensesTotal } from './tourExpenses';
 import { toast } from './ui/toast';
+import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
 // INCOME PER TOUR (Reports): for each tour date, what joiners pay minus what
@@ -93,9 +94,9 @@ const TourIncome = ({ onData }) => {
           <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>Joiner fees minus the tour's expenses, by tour date.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <select aria-label="Tour month" value={month} onChange={(e) => { setMonth(e.target.value); setOpen(null); }} style={selectStyle}>
+          <NiceSelect aria-label="Tour month" value={month} onChange={(e) => { setMonth(e.target.value); setOpen(null); }} style={selectStyle}>
             {monthOptions().map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
-          </select>
+          </NiceSelect>
         </div>
       </div>
 

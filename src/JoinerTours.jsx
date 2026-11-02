@@ -19,6 +19,7 @@ import { DetailedTourModal } from './TourBookingWindow';
 import FavoriteStar from './ui/FavoriteStar';
 import PrettySelect from './ui/PrettySelect';
 import { Mountain } from 'lucide-react';
+import NiceSelect from './ui/NiceSelect';
 
 // ── PALETTE ──────────────────────────────────────────────
 
@@ -257,7 +258,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
         <div style={{ position: 'relative', minWidth: 160 }}>
 
-          <select
+          <NiceSelect
 
             value={difficultyFilter} onChange={e => setDifficultyFilter(e.target.value)}
 
@@ -273,9 +274,8 @@ const JoinerTours = ({ initialTourId = null }) => {
 
             <option value="Challenging">Challenging</option>
 
-          </select>
+          </NiceSelect>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
 
         </div>
 
@@ -283,7 +283,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
         <div style={{ position: 'relative', minWidth: 175 }}>
 
-          <select
+          <NiceSelect
 
             value={priceSort} onChange={e => setPriceSort(e.target.value)}
 
@@ -297,9 +297,8 @@ const JoinerTours = ({ initialTourId = null }) => {
 
             <option value="lowToHigh">Low to High</option>
 
-          </select>
+          </NiceSelect>
 
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
 
         </div>
 

@@ -16,7 +16,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const esc = (v) => (typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(v) : String(v).replace(/["\\]/g, '\\$&'));
 
 const isEmpty = (el, form) => {
-  if (el.disabled || el.type === 'hidden') return false;
+  // (Hidden boxes don't count, except the value box of the site's own
+  // dropdowns and date pickers when they're required.)
+  if (el.disabled || (el.type === 'hidden' && el.dataset?.required !== 'true')) return false;
   if (el.type === 'checkbox') return !el.checked;
   if (el.type === 'radio') return !form.querySelector(`input[type="radio"][name="${esc(el.name)}"]:checked`);
   return String(el.value ?? '').trim() === '';
@@ -25,7 +27,7 @@ const isEmpty = (el, form) => {
 export const allRequiredFilled = (form, names = []) => {
   if (!form) return false;
   const byName = names.map((n) => form.querySelector(`[name="${esc(n)}"]`)).filter(Boolean);
-  const all = [...form.querySelectorAll('input[required], select[required], textarea[required]'), ...byName];
+  const all = [...form.querySelectorAll('input[required], select[required], textarea[required], input[data-required="true"]'), ...byName];
   return !all.some((el) => isEmpty(el, form));
 };
 
