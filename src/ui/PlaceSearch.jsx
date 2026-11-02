@@ -52,7 +52,7 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-      {label && <label htmlFor={name ? `place-${name}` : undefined} style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>{label}</label>}
+      {label && <label htmlFor={name && !value ? `place-${name}` : undefined} style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>{label}</label>}
       {value ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, padding: '10px 12px' }}>
           <MapPin size={15} color="#B4511E" style={{ flexShrink: 0 }} />

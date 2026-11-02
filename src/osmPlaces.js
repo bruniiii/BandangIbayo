@@ -29,8 +29,6 @@ const BRANDS = {
   food: /mcdonald|jollibee|chowking|kfc|mang inasal|greenwich/i,
 };
 
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-
 // The road in pieces of about 60 km: small questions the busy free servers
 // answer quickly, instead of one big one they time out on (504).
 const PIECE_KM = 60;
@@ -64,38 +62,48 @@ const thin = (piece) => {
   return out;
 };
 
-// One piece, asked from the servers in turn (each piece starts at a different one).
+// One request to one server: { ok, elements } or { ok: false, error }.
+const askOne = async (url, query, signal) => {
+  const data = encodeURIComponent(query);
+  try {
+    // A short question goes as a plain link (GET), a long one as a form (POST).
+    const res = data.length < 6000
+      ? await fetch(`${url}?data=${data}`, { signal })
+      : await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `data=${data}`, signal });
+    if (res.ok) {
+      const body = await res.json().catch(() => null);
+      if (body && Array.isArray(body.elements)) return { ok: true, elements: body.elements };
+    }
+    return { ok: false, error: String(res.status) };
+  } catch (err) {
+    return { ok: false, error: err?.name === 'TimeoutError' || err?.name === 'AbortError' ? 'timeout' : (err?.message || 'no connection') };
+  }
+};
+
+// One piece: two servers asked at the same time, the first answer wins (the
+// other is stopped); if both fail, the other two. Never past the deadline.
 const askPiece = async (piece, first, deadline = Infinity) => {
   const pts = thin(piece).map(([lng, lat]) => `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`).join(',');
-  const query = `[out:json][timeout:25];
+  const query = `[out:json][timeout:15];
 nwr(around:300,${pts})["name"][~"^(amenity|shop)$"~"^(fuel|mall|department_store|bus_station|convenience|fast_food)$"];
 out center tags 1000;`;
-  let last = '';
-  // Each server once (not over and over): a busy day shouldn't keep the
-  // admin waiting for minutes. A short question goes as a plain link (GET),
-  // which the servers answer more readily; a long one is sent as a form (POST).
-  for (let k = 0; k < SERVERS.length; k += 1) {
-    if (Date.now() > deadline) { last = last || 'timeout'; break; }
-    const url = SERVERS[(first + k) % SERVERS.length];
-    const data = encodeURIComponent(query);
-    try {
-      const res = data.length < 6000
-        ? await fetch(`${url}?data=${data}`, { signal: AbortSignal.timeout(20000) })
-        : await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `data=${data}`,
-          signal: AbortSignal.timeout(20000),
-        });
-      if (res.ok) {
-        const body = await res.json().catch(() => null);
-        if (body && Array.isArray(body.elements)) return { ok: true, elements: body.elements };
-      }
-      last = String(res.status);
-    } catch (err) {
-      last = err?.name === 'TimeoutError' ? 'timeout' : (err?.message || 'no connection');
-    }
-    await wait(800); // a moment before the next server
+  let last = 'timeout';
+  for (let k = 0; k < SERVERS.length; k += 2) {
+    const left = deadline - Date.now();
+    if (left < 2000) break;
+    const stop = new AbortController();
+    const timer = setTimeout(() => stop.abort(), Math.min(15000, left));
+    const urls = [SERVERS[(first + k) % SERVERS.length], SERVERS[(first + k + 1) % SERVERS.length]];
+    const result = await new Promise((resolve) => {
+      let pending = urls.length;
+      urls.forEach((url) => askOne(url, query, stop.signal).then((r) => {
+        if (r.ok) resolve(r);
+        else { last = r.error; pending -= 1; if (pending === 0) resolve(null); }
+      }));
+    });
+    clearTimeout(timer);
+    stop.abort();
+    if (result) return result;
   }
   return { ok: false, error: last };
 };
@@ -122,10 +130,10 @@ export const placesAlongFromBrowser = async (line) => {
   const cached = readCache(key);
   if (cached) return { ok: true, data: { places: cached } };
 
-  // Two pieces at a time, so no one server is asked too much at once, and
-  // never more than 90 seconds in all: then whatever loaded is shown.
+  // Three pieces at a time, and never more than 35 seconds in all: then
+  // whatever loaded is shown (the admin can Try again for the rest).
   const parts = pieces(line);
-  const deadline = Date.now() + 90000;
+  const deadline = Date.now() + 35000;
   const results = new Array(parts.length);
   let next = 0;
   const worker = async () => {
@@ -134,7 +142,7 @@ export const placesAlongFromBrowser = async (line) => {
       results[i] = await askPiece(parts[i], i % SERVERS.length, deadline);
     }
   };
-  await Promise.all([worker(), worker()]);
+  await Promise.all([worker(), worker(), worker()]);
   // Some pieces of a long road may still fail: show what did load (and say
   // so) instead of nothing. Only when every piece failed is it an error.
   const failed = results.filter((r) => !r?.ok);

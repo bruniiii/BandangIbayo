@@ -78,3 +78,18 @@ describe('placesAlongFromBrowser on a busy day', () => {
     expect(fetch.mock.calls.length).toBeGreaterThan(before);
   }, 120000);
 });
+
+describe('placesAlongFromBrowser when the servers never answer', () => {
+  it('gives up within about 35 seconds', async () => {
+    const store = {};
+    vi.stubGlobal('localStorage', { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v; } });
+    // A server that hangs until it's stopped.
+    vi.stubGlobal('fetch', vi.fn((url, opt) => new Promise((_, reject) => {
+      opt?.signal?.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+    })));
+    const t0 = Date.now();
+    const res = await placesAlongFromBrowser(road);
+    expect(res.ok).toBe(false);
+    expect(Date.now() - t0).toBeLessThan(40000);
+  }, 120000);
+});
