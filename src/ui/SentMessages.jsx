@@ -3,6 +3,7 @@ import { Mail, Megaphone, ChevronDown } from 'lucide-react';
 import { fetchAdminMessages, messageSourceLabel, useTourNames } from '../adminMessages';
 import { SkeletonLines } from './Skeleton';
 import { usePopupError } from './usePopupError';
+import NiceSelect from './NiceSelect';
 
 // Admin: messages already sent to one joiner (userId), or to everyone
 // (names maps joiner ids to names). Tap a message to read it in full.
@@ -69,7 +70,7 @@ const SentMessages = ({ userId = null, names = null, limit = 50 }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18' }}>
         Show
-        <select aria-label="Filter sent messages" value={filter} onChange={(e) => setFilter(e.target.value)} style={{
+        <NiceSelect aria-label="Filter sent messages" value={filter} onChange={(e) => setFilter(e.target.value)} style={{
           flex: 1, minWidth: 0, background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '7px 10px',
           fontSize: 12.5, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', letterSpacing: 0, textTransform: 'none', cursor: 'pointer',
         }}>
@@ -79,7 +80,7 @@ const SentMessages = ({ userId = null, names = null, limit = 50 }) => {
           {tourIds.map((id) => (
             <option key={id} value={`tour:${id}`}>Tour: {tourNames[id] || 'Tour'} ({rows.filter((m) => m.source === 'tour' && m.tour_id === id).length})</option>
           ))}
-        </select>
+        </NiceSelect>
       </label>
       {shown.length === 0 ? (
         <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>No messages of this kind.</p>

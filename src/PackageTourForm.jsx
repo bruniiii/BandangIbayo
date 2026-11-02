@@ -19,6 +19,8 @@ import PinPickupButton from './ui/PinPickupButton';
 import { loadPickupSpots } from './pickupSpots';
 import { locateStops } from './pickupStops';
 import { addMinutesToTime } from './geo';
+import NiceSelect from './ui/NiceSelect';
+import NiceDate from './ui/NiceDate';
 
 // ─────────────────────────────────────────────
 // TOUR PACKAGE FORM (admin, Exclusive Tours / Requested Tours)
@@ -451,11 +453,11 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               <div className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'end', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(180,81,30,0.14)' }}>
                 <div>
                   <label style={labelStyle}>Start Date</label>
-                  <input type="date" name="start_date" min={minStart} value={form.start_date} onChange={set('start_date')} style={inputStyle} />
+                  <NiceDate name="start_date" min={minStart} value={form.start_date} onChange={set('start_date')} style={inputStyle} />
                 </div>
                 <div>
                   <label style={labelStyle}>End Date</label>
-                  <input type="date" name="end_date" min={form.start_date || minStart} max={form.start_date ? addDays(form.start_date, MAX_TOUR_DAYS - 1) : undefined} value={form.end_date} onChange={set('end_date')} style={inputStyle} />
+                  <NiceDate name="end_date" min={form.start_date || minStart} max={form.start_date ? addDays(form.start_date, MAX_TOUR_DAYS - 1) : undefined} value={form.end_date} onChange={set('end_date')} style={inputStyle} />
                 </div>
                 {durationOf(form.start_date, form.end_date) && (
                   <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>{durationOf(form.start_date, form.end_date)}</p>
@@ -507,11 +509,11 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                 <Field label={`Max Slots (up to ${MAX_TOUR_SLOTS})`} name="group_size" type="number" min="1" max={MAX_TOUR_SLOTS} step="1" onKeyDown={blockSignKeys} value={form.group_size} onChange={set('group_size')} />
                 <div>
                   <label style={labelStyle}>Difficulty</label>
-                  <select name="difficulty" value={form.difficulty} onChange={set('difficulty')} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
+                  <NiceSelect name="difficulty" value={form.difficulty} onChange={set('difficulty')} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
                     <option value="Easy">Easy</option>
                     <option value="Moderate">Moderate</option>
                     <option value="Challenging">Challenging</option>
-                  </select>
+                  </NiceSelect>
                 </div>
               </div>
             ) : (

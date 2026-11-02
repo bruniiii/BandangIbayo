@@ -14,6 +14,7 @@ import {
 import { confirmDialog } from './ui/ConfirmDialog';
 import { phoneFieldProps } from './ui/phoneField';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
+import NiceDate from './ui/NiceDate';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -525,8 +526,8 @@ const ProfileSettings = () => {
         </p>
 
         <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          <Field label="Date of Birth" icon={<Calendar size={15} />}>
-            <input type="date" max={todayPH()} style={inputStyle} value={form.date_of_birth || ''} onChange={handleChange('date_of_birth')} />
+          <Field label="Date of Birth" icon={null}>
+            <NiceDate max={todayPH()} min="1900-01-01" placeholder="Choose your date of birth" aria-label="Date of birth" style={inputStyle} value={form.date_of_birth || ''} onChange={handleChange('date_of_birth')} />
           </Field>
         </div>
 

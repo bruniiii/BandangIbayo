@@ -15,6 +15,7 @@ const REVIEW_MAX = 1000;
 const REPLY_MAX = 500;
 import { Star, Send, Loader2, MapPin, MessageSquare, Image as ImageIcon, Video, X, Calendar, ThumbsUp } from 'lucide-react';
 import { SkeletonPosts } from './ui/Skeleton';
+import NiceSelect from './ui/NiceSelect';
 
 const displayName = (profile) => {
   if (!profile) return 'A Traveler';
@@ -333,7 +334,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
               }}>
                 Which tour would you like to review?
               </label>
-              <select
+              <NiceSelect
                 id="review-tour"
                 value={selectedTourId}
                 onChange={(e) => setSelectedTourId(e.target.value)}
@@ -344,13 +345,13 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                   fontFamily: 'inherit', outline: 'none',
                 }}
               >
-                <option value="">Select a completed tour…</option>
+                <option value="" disabled>Select a completed tour…</option>
                 {reviewableTours.map(t => (
                   <option key={t.id} value={t.id}>
                     {t.title} — {t.destination}{t.start_date ? ` (${formatTourDate(t.start_date, t.end_date)})` : ''}
                   </option>
                 ))}
-              </select>
+              </NiceSelect>
 
               {selectedTourId && (() => {
                 const selectedTour = reviewableTours.find(t => t.id === selectedTourId);

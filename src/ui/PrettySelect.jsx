@@ -8,7 +8,7 @@ import { ChevronDown, Check } from 'lucide-react';
 // Keyboard: Enter/Space/↓ opens, ↑/↓ move, Enter picks, Esc closes.
 // ─────────────────────────────────────────────
 
-const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…', icon: Icon = null, invalid = false, ariaLabel, compact = false }) => {
+const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…', icon: Icon = null, invalid = false, ariaLabel, compact = false, disabled = false, onBlur }) => {
   const autoId = useId();
   const btnId = id || `ps-${autoId}`;
   const listId = `${btnId}-list`;
@@ -42,7 +42,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
     setActive(Math.max(0, selectedIndex));
     setOpen(true);
   };
-  const pick = (o) => { onChange(o.value); setOpen(false); };
+  const pick = (o) => { if (o.disabled) return; onChange(o.value); setOpen(false); };
   const onKeyDown = (e) => {
     if (!open) {
       if (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); openList(); }
@@ -51,18 +51,19 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => Math.min(options.length - 1, i + 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => Math.max(0, i - 1)); }
     else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (options[active]) pick(options[active]); }
-    else if (e.key === 'Escape' || e.key === 'Tab') setOpen(false);
+    else if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
+    else if (e.key === 'Tab') setOpen(false);
   };
 
   const pad = compact ? '10px 12px' : '12px 14px';
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
       <button
-        type="button" id={btnId} onClick={() => (open ? setOpen(false) : openList())} onKeyDown={onKeyDown}
+        type="button" id={btnId} disabled={disabled} onBlur={onBlur} onClick={() => (open ? setOpen(false) : openList())} onKeyDown={onKeyDown}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={listId} aria-invalid={invalid || undefined} aria-label={ariaLabel}
         style={{
           width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-          background: '#FDF6EE', padding: pad, borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+          background: '#FDF6EE', padding: pad, borderRadius: 14, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: disabled ? 0.6 : 1,
           border: `1px solid ${invalid ? '#8C2F1C' : open ? '#B4511E' : 'rgba(180,81,30,0.18)'}`,
           boxShadow: open ? '0 0 0 3px rgba(180,81,30,0.14)' : 'none', transition: 'border-color 0.15s, box-shadow 0.15s',
         }}
@@ -95,9 +96,10 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
             return (
               <li
                 key={o.value} role="option" aria-selected={isSel}
+                aria-disabled={o.disabled || undefined}
                 onMouseEnter={() => setActive(i)} onClick={() => pick(o)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 11, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 11, cursor: o.disabled ? 'not-allowed' : 'pointer', opacity: o.disabled ? 0.45 : 1,
                   background: isSel ? 'rgba(180,81,30,0.12)' : isActive ? 'rgba(242,228,208,0.8)' : 'transparent',
                 }}
               >

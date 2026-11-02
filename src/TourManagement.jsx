@@ -30,6 +30,8 @@ import { findRoute } from './routeApi';
 import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h } from './geo';
 import WeatherActionModal from './WeatherActionModal';
 import { useAdminMe } from './adminMe';
+import NiceSelect from './ui/NiceSelect';
+import NiceDate from './ui/NiceDate';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -738,7 +740,7 @@ const TourManagement = ({ openTourId = null }) => {
         </div>
         {/* Difficulty */}
         <div style={{ position: 'relative', minWidth: 160 }}>
-          <select
+          <NiceSelect
             value={difficultyFilter} onChange={e => setDifficultyFilter(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
           >
@@ -746,20 +748,18 @@ const TourManagement = ({ openTourId = null }) => {
             <option value="Easy">Easy</option>
             <option value="Moderate">Moderate</option>
             <option value="Challenging">Challenging</option>
-          </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
+          </NiceSelect>
         </div>
         {/* Price sort */}
         <div style={{ position: 'relative', minWidth: 175 }}>
-          <select
+          <NiceSelect
             value={priceSort} onChange={e => setPriceSort(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
           >
             <option value="default">Sort by Price</option>
             <option value="highToLow">High to Low</option>
             <option value="lowToHigh">Low to High</option>
-          </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
+          </NiceSelect>
         </div>
       </div>
  
@@ -972,12 +972,12 @@ const TourManagement = ({ openTourId = null }) => {
                           )}
                           <div>
                             <label style={labelStyle}>Start Date</label>
-                            <input type="date" name={`start_date_${i}`} min={minDate} value={r.start_date} onChange={(e) => updateDateRow(r.key, 'start_date', e.target.value)}
+                            <NiceDate name={`start_date_${i}`} min={minDate} value={r.start_date} onChange={(e) => updateDateRow(r.key, 'start_date', e.target.value)}
                               style={inputStyle} required />
                           </div>
                           <div>
                             <label style={labelStyle}>End Date</label>
-                            <input type="date" name={`end_date_${i}`} min={r.start_date || minDate} max={r.start_date ? addDaysYmd(r.start_date, MAX_TOUR_DAYS - 1) : undefined} value={r.end_date} onChange={(e) => updateDateRow(r.key, 'end_date', e.target.value)}
+                            <NiceDate name={`end_date_${i}`} min={r.start_date || minDate} max={r.start_date ? addDaysYmd(r.start_date, MAX_TOUR_DAYS - 1) : undefined} value={r.end_date} onChange={(e) => updateDateRow(r.key, 'end_date', e.target.value)}
                               style={inputStyle} required />
                           </div>
                           <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
@@ -992,12 +992,12 @@ const TourManagement = ({ openTourId = null }) => {
                             <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                               <div>
                                 <label style={labelStyle}>Sale Starts</label>
-                                <input type="date" name={`sale_starts_${i}`} value={r.sale_starts} max={r.start_date || undefined}
+                                <NiceDate name={`sale_starts_${i}`} value={r.sale_starts} max={r.start_date || undefined}
                                   onChange={(e) => updateDateRow(r.key, 'sale_starts', e.target.value)} style={inputStyle} />
                               </div>
                               <div>
                                 <label style={labelStyle}>Sale Ends</label>
-                                <input type="date" name={`sale_ends_${i}`} value={r.sale_ends} min={r.sale_starts || undefined} max={r.start_date || undefined}
+                                <NiceDate name={`sale_ends_${i}`} value={r.sale_ends} min={r.sale_starts || undefined} max={r.start_date || undefined}
                                   onChange={(e) => updateDateRow(r.key, 'sale_ends', e.target.value)} style={inputStyle} />
                               </div>
                               {(() => {
@@ -1069,12 +1069,12 @@ const TourManagement = ({ openTourId = null }) => {
                   <ModalInput label={`Max Slots per Date (up to ${MAX_TOUR_SLOTS})`} name="group_size" type="number" min="1" max={Math.max(MAX_TOUR_SLOTS, Number(formTour?.group_size) || 0)} step="1" onKeyDown={blockSignKeys} defaultValue={formTour?.group_size || MAX_TOUR_SLOTS} required />
                   <div>
                     <label style={labelStyle}>Difficulty</label>
-                    <select name="difficulty" defaultValue={formTour?.difficulty || 'Easy'}
+                    <NiceSelect name="difficulty" defaultValue={formTour?.difficulty || 'Easy'}
                       style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
                       <option value="Easy">Easy</option>
                       <option value="Moderate">Moderate</option>
                       <option value="Challenging">Challenging</option>
-                    </select>
+                    </NiceSelect>
                   </div>
                 </div>
  

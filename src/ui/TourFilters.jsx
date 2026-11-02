@@ -1,11 +1,12 @@
 import { ChevronDown } from 'lucide-react';
 import { PRICE_RANGES, LENGTHS, monthOptions } from '../tripFilters';
+import NiceSelect from './NiceSelect';
 
 // Month, price range and trip length selects (logic in tripFilters.js).
 
 const Select = ({ label, value, onChange, options, anyLabel, style, minWidth }) => (
   <div style={{ position: 'relative', minWidth, flex: `1 1 ${minWidth}px` }}>
-    <select
+    <NiceSelect
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -13,8 +14,7 @@ const Select = ({ label, value, onChange, options, anyLabel, style, minWidth }) 
     >
       <option value="">{anyLabel}</option>
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-    <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
+    </NiceSelect>
   </div>
 );
 

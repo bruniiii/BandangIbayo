@@ -13,6 +13,7 @@ import { useAdminMe } from './adminMe';
 import AdminNameForm from './AdminNameForm';
 import BrandAvatar from './ui/BrandAvatar';
 import { usePopupError } from './ui/usePopupError';
+import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
 // ADMIN SETTINGS (main admin only): the list of admins, adding an admin (a new
@@ -494,11 +495,11 @@ const AutoArchiveSetting = () => {
       {enabled && (
         <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <label htmlFor="archive-after" style={{ ...label, margin: 0 }}>Archive after no login for</label>
-          <select id="archive-after" value={days} disabled={!loaded || saving} onChange={(e) => save(true, Number(e.target.value))}
+          <NiceSelect id="archive-after" value={days} disabled={!loaded || saving} onChange={(e) => save(true, Number(e.target.value))}
             style={{ ...input, width: 'auto', cursor: 'pointer' }}>
             {ARCHIVE_OPTIONS.map(([d, l]) => <option key={d} value={d}>{l}{d === 730 ? ' (default)' : ''}</option>)}
             {!ARCHIVE_OPTIONS.some(([d]) => d === days) && <option value={days}>{days} days</option>}
-          </select>
+          </NiceSelect>
         </div>
       )}
     </section>

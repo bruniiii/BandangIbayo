@@ -5,6 +5,8 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { formatYmdRange, addDaysYmd } from './dateRange';
 import { todayManila } from './tourUtils';
+import NiceSelect from './ui/NiceSelect';
+import NiceDate from './ui/NiceDate';
 
 // ─────────────────────────────────────────────
 // Bad weather (main admin): postpone or cancel one tour date.
@@ -105,9 +107,9 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
 
         <div>
           <label style={label} htmlFor="weather-reason">Reason</label>
-          <select id="weather-reason" value={reason} onChange={(e) => setReason(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
+          <NiceSelect id="weather-reason" value={reason} onChange={(e) => setReason(e.target.value)} style={{ ...input, cursor: 'pointer' }}>
             {WEATHER_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
+          </NiceSelect>
         </div>
         <div>
           <label style={label} htmlFor="weather-note">Note for the joiners (optional)</label>
@@ -118,12 +120,12 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 12 }}>
             <div>
               <label style={label} htmlFor="weather-start">New start date</label>
-              <input id="weather-start" type="date" min={tomorrow} value={start} style={input}
+              <NiceDate id="weather-start" min={tomorrow} value={start} style={input}
                 onChange={(e) => { const v = e.target.value; setStart(v); if (v) setEnd(addDaysYmd(v, length)); }} />
             </div>
             <div>
               <label style={label} htmlFor="weather-end">New end date</label>
-              <input id="weather-end" type="date" min={start || tomorrow} max={start ? addDaysYmd(start, 6) : undefined} value={end} style={input}
+              <NiceDate id="weather-end" min={start || tomorrow} max={start ? addDaysYmd(start, 6) : undefined} value={end} style={input}
                 onChange={(e) => setEnd(e.target.value)} />
             </div>
           </div>

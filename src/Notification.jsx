@@ -10,6 +10,7 @@ import {
   MoreHorizontal, Trash2, X, XCircle, Bus,
 } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
+import NiceSelect from './ui/NiceSelect';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -273,13 +274,12 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
         </div>
 
         <div style={{ position: 'relative' }}>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={selectStyle}>
+          <NiceSelect value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={selectStyle}>
             <option value="All Types">All Activity</option>
             {(isAdmin ? ADMIN_FILTERS : JOINER_FILTERS).map((t) => (
               <option key={t} value={t}>{metaFor(t).label}</option>
             ))}
-          </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
+          </NiceSelect>
         </div>
       </div>
 

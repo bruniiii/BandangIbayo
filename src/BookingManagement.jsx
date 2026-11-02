@@ -13,6 +13,8 @@ import { getBalanceStatus, balanceOwed, owesBalance, getShownStatus } from './bo
 import { BookingDetailModal } from './BookingDetailModal';
 import WeatherRefunds from './WeatherRefunds';
 import { flashFocus, useOpenOnce } from './focusTarget';
+import NiceSelect from './ui/NiceSelect';
+import NiceDate from './ui/NiceDate';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -301,7 +303,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
         </div>
         {/* Status */}
         <div style={{ position: 'relative', minWidth: 175 }}>
-          <select
+          <NiceSelect
             value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
           >
@@ -314,24 +316,22 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             <option value="Cancellation Requested">Cancellation Requested</option>
             <option value="Cancelled">Cancelled</option>
             <option value="Balance Due">Balance Due</option>
-          </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
+          </NiceSelect>
         </div>
         {/* Payment method */}
         <div style={{ position: 'relative', minWidth: 175 }}>
-          <select
+          <NiceSelect
             value={methodFilter} onChange={e => setMethodFilter(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
           >
             <option value="All Methods">All Methods</option>
             <option value="Full Payment">Full Payment</option>
             <option value="Downpayment">Downpayment</option>
-          </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
+          </NiceSelect>
         </div>
         {/* Tour */}
         <div style={{ position: 'relative', minWidth: 200 }}>
-          <select
+          <NiceSelect
             value={activeTourFilter} onChange={e => setTourFilter(e.target.value)}
             style={{ ...inputStyle, appearance: 'none', paddingRight: 32, cursor: 'pointer' }}
           >
@@ -339,14 +339,14 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             {tourOptions.map(t => (
               <option key={t.id} value={t.id}>{t.title}</option>
             ))}
-          </select>
-          <ChevronDown size={13} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'rgba(122,58,24,0.85)' }} />
+          </NiceSelect>
         </div>
         {/* Date */}
         <div style={{ position: 'relative', minWidth: 175 }}>
-          <input
-            type="date"
+          <NiceDate
             value={dateFilter}
+            placeholder="Any tour date"
+            aria-label="Filter by tour date"
             onChange={e => setDateFilter(e.target.value)}
             style={{ ...inputStyle, cursor: 'pointer' }}
           />

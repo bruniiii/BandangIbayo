@@ -6,6 +6,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { formatYmdRange } from './dateRange';
 import { formatPeso, todayManila, withAvailableSlots } from './tourUtils';
 import { openGroupChat } from './chatStore';
+import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
 // My Bookings: a tour date postponed or cancelled because of bad weather.
@@ -113,16 +114,16 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
           <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#7A3A18' }}>No other date of this tour is open yet. Ask in the group chat — a new date may be added soon.</p>
         ) : (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <select aria-label="Choose a date" value={pick} onChange={(e) => setPick(e.target.value)} style={{
+            <NiceSelect aria-label="Choose a date" value={pick} onChange={(e) => setPick(e.target.value)} style={{
               flex: '1 1 200px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, padding: '10px 12px',
               fontSize: 16, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit',
             }}>
-              <option value="">Choose a date…</option>
+              <option value="" disabled>Choose a date…</option>
               {dates.map((d) => {
                 const fits = d.available_slots >= (booking.slots_booked || 1);
                 return <option key={d.id} value={d.id} disabled={!fits}>{formatYmdRange(d.start_date, d.end_date)} · {fits ? `${d.available_slots} slots left` : 'full'}</option>;
               })}
-            </select>
+            </NiceSelect>
             <button type="button" disabled={!pick || !!busy} onClick={() => choose('move')} style={{ ...btn('#1A0A00', '#FDF6EE'), opacity: pick ? 1 : 0.5, cursor: pick ? 'pointer' : 'not-allowed' }}>
               {busy === 'move' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={14} />} Move
             </button>
