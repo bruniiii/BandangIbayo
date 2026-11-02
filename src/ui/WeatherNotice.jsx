@@ -16,7 +16,7 @@ const WeatherNotice = ({ compact = false }) => (
       )}
       <p style={{ fontSize: compact ? 12 : 13, fontWeight: 700, lineHeight: 1.6, color: '#1A0A00', margin: 0 }}>
         The tour date may be postponed or cancelled because of bad weather (typhoons, heavy rain), road closures or
-        other safety concerns. We'll tell you right away. If it's cancelled, you can move to another date of the tour
+        other safety concerns. We'll tell you right away, and you can keep the new date, move to another date of the tour
         or get a 50% refund.
       </p>
     </div>

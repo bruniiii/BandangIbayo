@@ -115,7 +115,7 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
         const isCancelled = booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected';
         // Bad weather, shown at the top: a choice still open, or a 50% refund (until 30 days after it was sent).
         const now = Date.now();
-        const showWeather = ((booking.weather_choice === 'pending' || booking.weather_choice === 'stay') && booking.weather_deadline && new Date(booking.weather_deadline).getTime() > now)
+        const showWeather = (booking.weather_choice === 'pending' && booking.weather_deadline && new Date(booking.weather_deadline).getTime() > now)
           || (booking.weather_choice === 'refund' && (booking.weather_refund_status !== 'Sent' || !booking.weather_refund_at || now - new Date(booking.weather_refund_at).getTime() < 30 * 86400000));
         return { ...booking, isActuallyCompleted: isVerified && isPastTour && !isCancelled, showWeather: !!showWeather };
       });

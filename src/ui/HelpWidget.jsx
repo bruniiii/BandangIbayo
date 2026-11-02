@@ -43,7 +43,7 @@ const FAQS = [
   },
   {
     q: 'What if the weather is bad?',
-    a: 'A tour date may be postponed or cancelled because of bad weather, road closures or other safety concerns. You get a notice and a message in the tour\'s group chat. Postponed: your slot and payment carry over. Cancelled (or you can\'t make the new date): within 48 hours, move to another date of the same tour or get a 50% refund in My Bookings. No choice in 48 hours = 50% refund.',
+    a: 'A tour date may be postponed or cancelled because of bad weather, road closures or other safety concerns. You get a notice and a message in the tour\'s group chat. Within 48 hours, choose in My Bookings: keep your slot on the new date (if it was postponed), move to another date of the same tour, or get a 50% refund. No choice in 48 hours = 50% refund.',
   },
   {
     q: 'Where will I be picked up?',

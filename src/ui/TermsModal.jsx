@@ -145,11 +145,11 @@ const TermsModal = ({ onClose, onAgree }) => (
           A tour date may be postponed or cancelled because of bad weather
           (such as typhoons or heavy rain), road closures, or other safety
           concerns. Affected joiners are notified right away and in the
-          tour's group chat. If a date is postponed, your slot and payment
-          carry over to the new date. If a date is cancelled (or you can't
-          make the new date), you have 48 hours to either move to another
-          date of the same tour or receive a 50% refund of what you paid;
-          if you don't choose within 48 hours, the 50% refund is given.
+          tour's group chat. Whether a date is postponed or cancelled, you
+          have 48 hours to choose: keep your slot on the new date (if it was
+          postponed), move to another date of the same tour, or receive a
+          50% refund of what you paid. If you don't choose within 48 hours,
+          the 50% refund is given.
         </TermsSection>
 
         <TermsSection title="5. Tracking & Vehicle Information">

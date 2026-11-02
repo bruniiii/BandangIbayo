@@ -2703,10 +2703,10 @@ end $$;
 -- ─────────────────────────────────────────────
 -- Bad weather: postpone or cancel a tour date (main admin only)
 --
--- POSTPONE: the date moves to new days. Every booking keeps its slot,
---   payment and pickup point. Joiners who can't make the new date have
---   48 hours to move to another date of the same tour or take a 50% refund
---   (otherwise they simply stay on the new date).
+-- POSTPONE: the date moves to new days. Every paid joiner has 48 hours to
+--   choose: keep their slot on the new date, move to another date of the
+--   same tour, or a 50% refund. No choice in 48 hours = 50% refund (the same
+--   rule as a cancellation).
 -- CANCEL: the date is closed (archived). Every paid joiner has 48 hours to
 --   choose: move to another date of the same tour (their slot and payment
 --   carry over, and they join that date's group chat), or a 50% refund.
@@ -2726,7 +2726,7 @@ alter table public.tours add column if not exists weather_at timestamptz;
 alter table public.tours add column if not exists weather_old_start date;    -- the date before it was postponed
 alter table public.tours add column if not exists weather_old_end date;
 
-alter table public.bookings add column if not exists weather_choice text;   -- 'pending' | 'stay' | 'moved' | 'refund'
+alter table public.bookings add column if not exists weather_choice text;   -- 'pending' | 'stayed' | 'moved' | 'refund'
 alter table public.bookings add column if not exists weather_deadline timestamptz;
 alter table public.bookings add column if not exists weather_prev_status text;
 alter table public.bookings add column if not exists weather_from_tour text;
@@ -2812,24 +2812,24 @@ begin
   perform set_config('app.trusted_booking_write', 'on', true);
   perform set_config('app.actor_name', 'Bandang IBAYO (weather postponement)', true);
   update public.bookings
-     set weather_choice = 'stay', weather_deadline = v_deadline
+     set weather_choice = 'pending', weather_deadline = v_deadline
    where tour_id = p_tour_id and payment_status = 'Complete'
      and booking_status not in ('Cancelled', 'Rejected');
   get diagnostics v_count = row_count;
 
   perform public.weather_chat_post(p_tour_id, format(
-    E'📢 POSTPONED: %s\nReason: %s\nNew date: %s (was %s).\nYour slot, payment and pickup point carry over. Can''t make the new date? Open My Bookings before %s to move to another date of this tour or get a 50%% refund.',
+    E'📢 POSTPONED: %s\nReason: %s\nNew date: %s (was %s).\nPlease choose in My Bookings before %s:\n• Keep your slot on the new date (your payment and pickup point carry over),\n• Move to another date of this tour, or\n• Get a 50%% refund.\nIf you don''t choose by then, you''ll get the 50%% refund.',
     v_title, v_why, public.weather_dates(p_start, p_end), public.weather_dates(v_old_start, v_old_end),
     to_char(v_deadline at time zone 'Asia/Manila', 'Mon FMDD, FMHH12:MI AM')), 'announcement');
 
   insert into public.notifications (user_id, title, message, type, related_id)
-  select b.user_id, 'Tour postponed ⛈️',
-         format('%s (%s) is moved to %s because of %s. Your slot and payment carry over. Can''t make it? Choose another date or a 50%% refund in My Bookings before %s. Details are in the group chat.',
+  select b.user_id, 'Tour postponed ⛈️ Please choose',
+         format('%s (%s) is moved to %s because of %s. Choose in My Bookings before %s: keep your slot on the new date, move to another date, or a 50%% refund. No choice by then = 50%% refund.',
                 v_title, b.booking_number, public.weather_dates(p_start, p_end), v_why,
                 to_char(v_deadline at time zone 'Asia/Manila', 'Mon FMDD, FMHH12:MI AM')),
          'booking', null::uuid
     from public.bookings b
-   where b.tour_id = p_tour_id and b.weather_choice = 'stay' and b.weather_deadline = v_deadline and b.user_id is not null;
+   where b.tour_id = p_tour_id and b.weather_choice = 'pending' and b.weather_deadline = v_deadline and b.user_id is not null;
 
   return v_count;
 end;
@@ -2985,7 +2985,7 @@ begin
   if v_user is null or (v_user <> auth.uid() and not public.is_admin()) then
     raise exception 'Booking not found.';
   end if;
-  if v_choice not in ('pending', 'stay') then
+  if v_choice is distinct from 'pending' then
     raise exception 'You already chose for this booking.';
   end if;
   if now() > v_deadline then
@@ -2997,9 +2997,14 @@ begin
     return jsonb_build_object('choice', 'refund', 'amount', v_amount);
   end if;
 
+  -- Postponed: keep the slot on the new date.
   if p_choice = 'stay' then
-    if v_choice <> 'stay' then raise exception 'This date was cancelled. Please choose another date or the refund.'; end if;
-    return jsonb_build_object('choice', 'stay');
+    if coalesce((select weather_status from public.tours where id = v_old_tour), '') <> 'postponed' then
+      raise exception 'This date was cancelled. Please choose another date or the refund.';
+    end if;
+    perform set_config('app.trusted_booking_write', 'on', true);
+    update public.bookings set weather_choice = 'stayed' where id = p_booking_id;
+    return jsonb_build_object('choice', 'stayed');
   end if;
 
   if p_choice <> 'move' then raise exception 'Unknown choice.'; end if;
@@ -3053,7 +3058,7 @@ $$;
 revoke all on function public.weather_choose(public.bookings.id%type, text, public.tours.id%type) from public, anon;
 grant execute on function public.weather_choose(public.bookings.id%type, text, public.tours.id%type) to authenticated;
 
--- ── No choice in 48 hours: 50% refund (cancelled dates only) ──
+-- ── No choice in 48 hours: 50% refund (postponed or cancelled) ──
 create or replace function public.run_weather_deadlines()
 returns integer
 language plpgsql
@@ -3071,9 +3076,6 @@ begin
     perform public.weather_set_refund(v_id, true);
     v_count := v_count + 1;
   end loop;
-  -- Postponed: no choice means they stay on the new date.
-  update public.bookings set weather_choice = 'stayed'
-   where weather_choice = 'stay' and weather_deadline < now();
   return v_count;
 end;
 $$;

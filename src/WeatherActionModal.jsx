@@ -8,10 +8,11 @@ import { todayManila } from './tourUtils';
 
 // ─────────────────────────────────────────────
 // Bad weather (main admin): postpone or cancel one tour date.
-//   Postpone: new start/end dates; bookings carry over; joiners who can't
-//     make it have 48 hours to move to another date or take a 50% refund.
+//   Postpone: new start/end dates; joiners have 48 hours to keep their slot
+//     on the new date, move to another date or take a 50% refund.
 //   Cancel: the date closes; joiners have 48 hours to move to another date
-//     of the same tour or take a 50% refund (no choice = 50% refund).
+//     of the same tour or take a 50% refund.
+//   Both: no choice in 48 hours = 50% refund.
 // Both post a pinned 📢 notice in the tour's group chat and notify the joiners
 // (weather_postpone / weather_cancel in the 20261204 update).
 //   date: { id, title, start_date, end_date, current_booked }
@@ -53,7 +54,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
       confirmLabel: 'Cancel This Date', cancelLabel: 'Go Back', tone: 'danger',
     } : {
       title: `Postpone to ${formatYmdRange(start, end)}?`,
-      message: `Reason: ${why}.\n\n${booked ? `The ${booked} booked joiner${booked === 1 ? '' : 's'} keep their slot, payment and pickup point, and get a notice and a pinned message in the group chat. Anyone who can't make the new date has 48 hours to move to another date or take a 50% refund.` : 'Nobody is booked on it yet.'}`,
+      message: `Reason: ${why}.\n\n${booked ? `The ${booked} booked joiner${booked === 1 ? '' : 's'} get a notice and a pinned message in the group chat, and have 48 hours to keep their slot on the new date, move to another date of this tour or take a 50% refund. No choice in 48 hours = 50% refund.` : 'Nobody is booked on it yet.'}`,
       confirmLabel: 'Postpone', cancelLabel: 'Go Back',
     }))) return;
     setBusy(true);
@@ -98,7 +99,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {choice('postpone', CalendarClock, 'Postpone', 'Move this date to new days. Bookings carry over.')}
+          {choice('postpone', CalendarClock, 'Postpone', 'Move this date to new days. Joiners keep their slot, move to another date or get a 50% refund.')}
           {choice('cancel', Ban, 'Cancel this date', 'Joiners move to another date or get a 50% refund.')}
         </div>
 
@@ -131,7 +132,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#3F5D62', background: 'rgba(63,93,98,0.08)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
           {action === 'cancel'
             ? 'Joiners get a notice, and a pinned 📢 message goes into the group chat. They have 48 hours to move to another date of this tour (and its group chat) or take a 50% refund; no choice = 50% refund. The chat stays open 7 days for questions. Refunds to send show in Booking Management.'
-            : 'Joiners get a notice, and a pinned 📢 message goes into the group chat. Their slot, payment and pickup point carry over. Anyone who can\'t make it has 48 hours to move to another date or take a 50% refund.'}
+            : 'Joiners get a notice, and a pinned 📢 message goes into the group chat. They have 48 hours to keep their slot on the new date (payment and pickup point carry over), move to another date of this tour or take a 50% refund; no choice = 50% refund.'}
         </p>
 
         <button type="button" onClick={submit} disabled={!ready || busy} style={{

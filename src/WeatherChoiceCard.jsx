@@ -11,8 +11,8 @@ import { openGroupChat } from './chatStore';
 // My Bookings: a tour date postponed or cancelled because of bad weather.
 //   Cancelled → choose within 48 hours: another date of the same tour, or a
 //     50% refund (no choice = 50% refund).
-//   Postponed → the slot carries over to the new date; can't make it? Choose
-//     another date or a 50% refund within 48 hours.
+//   Postponed → the same: within 48 hours keep the slot on the new date, move
+//     to another date, or a 50% refund (no choice = 50% refund).
 //   Refund → shows whether it was sent.
 //   booking: the booking (with weather_* columns) + weather: the tour's
 //     { weather_status, weather_reason, weather_note, weather_old_start, weather_old_end }
@@ -29,7 +29,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
   const [pick, setPick] = useState('');
   const [busy, setBusy] = useState('');
   const choice = booking.weather_choice;
-  const open = (choice === 'pending' || choice === 'stay') && booking.weather_deadline && new Date(booking.weather_deadline) > new Date();
+  const open = choice === 'pending' && booking.weather_deadline && new Date(booking.weather_deadline) > new Date();
   const cancelled = weather?.weather_status === 'cancelled';
   const title = booking.tours?.title || 'Your tour';
   const why = [weather?.weather_reason, weather?.weather_note].filter(Boolean).join(' · ');
@@ -50,7 +50,11 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
   const choose = async (kind) => {
     const target = dates?.find((d) => String(d.id) === pick);
     if (kind === 'move' && !target) return;
-    if (!(await confirmDialog(kind === 'move' ? {
+    if (!(await confirmDialog(kind === 'stay' ? {
+      title: `Keep your slot on ${formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)}?`,
+      message: 'Your payment and pickup point carry over to the new date.',
+      confirmLabel: 'Keep My Slot', cancelLabel: 'Go Back',
+    } : kind === 'move' ? {
       title: `Move to ${formatYmdRange(target.start_date, target.end_date)}?`,
       message: 'Your slot and payment carry over to that date, and you join its group chat.',
       confirmLabel: 'Move My Booking', cancelLabel: 'Go Back',
@@ -63,7 +67,8 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
     const { error } = await supabase.rpc('weather_choose', { p_booking_id: booking.id, p_choice: kind, p_new_tour_id: kind === 'move' ? target.id : null });
     setBusy('');
     if (error) { toast.error("Couldn't save your choice", error.message); return; }
-    toast.success(kind === 'move' ? 'Booking moved' : 'Refund requested', kind === 'move' ? "You're in the new date's group chat too." : "We'll let you know when it's sent.");
+    toast.success(kind === 'stay' ? 'See you on the new date!' : kind === 'move' ? 'Booking moved' : 'Refund requested',
+      kind === 'stay' ? 'Your slot is kept.' : kind === 'move' ? "You're in the new date's group chat too." : "We'll let you know when it's sent.");
     onChanged?.();
   };
 
@@ -146,17 +151,17 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
 
   // Postponed: staying is the default.
   return shell(<>
-    {heading('Tour postponed')}
+    {heading('Tour postponed · please choose')}
     <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.4 }}>
       {title} moved to {formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)}
       {weather?.weather_old_start ? ` (was ${formatYmdRange(weather.weather_old_start, weather.weather_old_end)})` : ''}{why ? ` because of ${why}` : ''}.
     </p>
-    <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>
-      Your slot, payment and pickup point carry over. Nothing to do if you can come.
+    <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#8C2F1C' }}>
+      Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the 50% refund.
     </p>
-    <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>
-      Can't make the new date? Choose before {deadlineText(booking.weather_deadline)}:
-    </p>
+    <button type="button" disabled={!!busy} onClick={() => choose('stay')} style={btn('#1F6B4A', '#FDF6EE')}>
+      {busy === 'stay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={14} />} Keep my slot on the new date
+    </button>
     {options}
     {chatBtn}
   </>);
