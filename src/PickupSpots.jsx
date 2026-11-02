@@ -98,8 +98,8 @@ const PickupSpots = ({ onClose, onChanged }) => {
           <PlaceSearch label="Where it is" name="spot_place" value={place} onChange={setPlace} placeholder="Search the place, e.g. Petron Bocaue NLEX" allowCurrent />
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(180,81,30,0.25)', background: 'transparent', color: '#7A3A18', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
-            <button type="button" onClick={save} disabled={saving} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            <button type="button" onClick={save} disabled={saving || !name.trim() || !place} title={name.trim() && place ? undefined : 'Type the name and find the place first'} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none', cursor: name.trim() && place ? 'pointer' : 'not-allowed', opacity: name.trim() && place ? 1 : 0.5,
               background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>{saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />} {editing ? 'Save Changes' : 'Add Spot'}</button>
           </div>

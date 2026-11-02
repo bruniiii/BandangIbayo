@@ -88,6 +88,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   const [gallery, setGallery] = useState(() => (Array.isArray(pkg.image_urls) ? pkg.image_urls : []));
   const [newFiles, setNewFiles] = useState([]);
   const [saving, setSaving] = useState(false);
+  // Send/Post stays disabled until every required box is filled (the checks on
+  // submit still catch wrong amounts and dates).
+  const blank = (v) => String(v ?? '').trim() === '';
+  const filled = !['title', 'destination', 'price', 'regular_rate', 'van_rent', 'tour_guide', 'start_date', 'end_date', 'group_size'].some((k) => blank(form[k]))
+    && pickups.some((r) => r.location.trim())
+    && others.every((o) => (blank(o.name) && blank(o.amount)) || (!blank(o.name) && !blank(o.amount)))
+    && (isOpenRequest || accommodation.length > 0);
   const [dirty, setDirty] = useState(false);
   const savingRef = useRef(false);
   const packageSent = () => !!request.package_sent_at;
@@ -482,8 +489,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             flex: 1, padding: '13px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#1A0A00',
           }}>Cancel</button>
-          <button type="submit" disabled={saving} style={{
-            flex: 2, padding: '13px 0', background: '#B4511E', border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+          <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in all the required boxes first'} style={{
+            flex: 2, padding: '13px 0', background: '#B4511E', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#FDF6EE',
             boxShadow: '0 6px 20px rgba(180,81,30,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>

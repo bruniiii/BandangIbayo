@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useRequiredFilled } from './ui/useRequiredFilled';
 import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import { shrinkImage } from './imageCompress';
@@ -77,6 +78,9 @@ const TourManagement = ({ openTourId = null }) => {
   const [newFiles, setNewFiles]                 = useState([]);
   // A tour needs at least one photo; the other fields stay locked until then.
   const hasPhoto = tempGallery.length > 0 || newFiles.length > 0;
+  // Create Tour / Save Changes stays disabled until the photo, every box
+  // marked *, each date and a pickup point are filled in.
+  const [tourFormRef, tourBoxesFilled] = useRequiredFilled();
  
   const formatDateRange = formatTourDates;
  
@@ -97,6 +101,8 @@ const TourManagement = ({ openTourId = null }) => {
   // Pickup points joiners choose from when booking (saved as each date's pickup stops).
   // The admin types each one and clicks Add.
   const [pickupPicked, setPickupPicked] = useState([]);
+  const tourFilled = hasPhoto && tourBoxesFilled && pickupPicked.length > 0
+    && dateRows.length > 0 && dateRows.every((r) => r.start_date && r.end_date && (!r.sale || (r.sale_starts && r.sale_ends)));
   // Maps: saved pickup spots (available once the 20261130 update is installed),
   // the tour's route, and the Pickup Spots window.
   const [spotsInfo, setSpotsInfo] = useState({ spots: [], available: false });
@@ -806,6 +812,7 @@ const TourManagement = ({ openTourId = null }) => {
             onClick={closeTourModal}
           />
           <form
+            ref={tourFormRef}
             onSubmit={handleFormSubmit}
             onInput={() => setFormDirty(true)}
             style={{
@@ -1105,15 +1112,15 @@ const TourManagement = ({ openTourId = null }) => {
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: '#1A0A00',
               }}>Cancel</button>
-              <button type="submit" disabled={uploading || savingTour} style={{
+              <button type="submit" disabled={uploading || savingTour || !tourFilled} title={tourFilled ? undefined : 'Add a photo and fill in all the boxes marked *, the dates and a pickup point first'} style={{
                 flex: 2, padding: '13px 0',
                 background: '#B4511E', border: 'none', borderRadius: 999,
-                cursor: 'pointer', fontFamily: 'inherit',
+                cursor: tourFilled ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: '#FDF6EE',
                 boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                opacity: uploading ? 0.7 : 1,
+                opacity: uploading ? 0.7 : tourFilled ? 1 : 0.5,
               }}>
                 {(uploading || savingTour) ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : (editingTour ? 'Save Changes' : 'Create Tour')}
               </button>

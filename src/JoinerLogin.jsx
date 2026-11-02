@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRequiredFilled } from './ui/useRequiredFilled';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { askRestoreAccount, restoreMyAccount } from './restoreAccount';
@@ -36,6 +37,7 @@ const FieldError = ({ id, error }) => (
 
 const JoinerLogin = () => {
   const [loading, setLoading] = useState(false);
+  const [loginFormRef, loginFilled] = useRequiredFilled();
   const [isSuccess, setIsSuccess] = useState(false);
   const [successRole, setSuccessRole] = useState('joiner'); // 'joiner' | 'admin'
   const navigate = useNavigate();
@@ -381,7 +383,7 @@ const JoinerLogin = () => {
 
         {/* form */}
         {!challenge && (
-        <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleLogin}>
+        <form ref={loginFormRef} style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleLogin}>
           <div>
             <label style={labelStyle}>Username or Email</label>
             <input
@@ -418,7 +420,7 @@ const JoinerLogin = () => {
           
           <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 4 }} />
  
-          <button disabled={loading || isSuccess} style={submitStyle(loading || isSuccess)}>
+          <button disabled={loading || isSuccess || !loginFilled} style={submitStyle(loading || isSuccess || !loginFilled)}>
             {loading ? spinner : 'Login'}
           </button>
         </form>

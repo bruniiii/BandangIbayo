@@ -26,6 +26,7 @@ import {
 } from './validation';
 import PasswordChecklist from './PasswordChecklist';
 import AddressFields from './AddressFields';
+import { useRequiredFilled } from './ui/useRequiredFilled';
 import { composeAddress } from './phAddress';
 import logoIcon from './assets/logo.png';
 import PasswordField from './ui/PasswordField';
@@ -42,6 +43,9 @@ const JoinerRegister = ({ mode = 'register' }) => {
   const completing = mode === 'complete';
   const [googleUser, setGoogleUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  // Create Account stays disabled until every required box is filled.
+  const [registerFormRef, registerFilled] = useRequiredFilled(['username', 'firstName', 'lastName', 'email', 'phone',
+    'emergencyContactName', 'emergencyContactNumber', 'province', 'city', 'barangay', 'street', 'password', 'confirmPassword']);
   const [isSuccess, setIsSuccess] = useState(false);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
   // After Register: the emailed 6-digit code step ({ challengeId, sentTo, expiresInMinutes, password }).
@@ -759,6 +763,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
           </div>
         ) : (
         <form
+          ref={registerFormRef}
           data-register-form
           style={{
             display: 'flex',
@@ -1192,12 +1197,12 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
           {/* SUBMIT */}
           <button
-            disabled={loading || !agreedToTerms}
-            title={agreedToTerms ? undefined : 'Tick the Terms & Conditions box first'}
+            disabled={loading || !agreedToTerms || !registerFilled}
+            title={!registerFilled ? 'Fill in all the boxes marked * first' : agreedToTerms ? undefined : 'Tick the Terms & Conditions box first'}
             type="submit"
             style={{
               width: '100%',
-              opacity: agreedToTerms ? 1 : 0.5,
+              opacity: agreedToTerms && registerFilled ? 1 : 0.5,
               background: loading
                 ? '#A8481A'
                 : '#A8481A',
@@ -1209,8 +1214,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
               padding: '16px',
               borderRadius: 12,
               border: 'none',
-              cursor: loading || !agreedToTerms ? 'not-allowed' : 'pointer',
-              boxShadow: loading || !agreedToTerms
+              cursor: loading || !agreedToTerms || !registerFilled ? 'not-allowed' : 'pointer',
+              boxShadow: loading || !agreedToTerms || !registerFilled
                 ? 'none'
                 : '0 8px 24px rgba(168,72,26,0.38)',
               display: 'flex',

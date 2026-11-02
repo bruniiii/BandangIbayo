@@ -632,10 +632,10 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
           }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={save} disabled={saving} style={{
+          <button type="button" onClick={save} disabled={saving || (!text.trim() && !review.admin_reply)} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, background: '#B4511E', color: '#FDF6EE', border: 'none',
             borderRadius: 999, padding: '8px 16px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
-            cursor: saving ? 'default' : 'pointer', fontFamily: 'inherit',
+            cursor: saving || (!text.trim() && !review.admin_reply) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: !text.trim() && !review.admin_reply ? 0.5 : 1,
           }}>
             {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
             {review.admin_reply && !text.trim() ? 'Remove Reply' : 'Post Reply'}

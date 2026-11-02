@@ -537,13 +537,13 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                     </button>
                     <button
                       onClick={handleSendEmail}
-                      disabled={sending}
+                      disabled={sending || !subject.trim() || !body.trim()}
                       style={{
                         flex: 1.6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         padding: '12px 0', background: '#B4511E', color: '#FDF6EE', border: 'none',
-                        borderRadius: 999, cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                        borderRadius: 999, cursor: sending || !subject.trim() || !body.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                         fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(180,81,30,0.35)', opacity: sending ? 0.6 : 1,
+                        boxShadow: '0 6px 20px rgba(180,81,30,0.35)', opacity: sending ? 0.6 : !subject.trim() || !body.trim() ? 0.5 : 1,
                       }}
                     >
                       {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -825,13 +825,13 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
         <div style={{ display: 'flex', gap: 10, padding: '1rem 1.5rem', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
           <button
             onClick={handleSend}
-            disabled={sending}
+            disabled={sending || picked.size === 0 || !subject.trim() || !body.trim()}
             style={{
               flex: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               padding: '12px 0', background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 999,
-              cursor: sending ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 900,
+              cursor: sending || picked.size === 0 || !subject.trim() || !body.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 900,
               fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-              boxShadow: '0 6px 20px rgba(180,81,30,0.35)', opacity: sending ? 0.7 : 1,
+              boxShadow: '0 6px 20px rgba(180,81,30,0.35)', opacity: sending ? 0.7 : picked.size === 0 || !subject.trim() || !body.trim() ? 0.5 : 1,
             }}
           >
             {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
