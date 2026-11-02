@@ -97,7 +97,7 @@ export const liveEtas = (stops, van, now = Date.now()) => {
   const list = (stops || []).filter(Boolean);
   const nextIdx = list.findIndex((s) => s.status !== 'ARRIVED');
   const next = list[nextIdx];
-  if (!next || !Number.isFinite(Number(next.lat)) || !Number.isFinite(Number(next.lng))) return out;
+  if (!next || next.lat == null || next.lng == null || !Number.isFinite(Number(next.lat)) || !Number.isFinite(Number(next.lng))) return out;
   const speed = Number(van.speed_kmh) >= 10 ? Number(van.speed_kmh) : 30;
   const km = distanceKm({ lat: Number(van.lat), lng: Number(van.lng) }, { lat: Number(next.lat), lng: Number(next.lng) }) * 1.25;
   const first = Math.max(1, Math.round((km / speed) * 60));

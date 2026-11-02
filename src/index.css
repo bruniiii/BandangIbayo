@@ -318,3 +318,13 @@ html { touch-action: manipulation; }
   .place-chips > button { min-height: 36px !important; padding: 6px 10px !important; font-size: 10px !important; letter-spacing: 0.03em !important; justify-content: flex-start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .place-chips > button svg { flex-shrink: 0; }
 }
+
+/* iPhones give date and time boxes a fixed minimum width, so they spilled
+   out of narrow cards (e.g. Tour Dates in the tour form). Now they fit. */
+input[type="date"], input[type="time"], input[type="datetime-local"] {
+  min-width: 0; max-width: 100%; box-sizing: border-box;
+  -webkit-appearance: none; appearance: none;
+}
+input[type="date"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+.tour-date-row > div { min-width: 0; }

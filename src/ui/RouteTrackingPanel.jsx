@@ -26,7 +26,7 @@ const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, height = 260,
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
   const route = tour?.route || null;
-  const mapped = stops.filter((s) => Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng)));
+  const mapped = stops.filter((s) => s.lat != null && s.lng != null && Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng)));
   if (!route && mapped.length === 0 && !van) return null;
 
   // Live van: how long ago it was seen, and how far it is from the joiner's stop.

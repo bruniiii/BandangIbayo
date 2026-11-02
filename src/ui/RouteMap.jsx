@@ -12,7 +12,10 @@ import 'leaflet/dist/leaflet.css';
 // Loaded only where a map is shown (React.lazy), so pages stay light.
 // ─────────────────────────────────────────────
 
-const ok = (p) => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng));
+// A real place: both numbers set (a stop with no location yet has empty lat/lng,
+// which must not be drawn at 0,0 off Africa).
+const ok = (p) => p && p.lat !== null && p.lat !== undefined && p.lat !== '' && p.lng !== null && p.lng !== undefined && p.lng !== ''
+  && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)) && !(Number(p.lat) === 0 && Number(p.lng) === 0);
 const ll = (p) => [Number(p.lat), Number(p.lng)];
 
 const dot = (color, size = 14, label = '') => L.divIcon({
@@ -74,8 +77,8 @@ const RouteMap = ({ route, stops = [], others = [], van = null, height = 300 }) 
       bounds.push(ll(van));
     }
     // No zoom animation: a window closed mid-animation would leave Leaflet without its map.
-    if (bounds.length > 1) m.fitBounds(bounds, { padding: [28, 28], animate: false });
-    else if (bounds.length === 1) m.setView(bounds[0], 13, { animate: false });
+    if (bounds.length > 1) m.fitBounds(bounds, { padding: [28, 28], animate: false, maxZoom: 17 });
+    else if (bounds.length === 1) m.setView(bounds[0], 16, { animate: false });
     // The map may have been drawn while hidden (a closed modal): measure again.
     const t = setTimeout(() => { if (map.current === m) m.invalidateSize({ animate: false }); }, 50);
     return () => clearTimeout(t);

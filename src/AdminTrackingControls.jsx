@@ -807,7 +807,7 @@ const TrackingConsoleModal = ({
                                   : stop.scheduled_time ? `ETA ${stop.scheduled_time}` : 'ETA not set yet'}
                             </span>
                           </span>
-                          <span style={{ background: badge.bg, color: badge.color, fontSize: 11, fontWeight: 900, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>
+                          <span style={{ background: badge.bg, color: badge.color, fontSize: 10.5, fontWeight: 900, padding: '4px 9px', borderRadius: 999, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                             {badge.label}
                           </span>
                         </li>
@@ -854,10 +854,10 @@ const TrackingConsoleModal = ({
                             border: isCurrent ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.14)',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 0 }}>
                               <span style={{
-                                width: 22, height: 22, borderRadius: '50%',
+                                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
                                 background: isArrived ? '#1F8A5C' : isCurrent ? '#B4511E' : 'rgba(26,10,0,0.1)',
                                 color: '#FFF', fontSize: 11.5, fontWeight: 900,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -866,11 +866,12 @@ const TrackingConsoleModal = ({
                               </span>
                               <strong style={{ fontSize: 13, color: '#1A0A00' }}>{stop.location_name}</strong>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span style={{ background: badge.bg, color: badge.color, fontSize: 11, fontWeight: 900, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+                              <span style={{ background: badge.bg, color: badge.color, fontSize: 10.5, fontWeight: 900, padding: '4px 9px', borderRadius: 999, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                                 {badge.label}
                               </span>
                               <button
+                                className="no-touch-size"
                                 type="button"
                                 onClick={(e) => {
                                   e.preventDefault();
@@ -936,18 +937,20 @@ const TrackingConsoleModal = ({
                         onClick={onAdvanceStop}
                         disabled={advancing}
                         style={{
-                          marginTop: 6, width: '100%', padding: '13px 0',
+                          marginTop: 6, width: '100%', padding: '13px 18px', boxSizing: 'border-box',
                           background: currentActiveStop.status === 'CURRENTLY HERE' ? '#1F8A5C' : '#1A0A00',
-                          color: '#FDF6EE', border: 'none', borderRadius: 999,
-                          fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                          color: '#FDF6EE', border: 'none', borderRadius: 16,
+                          fontWeight: 900, fontSize: 11, letterSpacing: '0.06em',
                           textTransform: 'uppercase', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                         }}
                       >
-                        {advancing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Navigation size={14} />}
-                        {currentActiveStop.status === 'CURRENTLY HERE'
-                          ? `Confirm Arrival at [${currentActiveStop.location_name}]`
-                          : `Dispatch Van: En Route to [${currentActiveStop.location_name}]`}
+                        {advancing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} /> : <Navigation size={14} style={{ flexShrink: 0 }} />}
+                        <span style={{ textAlign: 'left', lineHeight: 1.35 }}>
+                          {currentActiveStop.status === 'CURRENTLY HERE'
+                            ? `Confirm arrival at ${currentActiveStop.location_name}`
+                            : `Dispatch van to ${currentActiveStop.location_name}`}
+                        </span>
                       </button>
                     )}
                   </div>
