@@ -64,7 +64,7 @@ export const findPlacesAlongRoute = async (route, { fresh = false } = {}) => {
     if (saved) return { ok: true, data: { places: saved, saved: true } };
   }
   const result = await findPlacesFresh(route);
-  if (result.ok) savePlaces(key, result.data?.places);
+  if (result.ok && !result.data?.partial) savePlaces(key, result.data?.places);
   return result;
 };
 

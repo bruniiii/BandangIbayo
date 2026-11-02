@@ -49,9 +49,24 @@ const pieces = (line) => {
   return out;
 };
 
+// Fewer points for the question: one every ~500 m (the 300 m band around the
+// line between them still follows the road). A long road's full shape has
+// thousands of points, which made the question too big for the free servers
+// (504 time-outs, 406 refused).
+const thin = (piece) => {
+  const out = [piece[0]];
+  for (let i = 1; i < piece.length - 1; i += 1) {
+    const [lng1, lat1] = out[out.length - 1];
+    const [lng2, lat2] = piece[i];
+    if (distanceKm({ lat: lat1, lng: lng1 }, { lat: lat2, lng: lng2 }) >= 0.5) out.push(piece[i]);
+  }
+  out.push(piece[piece.length - 1]);
+  return out;
+};
+
 // One piece, asked from the servers in turn (each piece starts at a different one).
 const askPiece = async (piece, first) => {
-  const pts = piece.map(([lng, lat]) => `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`).join(',');
+  const pts = thin(piece).map(([lng, lat]) => `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`).join(',');
   const query = `[out:json][timeout:40];
 nwr(around:300,${pts})["name"][~"^(amenity|shop)$"~"^(fuel|mall|department_store|bus_station|convenience|fast_food)$"];
 out center tags 1000;`;
@@ -111,12 +126,14 @@ export const placesAlongFromBrowser = async (line) => {
     }
   };
   await Promise.all([worker(), worker()]);
-  const failed = results.find((r) => !r?.ok);
-  if (failed) return { ok: false, error: `The map's place list is busy right now (${failed.error}). Please try again in a minute.` };
+  // Some pieces of a long road may still fail: show what did load (and say
+  // so) instead of nothing. Only when every piece failed is it an error.
+  const failed = results.filter((r) => !r?.ok);
+  if (failed.length === results.length) return { ok: false, error: `The map's place list is busy right now (${failed[0].error}). Please try again in a minute.` };
 
   const seen = new Set();
   const places = [];
-  results.forEach((r) => r.elements.forEach((e) => {
+  results.filter((r) => r?.ok).forEach((r) => r.elements.forEach((e) => {
     const id = `${e.type}/${e.id}`;
     if (seen.has(id)) return;
     seen.add(id);
@@ -135,6 +152,8 @@ export const placesAlongFromBrowser = async (line) => {
       offKm: Math.round(at.offKm * 1000) / 1000,
     });
   }));
+  // A partial answer isn't remembered, so Try again asks for the missing parts.
+  if (failed.length) return { ok: true, data: { places, partial: true } };
   saveCache(key, places);
   return { ok: true, data: { places } };
 };
