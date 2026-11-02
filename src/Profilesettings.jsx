@@ -208,6 +208,11 @@ const ProfileSettings = () => {
     setAvatarPreview(null);
   };
 
+  // Save Changes stays disabled until the boxes that must be filled are filled.
+  const filledText = (v) => String(v || '').trim() !== '';
+  const profileFilled = filledText(form.first_name) && filledText(form.last_name)
+    && (!form.province || (filledText(form.city_municipality) && filledText(form.barangay) && filledText(form.street)))
+    && (filledText(form.emergency_contact_name) === filledText(form.emergency_contact_number));
   const handleSave = async () => {
     if (!userId) return;
     // Address: province, city/municipality, barangay and street together (or none, to keep an older address as is).
@@ -568,13 +573,14 @@ const ProfileSettings = () => {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !profileFilled}
+            title={profileFilled ? undefined : 'Fill in your first and last name (and the street, if you picked a province) first'}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8,
+              display: 'flex', alignItems: 'center', gap: 8, opacity: profileFilled ? 1 : 0.5,
               background: saving ? 'rgba(26,10,0,0.5)' : '#1A0A00',
               color: '#E8A265', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
               textTransform: 'uppercase', border: 'none', borderRadius: 12,
-              padding: '13px 26px', cursor: saving ? 'not-allowed' : 'pointer',
+              padding: '13px 26px', cursor: saving || !profileFilled ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit', boxShadow: saving ? 'none' : '0 8px 20px rgba(26,10,0,0.25)',
             }}
           >

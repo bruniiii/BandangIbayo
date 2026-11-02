@@ -168,12 +168,12 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
           background: '#F2E4D0', color: '#1A0A00', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
           border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, padding: '13px 22px', cursor: 'pointer', fontFamily: 'inherit',
         }}>Cancel</button>
-        <button type="submit" disabled={saving} style={{
+        <button type="submit" disabled={saving || !current || !next || !confirm} style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          background: saving ? 'rgba(26,10,0,0.5)' : '#1A0A00',
+          background: saving || !current || !next || !confirm ? 'rgba(26,10,0,0.5)' : '#1A0A00',
           color: '#E8A265', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
           textTransform: 'uppercase', border: 'none', borderRadius: 12,
-          padding: '13px 26px', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+          padding: '13px 26px', cursor: saving || !current || !next || !confirm ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
         }}>
           {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <KeyRound size={15} />}
           Update Password

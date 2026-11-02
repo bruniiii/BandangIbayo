@@ -16,6 +16,8 @@ const PaymentPhoneBox = ({ initial, onClose }) => {
   const [value, setValue] = useState(formatPhPhone(initial || ''));
   const [problem, setProblem] = useState('');
   const inputRef = useRef(null);
+  // All 10 digits after +63 typed in (the check on submit says if it's not a mobile number).
+  const complete = String(value).replace(/\D/g, '').replace(/^63/, '').length >= 10;
   useEffect(() => {
     inputRef.current?.focus();
     const onKey = (e) => { if (e.key === 'Escape') onClose(null); };
@@ -61,7 +63,7 @@ const PaymentPhoneBox = ({ initial, onClose }) => {
         {problem && <p role="alert" style={{ margin: '6px 2px 0', fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{problem}</p>}
         <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => onClose(null)} style={{ ...secondaryBtn(), flex: '1 1 120px' }}>Cancel</button>
-          <button type="submit" style={{ ...primaryBtn(), flex: '2 1 160px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button type="submit" disabled={!complete} title={complete ? undefined : 'Type the whole number first (10 digits after +63)'} style={{ ...primaryBtn(!complete), flex: '2 1 160px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <CreditCard size={15} /> Continue to Payment
           </button>
         </div>

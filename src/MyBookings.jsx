@@ -896,6 +896,8 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
     ? new Date(booking.hold_expires_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
     : null;
 
+  // Continue to Payment stays disabled until every name and number is filled.
+  const namesFilled = companions.every((c) => String(c.full_name || '').trim() && String(c.contact_number || '').trim());
   const setCompanion = (i, field, value) => setCompanions((rows) => rows.map((c, j) => (j === i ? { ...c, [field]: value } : c)));
 
   // Booking for a group: the names are entered in a pop-up, then payment opens.
@@ -912,6 +914,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
     return '';
   };
 
+  const needsRoom = accommodationChoices.length > 0 && !accommodation;
   const pay = async ({ namesDone = false } = {}) => {
     setProblem('');
     if (accommodationChoices.length && !accommodation) { setProblem('Please choose your accommodation.'); return; }
@@ -997,9 +1000,9 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
                 flex: 1, minWidth: 120, padding: '13px 0', borderRadius: 14, border: '1px solid rgba(180,81,30,0.25)', background: '#F2E4D0', color: '#1A0A00',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
               }}>Back</button>
-              <button type="button" onClick={() => pay({ namesDone: true })} style={{
+              <button type="button" onClick={() => pay({ namesDone: true })} disabled={!namesFilled} style={{
                 flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE',
-                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
+                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
               }}>Continue to Payment</button>
             </div>
           </div>
@@ -1016,10 +1019,10 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '0 0 10px' }}>{problem}</p>}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-        <button type="button" disabled={busy !== null || !agreed} onClick={() => pay()} title={agreed ? undefined : 'Tick the agreement above first'} style={{
+        <button type="button" disabled={busy !== null || !agreed || needsRoom} onClick={() => pay()} title={needsRoom ? 'Choose your accommodation first' : agreed ? undefined : 'Tick the agreement above first'} style={{
           flex: 2, minWidth: 180, padding: '12px 0', borderRadius: 14, border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: '#B4511E', color: '#FDF6EE', cursor: agreed ? 'pointer' : 'not-allowed', opacity: agreed ? 1 : 0.5,
+          background: '#B4511E', color: '#FDF6EE', cursor: agreed && !needsRoom ? 'pointer' : 'not-allowed', opacity: agreed && !needsRoom ? 1 : 0.5,
         }}>
           {busy === 'pay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(amount)} now
         </button>

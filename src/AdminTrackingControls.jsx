@@ -666,6 +666,8 @@ const TrackingConsoleModal = ({
   onAdvanceStop, onClearFeed, clearingFeed, onClose, onAutoFillEtas,
 }) => {
   const safeStops = Array.isArray(meetupStops) ? meetupStops : [];
+  // Save Driver & Vehicle stays disabled until every box is filled.
+  const vehicleFilled = [carType, plateNumber, vehicleColor, vehicleNotes, driverName, driverContact].every((v) => String(v || '').trim() !== '');
   // The van, live, while the driver shares its location.
   const van = useVanLocation(tour?.id);
   const now = useNow();
@@ -736,10 +738,10 @@ const TrackingConsoleModal = ({
                       <input {...phoneFieldProps(driverContact, setDriverContact)} required aria-label="Driver contact number" style={inputStyle} />
                     </div>
                     <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>All fields are required.</p>
-                    <button type="submit" disabled={savingLogistics} style={{
+                    <button type="submit" disabled={savingLogistics || !vehicleFilled} style={{
                       padding: '10px 0', background: '#B4511E', color: '#FDF6EE',
                       border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,
-                      letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer',
+                      letterSpacing: '0.15em', textTransform: 'uppercase', cursor: vehicleFilled ? 'pointer' : 'not-allowed', opacity: vehicleFilled ? 1 : 0.5,
                     }}>
                       {savingLogistics ? 'Saving…' : 'Save Driver & Vehicle'}
                     </button>

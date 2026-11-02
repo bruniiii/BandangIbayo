@@ -158,6 +158,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
         return true;
     };
 
+    // Book This Tour stays disabled until the pickup point (and accommodation, if offered) is chosen.
+    const bookChoicesMissing = (pickupPoints?.length > 0 && !pickupPoint) || (accommodationChoices.length > 0 && !accommodation);
     const handleBookThisTour = async () => {
         setSlotError("");
         setCompanionError("");
@@ -528,17 +530,19 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     onClick={handleBookThisTour}
 
-                                    disabled={isBooking || isFullyBooked}
+                                    disabled={isBooking || isFullyBooked || bookChoicesMissing}
+
+                                    title={bookChoicesMissing ? 'Choose your pickup point and accommodation first' : undefined}
 
                                     style={{
 
-                                        width: '100%', padding: '14px 0',
+                                        width: '100%', padding: '14px 0', opacity: bookChoicesMissing ? 0.5 : 1,
 
                                         background: isFullyBooked ? '#EDEAE3' : '#B4511E',
 
                                         color: isFullyBooked ? '#7A3A18' : '#FDF6EE',
 
-                                        border: 'none', borderRadius: 14, cursor: isFullyBooked ? 'not-allowed' : 'pointer',
+                                        border: 'none', borderRadius: 14, cursor: isFullyBooked || bookChoicesMissing ? 'not-allowed' : 'pointer',
 
                                         fontFamily: 'inherit', fontWeight: 900,
 
@@ -552,7 +556,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     }}
 
-                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#1A0A00'; }}
+                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking && !bookChoicesMissing) e.currentTarget.style.background = '#1A0A00'; }}
 
                                     onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#B4511E'; }}
 
@@ -1033,7 +1037,10 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
    GROUP BOOKING: details of everyone else joining
 ───────────────────────────────────────────── */
 // Pop-up before payment: the names and numbers of everyone joining.
-const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) => (
+const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) => {
+    // Continue to Payment stays disabled until every name and number is filled.
+    const namesFilled = companions.every((c) => String(c.full_name || '').trim() && String(c.contact_number || '').trim());
+    return (
     <div style={overlayBackdrop}>
         <div role="dialog" aria-modal="true" aria-labelledby="companions-title" style={{
             background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
@@ -1051,8 +1058,8 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
                     </p>
                 </div>
                 <CompanionFields companions={companions} onChange={onChange} error={error} />
-                <button type="button" onClick={onContinue} style={{
-                    width: '100%', padding: '14px 0', background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: 'pointer',
+                <button type="button" onClick={onContinue} disabled={!namesFilled} style={{
+                    width: '100%', padding: '14px 0', background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
                     fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
                 }}>
                     Continue to Payment
@@ -1060,7 +1067,8 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const CompanionFields = ({ companions, onChange, error }) => {
     const inputStyle = {

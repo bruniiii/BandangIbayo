@@ -1,10 +1,9 @@
-import React, { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Navigation, Square, MapPin, CheckCircle2, AlertTriangle, Loader2, Smartphone } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { confirmDialog } from './ui/ConfirmDialog';
 
-const RouteMap = lazy(() => import('./ui/RouteMap'));
 
 // ─────────────────────────────────────────────
 // DRIVER'S TRIP PAGE (/driver/<link>): the driver opens the private link from
@@ -196,9 +195,6 @@ const DriverTrip = () => {
           </div>
         )}
 
-        <Suspense fallback={<div style={{ height: 300, borderRadius: 16, background: '#F2E4D0' }} />}>
-          <RouteMap route={info.tour?.route} stops={stops} van={last} height={300} />
-        </Suspense>
 
         <div>
           <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#A8481A' }}>Pickup stops</p>

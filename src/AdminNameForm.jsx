@@ -63,10 +63,10 @@ const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
         <label style={label} htmlFor="my-last-name">Last Name</label>
         <input id="my-last-name" data-allow="name" value={last} maxLength={60} onChange={(e) => { setLast(e.target.value); setError(''); }} style={input} />
       </div>
-      <button type="submit" disabled={saving} style={{
+      <button type="submit" disabled={saving || !first.trim() || !last.trim()} style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 38, padding: '0 18px', borderRadius: 10, border: 'none',
         background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-        cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1, flex: compact ? '1 1 100%' : '0 0 auto',
+        cursor: saving || !first.trim() || !last.trim() ? 'not-allowed' : 'pointer', opacity: saving || !first.trim() || !last.trim() ? 0.5 : 1, flex: compact ? '1 1 100%' : '0 0 auto',
       }}>
         {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} Save Name
       </button>

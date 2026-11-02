@@ -248,7 +248,7 @@ const MessageJoiners = ({ tour, bookings, onDone }) => {
         <input type="checkbox" checked={alsoEmail} onChange={(e) => setAlsoEmail(e.target.checked)} /> Also send it by email
       </label>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <button type="submit" disabled={sending} style={{ ...actionButton('#B4511E'), opacity: sending ? 0.7 : 1 }}>
+        <button type="submit" disabled={sending || !subject.trim() || !message.trim()} style={{ ...actionButton('#B4511E'), opacity: sending ? 0.7 : !subject.trim() || !message.trim() ? 0.5 : 1, cursor: !subject.trim() || !message.trim() ? 'not-allowed' : 'pointer' }}>
           {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />} {sending ? 'Sending…' : 'Send Message'}
         </button>
         <button type="button" onClick={onDone} disabled={sending} style={{ ...actionButton('transparent'), color: '#7A3A18', border: '1px solid rgba(122,58,24,0.3)' }}>Cancel</button>

@@ -277,7 +277,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
 
               {/* The van's route and the pickup stops on a map (when the tour has one). */}
               <div style={{ marginBottom: 16 }}>
-                <RouteTrackingPanel tour={tour} stops={meetupStops} height={220} van={van} myStop={tour.myStop} />
+                <RouteTrackingPanel tour={tour} stops={meetupStops} van={van} myStop={tour.myStop} />
               </div>
 
               {/* Live Status Header Banner */}

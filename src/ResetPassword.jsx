@@ -150,10 +150,10 @@ const ResetPassword = () => {
             )}
 
             <button
-              disabled={loading}
+              disabled={loading || !password || !confirmPassword}
               style={{
                 width: '100%',
-                background: loading ? 'rgba(180,81,30,0.55)' : '#B4511E',
+                background: loading || !password || !confirmPassword ? 'rgba(180,81,30,0.55)' : '#B4511E',
                 color: '#FDF6EE',
                 fontWeight: 900,
                 fontSize: 13,
@@ -162,7 +162,7 @@ const ResetPassword = () => {
                 padding: '16px',
                 borderRadius: 12,
                 border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
+                cursor: loading || !password || !confirmPassword ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
