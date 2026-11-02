@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { Search, Loader2, MapPin, X } from 'lucide-react';
+import React, { Suspense, lazy, useState } from 'react';
+import { Search, Loader2, MapPin, X, LocateFixed, Map as MapIcon } from 'lucide-react';
 import { searchPlaces } from '../routeApi';
+import { getCurrentPlace } from '../currentPlace';
+
+const MapPicker = lazy(() => import('./MapPicker'));
 
 // ─────────────────────────────────────────────
-// Type a place, click Search, pick the right one from the list.
+// Type a place, click Search, pick the right one from the list — or pick it
+// on the map, or (allowCurrent) use where you are now.
 // value: { name, lat, lng } or null; onChange(place or null).
 // ─────────────────────────────────────────────
 
@@ -12,11 +16,29 @@ const box = {
   borderRadius: 12, padding: '11px 14px', fontSize: 16, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
 };
 
-const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of Asia, Pasay', name }) => {
+const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of Asia, Pasay', name, allowCurrent = false, near = null }) => {
   const [text, setText] = useState('');
   const [results, setResults] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [picking, setPicking] = useState(false);
+  const [locating, setLocating] = useState(false);
+
+  const useCurrent = async () => {
+    setLocating(true); setError('');
+    try {
+      const p = await getCurrentPlace();
+      onChange({ name: `My current location (${p.lat.toFixed(5)}, ${p.lng.toFixed(5)})`, lat: Math.round(p.lat * 1e5) / 1e5, lng: Math.round(p.lng * 1e5) / 1e5 });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLocating(false);
+    }
+  };
+  const small = {
+    display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+    border: '1px solid rgba(180,81,30,0.3)', background: '#FDF6EE', color: '#7A3A18', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase',
+  };
 
   const search = async () => {
     if (text.trim().length < 2) { setError('Type at least 2 letters of the place.'); return; }
@@ -50,6 +72,14 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
               background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />} Search</button>
           </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {allowCurrent && (
+              <button type="button" className="no-touch-size" onClick={useCurrent} disabled={locating} style={small}>
+                {locating ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <LocateFixed size={12} />} My current location
+              </button>
+            )}
+            <button type="button" className="no-touch-size" onClick={() => setPicking(true)} style={small}><MapIcon size={12} /> Pick on the map</button>
+          </div>
           {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>{error}</span>}
           {results?.length > 0 && (
             <ul style={{ listStyle: 'none', margin: 0, padding: 4, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, maxHeight: 220, overflowY: 'auto' }}>
@@ -64,6 +94,12 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
             </ul>
           )}
         </>
+      )}
+      {picking && (
+        <Suspense fallback={null}>
+          <MapPicker title={label ? `${label}: pick on the map` : 'Pick the place on the map'} near={near} askName
+            defaultName={text.trim()} onPick={(p) => { onChange(p); setResults(null); setText(''); }} onClose={() => setPicking(false)} />
+        </Suspense>
       )}
     </div>
   );

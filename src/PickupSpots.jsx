@@ -95,7 +95,7 @@ const PickupSpots = ({ onClose, onChanged }) => {
             <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Name joiners see</span>
             <input name="spot_name" value={name} maxLength={120} placeholder="e.g. Petron NLEX Bocaue" style={input} onChange={(e) => setName(e.target.value)} />
           </label>
-          <PlaceSearch label="Where it is" name="spot_place" value={place} onChange={setPlace} placeholder="Search the place, e.g. Petron Bocaue NLEX" />
+          <PlaceSearch label="Where it is" name="spot_place" value={place} onChange={setPlace} placeholder="Search the place, e.g. Petron Bocaue NLEX" allowCurrent />
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(180,81,30,0.25)', background: 'transparent', color: '#7A3A18', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
             <button type="button" onClick={save} disabled={saving} style={{

@@ -131,7 +131,7 @@ const DriverTrip = () => {
 
   const stops = info?.stops || [];
   const next = stops.find((s) => s.status !== 'ARRIVED');
-  const page = { minHeight: '100dvh', background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", padding: '20px 16px 40px', boxSizing: 'border-box' };
+  const page = { minHeight: '100dvh', background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", padding: 'calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))', boxSizing: 'border-box' };
 
   if (error) {
     return (
@@ -189,6 +189,12 @@ const DriverTrip = () => {
           <Smartphone size={16} style={{ flexShrink: 0, marginTop: 2 }} />
           Keep this page open with the screen on, and the phone plugged in. The location stops if the screen turns off or you switch apps.
         </div>
+
+        {stops.some((s) => s.lat == null || s.lng == null) && (
+          <div role="note" style={{ background: 'rgba(232,162,101,0.2)', borderRadius: 14, padding: '10px 14px', fontSize: 12.5, fontWeight: 700, color: '#8C5216', lineHeight: 1.5 }}>
+            Some pickup stops aren't pinned on the map yet, so they can't be marked Arrived by themselves. The admin can pin them in Tour Management → Edit → The Van's Route (search, Pick on the map, or Add a pickup point on the map). The van's location is still shared.
+          </div>
+        )}
 
         <Suspense fallback={<div style={{ height: 300, borderRadius: 16, background: '#F2E4D0' }} />}>
           <RouteMap route={info.tour?.route} stops={stops} van={last} height={300} />

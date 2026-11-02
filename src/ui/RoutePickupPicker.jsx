@@ -1,9 +1,10 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
-import { Route, Loader2, CheckSquare, Square, Fuel, ShoppingBag, Bus, Utensils, Star, Store, RotateCcw, Info } from 'lucide-react';
+import { Route, Loader2, CheckSquare, Square, Fuel, ShoppingBag, Bus, Utensils, Star, Store, RotateCcw, Info, Map as MapIcon } from 'lucide-react';
 import PlaceSearch from './PlaceSearch';
 import { findRoute, findPlacesAlongRoute } from '../routeApi';
 import { placeOnRoute, distanceKm } from '../geo';
 
+const MapPicker = lazy(() => import('./MapPicker'));
 const RouteMap = lazy(() => import('./RouteMap'));
 
 // ─────────────────────────────────────────────
@@ -50,6 +51,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
   const [show, setShow] = useState({ saved: true, gas: true, mall: true, terminal: true, store: false, food: false });
   const [placesTry, setPlacesTry] = useState(0); // "Try again" looks the places up again
   const [placesBusy, setPlacesBusy] = useState(false); // waiting to try again by itself
+  const [pinning, setPinning] = useState(false); // "Add a pickup point on the map" open
 
   // Places on the road: looked up once per route.
   useEffect(() => {
@@ -142,9 +144,25 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
         </p>
       </div>
       <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <PlaceSearch label="Starting point" name="route_start" value={start} onChange={(v) => changePlace('start', v)} placeholder="e.g. SM Mall of Asia, Pasay" />
-        <PlaceSearch label="Destination" name="route_end" value={end} onChange={(v) => changePlace('end', v)} placeholder="e.g. Ambangeg Ranger Station, Bokod" />
+        <PlaceSearch label="Starting point" name="route_start" value={start} onChange={(v) => changePlace('start', v)} placeholder="e.g. SM Mall of Asia, Pasay" allowCurrent />
+        <PlaceSearch label="Destination" name="route_end" value={end} onChange={(v) => changePlace('end', v)} placeholder="e.g. Ambangeg Ranger Station, Bokod" near={start} />
       </div>
+      {/* A pickup point that isn't in any list: drop it on the map and name it. */}
+      <button type="button" onClick={() => setPinning(true)} style={{
+        alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
+        border: '1px solid rgba(180,81,30,0.3)', background: '#FDF6EE', color: '#7A3A18', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
+        letterSpacing: '0.08em', textTransform: 'uppercase',
+      }}><MapIcon size={14} /> Add a pickup point on the map</button>
+      {pinning && (
+        <Suspense fallback={null}>
+          <MapPicker title="Add a pickup point" askName near={start || end}
+            onPick={(pl) => {
+              if (!picked.some((p) => same(p, pl.name))) onPickedChange([...picked, pl.name]);
+              onAddPlace?.({ name: pl.name, address: '', lat: pl.lat, lng: pl.lng });
+            }}
+            onClose={() => setPinning(false)} />
+        </Suspense>
+      )}
       {!route && (
         <button type="button" onClick={find} disabled={busy || !start || !end} style={{
           alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 999, border: 'none',
