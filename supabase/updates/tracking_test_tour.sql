@@ -17,6 +17,7 @@
 -- Then: Tracking Management → the test tour → Driver Link → open it on a
 -- phone → Start Trip, and walk or drive from the church to Supima Square.
 --
+-- Prices follow the site's limits: Joiner Rate ₱1,800, Regular Rate ₱1,300.
 -- Safe to run again. Run it in the Supabase SQL Editor: paste it all, click Run.
 -- ═══════════════════════════════════════════════════════════════════════
 
@@ -73,7 +74,7 @@ begin
     description, inclusions, exclusions, itinerary, things_to_bring, important_note,
     start_date, end_date, sale_starts, sale_ends, is_archived
   ) values (
-    v_title, 'Supima Square, Malhacan, Meycauayan, Bulacan', '1 Day', 1500, 14, 'Easy', array[]::text[],
+    v_title, 'Supima Square, Malhacan, Meycauayan, Bulacan', '1 Day', 1800, 14, 'Easy', array[]::text[],
     'A short test trip to try live tracking: from San Isidro Labrador Parish to Supima Square, both in Malhacan, Meycauayan.',
     'Test only', 'Test only',
     format(E'Day 1:\n%s - Leave San Isidro Labrador Parish\n%s - Arrive at Supima Square', v_t1, v_t2),
@@ -89,7 +90,7 @@ begin
     execute 'update public.tours set departure_time = $2 where id = $1' using v_id, v_t1;
   end if;
 
-  insert into public.tour_rates (tour_id, regular_rate) values (v_id, 1000)
+  insert into public.tour_rates (tour_id, regular_rate) values (v_id, 1300)
     on conflict (tour_id) do update set regular_rate = excluded.regular_rate;
   insert into public.tour_expenses (tour_id, van_rent, tour_guide, bag_tag, others)
     values (v_id, 15000, 1300, 260, '[]'::jsonb)
