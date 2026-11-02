@@ -142,10 +142,14 @@ const TermsModal = ({ onClose, onAgree }) => (
         </TermsSection>
 
         <TermsSection title="4. Date Changes (Weather & Safety)">
-          A tour date may be moved because of bad weather (such as typhoons
-          or heavy rain), road closures, or other safety concerns. When this
-          happens, the agency will notify affected joiners as soon as
-          possible and help them move to a new date.
+          A tour date may be postponed or cancelled because of bad weather
+          (such as typhoons or heavy rain), road closures, or other safety
+          concerns. Affected joiners are notified right away and in the
+          tour's group chat. If a date is postponed, your slot and payment
+          carry over to the new date. If a date is cancelled (or you can't
+          make the new date), you have 48 hours to either move to another
+          date of the same tour or receive a 50% refund of what you paid;
+          if you don't choose within 48 hours, the 50% refund is given.
         </TermsSection>
 
         <TermsSection title="5. Tracking & Vehicle Information">

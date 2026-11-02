@@ -7,6 +7,7 @@ import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale, downpaymentFor, DOWNPAYMENT_PERCENT } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
+import WeatherChoiceCard from './WeatherChoiceCard';
 import { downloadReceipt, balanceRemaining, hasBalanceReceipt } from './paymentReceipt';
 import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
@@ -56,6 +57,7 @@ const useIsMobile = (breakpoint = 640) => {
 // initialFilter: 'upcoming' | 'completed' | 'cancelled' opens that tab.
 const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) => {
   const [bookings, setBookings] = useState([]);
+  const [weather, setWeather] = useState({}); // tour id → why its date was postponed or cancelled
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(() => ({ completed: 'Completed', cancelled: 'Cancelled' }[initialFilter] || 'Upcoming')); 
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -111,10 +113,21 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
         const isVerified = booking.payment_status === 'Complete' || booking.booking_status === 'Completed';
         // A cancelled or rejected booking never counts as a completed trip, even after the tour date.
         const isCancelled = booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected';
-        return { ...booking, isActuallyCompleted: isVerified && isPastTour && !isCancelled };
+        // Bad weather, shown at the top: a choice still open, or a 50% refund (until 30 days after it was sent).
+        const now = Date.now();
+        const showWeather = ((booking.weather_choice === 'pending' || booking.weather_choice === 'stay') && booking.weather_deadline && new Date(booking.weather_deadline).getTime() > now)
+          || (booking.weather_choice === 'refund' && (booking.weather_refund_status !== 'Sent' || !booking.weather_refund_at || now - new Date(booking.weather_refund_at).getTime() < 30 * 86400000));
+        return { ...booking, isActuallyCompleted: isVerified && isPastTour && !isCancelled, showWeather: !!showWeather };
       });
  
       setBookings(processedBookings);
+      // Bad weather: why each affected date was postponed or cancelled (20261204 update).
+      const weatherIds = [...new Set(processedBookings.filter((b) => b.weather_choice).map((b) => b.tour_id))];
+      if (weatherIds.length) {
+        const { data: wx } = await supabase.from('tours')
+          .select('id, weather_status, weather_reason, weather_note, weather_old_start, weather_old_end').in('id', weatherIds);
+        setWeather(Object.fromEntries((wx || []).map((t) => [String(t.id), t])));
+      }
       if (openIdRef.current) {
         const target = processedBookings.find((b) => String(b.id) === String(openIdRef.current));
         openIdRef.current = null;
@@ -163,6 +176,11 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* ── Bad weather: postponed or cancelled dates to decide on, and 50% refunds ── */}
+      {!loading && bookings.filter((b) => b.showWeather).map((b) => (
+        <WeatherChoiceCard key={`wx-${b.id}`} booking={b} weather={weather[String(b.tour_id)]} onChanged={fetchMyBookings} />
+      ))}
 
       {/* ── Trip Day: the next few days' confirmed trips, with pickups, driver and QR ── */}
       {!loading && tripDayBookings(bookings).map((b) => <TripDayCard key={b.id} booking={b} />)}

@@ -26,6 +26,8 @@ import RoutePickupPicker from './ui/RoutePickupPicker';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
 import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h } from './geo';
+import WeatherActionModal from './WeatherActionModal';
+import { useAdminMe } from './adminMe';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -52,6 +54,9 @@ const TourManagement = ({ openTourId = null }) => {
   // The form's dates: { key, id (saved dates only), start_date, end_date, booked }.
   const [dateRows, setDateRows]                 = useState([]);
   const [joinerListTour, setJoinerListTour]     = useState(null);
+  // Bad weather: postpone or cancel one date (main admin only).
+  const [weatherDate, setWeatherDate]           = useState(null);
+  const adminMe = useAdminMe();
   const [tours, setTours]                       = useState([]);
   const [filteredTours, setFilteredTours]       = useState([]);
   const [loading, setLoading]                   = useState(true);
@@ -542,6 +547,7 @@ const TourManagement = ({ openTourId = null }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
  
+      {weatherDate && <WeatherActionModal date={weatherDate} onClose={() => setWeatherDate(null)} onDone={fetchTours} />}
       {joinerListTour && (
         <JoinerListModal tour={joinerListTour} onClose={() => setJoinerListTour(null)} />
       )}
@@ -759,6 +765,7 @@ const TourManagement = ({ openTourId = null }) => {
                 onEdit={() => openTourForm(tour)}
                 onAddDate={() => openTourForm(tour, { withNewDate: true })}
                 onJoiners={(date) => setJoinerListTour(date)}
+                onWeather={adminMe.isMain && currentTab === 'active' ? (date) => setWeatherDate({ ...date, title: tour.title }) : null}
                 formatDateRange={formatDateRange}
               />
             ))
