@@ -1,12 +1,11 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Route, Clock, Loader2 } from 'lucide-react';
 import { addMinutesToTime, distanceKm, liveEtas } from '../geo';
 import { agoText } from '../useVanLocation';
 
-const RouteMap = lazy(() => import('./RouteMap'));
-
 // ─────────────────────────────────────────────
-// Tracking: the van's route with the pickup stops (in order), and for admins
+// Tracking: the van's route in words (from → to) and the live van status
+// (no map: kept simple), and for admins
 // (ETAs fill themselves in from the itinerary; EtaAutoFill below changes the
 // departure time by hand.)
 //   tour:  the tour (tour.route from the tour form)
@@ -21,13 +20,13 @@ const label = { fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTra
 // "21:00" (time input) → "9:00 PM"
 const to12h = (hhmm) => addMinutesToTime(hhmm, 0);
 
-const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, height = 260, van = null, myStop = '' }) => {
+const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, van = null, myStop = '' }) => {
   // A clock for "updated 2 min ago" (ticks every 30 seconds).
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
   const route = tour?.route || null;
   const mapped = stops.filter((s) => s.lat != null && s.lng != null && Number.isFinite(Number(s.lat)) && Number.isFinite(Number(s.lng)));
-  if (!route && mapped.length === 0 && !van) return null;
+  if (!route?.start && !van && !onAutoFill) return null;
 
   // Live van: how long ago it was seen, and how far it is from the joiner's stop.
   const vanLive = van && Number.isFinite(Number(van.lat));
@@ -57,9 +56,6 @@ const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, height = 260,
           )}
         </div>
       )}
-      <Suspense fallback={<div style={{ height, borderRadius: 16, background: '#F2E4D0' }} />}>
-        <RouteMap route={route} stops={mapped.map((s) => ({ name: s.location_name, lat: s.lat, lng: s.lng, status: s.status }))} van={vanLive ? { lat: Number(van.lat), lng: Number(van.lng) } : null} height={height} />
-      </Suspense>
 
       {onAutoFill && <EtaAutoFill route={route} stops={stops} onAutoFill={onAutoFill} />}
     </div>
