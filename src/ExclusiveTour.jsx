@@ -438,7 +438,14 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
       {text}
     </h3>
   );
-  const canSubmit = !loading && (!isExclusive || form.agreeTerms);
+  // Every required box filled in (the checks on submit still catch typing mistakes).
+  const has = (v) => String(v ?? '').trim() !== '';
+  const missing = !has(form.fullName) || !has(form.contact) || !has(form.email) || !has(form.destination)
+    || !has(form.groupSize) || !form.preferredDate || !form.preferredEndDate
+    || (isExclusive && !has(form.budget))
+    || form.participants.some((p) => !has(p.full_name) || !has(p.contact_number));
+  const needsTerms = !editing && isExclusive && !form.agreeTerms;
+  const canSubmit = !loading && !missing && !needsTerms;
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
@@ -589,9 +596,9 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           type="submit"
           className="request-submit-btn"
           disabled={!canSubmit}
-          title={canSubmit || loading ? undefined : 'Tick the Terms & Conditions box first'}
+          title={canSubmit || loading ? undefined : missing ? 'Fill in all the boxes marked * first' : 'Tick the Terms & Conditions box first'}
           style={{
-            flex: '2 1 220px', padding: '16px 18px', background: isExclusive ? '#1A0A00' : '#B4511E', color: '#FDF6EE',
+            flex: editing ? '2 1 220px' : '0 1 340px', margin: editing ? 0 : '0 auto', padding: '16px 28px', background: isExclusive ? '#1A0A00' : '#B4511E', color: '#FDF6EE',
             borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, fontFamily: 'inherit', lineHeight: 1.4,
             letterSpacing: '0.12em', textTransform: 'uppercase', cursor: canSubmit ? 'pointer' : 'not-allowed',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -599,7 +606,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           }}
         >
           {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : editing ? <CheckCircle2 size={16} /> : isExclusive ? <Send size={16} /> : <ArrowRight size={16} />}
-          <span style={{ textAlign: 'center' }}>{loading ? 'Saving…' : editing ? 'Save Changes' : isExclusive ? 'Submit Exclusive Booking Request' : 'Send Tour Request'}</span>
+          <span style={{ textAlign: 'center' }}>{loading ? 'Saving…' : editing ? 'Save Changes' : isExclusive ? 'Submit Request' : 'Send Request'}</span>
         </button>
       </div>
     </form>
