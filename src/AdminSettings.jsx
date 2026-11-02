@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, UserPlus, Archive, ArchiveRestore, ChevronDown, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail, Bug, Trash2 } from 'lucide-react';
+import { ShieldCheck, UserPlus, Archive, ArchiveRestore, ChevronDown, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -335,8 +335,6 @@ const AdminSettings = () => {
 
       <AutoArchiveSetting />
 
-      <WebsiteErrors />
-
       {/* ── Restore: enter the code the admin received ── */}
       {verifying && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -483,9 +481,10 @@ const AutoArchiveSetting = () => {
             Automatically archive joiner accounts that haven't logged in for a while. When an archived joiner logs in again, they choose whether to restore their account.
           </p>
         </div>
-        <button type="button" role="switch" aria-checked={enabled} disabled={!loaded || saving} onClick={() => save(!enabled, days)}
+        <button type="button" role="switch" className="no-touch-size" aria-checked={enabled} disabled={!loaded || saving} onClick={() => save(!enabled, days)}
           style={{
-            flexShrink: 0, width: 52, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer', position: 'relative',
+            flexShrink: 0, width: 52, height: 30, minHeight: 30, minWidth: 52, padding: 0, boxSizing: 'border-box', alignSelf: 'center',
+            borderRadius: 999, border: 'none', cursor: 'pointer', position: 'relative',
             background: enabled ? '#B4511E' : 'rgba(122,58,24,0.25)', transition: 'background 0.2s', opacity: loaded ? 1 : 0.5,
           }}
           aria-label={enabled ? 'Turn off automatic archiving' : 'Turn on automatic archiving'}>
@@ -506,67 +505,5 @@ const AutoArchiveSetting = () => {
   );
 };
 
-// Website errors people ran into (client_errors, kept 30 days), newest first.
-const WebsiteErrors = () => {
-  const [rows, setRows] = useState(null); // null = loading, false = update not installed
-  const [open, setOpen] = useState(null);
-  const load = useCallback(async () => {
-    const { data, error } = await supabase.from('client_errors')
-      .select('id, created_at, page, message, detail, user_agent').order('created_at', { ascending: false }).limit(30);
-    setRows(error ? false : data || []);
-  }, []);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { load(); }, [load]);
-
-  const clearAll = async () => {
-    if (!(await confirmDialog({ title: 'Clear the error list?', message: 'The saved website errors are removed. New ones still show up here.', confirmLabel: 'Clear', cancelLabel: 'Keep', tone: 'danger' }))) return;
-    const { error } = await supabase.from('client_errors').delete().gte('id', 0);
-    if (error) { toast.error("Couldn't clear the list", error.message); return; }
-    load();
-  };
-
-  if (rows === false) return null;
-  return (
-    <section style={card} aria-label="Website errors">
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-          <h3 style={cardTitle}><Bug size={16} style={{ color: '#A8481A' }} /> Website Errors</h3>
-          <p style={{ ...cardHint, margin: '4px 0 0' }}>
-            Errors admins and joiners ran into on the website in the last 30 days. Send a screenshot of one to whoever fixes the website.
-          </p>
-        </div>
-        {rows?.length > 0 && (
-          <button type="button" onClick={clearAll} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: 'rgba(140,47,28,0.08)', color: '#8C2F1C', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-          }}><Trash2 size={13} /> Clear</button>
-        )}
-      </div>
-      {rows === null ? <div style={{ marginTop: 12 }}><SkeletonRows rows={2} /></div> : rows.length === 0 ? (
-        <p style={{ margin: '12px 0 0', fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>No errors. Everything is working.</p>
-      ) : (
-        <ul style={{ listStyle: 'none', margin: '12px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {rows.map((r) => (
-            <li key={r.id} style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 12, padding: '10px 12px' }}>
-              <button type="button" className="no-touch-size" onClick={() => setOpen(open === r.id ? null : r.id)} aria-expanded={open === r.id} style={{
-                width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
-              }}>
-                <span style={{ display: 'block', fontSize: 12.5, fontWeight: 800, color: '#1A0A00', overflowWrap: 'anywhere' }}>{r.message}</span>
-                <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#7A3A18', marginTop: 2 }}>
-                  {new Date(r.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' })} · {r.page}
-                </span>
-              </button>
-              {open === r.id && (
-                <pre style={{ margin: '8px 0 0', padding: 10, borderRadius: 8, background: '#F2E4D0', fontSize: 11, lineHeight: 1.5, color: '#1A0A00', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxHeight: 220, overflow: 'auto' }}>
-                  {r.detail || 'No details.'}{'\n\n'}{r.user_agent}
-                </pre>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-};
 
 export default AdminSettings;
