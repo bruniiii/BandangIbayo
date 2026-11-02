@@ -19,6 +19,58 @@ import { owesBalance } from './bookingStatus';
 // trip, payment and receipt, the actions on the booking, and its activity log.
 // ─────────────────────────────────────────────
 
+// A weather cancellation's 50% refund: how much, to which GCash, and a
+// "Mark refund as sent" button (with the GCash reference) once it's sent.
+const WeatherRefundBox = ({ booking, onSent }) => {
+  const [ref, setRef] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(booking.weather_refund_status === 'Sent');
+  const gcash = booking.gcash_number || '';
+  const markSent = async () => {
+    if (!(await confirmDialog({
+      title: `Mark ${formatPeso(booking.weather_refund)} as sent?`,
+      message: `Send it by GCash${gcash ? ` to ${gcash}` : ''} first. ${booking.booking_number}'s joiner then gets a notice that their 50% refund was sent${ref.trim() ? ` (reference ${ref.trim()})` : ''}.`,
+      confirmLabel: 'Mark as Sent', cancelLabel: 'Not Yet',
+    }))) return;
+    setBusy(true);
+    const { error } = await supabase.rpc('mark_weather_refund_sent', { p_booking_id: booking.id, p_reference: ref.trim() || null });
+    setBusy(false);
+    if (error) { toast.error("Couldn't mark it as sent", error.message); return; }
+    setSent(true);
+    toast.success('Refund marked as sent', 'The joiner was notified.');
+    onSent?.();
+  };
+  return (
+    <div style={{ marginTop: 12, background: sent ? 'rgba(31,107,74,0.08)' : 'rgba(63,93,98,0.08)', border: `1.5px solid ${sent ? 'rgba(31,107,74,0.35)' : 'rgba(63,93,98,0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? '#1F6B4A' : '#3F5D62' }}>
+        50% refund {sent ? '· sent' : '· to send'}
+      </p>
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00' }}>
+        {formatPeso(booking.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>(50% of the {formatPeso(booking.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
+      </p>
+      {sent ? (
+        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>
+          Sent{booking.weather_refund_ref ? ` · reference ${booking.weather_refund_ref}` : ''}. The joiner was told.
+        </p>
+      ) : (
+        <>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+            Send it by GCash, then type the GCash reference (optional) and tap Mark Refund as Sent. The joiner gets a notice.
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input aria-label="GCash reference of the refund" placeholder="GCash reference (optional)" value={ref} maxLength={40} onChange={(e) => setRef(e.target.value)}
+              style={{ flex: '1 1 180px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
+            <button type="button" onClick={markSent} disabled={busy} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, background: '#3F5D62', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '10px 16px',
+              fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: busy ? 'not-allowed' : 'pointer',
+            }}>{busy ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={13} />} Mark Refund as Sent</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSettleBalance }) => {
   // Receipts are private: view them through a short-lived signed link.
   const receiptSrc = useReceiptUrl(booking.receipt_url);
@@ -70,6 +122,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
   const isComplete = booking.payment_status === 'Complete';
   const isRejected = booking.payment_status === 'Rejected';
   const isCancelled = !isPending && booking.booking_status === 'Cancelled' && booking.payment_status !== 'Rejected';
+  // Cancelled by Bandang IBAYO because of bad weather (20261204 update): not
+  // the joiner's own cancellation, and 50% of what they paid is refunded.
+  const weatherCancel = isCancelled && (booking.weather_choice === 'refund' || /^Tour (cancelled|postponed):/i.test(booking.cancellation_reason || ''));
+  const refundDue = weatherCancel && booking.weather_refund_status === 'Due';
+  const refundSent = weatherCancel && booking.weather_refund_status === 'Sent';
   const cancelRequested = !!booking.cancellation_requested_at && !isCancelled && !isRejected && booking.booking_status !== 'Rejected';
   const derivedStatus = isPending ? booking.payment_status : (isRejected ? 'Rejected' : isCancelled ? 'Cancelled' : cancelRequested ? 'Cancellation Requested' : booking.payment_status);
   const shownStatus = derivedStatus === 'Complete' && owesBalance(booking) ? 'Downpayment Paid' : derivedStatus;
@@ -354,14 +411,19 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
             <Notice
               color="#1A0A00" bg="rgba(26,10,0,0.05)"
               icon={<XCircle size={20} />}
-              title="Booking Cancelled"
-              text={booking.cancellation_reason ? "Cancelled at the joiner's request. The slot has been released back to the tour." : 'This booking was cancelled. The slot has been released back to the tour.'}
+              title={weatherCancel ? 'Tour Cancelled by Bandang IBAYO' : 'Booking Cancelled'}
+              text={weatherCancel
+                ? 'Bandang IBAYO cancelled this tour date (bad weather or safety). The joiner took the 50% refund (or didn\'t choose within 48 hours). The slot was released.'
+                : booking.cancellation_reason ? "Cancelled at the joiner's request. The slot has been released back to the tour." : 'This booking was cancelled. The slot has been released back to the tour.'}
             >
               {booking.cancellation_reason && (
                 <div style={{ marginTop: 12, background: '#FDF6EE', border: '1.5px solid rgba(140,47,28,0.35)', borderLeft: '5px solid #8C2F1C', borderRadius: 12, padding: '12px 14px' }}>
-                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8C2F1C' }}>Joiner's reason for cancelling</p>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.5, wordBreak: 'break-word' }}>“{booking.cancellation_reason}”</p>
+                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8C2F1C' }}>{weatherCancel ? 'Reason' : "Joiner's reason for cancelling"}</p>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.5, wordBreak: 'break-word' }}>{weatherCancel ? booking.cancellation_reason : `“${booking.cancellation_reason}”`}</p>
                 </div>
+              )}
+              {weatherCancel && booking.weather_refund != null && (
+                <WeatherRefundBox booking={booking} onSent={onChanged} />
               )}
             </Notice>
             </div>
@@ -441,7 +503,9 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <p style={labelStyle}>Payment Status</p>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '4px 0 0', lineHeight: 1.5 }}>
-                    This booking was cancelled, so there's no balance to collect. Payments made are non-refundable.
+                    {weatherCancel
+                      ? `Cancelled by Bandang IBAYO, so there's no balance to collect. 50% refund: ${formatPeso(booking.weather_refund)}${refundSent ? ' (sent)' : refundDue ? ' (to send)' : ''}.`
+                      : "This booking was cancelled, so there's no balance to collect. Payments made are non-refundable."}
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
