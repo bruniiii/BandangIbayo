@@ -26,7 +26,7 @@ import logoIcon from './assets/logo.png';
 import AdminAccountMenu from './AdminAccountMenu';
 import NotificationBell from './NotificationBell';
 import Notification from './Notification';
-import { formatPeso, archivePastTours } from './tourUtils';
+import { formatPeso, archivePastTours, todayManila } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
 import MenuEdgeTab from './ui/MenuEdgeTab';
@@ -266,6 +266,13 @@ const AdminDashboard = () => {
     const nextMonthStart = monthEnd;
     const nextMonthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 1).toISOString();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Tour dates (Philippine calendar) for "bookings this month": a booking's
+    // month is its tour's start date (bookings have no date column of their own).
+    const [y, m] = todayManila().split('-').map(Number);
+    const ymd = (yy, mm) => { const d = new Date(Date.UTC(yy, mm - 1, 1)); return d.toISOString().slice(0, 10); };
+    const dayThisMonth = ymd(y, m);
+    const dayNextMonth = ymd(y, m + 1);
+    const dayLastMonth = ymd(y, m - 1);
 
     await archivePastTours();
     const [
@@ -289,8 +296,8 @@ const AdminDashboard = () => {
       { data: pendingExclusiveRaw },
     ] = await Promise.all([
       supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")'),
-      supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('tour_date', monthStart).lt('tour_date', monthEnd),
-      supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('tour_date', lastMonthStart).lt('tour_date', monthStart),
+      supabase.from('bookings').select('id, tours!inner(start_date)', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('tours.start_date', dayThisMonth).lt('tours.start_date', dayNextMonth),
+      supabase.from('bookings').select('id, tours!inner(start_date)', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('tours.start_date', dayLastMonth).lt('tours.start_date', dayThisMonth),
       supabase.from('tours').select('*', { count: 'exact', head: true }).gte('start_date', nextMonthStart).lt('start_date', nextMonthEnd).eq('is_archived', false),
       supabase.from('tours').select('*', { count: 'exact', head: true }).eq('is_archived', false),
       supabase.from('bookings').select('*', { count: 'exact', head: true }).in('payment_status', ['Pending', 'Verification Pending']),

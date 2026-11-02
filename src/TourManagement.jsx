@@ -1184,12 +1184,13 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
  
 const ModalInput = ({ label, name, defaultValue, ...props }) => (
   <div style={{ marginBottom: 0 }}>
-    <label style={{
+    <label htmlFor={props.id || `tour-${name}`} style={{
       display: 'block', fontSize: 11, fontWeight: 800,
       letterSpacing: '0.2em', textTransform: 'uppercase',
       color: '#7A3A18', opacity: 0.9, marginBottom: 5,
     }}>{label}</label>
     <input
+      id={`tour-${name}`}
       name={name}
       defaultValue={defaultValue}
       {...props}
