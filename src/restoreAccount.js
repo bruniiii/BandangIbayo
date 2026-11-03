@@ -21,6 +21,14 @@ export const askRestoreAccount = (reason) => confirmDialog({
   cancelLabel: 'Not Now',
 });
 
+// An archived admin (right password): send the main admin a restore request?
+export const askAdminRestore = () => confirmDialog({
+  title: 'Ask to be restored as an admin?',
+  message: 'Your admin account was archived. The main admin will get your request, and you can log in again once they approve it.',
+  confirmLabel: 'Send Request',
+  cancelLabel: 'Not Now',
+});
+
 // Restores the signed-in joiner's archived account (Sign in with Google).
 export const restoreMyAccount = async () => {
   const { error } = await supabase.rpc('reactivate_my_account');

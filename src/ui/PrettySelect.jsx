@@ -16,6 +16,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
   const listRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [upward, setUpward] = useState(false); // opens above when there's no room below
+  const [toLeft, setToLeft] = useState(false); // grows leftward when there's no room on the right
   const selectedIndex = options.findIndex((o) => String(o.value) === String(value));
   const [active, setActive] = useState(Math.max(0, selectedIndex));
   const selected = options[selectedIndex];
@@ -39,6 +40,8 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
     const below = box ? window.innerHeight - box.bottom : 999;
     const above = box ? box.top : 0;
     setUpward(below < 280 && above > below);
+    // The list can be wider than the button (so words aren't cut); keep it on screen.
+    setToLeft(box ? box.left + 300 > window.innerWidth - 16 : false);
     setActive(Math.max(0, selectedIndex));
     setOpen(true);
   };
@@ -84,7 +87,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
         <ul
           ref={listRef} id={listId} role="listbox" aria-labelledby={btnId}
           style={{
-            position: 'absolute', zIndex: 50, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), left: 0, right: 0, margin: 0, padding: 6, listStyle: 'none',
+            position: 'absolute', zIndex: 50, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), ...(toLeft ? { right: 0 } : { left: 0 }), minWidth: '100%', width: 'max-content', maxWidth: 'min(300px, calc(100vw - 32px))', boxSizing: 'border-box', margin: 0, padding: 6, listStyle: 'none',
             background: '#FFFDF9', borderRadius: 16, border: '1px solid rgba(180,81,30,0.2)', boxShadow: '0 18px 40px rgba(26,10,0,0.18)',
             maxHeight: 264, overflowY: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable', animation: 'ps-in 0.14s ease-out',
           }}
@@ -104,7 +107,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
                 }}
               >
                 {Icon && <Icon size={14} style={{ flexShrink: 0, color: isSel ? '#B4511E' : 'rgba(122,58,24,0.6)' }} />}
-                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: isSel ? 900 : 700, color: isSel ? '#A8481A' : '#1A0A00', overflowWrap: 'anywhere' }}>{o.label}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: isSel ? 900 : 700, color: isSel ? '#A8481A' : '#1A0A00', overflowWrap: 'break-word' }}>{o.label}</span>
                 {o.hint && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: '#7A3A18', background: '#F2E4D0', borderRadius: 999, padding: '3px 9px' }}>{o.hint}</span>}
                 <Check size={15} style={{ flexShrink: 0, color: '#B4511E', opacity: isSel ? 1 : 0 }} />
               </li>

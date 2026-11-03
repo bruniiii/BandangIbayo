@@ -35,6 +35,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
   const hiddenRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [upward, setUpward] = useState(false);
+  const [toLeft, setToLeft] = useState(false); // opens leftward near the right edge of the screen
   const start = current || (min && todayYmd() < min ? min : max && todayYmd() > max ? max : todayYmd());
   const [view, setView] = useState(() => ({ y: Number(start.slice(0, 4)), m: Number(start.slice(5, 7)) - 1 }));
 
@@ -59,6 +60,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
     const box = wrapRef.current?.getBoundingClientRect();
     const below = box ? window.innerHeight - box.bottom : 999;
     setUpward(below < 360 && (box?.top || 0) > below);
+    setToLeft(box ? box.left + 296 > window.innerWidth - 16 : false);
     setOpen(true);
   };
 
@@ -120,7 +122,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
 
       {open && (
         <div role="dialog" aria-label="Choose a date" style={{
-          position: 'absolute', zIndex: 60, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), left: 0,
+          position: 'absolute', zIndex: 60, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), ...(toLeft ? { right: 0 } : { left: 0 }),
           width: 296, maxWidth: 'calc(100vw - 40px)', boxSizing: 'border-box',
           background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16,
           boxShadow: '0 18px 40px rgba(26,10,0,0.18)', padding: 12, animation: 'ps-in 0.14s ease-out',

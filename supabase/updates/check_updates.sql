@@ -88,5 +88,7 @@ from (values
   ('20261207 pickup points in driving order',
      coalesce((select pg_get_functiondef(p.oid) ilike '%route_order%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                where n.nspname = 'public' and p.proname = 'tour_pickup_points' limit 1), false))
+                where n.nspname = 'public' and p.proname = 'tour_pickup_points' limit 1), false)),
+  ('20261208 archived admins can ask to be restored',
+     to_regprocedure('public.approve_admin_restore(uuid)') is not null)
 ) as u(update_file, installed);

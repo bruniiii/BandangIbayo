@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CloudRain, Loader2, MessagesSquare, CalendarCheck, Wallet } from 'lucide-react';
+import { CloudRain, Loader2, MessagesSquare, CalendarCheck, Wallet, ChevronDown } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -41,7 +41,7 @@ const RefundStatus = ({ bookingId }) => {
     : state.status === 'succeeded' ? { c: '#1F6B4A', t: `✓ Received: PayMongo finished sending it to your GCash, Maya or card${day ? ` on ${day}` : ''}. Check your account's history for the credit.` }
       : state.status === 'pending' ? { c: '#8C5216', t: 'On its way: PayMongo is still sending it. It usually reaches GCash or Maya in 1 to 5 days (cards can take longer).' }
         : state.status === 'failed' ? { c: '#8C2F1C', t: "The refund didn't go through at PayMongo. Bandang IBAYO has been told and will send it again. You don't need to do anything." }
-          : null;
+          : { c: '#7A3A18', t: "Couldn't check with PayMongo right now. Please open this again later." };
   if (!line) return null;
   return <p role="status" style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: line.c, lineHeight: 1.5, background: 'rgba(253,246,238,0.6)', borderRadius: 10, padding: '8px 10px' }}>{line.t}</p>;
 };
@@ -50,6 +50,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
   const [dates, setDates] = useState(null);
   const [pick, setPick] = useState('');
   const [busy, setBusy] = useState('');
+  const [refundOpen, setRefundOpen] = useState(false);
   const choice = booking.weather_choice;
   const open = choice === 'pending' && booking.weather_deadline && new Date(booking.weather_deadline) > new Date();
   const cancelled = weather?.weather_status === 'cancelled';
@@ -111,17 +112,35 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
     </button>
   );
 
-  // The 50% refund: waiting to be sent, or sent.
+  // The 50% refund: waiting to be sent, or sent. A small bar; the details (and
+  // where PayMongo is with it) show when the joiner opens it.
   if (choice === 'refund') {
     const sent = booking.weather_refund_status === 'Sent';
-    return shell(<>
-      {heading(sent ? 'Refund sent' : 'Refund on the way', sent ? '#1F6B4A' : '#8C5216')}
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: '#1A0A00', lineHeight: 1.45 }}>
-        {title} ({booking.booking_number}): {formatPeso(booking.weather_refund)} {sent ? 'was sent to you' : 'will be sent to your GCash'}.
-      </p>
-      {sent && booking.weather_refund_ref && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>Reference: {booking.weather_refund_ref}</p>}
-      {sent && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <RefundStatus bookingId={booking.id} />}
-    </>, sent ? '#1F6B4A' : '#E8A265');
+    const tone = sent ? '#1F6B4A' : '#8C5216';
+    return (
+      <section aria-label={`${title}: refund`} style={{
+        background: '#FDF6EE', borderRadius: 16, border: `1.5px solid ${sent ? '#1F6B4A' : '#E8A265'}`, padding: '0.75rem 1rem',
+        boxShadow: '0 4px 14px rgba(26,10,0,0.06)', display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <p style={{ margin: 0, flex: '1 1 220px', minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#1A0A00' }}>
+            <Wallet size={16} style={{ color: tone, flexShrink: 0 }} />
+            <span><span style={{ color: tone, fontWeight: 900 }}>{sent ? 'Refund sent' : 'Refund on the way'}</span> · {formatPeso(booking.weather_refund)} · {title}</span>
+          </p>
+          <button type="button" onClick={() => setRefundOpen((v) => !v)} aria-expanded={refundOpen}
+            style={{ ...btn('transparent', tone, `1px solid ${tone}`), padding: '8px 12px' }}>
+            {refundOpen ? 'Hide' : 'See refund'} <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: refundOpen ? 'rotate(180deg)' : 'none' }} />
+          </button>
+        </div>
+        {refundOpen && (<>
+          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: '#1A0A00', lineHeight: 1.45 }}>
+            {title} ({booking.booking_number}): {formatPeso(booking.weather_refund)} {sent ? 'was sent to you' : 'will be sent to your GCash'}.
+          </p>
+          {sent && booking.weather_refund_ref && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18', overflowWrap: 'anywhere' }}>Reference: {booking.weather_refund_ref}</p>}
+          {sent && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <RefundStatus bookingId={booking.id} />}
+        </>)}
+      </section>
+    );
   }
 
   if (!open) return null;

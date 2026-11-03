@@ -163,12 +163,25 @@ async function resolveEmail(identifier: string) {
 
 // Archived accounts (joiners, or admins not yet restored) can't log in.
 // restore: the joiner chose "Restore my account" after typing the right password.
-async function assertNotArchived(userId: string, restore = false) {
-  const { data: who } = await admin.from("profiles").select("role, archived_at, archive_reason, admin_restore_pending_at").eq("id", userId).maybeSingle();
+// requestRestore: an archived admin chose to ask the main admin to restore them
+// (only the main admin's approval in Admin Settings brings them back).
+async function assertNotArchived(userId: string, restore = false, requestRestore = false) {
+  const { data: who } = await admin.from("profiles").select("*").eq("id", userId).maybeSingle();
   if (who?.role === "archived_admin") {
-    throw new HttpError(403, who.admin_restore_pending_at
-      ? "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it."
-      : "This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+    if (who.admin_restore_pending_at) {
+      throw new HttpError(403, "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it.");
+    }
+    if (requestRestore) {
+      const { data: outcome, error } = await admin.rpc("request_admin_restore_for", { p_id: userId });
+      if (error) throw new Error(error.message);
+      throw new HttpError(403, outcome === "sent"
+        ? "Request sent. The main admin was told; you can log in once they approve it."
+        : "Your request is already waiting for the main admin's approval.", { adminRestoreRequested: true });
+    }
+    if (who.admin_restore_requested_at) {
+      throw new HttpError(403, "Your request to be restored is waiting for the main admin's approval. You can log in once they approve it.", { adminRestoreRequested: true });
+    }
+    throw new HttpError(403, "This admin account was archived. Do you want to ask the main admin to restore it?", { archivedAdmin: true });
   }
   if (who?.archived_at) {
     // The joiner decides: they're asked first, and only their "yes" brings the account back.
@@ -200,7 +213,7 @@ async function login(p: any) {
   }
   await clearLock(email);
   // Archived accounts can't log in, even with the right password.
-  if (user?.id) await assertNotArchived(user.id, p.restore === true);
+  if (user?.id) await assertNotArchived(user.id, p.restore === true, p.requestRestore === true);
   return await startSession(email);
 }
 
@@ -564,7 +577,7 @@ async function restoreAdminVerify(user: { id: string }, p: any) {
   if (!target.archived_was_main) await assertAdminRoom();
   const { error } = await admin.from("profiles").update({
     role: "admin", is_main_admin: !!target.archived_was_main, archived_was_main: false,
-    admin_archived_at: null, admin_restore_pending_at: null,
+    admin_archived_at: null, admin_restore_pending_at: null, admin_restore_requested_at: null,
   }).eq("id", id);
   if (error) throw new HttpError(400, error.message);
   await admin.from("signup_challenges").delete().eq("id", challenge.id);
