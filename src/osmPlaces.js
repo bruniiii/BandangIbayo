@@ -86,7 +86,10 @@ const askOne = async (url, query, signal) => {
 const askPiece = async (piece, first, deadline = Infinity) => {
   const pts = thin(piece).map(([lng, lat]) => `${Number(lat).toFixed(5)},${Number(lng).toFixed(5)}`).join(',');
   const query = `[out:json][timeout:20];
-nwr(around:300,${pts})["name"][~"^(amenity|shop)$"~"^(fuel|mall|department_store|bus_station|convenience|fast_food)$"];
+(
+  nwr(around:300,${pts})["amenity"~"^(fuel|bus_station|fast_food)$"]["name"];
+  nwr(around:300,${pts})["shop"~"^(mall|department_store|convenience)$"]["name"];
+);
 out center tags 1000;`;
   let last = 'timeout';
   for (let k = 0; k < SERVERS.length; k += 1) {
