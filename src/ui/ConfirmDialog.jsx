@@ -9,12 +9,13 @@ import ConfirmDialogBox from './ConfirmDialogBox';
 //     confirmLabel: 'Delete Post',     // says what happens, never "Yes"/"OK"
 //     cancelLabel: 'Keep Post',
 //     tone: 'danger',                  // red button for destructive actions
+//     typeToConfirm: 'archive',        // optional: a word to type before the button works
 //   });
 // One primary (or red) button; Cancel is always the lighter secondary button.
 // For destructive actions the safe button gets the focus, so Enter doesn't delete.
 // ─────────────────────────────────────────────
 
-export const confirmDialog = ({ title, message = '', confirmLabel = 'Continue', cancelLabel = 'Cancel', tone = 'primary' }) =>
+export const confirmDialog = ({ title, message = '', confirmLabel = 'Continue', cancelLabel = 'Cancel', tone = 'primary', typeToConfirm = '' }) =>
   new Promise((resolve) => {
     const host = document.createElement('div');
     document.body.appendChild(host);
@@ -26,5 +27,5 @@ export const confirmDialog = ({ title, message = '', confirmLabel = 'Continue', 
       previousFocus?.focus?.();
       resolve(result);
     };
-    root.render(<ConfirmDialogBox title={title} message={message} confirmLabel={confirmLabel} cancelLabel={cancelLabel} tone={tone} onClose={close} />);
+    root.render(<ConfirmDialogBox title={title} message={message} confirmLabel={confirmLabel} cancelLabel={cancelLabel} tone={tone} typeToConfirm={typeToConfirm} onClose={close} />);
   });
