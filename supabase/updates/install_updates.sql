@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- All database updates from 20261111 to 20261205, in order, in one go.
+-- All database updates from 20261111 to 20261206, in order, in one go.
 --
 -- Paste the whole file into the Supabase SQL Editor and click Run.
 -- It runs as one transaction: if anything fails, nothing is changed, and the
@@ -8,7 +8,7 @@
 -- Afterwards, run supabase/updates/check_updates.sql: every row should say
 -- "installed".
 --
--- Generated from supabase/migrations/20261111…20261205 — edit those, not this.
+-- Generated from supabase/migrations/20261111…20261206 — edit those, not this.
 -- ─────────────────────────────────────────────
 
 begin;
@@ -3344,6 +3344,31 @@ end;
 $$;
 revoke all on function public.share_van_location(text, double precision, double precision, double precision, double precision, double precision) from public;
 grant execute on function public.share_van_location(text, double precision, double precision, double precision, double precision, double precision) to anon, authenticated;
+
+
+-- ════════════ 20261206000000_remove_place_cache.sql ════════════
+-- ─────────────────────────────────────────────
+-- Remove the old "places along the road" list
+--
+-- Pickup points are now found with the place search (OpenRouteService through
+-- the routes function), not the free OpenStreetMap servers, so the saved
+-- list of places along a road (route_place_cache, 20261203) isn't used.
+-- 1. The nightly cleanup no longer clears it (only old website errors).
+-- 2. The table is removed.
+--
+-- Run after 20261205000000_stricter_arrival.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.unschedule(jobid) from cron.job where jobname = 'cleanup-client-errors';
+    perform cron.schedule('cleanup-client-errors', '25 17 * * *',
+      $job$delete from public.client_errors where created_at < now() - interval '30 days'$job$);
+  end if;
+end $$;
+
+drop table if exists public.route_place_cache;
 
 
 commit;

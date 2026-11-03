@@ -82,5 +82,7 @@ from (values
               where n.nspname = 'public' and p.proname = 'weather_cancel')),
   ('20261205 stricter Arrived for the van (100 m, twice in a row)',
      exists (select 1 from information_schema.columns
-              where table_schema = 'public' and table_name = 'tour_meetups' and column_name = 'arrive_hits'))
+              where table_schema = 'public' and table_name = 'tour_meetups' and column_name = 'arrive_hits')),
+  ('20261206 old places-along-the-road list removed',
+     to_regclass('public.route_place_cache') is null)
 ) as u(update_file, installed);

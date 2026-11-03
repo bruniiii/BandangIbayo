@@ -299,7 +299,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
       tour_id: activeTour.id,
       location_name: updates[0].location_name,
       status: 'DEPARTURE',
-      display_text: `ETA Update: The van leaves at ${departure}. ${updates.map((u) => `[${u.location_name}] ${u.scheduled_time}`).join(', ')}.`,
+      display_text: `ETA Update: First pickup at ${departure}. ${updates.map((u) => `[${u.location_name}] ${u.scheduled_time}`).join(', ')}.`,
       note: '',
     }]);
     toast.success('ETAs set', 'Joiners can see the times on the tracking page.');

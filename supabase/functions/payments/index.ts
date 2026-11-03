@@ -640,13 +640,19 @@ async function weatherRefund(userId: string, payload: any) {
   const bookingId = payload.bookingId;
   if (!bookingId) throw new HttpError(400, "Which booking?");
 
+  // Claim it ("Refunding"), so two admins tapping at once can't both send it.
+  // A claim older than 10 minutes was cut off (lost connection, the function
+  // stopped) and may be taken again: the refunds PayMongo already made are
+  // counted first, so nothing is ever sent twice.
+  const stuckBefore = new Date(Date.now() - 10 * 60000).toISOString();
   const { data: claimed, error: claimErr } = await supabase.from("bookings")
-    .update({ weather_refund_status: "Refunding" })
-    .eq("id", bookingId).eq("weather_refund_status", "Due")
+    .update({ weather_refund_status: "Refunding", weather_refund_at: new Date().toISOString() })
+    .eq("id", bookingId)
+    .or(`weather_refund_status.eq.Due,and(weather_refund_status.eq.Refunding,weather_refund_at.lt.${stuckBefore})`)
     .select("id, user_id, booking_number, weather_refund, paymongo_payment_id, paymongo_balance_payment_id")
     .maybeSingle();
   if (claimErr) throw new Error(claimErr.message);
-  if (!claimed) throw new HttpError(409, "This refund isn't waiting to be sent (it may have been sent already).");
+  if (!claimed) throw new HttpError(409, "This refund isn't waiting to be sent (it may have been sent already, or it's being sent right now; try again in 10 minutes if it stays stuck).");
 
   const release = () => supabase.from("bookings").update({ weather_refund_status: "Due" }).eq("id", bookingId);
   const payments = [claimed.paymongo_payment_id, claimed.paymongo_balance_payment_id].filter(Boolean);
@@ -655,20 +661,31 @@ async function weatherRefund(userId: string, payload: any) {
     throw new HttpError(400, "This booking wasn't paid through PayMongo. Send the refund by GCash and tap Mark as Sent instead.");
   }
 
-  let left = centavos(Number(claimed.weather_refund) || 0);
-  const refunds: string[] = [];
+  // What each payment allows, and what was already refunded on them (payments
+  // are otherwise non-refundable, so any refund there is this weather refund).
+  const target = centavos(Number(claimed.weather_refund) || 0);
+  const info: { id: string; paid: number; already: number }[] = [];
   try {
     for (const paymentId of payments) {
-      if (left <= 0) break;
       const pay = await paymongo("GET", `/payments/${paymentId}`);
       const paid = Number(pay?.data?.attributes?.amount) || 0;
-      const already = (pay?.data?.attributes?.refunds ?? []).reduce((s: number, r: any) => s + (Number(r?.attributes?.amount ?? r?.amount) || 0), 0);
-      const amount = Math.min(left, Math.max(0, paid - already));
+      const already = (pay?.data?.attributes?.refunds ?? []).reduce((sum: number, r: any) => sum + (Number(r?.attributes?.amount ?? r?.amount) || 0), 0);
+      info.push({ id: paymentId, paid, already });
+    }
+  } catch (err) { await release(); throw err; }
+  const refundedBefore = info.reduce((sum, x) => sum + x.already, 0);
+
+  let left = Math.max(0, target - refundedBefore);
+  const refunds: string[] = [];
+  try {
+    for (const x of info) {
+      if (left <= 0) break;
+      const amount = Math.min(left, Math.max(0, x.paid - x.already));
       if (amount <= 0) continue;
       const refund = await paymongo("POST", "/refunds", {
         data: {
           attributes: {
-            amount, payment_id: paymentId, reason: "others",
+            amount, payment_id: x.id, reason: "others",
             notes: `Bandang IBAYO ${claimed.booking_number}: 50% refund (tour date cancelled/postponed for bad weather)`,
             metadata: { booking_id: String(claimed.id) },
           },
@@ -678,17 +695,16 @@ async function weatherRefund(userId: string, payload: any) {
       left -= amount;
     }
   } catch (err) {
-    // Nothing refunded yet: back to "Due" so it can be tried again.
+    // Nothing new refunded: back to "Due" so it can be tried again.
     // Part refunded: keep the reference and say so; the admin sends the rest by GCash.
-    if (!refunds.length) { await release(); throw err; }
+    if (!refunds.length && refundedBefore === 0) { await release(); throw err; }
   }
-  if (!refunds.length) { await release(); throw new HttpError(400, "PayMongo had nothing left to refund on this booking's payments."); }
+  if (!refunds.length && refundedBefore === 0) { await release(); throw new HttpError(400, "PayMongo had nothing left to refund on this booking's payments."); }
 
-  const sentPesos = (centavos(Number(claimed.weather_refund) || 0) - left) / 100;
-  const ref = `PayMongo ${refunds.join(", ")}${left > 0 ? ` (₱${(left / 100).toFixed(2)} still to send by GCash)` : ""}`;
+  const sentPesos = (target - left) / 100;
+  const ref = `PayMongo ${refunds.length ? refunds.join(", ") : "(refunded earlier)"}${left > 0 ? ` (₱${(left / 100).toFixed(2)} still to send by GCash)` : ""}`;
   await supabase.from("bookings").update({
     weather_refund_status: left > 0 ? "Due" : "Sent", weather_refund_ref: ref, weather_refund_at: new Date().toISOString(),
-    ...(left > 0 ? { weather_refund: left / 100 } : {}),
   }).eq("id", bookingId);
   if (claimed.user_id) {
     await supabase.from("notifications").insert({
