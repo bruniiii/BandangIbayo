@@ -125,7 +125,7 @@ const AdminSettings = () => {
     if (!(await confirmDialog({
       title: `Archive ${a.name}?`,
       message: "They won't be able to log in or open the admin dashboard. Nothing is deleted: their name stays on the receipts they processed, and you can restore them anytime from Archived Admins.",
-      confirmLabel: 'Archive Admin', cancelLabel: 'Keep', tone: 'danger',
+      confirmLabel: 'Archive Admin', cancelLabel: 'Keep', tone: 'danger', typeToConfirm: 'archive',
     }))) return;
     const { error: err } = await supabase.rpc('archive_admin', { p_id: a.id });
     if (err) { toast.error("Couldn't archive the admin", err.message); return; }
