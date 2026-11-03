@@ -238,7 +238,10 @@ async function placesAlong(p: any) {
   // One light question for every kind at once (the servers limit how much each
   // site may ask): named amenity/shop places of these kinds within 300 m.
   const query = `[out:json][timeout:60];
-nwr(around:300,${line})["name"][~"^(amenity|shop)$"~"^(fuel|mall|department_store|bus_station|convenience|fast_food)$"];
+(
+  nwr(around:300,${line})["amenity"~"^(fuel|bus_station|fast_food)$"]["name"];
+  nwr(around:300,${line})["shop"~"^(mall|department_store|convenience)$"]["name"];
+);
 out center tags 2000;`;
   const BRANDS = {
     store: /7-?\s?eleven|alfamart|ministop|uncle john/i,

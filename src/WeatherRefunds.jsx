@@ -20,10 +20,18 @@ const WeatherRefunds = () => {
   const [busy, setBusy] = useState(null);
 
   const load = useCallback(async () => {
+    // (Bookings aren't linked to profiles in the database, so the joiners'
+    // names and numbers are read separately: asking for both at once failed.)
     const { data, error } = await supabase.from('bookings')
-      .select('id, booking_number, full_name, gcash_number, amount_paid, weather_refund, weather_refund_status, paymongo_payment_id, profiles ( first_name, last_name, phone_number ), tours ( title, start_date, end_date )')
+      .select('id, user_id, booking_number, full_name, gcash_number, amount_paid, weather_refund, weather_refund_status, paymongo_payment_id, tours ( title, start_date, end_date )')
       .eq('weather_refund_status', 'Due').order('created_at', { ascending: true });
-    setRows(error ? [] : data || []);
+    if (error || !data?.length) { setRows([]); return; }
+    const ids = [...new Set(data.map((b) => b.user_id).filter(Boolean))];
+    const { data: people } = ids.length
+      ? await supabase.from('profiles').select('id, first_name, last_name, phone_number').in('id', ids)
+      : { data: [] };
+    const byId = Object.fromEntries((people || []).map((p) => [p.id, p]));
+    setRows(data.map((b) => ({ ...b, profiles: byId[b.user_id] || null })));
   }, []);
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
