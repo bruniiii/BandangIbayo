@@ -15,9 +15,13 @@ const MyData = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // A second confirmation: the joiner types "deactivate" before the button works.
+  const [typed, setTyped] = useState('');
+  const confirmed = typed.trim().toLowerCase() === 'deactivate';
   usePopupError(error);
 
   const handleDeactivate = async () => {
+    if (!confirmed) return;
     setBusy(true);
     setError('');
     const { error: err } = await supabase.rpc('deactivate_my_account');
@@ -60,11 +64,25 @@ const MyData = () => {
             <li>To come back, just log in again: you'll be asked if you want to restore your account.</li>
             <li>You can't deactivate while you have an upcoming booking.</li>
           </ul>
+          <label htmlFor="confirm-deactivate" style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: '4px 0 0' }}>
+            To confirm, type <strong style={{ color: '#C0362C' }}>deactivate</strong> below.
+          </label>
+          <input
+            id="confirm-deactivate" value={typed} onChange={(e) => setTyped(e.target.value)} disabled={busy}
+            placeholder="deactivate" autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={20}
+            aria-invalid={typed !== '' && !confirmed}
+            style={{
+              width: '100%', maxWidth: 320, boxSizing: 'border-box', background: '#FDF6EE', borderRadius: 12, padding: '10px 12px',
+              border: `1px solid ${confirmed ? '#C0362C' : 'rgba(168,72,26,0.25)'}`, fontSize: 16, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit',
+            }}
+          />
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => setShowConfirm(false)} disabled={busy} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(168,72,26,0.25)')}>
+            <button type="button" onClick={() => { setShowConfirm(false); setTyped(''); }} disabled={busy} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(168,72,26,0.25)')}>
               Keep my account
             </button>
-            <button type="button" onClick={handleDeactivate} disabled={busy} style={button('#C0362C', '#FFFFFF')}>
+            <button type="button" onClick={handleDeactivate} disabled={busy || !confirmed}
+              title={confirmed ? undefined : 'Type "deactivate" first'}
+              style={{ ...button('#C0362C', '#FFFFFF'), opacity: confirmed ? 1 : 0.5, cursor: confirmed ? 'pointer' : 'not-allowed' }}>
               {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <PowerOff size={14} />} Deactivate Account
             </button>
           </div>
