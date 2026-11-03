@@ -468,7 +468,7 @@ const TourManagement = ({ openTourId = null }) => {
         let minutes = [];
         if (formRoute?.start && formRoute?.end && located.length) {
           const res = await findRoute([formRoute.start, ...located.map((x) => x.spot), formRoute.end]);
-          if (res.ok) minutes = stopMinutes(res.data, located.map((x) => x.spot));
+          if (res.ok) minutes = stopMinutes(res.data, located.map((x) => x.spot), { fromFirstStop: true });
         }
         // Each stop's ETA fills itself in: the van's departure ("Van leaves at",
         // else the first time in the itinerary) plus the driving time to that stop.
@@ -1037,12 +1037,12 @@ const TourManagement = ({ openTourId = null }) => {
                   )}
                   {departureAvailable && (
                     <div>
-                      <label style={labelStyle} htmlFor="departure_time">Van leaves at</label>
+                      <label style={labelStyle} htmlFor="departure_time">First pickup at</label>
                       <input id="departure_time" type="time" name="departure_time" value={formDeparture}
                         onChange={(e) => { setFormDeparture(e.target.value); setFormDirty(true); }}
                         style={{ ...inputStyle, maxWidth: 220 }} />
                       <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
-                        When the van leaves the starting point. Each pickup's time is worked out from this and the driving time. Left empty, the first time in the itinerary is used.
+                        The time at the first pickup point. The other pickup times are worked out from this and the driving time. Left empty, the first time in the itinerary is used.
                       </p>
                     </div>
                   )}
@@ -1115,7 +1115,7 @@ const TourManagement = ({ openTourId = null }) => {
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: '#1A0A00',
               }}>Cancel</button>
-              <button type="submit" disabled={uploading || savingTour || !tourFilled} title={tourFilled ? undefined : 'Fill in every field first (photo, details, dates, pickup points, accommodation, lists and itinerary). Only Van leaves at is optional.'} style={{
+              <button type="submit" disabled={uploading || savingTour || !tourFilled} title={tourFilled ? undefined : 'Fill in every field first (photo, details, dates, pickup points, accommodation, lists and itinerary). Only First pickup at is optional.'} style={{
                 flex: 2, padding: '13px 0',
                 background: '#B4511E', border: 'none', borderRadius: 999,
                 cursor: tourFilled ? 'pointer' : 'not-allowed', fontFamily: 'inherit',

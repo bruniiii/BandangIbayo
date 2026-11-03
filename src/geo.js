@@ -137,7 +137,14 @@ export const to24h = (time) => {
 // turn-by-turn directions) it shares the whole trip's time by how far along
 // the road each stop is. A rough ETA either way; the live van refines it.
 //   route: { coords, distance_km, duration_min, legs }   stops: [{ lat, lng }]
-export const stopMinutes = (route, stops) => {
+//   fromFirstStop: count from the first pickup point instead (it gets 0), so
+//     "Van leaves at" is the first pickup's time and the others follow.
+export const stopMinutes = (route, stops, { fromFirstStop = false } = {}) => {
+  const m = stopMinutesFromStart(route, stops);
+  if (!fromFirstStop || m[0] == null) return m;
+  return m.map((x) => (x == null ? null : Math.max(0, x - m[0])));
+};
+const stopMinutesFromStart = (route, stops) => {
   const legs = Array.isArray(route?.legs) ? route.legs : [];
   if (legs.length >= stops.length && legs.slice(0, stops.length).some((l) => Number(l?.duration_min) > 0)) {
     let total = 0;

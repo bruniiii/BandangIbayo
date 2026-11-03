@@ -480,12 +480,12 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               )}
               {isOpenRequest && departureAvailable && (
                 <div>
-                  <label style={labelStyle} htmlFor="package_departure_time">Van leaves at</label>
+                  <label style={labelStyle} htmlFor="package_departure_time">First pickup at</label>
                   <input id="package_departure_time" type="time" name="departure_time" value={departure}
                     onChange={(e) => { setDeparture(e.target.value); setDirty(true); }}
                     style={{ ...inputStyle, maxWidth: 220 }} />
                   <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
-                    When the van leaves the starting point. Each pickup's time is worked out from this and the driving time. Left empty, the first time in the itinerary is used.
+                    The time at the first pickup point. The other pickup times are worked out from this and the driving time. Left empty, the first time in the itinerary is used.
                   </p>
                 </div>
               )}
@@ -554,7 +554,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             flex: 1, padding: '13px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#1A0A00',
           }}>Cancel</button>
-          <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in every field first (photo, details, rates, accommodation, expenses, pickup points, lists and itinerary). Only Van leaves at is optional.'} style={{
+          <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in every field first (photo, details, rates, accommodation, expenses, pickup points, lists and itinerary). Only First pickup at is optional.'} style={{
             flex: 2, padding: '13px 0', background: '#B4511E', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#FDF6EE',
             boxShadow: '0 6px 20px rgba(180,81,30,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
