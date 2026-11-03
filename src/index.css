@@ -312,12 +312,6 @@ html { touch-action: manipulation; }
   .tm-filters > div { min-width: 0 !important; }
 }
 
-/* Tour form map: the place-type buttons in two neat columns on phones. */
-@media (max-width: 600px) {
-  .place-chips { display: grid !important; grid-template-columns: 1fr 1fr; }
-  .place-chips > button { min-height: 36px !important; padding: 6px 10px !important; font-size: 10px !important; letter-spacing: 0.03em !important; justify-content: flex-start; text-align: left; white-space: normal; line-height: 1.25; min-width: 0; }
-  .place-chips > button svg { flex-shrink: 0; }
-}
 
 /* iPhones give date and time boxes a fixed minimum width, so they spilled
    out of narrow cards (e.g. Tour Dates in the tour form). Now they fit. */

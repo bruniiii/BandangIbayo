@@ -127,7 +127,14 @@ const placeOnRoad = (lat: number, lng: number, coords: Pt[]) => {
 async function geocode(p: any) {
   const text = String(p.text ?? "").trim();
   if (text.length < 2) throw new HttpError(400, "Type at least 2 letters of the place.");
-  const url = `${ORS}/geocode/search?api_key=${encodeURIComponent(ORS_API_KEY)}&text=${encodeURIComponent(text)}&boundary.country=PH&size=8`;
+  // Optional: only places inside a box around the van's route (pickup point
+  // search: "Petron" → the Petrons on the way), else anywhere in the Philippines.
+  const b = p.bbox;
+  const inBox = Array.isArray(b) && b.length === 4 && b.every((n: unknown) => Number.isFinite(Number(n)))
+    ? `&boundary.rect.min_lon=${Number(b[0])}&boundary.rect.min_lat=${Number(b[1])}&boundary.rect.max_lon=${Number(b[2])}&boundary.rect.max_lat=${Number(b[3])}`
+    : "";
+  const size = inBox ? 20 : 8;
+  const url = `${ORS}/geocode/search?api_key=${encodeURIComponent(ORS_API_KEY)}&text=${encodeURIComponent(text)}&boundary.country=PH&size=${size}${inBox}`;
   const res = await fetch(url);
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new HttpError(502, body?.error?.message || body?.error || `Place search failed (${res.status}).`);
