@@ -18,6 +18,7 @@
 //        current password (wrong ones count toward the lock) and the password rules
 //   - "password-changed"   logged-in user (after a reset link): clears their lock
 //   - "create-admin"  { first_name, last_name, email, password }   main admin only
+//        (the main admin + at most 2 other admins; restoring follows the same limit)
 //        (Admin Settings): checks the details and emails a 6-digit code to the
 //        new admin; returns { challengeId, sentTo, expiresInMinutes }
 //   - "create-admin-verify"  { challengeId, code, password }   main admin only:
@@ -458,6 +459,18 @@ async function assertMainAdmin(userId: string) {
   if (me?.role !== "admin" || !me?.is_main_admin) throw new HttpError(403, "Only the main admin can add admins.");
 }
 
+// The main admin plus at most MAX_OTHER_ADMINS other admins (archived ones
+// don't count, so archiving one makes room).
+const MAX_OTHER_ADMINS = 2;
+async function assertAdminRoom() {
+  const { count, error } = await admin.from("profiles").select("id", { count: "exact", head: true })
+    .eq("role", "admin").eq("is_main_admin", false);
+  if (error) throw new Error(error.message);
+  if ((count ?? 0) >= MAX_OTHER_ADMINS) {
+    throw new HttpError(409, `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first to add or restore another.`);
+  }
+}
+
 function adminDetails(p: any) {
   const email = String(p.email ?? "").trim().toLowerCase();
   const firstName = String(p.first_name ?? "").trim().replace(/\s+/g, " ");
@@ -470,6 +483,7 @@ function adminDetails(p: any) {
 
 async function createAdmin(user: { id: string }, p: any) {
   await assertMainAdmin(user.id);
+  await assertAdminRoom();
   const { email, firstName, lastName } = adminDetails(p);
   const problems = passwordProblems(String(p.password ?? ""));
   if (problems.length) throw new HttpError(400, `The password needs ${problems.join(", ")}.`, { field: "password" });
@@ -496,8 +510,9 @@ async function createAdmin(user: { id: string }, p: any) {
 async function restoreAdminStart(user: { id: string }, p: any) {
   await assertMainAdmin(user.id);
   const id = String(p.userId ?? "");
-  const { data: target } = await admin.from("profiles").select("id, role, first_name").eq("id", id).maybeSingle();
+  const { data: target } = await admin.from("profiles").select("id, role, first_name, archived_was_main").eq("id", id).maybeSingle();
   if (!target || target.role !== "archived_admin") throw new HttpError(404, "That admin isn't archived.");
+  if (!target.archived_was_main) await assertAdminRoom();
   const { data: login } = await admin.auth.admin.getUserById(id);
   const email = String(login?.user?.email ?? "").toLowerCase();
   if (!email) throw new HttpError(400, "This admin has no email address to verify.");
@@ -546,6 +561,7 @@ async function restoreAdminVerify(user: { id: string }, p: any) {
   }
   const { data: target } = await admin.from("profiles").select("role, archived_was_main").eq("id", id).maybeSingle();
   if (target?.role !== "archived_admin") throw new HttpError(409, "That admin isn't waiting to be restored.");
+  if (!target.archived_was_main) await assertAdminRoom();
   const { error } = await admin.from("profiles").update({
     role: "admin", is_main_admin: !!target.archived_was_main, archived_was_main: false,
     admin_archived_at: null, admin_restore_pending_at: null,
@@ -557,6 +573,7 @@ async function restoreAdminVerify(user: { id: string }, p: any) {
 
 async function createAdminVerify(user: { id: string }, p: any) {
   await assertMainAdmin(user.id);
+  await assertAdminRoom();
   const challenge = await loadSignup(p.challengeId);
   const profile = (challenge.profile ?? {}) as Record<string, unknown>;
   if (!profile.admin_invite || profile.invited_by !== user.id) throw new HttpError(410, "This code has expired. Please start again.");
