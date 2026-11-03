@@ -153,6 +153,36 @@ const AdminSettings = () => {
     setVerifying(a);
     load();
   };
+  // An archived admin asked (at login) to be restored: approve or decline.
+  const approveRequest = async (a) => {
+    const ok = await confirmDialog({
+      title: `Restore ${a.name}?`,
+      message: `${a.name} asked to be an admin again. Approving lets them log in and use the admin dashboard right away.`,
+      confirmLabel: 'Approve', cancelLabel: 'Cancel',
+    });
+    if (!ok) return;
+    setRestoreBusy(true);
+    const { error: err } = await supabase.rpc('approve_admin_restore', { p_id: a.id });
+    setRestoreBusy(false);
+    if (err) { toast.error("Couldn't restore the admin", err.message); return; }
+    toast.success('Admin restored', `${a.name} can log in again.`);
+    load();
+  };
+  const declineRequest = async (a) => {
+    const ok = await confirmDialog({
+      title: `Decline ${a.name}'s request?`,
+      message: 'They stay archived and can\'t log in. They can ask again the next time they log in.',
+      confirmLabel: 'Decline', cancelLabel: 'Cancel', tone: 'danger',
+    });
+    if (!ok) return;
+    setRestoreBusy(true);
+    const { error: err } = await supabase.rpc('decline_admin_restore', { p_id: a.id });
+    setRestoreBusy(false);
+    if (err) { toast.error("Couldn't decline the request", err.message); return; }
+    toast.success('Request declined', `${a.name} stays archived.`);
+    load();
+  };
+
   const confirmRestoreCode = async (e) => {
     e?.preventDefault?.();
     if (restoreCode.length !== 6) { toast.error('Enter the 6-digit code', 'Ask the admin for the code we emailed them.'); return; }
@@ -170,6 +200,7 @@ const AdminSettings = () => {
   const full = others >= MAX_OTHER_ADMINS;
   const pendingAdmins = archived.filter((a) => a.pending);
   const archivedOnly = archived.filter((a) => !a.pending);
+  const requests = archivedOnly.filter((a) => a.requested_at).length;
 
   if (me.loaded && !me.isMain) {
     return (
@@ -313,6 +344,7 @@ const AdminSettings = () => {
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18' }}>
               <Archive size={14} /> Archived Admins
               <span style={{ padding: '1px 9px', borderRadius: 999, background: '#F2E4D0', fontSize: 11.5, color: '#A8481A' }}>{archivedOnly.length}</span>
+              {requests > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: '#B4511E', color: '#FDF6EE', fontSize: 10.5, letterSpacing: '0.06em' }}>{requests} asking to be restored</span>}
             </span>
             <ChevronDown size={16} style={{ color: '#7A3A18', transition: 'transform 0.2s', transform: showArchived ? 'rotate(180deg)' : 'none' }} />
           </button>
@@ -331,11 +363,24 @@ const AdminSettings = () => {
                     {a.email && a.email !== a.name && <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.email}</p>}
                   </div>
                   <span style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', minWidth: 120 }}>Archived {formatDate(a.archived_at)}</span>
-                  <button type="button" disabled={restoreBusy || (full && !a.archived_was_main)} onClick={() => sendRestoreCode(a)} aria-label={`Restore ${a.name}`}
-                    title={full && !a.archived_was_main ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: full && !a.archived_was_main ? 'not-allowed' : 'pointer', opacity: full && !a.archived_was_main ? 0.5 : 1,
+                  {a.requested_at ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(180,81,30,0.12)', color: '#A8481A', fontSize: 11, fontWeight: 900 }}>Asked to be restored · {formatDate(a.requested_at)}</span>
+                      <button type="button" disabled={restoreBusy || (full && !a.was_main_admin)} onClick={() => approveRequest(a)} aria-label={`Approve ${a.name}`}
+                        title={full && !a.was_main_admin ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: full && !a.was_main_admin ? 'not-allowed' : 'pointer', opacity: full && !a.was_main_admin ? 0.5 : 1,
+                        background: '#1F6B4A', color: '#FDF6EE', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                      }}><ShieldCheck size={14} /> Approve</button>
+                      <button type="button" disabled={restoreBusy} onClick={() => declineRequest(a)} aria-label={`Decline ${a.name}`} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: 'pointer',
+                        background: 'transparent', color: '#8C2F1C', border: '1px solid rgba(140,47,28,0.4)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                      }}><X size={14} /> Decline</button>
+                    </span>
+                  ) : <button type="button" disabled={restoreBusy || (full && !a.was_main_admin)} onClick={() => sendRestoreCode(a)} aria-label={`Restore ${a.name}`}
+                    title={full && !a.was_main_admin ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: full && !a.was_main_admin ? 'not-allowed' : 'pointer', opacity: full && !a.was_main_admin ? 0.5 : 1,
                     background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  }}><ArchiveRestore size={14} /> Restore</button>
+                  }}><ArchiveRestore size={14} /> Restore</button>}
                 </li>
               ))}
             </ul>

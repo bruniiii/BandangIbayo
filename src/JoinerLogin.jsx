@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRequiredFilled } from './ui/useRequiredFilled';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from './supabaseClient';
-import { askRestoreAccount, restoreMyAccount } from './restoreAccount';
+import { askRestoreAccount, restoreMyAccount, askAdminRestore } from './restoreAccount';
 import { safeNextPath } from './tourUtils';
 import { Loader2, CheckCircle2, MailCheck, ArrowLeft } from 'lucide-react';
 import { loginStart, verifyLoginCode, resendLoginCode } from './authApi';
@@ -87,6 +87,21 @@ const JoinerLogin = () => {
         return;
       }
     }
+    // An archived admin with the right password: they can ask the main admin to restore them.
+    if (!result.ok && result.archivedAdmin) {
+      if (await askAdminRestore()) {
+        result = await loginStart(identifier, password, { requestRestore: true });
+      } else {
+        setLoading(false);
+        showError("Your admin account stays archived. Log in again any time to ask the main admin to restore it.");
+        return;
+      }
+    }
+    if (!result.ok && result.adminRestoreRequested) {
+      setLoading(false);
+      setMessage({ text: result.error, tone: 'info' });
+      return;
+    }
     if (!result.ok) {
       setLoading(false);
       if (result.field === 'identifier') {
@@ -134,12 +149,26 @@ const JoinerLogin = () => {
 
     // An archived admin can't log in until the main admin restores them.
     if (profile.role === 'archived_admin') {
+      // Asked while still signed in (Sign in with Google): send the request first.
+      const wantsRestore = !profile.admin_restore_pending_at && !profile.admin_restore_requested_at && await askAdminRestore();
+      const requestError = wantsRestore ? (await supabase.rpc('request_admin_restore')).error : null;
       await supabase.auth.signOut();
       setLoading(false);
       setChallenge(null);
-      showError(profile.admin_restore_pending_at
-        ? "This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it."
-        : "This admin account was archived, so it can't log in. Ask the main admin to restore it.");
+      if (profile.admin_restore_pending_at) {
+        showError("This admin account is waiting for email verification. Give the main admin the 6-digit code we emailed you so they can finish restoring it.");
+        return;
+      }
+      if (profile.admin_restore_requested_at) {
+        setMessage({ text: "Your request to be restored is waiting for the main admin's approval. You can log in once they approve it.", tone: 'info' });
+        return;
+      }
+      if (requestError) { showError(`Couldn't send the request: ${requestError.message}`); return; }
+      if (!wantsRestore) {
+        showError('Your admin account stays archived. Log in again any time to ask the main admin to restore it.');
+        return;
+      }
+      setMessage({ text: 'Request sent. The main admin was told; you can log in once they approve it.', tone: 'info' });
       return;
     }
 

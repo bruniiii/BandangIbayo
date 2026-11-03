@@ -31,8 +31,10 @@ const call = async (body) => {
 // { challengeId, sentTo, expiresInMinutes } instead: data.challenge holds it.
 // restore: the joiner chose to restore their archived account (asked after
 // the first try answers { archived: true, archiveReason }).
-export const loginStart = async (identifier, password, { restore = false } = {}) => {
-  const result = await call({ action: 'login', identifier, password, ...(restore ? { restore: true } : {}) });
+// requestRestore: an archived admin chose to ask the main admin to restore them
+// (asked after the first try answers { archivedAdmin: true }).
+export const loginStart = async (identifier, password, { restore = false, requestRestore = false } = {}) => {
+  const result = await call({ action: 'login', identifier, password, ...(restore ? { restore: true } : {}), ...(requestRestore ? { requestRestore: true } : {}) });
   if (!result.ok) return result;
   if (result.data?.challengeId) return { ok: true, data: { challenge: result.data } };
   const { data, error } = await supabase.auth.setSession(result.data);
