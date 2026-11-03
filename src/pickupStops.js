@@ -38,7 +38,7 @@ export const locateStops = async ({ spots = [], routePlaces = [], names = [], ro
   let minutes = [];
   if (route?.start && route?.end && located.length) {
     const res = await findRoute([route.start, ...located.map((x) => x.spot), route.end]);
-    if (res.ok) minutes = stopMinutes(res.data, located.map((x) => x.spot));
+    if (res.ok) minutes = stopMinutes(res.data, located.map((x) => x.spot), { fromFirstStop: true });
   }
   const leaves = (departure && addMinutesToTime(departure, 0)) || departureFromItinerary(itinerary);
   const info = {};

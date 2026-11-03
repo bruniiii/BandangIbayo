@@ -92,3 +92,11 @@ describe('stopMinutes', () => {
     expect(stopMinutes({ legs: [] }, [{ lat: 14, lng: 121 }])).toEqual([null]);
   });
 });
+
+describe('stopMinutes from the first stop', () => {
+  it('gives the first pickup 0 and the others the drive after it', () => {
+    const route = { legs: [{ duration_min: 21 }, { duration_min: 6 }, { duration_min: 10 }] };
+    expect(stopMinutes(route, [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }])).toEqual([21, 27]);
+    expect(stopMinutes(route, [{ lat: 0, lng: 0 }, { lat: 0, lng: 0 }], { fromFirstStop: true })).toEqual([0, 6]);
+  });
+});
