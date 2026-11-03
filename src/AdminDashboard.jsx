@@ -32,7 +32,7 @@ import PageHeader from './ui/PageHeader';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { readTab, saveTab, forgetTab } from './rememberTab';
-import { useTabHistory } from './useTabHistory';
+import { useTabHistory, tabFromUrl } from './useTabHistory';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -104,13 +104,14 @@ const SETTINGS_ITEM = { icon: <ShieldCheck size={18} strokeWidth={2} />, label: 
 // ─── Main Component ──────────────────────────────────────────────────────────
  
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState(() => readTab(TAB_KEY, [...NAV_ITEMS, SETTINGS_ITEM].map((n) => n.label), 'Overview'));
+  // The page named in the address (/admin/dashboard/<page>) opens first, else the last one this tab was on.
+  const [activeTab, setActiveTab] = useState(() => tabFromUrl(ADMIN_BASE, TAB_LABELS) || readTab(TAB_KEY, TAB_LABELS, 'Overview'));
   const me = useAdminMe();
   const navItems = me.isMain ? [...NAV_ITEMS, SETTINGS_ITEM] : NAV_ITEMS;
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   // Browser Back goes to the previous dashboard page.
-  useTabHistory(activeTab, setActiveTab, 'Overview');
+  useTabHistory(activeTab, setActiveTab, 'Overview', { base: ADMIN_BASE, labels: TAB_LABELS });
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
@@ -937,6 +938,9 @@ const AdminDashboard = () => {
  
 // Title and one-line description shown at the top of each page.
 const TAB_KEY = 'ibayo-admin-tab';
+// Each page has its own address: /admin/dashboard/tracking-management…
+const ADMIN_BASE = '/admin/dashboard';
+const TAB_LABELS = [...NAV_ITEMS, SETTINGS_ITEM].map((n) => n.label);
 
 const PAGE_INFO = {
   'Overview':            { icon: LayoutDashboard, title: 'Overview',            subtitle: "Today's bookings, payments and tours at a glance" },
