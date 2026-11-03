@@ -62,9 +62,9 @@ const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, van = null, m
   );
 };
 
-// "Change the departure time": every stop's ETA from a new departure time and
+// "Change the first pickup time": every stop's ETA from a new first pickup time and
 // the driving time saved with the tour (admins; used in Manual override).
-export const EtaAutoFill = ({ route, stops = [], onAutoFill }) => {
+export const EtaAutoFill = ({ stops = [], onAutoFill }) => {
   const [departure, setDeparture] = useState('');
   const [busy, setBusy] = useState(false);
   const timed = stops.filter((s) => s.minutes_from_start != null && Number.isFinite(Number(s.minutes_from_start)));
@@ -78,12 +78,12 @@ export const EtaAutoFill = ({ route, stops = [], onAutoFill }) => {
   };
   return (
     <div style={{ background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '0.9rem', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <p style={{ ...label, letterSpacing: '0.14em' }}><Clock size={14} /> Change the departure time</p>
+      <p style={{ ...label, letterSpacing: '0.14em' }}><Clock size={14} /> Change the first pickup time</p>
       <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
-        When does the van leave {route?.start?.name ? <strong>{route.start.name}</strong> : 'the starting point'}? Every stop's ETA is worked out again from the driving time.
+        What time is the first pickup? The first stop gets this time, and every other stop's ETA is worked out again from the driving time after it.
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input type="time" name="departure_time" value={departure} onChange={(e) => setDeparture(e.target.value)} aria-label="Departure time" style={{
+        <input type="time" name="departure_time" value={departure} onChange={(e) => setDeparture(e.target.value)} aria-label="First pickup time" style={{
           background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 10, padding: '9px 12px', fontSize: 16, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit',
         }} />
         <button type="button" onClick={fill} disabled={!departure || busy} style={{

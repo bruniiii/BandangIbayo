@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Navigation, Square, MapPin, CheckCircle2, AlertTriangle, Loader2, Smartphone } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { confirmDialog } from './ui/ConfirmDialog';
+import { to24h, addMinutesToTime } from './geo';
 
 
 // ─────────────────────────────────────────────
@@ -130,6 +131,30 @@ const DriverTrip = () => {
 
   const stops = info?.stops || [];
   const next = stops.find((s) => s.status !== 'ARRIVED');
+
+  // Live times, like the joiners see: the next stop = now + the driving time
+  // the server worked out from the van's location; each later stop keeps its
+  // gap after the next one (from the saved times). Before the trip starts (or
+  // with no location yet), the saved times show.
+  const minsOf = (t) => { const v = to24h(t || ''); if (!v) return null; const [h, m] = v.split(':').map(Number); return h * 60 + m; };
+  const liveTimes = {};
+  if (sharing && last && next && Number.isFinite(Number(status?.minutes))) {
+    const nowManila = new Date(last.at.getTime() + 8 * 3600000);
+    const nowMin = nowManila.getUTCHours() * 60 + nowManila.getUTCMinutes();
+    const nextIdx = stops.indexOf(next);
+    const base = minsOf(next.scheduled_time);
+    stops.slice(nextIdx).forEach((st, k) => {
+      if (st.status === 'ARRIVED') return;
+      let add = Number(status.minutes);
+      if (k > 0) {
+        const m = minsOf(st.scheduled_time);
+        if (m == null || base == null) return;
+        add += ((m - base) + 1440) % 1440; // (past midnight too)
+      }
+      const at = (nowMin + add) % 1440;
+      liveTimes[nextIdx + k] = addMinutesToTime(`${Math.floor(at / 60)}:${String(at % 60).padStart(2, '0')}`, 0);
+    });
+  }
   const page = { minHeight: '100dvh', background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", padding: 'calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))', boxSizing: 'border-box' };
 
   if (error) {
@@ -163,7 +188,7 @@ const DriverTrip = () => {
           {sharing && next && (
             <p style={{ margin: 0, fontSize: 18, fontWeight: 900, lineHeight: 1.3 }}>
               Next stop: {next.name}
-              {status?.km != null && <span style={{ display: 'block', fontSize: 13, fontWeight: 700, opacity: 0.9 }}>About {status.km} km · {status.minutes} min</span>}
+              {status?.km != null && <span style={{ display: 'block', fontSize: 13, fontWeight: 700, opacity: 0.9 }}>About {Number(status.km) < 1 ? `${Math.round(Number(status.km) * 1000)} m` : `${Number(status.km).toFixed(1)} km`} · {status.minutes} min{liveTimes[stops.indexOf(next)] ? ` · ≈ ${liveTimes[stops.indexOf(next)]}` : ''}</span>}
             </p>
           )}
           {sharing && !next && <p style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>All pickup stops done. Tap End Trip when everyone has arrived.</p>}
@@ -203,7 +228,9 @@ const DriverTrip = () => {
               <li key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.status === 'ARRIVED' ? 'rgba(31,107,74,0.1)' : '#FFF', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 12, padding: '10px 12px' }}>
                 {s.status === 'ARRIVED' ? <CheckCircle2 size={18} color="#1F6B4A" /> : <MapPin size={18} color="#B4511E" />}
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{i + 1}. {s.name}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18' }}>{s.status === 'ARRIVED' ? 'Arrived' : s.scheduled_time || ''}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: liveTimes[i] ? '#1F6B4A' : '#7A3A18', textAlign: 'right' }}>
+                  {s.status === 'ARRIVED' ? 'Arrived' : liveTimes[i] ? <>≈ {liveTimes[i]}<span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: '#7A3A18' }}>live</span></> : s.scheduled_time || ''}
+                </span>
               </li>
             ))}
           </ul>

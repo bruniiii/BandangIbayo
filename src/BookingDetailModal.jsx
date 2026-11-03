@@ -69,6 +69,11 @@ const WeatherRefundBox = ({ booking, onSent }) => {
       <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00' }}>
         {formatPeso(booking.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>(50% of the {formatPeso(booking.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
       </p>
+      {booking.weather_refund_status === 'Refunding' && !sent && (
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#8C5216', lineHeight: 1.5 }}>
+          Being sent through PayMongo. If it still says this after 10 minutes, tap Refund through PayMongo again: anything already refunded is counted, so it's never sent twice.
+        </p>
+      )}
       {sent ? (
         <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>
           Sent{booking.weather_refund_ref ? ` · reference ${booking.weather_refund_ref}` : ''}. The joiner was told.

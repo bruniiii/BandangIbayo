@@ -24,7 +24,7 @@ const WeatherRefunds = () => {
     // names and numbers are read separately: asking for both at once failed.)
     const { data, error } = await supabase.from('bookings')
       .select('id, user_id, booking_number, full_name, gcash_number, amount_paid, weather_refund, weather_refund_status, paymongo_payment_id, tours ( title, start_date, end_date )')
-      .eq('weather_refund_status', 'Due').order('created_at', { ascending: true });
+      .in('weather_refund_status', ['Due', 'Refunding']).order('created_at', { ascending: true });
     if (error || !data?.length) { setRows([]); return; }
     const ids = [...new Set(data.map((b) => b.user_id).filter(Boolean))];
     const { data: people } = ids.length
@@ -88,6 +88,11 @@ const WeatherRefunds = () => {
                 </p>
               </div>
               <strong style={{ fontSize: 14, color: '#1A0A00', whiteSpace: 'nowrap' }}>{formatPeso(b.weather_refund)}</strong>
+              {b.weather_refund_status === 'Refunding' && (
+                <span style={{ flexBasis: '100%', fontSize: 11.5, fontWeight: 700, color: '#8C5216' }}>
+                  Being sent through PayMongo. If it still says this after 10 minutes, tap Refund via PayMongo again: anything already refunded is counted, so it's never sent twice.
+                </span>
+              )}
               <input aria-label={`GCash reference for ${b.booking_number}`} placeholder="GCash ref (optional)" value={refs[b.id] || ''} maxLength={40}
                 onChange={(e) => setRefs((r) => ({ ...r, [b.id]: e.target.value }))}
                 style={{ flex: '1 1 150px', minWidth: 0, background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
