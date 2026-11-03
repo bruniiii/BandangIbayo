@@ -15,6 +15,9 @@ import BrandAvatar from './ui/BrandAvatar';
 import { usePopupError } from './ui/usePopupError';
 import NiceSelect from './ui/NiceSelect';
 
+// The main admin can add up to 2 other admins (supabase/functions/auth: MAX_OTHER_ADMINS).
+const MAX_OTHER_ADMINS = 2;
+
 // ─────────────────────────────────────────────
 // ADMIN SETTINGS (main admin only): the list of admins, adding an admin (a new
 // account), archiving one (they can't log in, nothing is deleted) and
@@ -162,6 +165,9 @@ const AdminSettings = () => {
     setRestoreCode('');
     load();
   };
+  // The main admin + at most MAX_OTHER_ADMINS other admins (the server checks it too).
+  const others = (admins || []).filter((a) => !a.is_main_admin).length;
+  const full = others >= MAX_OTHER_ADMINS;
   const pendingAdmins = archived.filter((a) => a.pending);
   const archivedOnly = archived.filter((a) => !a.pending);
 
@@ -228,10 +234,12 @@ const AdminSettings = () => {
             <h3 style={cardTitle}><ShieldCheck size={16} style={{ color: '#A8481A' }} /> Admins
               {admins && <span style={{ marginLeft: 4, padding: '1px 9px', borderRadius: 999, background: '#F2E4D0', fontSize: 11.5, fontWeight: 900, color: '#A8481A' }}>{admins.length}</span>}
             </h3>
-            <p style={{ ...cardHint, margin: '4px 0 0' }}>Every admin can do everything on the dashboard. Only the main admin can add, archive or restore admins.</p>
+            <p style={{ ...cardHint, margin: '4px 0 0' }}>Every admin can do everything on the dashboard. Only the main admin can add, archive or restore admins, up to {MAX_OTHER_ADMINS} other admins{admins ? ` (${others} of ${MAX_OTHER_ADMINS} used)` : ''}.</p>
+            {full && <p style={{ ...cardHint, margin: '4px 0 0', color: '#8C2F1C', fontWeight: 800 }}>That's the limit. Archive an admin first to add or restore another.</p>}
           </div>
-          <button type="button" onClick={() => { setAdding(true); setError(''); }} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, border: 'none', cursor: 'pointer',
+          <button type="button" onClick={() => { setAdding(true); setError(''); }} disabled={full}
+            title={full ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, border: 'none', cursor: full ? 'not-allowed' : 'pointer', opacity: full ? 0.5 : 1,
             background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
             boxShadow: '0 6px 18px rgba(180,81,30,0.3)',
           }}><Plus size={15} /> Add Admin</button>
@@ -323,8 +331,9 @@ const AdminSettings = () => {
                     {a.email && a.email !== a.name && <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.email}</p>}
                   </div>
                   <span style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', minWidth: 120 }}>Archived {formatDate(a.archived_at)}</span>
-                  <button type="button" disabled={restoreBusy} onClick={() => sendRestoreCode(a)} aria-label={`Restore ${a.name}`} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: 'pointer',
+                  <button type="button" disabled={restoreBusy || (full && !a.archived_was_main)} onClick={() => sendRestoreCode(a)} aria-label={`Restore ${a.name}`}
+                    title={full && !a.archived_was_main ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: full && !a.archived_was_main ? 'not-allowed' : 'pointer', opacity: full && !a.archived_was_main ? 0.5 : 1,
                     background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
                   }}><ArchiveRestore size={14} /> Restore</button>
                 </li>

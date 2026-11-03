@@ -82,6 +82,8 @@ const labelStyle = {
   color: '#1A0A00',
   marginBottom: 6,
   display: 'block',
+  // One line, so every box in a row lines up.
+  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
 };
 
 // Requests need time to plan: the earliest trip date is 3 weeks from today.
@@ -486,12 +488,12 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         {sectionTitle(2, isExclusive ? 'Trip Details' : 'Destination & Tour Details')}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
           <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} required />
-          <InputField name="groupSize" label={isExclusive ? 'Number of Participants' : `Number of Participants (up to ${MAX_TOUR_SLOTS})`} type="number" min="1" max={maxGroupFor(type)} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
+          <InputField name="groupSize" label={isExclusive ? 'Participants' : `Participants (max ${MAX_TOUR_SLOTS})`} type="number" min="1" max={maxGroupFor(type)} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
           <TripDatesFields form={form} setForm={setForm} />
           {isExclusive && (
             <InputField
               name="budget"
-              label="Budget for Exclusive Tour"
+              label="Your Budget"
               {...moneyField(form.budget, (v) => {
                 // Stop typing past the limit instead of failing later.
                 if (Number(v) > MAX_EXCLUSIVE_BUDGET) return;

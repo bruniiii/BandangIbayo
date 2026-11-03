@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatYmdRange, addDaysYmd } from '../dateRange';
 
 // A calendar for picking trip dates: tap the first day, then the last day.
@@ -62,14 +62,19 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
         aria-haspopup="dialog"
         aria-expanded={open}
         style={{
-          ...style, width: '100%', textAlign: 'left', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+          ...style, width: '100%', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box',
+          display: 'flex', alignItems: 'center', gap: 10, paddingTop: 6, paddingBottom: 6, paddingLeft: 8,
           color: start ? '#1A0A00' : 'rgba(122,58,24,0.75)',
           border: `1px solid ${open ? '#B4511E' : 'rgba(180,81,30,0.18)'}`,
+          boxShadow: open ? '0 0 0 3px rgba(180,81,30,0.14)' : 'none',
         }}
       >
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-        <Calendar size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
+        {/* Same look as the site's other date boxes (NiceDate). */}
+        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: start ? '#B4511E' : 'rgba(180,81,30,0.1)', color: start ? '#FDF6EE' : '#A8481A' }}>
+          <Calendar size={14} />
+        </span>
+        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+        <ChevronDown size={16} style={{ color: '#A8481A', flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
 
       {open && (
