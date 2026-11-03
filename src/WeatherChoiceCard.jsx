@@ -6,6 +6,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { formatYmdRange } from './dateRange';
 import { formatPeso, todayManila, withAvailableSlots } from './tourUtils';
 import { openGroupChat } from './chatStore';
+import { weatherRefundStatus } from './payments';
 import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
@@ -24,6 +25,26 @@ const btn = (bg, fg, border = 'none') => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 16px', borderRadius: 12, border,
   background: bg, color: fg, fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
 });
+
+// Where a refund sent through PayMongo is now, asked from PayMongo each time
+// My Bookings opens: on its way, received (with the date), or failed (then
+// Bandang IBAYO is told and sends it again).
+const RefundStatus = ({ bookingId }) => {
+  const [state, setState] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    weatherRefundStatus({ bookingId }).then((res) => { if (alive) setState(res.ok ? res.data : { status: 'unknown' }); });
+    return () => { alive = false; };
+  }, [bookingId]);
+  const day = state?.at ? new Date(state.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' }) : '';
+  const line = !state ? { c: '#7A3A18', t: 'Checking where your refund is…' }
+    : state.status === 'succeeded' ? { c: '#1F6B4A', t: `✓ Received: PayMongo finished sending it to your GCash, Maya or card${day ? ` on ${day}` : ''}. Check your account's history for the credit.` }
+      : state.status === 'pending' ? { c: '#8C5216', t: 'On its way: PayMongo is still sending it. It usually reaches GCash or Maya in 1 to 5 days (cards can take longer).' }
+        : state.status === 'failed' ? { c: '#8C2F1C', t: "The refund didn't go through at PayMongo. Bandang IBAYO has been told and will send it again. You don't need to do anything." }
+          : null;
+  if (!line) return null;
+  return <p role="status" style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: line.c, lineHeight: 1.5, background: 'rgba(253,246,238,0.6)', borderRadius: 10, padding: '8px 10px' }}>{line.t}</p>;
+};
 
 const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
   const [dates, setDates] = useState(null);
@@ -99,6 +120,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
         {title} ({booking.booking_number}): {formatPeso(booking.weather_refund)} {sent ? 'was sent to you' : 'will be sent to your GCash'}.
       </p>
       {sent && booking.weather_refund_ref && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>Reference: {booking.weather_refund_ref}</p>}
+      {sent && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <RefundStatus bookingId={booking.id} />}
     </>, sent ? '#1F6B4A' : '#E8A265');
   }
 

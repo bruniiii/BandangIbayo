@@ -27,6 +27,9 @@
 //   - "weather-refund"   { bookingId }   sends that 50% back through PayMongo to the
 //        joiner's own payment (GCash, Maya, card…), from the booking's downpayment
 //        first and then its balance payment, marks it Sent and tells the joiner.
+//   - "refund-status"    { bookingId }   (the joiner who booked, or an admin) asks PayMongo
+//        where that refund is: "pending" | "succeeded" | "failed". A failed refund goes
+//        back to "to send" and the admins are told (once).
 //
 // PayMongo webhook (header Paymongo-Signature): checkout_session.payment.paid.
 //   Payment state is never taken from the request body: the session is always re-fetched
@@ -669,7 +672,10 @@ async function weatherRefund(userId: string, payload: any) {
     for (const paymentId of payments) {
       const pay = await paymongo("GET", `/payments/${paymentId}`);
       const paid = Number(pay?.data?.attributes?.amount) || 0;
-      const already = (pay?.data?.attributes?.refunds ?? []).reduce((sum: number, r: any) => sum + (Number(r?.attributes?.amount ?? r?.amount) || 0), 0);
+      // (Failed refunds didn't send anything, so they don't count.)
+      const already = (pay?.data?.attributes?.refunds ?? [])
+        .filter((r: any) => String(r?.attributes?.status ?? r?.status ?? "") !== "failed")
+        .reduce((sum: number, r: any) => sum + (Number(r?.attributes?.amount ?? r?.amount) || 0), 0);
       info.push({ id: paymentId, paid, already });
     }
   } catch (err) { await release(); throw err; }
@@ -716,6 +722,53 @@ async function weatherRefund(userId: string, payload: any) {
   return { status: left > 0 ? "partial" : "sent", refunded: sentPesos, left: left / 100, refunds };
 }
 
+// ───────────── Refund status (joiner or admin) ─────────────
+// Where a weather refund sent through PayMongo is now. The PayMongo refund ids
+// are in weather_refund_ref ("PayMongo ref_…, ref_…").
+async function refundStatus(userId: string, payload: any) {
+  const bookingId = payload.bookingId;
+  if (!bookingId) throw new HttpError(400, "Which booking?");
+  const { data: b } = await supabase.from("bookings")
+    .select("id, user_id, booking_number, weather_refund, weather_refund_status, weather_refund_ref")
+    .eq("id", bookingId).maybeSingle();
+  if (!b) throw new HttpError(404, "Booking not found.");
+  if (b.user_id !== userId) {
+    const { data: me } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+    if (me?.role !== "admin") throw new HttpError(403, "This isn't your booking.");
+  }
+  const ids = String(b.weather_refund_ref ?? "").match(/ref_[A-Za-z0-9]+/g) ?? [];
+  if (!ids.length) return { status: "manual" }; // sent by GCash by hand: nothing to ask PayMongo
+
+  const found = [];
+  for (const id of ids) {
+    const r = await paymongo("GET", `/refunds/${id}`);
+    const a = r?.data?.attributes ?? {};
+    found.push({ id, status: String(a.status ?? "pending"), amount: (Number(a.amount) || 0) / 100, updated_at: a.updated_at ?? null });
+  }
+  const failed = found.some((r) => r.status === "failed");
+  const done = found.every((r) => r.status === "succeeded");
+  const status = failed ? "failed" : done ? "succeeded" : "pending";
+  // Seconds since 1970 (PayMongo) → a date the website can show.
+  const last = found.map((r) => Number(r.updated_at) || 0).reduce((m, x) => Math.max(m, x), 0);
+  const at = last ? new Date(last * 1000).toISOString() : null;
+
+  // A failed refund: back to "to send" so it shows in Weather refunds to send, and the admins are told once.
+  if (failed && b.weather_refund_status === "Sent") {
+    await supabase.from("bookings").update({
+      weather_refund_status: "Due", weather_refund_ref: `${b.weather_refund_ref} · FAILED at PayMongo, send again`,
+    }).eq("id", b.id).eq("weather_refund_status", "Sent");
+    const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
+    if (admins?.length) {
+      await supabase.from("notifications").insert(admins.map((x: any) => ({
+        user_id: x.id, type: "booking", related_id: null,
+        title: "A refund didn't go through ⚠️",
+        message: `PayMongo couldn't send the 50% refund for ${b.booking_number}. It's back in Weather refunds to send in Booking Management: send it again (PayMongo or GCash).`,
+      })));
+    }
+  }
+  return { status, at, refunds: found };
+}
+
 // ───────────── Request handler ─────────────
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -740,6 +793,7 @@ Deno.serve(async (req) => {
       case "pay-exclusive": return reply(await payExclusive(userId, payload));
       case "verify-exclusive": return reply(await verifyExclusive(userId, payload));
       case "weather-refund": return reply(await weatherRefund(userId, payload));
+      case "refund-status": return reply(await refundStatus(userId, payload));
       default: return reply({ error: "Unknown action" }, 400);
     }
   } catch (err) {

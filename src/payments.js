@@ -66,3 +66,7 @@ export const verifyExclusivePayment = ({ requestId }) => callPayments('verify-ex
 // Admins: send a weather cancellation's 50% refund back through PayMongo
 // (to the joiner's own GCash / Maya / card payment). { ok, data: { status, refunded, left } }
 export const refundWeatherThroughPaymongo = ({ bookingId }) => callPayments('weather-refund', { bookingId });
+
+// Where a weather refund sent through PayMongo is now (the joiner who booked,
+// or an admin): { status: 'pending' | 'succeeded' | 'failed' | 'manual', at }
+export const weatherRefundStatus = ({ bookingId }) => callPayments('refund-status', { bookingId });

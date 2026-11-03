@@ -13,7 +13,7 @@ import { SkeletonLines } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
 import { StatusBadge, BalanceStatusBadge, PaymentMethodBadge } from './BookingBadges';
 import { owesBalance } from './bookingStatus';
-import { refundWeatherThroughPaymongo } from './payments';
+import { refundWeatherThroughPaymongo, weatherRefundStatus } from './payments';
 
 // ─────────────────────────────────────────────
 // BOOKING DETAILS window (Booking Management → View Info): the joiner,
@@ -22,6 +22,23 @@ import { refundWeatherThroughPaymongo } from './payments';
 
 // A weather cancellation's 50% refund: how much, to which GCash, and a
 // "Mark refund as sent" button (with the GCash reference) once it's sent.
+// The admin's view of the same PayMongo check (a failed one goes back to "to send").
+const AdminRefundStatus = ({ bookingId }) => {
+  const [state, setState] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    weatherRefundStatus({ bookingId }).then((res) => { if (alive) setState(res.ok ? res.data : { status: 'unknown', error: res.error }); });
+    return () => { alive = false; };
+  }, [bookingId]);
+  const text = !state ? 'Checking with PayMongo…'
+    : state.status === 'succeeded' ? `PayMongo: received by the joiner${state.at ? ` (${new Date(state.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Asia/Manila' })})` : ''}.`
+      : state.status === 'pending' ? 'PayMongo: still being sent (usually 1 to 5 days).'
+        : state.status === 'failed' ? 'PayMongo: the refund FAILED. It was moved back to Weather refunds to send; send it again.'
+          : state.status === 'manual' ? '' : `Couldn't check with PayMongo${state.error ? `: ${state.error}` : ''}.`;
+  if (!text) return null;
+  return <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: state?.status === 'failed' ? '#8C2F1C' : state?.status === 'succeeded' ? '#1F6B4A' : '#8C5216' }}>{text}</p>;
+};
+
 const WeatherRefundBox = ({ booking, onSent }) => {
   const [ref, setRef] = useState('');
   const [busy, setBusy] = useState(false);
@@ -78,7 +95,9 @@ const WeatherRefundBox = ({ booking, onSent }) => {
         <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>
           Sent{booking.weather_refund_ref ? ` · reference ${booking.weather_refund_ref}` : ''}. The joiner was told.
         </p>
-      ) : (
+      ) : null}
+      {sent && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <AdminRefundStatus bookingId={booking.id} />}
+      {sent ? null : (
         <>
           {viaPaymongo && (
             <>

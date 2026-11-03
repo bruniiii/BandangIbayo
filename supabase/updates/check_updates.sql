@@ -84,5 +84,9 @@ from (values
      exists (select 1 from information_schema.columns
               where table_schema = 'public' and table_name = 'tour_meetups' and column_name = 'arrive_hits')),
   ('20261206 old places-along-the-road list removed',
-     to_regclass('public.route_place_cache') is null)
+     to_regclass('public.route_place_cache') is null),
+  ('20261207 pickup points in driving order',
+     coalesce((select pg_get_functiondef(p.oid) ilike '%route_order%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'tour_pickup_points' limit 1), false))
 ) as u(update_file, installed);
