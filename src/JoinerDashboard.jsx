@@ -32,7 +32,7 @@ import { profileIsComplete } from './googleAuth';
 import MenuEdgeTab from './ui/MenuEdgeTab';
 import InstallAppCard from './ui/InstallAppCard';
 import { readTab, saveTab, forgetTab } from './rememberTab';
-import { useTabHistory } from './useTabHistory';
+import { useTabHistory, tabFromUrl } from './useTabHistory';
 import { Skel } from './ui/Skeleton';
 import { PulseStat, NextTripCard, TripReadinessCard, CalendarWidget, TrackingSnippet, MyRequestsCard, HomeReviews } from './HomeWidgets';
 import { reportError } from './ui/toast';
@@ -66,6 +66,9 @@ const NAV_ITEMS = [
 
 // Title and one-line description shown at the top of each page.
 const TAB_KEY = 'ibayo-joiner-tab';
+// Each page has its own address: /dashboard/messages, /dashboard/my-bookings…
+const JOINER_BASE = '/dashboard';
+const JOINER_TABS = NAV_ITEMS.map((n) => n.label);
 
 const PAGE_INFO = {
   'HomePage':         { icon: Home,         title: 'Homepage',         subtitle: 'Your trips, new tours and reviews at a glance' },
@@ -100,11 +103,11 @@ const JoinerDashboard = () => {
   const [exclusiveStart, setExclusiveStart] = useState(null); // { form, date } from the calendar
   const [myBookingsKey, setMyBookingsKey] = useState(0);
   const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Exclusive Tours' : bookTourId ? 'Explore Tours'
-    : readTab(TAB_KEY, NAV_ITEMS.map((n) => n.label), 'HomePage')));
+    : tabFromUrl(JOINER_BASE, JOINER_TABS) || readTab(TAB_KEY, JOINER_TABS, 'HomePage')));
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   // Browser Back goes to the previous dashboard page.
-  useTabHistory(activeTab, setActiveTab, 'HomePage');
+  useTabHistory(activeTab, setActiveTab, 'HomePage', { base: JOINER_BASE, labels: JOINER_TABS });
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 900 : false
