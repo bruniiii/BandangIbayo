@@ -971,7 +971,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       background: active ? '#B4511E' : 'transparent',
       color: active ? '#FDF6EE' : 'rgba(232,210,190,0.85)',
       fontWeight: active ? 900 : 600,
-      transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
+      transform: active && !collapsed ? 'translateX(2px)' : 'translateX(0)',
       boxShadow: active ? '0 6px 20px rgba(180,81,30,0.35)' : 'none',
       transition: 'all 0.2s',
       textAlign: 'left',
@@ -988,7 +988,9 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       )}
     </span>
     {!collapsed && (
-      <span style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      // (Bold text is wider: a little less letter spacing keeps the longest
+      // label, "Tracking Management", inside the highlight.)
+      <span style={{ fontSize: 12, letterSpacing: active ? '0.07em' : '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {label}
       </span>
     )}
