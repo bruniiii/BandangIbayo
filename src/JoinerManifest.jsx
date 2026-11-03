@@ -54,7 +54,7 @@ const JoinerListModal = ({ tour, onClose }) => {
           .eq('tour_id', tour.id)
           .not('booking_status', 'in', '("Cancelled","Rejected")')
           .order('created_at', { ascending: true }),
-        supabase.from('tour_meetups').select('location_name, scheduled_time, note').eq('tour_id', tour.id).order('created_at', { ascending: true }),
+        supabase.from('tour_meetups').select('location_name, scheduled_time, note, route_order, created_at').eq('tour_id', tour.id).order('route_order', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true }),
         supabase.from('tour_vehicles').select('car_type, plate_number, driver_name, driver_contact').eq('tour_id', tour.id).maybeSingle(),
       ]);
       if (error) reportError("Couldn't load joiner list", error.message);

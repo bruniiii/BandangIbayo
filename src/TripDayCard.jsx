@@ -4,6 +4,7 @@ import { formatDateRange, formatPeso, todayManila } from './tourUtils';
 import CheckInQr from './ui/CheckInQr';
 import { Skel } from './ui/Skeleton';
 import { daysBetween } from './tripDay';
+import { sortStops } from './geo';
 import PackingChecklist from './ui/PackingChecklist';
 import { MapPin, Clock, Bus, Phone, Backpack, Wallet, ExternalLink, AlertCircle } from 'lucide-react';
 
@@ -50,7 +51,8 @@ const TripDayCard = ({ booking }) => {
         supabase.from('tour_meetups').select('*').eq('tour_id', booking.tour_id).order('created_at', { ascending: true }),
         supabase.from('tour_vehicles').select('*').eq('tour_id', booking.tour_id).maybeSingle(),
       ]);
-      if (!cancelled) setDetails({ stops: stops || [], vehicle: vehicle || null });
+      // In the order the van reaches them (like the driver's page).
+      if (!cancelled) setDetails({ stops: sortStops(stops || []), vehicle: vehicle || null });
     })();
     return () => { cancelled = true; };
   }, [booking.tour_id]);
