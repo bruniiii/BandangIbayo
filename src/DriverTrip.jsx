@@ -155,11 +155,12 @@ const DriverTrip = () => {
       liveTimes[nextIdx + k] = addMinutesToTime(`${Math.floor(at / 60)}:${String(at % 60).padStart(2, '0')}`, 0);
     });
   }
-  const page = { minHeight: '100dvh', background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", padding: 'calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))', boxSizing: 'border-box' };
+  // The same blurred nature photo as the rest of the site (.nature-bg in index.css).
+  const page = { minHeight: '100dvh', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", padding: 'calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))', boxSizing: 'border-box' };
 
   if (error) {
     return (
-      <div style={{ ...page, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <div className="nature-bg" style={{ ...page, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <div style={{ maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <AlertTriangle size={40} color="#8C2F1C" />
           <h1 style={{ fontSize: 20, color: '#1A0A00', margin: 0 }}>This link can't be used now</h1>
@@ -169,11 +170,11 @@ const DriverTrip = () => {
     );
   }
   if (!info) {
-    return <div style={{ ...page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={30} color="#B4511E" style={{ animation: 'spin 1s linear infinite' }} /></div>;
+    return <div className="nature-bg" style={{ ...page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={30} color="#B4511E" style={{ animation: 'spin 1s linear infinite' }} /></div>;
   }
 
   return (
-    <div style={page}>
+    <div className="nature-bg" style={page}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Bandang IBAYO · Driver</p>
