@@ -426,7 +426,8 @@ const AdminDashboard = () => {
         onMouseEnter={() => { if (!isMobile) setSidebarHovered(true); }}
         onMouseLeave={() => { if (!isMobile) setSidebarHovered(false); }}
         style={{
-          width: sidebarExpanded ? 268 : 84,
+          // Wide enough for the longest menu label ("Tracking Management") in full.
+          width: sidebarExpanded ? 296 : 84,
           flexShrink: 0,
           background: '#1A0A00',
           display: 'flex',
@@ -990,7 +991,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
     {!collapsed && (
       // (Bold text is wider: a little less letter spacing keeps the longest
       // label, "Tracking Management", inside the highlight.)
-      <span style={{ fontSize: 12, letterSpacing: active ? '0.07em' : '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+      <span style={{ fontSize: 12, letterSpacing: active ? '0.08em' : '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {label}
       </span>
     )}
