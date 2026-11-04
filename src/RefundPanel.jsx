@@ -216,7 +216,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {canPaymongo && (
         <div role="radiogroup" aria-label="How to send the refund" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {[['paymongo', 'PayMongo (recommended)'], ['gcash', 'GCash by hand']].map(([k, label]) => (
+          {[['paymongo', 'PayMongo (recommended)'], ['gcash', 'Manual through GCash']].map(([k, label]) => (
             <button key={k} type="button" role="radio" aria-checked={method === k} onClick={() => setMethod(k)} style={{
               ...smallBtn(method === k ? '#1A0A00' : 'transparent', method === k ? '#E8A265' : '#7A3A18', `1px solid ${method === k ? '#1A0A00' : 'rgba(180,81,30,0.3)'}`), padding: '8px 12px',
             }}>{label}</button>
