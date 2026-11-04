@@ -1,3 +1,4 @@
+import { saveNewPickupSpots } from './pickupStops';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRequiredFilled } from './ui/useRequiredFilled';
 import { supabase, currentUser } from './supabaseClient';
@@ -463,12 +464,10 @@ const TourManagement = ({ openTourId = null }) => {
       if (spotsInfo.available) {
         // Places ticked from the map's list become saved pickup spots (with their location).
         let allSpots = spotsInfo.spots;
-        const newSpots = routePlaces.filter((pl) => pickups.some((r) => r.location.toLowerCase() === pl.name.toLowerCase())
-          && !allSpots.some((sp) => sp.name.trim().toLowerCase() === pl.name.toLowerCase()));
+        // (A name already in Pickup Spots is skipped, not an error.)
+        const picked = routePlaces.filter((pl) => pickups.some((r) => r.location.trim().toLowerCase() === pl.name.trim().toLowerCase()));
+        const newSpots = await saveNewPickupSpots(picked, allSpots);
         if (newSpots.length) {
-          const { error: spotError } = await supabase.from('pickup_spots')
-            .insert(newSpots.map((pl) => ({ name: pl.name, address: pl.address || null, lat: pl.lat, lng: pl.lng })));
-          if (spotError) toast.error("Some pickup points weren't saved to Pickup Spots", spotError.message);
           // Their locations are known from the map's list either way.
           allSpots = [...allSpots, ...newSpots];
           refreshSpots();

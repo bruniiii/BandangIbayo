@@ -19,17 +19,30 @@ import { placeOnRoute, departureFromItinerary, addMinutesToTime, stopMinutes } f
 // ─────────────────────────────────────────────
 
 const same = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+const key = (n) => String(n || '').trim().toLowerCase();
+
+// Saves places picked from the map as Pickup Spots. A name that's already
+// saved (any capitals or spaces) is skipped instead of failing the save:
+// Pickup Spots allows each name once. Returns the places that were new.
+export const saveNewPickupSpots = async (places, existing = []) => {
+  const seen = new Set(existing.map((sp) => key(sp.name)));
+  const fresh = [];
+  places.forEach((pl) => { const k = key(pl.name); if (k && !seen.has(k)) { seen.add(k); fresh.push(pl); } });
+  for (const pl of fresh) {
+    const { error } = await supabase.from('pickup_spots')
+      .insert({ name: String(pl.name).trim(), address: pl.address || null, lat: pl.lat, lng: pl.lng });
+    // 23505 = already saved (e.g. by another admin a moment ago): nothing to do.
+    if (error && error.code !== '23505') console.warn('Pickup spot not saved:', error.message);
+  }
+  return fresh;
+};
 
 export const locateStops = async ({ spots = [], routePlaces = [], names = [], route = null, departure = '', itinerary = '' }) => {
   let allSpots = spots;
-  const newSpots = routePlaces.filter((pl) => names.some((n) => same(n, pl.name)) && !allSpots.some((sp) => same(sp.name, pl.name)));
-  if (newSpots.length) {
-    const { error } = await supabase.from('pickup_spots')
-      .insert(newSpots.map((pl) => ({ name: pl.name, address: pl.address || null, lat: pl.lat, lng: pl.lng })));
-    if (error) console.warn('Pickup spots not saved:', error.message);
-    // Their locations are known from the map either way.
-    allSpots = [...allSpots, ...newSpots];
-  }
+  const picked = routePlaces.filter((pl) => names.some((n) => same(n, pl.name)));
+  const newSpots = await saveNewPickupSpots(picked, allSpots);
+  // Their locations are known from the map either way.
+  if (newSpots.length) allSpots = [...allSpots, ...newSpots];
   const spotOf = (n) => allSpots.find((sp) => same(sp.name, n) && Number.isFinite(Number(sp.lat)) && sp.lat !== null);
   const located = names.map((name) => ({ name, spot: spotOf(name) })).filter((x) => x.spot);
   if (route?.coords) {
