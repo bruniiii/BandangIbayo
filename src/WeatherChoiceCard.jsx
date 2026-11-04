@@ -263,8 +263,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
   return shell(<>
     {heading('Tour postponed · please choose')}
     <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.4 }}>
-      {title} moved to {formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)}
-      {weather?.weather_old_start ? ` (was ${formatYmdRange(weather.weather_old_start, weather.weather_old_end)})` : ''}{why ? ` because of ${why}` : ''}.
+      {title} was moved{weather?.weather_old_start ? ` from ${formatYmdRange(weather.weather_old_start, weather.weather_old_end)}` : ''} to {formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)}{why ? ` because of ${why}` : ''}.
     </p>
     <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#8C2F1C' }}>
       Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the 50% refund.
