@@ -89,11 +89,12 @@ const RefundConfirm = ({ booking, onChanged }) => {
   );
 };
 
-const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
+// defaultOpen: a refund starts opened (My Refunds with just one refund).
+const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false }) => {
   const [dates, setDates] = useState(null);
   const [pick, setPick] = useState('');
   const [busy, setBusy] = useState('');
-  const [refundOpen, setRefundOpen] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(defaultOpen);
   const choice = booking.weather_choice;
   const open = choice === 'pending' && booking.weather_deadline && new Date(booking.weather_deadline) > new Date();
   const cancelled = weather?.weather_status === 'cancelled';
