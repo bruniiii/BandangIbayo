@@ -102,5 +102,9 @@ from (values
   ('20261211 bad weather: new dates start after the last day',
      coalesce((select pg_get_functiondef(p.oid) ilike '%must start after%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'weather_postpone' limit 1), false)),
+  ('20261212 postponed notices say the old dates',
+     coalesce((select pg_get_functiondef(p.oid) ilike '%is moved from%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                 where n.nspname = 'public' and p.proname = 'weather_postpone' limit 1), false))
 ) as u(update_file, installed);

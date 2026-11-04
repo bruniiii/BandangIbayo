@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CloudRain, X, Loader2, CalendarClock, Ban } from 'lucide-react';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { formatYmdRange, addDaysYmd } from './dateRange';
@@ -74,7 +74,18 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         /weather_(cancel|postpone)|function .* does not exist/i.test(error.message) ? 'Install the 20261204 database update first (install_updates.sql).' : error.message);
       return;
     }
-    toast.success(isCancel ? 'Date cancelled' : 'Date postponed', 'The joiners were notified and the group chat has a pinned notice.');
+    // Everyone sees it on the Feed (posted as Bandang IBAYO), not only the booked joiners.
+    const user = await currentUser();
+    const old = formatYmdRange(date.start_date, date.end_date);
+    const { error: feedError } = await supabase.from('feed_posts').insert([{
+      author_id: user?.id || null,
+      post_type: 'post',
+      content: isCancel
+        ? `⛈️ CANCELLED: ${date.title} on ${old} is cancelled because of ${why}. Stay safe, everyone! Booked joiners: please check My Bookings to move to another date or get a 50% refund.`
+        : `⛈️ POSTPONED: ${date.title} is moved from ${old} to ${formatYmdRange(start, end)} because of ${why}. Stay safe, everyone! Booked joiners: please check My Bookings to keep your slot, move to another date or get a 50% refund.`,
+    }]);
+    if (feedError) toast.error("It wasn't posted to the Feed", feedError.message);
+    toast.success(isCancel ? 'Date cancelled' : 'Date postponed', `The joiners were notified, the group chat has a pinned notice${feedError ? '' : ', and it was posted on the Feed'}.`);
     onDone?.();
     onClose();
   };
@@ -141,8 +152,8 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
 
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#3F5D62', background: 'rgba(63,93,98,0.08)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
           {action === 'cancel'
-            ? 'Joiners get a notice, and a pinned 📢 message goes into the group chat. They have 48 hours to move to another date of this tour (and its group chat) or take a 50% refund; no choice = 50% refund. The chat stays open 7 days for questions. Refunds to send show in Booking Management.'
-            : 'Joiners get a notice, and a pinned 📢 message goes into the group chat. They have 48 hours to keep their slot on the new date (payment and pickup point carry over), move to another date of this tour or take a 50% refund; no choice = 50% refund.'}
+            ? 'Joiners get a notice, a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have 48 hours to move to another date of this tour (and its group chat) or take a 50% refund; no choice = 50% refund. The chat stays open 7 days for questions. Refunds to send show in Booking Management.'
+            : 'Joiners get a notice (with the old and new dates), a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have 48 hours to keep their slot on the new date (payment and pickup point carry over), move to another date of this tour or take a 50% refund; no choice = 50% refund.'}
         </p>
 
         <button type="button" onClick={submit} disabled={!ready || busy} style={{
