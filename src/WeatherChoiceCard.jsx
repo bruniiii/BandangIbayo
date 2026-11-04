@@ -7,6 +7,7 @@ import { formatYmdRange } from './dateRange';
 import { formatPeso, todayManila, withAvailableSlots } from './tourUtils';
 import { openGroupChat } from './chatStore';
 import { weatherRefundStatus } from './payments';
+import { RefundProofLink } from './RefundPanel';
 import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
@@ -44,6 +45,47 @@ const RefundStatus = ({ bookingId }) => {
           : { c: '#7A3A18', t: "Couldn't check with PayMongo right now. Please open this again later." };
   if (!line) return null;
   return <p role="status" style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: line.c, lineHeight: 1.5, background: 'rgba(253,246,238,0.6)', borderRadius: 10, padding: '8px 10px' }}>{line.t}</p>;
+};
+
+// The joiner says whether the refund reached them ("I didn't get it" tells the
+// main admin right away). They can change their answer.
+const RefundConfirm = ({ booking, onChanged }) => {
+  const [busy, setBusy] = useState('');
+  const [answer, setAnswer] = useState(booking.weather_refund_received || null);
+  const say = async (received) => {
+    if (!received && !(await confirmDialog({
+      title: "Didn't get your refund?",
+      message: `Check your GCash, Maya or card history first${booking.weather_refund_method === 'paymongo' ? ' (PayMongo refunds can take 1 to 5 days)' : ''}. Bandang IBAYO's main admin is told right away and will check it.`,
+      confirmLabel: "I Didn't Get It", cancelLabel: 'Check Again',
+    }))) return;
+    setBusy(received ? 'yes' : 'no');
+    const { error } = await supabase.rpc('confirm_weather_refund', { p_booking_id: booking.id, p_received: received });
+    setBusy('');
+    if (error) { toast.error("Couldn't save your answer", error.message); return; }
+    setAnswer(received ? 'received' : 'not_received');
+    toast.success(received ? 'Thanks for confirming!' : 'Bandang IBAYO was told', received ? 'Your refund is complete.' : "They'll check it and get back to you.");
+    onChanged?.();
+  };
+  if (answer === 'received') {
+    return <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#1F6B4A' }}>✓ You confirmed you received it. Thank you!</p>;
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(242,228,208,0.6)', borderRadius: 12, padding: '10px 12px' }}>
+      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: answer === 'not_received' ? '#8C2F1C' : '#1A0A00' }}>
+        {answer === 'not_received' ? "You said you didn't get it. Bandang IBAYO was told and is checking it." : 'Did you receive it?'}
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => say(true)} disabled={!!busy} style={{ ...btn('#1F6B4A', '#FDF6EE'), padding: '9px 14px' }}>
+          {busy === 'yes' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={13} />} {answer === 'not_received' ? 'I got it now' : 'I received it'}
+        </button>
+        {answer !== 'not_received' && (
+          <button type="button" onClick={() => say(false)} disabled={!!busy} style={{ ...btn('transparent', '#8C2F1C', '1px solid rgba(140,47,28,0.4)'), padding: '9px 14px' }}>
+            {busy === 'no' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : null} I didn't get it
+          </button>
+        )}
+      </div>
+    </div>
+  );
 };
 
 const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
@@ -125,7 +167,8 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <p style={{ margin: 0, flex: '1 1 220px', minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#1A0A00' }}>
             <Wallet size={16} style={{ color: tone, flexShrink: 0 }} />
-            <span><span style={{ color: tone, fontWeight: 900 }}>{sent ? 'Refund sent' : 'Refund on the way'}</span> · {formatPeso(booking.weather_refund)} · {title}</span>
+            <span><span style={{ color: tone, fontWeight: 900 }}>{sent ? 'Refund sent' : 'Refund on the way'}</span> · {formatPeso(booking.weather_refund)} · {title}
+              {sent && !booking.weather_refund_received && <span style={{ marginLeft: 6, padding: '1px 8px', borderRadius: 999, background: '#B4511E', color: '#FDF6EE', fontSize: 10.5, fontWeight: 900 }}>Please confirm</span>}</span>
           </p>
           <button type="button" onClick={() => setRefundOpen((v) => !v)} aria-expanded={refundOpen}
             style={{ ...btn('transparent', tone, `1px solid ${tone}`), padding: '8px 12px' }}>
@@ -137,7 +180,9 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
             {title} ({booking.booking_number}): {formatPeso(booking.weather_refund)} {sent ? 'was sent to you' : 'will be sent to your GCash'}.
           </p>
           {sent && booking.weather_refund_ref && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18', overflowWrap: 'anywhere' }}>Reference: {booking.weather_refund_ref}</p>}
-          {sent && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <RefundStatus bookingId={booking.id} />}
+          {sent && booking.weather_refund_proof && <RefundProofLink path={booking.weather_refund_proof} />}
+          {sent && booking.weather_refund_method !== 'gcash' && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <RefundStatus bookingId={booking.id} />}
+          {sent && <RefundConfirm booking={booking} onChanged={onChanged} />}
         </>)}
       </section>
     );

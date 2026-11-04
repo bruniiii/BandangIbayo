@@ -90,5 +90,9 @@ from (values
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                 where n.nspname = 'public' and p.proname = 'tour_pickup_points' limit 1), false)),
   ('20261208 archived admins can ask to be restored',
-     to_regprocedure('public.approve_admin_restore(uuid)') is not null)
+     to_regprocedure('public.approve_admin_restore(uuid)') is not null),
+  ('20261209 safer refunds (history, receipts, joiner confirms)',
+     to_regclass('public.refund_log') is not null
+     and exists (select 1 from pg_trigger where tgname = 'bookings_guard_refund_columns')
+     and exists (select 1 from storage.buckets where id = 'refund-proofs'))
 ) as u(update_file, installed);
