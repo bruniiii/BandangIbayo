@@ -400,12 +400,14 @@ const JoinerDashboard = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name, last_name, username, avatar_url, phone_number, province, address')
+        .select('first_name, last_name, username, avatar_url, phone_number, province, address, role')
         .eq('id', user.id)
         .maybeSingle();
 
       // Signed up with Google but never finished the profile: finish it first.
       const viaGoogle = (user.identities || []).some((i) => i.provider === 'google') || user.app_metadata?.provider === 'google';
+      // (An admin account is never sent to the joiner sign-up form.)
+      if (profile?.role === 'admin') { navigate('/admin/dashboard', { replace: true }); return; }
       if (viaGoogle && !profileIsComplete(profile)) {
         navigate('/complete-profile', { replace: true });
         return;
