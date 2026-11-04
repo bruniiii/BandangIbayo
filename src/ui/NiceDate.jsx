@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { Calendar, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import PrettySelect from './PrettySelect';
+import { popupPlace } from './popupPlace';
 
 // ─────────────────────────────────────────────
 // A drop-in for <input type="date">, in the look of the site's dropdowns:
@@ -57,10 +58,10 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
     if (disabled) return;
     const s = current || start;
     setView({ y: Number(s.slice(0, 4)), m: Number(s.slice(5, 7)) - 1 });
-    const box = wrapRef.current?.getBoundingClientRect();
-    const below = box ? window.innerHeight - box.bottom : 999;
-    setUpward(below < 360 && (box?.top || 0) > below);
-    setToLeft(box ? box.left + 296 > window.innerWidth - 16 : false);
+    // (Kept inside the screen and the window/panel it's in.)
+    const place = popupPlace(wrapRef.current, { width: 296, height: 360 });
+    setUpward(place.upward);
+    setToLeft(place.toLeft);
     setOpen(true);
   };
 

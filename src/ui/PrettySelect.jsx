@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
+import { popupPlace } from './popupPlace';
 
 // ─────────────────────────────────────────────
 // DROPDOWN with the site's look (instead of the browser's plain grey list).
@@ -36,12 +37,11 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
   }, [open, active]);
 
   const openList = () => {
-    const box = wrapRef.current?.getBoundingClientRect();
-    const below = box ? window.innerHeight - box.bottom : 999;
-    const above = box ? box.top : 0;
-    setUpward(below < 280 && above > below);
-    // The list can be wider than the button (so words aren't cut); keep it on screen.
-    setToLeft(box ? box.left + 300 > window.innerWidth - 16 : false);
+    // The list can be wider than the button (so words aren't cut); keep it
+    // inside the screen and the window/panel it's in.
+    const place = popupPlace(wrapRef.current, { width: 300, height: 280 });
+    setUpward(place.upward);
+    setToLeft(place.toLeft);
     setActive(Math.max(0, selectedIndex));
     setOpen(true);
   };
