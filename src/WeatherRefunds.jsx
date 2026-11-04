@@ -8,7 +8,7 @@ import { REFUND_SELECT, RefundPanel, RefundSentInfo, RefundHistoryButton } from 
 
 // ─────────────────────────────────────────────
 // Booking Management: 50% refunds to send after a weather postponement or
-// cancellation. Any admin prepares one (PayMongo, or GCash with the receipt);
+// cancellation. Any admin prepares one (sent manually through GCash, with the receipt);
 // only the main admin approves and sends it (RefundPanel). Refunds a joiner
 // says they didn't get are listed too. The main admin also sees the
 // Refund history. Hidden when there's nothing to show.
@@ -78,7 +78,7 @@ const WeatherRefunds = () => {
       </div>
       {rows.length > 0 && (
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
-          50% of what each joiner paid. Any admin prepares a refund (PayMongo, or GCash with the receipt); only the main admin approves and sends it.
+          50% of what each joiner paid. Refunds are sent manually through GCash: any admin adds the GCash reference and receipt; only the main admin approves and sends it.
         </p>
       )}
       {rows.map((b) => row(b, false))}

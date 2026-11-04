@@ -71,8 +71,8 @@ const askTypeRefund = (title, message, confirmLabel) => confirmDialog({ title, m
 export const RefundPanel = ({ booking: b, onDone }) => {
   const me = useAdminMe();
   const isMain = me.isMain;
-  const canPaymongo = !!b.paymongo_payment_id;
-  const [method, setMethod] = useState(canPaymongo ? 'paymongo' : 'gcash');
+  // Refunds are sent manually through GCash only (PayMongo refunds were turned off).
+  const method = 'gcash';
   const [ref, setRef] = useState('');
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState('');
@@ -118,18 +118,14 @@ export const RefundPanel = ({ booking: b, onDone }) => {
   const submit = async () => {
     if (isMain) {
       const ok = await askTypeRefund(
-        method === 'paymongo' ? `Send ${amount} through PayMongo?` : `Send the ${amount} GCash refund?`,
-        method === 'paymongo'
-          ? `${b.booking_number}: PayMongo sends it back to the joiner's own payment (GCash, Maya or card). The joiner is notified.`
-          : `${b.booking_number}: make sure ${amount} was really sent by GCash${gcash ? ` to ${gcash}` : ''} and the receipt matches. The joiner is notified and can see the receipt.`,
+        `Send the ${amount} GCash refund?`,
+        `${b.booking_number}: make sure ${amount} was really sent by GCash${gcash ? ` to ${gcash}` : ''} and the receipt matches. The joiner is notified and can see the receipt.`,
         'Send Refund',
       );
       if (!ok) return;
     }
     setBusy('submit');
-    if (method === 'paymongo' && isMain) {
-      await send('paymongo');
-    } else if (await prepare()) {
+    if (await prepare()) {
       if (isMain) await send(method);
       else toast.success('Sent for approval', 'The main admin was asked to approve this refund.');
     }
@@ -149,6 +145,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
 
   const approve = async () => {
     const how = b.weather_refund_method;
+    if (how !== 'gcash') { toast.error('Send it back first', 'This was prepared for PayMongo, which isn\'t used for refunds anymore. Send it back and prepare it with GCash.'); return; }
     const ok = await askTypeRefund(
       `Approve the ${amount} refund for ${b.booking_number}?`,
       how === 'paymongo'
@@ -196,11 +193,12 @@ export const RefundPanel = ({ booking: b, onDone }) => {
           Prepared by {preparedBy || '…'} on {when(b.weather_refund_prepared_at)}{b.weather_refund_method === 'gcash' && b.weather_refund_ref ? ` · ${b.weather_refund_ref}` : ''}
         </p>
         {b.weather_refund_method === 'gcash' && <RefundProofLink path={b.weather_refund_proof} />}
+        {b.weather_refund_method !== 'gcash' && <p style={{ ...note, fontWeight: 800 }}>Prepared for PayMongo, which isn't used for refunds anymore: send it back and prepare it with GCash.</p>}
         {isMain ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', '#FDF6EE')}>
+            {b.weather_refund_method === 'gcash' && <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', '#FDF6EE')}>
               {busy === 'approve' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={13} />} Approve & Send
-            </button>
+            </button>}
             <button type="button" onClick={sendBack} disabled={!!busy} style={smallBtn('transparent', '#8C2F1C', '1px solid rgba(140,47,28,0.4)')}>
               <Undo2 size={13} /> Send back
             </button>
@@ -211,40 +209,25 @@ export const RefundPanel = ({ booking: b, onDone }) => {
   }
 
   const gcashReady = ref.replace(/\s/g, '').length >= 6 && !!file;
-  const ready = method === 'paymongo' || gcashReady;
+  const ready = gcashReady;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {canPaymongo && (
-        <div role="radiogroup" aria-label="How to send the refund" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {[['paymongo', 'PayMongo (recommended)'], ['gcash', 'Manual through GCash']].map(([k, label]) => (
-            <button key={k} type="button" role="radio" aria-checked={method === k} onClick={() => setMethod(k)} style={{
-              ...smallBtn(method === k ? '#1A0A00' : 'transparent', method === k ? '#E8A265' : '#7A3A18', `1px solid ${method === k ? '#1A0A00' : 'rgba(180,81,30,0.3)'}`), padding: '8px 12px',
-            }}>{label}</button>
-          ))}
-        </div>
-      )}
-      {method === 'paymongo' ? (
-        <p style={note}>PayMongo sends it back to the joiner's own payment (the GCash, Maya or card they paid with), and keeps a record of it.</p>
-      ) : (
-        <>
-          <p style={note}>
-            {canPaymongo ? 'Only if PayMongo can\'t be used. ' : ''}Send {amount} by GCash{gcash ? ` to ${gcash}` : ''}, then add the GCash reference and a screenshot of the GCash receipt.
-          </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <input aria-label="GCash reference of the refund" placeholder="GCash reference no. *" value={ref} maxLength={40} onChange={(e) => setRef(e.target.value)}
-              style={{ flex: '1 1 180px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
-            <label style={{ ...smallBtn('#F2E4D0', '#7A3A18', '1px dashed rgba(180,81,30,0.45)'), maxWidth: '100%' }}>
-              <Upload size={13} />
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{file ? file.name : 'GCash receipt *'}</span>
-              <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ display: 'none' }} />
-            </label>
-          </div>
-        </>
-      )}
+      <p style={note}>
+        Send {amount} manually through GCash{gcash ? ` to ${gcash}` : ''}, then add the GCash reference and a screenshot of the GCash receipt.
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input aria-label="GCash reference of the refund" placeholder="GCash reference no. *" value={ref} maxLength={40} onChange={(e) => setRef(e.target.value)}
+          style={{ flex: '1 1 180px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
+        <label style={{ ...smallBtn('#F2E4D0', '#7A3A18', '1px dashed rgba(180,81,30,0.45)'), maxWidth: '100%' }}>
+          <Upload size={13} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{file ? file.name : 'GCash receipt *'}</span>
+          <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ display: 'none' }} />
+        </label>
+      </div>
       <button type="button" onClick={submit} disabled={!!busy || !ready} title={ready ? undefined : 'Add the GCash reference and receipt first'}
         style={{ ...smallBtn(isMain ? '#B4511E' : '#3F5D62', '#FDF6EE', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
         {busy === 'submit' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : isMain ? <Wallet size={13} /> : <CheckCircle2 size={13} />}
-        {isMain ? (method === 'paymongo' ? 'Send through PayMongo' : 'Send refund') : 'Send for approval'}
+        {isMain ? 'Send refund' : 'Send for approval'}
       </button>
       {!isMain && me.loaded && <p style={{ ...note, fontSize: 11.5 }}>The main admin approves every refund before the joiner is told.</p>}
     </div>
@@ -276,9 +259,7 @@ export const RefundSentInfo = ({ booking: b, onDone }) => {
   const reopen = async () => {
     const ok = await askTypeRefund(
       `Send the ${b.booking_number} refund again?`,
-      b.weather_refund_method === 'paymongo'
-        ? 'It goes back to Weather refunds to send. Sending it through PayMongo again counts what PayMongo already refunded, so it\'s never paid twice.'
-        : 'It goes back to Weather refunds to send. Check the GCash receipt first: a GCash refund sent again is paid twice.',
+      'It goes back to Weather refunds to send by GCash. Check first that the joiner really didn\'t get it (the GCash receipt, or PayMongo for older refunds): a refund sent again is paid twice.',
       'Send Again',
     );
     if (!ok) return;
