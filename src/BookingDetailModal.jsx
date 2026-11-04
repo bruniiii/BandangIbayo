@@ -13,116 +13,35 @@ import { SkeletonLines } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
 import { StatusBadge, BalanceStatusBadge, PaymentMethodBadge } from './BookingBadges';
 import { owesBalance } from './bookingStatus';
-import { refundWeatherThroughPaymongo, weatherRefundStatus } from './payments';
+import { REFUND_SELECT, RefundPanel, RefundSentInfo } from './RefundPanel';
 
 // ─────────────────────────────────────────────
 // BOOKING DETAILS window (Booking Management → View Info): the joiner,
 // trip, payment and receipt, the actions on the booking, and its activity log.
 // ─────────────────────────────────────────────
 
-// A weather cancellation's 50% refund: how much, to which GCash, and a
-// "Mark refund as sent" button (with the GCash reference) once it's sent.
-// The admin's view of the same PayMongo check (a failed one goes back to "to send").
-const AdminRefundStatus = ({ bookingId }) => {
-  const [state, setState] = useState(null);
-  useEffect(() => {
-    let alive = true;
-    weatherRefundStatus({ bookingId }).then((res) => { if (alive) setState(res.ok ? res.data : { status: 'unknown', error: res.error }); });
-    return () => { alive = false; };
-  }, [bookingId]);
-  const text = !state ? 'Checking with PayMongo…'
-    : state.status === 'succeeded' ? `PayMongo: received by the joiner${state.at ? ` (${new Date(state.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Asia/Manila' })})` : ''}.`
-      : state.status === 'pending' ? 'PayMongo: still being sent (usually 1 to 5 days).'
-        : state.status === 'failed' ? 'PayMongo: the refund FAILED. It was moved back to Weather refunds to send; send it again.'
-          : state.status === 'manual' ? '' : `Couldn't check with PayMongo${state.error ? `: ${state.error}` : ''}.`;
-  if (!text) return null;
-  return <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: state?.status === 'failed' ? '#8C2F1C' : state?.status === 'succeeded' ? '#1F6B4A' : '#8C5216' }}>{text}</p>;
-};
-
+// A weather cancellation's 50% refund: how much, to which GCash, and the safe
+// steps to send it (RefundPanel: any admin prepares, the main admin sends),
+// or, once sent, how it was sent and whether the joiner received it.
 const WeatherRefundBox = ({ booking, onSent }) => {
-  const [ref, setRef] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(booking.weather_refund_status === 'Sent');
-  const gcash = booking.gcash_number || '';
-  const markSent = async () => {
-    if (!(await confirmDialog({
-      title: `Mark ${formatPeso(booking.weather_refund)} as sent?`,
-      message: `Send it by GCash${gcash ? ` to ${gcash}` : ''} first. ${booking.booking_number}'s joiner then gets a notice that their 50% refund was sent${ref.trim() ? ` (reference ${ref.trim()})` : ''}.`,
-      confirmLabel: 'Mark as Sent', cancelLabel: 'Not Yet',
-    }))) return;
-    setBusy(true);
-    const { error } = await supabase.rpc('mark_weather_refund_sent', { p_booking_id: booking.id, p_reference: ref.trim() || null });
-    setBusy(false);
-    if (error) { toast.error("Couldn't mark it as sent", error.message); return; }
-    setSent(true);
-    toast.success('Refund marked as sent', 'The joiner was notified.');
+  const [b, setB] = useState(booking);
+  // Fresh refund details after each step (this window stays open).
+  const reload = async () => {
+    const { data } = await supabase.from('bookings').select(REFUND_SELECT).eq('id', booking.id).maybeSingle();
+    if (data) setB((old) => ({ ...old, ...data }));
     onSent?.();
   };
-  const viaPaymongo = !!booking.paymongo_payment_id;
-  const [refunding, setRefunding] = useState(false);
-  const refundOnline = async () => {
-    if (!(await confirmDialog({
-      title: `Refund ${formatPeso(booking.weather_refund)} through PayMongo?`,
-      message: `PayMongo sends it back to the joiner's own payment (the GCash, Maya or card they paid with). It can take a few days to reach them. ${booking.booking_number}'s joiner is notified.`,
-      confirmLabel: 'Send Refund', cancelLabel: 'Not Yet',
-    }))) return;
-    setRefunding(true);
-    const res = await refundWeatherThroughPaymongo({ bookingId: booking.id });
-    setRefunding(false);
-    if (!res.ok) { toast.error("PayMongo couldn't send the refund", res.error); return; }
-    if (res.data?.status === 'partial') {
-      toast.info('Part of the refund was sent', `${formatPeso(res.data.refunded)} went back through PayMongo. Send the other ${formatPeso(res.data.left)} by GCash, then Mark as Sent.`);
-    } else {
-      setSent(true);
-      toast.success('Refund sent through PayMongo', 'The joiner was notified.');
-    }
-    onSent?.();
-  };
+  const sent = b.weather_refund_status === 'Sent';
+  const gcash = b.gcash_number || '';
   return (
     <div style={{ marginTop: 12, background: sent ? 'rgba(31,107,74,0.08)' : 'rgba(63,93,98,0.08)', border: `1.5px solid ${sent ? 'rgba(31,107,74,0.35)' : 'rgba(63,93,98,0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
       <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? '#1F6B4A' : '#3F5D62' }}>
         50% refund {sent ? '· sent' : '· to send'}
       </p>
       <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00' }}>
-        {formatPeso(booking.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>(50% of the {formatPeso(booking.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
+        {formatPeso(b.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>(50% of the {formatPeso(b.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
       </p>
-      {booking.weather_refund_status === 'Refunding' && !sent && (
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#8C5216', lineHeight: 1.5 }}>
-          Being sent through PayMongo. If it still says this after 10 minutes, tap Refund through PayMongo again: anything already refunded is counted, so it's never sent twice.
-        </p>
-      )}
-      {sent ? (
-        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>
-          Sent{booking.weather_refund_ref ? ` · reference ${booking.weather_refund_ref}` : ''}. The joiner was told.
-        </p>
-      ) : null}
-      {sent && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <AdminRefundStatus bookingId={booking.id} />}
-      {sent ? null : (
-        <>
-          {viaPaymongo && (
-            <>
-              <button type="button" onClick={refundOnline} disabled={refunding || busy} style={{
-                alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '11px 18px',
-                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: refunding ? 'not-allowed' : 'pointer',
-              }}>{refunding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Wallet size={13} />} Refund through PayMongo</button>
-              <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
-                Goes back to the joiner's own payment (GCash, Maya or card). Or send it yourself by GCash below.
-              </p>
-            </>
-          )}
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
-            {viaPaymongo ? 'Sent it yourself by GCash?' : 'Send it by GCash, then'} Type the GCash reference (optional) and tap Mark Refund as Sent. The joiner gets a notice.
-          </p>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input aria-label="GCash reference of the refund" placeholder="GCash reference (optional)" value={ref} maxLength={40} onChange={(e) => setRef(e.target.value)}
-              style={{ flex: '1 1 180px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
-            <button type="button" onClick={markSent} disabled={busy} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, background: '#3F5D62', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '10px 16px',
-              fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: busy ? 'not-allowed' : 'pointer',
-            }}>{busy ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={13} />} Mark Refund as Sent</button>
-          </div>
-        </>
-      )}
+      {sent ? <RefundSentInfo booking={b} onDone={reload} /> : <RefundPanel booking={b} onDone={reload} />}
     </div>
   );
 };

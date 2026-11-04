@@ -31,7 +31,11 @@
 //        where that refund is: "pending" | "succeeded" | "failed". A failed refund goes
 //        back to "to send" and the admins are told (once).
 //
-// PayMongo webhook (header Paymongo-Signature): checkout_session.payment.paid.
+//   Only the main admin sends refunds; every step goes in the refund history (refund_log).
+//
+// PayMongo webhook (header Paymongo-Signature): checkout_session.payment.paid, and for
+//   refunds payment.refunded + payment.refund.updated (the refund is re-checked with
+//   PayMongo's API: finished → recorded, failed → back to "to send" and admins told).
 //   Payment state is never taken from the request body: the session is always re-fetched
 //   from PayMongo's API with our secret key before anything is recorded. PayMongo doesn't
 //   resend missed webhooks, so "verify-checkout" covers that case too.
@@ -229,6 +233,10 @@ async function handleWebhook(req: Request) {
   if (type === "checkout_session.payment.paid" && sessionId) {
     const result = await processSession(sessionId);
     console.log("payments[webhook]:", { sessionId, ...result });
+  }
+  if (type === "payment.refunded" || type === "payment.refund.updated") {
+    const result = await refundWebhook(event?.data?.attributes?.data);
+    console.log("payments[webhook refund]:", result);
   }
   return reply({ received: true });
 }
@@ -638,8 +646,9 @@ async function recordExclusivePayment(requestId: string, amount: number, payment
 // The booking is claimed first ("Refunding"), so two admins tapping at once
 // can't refund it twice; if PayMongo refuses, it goes back to "Due".
 async function weatherRefund(userId: string, payload: any) {
-  const { data: me } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
-  if (me?.role !== "admin") throw new HttpError(403, "Only admins can send refunds.");
+  // Only the main admin sends refunds (other admins prepare them for approval).
+  const { data: me } = await supabase.from("profiles").select("role, is_main_admin").eq("id", userId).maybeSingle();
+  if (me?.role !== "admin" || !me?.is_main_admin) throw new HttpError(403, "Only the main admin can send refunds. Prepare it, and the main admin approves it.");
   const bookingId = payload.bookingId;
   if (!bookingId) throw new HttpError(400, "Which booking?");
 
@@ -711,12 +720,17 @@ async function weatherRefund(userId: string, payload: any) {
   const ref = `PayMongo ${refunds.length ? refunds.join(", ") : "(refunded earlier)"}${left > 0 ? ` (₱${(left / 100).toFixed(2)} still to send by GCash)` : ""}`;
   await supabase.from("bookings").update({
     weather_refund_status: left > 0 ? "Due" : "Sent", weather_refund_ref: ref, weather_refund_at: new Date().toISOString(),
+    weather_refund_method: left > 0 ? null : "paymongo", weather_refund_paymongo: "pending",
+    weather_refund_prepared_by: null, weather_refund_prepared_at: null, weather_refund_proof: null,
+    weather_refund_received: null, weather_refund_received_at: null,
   }).eq("id", bookingId);
+  await logRefund(bookingId, "sent", sentPesos, "paymongo", ref, userId,
+    left > 0 ? `Only part went through PayMongo: ₱${(left / 100).toFixed(2)} still to send by GCash.` : null);
   if (claimed.user_id) {
     await supabase.from("notifications").insert({
       user_id: claimed.user_id, type: "booking", related_id: null,
       title: "Refund sent 💸",
-      message: `Your 50% refund of ₱${sentPesos.toLocaleString("en-PH", { minimumFractionDigits: 2 })} for ${claimed.booking_number} was sent back to your payment (GCash, Maya or card) through PayMongo. It can take a few days to show.`,
+      message: `Your 50% refund of ₱${sentPesos.toLocaleString("en-PH", { minimumFractionDigits: 2 })} for ${claimed.booking_number} was sent back to your payment (GCash, Maya or card) through PayMongo. It can take a few days to show. Tap "I received it" in My Bookings once it's there.`,
     });
   }
   return { status: left > 0 ? "partial" : "sent", refunded: sentPesos, left: left / 100, refunds };
@@ -728,16 +742,35 @@ async function weatherRefund(userId: string, payload: any) {
 async function refundStatus(userId: string, payload: any) {
   const bookingId = payload.bookingId;
   if (!bookingId) throw new HttpError(400, "Which booking?");
-  const { data: b } = await supabase.from("bookings")
-    .select("id, user_id, booking_number, weather_refund, weather_refund_status, weather_refund_ref")
-    .eq("id", bookingId).maybeSingle();
+  const { data: b } = await supabase.from("bookings").select(REFUND_COLUMNS).eq("id", bookingId).maybeSingle();
   if (!b) throw new HttpError(404, "Booking not found.");
   if (b.user_id !== userId) {
     const { data: me } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
     if (me?.role !== "admin") throw new HttpError(403, "This isn't your booking.");
   }
+  return await syncRefund(b);
+}
+
+const REFUND_COLUMNS = "id, user_id, booking_number, weather_refund, weather_refund_status, weather_refund_ref, weather_refund_paymongo, weather_refund_method";
+
+// A row in the refund history (it can't be changed or deleted afterwards).
+// by: the admin or joiner who did it; null = PayMongo itself.
+async function logRefund(bookingId: unknown, action: string, amount: number | null, method: string | null, reference: string | null, by: string | null, note: string | null = null) {
+  const { error } = await supabase.rpc("log_refund", {
+    p_booking_id: bookingId, p_action: action, p_amount: amount, p_method: method,
+    p_reference: reference, p_proof: null, p_by: by, p_note: note,
+  });
+  if (error) console.warn("payments[refund log]:", error.message);
+}
+
+// Asks PayMongo (always with our own key, never trusting a webhook's body)
+// where a booking's refunds are, and records any change once:
+//   succeeded → kept, and written in the history;
+//   failed    → back to "to send", written in the history, admins told.
+async function syncRefund(b: any) {
   const ids = String(b.weather_refund_ref ?? "").match(/ref_[A-Za-z0-9]+/g) ?? [];
-  if (!ids.length) return { status: "manual" }; // sent by GCash by hand: nothing to ask PayMongo
+  // Sent by GCash by hand (maybe after PayMongo failed or sent only part): nothing to ask PayMongo.
+  if (!ids.length || b.weather_refund_method === "gcash") return { status: "manual" }; // sent by GCash by hand: nothing to ask PayMongo
 
   const found = [];
   for (const id of ids) {
@@ -751,22 +784,54 @@ async function refundStatus(userId: string, payload: any) {
   // Seconds since 1970 (PayMongo) → a date the website can show.
   const last = found.map((r) => Number(r.updated_at) || 0).reduce((m, x) => Math.max(m, x), 0);
   const at = last ? new Date(last * 1000).toISOString() : null;
+  const total = found.reduce((sum, r) => sum + r.amount, 0);
+
+  if (status === "succeeded" && b.weather_refund_paymongo !== "succeeded") {
+    // (Only the first check that sees it writes it down.)
+    const { data: changed } = await supabase.from("bookings").update({ weather_refund_paymongo: "succeeded" })
+      .eq("id", b.id).or("weather_refund_paymongo.is.null,weather_refund_paymongo.neq.succeeded").select("id");
+    if (changed?.length) await logRefund(b.id, "paymongo_succeeded", total, "paymongo", ids.join(", "), null, "PayMongo finished sending it.");
+  }
 
   // A failed refund: back to "to send" so it shows in Weather refunds to send, and the admins are told once.
   if (failed && b.weather_refund_status === "Sent") {
-    await supabase.from("bookings").update({
-      weather_refund_status: "Due", weather_refund_ref: `${b.weather_refund_ref} · FAILED at PayMongo, send again`,
-    }).eq("id", b.id).eq("weather_refund_status", "Sent");
-    const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
-    if (admins?.length) {
-      await supabase.from("notifications").insert(admins.map((x: any) => ({
-        user_id: x.id, type: "booking", related_id: null,
-        title: "A refund didn't go through ⚠️",
-        message: `PayMongo couldn't send the 50% refund for ${b.booking_number}. It's back in Weather refunds to send in Booking Management: send it again (PayMongo or GCash).`,
-      })));
+    const { data: moved } = await supabase.from("bookings").update({
+      weather_refund_status: "Due", weather_refund_paymongo: "failed", weather_refund_method: null,
+      weather_refund_ref: `${b.weather_refund_ref} · FAILED at PayMongo, send again`,
+    }).eq("id", b.id).eq("weather_refund_status", "Sent").select("id");
+    if (moved?.length) {
+      await logRefund(b.id, "failed", total, "paymongo", ids.join(", "), null, "PayMongo couldn't send it. Back in Weather refunds to send.");
+      const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
+      if (admins?.length) {
+        await supabase.from("notifications").insert(admins.map((x: any) => ({
+          user_id: x.id, type: "booking", related_id: null,
+          title: "A refund didn't go through ⚠️",
+          message: `PayMongo couldn't send the 50% refund for ${b.booking_number}. It's back in Weather refunds to send in Booking Management: the main admin can send it again (PayMongo or GCash).`,
+        })));
+      }
     }
   }
   return { status, at, refunds: found };
+}
+
+// PayMongo webhook for refunds (payment.refunded, payment.refund.updated):
+// finds the booking and re-checks it with PayMongo's API (syncRefund).
+async function refundWebhook(resource: any) {
+  const id = String(resource?.id ?? "");
+  const paymentId = String(resource?.attributes?.payment_id ?? (id.startsWith("pay_") ? id : ""));
+  let rows: any[] = [];
+  if (id.startsWith("ref_")) {
+    const { data } = await supabase.from("bookings").select(REFUND_COLUMNS).ilike("weather_refund_ref", `%${id}%`).limit(5);
+    rows = data ?? [];
+  }
+  if (!rows.length && paymentId) {
+    const { data } = await supabase.from("bookings").select(REFUND_COLUMNS)
+      .or(`paymongo_payment_id.eq.${paymentId},paymongo_balance_payment_id.eq.${paymentId}`).not("weather_refund_status", "is", null).limit(5);
+    rows = data ?? [];
+  }
+  const results = [];
+  for (const b of rows) results.push({ booking: b.booking_number, ...(await syncRefund(b)) });
+  return results;
 }
 
 // ───────────── Request handler ─────────────

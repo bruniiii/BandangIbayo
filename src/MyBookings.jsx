@@ -114,10 +114,13 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
         const isVerified = booking.payment_status === 'Complete' || booking.booking_status === 'Completed';
         // A cancelled or rejected booking never counts as a completed trip, even after the tour date.
         const isCancelled = booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected';
-        // Bad weather, shown at the top: a choice still open, or a 50% refund (until 30 days after it was sent).
+        // Bad weather, shown at the top: a choice still open, or a 50% refund (until the joiner confirms
+        // they got it and 30 days have passed since it was sent).
         const now = Date.now();
         const showWeather = (booking.weather_choice === 'pending' && booking.weather_deadline && new Date(booking.weather_deadline).getTime() > now)
-          || (booking.weather_choice === 'refund' && (booking.weather_refund_status !== 'Sent' || !booking.weather_refund_at || now - new Date(booking.weather_refund_at).getTime() < 30 * 86400000));
+          || (booking.weather_choice === 'refund' && (booking.weather_refund_status !== 'Sent' || !booking.weather_refund_at
+            || booking.weather_refund_received !== 'received' // until the joiner says they got it
+            || now - new Date(booking.weather_refund_at).getTime() < 30 * 86400000));
         return { ...booking, isActuallyCompleted: isVerified && isPastTour && !isCancelled, showWeather: !!showWeather };
       });
  
