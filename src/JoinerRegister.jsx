@@ -75,9 +75,13 @@ const JoinerRegister = ({ mode = 'register' }) => {
   // Completing a Google sign-up: needs the signed-in account (its email and name).
   useEffect(() => {
     if (!completing) return;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) navigate(loginPath, { replace: true });
-      else setGoogleUser(data.session.user);
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) { navigate(loginPath, { replace: true }); return; }
+      // An admin never fills in the joiner profile (e.g. this browser was
+      // signed in as the admin in another tab): open the admin dashboard.
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.session.user.id).maybeSingle();
+      if (profile?.role === 'admin') { navigate('/admin/dashboard', { replace: true }); return; }
+      setGoogleUser(data.session.user);
     });
   }, [completing, navigate, loginPath]);
   const googleName = googleNameParts(googleUser);
