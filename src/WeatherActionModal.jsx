@@ -42,8 +42,10 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
   const [end, setEnd] = useState('');
   const [busy, setBusy] = useState(false);
   const tomorrow = addDaysYmd(todayManila(), 1);
-  // Only later days: the new date starts after this tour's current date.
-  const afterTour = date?.start_date ? addDaysYmd(date.start_date, 1) : tomorrow;
+  // Only later days: the new date starts after this tour's last day
+  // (Dec 14–16 → Dec 17 at the earliest).
+  const lastDay = date?.end_date || date?.start_date;
+  const afterTour = lastDay ? addDaysYmd(lastDay, 1) : tomorrow;
   const earliest = afterTour > tomorrow ? afterTour : tomorrow;
   const length = date?.start_date && date?.end_date ? Math.round((new Date(date.end_date) - new Date(date.start_date)) / 86400000) : 0;
   const booked = Number(date?.current_booked) || 0;
@@ -132,7 +134,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
                 onChange={(e) => setEnd(e.target.value)} />
             </div>
             <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>
-              Only later days: the new date must start after {formatYmdRange(date.start_date, date.start_date)}.
+              Only later days: the new date must start after {formatYmdRange(date.start_date, date.end_date)} (from {formatYmdRange(afterTour, afterTour)}).
             </p>
           </div>
         )}
