@@ -102,17 +102,21 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
   const why = [weather?.weather_reason, weather?.weather_note].filter(Boolean).join(' · ');
   const refund = Math.round((Number(booking.amount_paid) || 0) * 50) / 100;
 
-  // Other open dates of the same tour, with room for this booking.
+  // Other open dates of the same tour, with room for this booking (only later ones).
+  const fromDate = booking.tours?.weather_old_start || booking.tours?.start_date || '';
   useEffect(() => {
     if (!open) return undefined;
     let alive = true;
     (async () => {
-      const { data } = await supabase.from('tours').select('*').eq('title', title).eq('is_archived', false).gt('start_date', todayManila());
+      // Only later dates: after this (postponed or cancelled) tour's own first date.
+      const from = fromDate;
+      const today = todayManila();
+      const { data } = await supabase.from('tours').select('*').eq('title', title).eq('is_archived', false).gt('start_date', from > today ? from : today);
       const withSlots = await withAvailableSlots((data || []).filter((t) => String(t.id) !== String(booking.tour_id) && t.weather_status !== 'cancelled'));
       if (alive) setDates(withSlots.sort((a, b) => String(a.start_date).localeCompare(String(b.start_date))));
     })();
     return () => { alive = false; };
-  }, [open, title, booking.tour_id]);
+  }, [open, title, booking.tour_id, fromDate]);
 
   const choose = async (kind) => {
     const target = dates?.find((d) => String(d.id) === pick);

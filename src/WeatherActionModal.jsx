@@ -42,6 +42,9 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
   const [end, setEnd] = useState('');
   const [busy, setBusy] = useState(false);
   const tomorrow = addDaysYmd(todayManila(), 1);
+  // Only later days: the new date starts after this tour's current date.
+  const afterTour = date?.start_date ? addDaysYmd(date.start_date, 1) : tomorrow;
+  const earliest = afterTour > tomorrow ? afterTour : tomorrow;
   const length = date?.start_date && date?.end_date ? Math.round((new Date(date.end_date) - new Date(date.start_date)) / 86400000) : 0;
   const booked = Number(date?.current_booked) || 0;
   const ready = action === 'cancel' || (start && end && end >= start);
@@ -120,14 +123,17 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 12 }}>
             <div>
               <label style={label} htmlFor="weather-start">New start date</label>
-              <NiceDate id="weather-start" min={tomorrow} value={start} style={input}
+              <NiceDate id="weather-start" min={earliest} value={start} style={input}
                 onChange={(e) => { const v = e.target.value; setStart(v); if (v) setEnd(addDaysYmd(v, length)); }} />
             </div>
             <div>
               <label style={label} htmlFor="weather-end">New end date</label>
-              <NiceDate id="weather-end" min={start || tomorrow} max={start ? addDaysYmd(start, 6) : undefined} value={end} style={input}
+              <NiceDate id="weather-end" min={start || earliest} max={start ? addDaysYmd(start, 6) : undefined} value={end} style={input}
                 onChange={(e) => setEnd(e.target.value)} />
             </div>
+            <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>
+              Only later days: the new date must start after {formatYmdRange(date.start_date, date.start_date)}.
+            </p>
           </div>
         )}
 

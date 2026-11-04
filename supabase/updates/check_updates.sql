@@ -94,5 +94,9 @@ from (values
   ('20261209 safer refunds (history, receipts, joiner confirms)',
      to_regclass('public.refund_log') is not null
      and exists (select 1 from pg_trigger where tgname = 'bookings_guard_refund_columns')
-     and exists (select 1 from storage.buckets where id = 'refund-proofs'))
+     and exists (select 1 from storage.buckets where id = 'refund-proofs')),
+  ('20261210 bad weather: only later dates',
+     coalesce((select pg_get_functiondef(p.oid) ilike '%must be after%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'weather_postpone' limit 1), false))
 ) as u(update_file, installed);

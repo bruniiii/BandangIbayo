@@ -97,7 +97,8 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
           sale_ends,
           accommodation_options,
           things_to_bring,
-          important_note
+          important_note,
+          weather_old_start
         )
       `)
       .eq('user_id', user.id)
