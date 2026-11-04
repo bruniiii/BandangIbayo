@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { formatPeso } from './tourUtils';
+import { formatYmdRange } from './dateRange';
 import { shrinkImage } from './imageCompress';
 import { useAdminMe } from './adminMe';
 import { refundWeatherThroughPaymongo, weatherRefundStatus } from './payments';
@@ -333,7 +334,7 @@ const nowOf = (steps) => {
 export const RefundHistoryButton = () => {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState(null);
-  const [joiners, setJoiners] = useState({}); // booking id → joiner's name
+  const [joiners, setJoiners] = useState({}); // booking id → { name, tour }
   const [search, setSearch] = useState('');
   useEffect(() => {
     if (!open) return undefined;
@@ -345,8 +346,9 @@ export const RefundHistoryButton = () => {
       setRows(data || []);
       const ids = [...new Set((data || []).map((r) => r.booking_id).filter((v) => v != null))];
       if (ids.length) {
-        const { data: bks } = await supabase.from('bookings').select('id, full_name').in('id', ids);
-        if (alive) setJoiners(Object.fromEntries((bks || []).map((b) => [String(b.id), b.full_name])));
+        const { data: bks } = await supabase.from('bookings')
+          .select('id, full_name, tours ( title, start_date, end_date, weather_old_start, weather_old_end )').in('id', ids);
+        if (alive) setJoiners(Object.fromEntries((bks || []).map((b) => [String(b.id), { name: b.full_name, tour: b.tours }])));
       }
     })();
     return () => { alive = false; };
@@ -359,7 +361,7 @@ export const RefundHistoryButton = () => {
     return acc;
   }, {})).sort((a, b) => new Date(b.steps[b.steps.length - 1].created_at) - new Date(a.steps[a.steps.length - 1].created_at));
   const q = search.trim().toLowerCase();
-  const shown = groups.filter((g) => !q || [g.booking_number, joiners[String(g.booking_id)], ...g.steps.flatMap((r) => [r.by_name, r.reference])]
+  const shown = groups.filter((g) => !q || [g.booking_number, joiners[String(g.booking_id)]?.name, joiners[String(g.booking_id)]?.tour?.title, ...g.steps.flatMap((r) => [r.by_name, r.reference])]
     .some((v) => String(v || '').toLowerCase().includes(q)));
 
   return (
@@ -380,12 +382,16 @@ export const RefundHistoryButton = () => {
               <button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
             </div>
             <div style={{ padding: '12px 16px 0' }}>
-              <input aria-label="Search the refund history" placeholder="Search booking no., joiner or reference" value={search} onChange={(e) => setSearch(e.target.value)}
+              <input aria-label="Search the refund history" placeholder="Search booking no., joiner, tour or reference" value={search} onChange={(e) => setSearch(e.target.value)}
                 style={{ width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
             </div>
             <div style={{ overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {rows === null ? <p style={note}>Loading…</p> : shown.length === 0 ? <p style={note}>{q ? 'Nothing matches that search.' : 'No refunds yet.'}</p> : shown.map((g) => {
-                const joiner = joiners[String(g.booking_id)] || '';
+                const info = joiners[String(g.booking_id)] || {};
+                const joiner = info.name || '';
+                const tour = info.tour || null;
+                // The tour date that was changed (the original one, if it was postponed).
+                const tourDates = tour ? (tour.weather_old_start ? formatYmdRange(tour.weather_old_start, tour.weather_old_end) : formatYmdRange(tour.start_date, tour.end_date)) : '';
                 const amount = [...g.steps].reverse().find((r) => r.amount != null)?.amount;
                 const method = methodName([...g.steps].reverse().find((r) => r.method)?.method);
                 const now = nowOf(g.steps);
@@ -394,7 +400,12 @@ export const RefundHistoryButton = () => {
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
                       <div style={{ flex: '1 1 220px', minWidth: 0 }}>
                         <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{joiner || 'Joiner'} · <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{g.booking_number || '—'}</span></p>
-                        <p style={{ margin: '2px 0 0', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>{amount != null ? formatPeso(amount) : ''}{method ? ` · ${method}` : ''}</p>
+                        {tour?.title && (
+                          <p style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 800, color: '#B4511E' }}>
+                            {tour.title}{tourDates ? <span style={{ fontWeight: 700, color: '#7A3A18' }}> · {tourDates}</span> : null}
+                          </p>
+                        )}
+                        <p style={{ margin: '2px 0 0', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>{amount != null ? `Refunded ${formatPeso(amount)}` : ''}{method ? ` · ${method}` : ''}</p>
                       </div>
                       <span style={{ padding: '3px 10px', borderRadius: 999, background: now.bg, color: now.fg, border: now.bd || `1px solid ${now.bg}`, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{now.t}</span>
                     </div>
