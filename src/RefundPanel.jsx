@@ -85,7 +85,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
   // Upload the screenshot, then prepare (→ waits for the main admin's approval).
   const prepare = async () => {
     if (method === 'gcash') {
-      if (ref.replace(/\s/g, '').length < 6) { toast.error('Type the GCash reference', 'It\'s on the GCash receipt (at least 6 characters).'); return false; }
+      if (!/^\d{13}$/.test(ref)) { toast.error('Type the GCash reference no.', 'It\'s the 13-digit number on the GCash receipt (numbers only).'); return false; }
       if (!file) { toast.error('Add the GCash receipt', 'Upload a screenshot of the GCash receipt of this refund.'); return false; }
     }
     let proof = null;
@@ -209,7 +209,8 @@ export const RefundPanel = ({ booking: b, onDone }) => {
     );
   }
 
-  const gcashReady = ref.replace(/\s/g, '').length >= 6 && !!file;
+  // GCash reference numbers are 13 digits.
+  const gcashReady = /^\d{13}$/.test(ref) && !!file;
   const ready = gcashReady;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -217,7 +218,9 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         Send {amount} manually through GCash{gcash ? ` to ${gcash}` : ''}, then add the GCash reference and a screenshot of the GCash receipt.
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input aria-label="GCash reference of the refund" placeholder="GCash reference no. *" value={ref} maxLength={40} onChange={(e) => setRef(e.target.value)}
+        <input aria-label="GCash reference of the refund" placeholder="GCash reference no. (13 digits) *" value={ref} maxLength={13}
+              inputMode="numeric" pattern="\d{13}" autoComplete="off"
+              onChange={(e) => setRef(e.target.value.replace(/\D/g, '').slice(0, 13))}
           style={{ flex: '1 1 180px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
         <label style={{ ...smallBtn('#F2E4D0', '#7A3A18', '1px dashed rgba(180,81,30,0.45)'), maxWidth: '100%' }}>
           <Upload size={13} />
@@ -225,7 +228,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
           <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ display: 'none' }} />
         </label>
       </div>
-      <button type="button" onClick={submit} disabled={!!busy || !ready} title={ready ? undefined : 'Add the GCash reference and receipt first'}
+      <button type="button" onClick={submit} disabled={!!busy || !ready} title={ready ? undefined : 'Add the 13-digit GCash reference no. and the receipt first'}
         style={{ ...smallBtn(isMain ? '#B4511E' : '#3F5D62', '#FDF6EE', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
         {busy === 'submit' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : isMain ? <Wallet size={13} /> : <CheckCircle2 size={13} />}
         {isMain ? 'Send refund' : 'Send for approval'}
