@@ -74,6 +74,16 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
  
   // Opened from the homepage's Trip Readiness card: show that booking's details once loaded.
   const openIdRef = useRef(openBookingId);
+  // A bad-weather notice opened: its "Please choose" card (highlighted) or its refund in My Refunds.
+  const [focusWeather, setFocusWeather] = useState(null);
+  const [focusRefund, setFocusRefund] = useState(null);
+  // Scroll to the highlighted card once, and let the highlight fade after a few seconds.
+  useEffect(() => {
+    if (!focusWeather || loading) return undefined;
+    const t1 = setTimeout(() => document.getElementById(`weather-card-${focusWeather}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    const t2 = setTimeout(() => setFocusWeather(null), 6000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [focusWeather, loading]);
 
   const fetchMyBookings = useCallback(async () => {
     setLoading(true);
@@ -138,7 +148,13 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
       if (openIdRef.current) {
         const target = processedBookings.find((b) => String(b.id) === String(openIdRef.current));
         openIdRef.current = null;
-        if (target) {
+        if (target && target.weather_choice === 'pending' && target.showWeather) {
+          // Postponed / cancelled: its choice card at the top, not the booking details.
+          setFocusWeather(String(target.id));
+        } else if (target && target.weather_choice === 'refund') {
+          // Its 50% refund, opened in My Refunds.
+          setFocusRefund(String(target.id));
+        } else if (target) {
           // Show it on the tab it belongs to, then open its details.
           setActiveTab(target.booking_status === 'Cancelled' || target.booking_status === 'Rejected' ? 'Cancelled'
             : target.isActuallyCompleted ? 'Completed' : 'Upcoming');
@@ -186,7 +202,10 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
 
       {/* ── Bad weather: postponed or cancelled dates to decide on (refunds are under My Refunds) ── */}
       {!loading && bookings.filter((b) => b.showWeather && b.weather_choice !== 'refund').map((b) => (
-        <WeatherChoiceCard key={`wx-${b.id}`} booking={b} weather={weather[String(b.tour_id)]} onChanged={fetchMyBookings} />
+        <div key={`wx-${b.id}`} id={`weather-card-${b.id}`}
+          style={focusWeather === String(b.id) ? { borderRadius: 22, boxShadow: '0 0 0 3px #B4511E, 0 12px 30px rgba(180,81,30,0.25)', transition: 'box-shadow 0.3s' } : undefined}>
+          <WeatherChoiceCard booking={b} weather={weather[String(b.tour_id)]} onChanged={fetchMyBookings} />
+        </div>
       ))}
 
       {/* ── Trip Day: the next few days' confirmed trips, with pickups, driver and QR ── */}
@@ -216,7 +235,7 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
           ))}
         </div>
         {/* All bad-weather refunds, in one window */}
-        {!loading && <MyRefunds bookings={bookings} weather={weather} onChanged={fetchMyBookings} />}
+        {!loading && <MyRefunds bookings={bookings} weather={weather} onChanged={fetchMyBookings} focusId={focusRefund} />}
       </div>
 
       {/* ── Bookings List ── */}
