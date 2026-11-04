@@ -102,8 +102,9 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
   const why = [weather?.weather_reason, weather?.weather_note].filter(Boolean).join(' · ');
   const refund = Math.round((Number(booking.amount_paid) || 0) * 50) / 100;
 
-  // Other open dates of the same tour, with room for this booking (only later ones).
-  const fromDate = booking.tours?.weather_old_start || booking.tours?.start_date || '';
+  // Other open dates of the same tour, with room for this booking: only ones
+  // starting after this (postponed or cancelled) tour's last day.
+  const fromDate = (booking.tours?.weather_old_start ? booking.tours?.weather_old_end : booking.tours?.end_date) || booking.tours?.start_date || '';
   useEffect(() => {
     if (!open) return undefined;
     let alive = true;
