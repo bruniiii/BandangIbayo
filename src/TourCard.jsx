@@ -84,16 +84,17 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12.5, fontWeight: 800, color: '#1A0A00', lineHeight: 1.35, overflowWrap: 'anywhere' }}>
                       <Calendar size={12} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} /> <span style={{ minWidth: 0 }}>{formatDateRange(d.start_date, d.duration)}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: full ? '#A8481A' : '#7A3A18', marginTop: 2, paddingLeft: 18 }}>
-                      {d.current_booked ?? 0} / {d.group_size || 18} booked
+                    {/* "0 / 12 booked" stays on one line; labels (Sale, Full, Cancelled…) wrap below it neatly */}
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 6, rowGap: 4, fontSize: 11, fontWeight: 700, color: full ? '#A8481A' : '#7A3A18', marginTop: 3, paddingLeft: 18 }}>
+                      <span style={{ whiteSpace: 'nowrap' }}>{d.current_booked ?? 0} / {d.group_size || 18} booked</span>
                       {d.sale_starts && d.sale_ends && (
-                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? '#8C2F1C' : 'rgba(140,47,28,0.12)', color: isOnSale(d) ? '#FDF6EE' : '#8C2F1C', fontSize: 10.5, fontWeight: 900, padding: '1px 7px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? '#8C2F1C' : 'rgba(140,47,28,0.12)', color: isOnSale(d) ? '#FDF6EE' : '#8C2F1C', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {isOnSale(d) ? 'On sale' : 'Sale soon'}
                         </span>
                       )}
-                      {full && <span style={{ background: 'rgba(180,81,30,0.12)', color: '#A8481A', fontSize: 10.5, fontWeight: 900, padding: '1px 7px', borderRadius: 999, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Full</span>}
+                      {full && <span style={{ background: 'rgba(180,81,30,0.12)', color: '#A8481A', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>Full</span>}
                       {d.weather_status && (
-                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? '#8C2F1C' : '#3F5D62', color: '#FDF6EE', fontSize: 10.5, fontWeight: 900, padding: '1px 7px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? '#8C2F1C' : '#3F5D62', color: '#FDF6EE', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {d.weather_status === 'cancelled' ? 'Cancelled' : 'Postponed'}
                         </span>
                       )}

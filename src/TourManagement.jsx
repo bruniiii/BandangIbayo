@@ -264,7 +264,20 @@ const TourManagement = ({ openTourId = null }) => {
       return;
     }
     const { error } = await supabase.from('tours').update({ is_archived: !isArchived }).in('id', restoreIds);
-    if (error) toast.error("Couldn't update the tour", error.message); else { toast.success(isArchived ? 'Tour restored' : 'Tour archived'); fetchTours(); }
+    // A date cancelled for bad weather was archived by the cancellation:
+    // restoring it opens it again as a normal date, without the "Cancelled" label.
+    // (Its old bookings stay cancelled; their refunds or moves don't change.)
+    const weatherCancelled = isArchived ? restoreIds.filter((id) => dates.find((x) => x.id === id)?.weather_status === 'cancelled') : [];
+    let weatherError = null;
+    if (!error && weatherCancelled.length) {
+      ({ error: weatherError } = await supabase.from('tours')
+        .update({ weather_status: null, weather_reason: null, weather_note: null }).in('id', weatherCancelled));
+    }
+    if (error || weatherError) toast.error("Couldn't update the tour", (error || weatherError).message);
+    else {
+      toast.success(isArchived ? 'Tour restored' : 'Tour archived', weatherCancelled.length ? 'The bad-weather "Cancelled" label was removed: the date is open for new bookings.' : undefined);
+      fetchTours();
+    }
     setConfirmAction(null);
   };
  
@@ -595,7 +608,9 @@ const TourManagement = ({ openTourId = null }) => {
             </h3>
             <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, lineHeight: 1.7, margin: '0 0 32px' }}>
               {confirmAction.isArchived
-                ? 'This tour will be moved back to the active listings.'
+                ? ((confirmAction.dates || []).some((d) => d.weather_status === 'cancelled')
+                  ? 'This tour will be moved back to the active listings. Dates cancelled for bad weather open again for new bookings (the "Cancelled" label is removed). Their old bookings stay cancelled, and their refunds or moves don\'t change.'
+                  : 'This tour will be moved back to the active listings.')
                 : 'This tour will be moved to your private archives.'}
             </p>
             <div style={{ display: 'flex', gap: 12 }}>
