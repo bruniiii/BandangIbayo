@@ -8,6 +8,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale, downpaymentFor, DOWNPAYMENT_PERCENT } from './tourUtils';
 import { sendWaitlistOpeningsEmail } from './Email';
 import WeatherChoiceCard from './WeatherChoiceCard';
+import MyRefunds from './MyRefunds';
 import { downloadReceipt, balanceRemaining, hasBalanceReceipt } from './paymentReceipt';
 import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
@@ -181,8 +182,8 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      {/* ── Bad weather: postponed or cancelled dates to decide on, and 50% refunds ── */}
-      {!loading && bookings.filter((b) => b.showWeather).map((b) => (
+      {/* ── Bad weather: postponed or cancelled dates to decide on (refunds are under My Refunds) ── */}
+      {!loading && bookings.filter((b) => b.showWeather && b.weather_choice !== 'refund').map((b) => (
         <WeatherChoiceCard key={`wx-${b.id}`} booking={b} weather={weather[String(b.tour_id)]} onChanged={fetchMyBookings} />
       ))}
 
@@ -212,6 +213,8 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
             </button>
           ))}
         </div>
+        {/* All bad-weather refunds, in one window */}
+        {!loading && <MyRefunds bookings={bookings} weather={weather} onChanged={fetchMyBookings} />}
       </div>
 
       {/* ── Bookings List ── */}
