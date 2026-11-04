@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CloudRain, Loader2, MessagesSquare, CalendarCheck, Wallet, ChevronDown } from 'lucide-react';
+import { CloudRain, Loader2, MessagesSquare, CalendarCheck, Wallet, ChevronDown, Download } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -8,6 +8,7 @@ import { formatPeso, todayManila, withAvailableSlots } from './tourUtils';
 import { openGroupChat } from './chatStore';
 import { weatherRefundStatus } from './payments';
 import { RefundProofLink } from './RefundPanel';
+import { downloadRefundReceipt } from './paymentReceipt';
 import NiceSelect from './ui/NiceSelect';
 
 // ─────────────────────────────────────────────
@@ -180,7 +181,15 @@ const WeatherChoiceCard = ({ booking, weather, onChanged }) => {
             {title} ({booking.booking_number}): {formatPeso(booking.weather_refund)} {sent ? 'was sent to you' : 'will be sent to your GCash'}.
           </p>
           {sent && booking.weather_refund_ref && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18', overflowWrap: 'anywhere' }}>Reference: {booking.weather_refund_ref}</p>}
-          {sent && booking.weather_refund_proof && <RefundProofLink path={booking.weather_refund_proof} />}
+          {sent && (
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button type="button" className="text-link" onClick={() => downloadRefundReceipt(booking).catch((e) => toast.error("Couldn't make your refund receipt", e?.message))}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 800, cursor: 'pointer' }}>
+                <Download size={13} /> Download refund receipt
+              </button>
+              {booking.weather_refund_proof && <RefundProofLink path={booking.weather_refund_proof} />}
+            </div>
+          )}
           {sent && booking.weather_refund_method !== 'gcash' && /ref_[A-Za-z0-9]+/.test(booking.weather_refund_ref || '') && <RefundStatus bookingId={booking.id} />}
           {sent && <RefundConfirm booking={booking} onChanged={onChanged} />}
         </>)}

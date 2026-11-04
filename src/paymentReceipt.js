@@ -289,3 +289,67 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
   });
   doc.save(filename);
 };
+
+// ── Refund receipt (a weather cancellation's 50% refund) ──
+// Its own receipt, separate from the payment receipts: what was paid, what
+// was refunded, how (PayMongo or GCash) and its reference. No check-in QR:
+// it isn't a ticket.
+export const refundReceiptNumber = (booking) => `RF-${booking.booking_number}`;
+
+const refundReceipt = async (booking) => {
+  const tour = booking.tours || {};
+  const refund = Number(booking.weather_refund) || 0;
+  const paid = Number(booking.amount_paid) || 0;
+  const sentAt = booking.weather_refund_at || new Date();
+  const ref = String(booking.weather_refund_ref || '').replace(/\s*·\s*(FAILED.*|reopened)$/i, '');
+  const method = booking.weather_refund_method === 'gcash' ? 'GCASH'
+    : booking.weather_refund_method === 'paymongo' || /ref_[A-Za-z0-9]+/.test(ref) ? 'PAYMONGO (BACK TO YOUR PAYMENT)' : 'GCASH';
+  const dates = tour.weather_old_start ? formatYmdRange(tour.weather_old_start, tour.weather_old_end) : formatYmdRange(tour.start_date, tour.end_date);
+  return buildReceipt({
+    filename: `refund-receipt-${booking.booking_number}.pdf`,
+    draw: (pen) => {
+      header(pen);
+      pen.center('REFUND RECEIPT', 10);
+      pen.gap(2);
+      pen.pair(dateOf(sentAt), timeOf(sentAt));
+      pen.pair(`BOOKING ${booking.booking_number || '—'}`, '');
+      pen.pair(`JOINER ${String(booking.full_name || '—').toUpperCase()}`, '');
+      pen.pair(`REFUNDED BY ${method}`, '');
+      if (ref) pen.pair(`REF ${ref}`, '', 7);
+      pen.pair('REASON TOUR DATE CANCELLED/POSTPONED (BAD WEATHER)', '', 7);
+      pen.gap(4);
+      pen.columns();
+      pen.item(booking.slots_booked || 1, `${tour.title || 'Tour'}${dates ? ` (${dates})` : ''}`, php(paid));
+      pen.item('', '50% refund for the bad-weather change', `- ${php(refund)}`);
+      pen.gap(10);
+      pen.big('REFUNDED', php(refund));
+      pen.total('AMOUNT PAID', php(paid));
+      pen.total('REFUND (50%)', php(refund));
+      pen.total('NON-REFUNDABLE (50%)', php(Math.max(0, paid - refund)));
+      pen.gap(4);
+      if (booking.weather_refund_received === 'received') {
+        pen.note(`Received by the joiner (confirmed ${dateOf(booking.weather_refund_received_at || new Date())}).`);
+      } else {
+        pen.note(method.startsWith('PAYMONGO')
+          ? 'PayMongo sends it back to the GCash, Maya or card you paid with. It usually arrives in 1 to 5 days (cards can take longer).'
+          : 'Sent to your GCash. Check your GCash history for the credit.');
+      }
+      pen.gap(6);
+      pen.note(`${refundReceiptNumber(booking)} · Issued ${dateOf(new Date())} ${timeOf(new Date())}. Not a BIR-registered official receipt.`);
+      return pen.y;
+    },
+  });
+};
+
+// Joiner: download it. Admin: open it to print.
+export const downloadRefundReceipt = async (booking) => {
+  const { doc, filename } = await refundReceipt(booking);
+  doc.save(filename);
+};
+export const printRefundReceipt = async (booking) => {
+  const win = window.open('', '_blank'); // opened now, so the browser doesn't block it
+  const { doc } = await refundReceipt(booking);
+  doc.autoPrint();
+  const url = doc.output('bloburl');
+  if (win) win.location.href = url; else window.open(url, '_blank');
+};

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Loader2, Wallet, Upload, Undo2, ShieldCheck, History, X, Image as ImageIcon, RotateCcw } from 'lucide-react';
+import { CheckCircle2, Loader2, Wallet, Upload, Undo2, ShieldCheck, History, X, Image as ImageIcon, RotateCcw, Printer } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -7,6 +7,7 @@ import { formatPeso } from './tourUtils';
 import { shrinkImage } from './imageCompress';
 import { useAdminMe } from './adminMe';
 import { refundWeatherThroughPaymongo, weatherRefundStatus } from './payments';
+import { printRefundReceipt } from './paymentReceipt';
 
 // ─────────────────────────────────────────────
 // Sending a weather refund, safely (20261209 update). Used in Booking
@@ -20,7 +21,7 @@ import { refundWeatherThroughPaymongo, weatherRefundStatus } from './payments';
 
 export const REFUND_SELECT = 'id, user_id, booking_number, full_name, gcash_number, amount_paid, weather_refund, weather_refund_status, weather_refund_ref, weather_refund_at, '
   + 'weather_refund_method, weather_refund_proof, weather_refund_prepared_by, weather_refund_prepared_at, weather_refund_received, weather_refund_received_at, '
-  + 'weather_refund_paymongo, paymongo_payment_id';
+  + 'weather_refund_paymongo, paymongo_payment_id, slots_booked';
 
 const PROOF_BUCKET = 'refund-proofs';
 const when = (iso) => (iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' }) : '');
@@ -293,8 +294,14 @@ export const RefundSentInfo = ({ booking: b, onDone }) => {
       <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>
         Sent{b.weather_refund_method ? ` by ${b.weather_refund_method === 'gcash' ? 'GCash' : 'PayMongo'}` : ''}{b.weather_refund_at ? ` on ${when(b.weather_refund_at)}` : ''}{b.weather_refund_ref ? ` · ${b.weather_refund_ref}` : ''}.
       </p>
-      {b.weather_refund_proof && <RefundProofLink path={b.weather_refund_proof} />}
-      {/ref_[A-Za-z0-9]+/.test(b.weather_refund_ref || '') && <PaymongoState bookingId={b.id} />}
+      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button type="button" className="text-link" onClick={() => printRefundReceipt(b).catch((e) => toast.error("Couldn't make the refund receipt", e?.message))}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 800, cursor: 'pointer' }}>
+          <Printer size={13} /> Print refund receipt
+        </button>
+        {b.weather_refund_proof && <RefundProofLink path={b.weather_refund_proof} />}
+      </div>
+      {b.weather_refund_method !== 'gcash' && /ref_[A-Za-z0-9]+/.test(b.weather_refund_ref || '') && <PaymongoState bookingId={b.id} />}
       <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: received === 'received' ? '#1F6B4A' : received === 'not_received' ? '#8C2F1C' : '#8C5216' }}>
         {received === 'received' ? `✓ The joiner confirmed they received it (${when(b.weather_refund_received_at)}).`
           : received === 'not_received' ? `⚠ The joiner says they didn't get it (${when(b.weather_refund_received_at)}).`
