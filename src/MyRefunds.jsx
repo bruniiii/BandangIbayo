@@ -7,15 +7,18 @@ import { formatPeso } from './tourUtils';
 // My Bookings: one "My Refunds" button instead of a bar per refund. It opens
 // a window with every refund (bad-weather 50% refunds): waiting to be sent,
 // sent (with the receipt, the refund receipt and "I received it"), and done.
-//   <MyRefunds bookings={…} weather={…} onChanged={…} />
+//   <MyRefunds bookings={…} weather={…} onChanged={…} focusId={booking id} />
+//   focusId: a refund notice was opened → the window opens with that refund open.
 // ─────────────────────────────────────────────
 
 // Waiting to be sent first, then sent but not yet confirmed, then done; newest first.
 const rank = (b) => (b.weather_refund_status !== 'Sent' ? 0 : b.weather_refund_received !== 'received' ? 1 : 2);
 const newest = (b) => new Date(b.weather_refund_at || b.updated_at || b.created_at || 0).getTime();
 
-const MyRefunds = ({ bookings, weather, onChanged }) => {
+const MyRefunds = ({ bookings, weather, onChanged, focusId = null }) => {
   const [open, setOpen] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- a refund notice was opened
+  useEffect(() => { if (focusId) setOpen(true); }, [focusId]);
   const refunds = bookings.filter((b) => b.weather_choice === 'refund')
     .sort((a, b) => rank(a) - rank(b) || newest(b) - newest(a));
   const toConfirm = refunds.filter((b) => b.weather_refund_status === 'Sent' && !b.weather_refund_received).length;
@@ -64,7 +67,7 @@ const MyRefunds = ({ bookings, weather, onChanged }) => {
                 50% refunds for tour dates changed because of bad weather. Open one to see how it was sent, the receipts, and to confirm you received it.
               </p>
               {refunds.map((b) => (
-                <WeatherChoiceCard key={b.id} booking={b} weather={weather[String(b.tour_id)]} onChanged={onChanged} defaultOpen={refunds.length === 1} />
+                <WeatherChoiceCard key={b.id} booking={b} weather={weather[String(b.tour_id)]} onChanged={onChanged} defaultOpen={refunds.length === 1 || String(b.id) === String(focusId)} />
               ))}
             </div>
           </div>
