@@ -40,7 +40,8 @@ const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // The website (same secret the payments function uses), for buttons in emails.
-const SITE_URL = (Deno.env.get("SITE_URL") ?? "").replace(/\/+$/, "");
+// (SITE_URL may list several addresses separated by commas; links use the first.)
+const SITE_URL = ((Deno.env.get("SITE_URL") ?? "").split(",")[0] ?? "").trim().replace(/\/+$/, "");
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 

@@ -25,7 +25,6 @@ import { TourCard } from './TourCard';
 import { TourViewModal } from './TourViewModal';
 import PickupSpots from './PickupSpots';
 import RoutePickupPicker from './ui/RoutePickupPicker';
-import PinPickupButton from './ui/PinPickupButton';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
 import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h, stopMinutes } from './geo';
@@ -254,7 +253,7 @@ const TourManagement = ({ openTourId = null }) => {
   }, [editingTour, showModal]);
  
   const executeToggleArchive = async () => {
-    const { ids, isArchived, dates = [] } = confirmAction;
+    const { ids, isArchived, dates = [], tour } = confirmAction;
     // A date that already ended stays in Tour Archive (it can't be booked anymore).
     const today = todayManila();
     const ended = (d) => String(d.end_date || d.start_date || '') < today;
@@ -273,6 +272,17 @@ const TourManagement = ({ openTourId = null }) => {
     if (!error && weatherCancelled.length) {
       ({ error: weatherError } = await supabase.from('tours')
         .update({ weather_status: null, weather_reason: null, weather_note: null }).in('id', weatherCancelled));
+    }
+    if (error && isArchived && /one tour per day/i.test(error.message)) {
+      // Restoring puts the date back on the calendar, and another tour is on those days now.
+      setConfirmAction(null);
+      const other = (error.message.match(/one tour per day: (.+?) is already on those days/i) || [])[1];
+      if (await confirmDialog({
+        title: "Can't restore on these dates",
+        message: `${other ? `${other} is already on those days` : 'Another tour is already on those days'} (only one tour per day). Pick new dates for this tour, then restore it.`,
+        confirmLabel: 'Change Dates', cancelLabel: 'Not Now',
+      }) && tour) openTourForm(tour);
+      return;
     }
     if (error || weatherError) toast.error("Couldn't update the tour", (error || weatherError).message);
     else {
@@ -378,7 +388,7 @@ const TourManagement = ({ openTourId = null }) => {
         [`other_name_${i}`, (o.name.trim() || o.amount) && !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
         [`other_amount_${i}`, o.name.trim() && !(Number(o.amount) >= 0 && String(o.amount).trim() !== '') ? 'Enter the amount (₱0 or more).' : ''],
       ]),
-      ['pickup_new', pickups.length === 0 ? 'Add at least one pickup point, so joiners can choose where to be picked up.' : ''],
+      ['pickup_new', pickups.length === 0 ? 'Tick at least one pickup spot, so joiners can choose where to be picked up.' : ''],
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
       // (An older tour keeps a bigger number as long as it isn't changed.)
       ['group_size', groupSize > MAX_TOUR_SLOTS && groupSize !== Number(editingTour?.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots per date.` : ''],
@@ -536,7 +546,9 @@ const TourManagement = ({ openTourId = null }) => {
       if (feedError) reportError("Tour saved, but it wasn't posted to the feed", feedError.message);
     }
 
-    toast.success(isNewTour ? 'Tour created' : 'Tour saved', isNewTour ? 'It\'s now open for booking and posted to the feed.' : added.length ? `${added.length} new date${added.length > 1 ? 's are' : ' is'} open for booking.` : '');
+    toast.success(isNewTour ? 'Tour created' : 'Tour saved', isNewTour ? 'It\'s now open for booking and posted to the feed.'
+      : editingTour?.is_archived ? 'It\'s still in Tour Archive. Click Restore on it to open it for booking again.'
+        : added.length ? `${added.length} new date${added.length > 1 ? 's are' : ' is'} open for booking.` : '');
     setEditingTour(null);
     setShowModal(false);
     fetchTours();
@@ -783,7 +795,7 @@ const TourManagement = ({ openTourId = null }) => {
               <TourCard
                 key={tour.id}
                 tour={tour}
-                onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates })}
+                onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates, tour })}
                 onView={() => setViewTour(tour)}
                 onEdit={() => openTourForm(tour)}
                 onAddDate={() => openTourForm(tour, { withNewDate: true })}
@@ -1060,19 +1072,24 @@ const TourManagement = ({ openTourId = null }) => {
                       </p>
                     </div>
                   )}
-                  <ListField
-                    label="Pickup Points" required name="pickup_new" maxLength={120}
-                    items={pickupPicked}
-                    onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
-                    placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
-                    hint={spotsInfo.available
-                      ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. The same points are used for every date of this trip. Each stop's time fills itself in from the departure time and the route."
-                      : "Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."}
-                  />
-                  {spotsInfo.available && (
-                    <PinPickupButton near={formRoute?.start || formRoute?.end || null} picked={pickupPicked}
-                      onPickedChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
-                      onAddPlace={(pl) => setRoutePlaces((list) => (list.some((x) => x.name === pl.name) ? list : [...list, pl]))} />
+                  {/* The pickup points are the spots ticked above (no separate list to type in). */}
+                  {spotsInfo.available ? (
+                    <div>
+                      <input type="hidden" name="pickup_new" value={pickupPicked.length ? String(pickupPicked.length) : ''} data-required="true" />
+                      <p style={{ fontSize: 11.5, fontWeight: 700, color: pickupPicked.length ? '#7A3A18' : '#8C2F1C', margin: 0, lineHeight: 1.5 }}>
+                        {pickupPicked.length
+                          ? `Pickup points (${pickupPicked.length}): ${pickupPicked.join(' · ')}. Joiners choose one of these when they book.`
+                          : 'Tick at least one pickup spot above. Joiners choose one of these when they book.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <ListField
+                      label="Pickup Points" required name="pickup_new" maxLength={120}
+                      items={pickupPicked}
+                      onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
+                      placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
+                      hint="Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."
+                    />
                   )}
                 </div>
  

@@ -43,7 +43,7 @@
 // Deploy:   supabase functions deploy payments --no-verify-jwt
 // Secrets:  supabase secrets set PAYMONGO_SECRET_KEY=sk_test_...      (sk_live_... to go live)
 //           supabase secrets set PAYMONGO_WEBHOOK_SECRET=whsk_...      (from the webhook you create)
-//           supabase secrets set SITE_URL=https://<your-site>.vercel.app
+//           supabase secrets set SITE_URL="https://<your-domain>,https://<your-site>.vercel.app"   (one or more, comma-separated)
 //           supabase secrets set PAYMONGO_PAYMENT_METHODS=gcash,paymaya,card,grab_pay   (optional)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -52,7 +52,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const PAYMONGO_SECRET_KEY = Deno.env.get("PAYMONGO_SECRET_KEY") ?? "";
 const PAYMONGO_WEBHOOK_SECRET = Deno.env.get("PAYMONGO_WEBHOOK_SECRET") ?? "";
-const SITE_URL = (Deno.env.get("SITE_URL") ?? "").replace(/\/+$/, "");
+// SITE_URL: the website's address, or several separated by commas (e.g. the
+// custom domain and the vercel.app one). PayMongo sends joiners back to the
+// one they paid from, so they stay signed in; the first is the default.
+const SITE_URLS = (Deno.env.get("SITE_URL") ?? "").split(",").map((u) => u.trim().replace(/\/+$/, "")).filter(Boolean);
+const SITE_URL = SITE_URLS[0] ?? "";
 const PAYMENT_METHODS = (Deno.env.get("PAYMONGO_PAYMENT_METHODS") ?? "gcash,paymaya,card,grab_pay")
   .split(",").map((m) => m.trim()).filter(Boolean);
 const PAYMONGO_API = "https://api.paymongo.com/v1";
@@ -120,7 +124,7 @@ const billingFor = (name: unknown, email: unknown, phone: string) => {
 // Where PayMongo sends the joiner back. Only our own site (or localhost while testing).
 function returnBase(requested: unknown) {
   const r = typeof requested === "string" ? requested.replace(/\/+$/, "") : "";
-  if (r && (r === SITE_URL || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(r))) return r;
+  if (r && (SITE_URLS.includes(r) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(r))) return r;
   if (!SITE_URL) throw new HttpError(500, "Online payments aren't set up yet (SITE_URL missing).");
   return SITE_URL;
 }
