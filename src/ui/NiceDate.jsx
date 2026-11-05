@@ -39,6 +39,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
   const [toLeft, setToLeft] = useState(false); // opens leftward near the right edge of the screen
   const start = current || (min && todayYmd() < min ? min : max && todayYmd() > max ? max : todayYmd());
   const [view, setView] = useState(() => ({ y: Number(start.slice(0, 4)), m: Number(start.slice(5, 7)) - 1 }));
+  const [months, setMonths] = useState(false); // the month name was clicked: a 12-month list
 
   useEffect(() => {
     if (!open) return undefined;
@@ -62,6 +63,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
     const place = popupPlace(wrapRef.current, { width: 296, height: 360 });
     setUpward(place.upward);
     setToLeft(place.toLeft);
+    setMonths(false);
     setOpen(true);
   };
 
@@ -132,7 +134,15 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <button type="button" className="no-touch-size" onClick={() => shift(-1)} disabled={!canBack} aria-label="Previous month" style={navBtn(!canBack)}><ChevronLeft size={16} /></button>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minWidth: 0 }}>
-              <span style={{ fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{MONTHS[view.m]}</span>
+              <button type="button" className="no-touch-size" onClick={() => setMonths((o) => !o)} aria-expanded={months} aria-label={`Month: ${MONTHS[view.m]}. Choose a month`}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 8px', borderRadius: 10, cursor: 'pointer',
+                  border: `1px solid ${months ? '#B4511E' : 'rgba(180,81,30,0.18)'}`, background: months ? 'rgba(180,81,30,0.1)' : '#FDF6EE',
+                  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 900, color: '#1A0A00',
+                }}>
+                {MONTHS[view.m]}
+                <ChevronDown size={13} style={{ color: '#A8481A', transition: 'transform 0.2s', transform: months ? 'rotate(180deg)' : 'none' }} />
+              </button>
               {years ? (
                 <div style={{ width: 96 }}>
                   <PrettySelect compact ariaLabel="Year" value={String(view.y)} options={years.map((y) => ({ value: String(y), label: String(y) }))}
@@ -142,6 +152,25 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
             </div>
             <button type="button" className="no-touch-size" onClick={() => shift(1)} disabled={!canNext} aria-label="Next month" style={navBtn(!canNext)}><ChevronRight size={16} /></button>
           </div>
+          {months ? (
+            <div role="listbox" aria-label="Months" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+              {MONTHS.map((name, m) => {
+                const key = ymd(view.y, m, 1).slice(0, 7);
+                const off = (min && key < min.slice(0, 7)) || (max && key > max.slice(0, 7));
+                const sel = m === view.m;
+                return (
+                  <button key={name} type="button" role="option" aria-selected={sel} className="no-touch-size" disabled={off}
+                    onClick={() => { setView((v) => ({ ...v, m })); setMonths(false); }}
+                    style={{
+                      height: 40, borderRadius: 10, padding: 0, fontFamily: 'inherit', fontSize: 12.5, fontWeight: sel ? 900 : 800,
+                      border: sel ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.14)',
+                      background: sel ? '#B4511E' : 'transparent', color: sel ? '#FDF6EE' : off ? 'rgba(122,58,24,0.3)' : '#1A0A00',
+                      cursor: off ? 'not-allowed' : 'pointer',
+                    }}>{name.slice(0, 3)}</button>
+                );
+              })}
+            </div>
+          ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
             {WEEKDAYS.map((w) => <span key={w} style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, color: '#A8481A', padding: '4px 0' }}>{w}</span>)}
             {cells.map((d, i) => {
@@ -159,6 +188,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
               );
             })}
           </div>
+          )}
           {showClear && (
             <button type="button" className="no-touch-size" onClick={() => pick('')} style={{
               marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0,
