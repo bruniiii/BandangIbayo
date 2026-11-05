@@ -8,8 +8,12 @@ import { installInputFilter } from './ui/inputFilter';
 import { setupInstallApp } from './installApp';
 import { reportError } from './ui/toast';
 import { logClientError } from './errorLog';
+import { installStaleVersionReload } from './staleVersion';
 import './index.css';
 import './App.css';
+
+// An old tab after a website update reloads itself (see staleVersion.js).
+installStaleVersionReload();
 
 // Name fields refuse numbers, number fields refuse letters (see ui/inputFilter).
 installInputFilter();
