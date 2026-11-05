@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import MissingHint from './ui/MissingHint';
 import { supabase, currentUser } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
 import { toast, reportError } from './ui/toast';
@@ -120,6 +121,20 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     && !['description', 'inclusions', 'exclusions', 'things_to_bring', 'important_note'].some((k) => blank(form[k]))
     && Object.values(itinerary).some((v) => String(v || '').trim())
     && (!isOpenRequest || (gallery.length + newFiles.length) > 0 && accommodation.length > 0);
+  // The same, named (shown above the button).
+  const FIELD_LABELS = {
+    title: 'Tour title', destination: 'Destination', price: 'Price', regular_rate: 'Regular Rate', van_rent: 'Van rent',
+    tour_guide: 'Tour guide fee', start_date: 'Start date', end_date: 'End date', group_size: 'Group size',
+    description: 'Description', inclusions: 'Inclusions', exclusions: 'Exclusions', things_to_bring: 'Things to bring', important_note: 'Important Notes',
+  };
+  const missingList = [
+    isOpenRequest && (gallery.length + newFiles.length) === 0 && 'Tour photo',
+    ...Object.keys(FIELD_LABELS).filter((k) => blank(form[k])).map((k) => ({ label: FIELD_LABELS[k], name: k })),
+    !pickups.some((r) => r.location.trim()) && 'Pickup points',
+    others.some((o) => blank(o.name) !== blank(o.amount)) && 'Other expenses (each needs a name and an amount)',
+    accommodation.length === 0 && 'Accommodation',
+    !Object.values(itinerary).some((v) => String(v || '').trim()) && 'Itinerary',
+  ];
   const [dirty, setDirty] = useState(false);
   const savingRef = useRef(false);
   const packageSent = () => !!request.package_sent_at;
@@ -568,6 +583,11 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           </div>
         </div>
 
+        {!filled && !saving && (
+          <div style={{ padding: '12px 2.5rem 0', background: '#FDF6EE', borderTop: '1px solid rgba(180,81,30,0.12)', flexShrink: 0 }}>
+            <MissingHint items={missingList} />
+          </div>
+        )}
         <div style={{ padding: '1.5rem 2.5rem', background: '#FDF6EE', borderTop: '1px solid rgba(180,81,30,0.12)', display: 'flex', gap: 12, flexShrink: 0 }}>
           <button type="button" onClick={close} style={{
             flex: 1, padding: '13px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',

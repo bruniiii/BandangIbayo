@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MissingHint from './ui/MissingHint';
 import WeatherNotice from './ui/WeatherNotice';
 import { supabase, currentUser } from './supabaseClient';
 import { toast, reportError } from './ui/toast';
@@ -943,6 +944,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                     <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
                     <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
                 </label>
+                {!agreed && !busy && <MissingHint style={{ marginTop: 10 }} items={['Tick the agreement box to choose how to pay']} />}
 
             </div>
 

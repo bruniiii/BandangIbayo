@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import MissingHint from './ui/MissingHint';
 import { CloudRain, X, Loader2, CalendarClock, Ban } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
@@ -156,6 +157,9 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
             : 'Joiners get a notice (with the old and new dates), a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have 48 hours to keep their slot on the new date (payment and pickup point carry over), move to another date of this tour or take a 50% refund; no choice = 50% refund.'}
         </p>
 
+        {!busy && !ready && (
+          <MissingHint items={[!start && 'New start date', !end && 'New end date', start && end && end < start && 'The end date must be on or after the start date']} />
+        )}
         <button type="button" onClick={submit} disabled={!ready || busy} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 18px', borderRadius: 14, border: 'none',
           background: action === 'cancel' ? '#8C2F1C' : '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,

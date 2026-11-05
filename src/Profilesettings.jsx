@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import MissingHint from './ui/MissingHint';
 import { supabase, currentUser } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
 import { toast } from './ui/toast';
@@ -214,6 +215,15 @@ const ProfileSettings = () => {
   const profileFilled = filledText(form.first_name) && filledText(form.last_name)
     && (!form.province || (filledText(form.city_municipality) && filledText(form.barangay) && filledText(form.street)))
     && (filledText(form.emergency_contact_name) === filledText(form.emergency_contact_number));
+  const profileMissing = [
+    !filledText(form.first_name) && 'First name',
+    !filledText(form.last_name) && 'Last name',
+    form.province && !filledText(form.city_municipality) && 'City / Municipality',
+    form.province && !filledText(form.barangay) && 'Barangay',
+    form.province && !filledText(form.street) && 'Street / House No.',
+    filledText(form.emergency_contact_name) && !filledText(form.emergency_contact_number) && 'Emergency contact number',
+    !filledText(form.emergency_contact_name) && filledText(form.emergency_contact_number) && 'Emergency contact name',
+  ];
   const handleSave = async () => {
     if (!userId) return;
     // Address: province, city/municipality, barangay and street together (or none, to keep an older address as is).
@@ -559,6 +569,7 @@ const ProfileSettings = () => {
           />
         </div>
 
+        {!saving && !profileFilled && <MissingHint items={profileMissing} style={{ marginBottom: 12 }} />}
         <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
           <button
             type="button"

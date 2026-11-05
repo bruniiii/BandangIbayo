@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import MissingHint from './ui/MissingHint';
 import { supabase } from './supabaseClient';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -738,6 +739,13 @@ const TrackingConsoleModal = ({
                       <input {...phoneFieldProps(driverContact, setDriverContact)} required aria-label="Driver contact number" style={inputStyle} />
                     </div>
                     <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>All fields are required.</p>
+                    {!savingLogistics && !vehicleFilled && (
+                      <MissingHint items={[
+                        !String(carType || '').trim() && 'Van model', !String(plateNumber || '').trim() && 'Plate number',
+                        !String(vehicleColor || '').trim() && 'Color', !String(vehicleNotes || '').trim() && 'How to spot it',
+                        !String(driverName || '').trim() && 'Driver name', !String(driverContact || '').trim() && 'Driver contact number',
+                      ]} />
+                    )}
                     <button type="submit" disabled={savingLogistics || !vehicleFilled} style={{
                       padding: '10px 0', background: '#B4511E', color: '#FDF6EE',
                       border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,
