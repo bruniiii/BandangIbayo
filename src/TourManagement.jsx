@@ -25,7 +25,6 @@ import { TourCard } from './TourCard';
 import { TourViewModal } from './TourViewModal';
 import PickupSpots from './PickupSpots';
 import RoutePickupPicker from './ui/RoutePickupPicker';
-import PinPickupButton from './ui/PinPickupButton';
 import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
 import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h, stopMinutes } from './geo';
@@ -378,7 +377,7 @@ const TourManagement = ({ openTourId = null }) => {
         [`other_name_${i}`, (o.name.trim() || o.amount) && !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
         [`other_amount_${i}`, o.name.trim() && !(Number(o.amount) >= 0 && String(o.amount).trim() !== '') ? 'Enter the amount (₱0 or more).' : ''],
       ]),
-      ['pickup_new', pickups.length === 0 ? 'Add at least one pickup point, so joiners can choose where to be picked up.' : ''],
+      ['pickup_new', pickups.length === 0 ? 'Tick at least one pickup spot, so joiners can choose where to be picked up.' : ''],
       ['group_size', !Number.isInteger(groupSize) || groupSize < 1 ? 'Max slots must be a whole number, at least 1.' : ''],
       // (An older tour keeps a bigger number as long as it isn't changed.)
       ['group_size', groupSize > MAX_TOUR_SLOTS && groupSize !== Number(editingTour?.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots per date.` : ''],
@@ -1060,19 +1059,24 @@ const TourManagement = ({ openTourId = null }) => {
                       </p>
                     </div>
                   )}
-                  <ListField
-                    label="Pickup Points" required name="pickup_new" maxLength={120}
-                    items={pickupPicked}
-                    onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
-                    placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
-                    hint={spotsInfo.available
-                      ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. The same points are used for every date of this trip. Each stop's time fills itself in from the departure time and the route."
-                      : "Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."}
-                  />
-                  {spotsInfo.available && (
-                    <PinPickupButton near={formRoute?.start || formRoute?.end || null} picked={pickupPicked}
-                      onPickedChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
-                      onAddPlace={(pl) => setRoutePlaces((list) => (list.some((x) => x.name === pl.name) ? list : [...list, pl]))} />
+                  {/* The pickup points are the spots ticked above (no separate list to type in). */}
+                  {spotsInfo.available ? (
+                    <div>
+                      <input type="hidden" name="pickup_new" value={pickupPicked.length ? String(pickupPicked.length) : ''} data-required="true" />
+                      <p style={{ fontSize: 11.5, fontWeight: 700, color: pickupPicked.length ? '#7A3A18' : '#8C2F1C', margin: 0, lineHeight: 1.5 }}>
+                        {pickupPicked.length
+                          ? `Pickup points (${pickupPicked.length}): ${pickupPicked.join(' · ')}. Joiners choose one of these when they book.`
+                          : 'Tick at least one pickup spot above. Joiners choose one of these when they book.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <ListField
+                      label="Pickup Points" required name="pickup_new" maxLength={120}
+                      items={pickupPicked}
+                      onChange={(items) => { setPickupPicked(items); setFormDirty(true); }}
+                      placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
+                      hint="Add at least one. Joiners choose one of these when they book. The same points are used for every date of this trip. Set each stop's time in Tracking Management."
+                    />
                   )}
                 </div>
  

@@ -15,7 +15,6 @@ import { checkFields, textError, mediaFileError } from './validation';
 import { BAG_TAG_FEE, expenseItems } from './tourExpenses';
 import { X, Trash2, UploadCloud, Loader2 } from 'lucide-react';
 import RoutePickupPicker from './ui/RoutePickupPicker';
-import PinPickupButton from './ui/PinPickupButton';
 import { loadPickupSpots } from './pickupSpots';
 import { locateStops } from './pickupStops';
 import { addMinutesToTime } from './geo';
@@ -216,7 +215,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
         ? (isOpenRequest ? 'The tour must start at least 2 weeks from today.' : "The start date can't be in the past.") : ''],
       ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
-      ['pickup_new', stops.length === 0 ? 'Add at least one pickup point.' : ''],
+      ['pickup_new', stops.length === 0 ? 'Tick at least one pickup spot.' : ''],
       ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : isOpenRequest && slots > MAX_TOUR_SLOTS && slots !== Number(pkg.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots.` : slots > 200 ? 'That looks too high. Please check the number.'
         : isOpenRequest && slots < requestedSlots ? `Max slots must fit the requester's group of ${requestedSlots}.` : ''],
       ['description', textError(form.description, 'Description', { required: false, max: 5000 })],
@@ -503,18 +502,24 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                   </p>
                 </div>
               )}
-              <ListField
-                label="Pickup Points" required name="pickup_new" maxLength={120}
-                items={pickedPlaces}
-                onChange={setPickedPlaces}
-                placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
-                hint={spotsInfo.available
-                  ? "Ticked spots show up here; you can also type a pickup point that isn't saved. Joiners choose one of these when they book. Each stop's time fills itself in from the departure time and the route."
-                  : "Add at least one. Joiners choose one of these when they book. Set each stop's time in Tracking Management."}
-              />
-              {spotsInfo.available && (
-                <PinPickupButton near={route?.start || route?.end || null} picked={pickedPlaces}
-                  onPickedChange={setPickedPlaces} onAddPlace={addRoutePlace} />
+              {/* The pickup points are the spots ticked above (no separate list to type in). */}
+              {spotsInfo.available ? (
+                <div>
+                  <input type="hidden" name="pickup_new" value={pickedPlaces.length ? String(pickedPlaces.length) : ''} data-required="true" />
+                  <p style={{ fontSize: 11.5, fontWeight: 700, color: pickedPlaces.length ? '#7A3A18' : '#8C2F1C', margin: 0, lineHeight: 1.5 }}>
+                    {pickedPlaces.length
+                      ? `Pickup points (${pickedPlaces.length}): ${pickedPlaces.join(' · ')}. Joiners choose one of these.`
+                      : 'Tick at least one pickup spot above. Joiners choose one of these.'}
+                  </p>
+                </div>
+              ) : (
+                <ListField
+                  label="Pickup Points" required name="pickup_new" maxLength={120}
+                  items={pickedPlaces}
+                  onChange={setPickedPlaces}
+                  placeholder="Type one, then click Add (e.g. SM Mall of Asia)"
+                  hint="Add at least one. Joiners choose one of these when they book. Set each stop's time in Tracking Management."
+                />
               )}
             </div>
 
