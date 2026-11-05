@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import MissingHint from './ui/MissingHint';
 import { CheckCircle2, Loader2, Wallet, Upload, Undo2, ShieldCheck, History, X, Image as ImageIcon, RotateCcw, Printer } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
@@ -228,6 +229,12 @@ export const RefundPanel = ({ booking: b, onDone }) => {
           <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ display: 'none' }} />
         </label>
       </div>
+      {!busy && !ready && (
+        <MissingHint items={[
+          !ref ? 'GCash reference no.' : !/^\d{13}$/.test(ref) && `GCash reference no. must be 13 digits (now ${ref.length})`,
+          !file && 'GCash receipt screenshot',
+        ]} />
+      )}
       <button type="button" onClick={submit} disabled={!!busy || !ready} title={ready ? undefined : 'Add the 13-digit GCash reference no. and the receipt first'}
         style={{ ...smallBtn(isMain ? '#B4511E' : '#3F5D62', '#FDF6EE', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
         {busy === 'submit' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : isMain ? <Wallet size={13} /> : <CheckCircle2 size={13} />}

@@ -1,6 +1,7 @@
 import { saveNewPickupSpots } from './pickupStops';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRequiredFilled } from './ui/useRequiredFilled';
+import MissingHint from './ui/MissingHint';
 import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import { shrinkImage } from './imageCompress';
@@ -83,7 +84,7 @@ const TourManagement = ({ openTourId = null }) => {
   const hasPhoto = tempGallery.length > 0 || newFiles.length > 0;
   // Create Tour / Save Changes stays disabled until the photo, every box
   // marked *, each date and a pickup point are filled in.
-  const [tourFormRef, tourBoxesFilled] = useRequiredFilled(['description', 'important_note']);
+  const [tourFormRef, tourBoxesFilled, tourBoxesMissing] = useRequiredFilled(['description', 'important_note']);
  
   const formatDateRange = formatTourDates;
  
@@ -137,6 +138,26 @@ const TourManagement = ({ openTourId = null }) => {
     && formAccommodation.length > 0
     && formLists.inclusions.length > 0 && formLists.exclusions.length > 0 && formLists.things_to_bring.length > 0
     && Object.values(formItinerary).some((v) => String(v || '').trim());
+  // The same, named (shown above the button).
+  const tourMissing = [
+    !hasPhoto && 'Cover photo',
+    ...tourBoxesMissing,
+    !pickupPicked.length && 'Pickup points',
+    !dateRows.length && 'Tour dates',
+    ...dateRows.flatMap((r, i) => {
+      const n = dateRows.length > 1 ? ` (date ${i + 1})` : '';
+      return [
+        !r.start_date && `Start date${n}`,
+        !r.end_date && `End date${n}`,
+        r.sale && (!r.sale_starts || !r.sale_ends) && `Sale dates${n}`,
+      ];
+    }),
+    !formAccommodation.length && 'Accommodation',
+    !formLists.inclusions.length && 'Inclusions',
+    !formLists.exclusions.length && 'Exclusions',
+    !formLists.things_to_bring.length && 'Things to bring',
+    !Object.values(formItinerary).some((v) => String(v || '').trim()) && 'Itinerary',
+  ];
   const blankExpense = () => ({ key: `e-${Math.random()}`, name: '', amount: '' });
   // Opens the form for a new trip, or for a trip's details and dates (withNewDate adds an empty date to fill in).
   const openTourForm = (trip = null, { withNewDate = false } = {}) => {
@@ -1132,6 +1153,12 @@ const TourManagement = ({ openTourId = null }) => {
               </div>
             </div>
  
+            {/* What's still missing before it can be saved. */}
+            {!tourFilled && !uploading && !savingTour && (
+              <div style={{ padding: '12px 2.5rem 0', background: '#FDF6EE', borderTop: '1px solid rgba(180,81,30,0.12)', flexShrink: 0 }}>
+                <MissingHint items={tourMissing} />
+              </div>
+            )}
             {/* Footer */}
             <div style={{
               padding: '1.5rem 2.5rem',

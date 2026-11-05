@@ -27,6 +27,7 @@ import {
 import PasswordChecklist from './PasswordChecklist';
 import AddressFields from './AddressFields';
 import { useRequiredFilled } from './ui/useRequiredFilled';
+import MissingHint from './ui/MissingHint';
 import { composeAddress } from './phAddress';
 import logoIcon from './assets/logo.png';
 import PasswordField from './ui/PasswordField';
@@ -67,7 +68,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
   const [googleUser, setGoogleUser] = useState(null);
   const [loading, setLoading] = useState(false);
   // Create Account stays disabled until every required box is filled.
-  const [registerFormRef, registerFilled] = useRequiredFilled(['username', 'firstName', 'lastName', 'email', 'phone',
+  const [registerFormRef, registerFilled, registerMissing] = useRequiredFilled(['username', 'firstName', 'lastName', 'email', 'phone',
     'emergencyContactName', 'emergencyContactNumber', 'province', 'city', 'barangay', 'street', 'password', 'confirmPassword']);
   const [isSuccess, setIsSuccess] = useState(false);
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
@@ -1162,6 +1163,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             >
               <input
                 type="checkbox"
+                name="agreeTerms"
                 checked={agreedToTerms}
                 onChange={(e) => {
                   setAgreedToTerms(e.target.checked);
@@ -1227,6 +1229,9 @@ const JoinerRegister = ({ mode = 'register' }) => {
               </p>
             )}
           </div>
+
+          {/* What's still missing (names each empty box). */}
+          {!loading && <MissingHint items={[...registerMissing, !agreedToTerms && { label: 'Terms & Conditions box', name: 'agreeTerms' }]} />}
 
           {/* SUBMIT */}
           <button

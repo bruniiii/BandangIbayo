@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import MissingHint from './ui/MissingHint';
 import { CANCEL_REASONS, OTHER_REASON } from './cancelReasons';
 import { supabase, currentUser } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
@@ -729,6 +730,12 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         ⚠ Please tick the box to confirm you understand.
                       </p>
                     )}
+                    {!cancelling && (!agreedNoRefund || !reasonText) && (
+                      <MissingHint items={[
+                        !reasonText && (cancelReason === OTHER_REASON ? 'Type your reason' : 'Reason for cancelling'),
+                        !agreedNoRefund && 'Tick the non-refundable box',
+                      ]} />
+                    )}
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                       <button
@@ -1039,6 +1046,12 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
               </div>
             ))}
             {namesProblem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{namesProblem}</p>}
+            {!namesFilled && (
+              <MissingHint items={companions.flatMap((c, i) => [
+                !String(c.full_name || '').trim() && `Person ${i + 2} name`,
+                !String(c.contact_number || '').trim() && `Person ${i + 2} contact number`,
+              ])} />
+            )}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setNamesOpen(false)} style={{
                 flex: 1, minWidth: 120, padding: '13px 0', borderRadius: 14, border: '1px solid rgba(180,81,30,0.25)', background: '#F2E4D0', color: '#1A0A00',
@@ -1061,6 +1074,9 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       </label>
 
       {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '0 0 10px' }}>{problem}</p>}
+      {busy === null && (!agreed || needsRoom) && (
+        <MissingHint style={{ marginBottom: 10 }} items={[needsRoom && 'Accommodation', !agreed && 'Tick the agreement box']} />
+      )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
         <button type="button" disabled={busy !== null || !agreed || needsRoom} onClick={() => pay()} title={needsRoom ? 'Choose your accommodation first' : agreed ? undefined : 'Tick the agreement above first'} style={{

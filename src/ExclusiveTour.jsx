@@ -21,6 +21,7 @@ import { phoneFieldProps } from './ui/phoneField';
 import { SkeletonRows } from './ui/Skeleton';
 import TermsModal from './ui/TermsModal';
 import DateRangePicker from './ui/DateRangePicker';
+import MissingHint from './ui/MissingHint';
 import ItineraryTimeline from './ui/ItineraryTimeline';
 import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
@@ -482,13 +483,30 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
   );
   // Every required box filled in (the checks on submit still catch typing mistakes).
   const has = (v) => String(v ?? '').trim() !== '';
-  const missing = !has(form.fullName) || !has(form.contact) || !has(form.email) || !has(form.destination)
-    || !has(form.groupSize) || !form.preferredDate || !form.preferredEndDate
-    || (isExclusive && !has(form.budget))
-    || form.participants.some((p) => !has(p.full_name) || !has(p.contact_number));
   const needsTerms = !editing && isExclusive && !form.agreeTerms;
   const tooSoon = !editing && !!nextRequestAt;
   const lowBudget = isExclusive && has(form.budget) && Number(form.budget) < MIN_EXCLUSIVE_BUDGET;
+  // What's still missing, named (shown under the button).
+  const missingList = [
+    !has(form.fullName) && { label: 'Full Name', name: 'fullName' },
+    !has(form.contact) && { label: 'Contact Number', name: 'contact' },
+    !has(form.email) && { label: 'Email Address', name: 'email' },
+    !has(form.destination) && { label: 'Destination', name: 'destination' },
+    !has(form.groupSize) && { label: 'Participants', name: 'groupSize' },
+    !form.preferredDate && { label: 'Trip dates', name: 'preferredDate' },
+    form.preferredDate && !form.preferredEndDate && { label: 'Last day of the trip', name: 'preferredDate' },
+    isExclusive && !has(form.budget) && { label: 'Budget', name: 'budget' },
+    ...form.participants.flatMap((p, i) => [
+      !has(p.full_name) && { label: `Person ${i + 1} name`, name: `participant_name_${i}` },
+      !has(p.contact_number) && { label: `Person ${i + 1} contact number`, name: `participant_contact_${i}` },
+    ]),
+  ].filter(Boolean);
+  const missing = missingList.length > 0;
+  const hintItems = [
+    ...missingList,
+    lowBudget && { label: `Budget of at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}`, name: 'budget' },
+    needsTerms && { label: 'Tick the Terms & Conditions box', name: 'agreeTerms' },
+  ].filter(Boolean);
   const canSubmit = !loading && !missing && !needsTerms && !tooSoon && !lowBudget;
 
   return (
@@ -616,6 +634,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
           <input
             type="checkbox"
+            name="agreeTerms"
             checked={form.agreeTerms}
             onChange={set('agreeTerms')}
             style={{ marginTop: 3, accentColor: '#B4511E', width: 16, height: 16 }}
@@ -638,6 +657,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         />
       )}
 
+      {!loading && !tooSoon && hintItems.length > 0 && <MissingHint items={hintItems} />}
       {/* (On phones, room below the button so the Help button never covers it.) */}
       <div className="request-submit-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {editing && (
