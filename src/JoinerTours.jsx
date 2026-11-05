@@ -100,7 +100,7 @@ const JoinerTours = ({ initialTourId = null }) => {
  
 
     // One card per trip; the joiner picks the date in the booking window.
-    const updatedTours = groupTripDates(await withAvailableSlots(toursData));
+    const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* exclusive tours: My Bookings only */;
 
 
 

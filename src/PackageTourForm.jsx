@@ -203,7 +203,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['title', textError(form.title, 'Tour title', { min: 3, max: 120 })],
       ['destination', textError(form.destination, 'Destination', { min: 2, max: 120 })],
       ...(isOpenRequest ? rateChecks(form.regular_rate === '' ? NaN : regular, form.price === '' ? NaN : price) : [
-        ['price', !(price > 0) ? 'Please enter the package price.' : price > 1000000 ? 'That price looks too high. Please check for an extra zero.' : ''],
+        ['price', !(price > 0) ? 'Please enter the package price.' : price > 1000000 ? 'That price looks too high. Please check for an extra zero.'
+          : request.payment_status === 'Paid' && price < (Number(request.amount_paid) || 0) ? `The package price can't be less than the ${formatPeso(request.amount_paid)} the joiner already paid.` : ''],
         ['regular_rate', !(regular > 0) ? 'Please enter the Regular Rate.' : regular > 1000000 ? 'That rate looks too high. Please check for an extra zero.' : ''],
       ]),
       ['van_rent', !(van >= 15000) ? 'Van Rent must be at least ₱15,000.' : van > 30000 ? 'Van Rent can be at most ₱30,000.' : ''],
@@ -231,7 +232,9 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ? (tourId
         ? { title: 'Save this tour?', message: 'The posted tour on Explore Tours is updated right away.', confirmLabel: 'Save Tour', cancelLabel: 'Keep Editing' }
         : { title: 'Post this tour?', message: `It opens for booking on Explore Tours right away, and ${request.full_name || 'the requester'} gets ${requestedSlots} slot${requestedSlots === 1 ? '' : 's'} held for 2 days to pay.`, confirmLabel: 'Post Tour', cancelLabel: 'Keep Editing' })
-      : { title: packageSent() ? 'Send the updated package?' : 'Send this package?', message: `${request.full_name || 'The joiner'} will be notified and can pay the 50% downpayment.`, confirmLabel: 'Send Package', cancelLabel: 'Keep Editing' }))) return;
+      : { title: packageSent() ? 'Send the updated package?' : 'Send this package?', message: request.payment_status === 'Paid'
+          ? `${request.full_name || 'The joiner'} will be notified, and the tour shows in their My Bookings (with the group chat, Tracking and the Calendar). Their balance is ${formatPeso(Math.max(0, price - (Number(request.amount_paid) || 0)))}.`
+          : `${request.full_name || 'The joiner'} will be notified and can pay the 50% downpayment.`, confirmLabel: 'Send Package', cancelLabel: 'Keep Editing' }))) return;
 
     savingRef.current = true;
     setSaving(true);
@@ -280,7 +283,17 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
       let savedTourId = tourId;
       let heldBooking = null;
-      if (isOpenRequest) {
+      // A paid exclusive tour: its own private tour date (only the admins and the
+      // joiner see it) and the joiner's booking, so it works with My Bookings,
+      // the group chat, Tracking, the Calendar and bad-weather actions.
+      if (!isOpenRequest && request.payment_status === 'Paid') {
+        savedTourId = await saveTour({
+          tourId, details: { ...details, is_exclusive: true, exclusive_request_id: request.id, difficulty: pkg.difficulty || 'Moderate' },
+          image_urls, regular, expenses, pickup_points, withGeo: spotsInfo.available, feedPost: false,
+        });
+        const { error: bookingError } = await supabase.rpc('exclusive_make_booking', { p_request_id: request.id, p_tour_id: savedTourId });
+        if (bookingError) toast.error("Package saved, but the joiner's booking wasn't made", bookingError.message);
+      } else if (isOpenRequest) {
         savedTourId = await saveTour({ tourId, details, image_urls, regular, expenses, pickup_points, withGeo: spotsInfo.available });
         const { data, error } = await supabase.rpc('hold_requested_slots', { p_request_id: request.id, p_tour_id: savedTourId });
         if (error) toast.error("Tour posted, but the requester's slots weren't held", error.message);
@@ -292,6 +305,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         ...details,
         regular_rate: Math.round(regular * 100) / 100,
         ...(isOpenRequest ? { tour_id: savedTourId, held_booking_id: heldBooking?.id ?? pkg.held_booking_id ?? null } : {}),
+        ...(!isOpenRequest && savedTourId ? { tour_id: savedTourId } : {}),
         expenses,
         pickup_points,
         image_urls,
@@ -572,7 +586,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 // The tour on Explore Tours for a requested tour (like Tour Management saves
 // one): the tour date, its Regular Rate, expenses, pickup points and, the
 // first time, a feed post.
-const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup_points, withGeo = false }) => {
+const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup_points, withGeo = false, feedPost = true }) => {
   const row = { ...details, image_urls, duration: durationOf(details.start_date, details.end_date), is_archived: false };
   let id = tourId;
   if (id) {
@@ -607,7 +621,7 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
     if (!count) await supabase.from('tour_meetups').delete().eq('id', m.id);
   }
 
-  if (!tourId) {
+  if (!tourId && feedPost) {
     const user = await currentUser();
     const { error: feedError } = await supabase.from('feed_posts').insert([{
       author_id: user?.id || null,
@@ -632,7 +646,7 @@ const packageMessage = ({ details, expenses }) => {
   if (details.things_to_bring) lines.push(`🎒 Things to Bring:\n${details.things_to_bring}`);
   lines.push(`🧾 Expenses covered: ${expenseItems(expenses).map((i) => i.label).join(', ')}`);
   if (details.important_note) lines.push(`📝 ${details.important_note}`);
-  return `Here's the full package for your exclusive tour:\n\n${lines.join('\n\n')}\n\nOpen Exclusive Tours to pay the 50% downpayment.`;
+  return `Here's the full package for your exclusive tour:\n\n${lines.join('\n\n')}\n\nIt's in My Bookings too. Open Exclusive Tours to pay the remaining balance.`;
 };
 
 const Thumb = ({ src, onRemove, isNew }) => (

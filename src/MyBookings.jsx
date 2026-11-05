@@ -12,7 +12,7 @@ import MyRefunds from './MyRefunds';
 import { downloadReceipt, balanceRemaining, hasBalanceReceipt } from './paymentReceipt';
 import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
-import { verifyCheckout, cancelCheckout, startBalanceCheckout, payHeldBooking } from './payments';
+import { verifyCheckout, cancelCheckout, startBalanceCheckout, payHeldBooking, startExclusiveBalance } from './payments';
 import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
 import { phoneFieldProps } from './ui/phoneField';
 import CheckInQr from './ui/CheckInQr';
@@ -109,7 +109,8 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
           things_to_bring,
           important_note,
           weather_old_start,
-          weather_old_end
+          weather_old_end,
+          is_exclusive
         )
       `)
       .eq('user_id', user.id)
@@ -336,7 +337,10 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
           }}>{booking.booking_number}</span>
           <StatusBadge booking={booking} />
         </div>
-        <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.25, margin: '0 0 10px' }}>{tour.title}</h3>
+        <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.25, margin: '0 0 10px' }}>
+          {tour.is_exclusive && <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, padding: '2px 9px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Exclusive</span>}
+          {tour.title}
+        </h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 10 : 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             <MapPin size={13} style={{ color: '#A8481A' }} /> {tour.destination}
@@ -455,7 +459,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         !cancelRequested;
   // Terms, section 2: no cancellations within two weeks of the tour date.
   const cancellationClosed = isOpenBooking && isWithinCancellationWindow(tour.start_date);
-  const canCancel = isOpenBooking && !cancellationClosed;
+  // An exclusive tour is handled with Bandang IBAYO (group chat), not cancelled here.
+  const canCancel = isOpenBooking && !cancellationClosed && !tour?.is_exclusive;
   const deadline = cancellationDeadline(tour.start_date);
   const deadlineLabel = deadline
     ? new Date(`${deadline}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -504,6 +509,11 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 <span style={{ display: 'inline-block', width: 16, height: 1, background: '#B4511E' }} /> Booking Confirmation
               </p>
               <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px', lineHeight: 1.2 }}>{tour.title}</h2>
+              {tour.is_exclusive && (
+                <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
+                  <strong style={{ color: '#1A0A00' }}>Exclusive tour</strong> · just your group. Message Bandang IBAYO in the group chat; your package and payments are in Exclusive Tours.
+                </p>
+              )}
               <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', fontFamily: 'monospace', letterSpacing: '0.08em' }}>
                 {booking.booking_number}
               </p>
@@ -854,8 +864,14 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 
   const payBalance = async () => {
     setBusy('balance');
-    const { ok, data, error, cancelled } = await startBalanceCheckout({ bookingId: booking.id });
-    if (!ok) { if (!cancelled) toast.error("Couldn't open the payment page", error); setBusy(null); return; }
+    // An exclusive tour's balance is paid on its exclusive request (its payments live there).
+    const { ok, data, error, cancelled } = booking.tours?.is_exclusive && booking.request_id
+      ? await startExclusiveBalance({ requestId: booking.request_id, accommodation: booking.accommodation || null })
+      : await startBalanceCheckout({ bookingId: booking.id });
+    if (!ok) {
+      if (!cancelled) toast.error("Couldn't open the payment page", /accommodation/i.test(error || '') ? 'Choose your accommodation in Exclusive Tours first, then pay the balance there.' : error);
+      setBusy(null); return;
+    }
     if (data.alreadyPaid) { toast.success('Balance already paid', 'Thank you! Nothing more is due.'); setBusy(null); onChanged(); return; }
     window.location.assign(data.checkoutUrl);
   };

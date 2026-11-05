@@ -56,7 +56,7 @@ const SalesSummary = ({ onData }) => {
       const [b, x, r] = await Promise.all([
         supabase
           .from('bookings')
-          .select('id, booking_number, full_name, contact_number, slots_booked, total_price, amount_paid, payment_method, payment_status, booking_status, balance_settled, created_at, tour_id, tours ( title, start_date, end_date )'),
+          .select('id, booking_number, full_name, contact_number, slots_booked, total_price, amount_paid, payment_method, payment_status, booking_status, balance_settled, created_at, tour_id, request_id, tours ( title, start_date, end_date )'),
         supabase
           .from('exclusive_requests')
           .select('id, full_name, destination, preferred_date, payment_status, amount_paid, balance_amount, balance_settled, paid_at, balance_paid_at, package_details'),
@@ -65,7 +65,9 @@ const SalesSummary = ({ onData }) => {
       if (!active) return;
       setLoading(false);
       if (b.error) toast.error("Couldn't load sales", b.error.message);
-      setBookings(b.data || []);
+      // An exclusive tour's booking mirrors its request, which is counted below already.
+      const exclusiveIds = new Set((x.data || []).map((e) => String(e.id)));
+      setBookings((b.data || []).filter((bk) => !bk.request_id || !exclusiveIds.has(String(bk.request_id))));
       setExclusives(x.error ? [] : x.data || []); // exclusive payments are optional (older databases)
       setRates(Object.fromEntries((r.data || []).map((row) => [row.tour_id, Number(row.regular_rate)])));
     })();

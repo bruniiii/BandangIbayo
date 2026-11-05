@@ -466,11 +466,29 @@ async function loadOwnRequest(requestId: unknown, userId: string) {
 }
 
 // The package price the agency sent, and half of it.
-function exclusiveAmounts(request: any) {
-  const price = Number(request.package_details?.price);
-  if (request.request_type !== "exclusive" || request.status !== "Approved" || !request.package_sent_at || !(price > 0)) {
-    throw new HttpError(409, "This request has no package price to pay yet. You'll be notified once the agency sends it.");
+// What to pay for an exclusive tour (20261213 flow): the downpayment is 50% of
+// the joiner's budget, due within 24 hours of approval, before the package;
+// the balance is the package price minus what's paid. Requests approved
+// before that update (no downpayment_due_at) pay 50% of the package price.
+function exclusiveAmounts(request: any, part: "downpayment" | "balance" = "downpayment") {
+  if (request.request_type !== "exclusive" || request.status !== "Approved") {
+    throw new HttpError(409, "This request isn't approved.");
   }
+  const packagePrice = request.package_sent_at ? Number(request.package_details?.price) : NaN;
+  const price = packagePrice > 0 ? packagePrice : null;
+  if (part === "balance") {
+    if (!price) throw new HttpError(409, "The balance can be paid once the tour package is sent.");
+    return { price, downpayment: 0 };
+  }
+  if (request.downpayment_due_at) {
+    if (Date.now() > new Date(request.downpayment_due_at).getTime()) {
+      throw new HttpError(410, "The 24 hours to pay the downpayment have passed, so this request was closed. You can send a new request.");
+    }
+    const downpayment = round2(Number(request.downpayment_amount) || Number(request.budget) * EXCLUSIVE_DOWNPAYMENT_RATE);
+    if (!(downpayment > 0)) throw new HttpError(409, "This request has no downpayment amount.");
+    return { price: price ?? round2(downpayment / EXCLUSIVE_DOWNPAYMENT_RATE), downpayment };
+  }
+  if (!price) throw new HttpError(409, "This request has no package price to pay yet. You'll be notified once the agency sends it.");
   return { price, downpayment: round2(price * EXCLUSIVE_DOWNPAYMENT_RATE) };
 }
 
@@ -509,9 +527,14 @@ async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "ba
 async function payExclusiveBalance(request: any, p: any) {
   if (request.payment_status !== "Paid") throw new HttpError(409, "Please pay the 50% downpayment first.");
   if (request.balance_settled) return { alreadyPaid: true };
-  const { price } = exclusiveAmounts(request);
+  const { price } = exclusiveAmounts(request, "balance");
   const balance = round2(Math.max(0, price - Number(request.amount_paid || 0)));
   if (!(balance > 0)) return { alreadyPaid: true };
+  // The accommodation is chosen with the balance (the package lists the options).
+  if (!request.accommodation) {
+    const accommodation = chosenAccommodation(request.package_details?.accommodation_options, p.accommodation);
+    if (accommodation) await supabase.from("exclusive_requests").update({ accommodation }).eq("id", request.id);
+  }
 
   if (request.balance_paymongo_checkout_id) {
     const result = await processSession(request.balance_paymongo_checkout_id);
@@ -534,10 +557,12 @@ async function payExclusive(userId: string, p: any) {
   if (p.part === "balance") return await payExclusiveBalance(request, p);
   if (request.payment_status === "Paid") return { alreadyPaid: true };
   const { price, downpayment } = exclusiveAmounts(request);
-  // Exclusive packages always offer at least one accommodation to choose from.
-  const accommodation = chosenAccommodation(request.package_details?.accommodation_options, p.accommodation);
-  if (accommodation && accommodation !== request.accommodation) {
-    await supabase.from("exclusive_requests").update({ accommodation }).eq("id", request.id);
+  // With a package already sent (older flow), the accommodation is chosen now.
+  if (request.package_sent_at) {
+    const accommodation = chosenAccommodation(request.package_details?.accommodation_options, p.accommodation);
+    if (accommodation && accommodation !== request.accommodation) {
+      await supabase.from("exclusive_requests").update({ accommodation }).eq("id", request.id);
+    }
   }
 
   // An earlier checkout may already be paid, or still usable for the same amount.
@@ -623,20 +648,27 @@ async function recordExclusivePayment(requestId: string, amount: number, payment
     .update({ payment_status: "Paid", amount_paid: amount, paid_at: new Date().toISOString(), paymongo_payment_id: paymentId })
     .eq("id", requestId)
     .neq("payment_status", "Paid")
-    .select("id, user_id, destination, full_name")
+    .select("id, user_id, destination, full_name, package_sent_at")
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!updated) return { status: "already", kind: "exclusive" };
 
   const peso = `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
+  const waitsForPackage = !updated.package_sent_at;
   await announceExclusive(updated, {
     title: "Exclusive Tour Confirmed 🎉",
-    message: `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed! You can pay the remaining balance online anytime under Exclusive Tours.`,
+    message: waitsForPackage
+      ? `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed! We're now preparing your tour package; you'll be notified once it's ready.`
+      : `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed! You can pay the remaining balance online anytime under Exclusive Tours.`,
     subject: `Your exclusive tour to ${updated.destination} is confirmed`,
-    email: `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nYou can pay the remaining balance online anytime under Exclusive Tours in your Bandang IBAYO account, or settle it with our team before the trip.`,
+    email: waitsForPackage
+      ? `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nWe're now preparing your tour package (itinerary, inclusions and the final price). You'll be notified once it's ready, and you can pay the remaining balance then.`
+      : `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nYou can pay the remaining balance online anytime under Exclusive Tours in your Bandang IBAYO account, or settle it with our team before the trip.`,
   }, {
     title: "Exclusive Tour Downpayment Paid",
-    message: `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}.`,
+    message: waitsForPackage
+      ? `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}. You can now create and send their tour package.`
+      : `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}.`,
   });
   return { status: "confirmed", kind: "exclusive" };
 }

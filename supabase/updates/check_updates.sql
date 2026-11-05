@@ -106,5 +106,8 @@ from (values
   ('20261212 postponed notices say the old dates',
      coalesce((select pg_get_functiondef(p.oid) ilike '%is moved from%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                where n.nspname = 'public' and p.proname = 'weather_postpone' limit 1), false))
+                where n.nspname = 'public' and p.proname = 'weather_postpone' limit 1), false)),
+  ('20261213 exclusive tours: downpayment first, private tour + booking',
+     to_regprocedure('public.exclusive_make_booking(' || (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.exclusive_requests'::regclass and attname = 'id') || ',' || (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.tours'::regclass and attname = 'id') || ')') is not null
+     and exists (select 1 from pg_policies where tablename = 'tours' and policyname = 'tours_hide_exclusive'))
 ) as u(update_file, installed);

@@ -127,8 +127,27 @@ const plusDays = (ymd, n) => {
 // 1 month of the request, or by 2 weeks before the trip date. The database
 // marks these Rejected too (reject_overdue_requests); until it runs, they're
 // shown as Rejected anyway.
+// Exclusive tours (20261213): after approval the joiner pays a downpayment of
+// 50% of their budget within 24 hours, before the package is made.
+//   { waiting, expired, dueAt, amount } — waiting: approved, not paid yet.
+export const exclusiveDownpayment = (request) => {
+  const waiting = request?.request_type === 'exclusive' && request.status === 'Approved'
+    && request.payment_status !== 'Paid' && !!request.downpayment_due_at;
+  const dueAt = request?.downpayment_due_at ? new Date(request.downpayment_due_at) : null;
+  return {
+    waiting,
+    expired: waiting && !!dueAt && dueAt.getTime() < Date.now(),
+    dueAt,
+    amount: Number(request?.downpayment_amount) || Math.round((Number(request?.budget) || 0) * 50) / 100,
+  };
+};
+
 export const requestOverdueReason = (request) => {
   if (!request || request.package_sent_at || !['Pending', 'Approved'].includes(request.status)) return null;
+  // Paid (exclusive): the agency sends the package; it's never rejected for being late.
+  if (request.payment_status === 'Paid') return null;
+  // Waiting for the 24-hour downpayment: shown as Unpaid instead.
+  if (request.request_type === 'exclusive' && request.downpayment_due_at) return null;
   if (request.preferred_date && request.preferred_date < plusDays(todayManila(), EXCLUSIVE_APPROVAL_CUTOFF_DAYS)) {
     return "The tour package wasn't ready at least 2 weeks before the trip date.";
   }
@@ -143,6 +162,8 @@ export const requestOverdueReason = (request) => {
 export const requestStatusLabel = (request) => {
   if (request.status === 'Rejected' || requestOverdueReason(request)) return 'Rejected';
   if (request.status === 'Pending') return 'For Approval';
+  // Approved, but the 24 hours to pay the downpayment passed: the joiner didn't continue.
+  if (exclusiveDownpayment(request).expired) return 'Unpaid';
   if (request.package_sent_at) return 'Tour Confirmed';
   return 'Approved';
 };

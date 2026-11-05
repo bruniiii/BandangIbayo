@@ -5,7 +5,7 @@ import { toast } from './ui/toast';
 import { notifyAdmins } from "./notifications";
 import {
   formatPeso, TRIP_REQUEST_LEAD_DAYS, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, VAN_SEATS, MAX_VANS,
-  requestOverdueReason, requestStatusLabel, requestPaymentLabel, requestEditable,
+  requestOverdueReason, requestStatusLabel, requestPaymentLabel, requestEditable, exclusiveDownpayment,
 } from './tourUtils';
 import { expenseItems } from './tourExpenses';
 import { downloadExclusiveReceipt } from './paymentReceipt';
@@ -37,8 +37,11 @@ import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 //    still open.
 // ─────────────────────────────────────────────
 
-// The most a joiner can enter as their exclusive tour budget.
+// The least and most a joiner can enter as their exclusive tour budget.
+const MIN_EXCLUSIVE_BUDGET = 30000;
 const MAX_EXCLUSIVE_BUDGET = 100000;
+// One request (Exclusive or Request a Tour, together) every 2 weeks.
+const REQUEST_GAP_DAYS = 14;
 // Share of the package price paid up front to confirm an exclusive tour
 // (the payments function uses the same rate).
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
@@ -365,6 +368,24 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
   const set = (field) => (e) =>
     setForm(prev => ({ ...prev, [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
+  // One request every 2 weeks (both kinds together): when the next one can be sent.
+  const [nextRequestAt, setNextRequestAt] = useState(null);
+  useEffect(() => {
+    if (editing) return undefined;
+    let alive = true;
+    (async () => {
+      const user = await currentUser();
+      if (!user) return;
+      const { data } = await supabase.from('exclusive_requests').select('created_at').eq('user_id', user.id)
+        .order('created_at', { ascending: false }).limit(1);
+      const last = data?.[0]?.created_at ? new Date(data[0].created_at).getTime() : 0;
+      const next = last + REQUEST_GAP_DAYS * 86400000;
+      if (alive) setNextRequestAt(next > Date.now() ? new Date(next) : null);
+    })();
+    return () => { alive = false; };
+  }, [editing, onSaved]);
+  const nextText = nextRequestAt ? nextRequestAt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' }) : '';
+
   const setGroupSize = (e) => {
     const value = e.target.value;
     // Rows only up to the most this kind of tour takes; a bigger number is flagged on submit.
@@ -379,6 +400,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
     const formEl = e.currentTarget;
     if (!checkRequestFields(formEl, form, type)) return;
     if (isExclusive && form.budget !== '' && Number(form.budget) > MAX_EXCLUSIVE_BUDGET) { flagField(formEl, 'budget', `Budget can be up to ${formatPeso(MAX_EXCLUSIVE_BUDGET)}.`); return; }
+    if (isExclusive && form.budget !== '' && Number(form.budget) < MIN_EXCLUSIVE_BUDGET) { flagField(formEl, 'budget', `The budget must be at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}.`); return; }
+    if (!editing && nextRequestAt) { toast.error('One request every 2 weeks', `You can send your next request on ${nextText}.`); return; }
     if (isExclusive && !form.agreeTerms) { toast.info('Please accept the terms and conditions.'); return; }
     setLoading(true);
 
@@ -452,10 +475,17 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
     || (isExclusive && !has(form.budget))
     || form.participants.some((p) => !has(p.full_name) || !has(p.contact_number));
   const needsTerms = !editing && isExclusive && !form.agreeTerms;
-  const canSubmit = !loading && !missing && !needsTerms;
+  const tooSoon = !editing && !!nextRequestAt;
+  const lowBudget = isExclusive && has(form.budget) && Number(form.budget) < MIN_EXCLUSIVE_BUDGET;
+  const canSubmit = !loading && !missing && !needsTerms && !tooSoon && !lowBudget;
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+      {tooSoon && (
+        <p role="status" style={{ margin: 0, background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#8C2F1C', lineHeight: 1.5 }}>
+          You can send one request every 2 weeks (Exclusive Tour or Request a Tour). Your next request can be sent on <strong>{nextText}</strong>. You can still edit a request that's For Approval below.
+        </p>
+      )}
       {!editing && (
         <div style={{
           background: isExclusive ? '#F2E4D0' : 'rgba(180,81,30,0.08)', border: '1px solid rgba(180,81,30,0.18)',
@@ -499,9 +529,14 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
                 if (Number(v) > MAX_EXCLUSIVE_BUDGET) return;
                 setForm((prev) => ({ ...prev, budget: v }));
               })}
-              placeholder="Up to 100,000.00"
+              placeholder="30,000.00 to 100,000.00"
               required
             />
+          )}
+          {isExclusive && has(form.budget) && Number(form.budget) < MIN_EXCLUSIVE_BUDGET && (
+            <p role="status" style={{ gridColumn: '1 / -1', margin: '-6px 0 0', fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>
+              The budget for an exclusive tour must be at least {formatPeso(MIN_EXCLUSIVE_BUDGET)}.
+            </p>
           )}
         </div>
         {form.participants.length > 0 && (
@@ -603,7 +638,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           type="submit"
           className="request-submit-btn"
           disabled={!canSubmit}
-          title={canSubmit || loading ? undefined : missing ? 'Fill in all the boxes marked * first' : 'Tick the Terms & Conditions box first'}
+          title={canSubmit || loading ? undefined : tooSoon ? `One request every 2 weeks: you can send the next one on ${nextText}` : missing ? 'Fill in all the boxes marked * first' : lowBudget ? `The budget must be at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}` : 'Tick the Terms & Conditions box first'}
           style={{
             flex: editing ? '2 1 220px' : '0 1 340px', margin: editing ? 0 : '0 auto', padding: '16px 28px', background: isExclusive ? '#1A0A00' : '#B4511E', color: '#FDF6EE',
             borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, fontFamily: 'inherit', lineHeight: 1.4,
@@ -648,6 +683,7 @@ const STATUS_STYLES = {
   Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
+  Unpaid: { bg: 'rgba(26,10,0,0.08)', color: '#7A3A18' },
   'Downpayment Paid': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
   'Fully Paid': { bg: '#A8481A', color: '#FDF6EE' },
 };
@@ -702,7 +738,10 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false
   const packagePrice = Number(pkg?.price);
   const status = requestStatusLabel(request);
   const paymentLabel = requestPaymentLabel(request);
-  const canPay = isExclusive && request.status === 'Approved' && hasPackage && packagePrice > 0;
+  // New flow: the downpayment (50% of the budget) right after approval, before the package.
+  const dp = exclusiveDownpayment(request);
+  const canPay = isExclusive && request.status === 'Approved'
+    && ((hasPackage && packagePrice > 0) || dp.waiting || (request.payment_status === 'Paid' && !!request.downpayment_due_at));
   // A requested tour posted on Explore Tours: the requester's slots are held for them.
   const postedTour = !isExclusive && hasPackage && pkg.tour_id;
   const isPaid = request.payment_status === 'Paid';
@@ -934,7 +973,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false
       {/* Always visible, so joiners don't have to open the card to pay */}
       {canPay && (
         <div style={{ padding: '0 1.25rem 1.25rem' }}>
-          <DownpaymentPanel request={request} price={packagePrice} />
+          <DownpaymentPanel request={request} price={hasPackage && packagePrice > 0 ? packagePrice : 0} />
         </div>
       )}
     </div>
@@ -965,10 +1004,14 @@ const DownpaymentPanel = ({ request, price }) => {
   const pkg = request.package_details || {};
   const choices = cleanAccommodation(pkg.accommodation_options);
   const [accommodation, setAccommodation] = useState(choices.includes(request.accommodation) ? request.accommodation : '');
-  const downpayment = Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
+  const dp = exclusiveDownpayment(request);
+  const newFlow = !!request.downpayment_due_at; // 50% of the budget, before the package
+  const downpayment = newFlow ? dp.amount : Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
   const isPaid = request.payment_status === 'Paid';
   const paidSoFar = Number(request.amount_paid) || (isPaid ? downpayment : 0);
-  const balance = Math.max(0, Math.round((price - paidSoFar) * 100) / 100);
+  const balance = price > 0 ? Math.max(0, Math.round((price - paidSoFar) * 100) / 100) : 0;
+  const dueText = dp.dueAt ? dp.dueAt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' }) : '';
+  const needsAccommodation = isPaid && price > 0 && !request.accommodation && choices.length > 0;
 
   const pay = (start, doneTitle, doneText, extra = {}) => async () => {
     setBusy(true);
@@ -978,6 +1021,26 @@ const DownpaymentPanel = ({ request, price }) => {
     window.location.assign(data.checkoutUrl);
   };
   const receipt = (part) => () => downloadExclusiveReceipt(request, part).catch((e) => toast.error("Couldn't create the receipt", e.message));
+
+  if (isPaid && !(price > 0)) {
+    // Downpayment in, the package is being made.
+    return (
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap', background: 'rgba(180,81,30,0.08)', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 16, padding: '14px 16px' }}>
+        <CheckCircle2 size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 1 }} />
+        <div style={{ flex: '1 1 220px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Your exclusive tour is confirmed</p>
+            <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.6 }}>
+              Downpayment of {formatPeso(paidSoFar)} received{request.paid_at ? ` on ${formatShortDate(request.paid_at)}` : ''}. We're now preparing your tour package (itinerary, inclusions and the final price). You'll be notified once it's ready, and you can pay the balance then.
+            </p>
+          </div>
+          <button type="button" onClick={receipt('payment')} style={{ ...receiptButton, alignSelf: 'flex-start' }}>
+            <FileDown size={14} /> Downpayment Receipt
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isPaid) {
     const fullyPaid = request.balance_settled || balance <= 0;
@@ -998,8 +1061,14 @@ const DownpaymentPanel = ({ request, price }) => {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            {!fullyPaid && needsAccommodation && (
+              <div style={{ flexBasis: '100%' }}>
+                <AccommodationSelect id={`exclusive-accommodation-${request.id}`} options={choices} value={accommodation} onChange={setAccommodation} />
+              </div>
+            )}
             {!fullyPaid && (
-              <PayButton busy={busy} onClick={pay(startExclusiveBalance, 'Balance already paid', 'Your exclusive tour is fully paid.')}>
+              <PayButton busy={busy} disabled={needsAccommodation && !accommodation}
+                onClick={pay(startExclusiveBalance, 'Balance already paid', 'Your exclusive tour is fully paid.', { accommodation: accommodation || null })}>
                 Pay {formatPeso(balance)} Balance
               </PayButton>
             )}
@@ -1013,6 +1082,34 @@ const DownpaymentPanel = ({ request, price }) => {
             )}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (newFlow && dp.expired) {
+    return (
+      <div style={{ background: 'rgba(26,10,0,0.05)', border: '1px solid rgba(26,10,0,0.15)', borderRadius: 16, padding: '14px 16px' }}>
+        <p style={{ fontSize: 13, fontWeight: 800, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
+          The 24 hours to pay the {formatPeso(downpayment)} downpayment passed ({dueText}), so this request didn't continue. You're welcome to send a new request.
+        </p>
+      </div>
+    );
+  }
+
+  if (newFlow) {
+    return (
+      <div style={{ background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>Approved! Pay to continue</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.6 }}>
+            Pay the <strong>{formatPeso(downpayment)} downpayment</strong> (50% of your {formatPeso(request.budget)} budget) <strong>by {dueText}</strong> to confirm your exclusive tour.
+            Then we'll prepare your tour package; the balance is the package price minus this downpayment. Pay online with GCash, Maya or card. Payments are non-refundable.
+          </p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: '6px 0 0' }}>Not paid in 24 hours = the request won't continue.</p>
+        </div>
+        <PayButton busy={busy} onClick={pay(startExclusiveDownpayment, 'Downpayment already paid', 'Your exclusive tour is confirmed.')}>
+          Pay {formatPeso(downpayment)} Downpayment
+        </PayButton>
       </div>
     );
   }
@@ -1111,7 +1208,7 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = nu
         </p>
       </div>
       <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid'] : []), 'Rejected'].map((st) => {
+        {['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected'].map((st) => {
           const on = statusFilter === st;
           const count = st === 'All' ? requests.length : requests.filter((q) => requestStatusLabel(q) === st || requestPaymentLabel(q) === st).length;
           const tone = STATUS_STYLES[st];

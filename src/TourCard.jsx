@@ -10,6 +10,8 @@ import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, Clou
 // ─────────────────────────────────────────────
 
 const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners, onWeather = null, formatDateRange }) => {
+  // A private exclusive tour (made from an exclusive request's package).
+  const exclusive = !!tour.is_exclusive || (tour.dates || []).some((d) => d.is_exclusive);
   const [hovered, setHovered] = useState(false);
   const today  = new Date().toISOString().split('T')[0];
   const dates  = tour.dates || [tour];
@@ -67,7 +69,10 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>
+              {exclusive && <span title="A private exclusive tour: only its joiner sees it" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6, padding: '2px 8px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 9.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Exclusive</span>}
+              {tour.title}
+            </h3>
             <PriceTag tour={tour} size={15} style={{ marginLeft: 10, flexShrink: 0 }} />
           </div>
           <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
@@ -159,7 +164,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
               {icon} {label}
             </button>
           ))}
-          {!tour.is_archived && <button
+          {!tour.is_archived && !exclusive && <button
             type="button"
             onClick={onAddDate}
             title="Run this tour on another date"

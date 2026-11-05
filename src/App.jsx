@@ -83,7 +83,7 @@ function LandingPage() {
         .gte('start_date', todayManila())
         .order('start_date', { ascending: true });
       if (error) reportError("Couldn't load tours", error.message);
-      else setTours(groupTripDates(data, { openFirst: false })); // one card per trip, however many dates it has
+      else setTours(groupTripDates((data || []).filter((t) => !t.is_exclusive), { openFirst: false })); // one card per trip, however many dates it has
       setLoading(false);
     };
     fetchPublicTours();
