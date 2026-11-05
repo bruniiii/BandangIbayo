@@ -370,17 +370,29 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
   // One request every 2 weeks (both kinds together): when the next one can be sent.
   const [nextRequestAt, setNextRequestAt] = useState(null);
+  const toldRef = useRef(false); // the "already have a request" toast shows once
   useEffect(() => {
     if (editing) return undefined;
     let alive = true;
     (async () => {
       const user = await currentUser();
       if (!user) return;
-      const { data } = await supabase.from('exclusive_requests').select('created_at').eq('user_id', user.id)
+      const { data } = await supabase.from('exclusive_requests').select('*').eq('user_id', user.id)
         .order('created_at', { ascending: false }).limit(1);
-      const last = data?.[0]?.created_at ? new Date(data[0].created_at).getTime() : 0;
+      const lastReq = data?.[0] || null;
+      const last = lastReq?.created_at ? new Date(lastReq.created_at).getTime() : 0;
       const next = last + REQUEST_GAP_DAYS * 86400000;
-      if (alive) setNextRequestAt(next > Date.now() ? new Date(next) : null);
+      if (!alive) return;
+      const blocked = next > Date.now();
+      setNextRequestAt(blocked ? new Date(next) : null);
+      // Tell them right away which request they already have (either kind).
+      if (blocked && lastReq && !toldRef.current) {
+        toldRef.current = true;
+        const kind = lastReq.request_type === 'exclusive' ? 'Exclusive Tour' : 'Request a Tour';
+        const when = new Date(next).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' });
+        toast.info(`You already have an active request (${kind})`,
+          `${lastReq.destination || 'Your request'} · ${requestStatusLabel(lastReq)}. You can send one request every 2 weeks; your next one can be sent on ${when}.`);
+      }
     })();
     return () => { alive = false; };
   }, [editing, onSaved]);
