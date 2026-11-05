@@ -1,3 +1,4 @@
+import { isStaleVersionError, reloadForNewVersion } from '../staleVersion';
 // ─────────────────────────────────────────────
 // TOAST NOTIFICATIONS: short messages in the corner that confirm an action
 // or report a problem without blocking the page (instead of alert()).
@@ -33,6 +34,9 @@ export const dismiss = (id) => {
 };
 
 const show = (type, title, message = '', options = {}) => {
+  // An old tab after a website update (e.g. Print/Download PDF): reload to the
+  // new version instead of showing the error.
+  if (type === 'error' && isStaleVersionError(`${title} ${message}`) && reloadForNewVersion()) return null;
   const id = options.id ?? nextId++;
   const entry = { id, type, title: String(title ?? ''), message: message ? String(message) : '', action: options.action || null };
   toasts = [...toasts.filter((t) => t.id !== id), entry].slice(-4);   // at most 4 on screen
