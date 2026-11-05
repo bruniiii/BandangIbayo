@@ -253,7 +253,7 @@ const TourManagement = ({ openTourId = null }) => {
   }, [editingTour, showModal]);
  
   const executeToggleArchive = async () => {
-    const { ids, isArchived, dates = [] } = confirmAction;
+    const { ids, isArchived, dates = [], tour } = confirmAction;
     // A date that already ended stays in Tour Archive (it can't be booked anymore).
     const today = todayManila();
     const ended = (d) => String(d.end_date || d.start_date || '') < today;
@@ -272,6 +272,17 @@ const TourManagement = ({ openTourId = null }) => {
     if (!error && weatherCancelled.length) {
       ({ error: weatherError } = await supabase.from('tours')
         .update({ weather_status: null, weather_reason: null, weather_note: null }).in('id', weatherCancelled));
+    }
+    if (error && isArchived && /one tour per day/i.test(error.message)) {
+      // Restoring puts the date back on the calendar, and another tour is on those days now.
+      setConfirmAction(null);
+      const other = (error.message.match(/one tour per day: (.+?) is already on those days/i) || [])[1];
+      if (await confirmDialog({
+        title: "Can't restore on these dates",
+        message: `${other ? `${other} is already on those days` : 'Another tour is already on those days'} (only one tour per day). Pick new dates for this tour, then restore it.`,
+        confirmLabel: 'Change Dates', cancelLabel: 'Not Now',
+      }) && tour) openTourForm(tour);
+      return;
     }
     if (error || weatherError) toast.error("Couldn't update the tour", (error || weatherError).message);
     else {
@@ -535,7 +546,9 @@ const TourManagement = ({ openTourId = null }) => {
       if (feedError) reportError("Tour saved, but it wasn't posted to the feed", feedError.message);
     }
 
-    toast.success(isNewTour ? 'Tour created' : 'Tour saved', isNewTour ? 'It\'s now open for booking and posted to the feed.' : added.length ? `${added.length} new date${added.length > 1 ? 's are' : ' is'} open for booking.` : '');
+    toast.success(isNewTour ? 'Tour created' : 'Tour saved', isNewTour ? 'It\'s now open for booking and posted to the feed.'
+      : editingTour?.is_archived ? 'It\'s still in Tour Archive. Click Restore on it to open it for booking again.'
+        : added.length ? `${added.length} new date${added.length > 1 ? 's are' : ' is'} open for booking.` : '');
     setEditingTour(null);
     setShowModal(false);
     fetchTours();
@@ -782,7 +795,7 @@ const TourManagement = ({ openTourId = null }) => {
               <TourCard
                 key={tour.id}
                 tour={tour}
-                onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates })}
+                onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates, tour })}
                 onView={() => setViewTour(tour)}
                 onEdit={() => openTourForm(tour)}
                 onAddDate={() => openTourForm(tour, { withNewDate: true })}
