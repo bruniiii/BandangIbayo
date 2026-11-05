@@ -30,7 +30,8 @@ import { Skel, SkeletonRegion } from './ui/Skeleton';
   TOUR CALENDAR
 ───────────────────────────────────────────── */
 // onPlanTrip(form, date): a day without tours offers an exclusive tour or a tour request.
-const TourCalendar = ({ initialDate, onPlanTrip }) => {
+// onOpenMyBookings(): a joiner's own exclusive tour opens in My Bookings.
+const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
   const [currentMonth, setCurrentMonth] = useState(() =>
     initialDate ? new Date(initialDate.year, initialDate.month, 1) : new Date()
   );
@@ -46,7 +47,8 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
     await archivePastTours();
     const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false).or(notEndedFilter());
     // Joiners can only read their own bookings, so slot totals come from tour_slots_booked().
-    const updatedTours = await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive)); // exclusive tours: My Bookings only
+    // (A joiner only ever sees their OWN exclusive tour here: the database hides the others.)
+    const updatedTours = await withAvailableSlots(toursData || []);
  
     setTours(updatedTours);
     setLoading(false);
@@ -177,10 +179,10 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
                           display: 'block', maxWidth: '100%', boxSizing: 'border-box',
                           fontSize: 11, fontWeight: 800, lineHeight: 1.3,
                           padding: '2px 6px', borderRadius: 6,
-                          color: '#1A0A00', background: '#E8A265',
+                          color: t.is_exclusive ? '#E8A265' : '#1A0A00', background: t.is_exclusive ? '#1A0A00' : '#E8A265',
                           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                         }}>
-                          {t.title}
+                          {t.is_exclusive ? '★ ' : ''}{t.title}
                         </span>
                       ))}
                       {dayTours.length > 2 && (
@@ -227,6 +229,9 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
                     border: '1px solid rgba(255,255,255,0.08)',
                     transition: 'all 0.2s'
                   }}>
+                    {tour.is_exclusive && (
+                      <p style={{ margin: '0 0 6px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#E8A265' }}>★ Your exclusive tour</p>
+                    )}
                     <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: '#FDF6EE', margin: '0 0 8px' }}>{tour.title}</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(232,210,190,0.85)', marginBottom: 4 }}>
                       <MapPin size={12} style={{ color: '#A8481A' }} /> {tour.destination}
@@ -255,7 +260,7 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <PriceTag tour={tour} size={15} color="#E8A265" mutedColor="rgba(232,210,190,0.7)" align="flex-start" />
                       <button
-                        onClick={() => setSelectedTour(tour)}
+                        onClick={() => (tour.is_exclusive ? onOpenMyBookings?.() : setSelectedTour(tour))}
                         style={{
                           background: '#FDF6EE',
                           color: '#1A0A00',
@@ -275,7 +280,7 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
                         onMouseEnter={e => { e.currentTarget.style.background = '#B4511E'; e.currentTarget.style.color = '#FDF6EE'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = '#FDF6EE'; e.currentTarget.style.color = '#1A0A00'; }}
                       >
-                        Details
+                        {tour.is_exclusive ? 'My Bookings' : 'Details'}
                       </button>
                     </div>
                   </div>

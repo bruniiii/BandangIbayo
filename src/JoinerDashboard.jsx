@@ -1057,6 +1057,7 @@ const JoinerDashboard = () => {
             <TourCalendar
               initialDate={calendarTarget}
               onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab(form === 'request' ? 'Request a Tour' : 'Exclusive Tours'); }}
+              onOpenMyBookings={() => { setBookingsFilter(null); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }}
             />
           ) : activeTab === 'Exclusive Tours' || activeTab === 'Request a Tour' ? (
             <ExclusiveTour

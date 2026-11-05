@@ -716,6 +716,12 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     ? 'Send updated details if anything about the trip has changed.'
                     : "Fill in the tour like Create New Tour. The joiner is notified and pays a 50% downpayment to confirm.")}
               </p>
+              {isExclusive && packageSentAt && request.payment_status === 'Paid' && !pkg.tour_id && (
+                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
+                  This paid exclusive tour isn't on the Calendar, Tracking or the joiner's My Bookings yet (it was paid before that update).
+                  Click <strong>Edit & Resend Package</strong> once to add it. If another tour is on those days, the website says which one: move that tour or these dates first.
+                </p>
+              )}
               {isExclusive && dp.waiting ? (
                 <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: dp.expired ? '#8C2F1C' : '#A8481A', lineHeight: 1.55 }}>
                   {dp.expired
