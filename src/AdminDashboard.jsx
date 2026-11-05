@@ -93,7 +93,7 @@ const NAV_ITEMS = [
   { icon: <Shield size={18} strokeWidth={2} />,          label: 'Exclusive Tours' },
   { icon: <Globe size={18} strokeWidth={2} />,           label: 'Requested Tours' },
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
-  { icon: <MessagesSquare size={18} strokeWidth={2} />,  label: 'Group Chats' },
+  { icon: <MessagesSquare size={18} strokeWidth={2} />,  label: 'Messages' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
   { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
@@ -523,7 +523,7 @@ const AdminDashboard = () => {
               active={activeTab === label}
               collapsed={!sidebarExpanded}
               onClick={() => handleNavClick(label)}
-              badge={label === 'Group Chats' ? chatUnread : 0}
+              badge={label === 'Messages' ? chatUnread : 0}
             />
           ))}
         </nav>
@@ -876,7 +876,7 @@ const AdminDashboard = () => {
           {activeTab === 'Exclusive Tours' && <AdminExclusiveTours key={`exclusive${focusKey || ''}`} type="exclusive" openRequestId={focusId} />}
           {activeTab === 'Requested Tours' && <AdminExclusiveTours key={`request${focusKey || ''}`} type="request" openRequestId={focusId} />}
           {activeTab === 'Reviews' && <Reviews key={focusKey} isAdmin={true} focusTourId={focusId} />}
-          {activeTab === 'Group Chats' && <GroupChat isAdmin />}
+          {activeTab === 'Messages' && <GroupChat isAdmin />}
           {activeTab === 'Reports' && <Reports />}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls key={focusKey} openTourId={focusId} />
@@ -896,7 +896,7 @@ const AdminDashboard = () => {
            activeTab !== 'Requested Tours' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
-           activeTab !== 'Group Chats' &&
+           activeTab !== 'Messages' &&
            activeTab !== 'Notification' &&
            activeTab !== 'Admin Settings' && (
             <div style={{
@@ -951,7 +951,7 @@ const PAGE_INFO = {
   'Exclusive Tours':     { icon: Shield,          title: 'Exclusive Tours',     subtitle: 'Private-group tour requests from joiners' },
   'Requested Tours':     { icon: Globe,           title: 'Requested Tours',     subtitle: 'New destinations joiners asked for, posted on Explore Tours once ready' },
   'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners, and check them in on the day" },
-  'Group Chats':         { icon: MessagesSquare,  title: 'Group Chats',         subtitle: 'Chat with the joiners of each tour date' },
+  'Messages':            { icon: MessagesSquare,  title: 'Messages',            subtitle: 'Chat with the joiners of each tour date, and with exclusive tour joiners' },
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
