@@ -40,6 +40,28 @@ import NiceDate from './ui/NiceDate';
 
 // mode="complete" (/complete-profile): after "Continue with Google", the
 // same form without email and password fills in the rest of the profile.
+// Counts down until the emailed code stops working.
+const CodeTimer = ({ sentAt, minutes }) => {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  if (!sentAt || !minutes) return null;
+  const left = Math.max(0, Math.ceil((sentAt + minutes * 60000 - now) / 1000));
+  const mm = Math.floor(left / 60);
+  const ss = String(left % 60).padStart(2, '0');
+  const expired = left === 0;
+  return (
+    <p role="timer" aria-live="off" style={{
+      margin: '10px 0 0', fontSize: 12.5, fontWeight: 800, textAlign: 'center',
+      color: expired ? '#8C2F1C' : left <= 60 ? '#B4511E' : '#7A3A18',
+    }}>
+      {expired ? 'This code has expired. Tap Resend code to get a new one.' : <>Code expires in <span style={{ fontVariantNumeric: 'tabular-nums' }}>{mm}:{ss}</span></>}
+    </p>
+  );
+};
+
 const JoinerRegister = ({ mode = 'register' }) => {
   const completing = mode === 'complete';
   const [googleUser, setGoogleUser] = useState(null);
@@ -196,6 +218,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
       return;
     }
     setCode('');
+    // A new code: the timer starts over.
+    setCodeStep((s) => (s ? { ...s, sentAt: Date.now(), expiresInMinutes: result.data.expiresInMinutes || s.expiresInMinutes } : s));
     setCodeInfo(`We sent a new code to ${result.data.sentTo}.`);
   };
 
@@ -341,7 +365,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
         setCode('');
         setCodeError('');
         setCodeInfo('');
-        setCodeStep({ ...started.data, password });
+        setCodeStep({ ...started.data, password, sentAt: Date.now() });
         return;
       }
       if (started.field) {
@@ -512,6 +536,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   {codeError}
                 </p>
               )}
+              <CodeTimer sentAt={codeStep.sentAt} minutes={codeStep.expiresInMinutes} />
               {codeInfo && !codeError && (
                 <p role="status" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 700, color: '#7A3A18', textAlign: 'center' }}>{codeInfo}</p>
               )}
@@ -781,8 +806,10 @@ const JoinerRegister = ({ mode = 'register' }) => {
           <div
             style={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              gap: 18,
+              textAlign: 'center',
+              gap: 12,
               padding: 18,
               background: 'rgba(242,228,208,0.55)',
               border: '1px solid rgba(180,81,30,0.15)',
@@ -819,13 +846,14 @@ const JoinerRegister = ({ mode = 'register' }) => {
               )}
             </div>
 
-            <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <label style={labelStyle}>Profile Picture</label>
 
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: 10,
                   flexWrap: 'wrap',
                 }}
