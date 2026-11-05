@@ -46,7 +46,7 @@ const TourCalendar = ({ initialDate, onPlanTrip }) => {
     await archivePastTours();
     const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false).or(notEndedFilter());
     // Joiners can only read their own bookings, so slot totals come from tour_slots_booked().
-    const updatedTours = await withAvailableSlots(toursData);
+    const updatedTours = await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive)); // exclusive tours: My Bookings only
  
     setTours(updatedTours);
     setLoading(false);

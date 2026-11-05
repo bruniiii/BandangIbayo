@@ -6,7 +6,7 @@ import { SearchX, Inbox } from 'lucide-react';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from "./notifications";
-import { formatPeso, requestOverdueReason, requestStatusLabel, requestPaymentLabel, REQUEST_REVIEW_DAYS, EXCLUSIVE_APPROVAL_CUTOFF_DAYS } from './tourUtils';
+import { formatPeso, requestOverdueReason, requestStatusLabel, requestPaymentLabel, exclusiveDownpayment, REQUEST_REVIEW_DAYS, EXCLUSIVE_APPROVAL_CUTOFF_DAYS } from './tourUtils';
 import PackageTourForm from './PackageTourForm';
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { SkeletonRows } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
+import NiceSelect from './ui/NiceSelect';
 import { formatYmdRange, daysLabel } from './dateRange';
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -50,6 +51,8 @@ const STATUS_STYLES = {
   Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
   'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
   Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
+  // Approved, but the joiner didn't pay the downpayment within 24 hours.
+  Unpaid: { bg: 'rgba(26,10,0,0.08)', color: '#7A3A18' },
   'Downpayment Paid': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
   'Fully Paid': { bg: 'rgba(122,58,24,0.16)', color: '#7A3A18' },
 };
@@ -205,7 +208,7 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
 
         {/* ── Status toggle: show one status at a time ── */}
         <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '-8px 0 20px' }}>
-          {['All Status', 'For Approval', 'Approved', 'Tour Confirmed', ...(isExclusivePage ? ['Downpayment Paid', 'Fully Paid'] : []), 'Rejected'].map((st) => {
+          {['All Status', 'For Approval', 'Approved', 'Tour Confirmed', ...(isExclusivePage ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected'].map((st) => {
             const on = statusFilter === st;
             const count = st === 'All Status' ? requests.length : requests.filter((r) => shownStatus(r) === st || requestPaymentLabel(r) === st).length;
             const tone = STATUS_STYLES[st];
@@ -339,7 +342,11 @@ const DetailRow = ({ icon, label, value }) => (
 const DownpaymentSection = ({ request, price, onChanged }) => {
   const [saving, setSaving] = useState(false);
   const isPaid = request.payment_status === 'Paid';
-  const downpayment = Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
+  // New flow: 50% of the budget, before the package (24 hours to pay).
+  const dp = exclusiveDownpayment(request);
+  const downpayment = dp.waiting || (isPaid && request.downpayment_due_at)
+    ? (isPaid ? Number(request.downpayment_amount) || Number(request.amount_paid) || dp.amount : dp.amount)
+    : Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
   const paidAmount = Number(request.amount_paid) || 0;
   const balance = Math.max(0, Math.round((price - paidAmount) * 100) / 100);
   const fullyPaid = isPaid && (request.balance_settled || balance <= 0);
@@ -374,7 +381,9 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
     update: { payment_status: 'Paid', downpayment_amount: downpayment, amount_paid: downpayment, paid_at: new Date().toISOString() },
     notify: {
       title: 'Exclusive Tour Confirmed 🎉',
-      message: `We received your ${formatPeso(downpayment)} downpayment for your exclusive tour to ${request.destination}. Your booking is confirmed. You can pay the remaining ${formatPeso(Math.max(0, price - downpayment))} online under Exclusive Tours, or settle it with our team before the trip.`,
+      message: price > 0
+        ? `We received your ${formatPeso(downpayment)} downpayment for your exclusive tour to ${request.destination}. Your booking is confirmed. You can pay the remaining ${formatPeso(Math.max(0, price - downpayment))} online under Exclusive Tours, or settle it with our team before the trip.`
+        : `We received your ${formatPeso(downpayment)} downpayment for your exclusive tour to ${request.destination}. Your booking is confirmed! We're now preparing your tour package; you'll be notified once it's ready.`,
     },
     done: 'Downpayment recorded',
   });
@@ -400,6 +409,11 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
   } else if (isPaid) {
     title = 'Downpayment Paid · Confirmed';
     text = `Paid ${formatPeso(paidAmount)} on ${formatDateTime(request.paid_at)}. Remaining balance: ${formatPeso(balance)}. The joiner can pay it online, or you can mark it paid.`;
+  } else if (dp.waiting) {
+    title = dp.expired ? 'Unpaid · 24 hours passed' : '50% Downpayment · due in 24 hours';
+    text = dp.expired
+      ? `The joiner didn't pay the ${formatPeso(downpayment)} downpayment by ${formatDateTime(dp.dueAt)}, so they didn't continue. Nothing else is needed.`
+      : `Waiting for the joiner to pay ${formatPeso(downpayment)} (50% of their ${formatPeso(request.budget)} budget) by ${formatDateTime(dp.dueAt)}. You can create the tour package once it's paid.`;
   } else if (price > 0) {
     title = '50% Downpayment';
     text = `Waiting for the joiner to pay the 50% downpayment of ${formatPeso(downpayment)} (package price ${formatPeso(price)}).`;
@@ -408,7 +422,7 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
     text = 'Send the tour package with a price first. The joiner can then pay a 50% downpayment online to confirm.';
   }
 
-  const action = !isPaid && price > 0
+  const action = !isPaid && ((dp.waiting && !dp.expired) || (!dp.waiting && price > 0))
     ? { label: 'Mark as Paid', onClick: markDownpaymentPaid }
     : isPaid && !fullyPaid ? { label: 'Mark Balance Paid', onClick: markBalancePaid } : null;
 
@@ -449,8 +463,23 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
   );
 };
 
+// Why a request is rejected: the joiner sees the reason (and the details).
+const REJECT_REASONS = [
+  'The dates are not available',
+  'Destination not offered right now',
+  'Group size not possible',
+  'Budget is too low for this trip',
+  'Unsafe, closed or restricted destination',
+  'Other',
+];
+
 const RequestDetailModal = ({ request, onClose, onResolved }) => {
   const [submitting, setSubmitting] = useState(null); // 'approve' | 'reject' | null
+  const [rejecting, setRejecting] = useState(false); // the reason box is open
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectDetails, setRejectDetails] = useState('');
+  const rejectText = rejectReason === 'Other' ? rejectDetails.trim() : [rejectReason, rejectDetails.trim()].filter(Boolean).join('. ');
+  const rejectReady = !!rejectReason && (rejectReason !== 'Other' || rejectDetails.trim().length >= 5);
 
   const overdueReason = requestOverdueReason(request);
   const isPending = request.status === 'Pending' && !overdueReason;
@@ -459,6 +488,8 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
   // A requested tour: its package is posted on Explore Tours, with the
   // requester's slots held for 2 days (see PackageTourForm).
   const isOpenRequest = request.request_type === 'request';
+  // Exclusive: the package waits for the downpayment (24 hours after approval).
+  const dp = exclusiveDownpayment(request);
   const deadline = reviewDeadline(request);
   const people = Array.isArray(request.participants) ? request.participants : [];
 
@@ -469,11 +500,14 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
   const sentPrice = Number(pkg.price) || 0;
 
   const resolveRequest = async (decision) => {
-    if (decision === 'reject' && !(await confirmDialog({
-      title: 'Reject this request?',
-      message: 'The joiner will be notified that their request was declined.',
-      confirmLabel: 'Reject Request', cancelLabel: 'Go Back', tone: 'danger',
-    }))) return;
+    if (decision === 'reject') {
+      if (!rejectReady) { toast.error('Give a reason', 'Choose why the request is rejected (and add details for "Other").'); return; }
+      if (!(await confirmDialog({
+        title: 'Reject this request?',
+        message: `The joiner will be notified with this reason:\n“${rejectText}”`,
+        confirmLabel: 'Reject Request', cancelLabel: 'Go Back', tone: 'danger',
+      }))) return;
+    }
     setSubmitting(decision);
     try {
       const adminUser = await currentUser();
@@ -483,6 +517,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         .from('exclusive_requests')
         .update({
           status: newStatus,
+          ...(decision === 'reject' ? { admin_response: rejectText } : {}),
           reviewed_by: adminUser?.id || null,
           reviewed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -499,9 +534,9 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
       const message = newStatus === 'Approved'
         ? (isExclusive
-          ? `Great news! Your exclusive tour request for ${request.destination} has been approved. We're preparing your tour package; you'll be notified once it's ready.`
+          ? `Great news! Your exclusive tour request for ${request.destination} has been approved. To continue, pay the ${formatPeso(Math.round((Number(request.budget) || 0) * 50) / 100)} downpayment (50% of your budget) within 24 hours in Exclusive Tours. Then we'll prepare your tour package.`
           : `Great news! Your request to add ${request.destination} has been approved and will be opened for booking on Explore Tours soon, with your slots held for you.`)
-        : `Your ${typeLabel.toLowerCase()} for ${request.destination} was not approved at this time.`;
+        : `Your ${typeLabel.toLowerCase()} for ${request.destination} was not approved. Reason: ${rejectText}`;
 
       if (request.user_id) {
         await notifyUser(request.user_id, {
@@ -512,7 +547,8 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         });
       }
 
-      toast.success(decision === 'approve' ? 'Request approved' : 'Request rejected', 'The joiner has been notified.');
+      toast.success(decision === 'approve' ? 'Request approved' : 'Request rejected',
+        decision === 'approve' && isExclusive ? 'The joiner was asked to pay the downpayment within 24 hours. You can make the package once it\'s paid.' : 'The joiner has been notified.');
       onResolved();
     } catch (err) {
       toast.error("Couldn't update request", err.message);
@@ -680,6 +716,13 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     ? 'Send updated details if anything about the trip has changed.'
                     : "Fill in the tour like Create New Tour. The joiner is notified and pays a 50% downpayment to confirm.")}
               </p>
+              {isExclusive && dp.waiting ? (
+                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: dp.expired ? '#8C2F1C' : '#A8481A', lineHeight: 1.55 }}>
+                  {dp.expired
+                    ? 'The joiner didn\'t pay the downpayment within 24 hours, so this request didn\'t continue. No package is needed.'
+                    : `Waiting for the downpayment (due ${formatDateTime(dp.dueAt)}). You can create the tour package once it's paid.`}
+                </p>
+              ) : (
               <button
                 type="button"
                 onClick={() => setShowPackageForm(true)}
@@ -695,6 +738,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                   ? (packageSentAt ? 'Edit Posted Tour' : 'Create & Post Tour')
                   : (packageSentAt ? 'Edit & Resend Package' : 'Create Tour Package')}
               </button>
+              )}
             </div>
           )}
 
@@ -718,9 +762,22 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             padding: '1.5rem 2.25rem', borderTop: '1px solid rgba(180,81,30,0.12)',
             background: '#FDF6EE', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end',
           }}>
+            {rejecting && (
+              <div style={{ flexBasis: '100%', display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '12px 14px' }}>
+                <label htmlFor="reject-reason" style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8C2F1C' }}>Reason for rejecting *</label>
+                <NiceSelect id="reject-reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Choose a reason">
+                  <option value="">Choose a reason</option>
+                  {REJECT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                </NiceSelect>
+                <textarea aria-label="Details for the joiner" value={rejectDetails} maxLength={300} rows={2} onChange={(e) => setRejectDetails(e.target.value)}
+                  placeholder={rejectReason === 'Other' ? 'Explain the reason (required)' : 'Details for the joiner (optional)'}
+                  style={{ width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00', resize: 'vertical' }} />
+                <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>The joiner sees this reason in their notification and on their request.</p>
+              </div>
+            )}
             <button
-              onClick={() => resolveRequest('reject')}
-              disabled={submitting !== null}
+              onClick={() => (rejecting ? resolveRequest('reject') : setRejecting(true))}
+              disabled={submitting !== null || (rejecting && !rejectReady)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '13px 22px',
@@ -728,10 +785,10 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
                 fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                opacity: submitting !== null ? 0.5 : 1,
+                opacity: submitting !== null || (rejecting && !rejectReady) ? 0.5 : 1,
               }}
             >
-              {submitting === 'reject' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} Reject Request
+              {submitting === 'reject' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <XCircle size={14} />} {rejecting ? 'Confirm Reject' : 'Reject Request'}
             </button>
             <button
               onClick={() => resolveRequest('approve')}

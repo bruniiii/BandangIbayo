@@ -522,7 +522,7 @@ const JoinerDashboard = () => {
         .limit(12);
 
       // One card per trip; its other dates are picked in the booking window.
-      const updatedTours = groupTripDates(await withAvailableSlots(toursData));
+      const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* exclusive tours: My Bookings only */;
 
       setFeaturedTours(updatedTours);
     } catch (err) {

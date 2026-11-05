@@ -57,8 +57,9 @@ export const payHeldBooking = ({ bookingId, paymentType, companions, accommodati
 export const startExclusiveDownpayment = ({ requestId, accommodation = null }) =>
   withPaymentPhone('pay-exclusive', { requestId, accommodation, returnBaseUrl: returnBaseUrl() });
 // The rest of the package price, after the downpayment.
-export const startExclusiveBalance = ({ requestId }) =>
-  withPaymentPhone('pay-exclusive', { requestId, part: 'balance', returnBaseUrl: returnBaseUrl() });
+// accommodation: chosen with the balance when the package lists options.
+export const startExclusiveBalance = ({ requestId, accommodation = null }) =>
+  withPaymentPhone('pay-exclusive', { requestId, part: 'balance', accommodation, returnBaseUrl: returnBaseUrl() });
 
 // Coming back from PayMongo: has the downpayment been paid?
 export const verifyExclusivePayment = ({ requestId }) => callPayments('verify-exclusive', { requestId });

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { CloudRain, AlertTriangle } from 'lucide-react';
+import { CloudRain, AlertTriangle, ChevronDown } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
@@ -18,6 +18,9 @@ const WeatherRefunds = () => {
   const me = useAdminMe();
   const [rows, setRows] = useState([]);
   const [missing, setMissing] = useState([]); // sent, but the joiner says they didn't get it
+  // The admin can minimize the card (remembered on this device).
+  const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem('ibayo:refunds-collapsed') === '1'; } catch { return false; } });
+  const toggle = () => setCollapsed((c) => { const v = !c; try { localStorage.setItem('ibayo:refunds-collapsed', v ? '1' : '0'); } catch { /* private mode */ } return v; });
 
   const load = useCallback(async () => {
     // (Bookings aren't linked to profiles in the database, so the joiners'
@@ -75,14 +78,24 @@ const WeatherRefunds = () => {
           {waiting > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: '#B4511E', color: '#FDF6EE', fontSize: 11 }}>{waiting} waiting for the main admin</span>}
         </p>
         {me.isMain && <RefundHistoryButton />}
+        <button type="button" onClick={toggle} aria-expanded={!collapsed} aria-label={collapsed ? 'Show weather refunds' : 'Minimize weather refunds'} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 12, cursor: 'pointer',
+          background: 'transparent', border: '1px solid rgba(63,93,98,0.45)', color: '#3F5D62', fontFamily: 'inherit',
+          fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+        }}>
+          {collapsed ? 'Show' : 'Minimize'} <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: collapsed ? 'none' : 'rotate(180deg)' }} />
+        </button>
       </div>
-      {rows.length > 0 && (
+      {collapsed && missing.length > 0 && (
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>⚠ {missing.length} joiner{missing.length === 1 ? ' says they' : 's say they'} didn't get their refund.</p>
+      )}
+      {!collapsed && rows.length > 0 && (
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
           50% of what each joiner paid. Refunds are sent manually through GCash: any admin adds the GCash reference and receipt; only the main admin approves and sends it.
         </p>
       )}
-      {rows.map((b) => row(b, false))}
-      {missing.length > 0 && (
+      {!collapsed && rows.map((b) => row(b, false))}
+      {!collapsed && missing.length > 0 && (
         <>
           <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '6px 0 0', fontSize: 12.5, fontWeight: 900, color: '#8C2F1C' }}>
             <AlertTriangle size={15} /> Joiners who say they didn't get their refund: {missing.length}

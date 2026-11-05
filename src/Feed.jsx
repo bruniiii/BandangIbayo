@@ -488,21 +488,28 @@ const Feed = ({ isAdmin = false, focus = null }) => {
               style={{ display: 'none' }}
             />
 
+            {/* Disabled (nothing written yet, or waiting for the 48-hour gap): still readable. */}
+            {(() => {
+              const off = posting || !!postWaitUntil || (!content.trim() && mediaItems.length === 0);
+              return (
             <button
               onClick={handlePost}
-              disabled={posting || !!postWaitUntil || (!content.trim() && mediaItems.length === 0)}
+              disabled={off}
+              title={postWaitUntil ? `You can post again on ${postWaitUntil.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}` : off && !posting ? 'Write something or add a photo first' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: posting || postWaitUntil || (!content.trim() && mediaItems.length === 0) ? 'rgba(26,10,0,0.35)' : '#1A0A00',
-                color: '#E8A265', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                background: off && !posting ? '#EADBC8' : '#1A0A00',
+                color: off && !posting ? '#7A3A18' : '#E8A265', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                 textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
-                border: 'none', cursor: posting || postWaitUntil || (!content.trim() && mediaItems.length === 0) ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(26,10,0,0.22)',
+                border: off && !posting ? '1px solid rgba(122,58,24,0.3)' : '1px solid #1A0A00', cursor: off ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', boxShadow: off ? 'none' : '0 6px 18px rgba(26,10,0,0.22)',
               }}
             >
               {posting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
               Post
             </button>
+              );
+            })()}
             <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
           </div>
         </div>

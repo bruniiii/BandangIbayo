@@ -108,12 +108,16 @@ const CenteredMessage = ({ children }) => (
   </div>
 );
 
-const fetchOpenTours = () => supabase
-  .from('tours')
-  .select('*')
-  .eq('is_archived', false)
-  .gte('start_date', todayManila())
-  .order('start_date', { ascending: true });
+// (Exclusive tours are private: only in their joiner's My Bookings.)
+const fetchOpenTours = async () => {
+  const res = await supabase
+    .from('tours')
+    .select('*')
+    .eq('is_archived', false)
+    .gte('start_date', todayManila())
+    .order('start_date', { ascending: true });
+  return { ...res, data: res.data ? res.data.filter((t) => !t.is_exclusive) : res.data };
+};
 
 /* ─────────────────────────────────────────────
    /tours
