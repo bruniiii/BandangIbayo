@@ -111,5 +111,9 @@ from (values
      to_regprocedure('public.exclusive_make_booking(' || (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.exclusive_requests'::regclass and attname = 'id') || ',' || (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.tours'::regclass and attname = 'id') || ')') is not null
      and exists (select 1 from pg_policies where tablename = 'tours' and policyname = 'tours_hide_exclusive')),
   ('20261214 one tour per day counts approved exclusive tours',
-     exists (select 1 from pg_trigger where tgname = 'exclusive_requests_one_per_day'))
+     exists (select 1 from pg_trigger where tgname = 'exclusive_requests_one_per_day')),
+  ('20261215 exclusive tours have no rate limits',
+     coalesce((select pg_get_functiondef(p.oid) like '%is_exclusive%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'tours_check_price_limit' limit 1), false))
 ) as u(update_file, installed);
