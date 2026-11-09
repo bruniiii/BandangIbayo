@@ -754,7 +754,7 @@ const PackageDetail = ({ label, icon, color = '#A8481A', children }) => (
 );
 
 // alwaysOpen: shown open, with no dropdown (Request a Tour's only Tour Confirmed request).
-const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false, defaultOpen = false }) => {
+const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysOpen = false, defaultOpen = false }) => {
   const [open, setExpanded] = useState(defaultOpen);
   const expanded = alwaysOpen || open;
   const isExclusive = request.request_type === 'exclusive';
@@ -770,6 +770,20 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false
     && ((hasPackage && packagePrice > 0) || dp.waiting || (request.payment_status === 'Paid' && !!request.downpayment_due_at));
   // A requested tour posted on Explore Tours: the requester's slots are held for them.
   const postedTour = !isExclusive && hasPackage && pkg.tour_id;
+  // The held booking as it is now: still waiting for payment, paid, or released
+  // (the 2 days ran out, or it was cancelled).
+  const heldId = postedTour ? pkg.held_booking_id : null;
+  const [held, setHeld] = useState(null);
+  useEffect(() => {
+    if (!heldId) return undefined;
+    let live = true;
+    supabase.from('bookings').select('booking_status, payment_status, hold_expires_at').eq('id', heldId).maybeSingle()
+      .then(({ data }) => { if (live) setHeld(data || { missing: true }); });
+    return () => { live = false; };
+  }, [heldId]);
+  const heldReleased = !!held && (held.missing || ['Cancelled', 'Rejected'].includes(held.booking_status)
+    || (held.payment_status === 'Awaiting Payment' && held.hold_expires_at && new Date(held.hold_expires_at) < new Date()));
+  const heldPaid = !!held && !heldReleased && held.payment_status && held.payment_status !== 'Awaiting Payment';
   const isPaid = request.payment_status === 'Paid';
   const overdueReason = requestOverdueReason(request);
   const editable = requestEditable(request);
@@ -896,15 +910,27 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false
               {postedTour && (
                 <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 14, padding: '12px 14px' }}>
                   <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
-                    Your tour is posted on Explore Tours, and your slots are held for you for 2 days. Pay in My Bookings to keep them.
+                    {heldReleased
+                      ? "Your tour is posted on Explore Tours, but the 2 days to pay for your held slots ran out, so they were released to other joiners. You can still book it on Explore Tours while slots are left."
+                      : heldPaid
+                        ? 'Your tour is posted on Explore Tours, and your slots are paid. See your booking in My Bookings.'
+                        : 'Your tour is posted on Explore Tours, and your slots are held for you for 2 days. Pay in My Bookings to keep them.'}
                   </p>
-                  {pkg.held_booking_id && onOpenBooking && (
+                  {heldReleased ? (onExplore && (
+                    <button type="button" onClick={onExplore} style={{
+                      marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
+                      background: '#B4511E', color: '#FDF6EE', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                    }}>
+                      <CreditCard size={14} /> Book on Explore Tours
+                    </button>
+                  )) : pkg.held_booking_id && onOpenBooking && (
                     <button type="button" onClick={() => onOpenBooking(pkg.held_booking_id)} style={{
                       marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
                       background: '#B4511E', color: '#FDF6EE', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.1em', textTransform: 'uppercase',
                     }}>
-                      <CreditCard size={14} /> Pay for my slots
+                      <CreditCard size={14} /> {heldPaid ? 'View my booking' : 'Pay for my slots'}
                     </button>
                   )}
                 </div>
@@ -1167,7 +1193,7 @@ const DownpaymentPanel = ({ request, price }) => {
 };
 
 // "Your Submitted Requests" for one type; reloads when refreshKey changes.
-const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = null }) => {
+const MyRequestsSection = ({ type, refreshKey, onOpenBooking, onExplore, openRequestId = null }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
@@ -1246,7 +1272,7 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = nu
           const confirmed = requests.filter((q) => requestStatusLabel(q) === 'Tour Confirmed');
           const singleConfirmedId = type === 'request' && confirmed.length === 1 ? confirmed[0].id : null;
           return shown.length
-            ? shown.map(r => <div key={r.id} {...focusAttr(`request-${r.id}`)}><RequestHistoryCard request={r} defaultOpen={String(r.id) === String(openRequestId)} onOpenBooking={onOpenBooking} onEdit={setEditing} alwaysOpen={r.id === singleConfirmedId} /></div>)
+            ? shown.map(r => <div key={r.id} {...focusAttr(`request-${r.id}`)}><RequestHistoryCard request={r} defaultOpen={String(r.id) === String(openRequestId)} onOpenBooking={onOpenBooking} onExplore={onExplore} onEdit={setEditing} alwaysOpen={r.id === singleConfirmedId} /></div>)
             : <p style={{ margin: 0, padding: '14px 16px', borderRadius: 14, background: 'rgba(242,228,208,0.5)', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>No requests marked "{statusFilter}" yet.</p>;
         })()}
       </div>
@@ -1265,7 +1291,7 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = nu
 // type: 'exclusive' (Private Tours) or 'request' (Request a Tour).
 // `start` comes from the joiner calendar: { form, date: 'YYYY-MM-DD' }.
 // openRequestId (from a notification): opens and scrolls to that request.
-const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, openRequestId = null }) => {
+const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, onExplore, openRequestId = null }) => {
   const [refreshKey, setRefreshKey] = useState(0);
   // The form stays hidden until the joiner clicks the button (or picks a date
   // on the calendar, which opens it filled in).
@@ -1277,7 +1303,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, openRequestId
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
       {/* Your Submitted Requests (at the top): status, admin updates, tour package details */}
-      <MyRequestsSection type={type} refreshKey={refreshKey} onOpenBooking={onOpenBooking} openRequestId={openRequestId} />
+      <MyRequestsSection type={type} refreshKey={refreshKey} onOpenBooking={onOpenBooking} onExplore={onExplore} openRequestId={openRequestId} />
 
       {!showForm ? (
         <div style={{

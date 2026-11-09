@@ -1043,6 +1043,7 @@ const JoinerDashboard = () => {
               start={exclusiveStart}
               openRequestId={focusId}
               onOpenBooking={(id) => { setBookingsFilter(null); setOpenBookingId(id); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }}
+              onExplore={() => handleNavClick('Explore Tours')}
             />
           ) : activeTab === 'Reviews' ? (
             <Reviews key={focusKey} isAdmin={false} focusTourId={focusId} onExplore={() => handleNavClick('Explore Tours')} />
