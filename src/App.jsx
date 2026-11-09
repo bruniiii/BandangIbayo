@@ -17,6 +17,7 @@ import HelpWidget from './ui/HelpWidget';
 const AdminDashboard = lazy(() => import('./AdminDashboard'));
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
+import MaintenanceGate from './MaintenanceGate';
 const JoinerDashboard = lazy(() => import('./JoinerDashboard'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
 const ResetPassword = lazy(() => import('./ResetPassword'));
@@ -564,19 +565,19 @@ export default function App() {
   return (
     <Suspense fallback={<PageLoading />}>
     <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<JoinerLogin />} />
-      <Route path="/register" element={<JoinerRegister />} />
+      <Route path="/" element={<MaintenanceGate><LandingPage /></MaintenanceGate>} />
+      <Route path="/login" element={<MaintenanceGate adminLogin><JoinerLogin /></MaintenanceGate>} />
+      <Route path="/register" element={<MaintenanceGate><JoinerRegister /></MaintenanceGate>} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/complete-profile" element={<JoinerRegister mode="complete" />} />
-      <Route path="/tours" element={<PublicTourList />} />
-      <Route path="/tours/:id" element={<PublicTourDetail />} />
+      <Route path="/complete-profile" element={<MaintenanceGate><JoinerRegister mode="complete" /></MaintenanceGate>} />
+      <Route path="/tours" element={<MaintenanceGate><PublicTourList /></MaintenanceGate>} />
+      <Route path="/tours/:id" element={<MaintenanceGate><PublicTourDetail /></MaintenanceGate>} />
       <Route path="/driver/:token" element={<DriverTrip />} />
-      <Route path="/dashboard/*" element={<ProtectedRoute><JoinerDashboard /></ProtectedRoute>} />
+      <Route path="/dashboard/*" element={<MaintenanceGate><ProtectedRoute><JoinerDashboard /></ProtectedRoute></MaintenanceGate>} />
       <Route path="/admin/*" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="*" element={<LandingPage />} />
+      <Route path="*" element={<MaintenanceGate><LandingPage /></MaintenanceGate>} />
     </Routes>
     </Suspense>
   );
