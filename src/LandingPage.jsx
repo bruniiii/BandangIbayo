@@ -139,36 +139,36 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* The next open tour, on a glass card (the logo when there's none). */}
-          <div className="lp-hero-card lp-glass">
-            {next ? (
-              <>
-                <div className="lp-hero-card-img">
-                  <img src={next.image_urls?.[0] || '/tour-placeholder.webp'} alt={next.title} />
-                  <span className="lp-pill">Next adventure</span>
-                </div>
-                <div className="lp-hero-card-body">
-                  <h2 className="lp-h3">{next.title}</h2>
-                  <p className="lp-meta"><MapPin size={14} /> {next.destination}</p>
-                  <p className="lp-meta"><Calendar size={14} /> {formatDate(next.start_date)} ({weekdayRange(next.start_date, next.duration)})</p>
-                  <div className="lp-hero-card-foot">
-                    <div>
-                      <div className="lp-tiny">Starts at</div>
-                      <PriceTag tour={next} size={24} color="#FFFFFF" mutedColor="rgba(255,255,255,0.7)" align="flex-start" />
-                    </div>
-                    <Link to={`/tours/${next.id}`} className="lp-btn lp-btn-amber lp-btn-sm">Book Now</Link>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="lp-hero-logo">
-                <img src="/hero-logo.webp" alt="Bandang IBAYO" width={260} height={260} fetchPriority="high" decoding="async" />
-              </div>
-            )}
-          </div>
         </div>
-        <a href="#tours" className="lp-scroll" aria-label="Scroll to the tours"><ChevronDown size={22} /></a>
+        <a href={next ? '#next' : '#tours'} className="lp-scroll" aria-label="Scroll down to the tours"><ChevronDown size={22} /></a>
       </header>
+
+      {/* ── NEXT ADVENTURE (below the hero): the next open tour on a wide glass card ── */}
+      {next && (
+        <section id="next" className="lp-section lp-section-tight">
+          <article className="lp-next lp-glass">
+            <div className="lp-next-img">
+              <Link to={`/tours/${next.id}`} aria-label={next.title} className="lp-cover-link" />
+              <img src={next.image_urls?.[0] || '/tour-placeholder.webp'} alt={next.title} decoding="async" />
+              <span className="lp-pill">Next adventure</span>
+            </div>
+            <div className="lp-next-body">
+              <span className="lp-eyebrow">Coming up next</span>
+              <h2 className="lp-h2 lp-next-title">{next.title}</h2>
+              <p className="lp-meta"><MapPin size={15} /> {next.destination}</p>
+              <p className="lp-meta"><Calendar size={15} /> {formatDate(next.start_date)} ({weekdayRange(next.start_date, next.duration)})</p>
+              {next.duration && <p className="lp-meta"><Clock size={15} /> {next.duration}</p>}
+              <div className="lp-next-foot">
+                <div>
+                  <div className="lp-tiny">Starts at</div>
+                  <PriceTag tour={next} size={30} color="#FFFFFF" mutedColor="rgba(255,255,255,0.7)" align="flex-start" style={{ letterSpacing: '-0.03em' }} />
+                </div>
+                <Link to={`/tours/${next.id}`} className="lp-btn lp-btn-amber">Book Now <ArrowRight size={16} /></Link>
+              </div>
+            </div>
+          </article>
+        </section>
+      )}
 
       {/* ── FEATURED TOURS ── */}
       <section id="tours" className="lp-section">
@@ -412,19 +412,24 @@ const LANDING_CSS = `
 
 /* Hero */
 .lp-hero { position: relative; min-height: 100dvh; display: flex; align-items: center; padding: 110px clamp(1.25rem,5vw,4rem) 80px; box-sizing: border-box; }
-.lp-hero-inner { width: 100%; max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: clamp(2rem,5vw,4.5rem); align-items: center; }
+.lp-hero-inner { width: 100%; max-width: 980px; margin: 0 auto; display: flex; justify-content: center; text-align: center; }
+.lp-hero-copy { display: flex; flex-direction: column; align-items: center; }
+.lp-hero-copy .lp-lead { margin-left: auto; margin-right: auto; max-width: 560px; }
+.lp-hero-buttons { justify-content: center; }
+.lp-section-tight { padding-top: clamp(2rem,4vw,3rem); padding-bottom: 0; }
+.lp-next { max-width: 1150px; margin: 0 auto; border-radius: 28px; overflow: hidden; display: grid; grid-template-columns: 1.1fr 1fr; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.lp-next:hover { transform: translateY(-4px); box-shadow: 0 28px 60px rgba(10,4,0,0.45); }
+.lp-next-img { position: relative; min-height: 320px; overflow: hidden; }
+.lp-next-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+.lp-next:hover .lp-next-img img { transform: scale(1.05); }
+.lp-next-body { padding: clamp(1.5rem,3.5vw,2.5rem); display: flex; flex-direction: column; justify-content: center; }
+.lp-next-title { font-size: clamp(1.7rem,3vw,2.5rem); margin-bottom: 10px; }
+.lp-next-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 22px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.18); }
 .lp-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #FFFFFF; margin-bottom: 22px; }
 .lp-h1 { font-weight: 900; line-height: 0.98; font-size: clamp(3rem, 7vw, 6.4rem); letter-spacing: -0.035em; margin: 0 0 24px; text-shadow: 0 6px 40px rgba(0,0,0,0.35); }
 .lp-h1-small { font-size: 0.8em; }
 .lp-lead { font-size: clamp(16px, 1.6vw, 19px); line-height: 1.7; font-weight: 500; color: rgba(255,255,255,0.88); max-width: 470px; margin: 0 0 36px; }
 .lp-hero-buttons { display: flex; gap: 14px; flex-wrap: wrap; }
-.lp-hero-card { border-radius: 28px; overflow: hidden; animation: lp-rise 0.9s ease both 0.15s; }
-.lp-hero-card-img { position: relative; height: 230px; }
-.lp-hero-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.lp-hero-card-body { padding: 22px 24px 24px; }
-.lp-hero-card-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.18); flex-wrap: wrap; }
-.lp-hero-logo { padding: 36px; display: flex; align-items: center; justify-content: center; }
-.lp-hero-logo img { width: min(260px, 70vw); height: auto; }
 @keyframes lp-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 .lp-hero-copy { animation: lp-rise 0.8s ease both; }
 .lp-scroll { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -432,7 +437,7 @@ const LANDING_CSS = `
 @keyframes lp-bob { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 6px); } }
 
 /* Sections */
-.lp-section { padding: clamp(3.5rem,7vw,6rem) clamp(1.25rem,5vw,4rem); }
+.lp-section { padding: clamp(3.5rem,7vw,6rem) clamp(1.25rem,5vw,4rem); scroll-margin-top: 80px; }
 .lp-wrap { max-width: 1150px; margin: 0 auto; }
 .lp-wrap-wide { max-width: 1280px; margin: 0 auto; }
 .lp-wrap-narrow { max-width: 760px; margin: 0 auto; }
@@ -466,7 +471,7 @@ const LANDING_CSS = `
 .lp-step { position: relative; }
 .lp-step .lp-h3 { margin-bottom: 8px; }
 .lp-step-num { position: absolute; top: 18px; right: 22px; font-size: 44px; font-weight: 900; letter-spacing: -0.04em; color: rgba(255,255,255,0.14); }
-.lp-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 24px; align-items: stretch; }
+.lp-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 24px; align-items: start; }
 .lp-why { display: flex; flex-direction: column; gap: 22px; margin-top: 26px; }
 .lp-why-row { display: flex; gap: 16px; }
 .lp-checks { display: flex; flex-direction: column; gap: 14px; margin-top: 24px; }
@@ -508,8 +513,6 @@ const LANDING_CSS = `
 .lp a:focus-visible, .lp button:focus-visible { outline: 3px solid #F2B67E; outline-offset: 3px; }
 
 @media (max-width: 900px) {
-  .lp-hero-inner { grid-template-columns: 1fr; }
-  .lp-hero-card { max-width: 520px; }
   .lp-hero { padding-top: 100px; }
 }
 @media (max-width: 640px) {
@@ -517,7 +520,8 @@ const LANDING_CSS = `
   .lp-brand-logo { width: 34px; height: 34px; }
   .lp-brand-text { font-size: 14px; }
   .lp-nav-links { gap: 10px; }
-  .lp-hero-card-img { height: 180px; }
+  .lp-next { grid-template-columns: 1fr; }
+  .lp-next-img { min-height: 210px; }
   .lp-scroll { display: none; }
   .lp-step-num { font-size: 34px; }
 }
@@ -532,7 +536,7 @@ const LANDING_CSS = `
   .lp-glass { background: rgba(40,18,4,0.86); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-slide, .lp-orb, .lp-scroll, .lp-hero-copy, .lp-hero-card { animation: none !important; }
+  .lp-slide, .lp-orb, .lp-scroll, .lp-hero-copy { animation: none !important; }
   .lp-slide { transition: none; }
 }
 `;
