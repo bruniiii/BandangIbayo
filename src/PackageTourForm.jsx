@@ -5,7 +5,7 @@ import { shrinkImage } from './imageCompress';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from './notifications';
-import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf } from './tourUtils';
+import { formatPeso, formatPickupTime, todayManila, rateChecks, RATE_HINT, EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf } from './tourUtils';
 import { ListField, ItineraryField } from './ui/TourListFields';
 import { parseItinerary, serializeItinerary, itineraryDays } from './itinerary';
 import { moneyField, blockSignKeys } from './moneyInput';
@@ -217,9 +217,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['title', textError(form.title, 'Tour title', { min: 3, max: 120 })],
       ['destination', textError(form.destination, 'Destination', { min: 2, max: 120 })],
       ...(isOpenRequest ? rateChecks(form.regular_rate === '' ? NaN : regular, form.price === '' ? NaN : price) : [
-        ['price', !(price > 0) ? 'Please enter the package price.' : price > 1000000 ? 'That price looks too high. Please check for an extra zero.'
+        ['price', !(price > 0) ? 'Please enter the package price.'
+          : price < EXCLUSIVE_RATE_MIN ? `The Package Price must be at least ${formatPeso(EXCLUSIVE_RATE_MIN)}.`
+            : price > EXCLUSIVE_RATE_MAX ? `The Package Price can be at most ${formatPeso(EXCLUSIVE_RATE_MAX)}.`
           : request.payment_status === 'Paid' && price < (Number(request.amount_paid) || 0) ? `The package price can't be less than the ${formatPeso(request.amount_paid)} the joiner already paid.` : ''],
-        ['regular_rate', !(regular > 0) ? 'Please enter the Regular Rate.' : regular > 1000000 ? 'That rate looks too high. Please check for an extra zero.' : ''],
+        ['regular_rate', !(regular > 0) ? 'Please enter the Regular Rate.'
+          : regular < EXCLUSIVE_RATE_MIN ? `The Regular Rate must be at least ${formatPeso(EXCLUSIVE_RATE_MIN)}.`
+            : regular > EXCLUSIVE_RATE_MAX ? `The Regular Rate can be at most ${formatPeso(EXCLUSIVE_RATE_MAX)}.` : ''],
       ]),
       ['van_rent', !(van >= 15000) ? 'Van Rent must be at least ₱15,000.' : van > 30000 ? 'Van Rent can be at most ₱30,000.' : ''],
       ['tour_guide', !(guide >= 1300) ? 'Tour Guide must be at least ₱1,300.' : guide > 2000 ? 'Tour Guide can be at most ₱2,000.' : ''],
@@ -414,7 +418,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <Field label="Destination" name="destination" data-allow="place" value={form.destination} onChange={set('destination')} maxLength={120} />
-              <Field label="Regular Rate (₱)" name="regular_rate" {...money('regular_rate')} placeholder={isOpenRequest ? '1,300.00 – 7,500.00' : 'e.g. 45,000.00'} />
+              <Field label="Regular Rate (₱)" name="regular_rate" {...money('regular_rate')} placeholder={isOpenRequest ? '1,300.00 – 7,500.00' : '3,000.00 – 100,000.00'} />
             </div>
             {isOpenRequest ? (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
@@ -423,9 +427,9 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               </div>
             ) : (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
-                <Field label="Package Price (₱, whole group)" name="price" {...money('price')} placeholder="e.g. 55,000.00" />
+                <Field label="Package Price (₱, whole group)" name="price" {...money('price')} placeholder="3,000.00 – 100,000.00" />
                 <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
-                  The Package Price is what the joiner pays (50% downpayment first). The Regular Rate is for admins only.
+                  The Package Price is what the joiner pays (50% downpayment first). The Regular Rate is for admins only. Both ₱3,000.00 – ₱100,000.00.
                 </p>
               </div>
             )}

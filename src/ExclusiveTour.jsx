@@ -39,7 +39,7 @@ import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 // ─────────────────────────────────────────────
 
 // The least and most a joiner can enter as their exclusive tour budget.
-const MIN_EXCLUSIVE_BUDGET = 30000;
+const MIN_EXCLUSIVE_BUDGET = 3000;
 const MAX_EXCLUSIVE_BUDGET = 100000;
 // One request (Exclusive or Request a Tour, together) every 2 weeks.
 const REQUEST_GAP_DAYS = 14;
@@ -559,7 +559,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
                 if (Number(v) > MAX_EXCLUSIVE_BUDGET) return;
                 setForm((prev) => ({ ...prev, budget: v }));
               })}
-              placeholder="30,000.00 to 100,000.00"
+              placeholder="3,000.00 to 100,000.00"
               required
             />
           )}

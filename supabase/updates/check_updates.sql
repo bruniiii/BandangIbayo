@@ -112,8 +112,8 @@ from (values
      and exists (select 1 from pg_policies where tablename = 'tours' and policyname = 'tours_hide_exclusive')),
   ('20261214 one tour per day counts approved exclusive tours',
      exists (select 1 from pg_trigger where tgname = 'exclusive_requests_one_per_day')),
-  ('20261215 exclusive tours have no rate limits',
-     coalesce((select pg_get_functiondef(p.oid) like '%is_exclusive%'
+  ('20261215 exclusive tours: budget and rates ₱3,000 – ₱100,000',
+     coalesce((select pg_get_functiondef(p.oid) like '%new.budget < 3000%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                where n.nspname = 'public' and p.proname = 'tours_check_price_limit' limit 1), false))
+                where n.nspname = 'public' and p.proname = 'exclusive_requests_flow_rules' limit 1), false))
 ) as u(update_file, installed);

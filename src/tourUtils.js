@@ -289,6 +289,11 @@ export const rateChecks = (regular, joiner, { regularField = 'regular_rate', joi
           : Number.isFinite(regular) && joiner < regular + JOINER_RATE_MARGIN ? `The Joiner Rate must be at least ₱${JOINER_RATE_MARGIN} more than the Regular Rate (at least ${formatPeso(regular + JOINER_RATE_MARGIN)}).` : ''],
 ];
 
+// Exclusive tours (priced for the whole group): budget, Package Price and
+// Regular Rate. Keep in sync with 20261215000000_exclusive_rates_3k_100k.sql.
+export const EXCLUSIVE_RATE_MIN = 3000;
+export const EXCLUSIVE_RATE_MAX = 100000;
+
 // Tours (and requested trips) last at most 1 week.
 export const MAX_TOUR_DAYS = 7;
 
