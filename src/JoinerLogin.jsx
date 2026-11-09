@@ -533,7 +533,7 @@ const LoginBrandPanel = () => (
         Adventures across the Philippines, by land.
       </h2>
       <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#F2E4D0', maxWidth: 400 }}>
-        Book budget-friendly land tours and road trips, pay online, chat with your group and follow the van live on tour day.
+        Book land tours and road trips, pay online, chat with your group and follow the van live on tour day.
       </p>
     </div>
     <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
