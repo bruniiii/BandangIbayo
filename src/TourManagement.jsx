@@ -21,6 +21,8 @@ import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
 import { ListField, ItineraryField } from './ui/TourListFields';
 import { parseItinerary, serializeItinerary, itineraryDays } from './itinerary';
+import { TourTemplatePicker } from './TourTemplates';
+import { saveTourTemplate } from './saveTourTemplate';
 import { tripDays } from './dateRange';
 import { TourCard } from './TourCard';
 import { TourViewModal } from './TourViewModal';
@@ -55,8 +57,10 @@ const TourManagement = ({ openTourId = null }) => {
   // dates of a trip share the title, destination, price and details, and
   // are edited together here.
   const [editingTour, setEditingTour]           = useState(null);
-  const [copyFrom, setCopyFrom]                 = useState(null); // Duplicate: a new tour filled in from this one
-  const formTour = editingTour || copyFrom;
+  const [templateFrom, setTemplateFrom]         = useState(null); // a new tour filled in from a template's ticked items
+  const [pickTemplate, setPickTemplate]         = useState(false); // the Create a tour (templates) window
+  const [savingTemplate, setSavingTemplate]     = useState(false);
+  const formTour = editingTour || templateFrom;
   // The form's dates: { key, id (saved dates only), start_date, end_date, booked }.
   const [dateRows, setDateRows]                 = useState([]);
   const [joinerListTour, setJoinerListTour]     = useState(null);
@@ -161,17 +165,18 @@ const TourManagement = ({ openTourId = null }) => {
   ];
   const blankExpense = () => ({ key: `e-${Math.random()}`, name: '', amount: '' });
   // Opens the form for a new trip, or for a trip's details and dates (withNewDate adds an empty date to fill in).
-  // copy: a new tour filled in from this one (Duplicate); only the dates are left to pick.
-  const openTourForm = (trip = null, { withNewDate = false, copy = false } = {}) => {
-    if (copy && trip) {
-      const source = { ...trip, id: undefined, dates: [], is_archived: false, title: `${trip.title} (copy)` };
+  // fromTemplate: a new tour filled in from a template's ticked items; only the dates are left to pick.
+  const openTourForm = (trip = null, { withNewDate = false, fromTemplate = false } = {}) => {
+    const copy = fromTemplate && !!trip;
+    if (copy) {
+      trip = { ...trip, id: undefined, dates: [], is_archived: false };
       setEditingTour(null);
-      setCopyFrom(source);
-      trip = source;
+      setTemplateFrom(trip);
     } else {
       setEditingTour(trip);
-      setCopyFrom(null);
+      setTemplateFrom(null);
     }
+    setPickTemplate(false);
     const saved = (trip?.dates || []).map((d) => ({
       key: d.id, id: d.id, start_date: d.start_date, end_date: d.end_date, booked: d.current_booked || 0, original: d,
       sale: !!(d.sale_starts && d.sale_ends), sale_starts: d.sale_starts || '', sale_ends: d.sale_ends || '',
@@ -199,6 +204,42 @@ const TourManagement = ({ openTourId = null }) => {
   const longestTrip = Math.max(0, ...dateRows.filter((r) => r.start_date && r.end_date && r.end_date >= r.start_date).map((r) => tripDays(r.start_date, r.end_date)));
   const itineraryStart = firstDate?.start_date || '';
   const itineraryEnd = itineraryStart && longestTrip ? addDaysYmd(itineraryStart, longestTrip - 1) : '';
+
+  // Save as Template: keeps this form's details (not the dates) as a pre-made tour,
+  // e.g. "Baguio", to tick items from next time.
+  const saveAsTemplate = async () => {
+    const fd = new FormData(tourFormRef.current);
+    setSavingTemplate(true);
+    try {
+      let gallery = [...tempGallery];
+      if (newFiles.length > 0) {
+        gallery = [...gallery, ...(await uploadImages(newFiles))];
+        setTempGallery(gallery);
+        setNewFiles([]);
+      }
+      const num = (v) => { const n = moneyNumber(v); return Number.isFinite(n) && n > 0 ? n : ''; };
+      const data = {
+        title: String(fd.get('title') || '').trim(), destination: String(fd.get('destination') || '').trim(),
+        description: fd.get('description') || '', difficulty: fd.get('difficulty') || '', important_note: fd.get('important_note') || '',
+        price: num(fd.get('price')), regular_rate: num(fd.get('regular_rate')), group_size: Number(fd.get('group_size')) || '',
+        image_urls: gallery,
+        pickup_points: pickupPicked.map((name) => ({ location_name: name })),
+        route: formRoute || null, departure_time: formDeparture || null,
+        accommodation_options: cleanAccommodation(formAccommodation),
+        inclusions: formLists.inclusions.join('\n'), exclusions: formLists.exclusions.join('\n'), things_to_bring: formLists.things_to_bring.join('\n'),
+        itinerary: serializeItinerary(formItinerary),
+        expenses: {
+          van_rent: num(fd.get('van_rent')), tour_guide: num(fd.get('tour_guide')),
+          others: otherExpenses.filter((o) => o.name.trim()).map((o) => ({ name: o.name.trim(), amount: Number(o.amount) || 0 })),
+        },
+      };
+      await saveTourTemplate(data, data.destination || data.title);
+    } catch (err) {
+      reportError("Couldn't save the template", err);
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
 
   const getMinStartDate = () => {
     const date = new Date();
@@ -581,7 +622,7 @@ const TourManagement = ({ openTourId = null }) => {
       : editingTour?.is_archived ? 'It\'s still in Tour Archive. Click Restore on it to open it for booking again.'
         : added.length ? `${added.length} new date${added.length > 1 ? 's are' : ' is'} open for booking.` : '');
     setEditingTour(null);
-    setCopyFrom(null);
+    setTemplateFrom(null);
     setShowModal(false);
     fetchTours();
     } finally {
@@ -751,7 +792,7 @@ const TourManagement = ({ openTourId = null }) => {
           }}><MapPin size={15} /> Pickup Spots</button>
         )}
         <button
-          onClick={() => openTourForm()}
+          onClick={() => setPickTemplate(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
             background: '#B4511E', color: '#FDF6EE',
@@ -830,7 +871,6 @@ const TourManagement = ({ openTourId = null }) => {
                 onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates, tour })}
                 onView={() => setViewTour(tour)}
                 onEdit={() => openTourForm(tour)}
-                onDuplicate={() => openTourForm(tour, { copy: true })}
                 onJoiners={(date) => setJoinerListTour(date)}
                 onWeather={adminMe.isMain && currentTab === 'active' ? (date) => setWeatherDate({ ...date, title: tour.title }) : null}
                 formatDateRange={formatDateRange}
@@ -852,7 +892,7 @@ const TourManagement = ({ openTourId = null }) => {
                   icon={MapIcon}
                   title="No active tours yet"
                   message="Create your first tour package so joiners can start booking."
-                  action={{ label: 'Create a Tour', onClick: () => openTourForm() }}
+                  action={{ label: 'Create a Tour', onClick: () => setPickTemplate(true) }}
                 />
               )}
             </div>
@@ -862,6 +902,14 @@ const TourManagement = ({ openTourId = null }) => {
       </div>
  
       {/* ── Create / Edit Modal ── */}
+      {pickTemplate && (
+        <TourTemplatePicker
+          onBlank={() => openTourForm()}
+          onUse={(trip) => openTourForm(trip, { fromTemplate: true })}
+          onClose={() => setPickTemplate(false)}
+        />
+      )}
+
       {showModal && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
@@ -902,7 +950,7 @@ const TourManagement = ({ openTourId = null }) => {
                 fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em',
                 textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 28px',
               }}>
-                {editingTour ? 'Edit Tour Posting' : copyFrom ? 'Duplicate Tour' : 'Create New Tour'}
+                {editingTour ? 'Edit Tour Posting' : 'Create New Tour'}
               </h2>
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -1184,6 +1232,17 @@ const TourManagement = ({ openTourId = null }) => {
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
                 color: '#1A0A00',
               }}>Cancel</button>
+              <button type="button" onClick={saveAsTemplate} disabled={savingTemplate || uploading || savingTour}
+                title="Keep these details (not the dates) as a pre-made tour for this place, to tick from next time."
+                style={{
+                  flex: 1.4, padding: '13px 8px',
+                  background: 'transparent', border: '1px solid rgba(180,81,30,0.45)', borderRadius: 999,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}>
+                {savingTemplate ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Save as Template'}
+              </button>
               <button type="submit" disabled={uploading || savingTour || !tourFilled} title={tourFilled ? undefined : 'Fill in every field first (photo, details, dates, pickup points, accommodation, lists and itinerary). Only First pickup at is optional.'} style={{
                 flex: 2, padding: '13px 0',
                 background: '#B4511E', border: 'none', borderRadius: 999,

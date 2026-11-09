@@ -24,7 +24,7 @@ export const ADMIN_STEPS = [
   { title: 'Welcome to the admin dashboard', body: "A quick tour of each page and what it's for. You can skip it any time." },
   { target: 'Overview', title: 'Overview', body: "Today's numbers, what needs attention in each module, and a Download PDF of the overview." },
   { target: 'Feed', title: 'Feed', body: 'Post announcements, and approve or reject joiners\' posts.' },
-  { target: 'Tour Management', title: 'Tour Management', body: 'Create and edit tours and their dates, pickup points, rates, expenses and itinerary. The Weather button postpones or cancels a date.' },
+  { target: 'Tour Management', title: 'Tour Management', body: 'Create tours from a pre-made template (tick what you need) or from scratch, and edit their dates, pickup points, rates, expenses and itinerary. The Weather button postpones or cancels a date.' },
   { target: 'Booking Management', title: 'Booking Management', body: 'Every booking and payment. Confirming a payment by hand needs your password. Refunds have their own tab.' },
   { target: 'Joiner Accounts', title: 'Joiner Accounts', body: 'See joiners, message them, remove an account (with a reason) or a photo that breaks the rules.' },
   { target: 'Private Tours', title: 'Private Tours', body: 'Approve or reject private group trips, track the 24-hour downpayment and send the package.' },
