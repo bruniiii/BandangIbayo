@@ -528,7 +528,7 @@ const LoginBrandPanel = () => (
       <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '-0.01em' }}>Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span></span>
     </div>
     <div>
-      <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Your budget travel partner</p>
+      <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Your travel partner</p>
       <h2 style={{ margin: '0 0 14px', fontSize: 30, lineHeight: 1.15, fontWeight: 900, letterSpacing: '-0.02em' }}>
         Adventures across the Philippines, by land.
       </h2>
