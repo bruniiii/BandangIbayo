@@ -131,5 +131,6 @@ from (values
      to_regprocedure('public.run_maintenance(text)') is not null
      and to_regclass('public.admin_activity') is not null
      and exists (select 1 from pg_policies where tablename = 'app_settings' and policyname = 'app_settings_admin_quick_replies_insert')),
-  ('20261220 tour templates (pre-made tours)', to_regclass('public.tour_templates') is not null)
+  ('20261220 tour templates (pre-made tours)', to_regclass('public.tour_templates') is not null),
+  ('20261221 system maintenance (maintenance mode, data checks)', to_regprocedure('public.data_integrity()') is not null)
 ) as u(update_file, installed);

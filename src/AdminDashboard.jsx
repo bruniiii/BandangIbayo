@@ -969,7 +969,7 @@ const AdminDashboard = () => {
           )}
           {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
           {activeTab === 'Admin Settings' && <AdminSettings />}
-          {activeTab === 'System Maintenance' && <Suspense fallback={<SkeletonRows count={4} label="Loading" />}><SystemMaintenance /></Suspense>}
+          {activeTab === 'System Maintenance' && <Suspense fallback={<SkeletonRows count={4} label="Loading" />}><SystemMaintenance onNavigate={(page, id) => (id != null ? openFocused(page, id) : handleNavClick(page))} /></Suspense>}
           
 
           {/* FALLBACK COMING SOON SECTION */}
@@ -1042,7 +1042,7 @@ const PAGE_INFO = {
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
-  'System Maintenance':  { icon: Wrench,          title: 'System Maintenance',  subtitle: 'Keep the data clean and up to date, download backups, see who changed what' },
+  'System Maintenance':  { icon: Wrench,          title: 'System Maintenance',  subtitle: 'Monitor the system, keep the data correct, back it up, and control Maintenance Mode' },
   'Admin Settings':      { icon: ShieldCheck,     title: 'Admin Settings',      subtitle: 'Add, archive or restore the people who can use the admin dashboard' },
 };
 

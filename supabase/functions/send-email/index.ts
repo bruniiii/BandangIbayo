@@ -159,7 +159,15 @@ function buildEmail(opts: {
 
 
 // ───────────── Reminder mode ─────────────
+// System Settings → Email reminders: each kind can be switched off by the
+// main admin (app_settings "email_settings"; missing = on).
+async function emailOn(kind: "day_before" | "balance" | "monthly_summary") {
+  const { data } = await supabase.from("app_settings").select("value").eq("key", "email_settings").maybeSingle();
+  return (data?.value as Record<string, unknown> | undefined)?.[kind] !== false;
+}
+
 async function runReminders(date: string, dryRun: boolean) {
+  if (!(await emailOn("day_before"))) return { skipped: "Day-before reminders are switched off in System Settings." };
   // Confirmed (payment verified), not cancelled/rejected, not yet reminded, tour starts on `date`
   const { data: bookings, error } = await supabase
     .from("bookings")
@@ -415,6 +423,7 @@ async function buildNormalEmail(payload: any, callerId: string | null, trustedSe
 // Downpayment bookings (downpayment confirmed, balance not yet settled) whose
 // tour starts in 2–3 days. Each booking is reminded once (balance_reminder_sent_at).
 async function runBalanceReminders(dryRun: boolean) {
+  if (!(await emailOn("balance"))) return { skipped: "Balance reminders are switched off in System Settings." };
   const from = manilaDate(2), to = manilaDate(3);
   const { data: bookings, error } = await supabase
     .from("bookings")
@@ -629,6 +638,7 @@ async function runTripEmails() {
 // Last month's sales, bookings, refunds and balances still owed, once a month
 // to each main admin ('monthly-summary' in email_log, so it goes out once).
 async function runMonthlySummary() {
+  if (!(await emailOn("monthly_summary"))) return { skipped: "The monthly summary email is switched off in System Settings." };
   const now = new Date(Date.now() + 8 * 3600 * 1000);
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
   const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
