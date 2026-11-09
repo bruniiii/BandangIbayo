@@ -133,9 +133,9 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
       .eq('id', review.id);
     if (error) { toast.error("Couldn't save your reply", error.message); return false; }
     setReviews(prev => prev.map(r => (r.id === review.id
-      ? { ...r, admin_reply: reply || null, admin_reply_at: reply ? new Date().toISOString() : null }
+      ? { ...r, admin_reply: reply, admin_reply_at: r.admin_reply_at || new Date().toISOString(), admin_reply_edited_at: r.admin_reply ? new Date().toISOString() : null }
       : r)));
-    toast.success(reply ? 'Reply posted' : 'Reply removed');
+    toast.success(review.admin_reply ? 'Reply updated' : 'Reply posted');
     return true;
   };
 
@@ -604,7 +604,7 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    if (!text.trim() && !review.admin_reply) { toast.error('Empty reply', 'Please write your reply first.'); return; }
+    if (!text.trim()) { toast.error('Empty reply', review.admin_reply ? 'A reply can be edited but not removed.' : 'Please write your reply first.'); return; }
     if (text.trim() === (review.admin_reply || '').trim()) { setEditing(false); return; }
     setSaving(true);
     const ok = await onSave(text);
@@ -633,13 +633,13 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
           }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={save} disabled={saving || (!text.trim() && !review.admin_reply)} style={{
+          <button type="button" onClick={save} disabled={saving || !text.trim()} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, background: '#B4511E', color: '#FDF6EE', border: 'none',
             borderRadius: 999, padding: '8px 16px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
-            cursor: saving || (!text.trim() && !review.admin_reply) ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: !text.trim() && !review.admin_reply ? 0.5 : 1,
+            cursor: saving || !text.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
           }}>
             {saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
-            {review.admin_reply && !text.trim() ? 'Remove Reply' : 'Post Reply'}
+            {review.admin_reply ? 'Save Changes' : 'Post Reply'}
           </button>
           <button type="button" onClick={() => setEditing(false)} disabled={saving} style={{
             background: 'none', border: 'none', color: '#7A3A18', fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
@@ -659,6 +659,7 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
           <p style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <BrandAvatar size={22} /> Reply from Bandang IBAYO
             {review.admin_reply_at && <span style={{ fontWeight: 700, color: '#7A3A18' }}>· {formatDate(review.admin_reply_at)}</span>}
+            {review.admin_reply_edited_at && <span style={{ fontWeight: 800, color: '#7A3A18', fontStyle: 'italic' }} title={`Edited ${formatDate(review.admin_reply_edited_at)}`}>· Edited</span>}
           </p>
           <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>
             {review.admin_reply}

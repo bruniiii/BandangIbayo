@@ -51,7 +51,7 @@ export const cancelCheckout = ({ bookingId }) => callPayments('cancel-checkout',
 export const payHeldBooking = ({ bookingId, paymentType, companions, accommodation = null }) =>
   withPaymentPhone('pay-held', { bookingId, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
 
-// Exclusive tours: the 50% downpayment, worked out on the server from the
+// Private tours: the 50% downpayment, worked out on the server from the
 // package price the agency sent. Returns { checkoutUrl } or { alreadyPaid }.
 // accommodation: the joiner's choice from the package's options.
 export const startExclusiveDownpayment = ({ requestId, accommodation = null }) =>

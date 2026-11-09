@@ -111,5 +111,25 @@ from (values
      to_regprocedure('public.exclusive_make_booking(' || (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.exclusive_requests'::regclass and attname = 'id') || ',' || (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.tours'::regclass and attname = 'id') || ')') is not null
      and exists (select 1 from pg_policies where tablename = 'tours' and policyname = 'tours_hide_exclusive')),
   ('20261214 one tour per day counts approved exclusive tours',
-     exists (select 1 from pg_trigger where tgname = 'exclusive_requests_one_per_day'))
+     exists (select 1 from pg_trigger where tgname = 'exclusive_requests_one_per_day')),
+  ('20261215 exclusive tours: budget and rates ₱3,000 – ₱100,000',
+     coalesce((select pg_get_functiondef(p.oid) like '%new.budget < 3000%'
+                 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                where n.nspname = 'public' and p.proname = 'exclusive_requests_flow_rules' limit 1), false)),
+  ('20261216 panel feedback: payment password, removed accounts, driver ID, survey, comment edits',
+     to_regclass('public.admin_password_checks') is not null
+     and to_regclass('public.driver_documents') is not null
+     and to_regclass('public.system_feedback') is not null
+     and exists (select 1 from pg_trigger where tgname = 'bookings_payment_needs_password')
+     and exists (select 1 from pg_trigger where tgname = 'feed_comments_guard_edit')),
+  ('20261217 saved drivers and vans',
+     to_regclass('public.fleet_drivers') is not null and to_regclass('public.fleet_vans') is not null),
+  ('20261218 "Exclusive Tour" renamed "Private Tour" in messages',
+     not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+                  where n.nspname = 'public' and p.prosrc ~ '[Ee]xclusive (tour|Tour)')),
+  ('20261219 admin tools: maintenance, activity log, saved replies',
+     to_regprocedure('public.run_maintenance(text)') is not null
+     and to_regclass('public.admin_activity') is not null
+     and exists (select 1 from pg_policies where tablename = 'app_settings' and policyname = 'app_settings_admin_quick_replies_insert')),
+  ('20261220 tour templates (pre-made tours)', to_regclass('public.tour_templates') is not null)
 ) as u(update_file, installed);

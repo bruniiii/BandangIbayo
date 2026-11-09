@@ -22,6 +22,8 @@ import { SkeletonRows } from './ui/Skeleton';
 import TermsModal from './ui/TermsModal';
 import DateRangePicker from './ui/DateRangePicker';
 import MissingHint from './ui/MissingHint';
+import StatusFilter from './ui/StatusFilter';
+import { STATUS_COLORS } from './ui/statusColors';
 import ItineraryTimeline from './ui/ItineraryTimeline';
 import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
@@ -29,7 +31,7 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 
 // ─────────────────────────────────────────────
-// EXCLUSIVE TOURS and REQUEST A TOUR (joiner): two pages in the sidebar, the
+// PRIVATE TOURS and REQUEST A TOUR (joiner): two pages in the sidebar, the
 // same component with type="exclusive" or type="request".
 //  - "Your Submitted Requests" (at the top) lists that type's requests, with
 //    their status, the agency's tour package and payment.
@@ -38,16 +40,16 @@ import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 //    still open.
 // ─────────────────────────────────────────────
 
-// The least and most a joiner can enter as their exclusive tour budget.
-const MIN_EXCLUSIVE_BUDGET = 30000;
+// The least and most a joiner can enter as their private tour budget.
+const MIN_EXCLUSIVE_BUDGET = 3000;
 const MAX_EXCLUSIVE_BUDGET = 100000;
-// One request (Exclusive or Request a Tour, together) every 2 weeks.
+// One request (Private or Request a Tour, together) every 2 weeks.
 const REQUEST_GAP_DAYS = 14;
-// Share of the package price paid up front to confirm an exclusive tour
+// Share of the package price paid up front to confirm a private tour
 // (the payments function uses the same rate).
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
 // The most people a group can have: a requested tour fits one van (14);
-// an exclusive tour can fill up to 5 vans of 14 (70).
+// a private tour can fill up to 5 vans of 14 (70).
 const MAX_GROUP = VAN_SEATS * MAX_VANS;
 const maxGroupFor = (type) => (type === 'request' ? MAX_TOUR_SLOTS : MAX_GROUP);
 const vansFor = (size) => Math.ceil(size / VAN_SEATS);
@@ -110,7 +112,7 @@ const checkRequestFields = (formEl, form, type) => {
     ['groupSize', !Number.isInteger(size) || size < 1 ? 'Group size must be a whole number, at least 1.'
       : size > maxGroupFor(type) ? (type === 'request'
         ? `A requested tour takes at most ${MAX_TOUR_SLOTS} people (one van).`
-        : `Exclusive tours fit up to ${MAX_VANS} vans of ${VAN_SEATS} (${MAX_GROUP} people). For a bigger group, please message us.`) : ''],
+        : `Private tours fit up to ${MAX_VANS} vans of ${VAN_SEATS} (${MAX_GROUP} people). For a bigger group, please message us.`) : ''],
     ['preferredDate', !form.preferredDate ? 'Please choose your trip dates.' : form.preferredDate < earliestTripDate() ? 'Trips can be booked from 3 weeks ahead. Please pick a later date.' : ''],
     ['preferredDate', form.preferredDate && !form.preferredEndDate ? 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).' : ''],
     ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
@@ -212,7 +214,7 @@ const TripDatesFields = ({ form, setForm }) => (
   </>
 );
 
-// The name and number of each person in the group. Exclusive groups over 14
+// The name and number of each person in the group. Private groups over 14
 // are split into vans of 14 (person 15 onward rides the second van, and so on).
 const ParticipantsFields = ({ participants, onChange, showVans = false }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -309,7 +311,7 @@ const requestFields = (type, form) => {
     trip_days: days || null,
     notes: form.notes,
   };
-  // Everyone in the group: name and number (exclusive tours).
+  // Everyone in the group: name and number (private tours).
   // (Request a Tour: none yet; they're asked when the joiner pays for the held slots.)
   row.participants = type !== 'exclusive' ? [] : form.participants.map((p) => ({
     full_name: cleanName(p.full_name),
@@ -325,7 +327,7 @@ const requestFields = (type, form) => {
   return row;
 };
 
-// The joiner's own open request for the same destination (Exclusive Tours or
+// The joiner's own open request for the same destination (Private Tours or
 // Request a Tour), if there is one.
 const findDuplicate = async (userId, type, destination, exceptId = null) => {
   const { data } = await supabase
@@ -389,7 +391,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
       // Tell them right away which request they already have (either kind).
       if (blocked && lastReq && !toldRef.current) {
         toldRef.current = true;
-        const kind = lastReq.request_type === 'exclusive' ? 'Exclusive Tour' : 'Request a Tour';
+        const kind = lastReq.request_type === 'exclusive' ? 'Private Tour' : 'Request a Tour';
         const when = new Date(next).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' });
         toast.info(`You already have an active request (${kind})`,
           `${lastReq.destination || 'Your request'} · ${requestStatusLabel(lastReq)}. You can send one request every 2 weeks; your next one can be sent on ${when}.`);
@@ -402,7 +404,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
   const setGroupSize = (e) => {
     const value = e.target.value;
     // Rows only up to the most this kind of tour takes; a bigger number is flagged on submit.
-    // (Only exclusive tours list each person here; Request a Tour asks later, when paying.)
+    // (Only private tours list each person here; Request a Tour asks later, when paying.)
     setForm((prev) => ({ ...prev, groupSize: value, participants: type === 'exclusive' ? sizeParticipants(prev.participants, Math.min(Number(value), maxGroupFor(type)), prev) : [] }));
   };
   const setParticipant = (i, field, value) =>
@@ -420,7 +422,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
     const user = await currentUser();
     if (!user) {
-      toast.info(`Please log in to submit ${isExclusive ? 'an exclusive tour' : 'a tour'} request.`);
+      toast.info(`Please log in to submit ${isExclusive ? 'a private tour' : 'a tour'} request.`);
       setLoading(false);
       return;
     }
@@ -448,15 +450,15 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
       .select();
     if (error) {
       // A clear pop-up saying why, so the joiner (and the admin) can act on it.
-      toast.error(isExclusive ? "Your exclusive tour request wasn't sent" : "Your tour request wasn't sent", `${error.message} Please try again. If it keeps happening, message Bandang IBAYO.`);
+      toast.error(isExclusive ? "Your private tour request wasn't sent" : "Your tour request wasn't sent", `${error.message} Please try again. If it keeps happening, message Bandang IBAYO.`);
       setLoading(false);
       return;
     }
 
     notifyAdmins(isExclusive
       ? {
-        title: 'New Exclusive Tour Request',
-        message: `${form.fullName || 'A joiner'} submitted an exclusive tour request for ${form.destination} (${form.groupSize || '?'} pax).`,
+        title: 'New Private Tour Request',
+        message: `${form.fullName || 'A joiner'} submitted a private tour request for ${form.destination} (${form.groupSize || '?'} pax).`,
         type: 'exclusive_request',
         related_id: inserted?.[0]?.id || null,
       }
@@ -471,7 +473,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
     // The request shows under Your Submitted Requests right away, and the form starts over empty.
     setCleared(true);
     setForm(blankForm());
-    toast.success(isExclusive ? 'Exclusive tour request sent!' : 'Tour request sent!', "It's under Your Submitted Requests. You can edit it until Bandang IBAYO approves it.");
+    toast.success(isExclusive ? 'Private tour request sent!' : 'Tour request sent!', "It's under Your Submitted Requests. You can edit it until Bandang IBAYO approves it.");
     onSaved?.(inserted?.[0]);
   };
 
@@ -513,7 +515,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
     <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       {tooSoon && (
         <p role="status" style={{ margin: 0, background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#8C2F1C', lineHeight: 1.5 }}>
-          You can send one request every 2 weeks (Exclusive Tour or Request a Tour). Your next request can be sent on <strong>{nextText}</strong>. You can still edit a request that's For Approval below.
+          You can send one request every 2 weeks (Private Tour or Request a Tour). Your next request can be sent on <strong>{nextText}</strong>. You can still edit a request that's For Approval below.
         </p>
       )}
       {!editing && (
@@ -528,7 +530,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
             </p>
             <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6, margin: '4px 0 0' }}>
               {isExclusive
-                ? 'Exclusive tours reserve the entire vehicle and itinerary just for your group. No other joiners. The agency handles all coordination — accommodation, van, guide. You pay all-in.'
+                ? 'Private tours reserve the entire vehicle and itinerary just for your group. No other joiners. The agency handles all coordination — accommodation, van, guide. You pay all-in.'
                 : <>Don't see your dream destination listed? Request it here. Once it's approved and the tour is posted on Explore Tours, <strong>your group's slots are held for you for 2 days</strong> so you can pay first, and other joiners can book the rest.</>}
             </p>
           </div>
@@ -559,13 +561,13 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
                 if (Number(v) > MAX_EXCLUSIVE_BUDGET) return;
                 setForm((prev) => ({ ...prev, budget: v }));
               })}
-              placeholder="30,000.00 to 100,000.00"
+              placeholder="3,000.00 to 100,000.00"
               required
             />
           )}
           {isExclusive && has(form.budget) && Number(form.budget) < MIN_EXCLUSIVE_BUDGET && (
             <p role="status" style={{ gridColumn: '1 / -1', margin: '-6px 0 0', fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>
-              The budget for an exclusive tour must be at least {formatPeso(MIN_EXCLUSIVE_BUDGET)}.
+              The budget for a private tour must be at least {formatPeso(MIN_EXCLUSIVE_BUDGET)}.
             </p>
           )}
         </div>
@@ -593,7 +595,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
             <li>A <strong>downpayment</strong> is required to confirm the booking.</li>
             <li>Bookings are <strong>non-refundable</strong>. Cancellations are not allowed.</li>
             <li>All prices are all-in (van, accommodation, coordination). Entrance/environmental fees are separate.</li>
-            <li>An email and notification will be sent to confirm your exclusive booking.</li>
+            <li>An email and notification will be sent to confirm your private tour booking.</li>
           </ul>
         </div>
       )}
@@ -699,7 +701,7 @@ const EditRequestModal = ({ request, onClose, onSaved }) => (
         <X size={20} />
       </button>
       <h3 id="edit-request-title" style={{ fontSize: 18, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 4px' }}>
-        Edit {request.request_type === 'exclusive' ? 'Exclusive Tour' : 'Tour'} Request
+        Edit {request.request_type === 'exclusive' ? 'Private Tour' : 'Tour'} Request
       </h3>
       <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 20px' }}>
         You can change it until Bandang IBAYO approves it.
@@ -710,15 +712,7 @@ const EditRequestModal = ({ request, onClose, onSaved }) => (
 );
 
 // ─── REQUEST STATUS + ADMIN UPDATES (shown to the joiner on this page) ─────────
-const STATUS_STYLES = {
-  'For Approval': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Unpaid: { bg: 'rgba(26,10,0,0.08)', color: '#7A3A18' },
-  'Downpayment Paid': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
-  'Fully Paid': { bg: '#A8481A', color: '#FDF6EE' },
-};
+const STATUS_STYLES = STATUS_COLORS;
 
 const RequestStatusBadge = ({ status }) => {
   const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES['For Approval'];
@@ -766,7 +760,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false
   const isExclusive = request.request_type === 'exclusive';
   const pkg = request.package_details;
   const hasPackage = !!request.package_sent_at && pkg;
-  // Exclusive tours are confirmed with a 50% downpayment of the package price.
+  // Private tours are confirmed with a 50% downpayment of the package price.
   const packagePrice = Number(pkg?.price);
   const status = requestStatusLabel(request);
   const paymentLabel = requestPaymentLabel(request);
@@ -1012,7 +1006,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onEdit, alwaysOpen = false
   );
 };
 
-// "Pay 50% downpayment" for an approved exclusive tour, then "Pay remaining
+// "Pay 50% downpayment" for an approved private tour, then "Pay remaining
 // balance" once it's confirmed, then "Fully paid".
 const PayButton = ({ busy, onClick, disabled = false, children }) => (
   <button type="button" onClick={onClick} disabled={busy || disabled} style={{
@@ -1061,7 +1055,7 @@ const DownpaymentPanel = ({ request, price }) => {
         <CheckCircle2 size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 1 }} />
         <div style={{ flex: '1 1 220px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div>
-            <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Your exclusive tour is confirmed</p>
+            <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Your private tour is confirmed</p>
             <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.6 }}>
               Downpayment of {formatPeso(paidSoFar)} received{request.paid_at ? ` on ${formatShortDate(request.paid_at)}` : ''}. We're now preparing your tour package (itinerary, inclusions and the final price). You'll be notified once it's ready, and you can pay the balance then.
             </p>
@@ -1082,7 +1076,7 @@ const DownpaymentPanel = ({ request, price }) => {
         <div style={{ flex: '1 1 220px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div>
             <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
-              {fullyPaid ? 'Your exclusive tour is fully paid' : 'Your exclusive tour is confirmed'}
+              {fullyPaid ? 'Your private tour is fully paid' : 'Your private tour is confirmed'}
             </p>
             <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.6 }}>
               {fullyPaid
@@ -1100,7 +1094,7 @@ const DownpaymentPanel = ({ request, price }) => {
             )}
             {!fullyPaid && (
               <PayButton busy={busy} disabled={needsAccommodation && !accommodation}
-                onClick={pay(startExclusiveBalance, 'Balance already paid', 'Your exclusive tour is fully paid.', { accommodation: accommodation || null })}>
+                onClick={pay(startExclusiveBalance, 'Balance already paid', 'Your private tour is fully paid.', { accommodation: accommodation || null })}>
                 Pay {formatPeso(balance)} Balance
               </PayButton>
             )}
@@ -1134,12 +1128,12 @@ const DownpaymentPanel = ({ request, price }) => {
         <div>
           <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>Approved! Pay to continue</p>
           <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.6 }}>
-            Pay the <strong>{formatPeso(downpayment)} downpayment</strong> (50% of your {formatPeso(request.budget)} budget) <strong>by {dueText}</strong> to confirm your exclusive tour.
+            Pay the <strong>{formatPeso(downpayment)} downpayment</strong> (50% of your {formatPeso(request.budget)} budget) <strong>by {dueText}</strong> to confirm your private tour.
             Then we'll prepare your tour package; the balance is the package price minus this downpayment. Pay online with GCash, Maya or card. Payments are non-refundable.
           </p>
           <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: '6px 0 0' }}>Not paid in 24 hours = the request won't continue.</p>
         </div>
-        <PayButton busy={busy} onClick={pay(startExclusiveDownpayment, 'Downpayment already paid', 'Your exclusive tour is confirmed.')}>
+        <PayButton busy={busy} onClick={pay(startExclusiveDownpayment, 'Downpayment already paid', 'Your private tour is confirmed.')}>
           Pay {formatPeso(downpayment)} Downpayment
         </PayButton>
       </div>
@@ -1151,7 +1145,7 @@ const DownpaymentPanel = ({ request, price }) => {
       <div>
         <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>Confirm your tour</p>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.6 }}>
-          {choices.length > 0 ? 'Choose your accommodation, then pay' : 'Pay'} a <strong>50% downpayment of {formatPeso(downpayment)}</strong> (of the {formatPeso(price)} package) to lock in your exclusive tour.
+          {choices.length > 0 ? 'Choose your accommodation, then pay' : 'Pay'} a <strong>50% downpayment of {formatPeso(downpayment)}</strong> (of the {formatPeso(price)} package) to lock in your private tour.
           Pay online with GCash, Maya or card. Payments are non-refundable.
         </p>
       </div>
@@ -1159,7 +1153,7 @@ const DownpaymentPanel = ({ request, price }) => {
       <PayButton
         busy={busy}
         disabled={choices.length > 0 && !accommodation}
-        onClick={pay(startExclusiveDownpayment, 'Downpayment already paid', 'Your exclusive tour is confirmed.', { accommodation: accommodation || null })}
+        onClick={pay(startExclusiveDownpayment, 'Downpayment already paid', 'Your private tour is confirmed.', { accommodation: accommodation || null })}
       >
         Pay {formatPeso(downpayment)} Downpayment
       </PayButton>
@@ -1236,34 +1230,15 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = nu
           Your Submitted Requests
         </h3>
         <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
-          {type === 'exclusive' ? 'Track your exclusive tour requests' : 'Track your tour requests'}, plus any updates from our team. You can edit a request until it's approved.
+          {type === 'exclusive' ? 'Track your private tour requests' : 'Track your tour requests'}, plus any updates from our team. You can edit a request until it's approved.
         </p>
       </div>
-      <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected'].map((st) => {
-          const on = statusFilter === st;
-          const count = st === 'All' ? requests.length : requests.filter((q) => requestStatusLabel(q) === st || requestPaymentLabel(q) === st).length;
-          const tone = STATUS_STYLES[st];
-          return (
-            <button
-              key={st} type="button" role="tab" aria-selected={on} onClick={() => setStatusFilter(st)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
-                fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#E8A265' : '#7A3A18',
-                border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.2)'}`,
-                boxShadow: on ? '0 6px 16px rgba(26,10,0,0.18)' : 'none', transition: 'background 0.15s, color 0.15s',
-              }}
-            >
-              {st}
-              <span style={{
-                minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10.5, letterSpacing: 0, background: on ? 'rgba(232,162,101,0.2)' : (tone?.bg || 'rgba(180,81,30,0.1)'), color: on ? '#E8A265' : (tone?.color || '#A8481A'),
-              }}>{count}</span>
-            </button>
-          );
-        })}
-      </div>
+      <StatusFilter
+        statuses={['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected']}
+        value={statusFilter}
+        onChange={setStatusFilter}
+        count={(st) => (st === 'All' ? requests.length : requests.filter((q) => requestStatusLabel(q) === st || requestPaymentLabel(q) === st).length)}
+      />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {(() => {
           const shown = statusFilter === 'All' ? requests : requests.filter((q) => requestStatusLabel(q) === statusFilter || requestPaymentLabel(q) === statusFilter);
@@ -1287,7 +1262,7 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = nu
 };
 
 // ─── MAIN COMPONENT ─────────────────────────────────────────────────────────────
-// type: 'exclusive' (Exclusive Tours) or 'request' (Request a Tour).
+// type: 'exclusive' (Private Tours) or 'request' (Request a Tour).
 // `start` comes from the joiner calendar: { form, date: 'YYYY-MM-DD' }.
 // openRequestId (from a notification): opens and scrolls to that request.
 const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, openRequestId = null }) => {
@@ -1298,7 +1273,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, openRequestId
   const [prevStart, setPrevStart] = useState(start);
   if (start !== prevStart) { setPrevStart(start); if (start?.date) setShowForm(true); }
   const isExclusive = type === 'exclusive';
-  const newLabel = isExclusive ? 'New Exclusive Tour Request' : 'Request a Tour';
+  const newLabel = isExclusive ? 'New Private Tour Request' : 'Request a Tour';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, textAlign: 'left' }}>
       {/* Your Submitted Requests (at the top): status, admin updates, tour package details */}

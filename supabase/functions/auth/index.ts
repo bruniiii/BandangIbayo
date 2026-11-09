@@ -17,7 +17,8 @@
 //   - "change-password"  { currentPassword, newPassword }   logged-in user; checks the
 //        current password (wrong ones count toward the lock) and the password rules
 //   - "password-changed"   logged-in user (after a reset link): clears their lock
-//   - "create-admin"  { first_name, last_name, email, password }   main admin only
+//   - "confirm-password"  { password }   admin: a one-time pass for confirming a payment
+//   - "create-admin"  { first_name, last_name, email, password, myPassword }   main admin only (myPassword: their own)
 //        (the main admin + at most 2 other admins; restoring follows the same limit)
 //        (Admin Settings): checks the details and emails a 6-digit code to the
 //        new admin; returns { challengeId, sentTo, expiresInMinutes }
@@ -182,6 +183,10 @@ async function assertNotArchived(userId: string, restore = false, requestRestore
       throw new HttpError(403, "Your request to be restored is waiting for the main admin's approval. You can log in once they approve it.", { adminRestoreRequested: true });
     }
     throw new HttpError(403, "This admin account was archived. Do you want to ask the main admin to restore it?", { archivedAdmin: true });
+  }
+  if (who?.archived_at && who.archive_reason === "removed") {
+    // Removed by an admin: only an admin can bring it back.
+    throw new HttpError(403, "This account was removed by Bandang IBAYO" + (who.removed_reason ? ` (${who.removed_reason})` : "") + ". Please message us if you think this is a mistake.", { removed: true });
   }
   if (who?.archived_at) {
     // The joiner decides: they're asked first, and only their "yes" brings the account back.
@@ -494,8 +499,40 @@ function adminDetails(p: any) {
   return { email, firstName, lastName };
 }
 
-async function createAdmin(user: { id: string }, p: any) {
+// An admin confirms a sensitive step with their own password (same lockout as
+// logging in: 3 wrong tries lock it for a while).
+async function assertOwnPassword(user: { id: string; email?: string }, password: unknown, what = "continue") {
+  const email = String(user.email ?? "").toLowerCase();
+  const pw = String(password ?? "");
+  if (!pw) throw new HttpError(400, `Enter your password to ${what}.`, { field: "myPassword" });
+  const state = await assertNotLocked(email);
+  const ok = await checkPassword(email, pw);
+  if (!ok) {
+    try { await recordFailure(email, state); } catch (err) {
+      if (err instanceof HttpError && err.status === 401) {
+        throw new HttpError(401, "Your password is incorrect. " + String(err.message).split(". ").slice(1).join(". "), { field: "myPassword" });
+      }
+      throw err;
+    }
+  }
+  await clearLock(email);
+}
+
+// An admin types their password before confirming a payment by hand: a
+// one-time pass (3 minutes) that admin_record_payment() in the database uses up.
+async function confirmPassword(user: { id: string; email?: string }, p: any) {
+  const { data: me } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  if (me?.role !== "admin") throw new HttpError(403, "Only admins can do this.");
+  await assertOwnPassword(user, p.password, "confirm this payment");
+  const { data, error } = await admin.from("admin_password_checks").insert({ admin_id: user.id }).select("id").single();
+  if (error) throw new Error(error.message);
+  return { token: data.id };
+}
+
+async function createAdmin(user: { id: string; email?: string }, p: any) {
   await assertMainAdmin(user.id);
+  // The main admin confirms with their own password before anyone is added.
+  await assertOwnPassword(user, p.myPassword, "add an admin");
   await assertAdminRoom();
   const { email, firstName, lastName } = adminDetails(p);
   const problems = passwordProblems(String(p.password ?? ""));
@@ -651,6 +688,7 @@ Deno.serve(async (req) => {
 
     switch (p.action) {
       case "change-password": return reply(await changePassword(userData.user, p));
+      case "confirm-password": return reply(await confirmPassword(userData.user, p));
       case "create-admin": return reply(await createAdmin(userData.user, p));
       case "create-admin-verify": return reply(await createAdminVerify(userData.user, p));
       case "restore-admin": return reply(await restoreAdminStart(userData.user, p));

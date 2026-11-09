@@ -24,7 +24,7 @@ const fullDateTime = (dateStr) =>
    NOTIFICATION BELL
    Drop this into any header (JoinerDashboard) to
    give joiners a live inbox for admin decisions —
-   e.g. their Exclusive Tour / Request-a-Tour status.
+   e.g. their Private Tour / Request-a-Tour status.
 ───────────────────────────────────────────── */
 const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) => {
   const [userId, setUserId] = useState(null);

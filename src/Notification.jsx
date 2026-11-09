@@ -46,7 +46,7 @@ const TYPE_META = {
   booking:            { Icon: CreditCard,     color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Booking' },
   payment:            { Icon: Wallet,         color: '#A8481A', bg: 'rgba(180,81,30,0.14)',  label: 'Payment' },
   cancellation:       { Icon: XCircle,        color: '#8C2F1C', bg: 'rgba(140,47,28,0.12)',  label: 'Cancellation' },
-  exclusive_request:  { Icon: Globe,          color: '#7A3A18', bg: 'rgba(122,58,24,0.12)',  label: 'Exclusive / Request' },
+  exclusive_request:  { Icon: Globe,          color: '#7A3A18', bg: 'rgba(122,58,24,0.12)',  label: 'Private / Request' },
   exclusive_package:  { Icon: Package,        color: '#A8481A', bg: 'rgba(180,81,30,0.14)',  label: 'Tour Package' },
   review:             { Icon: Star,           color: '#8C5216', bg: 'rgba(232,162,101,0.25)',label: 'Review' },
   account:            { Icon: Users,          color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Account' },

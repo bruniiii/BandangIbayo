@@ -50,7 +50,7 @@ const AdminSettings = () => {
   const [admins, setAdmins] = useState(null);
   const [archived, setArchived] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
-  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' });
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', myPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   usePopupError(error);
@@ -109,7 +109,7 @@ const AdminSettings = () => {
     toast.success('Admin added', `${result.data.name} can now log in. Share the password with them; they can change it from their name at the top right.`);
     setPending(null);
     setCode('');
-    setForm({ first_name: '', last_name: '', email: '', password: '' });
+    setForm({ first_name: '', last_name: '', email: '', password: '', myPassword: '' });
     setAdding(false);
     load();
   };
@@ -242,7 +242,7 @@ const AdminSettings = () => {
                     {me.isMain && <Crown size={12} />} {me.isMain ? 'Main Admin' : 'Admin'}
                   </span>
                 </div>
-                <p style={{ margin: '10px 0 0', fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.75)' }}>
+                <p style={{ margin: '10px 0 0', fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.9)' }}>
                   {needsName ? 'Your email shows until you add a name. ' : ''}Your name shows at the top right and on the receipts of payments you process.
                 </p>
               </>
@@ -356,7 +356,7 @@ const AdminSettings = () => {
                 <li key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 1.5rem', borderTop: '1px solid rgba(180,81,30,0.1)', flexWrap: 'wrap' }}>
                   <span aria-hidden="true" style={{
                     width: 42, height: 42, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: 'rgba(26,10,0,0.06)', color: 'rgba(122,58,24,0.8)', fontSize: 13, fontWeight: 900,
+                    background: 'rgba(26,10,0,0.06)', color: 'rgba(122,58,24,0.9)', fontSize: 13, fontWeight: 900,
                   }}>{initials(a.name)}</span>
                   <div style={{ flex: '1 1 220px', minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</p>
@@ -456,8 +456,13 @@ const AdminSettings = () => {
                   {form.password && <PasswordChecklist password={form.password} />}
                   <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>Share it with them privately. They can change it from their name at the top right.</p>
                 </div>
+                <div style={{ background: 'rgba(180,81,30,0.07)', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, padding: '10px 12px' }}>
+                  <label style={label} htmlFor="admin-my-password">Your Password (main admin)</label>
+                  <input id="admin-my-password" type="password" autoComplete="current-password" value={form.myPassword} onChange={set('myPassword')} style={input} />
+                  <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>For security, confirm it's you before adding an admin.</p>
+                </div>
                 {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
-                {(() => { const empty = !form.first_name.trim() || !form.last_name.trim() || !form.email.trim() || !form.password; return (<button type="submit" disabled={busy || empty} style={primaryBtn(busy || empty)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MailCheck size={14} />} Send Verification Code</button>); })()}
+                {(() => { const empty = !form.first_name.trim() || !form.last_name.trim() || !form.email.trim() || !form.password || !form.myPassword; return (<button type="submit" disabled={busy || empty} style={primaryBtn(busy || empty)}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <MailCheck size={14} />} Send Verification Code</button>); })()}
               </form>
             ) : (
               <form onSubmit={verifyCode} style={{ display: 'flex', flexDirection: 'column', gap: 14 }} noValidate>
@@ -489,7 +494,7 @@ const AdminSettings = () => {
 // ── Archive inactive joiners automatically ──
 // Saved in app_settings; the database archives joiners with no login for
 // this long every day (archive_inactive_joiners). Default: on, 2 years.
-const ARCHIVE_OPTIONS = [[180, '6 months'], [365, '1 year'], [548, '1½ years'], [730, '2 years'], [1095, '3 years'], [1825, '5 years']];
+const ARCHIVE_OPTIONS = [[30, '1 month'], [90, '3 months'], [180, '6 months'], [365, '1 year'], [548, '1½ years'], [730, '2 years'], [1095, '3 years'], [1825, '5 years']];
 
 const AutoArchiveSetting = () => {
   const [enabled, setEnabled] = useState(true);
@@ -527,6 +532,23 @@ const AutoArchiveSetting = () => {
     toast.success('Setting saved', nextEnabled ? `Joiners are archived after ${label} without a login.` : 'Automatic archiving is off.');
   };
 
+  // Right away, instead of waiting for tonight's automatic run.
+  const [running, setRunning] = useState(false);
+  const archiveNow = async () => {
+    const label = ARCHIVE_OPTIONS.find(([d]) => d === days)?.[1] || `${days} days`;
+    if (!(await confirmDialog({
+      title: 'Archive inactive joiners now?',
+      message: `Every joiner who hasn't logged in for ${label} is archived right away. They can restore their account when they log in again.`,
+      confirmLabel: 'Archive Now', cancelLabel: 'Cancel', tone: 'danger',
+    }))) return;
+    setRunning(true);
+    const { data, error } = await supabase.rpc('archive_inactive_joiners');
+    setRunning(false);
+    if (error) { toast.error("Couldn't archive the accounts", error.message); return; }
+    const n = Number(data) || 0;
+    toast.success(n ? `${n} joiner${n === 1 ? '' : 's'} archived` : 'Nobody to archive', n ? 'You can see them in Joiner Accounts → Archived.' : `No joiner has been away for ${label}.`);
+  };
+
   return (
     <section style={card} aria-label="Archive inactive joiners">
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
@@ -554,6 +576,11 @@ const AutoArchiveSetting = () => {
             {ARCHIVE_OPTIONS.map(([d, l]) => <option key={d} value={d}>{l}{d === 730 ? ' (default)' : ''}</option>)}
             {!ARCHIVE_OPTIONS.some(([d]) => d === days) && <option value={days}>{days} days</option>}
           </NiceSelect>
+          <button type="button" onClick={archiveNow} disabled={!loaded || saving || running} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, height: 40, padding: '0 16px', borderRadius: 12, cursor: 'pointer',
+            background: '#1A0A00', border: 'none', color: '#E8A265', fontFamily: 'inherit',
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+          }}>{running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Archive size={14} />} Archive Now</button>
         </div>
       )}
     </section>

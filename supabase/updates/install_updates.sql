@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- All database updates from 20261111 to 20261214, in order, in one go.
+-- All database updates from 20261111 to 20261220, in order, in one go.
 --
 -- Paste the whole file into the Supabase SQL Editor and click Run.
 -- It runs as one transaction: if anything fails, nothing is changed, and the
@@ -8,7 +8,7 @@
 -- Afterwards, run supabase/updates/check_updates.sql: every row should say
 -- "installed".
 --
--- Generated from supabase/migrations/20261111…20261214 — edit those, not this.
+-- Generated from supabase/migrations/20261111…20261220 — edit those, not this.
 -- ─────────────────────────────────────────────
 
 begin;
@@ -4823,6 +4823,825 @@ drop trigger if exists exclusive_requests_one_per_day on public.exclusive_reques
 create trigger exclusive_requests_one_per_day
   before update of status on public.exclusive_requests
   for each row execute function public.exclusive_requests_one_per_day();
+
+
+-- ════════════ 20261215000000_exclusive_rates_3k_100k.sql ════════════
+-- ─────────────────────────────────────────────
+-- Exclusive tours: budget and rates ₱3,000 – ₱100,000
+--
+-- The normal limits (Joiner Rate ₱1,800–₱7,500, Regular Rate ₱1,300–₱7,500)
+-- are for Tour Management and requested tours. An exclusive tour is priced for
+-- the whole group, so its private tour row (tours.is_exclusive) failed with
+-- "The Joiner Rate can be at most ₱7,500." Exclusive tours now have their own
+-- range for all three amounts:
+--   • the joiner's budget:            ₱3,000 – ₱100,000 (was ₱30,000 – ₱100,000);
+--   • the Package Price (Joiner Rate): ₱3,000 – ₱100,000;
+--   • the Regular Rate:               ₱3,000 – ₱100,000.
+--
+-- Run after 20261214000000_exclusive_one_per_day.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create or replace function public.tours_check_price_limit()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.price is not null and (tg_op = 'INSERT' or new.price is distinct from old.price) then
+    if coalesce(new.is_exclusive, false) then
+      if new.price > 100000 then
+        raise exception 'The Package Price of an exclusive tour can be at most ₱100,000.';
+      end if;
+      if new.price < 3000 then
+        raise exception 'The Package Price of an exclusive tour must be at least ₱3,000.';
+      end if;
+      return new;
+    end if;
+    if new.price > 7500 then
+      raise exception 'The Joiner Rate can be at most ₱7,500.';
+    end if;
+    if new.price < 1800 then
+      raise exception 'The Joiner Rate must be at least ₱1,800.';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.tour_rates_check_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_exclusive boolean := coalesce((select t.is_exclusive from public.tours t where t.id = new.tour_id), false);
+begin
+  if tg_op = 'INSERT' or new.regular_rate is distinct from old.regular_rate then
+    if v_exclusive then
+      if new.regular_rate > 100000 then
+        raise exception 'The Regular Rate of an exclusive tour can be at most ₱100,000.';
+      end if;
+      if new.regular_rate < 3000 then
+        raise exception 'The Regular Rate of an exclusive tour must be at least ₱3,000.';
+      end if;
+      return new;
+    end if;
+    if new.regular_rate > 7500 then
+      raise exception 'The Regular Rate can be at most ₱7,500.';
+    end if;
+    if new.regular_rate < 1300 then
+      raise exception 'The Regular Rate must be at least ₱1,300.';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- The request rules from 20261213000000_exclusive_flow.sql, with the budget minimum now ₱3,000.
+create or replace function public.exclusive_requests_flow_rules()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_last timestamptz;
+begin
+  -- One request every 2 weeks (Exclusive and Request a Tour together).
+  if tg_op = 'INSERT' and new.user_id is not null and not public.is_admin() then
+    v_last := (select max(r.created_at) from public.exclusive_requests r where r.user_id = new.user_id);
+    if v_last is not null and v_last > now() - interval '14 days' then
+      raise exception 'You can send one request every 2 weeks. You can send your next request on %.',
+        to_char((v_last + interval '14 days') at time zone 'Asia/Manila', 'Mon FMDD, YYYY "at" FMHH12:MI AM');
+    end if;
+  end if;
+
+  -- Exclusive tour budget: ₱3,000 to ₱100,000.
+  if new.request_type = 'exclusive' and new.budget is not null
+     and (tg_op = 'INSERT' or new.budget is distinct from old.budget) then
+    if new.budget < 3000 then raise exception 'The budget for an exclusive tour must be at least ₱3,000.'; end if;
+    if new.budget > 100000 then raise exception 'The budget for an exclusive tour can be up to ₱100,000.'; end if;
+  end if;
+
+  if tg_op = 'UPDATE' and new.request_type = 'exclusive' then
+    -- Approved: the downpayment (50% of the budget) is due within 24 hours.
+    if new.status = 'Approved' and old.status is distinct from 'Approved' and new.payment_status <> 'Paid' then
+      new.downpayment_due_at := now() + interval '24 hours';
+      if new.budget is not null then
+        new.downpayment_amount := round(new.budget * 0.5, 2);
+      end if;
+    end if;
+    -- The package waits for the downpayment.
+    if new.package_sent_at is not null and old.package_sent_at is null
+       and new.downpayment_due_at is not null and new.payment_status <> 'Paid' then
+      raise exception 'Wait for the joiner''s downpayment before sending the tour package.';
+    end if;
+    -- The package price can't be less than what the joiner already paid.
+    if new.package_sent_at is not null and new.payment_status = 'Paid'
+       and coalesce((new.package_details ->> 'price')::numeric, 0) > 0
+       and (new.package_details ->> 'price')::numeric < coalesce(new.amount_paid, 0) then
+      raise exception 'The package price can''t be less than the ₱% the joiner already paid.', to_char(new.amount_paid, 'FM999,999,990.00');
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+
+-- ════════════ 20261216000000_documentation_feedback.sql ════════════
+-- ─────────────────────────────────────────────
+-- Panel feedback (Documentation.docx)
+--
+--   1. Review replies: editable (shows "Edited"), no longer removable.
+--
+-- Run after 20261215000000_exclusive_rates_3k_100k.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+-- ── 1. Review replies: edit, don't remove ──
+alter table public.reviews add column if not exists admin_reply_edited_at timestamptz;
+
+create or replace function public.reviews_guard_admin_reply()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_old text := case when tg_op = 'UPDATE' then old.admin_reply end;
+begin
+  new.admin_reply := nullif(btrim(coalesce(new.admin_reply, '')), '');
+  if new.admin_reply is distinct from v_old then
+    if public.is_client_request() and not public.is_admin() then
+      raise exception 'Only Bandang IBAYO can reply to reviews.';
+    end if;
+    if new.admin_reply is null and v_old is not null and public.is_client_request() then
+      raise exception 'A reply can be edited but not removed.';
+    end if;
+    if length(new.admin_reply) > 500 then
+      raise exception 'A reply can be at most 500 characters.';
+    end if;
+    if v_old is null then
+      new.admin_reply_at := now();
+      new.admin_reply_edited_at := null;
+    else
+      new.admin_reply_at := old.admin_reply_at;   -- first posted
+      new.admin_reply_edited_at := now();         -- shows "Edited"
+    end if;
+  elsif tg_op = 'UPDATE' then
+    new.admin_reply_at := old.admin_reply_at; -- only changes with the reply
+    new.admin_reply_edited_at := old.admin_reply_edited_at;
+  else
+    new.admin_reply_at := null;
+    new.admin_reply_edited_at := null;
+  end if;
+  return new;
+end;
+$$;
+
+-- ── 2. Driver's license / ID and photo (Tracking → Fleet & Driver) ──
+-- Kept apart from tour_vehicles (which joiners on the tour can read): only
+-- admins can read or change these, and the pictures are in a private bucket.
+create table if not exists public.driver_documents (
+  tour_id      bigint primary key,
+  license_path text,
+  photo_path   text,
+  updated_at   timestamptz not null default now()
+);
+do $$
+begin
+  -- tour_id: the same type as tours.id.
+  if (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.driver_documents'::regclass and attname = 'tour_id')
+     is distinct from (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.tours'::regclass and attname = 'id') then
+    execute format('alter table public.driver_documents alter column tour_id type %s using tour_id::text::%s',
+      (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.tours'::regclass and attname = 'id'),
+      (select format_type(atttypid, atttypmod) from pg_attribute where attrelid = 'public.tours'::regclass and attname = 'id'));
+  end if;
+end;
+$$;
+alter table public.driver_documents enable row level security;
+drop policy if exists "driver_documents_admin" on public.driver_documents;
+create policy "driver_documents_admin" on public.driver_documents
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+insert into storage.buckets (id, name, public)
+values ('driver-docs', 'driver-docs', false)
+on conflict (id) do update set public = false;
+
+drop policy if exists "driver_docs_admin_select" on storage.objects;
+create policy "driver_docs_admin_select" on storage.objects
+  for select to authenticated using (bucket_id = 'driver-docs' and public.is_admin());
+drop policy if exists "driver_docs_admin_insert" on storage.objects;
+create policy "driver_docs_admin_insert" on storage.objects
+  for insert to authenticated with check (bucket_id = 'driver-docs' and public.is_admin());
+drop policy if exists "driver_docs_admin_update" on storage.objects;
+create policy "driver_docs_admin_update" on storage.objects
+  for update to authenticated using (bucket_id = 'driver-docs' and public.is_admin());
+
+-- ── 3. Admins remove a joiner account (with a reason), and remove photos ──
+-- A removed account is archived with archive_reason = 'removed': it can't log
+-- in, and the joiner can't restore it themselves; an admin can restore it.
+-- Bookings and payments stay on record.
+alter table public.profiles add column if not exists removed_reason text;
+alter table public.profiles add column if not exists removed_by uuid;
+
+create or replace function public.admin_remove_joiner(p_id uuid, p_reason text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can remove accounts.';
+  end if;
+  if length(btrim(coalesce(p_reason, ''))) < 5 then
+    raise exception 'Please write the reason (at least 5 characters).';
+  end if;
+  update public.profiles
+     set archived_at = now(), archive_reason = 'removed',
+         removed_reason = btrim(p_reason), removed_by = auth.uid()
+   where id = p_id and coalesce(role, 'joiner') = 'joiner';
+  if not found then
+    raise exception 'That joiner account wasn''t found.';
+  end if;
+end;
+$$;
+
+create or replace function public.admin_restore_removed_joiner(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can restore accounts.';
+  end if;
+  update public.profiles
+     set archived_at = null, archive_reason = null, deactivated_at = null, removed_reason = null, removed_by = null
+   where id = p_id and archive_reason = 'removed';
+  if not found then
+    raise exception 'That account isn''t removed.';
+  end if;
+  insert into public.notifications (user_id, title, message, type)
+  values (p_id, 'Your account was restored', 'Welcome back! Your Bandang IBAYO account is active again.', 'account');
+end;
+$$;
+
+-- A joiner can't bring back an account an admin removed.
+create or replace function public.reactivate_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Please log in first.';
+  end if;
+  if exists (select 1 from public.profiles where id = auth.uid() and role in ('admin', 'archived_admin')) then
+    raise exception 'Admin accounts are restored by the main admin.';
+  end if;
+  if exists (select 1 from public.profiles where id = auth.uid() and archive_reason = 'removed') then
+    raise exception 'This account was removed by Bandang IBAYO. Please message us if you think this is a mistake.';
+  end if;
+  update public.profiles
+     set archived_at = null, archive_reason = null, deactivated_at = null
+   where id = auth.uid() and archived_at is not null;
+end;
+$$;
+
+-- Remove a joiner's profile photo that breaks the rules; they're told why.
+create or replace function public.admin_remove_avatar(p_id uuid, p_reason text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can remove photos.';
+  end if;
+  update public.profiles set avatar_url = null where id = p_id and coalesce(role, 'joiner') = 'joiner';
+  if not found then
+    raise exception 'That joiner account wasn''t found.';
+  end if;
+  insert into public.notifications (user_id, title, message, type)
+  values (p_id, 'Your profile photo was removed',
+          'Bandang IBAYO removed your profile photo because it doesn''t follow the photo rules: '
+          || coalesce(nullif(btrim(p_reason), ''), 'not appropriate') || '. You can upload another one in Profile Settings.', 'account');
+end;
+$$;
+
+revoke all on function public.admin_remove_joiner(uuid, text) from public, anon;
+grant execute on function public.admin_remove_joiner(uuid, text) to authenticated;
+revoke all on function public.admin_restore_removed_joiner(uuid) from public, anon;
+grant execute on function public.admin_restore_removed_joiner(uuid) to authenticated;
+revoke all on function public.reactivate_my_account() from public, anon;
+grant execute on function public.reactivate_my_account() to authenticated;
+revoke all on function public.admin_remove_avatar(uuid, text) from public, anon;
+grant execute on function public.admin_remove_avatar(uuid, text) to authenticated;
+
+-- ── 4. Confirming a payment by hand needs the admin's password ──
+-- The auth function checks the admin's password and hands back a one-time
+-- pass (valid 3 minutes). admin_record_payment() uses it up and records the
+-- payment. Marking a payment received any other way from the website is
+-- refused. The main admin is told about every payment confirmed by hand.
+create table if not exists public.admin_password_checks (
+  id         uuid primary key default gen_random_uuid(),
+  admin_id   uuid not null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now() + interval '3 minutes',
+  used_at    timestamptz
+);
+alter table public.admin_password_checks enable row level security;
+-- (No policies: only the auth function and admin_record_payment() use it.)
+
+create or replace function public.payment_needs_password()
+returns trigger
+language plpgsql
+as $$
+declare
+  v_paid boolean;
+begin
+  if not public.is_client_request() or coalesce(current_setting('app.payment_password_ok', true), '') = 'on' then
+    return new;
+  end if;
+  if tg_table_name = 'bookings' then
+    v_paid := (new.payment_status = 'Complete' and old.payment_status is distinct from 'Complete')
+           or (coalesce(new.balance_settled, false) and not coalesce(old.balance_settled, false));
+  else
+    v_paid := (new.payment_status = 'Paid' and old.payment_status is distinct from 'Paid')
+           or (coalesce(new.balance_settled, false) and not coalesce(old.balance_settled, false));
+  end if;
+  if v_paid then
+    raise exception 'For security, confirm the payment with your password (refresh the page and try again).';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists bookings_payment_needs_password on public.bookings;
+create trigger bookings_payment_needs_password
+  before update on public.bookings
+  for each row execute function public.payment_needs_password();
+drop trigger if exists exclusive_payment_needs_password on public.exclusive_requests;
+create trigger exclusive_payment_needs_password
+  before update on public.exclusive_requests
+  for each row execute function public.payment_needs_password();
+
+create or replace function public.admin_record_payment(p_table text, p_id text, p_changes jsonb, p_token uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_allowed text[];
+  v_key     text;
+  v_sets    text[] := '{}';
+  v_name    text;
+  v_label   text;
+  v_mains   uuid[];
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can confirm payments.';
+  end if;
+  v_allowed := case p_table
+    when 'bookings' then array['booking_status', 'payment_status', 'balance_settled', 'balance_settled_at', 'amount_paid']
+    when 'exclusive_requests' then array['payment_status', 'downpayment_amount', 'amount_paid', 'paid_at', 'balance_settled', 'balance_amount', 'balance_paid_at', 'updated_at']
+  end;
+  if v_allowed is null then
+    raise exception 'Unknown payment.';
+  end if;
+  for v_key in select jsonb_object_keys(p_changes) loop
+    if not v_key = any (v_allowed) then
+      raise exception 'That change isn''t allowed here.';
+    end if;
+    v_sets := v_sets || format('%I = (jsonb_populate_record(null::public.%I, $1)).%I', v_key, p_table, v_key);
+  end loop;
+  if array_length(v_sets, 1) is null then
+    raise exception 'Nothing to change.';
+  end if;
+
+  -- The one-time pass from the password check: this admin's, unused, not expired.
+  update public.admin_password_checks
+     set used_at = now()
+   where id = p_token and admin_id = auth.uid() and used_at is null and expires_at > now();
+  if not found then
+    raise exception 'Your password check expired. Please confirm with your password again.';
+  end if;
+
+  perform set_config('app.trusted_booking_write', 'on', true);
+  perform set_config('app.payment_password_ok', 'on', true);
+  execute format('update public.%I set %s where id::text = $2', p_table, array_to_string(v_sets, ', ')) using p_changes, p_id;
+  if not found then
+    raise exception 'That payment wasn''t found.';
+  end if;
+  perform set_config('app.payment_password_ok', 'off', true);
+
+  -- Tell the main admin(s) (in the app; the website also emails them).
+  v_name := (select nullif(btrim(concat_ws(' ', first_name, last_name)), '') from public.profiles where id = auth.uid());
+  v_label := case when p_table = 'bookings'
+    then coalesce((select booking_number from public.bookings where id::text = p_id), 'a booking')
+    else 'an exclusive tour request' end;
+  v_mains := array(select id from public.profiles where is_main_admin and id <> auth.uid());
+  insert into public.notifications (user_id, title, message, type)
+  select m, 'Payment confirmed by hand',
+         format('%s confirmed a payment for %s with their password (%s).', coalesce(v_name, 'An admin'), v_label,
+                to_char(now() at time zone 'Asia/Manila', 'Mon DD, YYYY HH12:MI AM')),
+         'payment_log'
+    from unnest(v_mains) m;
+  return jsonb_build_object('main_admin_ids', to_jsonb(v_mains), 'label', v_label);
+end;
+$$;
+
+revoke all on function public.admin_record_payment(text, text, jsonb, uuid) from public, anon;
+grant execute on function public.admin_record_payment(text, text, jsonb, uuid) to authenticated;
+
+-- ── 5. Feed comments: the writer can edit their own (shows "Edited") ──
+-- Still no deleting. Only the text can change.
+alter table public.feed_comments add column if not exists edited_at timestamptz;
+
+create or replace function public.feed_comments_guard_edit()
+returns trigger
+language plpgsql
+as $$
+begin
+  if public.is_client_request() then
+    if old.user_id is distinct from auth.uid() then
+      raise exception 'You can only edit your own comment.';
+    end if;
+    if new.user_id is distinct from old.user_id or new.post_id is distinct from old.post_id
+       or new.created_at is distinct from old.created_at then
+      raise exception 'Only the comment''s text can be changed.';
+    end if;
+    if length(btrim(coalesce(new.content, ''))) = 0 then
+      raise exception 'A comment can''t be empty.';
+    end if;
+    if length(new.content) > 500 then
+      raise exception 'A comment can be at most 500 characters.';
+    end if;
+  end if;
+  if new.content is distinct from old.content then
+    new.edited_at := now();
+  else
+    new.edited_at := old.edited_at;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists feed_comments_guard_edit on public.feed_comments;
+create trigger feed_comments_guard_edit
+  before update on public.feed_comments
+  for each row execute function public.feed_comments_guard_edit();
+
+drop policy if exists "comments_update_own" on public.feed_comments;
+create policy "comments_update_own" on public.feed_comments
+  for update to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+grant update (content) on public.feed_comments to authenticated;
+
+-- ── 6. Feedback survey: joiners rate the website, admins see the results ──
+create table if not exists public.system_feedback (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid(),
+  ease       smallint not null check (ease between 1 and 5),       -- easy to use
+  booking    smallint not null check (booking between 1 and 5),    -- booking a tour
+  payment    smallint not null check (payment between 1 and 5),    -- paying online
+  tracking   smallint not null check (tracking between 1 and 5),   -- tracking and chat on tour day
+  overall    smallint not null check (overall between 1 and 5),    -- overall satisfaction
+  comment    text check (comment is null or length(comment) <= 1000),
+  created_at timestamptz not null default now()
+);
+alter table public.system_feedback enable row level security;
+drop policy if exists "feedback_insert_own" on public.system_feedback;
+create policy "feedback_insert_own" on public.system_feedback
+  for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists "feedback_read_own_or_admin" on public.system_feedback;
+create policy "feedback_read_own_or_admin" on public.system_feedback
+  for select to authenticated using (user_id = auth.uid() or public.is_admin());
+grant select, insert on public.system_feedback to authenticated;
+
+
+-- ════════════ 20261217000000_drivers_vans.sql ════════════
+-- ─────────────────────────────────────────────
+-- Saved drivers and vans (Tracking Management)
+--
+-- Admins save each driver (name, number, license/ID and photo) and each van
+-- (model, plate, color, how to spot it) once, then just pick a driver and a
+-- van for a tour. Only admins can see or change these lists; the driver's ID
+-- and photo stay in the private "driver-docs" bucket.
+--
+-- Run after 20261216000000_documentation_feedback.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create table if not exists public.fleet_drivers (
+  id           uuid primary key default gen_random_uuid(),
+  name         text not null check (length(btrim(name)) >= 2),
+  contact      text not null,
+  license_path text,
+  photo_path   text,
+  is_active    boolean not null default true,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+create table if not exists public.fleet_vans (
+  id           uuid primary key default gen_random_uuid(),
+  car_type     text not null check (length(btrim(car_type)) >= 2),
+  plate_number text not null,
+  color        text not null,
+  notes        text not null,
+  is_active    boolean not null default true,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+create unique index if not exists fleet_vans_plate_unique on public.fleet_vans (upper(plate_number)) where is_active;
+
+alter table public.fleet_drivers enable row level security;
+alter table public.fleet_vans enable row level security;
+drop policy if exists "fleet_drivers_admin" on public.fleet_drivers;
+create policy "fleet_drivers_admin" on public.fleet_drivers
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "fleet_vans_admin" on public.fleet_vans;
+create policy "fleet_vans_admin" on public.fleet_vans
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+grant select, insert, update on public.fleet_drivers, public.fleet_vans to authenticated;
+
+-- Which saved driver and van a tour uses (the details are still copied onto
+-- tour_vehicles, which the tour's joiners read).
+alter table public.tour_vehicles add column if not exists driver_id uuid references public.fleet_drivers (id) on delete set null;
+alter table public.tour_vehicles add column if not exists van_id uuid references public.fleet_vans (id) on delete set null;
+
+
+-- ════════════ 20261218000000_private_tour_wording.sql ════════════
+-- ─────────────────────────────────────────────
+-- "Exclusive Tour" is now called "Private Tour" everywhere people can see it
+--
+-- Rewrites the wording of the messages and notifications made by the
+-- database (e.g. "Exclusive Tour Update" → "Private Tour Update",
+-- "the exclusive tour to Bolinao" → "the private tour to Bolinao"). Only
+-- words with a space are changed; table, column and value names (like
+-- request_type = 'exclusive') stay the same, so nothing else changes.
+-- Notifications already sent keep their old wording.
+--
+-- Run after 20261217000000_drivers_vans.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+do $$
+declare
+  f   record;
+  def text;
+  fixed text;
+begin
+  for f in
+    select p.oid
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and p.prokind = 'f'
+       and p.prosrc ~ '([Ee]xclusive (tour|Tour|request|Request)|EXCLUSIVE TOUR)'
+  loop
+    def := pg_get_functiondef(f.oid);
+    fixed := def;
+    fixed := replace(fixed, 'an exclusive tour', 'a private tour');
+    fixed := replace(fixed, 'An exclusive tour', 'A private tour');
+    fixed := replace(fixed, 'Exclusive Tours', 'Private Tours');
+    fixed := replace(fixed, 'Exclusive Tour', 'Private Tour');
+    fixed := replace(fixed, 'Exclusive tours', 'Private tours');
+    fixed := replace(fixed, 'Exclusive tour', 'Private tour');
+    fixed := replace(fixed, 'exclusive tours', 'private tours');
+    fixed := replace(fixed, 'exclusive tour', 'private tour');
+    fixed := replace(fixed, 'Exclusive request', 'Private tour request');
+    fixed := replace(fixed, 'exclusive request', 'private tour request');
+    fixed := replace(fixed, 'EXCLUSIVE TOUR', 'PRIVATE TOUR');
+    if fixed is distinct from def then
+      execute fixed;
+    end if;
+  end loop;
+end;
+$$;
+
+
+-- ════════════ 20261219000000_admin_tools.sql ════════════
+-- ─────────────────────────────────────────────
+-- Tools that make the admins' work easier
+--
+--   1. Saved chat replies: any admin can change them (app_settings
+--      "chat_quick_replies"; other settings stay main-admin only).
+--   2. System Maintenance: system_health() and run_maintenance() + maintenance_log.
+--   3. Admin activity log: who added, changed or removed what, and when.
+--
+-- Run after 20261218000000_private_tour_wording.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+-- ── 1. Saved chat replies ──
+drop policy if exists "app_settings_admin_quick_replies_insert" on public.app_settings;
+create policy "app_settings_admin_quick_replies_insert" on public.app_settings
+  for insert to authenticated with check (public.is_admin() and key = 'chat_quick_replies');
+drop policy if exists "app_settings_admin_quick_replies_update" on public.app_settings;
+create policy "app_settings_admin_quick_replies_update" on public.app_settings
+  for update to authenticated using (public.is_admin() and key = 'chat_quick_replies') with check (public.is_admin() and key = 'chat_quick_replies');
+
+-- ── 2. System Maintenance: health check, cleanup, and its log ──
+create table if not exists public.maintenance_log (
+  id        bigserial primary key,
+  task      text not null,
+  affected  integer not null default 0,
+  admin_id  uuid default auth.uid(),
+  automatic boolean not null default false,
+  ran_at    timestamptz not null default now()
+);
+alter table public.maintenance_log enable row level security;
+drop policy if exists "maintenance_log_admin_read" on public.maintenance_log;
+create policy "maintenance_log_admin_read" on public.maintenance_log
+  for select to authenticated using (public.is_admin());
+grant select on public.maintenance_log to authenticated;
+
+-- What needs cleaning, as counts.
+create or replace function public.system_health()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_today date := (now() at time zone 'Asia/Manila')::date;
+  v jsonb;
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can see this.';
+  end if;
+  v := jsonb_build_object(
+    'past_tours_open', (select count(*) from public.tours where not coalesce(is_archived, false) and coalesce(end_date, start_date) < v_today),
+    'expired_holds', (select count(*) from public.bookings where payment_status = 'Awaiting Payment' and booking_status not in ('Cancelled', 'Rejected') and hold_expires_at < now()),
+    'old_notifications', (select count(*) from public.notifications where is_read and created_at < now() - interval '90 days'),
+    'old_errors', (select count(*) from public.client_errors where created_at < now() - interval '30 days'),
+    'errors_7_days', (select count(*) from public.client_errors where created_at > now() - interval '7 days'),
+    'stale_requests', (select count(*) from public.exclusive_requests where status = 'Pending' and created_at < now() - interval '30 days'),
+    'archived_joiners', (select count(*) from public.profiles where archived_at is not null and coalesce(role, 'joiner') = 'joiner'),
+    'tours', (select count(*) from public.tours where not coalesce(is_archived, false)),
+    'bookings', (select count(*) from public.bookings),
+    'joiners', (select count(*) from public.profiles where coalesce(role, 'joiner') = 'joiner'),
+    'last_run', (select max(ran_at) from public.maintenance_log)
+  );
+  return v;
+end;
+$$;
+
+-- Runs one cleanup and logs it. Returns how many rows it changed.
+create or replace function public.run_maintenance(p_task text)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  n integer := 0;
+  b record;
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can run maintenance.';
+  end if;
+  if p_task = 'archive_past_tours' then
+    update public.tours set is_archived = true
+     where not coalesce(is_archived, false)
+       and coalesce(end_date, start_date) < (now() at time zone 'Asia/Manila')::date;
+    get diagnostics n = row_count;
+  elsif p_task = 'expire_holds' then
+    for b in select id from public.bookings
+              where payment_status = 'Awaiting Payment' and booking_status not in ('Cancelled', 'Rejected') and hold_expires_at < now() loop
+      if public.release_payment_hold(b.id, 'Checkout expired (maintenance)', 'System Maintenance') then n := n + 1; end if;
+    end loop;
+  elsif p_task = 'old_notifications' then
+    delete from public.notifications where is_read and created_at < now() - interval '90 days';
+    get diagnostics n = row_count;
+  elsif p_task = 'old_errors' then
+    delete from public.client_errors where created_at < now() - interval '30 days';
+    get diagnostics n = row_count;
+  elsif p_task = 'inactive_joiners' then
+    n := coalesce(public.archive_inactive_joiners(), 0);
+  else
+    raise exception 'Unknown maintenance task.';
+  end if;
+  insert into public.maintenance_log (task, affected) values (p_task, n);
+  return n;
+end;
+$$;
+
+revoke all on function public.system_health() from public, anon;
+grant execute on function public.system_health() to authenticated;
+revoke all on function public.run_maintenance(text) from public, anon;
+grant execute on function public.run_maintenance(text) to authenticated;
+
+-- ── 3. Admin activity log: who changed what, and when ──
+create table if not exists public.admin_activity (
+  id         bigserial primary key,
+  admin_id   uuid,
+  admin_name text,
+  table_name text not null,
+  row_id     text,
+  action     text not null,          -- added | changed | removed
+  summary    text,
+  changed    text[],
+  at         timestamptz not null default now()
+);
+create index if not exists admin_activity_at on public.admin_activity (at desc);
+alter table public.admin_activity enable row level security;
+drop policy if exists "admin_activity_admin_read" on public.admin_activity;
+create policy "admin_activity_admin_read" on public.admin_activity
+  for select to authenticated using (public.is_admin());
+grant select on public.admin_activity to authenticated;
+
+create or replace function public.log_admin_activity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_new jsonb := case when tg_op <> 'DELETE' then to_jsonb(new) end;
+  v_old jsonb := case when tg_op <> 'INSERT' then to_jsonb(old) end;
+  v_changed text[];
+  v_row jsonb := coalesce(v_new, v_old);
+  v_label text;
+begin
+  -- Only changes made by an admin on the website (not joiners, not the system).
+  if auth.uid() is null or not public.is_admin() then
+    return coalesce(new, old);
+  end if;
+  if tg_op = 'UPDATE' then
+    v_changed := array(select k from jsonb_object_keys(v_new) k
+                        where k not in ('updated_at') and v_new -> k is distinct from v_old -> k);
+    if coalesce(array_length(v_changed, 1), 0) = 0 then return new; end if;
+  end if;
+  v_label := coalesce(v_row ->> 'title', v_row ->> 'booking_number', v_row ->> 'name', v_row ->> 'plate_number',
+                      v_row ->> 'destination', v_row ->> 'key', v_row ->> 'tour_id', v_row ->> 'id');
+  insert into public.admin_activity (admin_id, admin_name, table_name, row_id, action, summary, changed)
+  values (auth.uid(),
+          (select nullif(btrim(concat_ws(' ', first_name, last_name)), '') from public.profiles where id = auth.uid()),
+          tg_table_name, coalesce(v_row ->> 'id', v_row ->> 'tour_id', v_row ->> 'key'),
+          case tg_op when 'INSERT' then 'added' when 'UPDATE' then 'changed' else 'removed' end,
+          v_label, v_changed);
+  return coalesce(new, old);
+end;
+$$;
+
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['tours', 'tour_rates', 'tour_expenses', 'bookings', 'exclusive_requests', 'feed_posts',
+                           'pickup_spots', 'fleet_drivers', 'fleet_vans', 'tour_vehicles', 'app_settings'] loop
+    if to_regclass('public.' || t) is not null then
+      execute format('drop trigger if exists %I on public.%I', t || '_admin_activity', t);
+      execute format('create trigger %I after insert or update or delete on public.%I for each row execute function public.log_admin_activity()', t || '_admin_activity', t);
+    end if;
+  end loop;
+end;
+$$;
+
+
+-- ════════════ 20261220000000_tour_templates.sql ════════════
+-- ─────────────────────────────────────────────
+-- Tour templates: a pre-made tour for each place (e.g. "Baguio")
+--
+-- Holds everything a tour can have (photos, details, rates, pickup points,
+-- accommodation, lists, itinerary, expenses). When creating a tour, the admin
+-- picks a template and ticks what to use from it. Admins only.
+--
+-- Run after 20261219000000_admin_tools.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create table if not exists public.tour_templates (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null check (length(btrim(name)) between 2 and 80),
+  data       jsonb not null default '{}'::jsonb,
+  created_by uuid default auth.uid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists tour_templates_name_unique on public.tour_templates (lower(btrim(name)));
+
+alter table public.tour_templates enable row level security;
+drop policy if exists "tour_templates_admin" on public.tour_templates;
+create policy "tour_templates_admin" on public.tour_templates
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+grant select, insert, update, delete on public.tour_templates to authenticated;
+
+-- (Changes to templates show in System Maintenance → Admin activity.)
+do $$
+begin
+  if to_regprocedure('public.log_admin_activity()') is not null then
+    drop trigger if exists tour_templates_admin_activity on public.tour_templates;
+    create trigger tour_templates_admin_activity after insert or update or delete on public.tour_templates
+      for each row execute function public.log_admin_activity();
+  end if;
+end;
+$$;
 
 
 commit;

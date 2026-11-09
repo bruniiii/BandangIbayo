@@ -94,7 +94,7 @@ const FavoritesButton = ({ onOpenTour }) => {
                 <div key={t.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 8, borderRadius: 14 }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(242,228,208,0.6)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.7)' }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.9)' }}>
                     {t.image_urls?.[0] ? <img src={t.image_urls[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <ImageIcon size={20} />}
                   </div>
                   <button type="button" disabled={ended} onClick={() => { setOpen(false); onOpenTour?.(t.id); }}

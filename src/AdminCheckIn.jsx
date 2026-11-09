@@ -405,6 +405,11 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             </div>
             {roster.length > 0 && (
               <>
+                {/* How far along check-in is */}
+                <div role="progressbar" aria-valuemin={0} aria-valuemax={totalPeople} aria-valuenow={inPeople} aria-label="Checked in"
+                  style={{ height: 10, borderRadius: 999, background: '#F2E4D0', overflow: 'hidden', margin: '0 0 10px' }}>
+                  <div style={{ width: `${totalPeople ? (inPeople / totalPeople) * 100 : 0}%`, height: '100%', background: inPeople === totalPeople ? '#2E9B5F' : '#B4511E', transition: 'width 0.3s' }} />
+                </div>
                 <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? '#8C5216' : '#2E6B4A', margin: '0 0 10px' }}>
                   {waitingCount
                     ? `Still waiting for ${waitingCount} booking${waitingCount === 1 ? '' : 's'} (${totalPeople - inPeople} ${totalPeople - inPeople === 1 ? 'person' : 'people'}).`

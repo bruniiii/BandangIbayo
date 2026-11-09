@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { confirmPhoto } from './ui/confirmPhoto';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Loader2,
@@ -109,7 +110,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
   }, [completing, navigate, loginPath]);
   const googleName = googleNameParts(googleUser);
 
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -123,6 +124,11 @@ const JoinerRegister = ({ mode = 'register' }) => {
       return;
     }
 
+    // Show it first and ask them to confirm it's appropriate.
+    const input = e.target;
+    const ok = await confirmPhoto(file);
+    input.value = '';
+    if (!ok) return;
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
   };
@@ -707,6 +713,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
       {/* MAIN CARD */}
       <div
+        className="register-card"
         style={{
           position: 'relative',
           background: '#FDF6EE',
@@ -714,6 +721,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
           borderRadius: 24,
           boxShadow: '0 20px 60px rgba(26,10,0,0.14)',
           width: '100%',
+          minWidth: 0,
+          boxSizing: 'border-box',
           maxWidth: 760,
           borderTop: '7px solid #B4511E',
         }}
@@ -958,7 +967,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             </div>
 
             <div>
-              <label style={labelStyle}>Middle Initial</label>
+              <label style={labelStyle}>Middle Initial <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 700, opacity: 0.85 }}>(optional)</span></label>
               <input
                 name="middleName"
                 data-allow="name"
@@ -982,7 +991,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             </div>
 
             <div>
-              <label style={labelStyle}>Suffix</label>
+              <label style={labelStyle}>Suffix <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 700, opacity: 0.85 }}>(optional)</span></label>
               <input
                 name="suffix"
                 data-allow="name"

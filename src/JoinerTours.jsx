@@ -100,7 +100,7 @@ const JoinerTours = ({ initialTourId = null }) => {
  
 
     // One card per trip; the joiner picks the date in the booking window.
-    const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* exclusive tours: My Bookings only */;
+    const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* private tours: My Bookings only */;
 
 
 
@@ -351,7 +351,7 @@ const JoinerTours = ({ initialTourId = null }) => {
               <EmptyState
                 icon={CalendarClockIcon}
                 title="No open tours right now"
-                message="New tour dates are posted regularly. Check the feed for announcements, or request your own trip from Exclusive Tours."
+                message="New tour dates are posted regularly. Check the feed for announcements, or request your own trip from Private Tours."
               />
             )}
           </div>

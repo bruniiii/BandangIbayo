@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import AdminSearch from './AdminSearch';
+import AdminToday from './AdminToday';
+import Walkthrough from './ui/Walkthrough';
+import { ADMIN_STEPS, walkthroughKey } from './walkthroughSteps';
+import { downloadOverviewPDF } from './overviewPdf';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare, ShieldCheck
+  ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare, ShieldCheck, Wrench,
 } from 'lucide-react';
 import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { bookingForNotification, tourForNotification, postForNotification } from './notificationTarget';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
@@ -19,7 +24,6 @@ import BookingManagement from './BookingManagement';
 import Feed from './Feed';
 import Reviews from './Reviews';
 import JoinerAccounts from './Joineraccounts';
-import Reports from './Reports';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/logo.png';
@@ -29,7 +33,6 @@ import Notification from './Notification';
 import { formatPeso, archivePastTours, todayManila } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
-import MenuEdgeTab from './ui/MenuEdgeTab';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory, tabFromUrl } from './useTabHistory';
@@ -48,6 +51,10 @@ import { useTabHistory, tabFromUrl } from './useTabHistory';
  
 // ─── Helpers ────────────────────────────────────────────────────────────────
  
+
+// Loaded only when opened (keeps the dashboard quick to start).
+const Reports = lazy(() => import('./Reports'));
+const SystemMaintenance = lazy(() => import('./SystemMaintenance'));
 const timeAgo = (dateStr) => {
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
   if (diff < 60) return `${diff}s ago`;
@@ -90,13 +97,14 @@ const NAV_ITEMS = [
   { icon: <Map size={18} strokeWidth={2} />,             label: 'Tour Management' },
   { icon: <Calendar size={18} strokeWidth={2} />,        label: 'Booking Management' },
   { icon: <Users size={18} strokeWidth={2} />,           label: 'Joiner Accounts' },
-  { icon: <Shield size={18} strokeWidth={2} />,          label: 'Exclusive Tours' },
+  { icon: <Shield size={18} strokeWidth={2} />,          label: 'Private Tours' },
   { icon: <Globe size={18} strokeWidth={2} />,           label: 'Requested Tours' },
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
   { icon: <MessagesSquare size={18} strokeWidth={2} />,  label: 'Messages' },
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
   { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
+  { icon: <Wrench size={18} strokeWidth={2} />,          label: 'System Maintenance' },
 ];
 // Only the main admin sees this one.
 const SETTINGS_ITEM = { icon: <ShieldCheck size={18} strokeWidth={2} />, label: 'Admin Settings' };
@@ -149,9 +157,9 @@ const AdminDashboard = () => {
     if (isMobile) setMobileNavOpen(false);
   };
 
-  // A request notification opens Exclusive Tours or Requested Tours, whichever it's on.
+  // A request notification opens Private Tours or Requested Tours, whichever it's on.
   const openRequestPage = async (requestId) => {
-    let page = 'Exclusive Tours';
+    let page = 'Private Tours';
     let found = false;
     if (requestId) {
       const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
@@ -239,11 +247,27 @@ const AdminDashboard = () => {
     latestReview: null,
     avgRating: null,
     reviewCount: 0,
+    ratingBreakdown: [],
     latestPost: null,
-    pendingExclusiveRequests: [], // Exclusive Tour / Request-a-Tour submissions awaiting review
+    pendingExclusiveRequests: [], // Private Tour / Request-a-Tour submissions awaiting review
     pendingExclusiveCount: 0,
   });
  
+  // First-time walkthrough of the menu (once per account on this device).
+  const [tourOpen, setTourOpen] = useState(false);
+  const tourUser = useRef(null);
+  useEffect(() => {
+    currentUser().then((u) => {
+      tourUser.current = u?.id || null;
+      try { if (u && !localStorage.getItem(walkthroughKey(u.id, 'admin'))) setTourOpen(true); } catch { /* private mode */ }
+    });
+  }, []);
+  const closeTour = () => {
+    setTourOpen(false);
+    try { localStorage.setItem(walkthroughKey(tourUser.current, 'admin'), '1'); } catch { /* private mode */ }
+  };
+  const adminSteps = me.isMain ? ADMIN_STEPS : ADMIN_STEPS.filter((st) => st.target !== 'Admin Settings');
+
   const handleLogout = async () => {
     const ok = await confirmDialog({
       title: 'Sign out?',
@@ -388,6 +412,8 @@ const AdminDashboard = () => {
       latestReview,
       avgRating,
       reviewCount: ratings.length,
+      // Stars 5 → 1 with how many reviews gave each.
+      ratingBreakdown: [5, 4, 3, 2, 1].map((stars) => ({ stars, count: ratings.filter((r) => Math.round(r) === stars).length })),
       latestPost,
       pendingExclusiveRequests: pendingExclusiveRaw || [],
       pendingExclusiveCount: pendingExclusiveCount ?? 0,
@@ -420,7 +446,8 @@ const AdminDashboard = () => {
  
       {/* ── SIDEBAR — expands on hover (desktop), tap-to-open drawer (mobile) ── */}
       {/* edge tab: opens the menu from anywhere on the page */}
-      {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
+      {/* (The menu button stays at the top now, so the edge tab isn't needed.) */}
+      <Walkthrough steps={adminSteps} open={tourOpen} onClose={closeTour} onMenu={setMobileNavOpen} />
 
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
@@ -560,7 +587,7 @@ const AdminDashboard = () => {
         {/* header */}
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE', display: 'flex', flexDirection: 'column' }}>
-          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
               {/* hamburger - hidden on desktop via CSS, shown <=900px */}
@@ -578,10 +605,11 @@ const AdminDashboard = () => {
               {/* notification bell — live from the `notifications` table,
                   surfaces joiner-side activity: new bookings, payment
                   submissions, cancellations, reviews, requests, registrations */}
+              <AdminSearch onOpen={openFocused} />
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
               {/* admin chip: who's signed in + Change Password */}
-              <AdminAccountMenu onOpenSettings={() => handleNavClick('Admin Settings')} />
+              <AdminAccountMenu onOpenSettings={() => handleNavClick('Admin Settings')} onStartTour={() => setTourOpen(true)} />
             </div>
           </div>
 
@@ -615,6 +643,11 @@ const AdminDashboard = () => {
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h2>
                 </div>
+                <button type="button" disabled={loadingStats} onClick={() => downloadOverviewPDF({ stats, snippets }).catch((e) => toast.error("Couldn't create the PDF", e.message))} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 18px', borderRadius: 12, cursor: 'pointer',
+                  background: '#E8A265', color: '#1A0A00', border: 'none', fontFamily: 'inherit',
+                  fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                }}><FileText size={15} /> Download PDF</button>
               </div>
 
               {/* KPI row */}
@@ -651,6 +684,12 @@ const AdminDashboard = () => {
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
                 />
               </div>
+
+              {/* Phones: the search box (it's in the top bar on wider screens) */}
+              <AdminSearch onOpen={openFocused} wide />
+
+              {/* Everything waiting on an admin today, and the tours leaving soon */}
+              <AdminToday onOpen={openFocused} />
 
               {/* module snapshots */}
               <div>
@@ -753,12 +792,12 @@ const AdminDashboard = () => {
                     ))}
                   </ModuleCard>
 
-                  {/* Exclusive / Requested Tours */}
+                  {/* Private / Requested Tours */}
                   <ModuleCard
                     icon={<Globe size={16} />}
-                    title="Exclusive & Requested Tours"
+                    title="Private & Requested Tours"
                     metaLabel={`${snippets.pendingExclusiveCount} for approval`}
-                    onViewAll={() => handleNavClick(snippets.pendingExclusiveRequests[0]?.request_type === 'request' ? 'Requested Tours' : 'Exclusive Tours')}
+                    onViewAll={() => handleNavClick(snippets.pendingExclusiveRequests[0]?.request_type === 'request' ? 'Requested Tours' : 'Private Tours')}
                     loading={loadingStats}
                     empty={snippets.pendingExclusiveRequests.length === 0}
                     emptyText="Nothing awaiting review."
@@ -779,7 +818,7 @@ const AdminDashboard = () => {
                           background: r.request_type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
                           borderRadius: 999, padding: '3px 9px', flexShrink: 0,
                         }}>
-                          {r.request_type === 'exclusive' ? 'Exclusive' : 'Request'}
+                          {r.request_type === 'exclusive' ? 'Private' : 'Request'}
                         </span>
                       </div>
                     ))}
@@ -863,6 +902,53 @@ const AdminDashboard = () => {
                     )}
                   </ModuleCard>
 
+                  {/* This month at a glance */}
+                  <ModuleCard
+                    icon={<TrendingUp size={16} />}
+                    title="This Month at a Glance"
+                    metaLabel={new Date().toLocaleDateString('en-US', { month: 'long' })}
+                    onViewAll={() => handleNavClick('Reports')}
+                    loading={loadingStats}
+                    empty={false}
+                  >
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      {[
+                        ['Bookings', stats.bookingsThisMonth],
+                        ['Waiting for verification', stats.pendingVerification],
+                        ['Tours next month', stats.toursNextMonth],
+                        ['New joiners (7 days)', stats.joinersThisWeek],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
+                          <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#1A0A00' }}>{value}</p>
+                          <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: '#7A3A18', lineHeight: 1.3 }}>{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </ModuleCard>
+
+                  {/* Ratings breakdown */}
+                  <ModuleCard
+                    icon={<Star size={16} />}
+                    title="Ratings Breakdown"
+                    metaLabel={`${snippets.reviewCount} review${snippets.reviewCount === 1 ? '' : 's'}`}
+                    onViewAll={() => handleNavClick('Reviews')}
+                    loading={loadingStats}
+                    empty={!snippets.reviewCount}
+                    emptyText="No reviews yet."
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                      {snippets.ratingBreakdown.map(({ stars, count }) => (
+                        <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ width: 28, fontSize: 12, fontWeight: 800, color: '#5C2A10', whiteSpace: 'nowrap' }}>{stars} ★</span>
+                          <div style={{ flex: 1, height: 8, borderRadius: 999, background: '#F2E4D0', overflow: 'hidden' }}>
+                            <div style={{ width: `${snippets.reviewCount ? (count / snippets.reviewCount) * 100 : 0}%`, height: '100%', background: '#E8A265' }} />
+                          </div>
+                          <span style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </ModuleCard>
+
                 </div>
               </div>
             </div>
@@ -873,16 +959,17 @@ const AdminDashboard = () => {
           {activeTab === 'Tour Management' && <TourManagement key={focusKey} openTourId={focusId} />}
           {activeTab === 'Booking Management' && <BookingManagement key={focusKey} openBookingId={focusId} openSection={focus?.section} />}
           {activeTab === 'Joiner Accounts' && <JoinerAccounts key={focusKey} openJoinerId={focusId} />}
-          {activeTab === 'Exclusive Tours' && <AdminExclusiveTours key={`exclusive${focusKey || ''}`} type="exclusive" openRequestId={focusId} />}
+          {activeTab === 'Private Tours' && <AdminExclusiveTours key={`exclusive${focusKey || ''}`} type="exclusive" openRequestId={focusId} />}
           {activeTab === 'Requested Tours' && <AdminExclusiveTours key={`request${focusKey || ''}`} type="request" openRequestId={focusId} />}
           {activeTab === 'Reviews' && <Reviews key={focusKey} isAdmin={true} focusTourId={focusId} />}
           {activeTab === 'Messages' && <GroupChat isAdmin />}
-          {activeTab === 'Reports' && <Reports />}
+          {activeTab === 'Reports' && <Suspense fallback={<SkeletonRows count={4} label="Loading reports" />}><Reports /></Suspense>}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls key={focusKey} openTourId={focusId} />
           )}
           {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
           {activeTab === 'Admin Settings' && <AdminSettings />}
+          {activeTab === 'System Maintenance' && <Suspense fallback={<SkeletonRows count={4} label="Loading" />}><SystemMaintenance /></Suspense>}
           
 
           {/* FALLBACK COMING SOON SECTION */}
@@ -892,7 +979,7 @@ const AdminDashboard = () => {
            activeTab !== 'Booking Management' &&
            activeTab !== 'Reviews' &&
            activeTab !== 'Joiner Accounts' &&
-           activeTab !== 'Exclusive Tours' &&
+           activeTab !== 'Private Tours' &&
            activeTab !== 'Requested Tours' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
@@ -948,13 +1035,14 @@ const PAGE_INFO = {
   'Tour Management':     { icon: Map,             title: 'Tour Management',     subtitle: 'Create tours, add dates and manage your postings' },
   'Booking Management':  { icon: Calendar,        title: 'Booking Management',  subtitle: 'Verify payments, track downpayments and update booking status' },
   'Joiner Accounts':     { icon: Users,           title: 'Joiner Accounts',     subtitle: 'Everyone registered as a joiner' },
-  'Exclusive Tours':     { icon: Shield,          title: 'Exclusive Tours',     subtitle: 'Private-group tour requests from joiners' },
+  'Private Tours':     { icon: Shield,          title: 'Private Tours',     subtitle: 'Private-group tour requests from joiners' },
   'Requested Tours':     { icon: Globe,           title: 'Requested Tours',     subtitle: 'New destinations joiners asked for, posted on Explore Tours once ready' },
   'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners, and check them in on the day" },
-  'Messages':            { icon: MessagesSquare,  title: 'Messages',            subtitle: 'Chat with the joiners of each tour date, and with exclusive tour joiners' },
+  'Messages':            { icon: MessagesSquare,  title: 'Messages',            subtitle: 'Chat with the joiners of each tour date, and with private tour joiners' },
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
+  'System Maintenance':  { icon: Wrench,          title: 'System Maintenance',  subtitle: 'Keep the data clean and up to date, download backups, see who changed what' },
   'Admin Settings':      { icon: ShieldCheck,     title: 'Admin Settings',      subtitle: 'Add, archive or restore the people who can use the admin dashboard' },
 };
 
@@ -962,6 +1050,7 @@ const PAGE_INFO = {
  
 const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
   <button
+    data-tour={label}
     onClick={onClick}
     title={collapsed ? label : undefined}
     style={{

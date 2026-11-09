@@ -59,7 +59,7 @@ const FAQS = [
   },
   {
     q: 'Can I book a private trip for my group?',
-    a: 'Yes. Use Exclusive Tours to request a private trip. We send you a package and price, and you confirm it with a 50% downpayment.',
+    a: 'Yes. Use Private Tours to request a private trip. We send you a package and price, and you confirm it with a 50% downpayment.',
   },
   {
     q: 'I forgot my password. What do I do?',
@@ -77,7 +77,8 @@ const GUIDE = [
 ];
 
 // zIndex: above the page but, in the dashboard, below the menu and pop-ups.
-const HelpWidget = ({ zIndex = 600 }) => {
+// onStartTour: shows a button to replay the first-time walkthrough.
+const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState('faq');
   const [openFaq, setOpenFaq] = useState(null);
@@ -128,6 +129,12 @@ const HelpWidget = ({ zIndex = 600 }) => {
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: '14px 14px 10px' }}>
+            {onStartTour && (
+              <button type="button" onClick={() => { setOpen(false); onStartTour(); }} style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12, height: 44, borderRadius: 12, cursor: 'pointer',
+                background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}><Compass size={15} /> Take the Quick Tour</button>
+            )}
             {tab === 'faq' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {FAQS.map((f, i) => {

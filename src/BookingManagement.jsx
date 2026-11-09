@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { recordPaymentWithPassword } from './paymentPassword';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { SearchX, ClipboardList } from 'lucide-react';
 import { toast, reportError } from './ui/toast';
-import { sendBookingStatusEmail, sendWaitlistOpeningsEmail } from "./Email";
+import { sendBookingStatusEmail, sendWaitlistOpeningsEmail, sendCustomEmail } from "./Email";
 import { notifyUser } from './notifications';
 import { formatPeso, CANCELLATION_APPROVAL_HOURS } from './tourUtils';
-import { Search, MapPin, Eye, AlertCircle, ChevronDown, Wallet, Clock } from 'lucide-react';
+import { Search, MapPin, Eye, AlertCircle, ChevronDown, Wallet, Clock, Bell, Loader2 } from 'lucide-react';
+import { confirmDialog } from './ui/ConfirmDialog';
 import { SkeletonTable } from './ui/Skeleton';
 import { StatusBadge, BalanceStatusBadge, PaymentMethodBadge } from './BookingBadges';
 import { getBalanceStatus, balanceOwed, owesBalance, getShownStatus } from './bookingStatus';
@@ -40,6 +42,10 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
   const [methodFilter, setMethodFilter] = useState('All Methods');
   const [tourFilter, setTourFilter] = useState('All Tours');
   const [dateFilter, setDateFilter] = useState('');
+  const [rangeFilter, setRangeFilter] = useState(''); // '' | 'next7' (tours in the next 7 days) | 'bookedMonth' (booked this month)
+  // Saved filters: the admin's own quick views (remembered on this device).
+  const [savedFilters, setSavedFilters] = useState(() => { try { return JSON.parse(localStorage.getItem('ibayo:booking-filters') || '[]'); } catch { return []; } });
+  const storeFilters = (list) => { setSavedFilters(list); try { localStorage.setItem('ibayo:booking-filters', JSON.stringify(list)); } catch { /* private mode */ } };
   const [selectedBooking, setSelectedBooking] = useState(null);
   // Opened from a notification: show that booking's details once loaded.
   useOpenOnce(openBookingId, bookings, (b) => { setSelectedBooking(b); if (openSection) flashFocus(openSection); });
@@ -155,7 +161,12 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
     const matchesMethod = methodFilter === 'All Methods' || b.payment_method === methodFilter;
     const matchesTour = activeTourFilter === 'All Tours' || String(b.tour_id) === String(activeTourFilter);
     const matchesDate = !dateFilter || b.tours?.start_date === dateFilter;
-    return matchesSearch && matchesStatus && matchesMethod && matchesTour && matchesDate;
+    const today = new Date(now).toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+    const in7 = new Date(now + 7 * 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+    const matchesRange = !rangeFilter
+      || (rangeFilter === 'next7' && b.tours?.start_date >= today && b.tours?.start_date <= in7)
+      || (rangeFilter === 'bookedMonth' && String(b.created_at || '').slice(0, 7) === today.slice(0, 7));
+    return matchesSearch && matchesStatus && matchesMethod && matchesTour && matchesDate && matchesRange;
   });
   // Who still owes: soonest tour first.
   if (statusFilter === 'Balance Due') {
@@ -174,6 +185,53 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
 
   const balancesDue = bookings.filter(owesBalance);
   const totalBalanceDue = balancesDue.reduce((sum, b) => sum + balanceOwed(b), 0);
+
+  // Quick views: set every filter at once; save the current filters under a name.
+  const applyView = (f) => {
+    setSearchTerm(f.searchTerm || '');
+    setStatusFilter(f.statusFilter || 'All Status');
+    setMethodFilter(f.methodFilter || 'All Methods');
+    setTourFilter(f.tourFilter || 'All Tours');
+    setDateFilter(f.dateFilter || '');
+    setRangeFilter(f.rangeFilter || '');
+  };
+  const saveView = async () => {
+    const name = await confirmDialog({
+      title: 'Save these filters',
+      message: 'Give this view a name. It shows as a quick view here (on this device).',
+      reasonLabel: 'Name (e.g. "Baguio unpaid")',
+      confirmLabel: 'Save View', cancelLabel: 'Cancel',
+    });
+    if (!name) return;
+    const view = { name: name.slice(0, 40), f: { searchTerm, statusFilter, methodFilter, tourFilter, dateFilter, rangeFilter } };
+    storeFilters([...savedFilters.filter((v) => v.name !== view.name), view]);
+    toast.success('View saved', `"${view.name}" is now a quick view.`);
+  };
+
+  // One click: remind everyone who still owes a balance (in-app + email).
+  const [reminding, setReminding] = useState(false);
+  const remindAll = async () => {
+    const list = balancesDue.filter((b) => b.user_id);
+    if (!list.length) return;
+    if (!(await confirmDialog({
+      title: `Remind ${list.length} joiner${list.length === 1 ? '' : 's'} about their balance?`,
+      message: 'Each gets a notification and an email with the amount they still owe and how to pay it.',
+      confirmLabel: 'Send Reminders', cancelLabel: 'Cancel',
+    }))) return;
+    setReminding(true);
+    let sent = 0;
+    for (const b of list) {
+      const amount = formatPeso(balanceOwed(b));
+      const tour = b.tours?.title || 'your tour';
+      const message = `Reminder: you still owe ${amount} for ${tour} (${b.booking_number}). You can pay it online in My Bookings (Pay Balance), or with our team before the trip.`;
+      // (one at a time, so the email service isn't flooded)
+      await notifyUser(b.user_id, { title: 'Balance reminder', message, type: 'booking', related_id: b.id });
+      sendCustomEmail({ userId: b.user_id, subject: `Reminder: ${amount} balance for ${tour}`, message }).catch(() => {});
+      sent += 1;
+    }
+    setReminding(false);
+    toast.success('Reminders sent', `${sent} joiner${sent === 1 ? '' : 's'} reminded.`);
+  };
  
   // ── shared input style ──
   const inputStyle = {
@@ -206,6 +264,17 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
   }, []);
 
   // ── grid column template shared by header + rows ──
+  const [section, setSection] = useState(openSection?.startsWith('refund') ? 'refunds' : 'bookings'); // Bookings | Refunds
+  // How many refunds need someone (shown on the Refunds tab).
+  const [refundCount, setRefundCount] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      supabase.from('bookings').select('id', { count: 'exact', head: true }).in('weather_refund_status', ['Due', 'Refunding']),
+      supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('weather_refund_status', 'Sent').eq('weather_refund_received', 'not_received'),
+    ]).then(([a, b]) => { if (alive) setRefundCount((a.count || 0) + (b.count || 0)); }, () => {});
+    return () => { alive = false; };
+  }, [section]);
   const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 170px 140px';
  
   return (
@@ -214,8 +283,21 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
  
+      {/* ── Two parts: Bookings, and Refunds (sent manually through GCash) ── */}
+      <div role="tablist" aria-label="Booking Management" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%', marginBottom: 16 }}>
+        {[['bookings', 'Bookings'], ['refunds', 'Refunds']].map(([key, label]) => (
+          <button key={key} type="button" role="tab" aria-selected={section === key} onClick={() => setSection(key)} style={{
+            border: 'none', borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'inherit',
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            background: section === key ? '#1A0A00' : 'transparent', color: section === key ? '#FDF6EE' : '#5C2A10',
+          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
+        ))}
+      </div>
+
       {/* ── 50% refunds to send after a weather postponement or cancellation ── */}
-      <WeatherRefunds />
+      {section === 'refunds' && <WeatherRefunds standalone />}
+
+      <div style={{ display: section === 'bookings' ? 'contents' : 'none' }}>
 
       {/* ── Cancellation requests waiting for an answer ── */}
       {pendingCancels.length > 0 && (
@@ -276,8 +358,48 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           >
             {statusFilter === 'Balance Due' ? 'Show all bookings' : 'Show who owes'}
           </button>
+          <button type="button" onClick={remindAll} disabled={reminding} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 12,
+            padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+            letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
+          }}>{reminding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Bell size={13} />} Remind All</button>
         </div>
       )}
+
+      {/* ── Quick views (built in + saved) ── */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#5C2A10' }}>Quick views:</span>
+        {[
+          { name: 'Unpaid balances', f: { statusFilter: 'Balance Due' } },
+          { name: 'Payments to check', f: { statusFilter: 'Verification Pending' } },
+          { name: 'Tours in the next 7 days', f: { rangeFilter: 'next7' } },
+          { name: 'Booked this month', f: { rangeFilter: 'bookedMonth' } },
+          ...savedFilters.map((v) => ({ ...v, saved: true })),
+        ].map((v) => {
+          const f = { searchTerm: '', statusFilter: 'All Status', methodFilter: 'All Methods', tourFilter: 'All Tours', dateFilter: '', rangeFilter: '', ...v.f };
+          const on = f.searchTerm === searchTerm && f.statusFilter === statusFilter && f.methodFilter === methodFilter
+            && String(f.tourFilter) === String(tourFilter) && f.dateFilter === dateFilter && f.rangeFilter === rangeFilter;
+          return (
+            <span key={`${v.saved ? 's' : 'b'}-${v.name}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <button type="button" aria-pressed={on} onClick={() => applyView(on ? {} : f)} style={{
+                height: 34, padding: v.saved ? '0 8px 0 13px' : '0 13px', borderRadius: v.saved ? '999px 0 0 999px' : 999, cursor: 'pointer', fontFamily: 'inherit',
+                fontWeight: 800, fontSize: 12, border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.3)'}`, borderRight: v.saved ? 'none' : undefined,
+                background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#FDF6EE' : '#5C2A10',
+              }}>{v.saved ? '★ ' : ''}{v.name}</button>
+              {v.saved && (
+                <button type="button" aria-label={`Remove saved view ${v.name}`} onClick={() => storeFilters(savedFilters.filter((x) => x.name !== v.name))} style={{
+                  height: 34, padding: '0 9px', borderRadius: '0 999px 999px 0', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
+                  border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.3)'}`, borderLeft: 'none', background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#FDF6EE' : '#8C2F1C',
+                }}>×</button>
+              )}
+            </span>
+          );
+        })}
+        <button type="button" onClick={saveView} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
+          + Save these filters
+        </button>
+      </div>
 
       {/* ── Filters ── */}
       <div style={{
@@ -396,12 +518,12 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
                 ))
               ) : (
                 <div style={{ gridColumn: '1 / -1' }}>
-                  {(searchTerm || statusFilter !== 'All Status' || methodFilter !== 'All Methods' || activeTourFilter !== 'All Tours' || dateFilter) ? (
+                  {(searchTerm || statusFilter !== 'All Status' || methodFilter !== 'All Methods' || activeTourFilter !== 'All Tours' || dateFilter || rangeFilter) ? (
                     <EmptyState
                       icon={SearchX}
                       title="No bookings match your filters"
                       message="Try another search, status, payment type, tour or date."
-                      action={{ label: 'Clear Filters', onClick: () => { setSearchTerm(''); setStatusFilter('All Status'); setMethodFilter('All Methods'); setTourFilter('All Tours'); setDateFilter(''); } }}
+                      action={{ label: 'Clear Filters', onClick: () => { setSearchTerm(''); setStatusFilter('All Status'); setMethodFilter('All Methods'); setTourFilter('All Tours'); setDateFilter(''); setRangeFilter(''); } }}
                     />
                   ) : (
                     <EmptyState icon={ClipboardList} title="No bookings yet" message="When joiners book a tour, their bookings will show up here for you to manage." />
@@ -414,6 +536,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       </div>
  
       </div>
+      </div>
  
       {selectedBooking && (
         <BookingDetailModal
@@ -423,10 +546,17 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           onStatusUpdate={async (id, status) => {
             const newBookingStatus = status === 'Confirmed' ? 'Completed' : 'Cancelled';
             const newPaymentStatus = status === 'Confirmed' ? 'Complete' : 'Rejected';
-            const { error } = await supabase.from('bookings').update({
-              booking_status: newBookingStatus,
-              payment_status: newPaymentStatus,
-            }).eq('id', id);
+            let error = null;
+            if (status === 'Confirmed') {
+              // Money received: confirmed with the admin's password (and logged for the main admin).
+              const ok = await recordPaymentWithPassword({ table: 'bookings', id, changes: { booking_status: newBookingStatus, payment_status: newPaymentStatus }, what: `the payment for ${selectedBooking.booking_number}` });
+              if (!ok) return;
+            } else {
+              ({ error } = await supabase.from('bookings').update({
+                booking_status: newBookingStatus,
+                payment_status: newPaymentStatus,
+              }).eq('id', id));
+            }
  
             if (!error) {
               sendBookingStatusEmail({ bookingId: id });
@@ -450,14 +580,17 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             }
           }}
           onSettleBalance={async (id, fullAmount) => {
-            const { data, error } = await supabase.from('bookings').update({
-              balance_settled: true,
-              balance_settled_at: new Date().toISOString(),
-              amount_paid: fullAmount,
-            }).eq('id', id).select(`
+            // Money received: confirmed with the admin's password (and logged for the main admin).
+            const ok = await recordPaymentWithPassword({
+              table: 'bookings', id,
+              changes: { balance_settled: true, balance_settled_at: new Date().toISOString(), amount_paid: fullAmount },
+              what: `the balance for ${selectedBooking.booking_number}`,
+            });
+            if (!ok) return null;
+            const { data, error } = await supabase.from('bookings').select(`
               *,
               tours ( title, destination, start_date, duration, price )
-            `).single();
+            `).eq('id', id).single();
  
             if (!error) {
               toast.success('Balance marked as paid', `${selectedBooking.booking_number} is now paid in full.`);

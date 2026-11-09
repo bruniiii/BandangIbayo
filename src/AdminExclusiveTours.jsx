@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { recordPaymentWithPassword } from './paymentPassword';
+import StatusFilter from './ui/StatusFilter';
+import { STATUS_COLORS } from './ui/statusColors';
 import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
@@ -46,18 +49,9 @@ const formatDateTime = (d) => {
   return new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-const STATUS_STYLES = {
-  'For Approval': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  // Approved, but the joiner didn't pay the downpayment within 24 hours.
-  Unpaid: { bg: 'rgba(26,10,0,0.08)', color: '#7A3A18' },
-  'Downpayment Paid': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
-  'Fully Paid': { bg: 'rgba(122,58,24,0.16)', color: '#7A3A18' },
-};
+const STATUS_STYLES = { ...STATUS_COLORS, Pending: STATUS_COLORS['For Approval'] };
 
-// Exclusive tours are confirmed once the joiner pays 50% of the package price,
+// Private tours are confirmed once the joiner pays 50% of the package price,
 // and fully paid once the balance is in too.
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
 // For Approval (just sent) → Approved → Tour Confirmed (package sent), or
@@ -75,15 +69,16 @@ const reviewDeadline = (request) => {
 };
 
 const StatusBadge = ({ status, large = false }) => {
-  const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
+  const { bg, color, dot } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
-      background: large ? color : bg,
-      color: large ? '#FDF6EE' : color,
+      background: large ? (status === 'Fully Paid' ? bg : color) : bg,
+      color: large ? '#FFFFFF' : color,
+      border: large ? 'none' : `1px solid ${dot}`,
       borderRadius: 999,
       padding: large ? '7px 18px' : '4px 12px',
-      fontSize: large ? 11 : 9,
+      fontSize: large ? 11 : 10.5,
       fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
@@ -101,7 +96,7 @@ const TypeBadge = ({ type, dark = false }) => (
     fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
   }}>
     {type === 'exclusive' ? <Shield size={11} /> : <Globe size={11} />}
-    {type === 'exclusive' ? 'Exclusive' : 'Request'}
+    {type === 'exclusive' ? 'Private' : 'Request'}
   </span>
 );
 
@@ -119,9 +114,9 @@ const inputStyle = {
 };
 
 /* ─────────────────────────────────────────────
-   ADMIN EXCLUSIVE / REQUESTED TOURS
+   ADMIN PRIVATE / REQUESTED TOURS
 ───────────────────────────────────────────── */
-// type: 'exclusive' (Exclusive Tours page) or 'request' (Requested Tours page).
+// type: 'exclusive' (Private Tours page) or 'request' (Requested Tours page).
 const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
   const isExclusivePage = type === 'exclusive';
   const [requests, setRequests] = useState([]);
@@ -143,7 +138,7 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      reportError("Couldn't load exclusive requests", error.message);
+      reportError("Couldn't load private tour requests", error.message);
       setLoading(false);
       return;
     }
@@ -207,31 +202,13 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
         </div>
 
         {/* ── Status toggle: show one status at a time ── */}
-        <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '-8px 0 20px' }}>
-          {['All Status', 'For Approval', 'Approved', 'Tour Confirmed', ...(isExclusivePage ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected'].map((st) => {
-            const on = statusFilter === st;
-            const count = st === 'All Status' ? requests.length : requests.filter((r) => shownStatus(r) === st || requestPaymentLabel(r) === st).length;
-            const tone = STATUS_STYLES[st];
-            return (
-              <button
-                key={st} type="button" role="tab" aria-selected={on} onClick={() => setStatusFilter(st)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8, height: 38, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
-                  fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#E8A265' : '#7A3A18',
-                  border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.2)'}`,
-                  boxShadow: on ? '0 6px 16px rgba(26,10,0,0.18)' : 'none', transition: 'background 0.15s, color 0.15s',
-                }}
-              >
-                {st === 'All Status' ? 'All' : st}
-                <span style={{
-                  minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10.5, letterSpacing: 0, background: on ? 'rgba(232,162,101,0.2)' : (tone?.bg || 'rgba(180,81,30,0.1)'), color: on ? '#E8A265' : (tone?.color || '#A8481A'),
-                }}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
+        <StatusFilter
+          style={{ margin: '-8px 0 20px' }}
+          statuses={['All Status', 'For Approval', 'Approved', 'Tour Confirmed', ...(isExclusivePage ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected']}
+          value={statusFilter}
+          onChange={setStatusFilter}
+          count={(st) => (st === 'All Status' ? requests.length : requests.filter((r) => shownStatus(r) === st || requestPaymentLabel(r) === st).length)}
+        />
 
         {/* ── List ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -246,7 +223,7 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
                 action={{ label: 'Clear Filters', onClick: () => { setSearchQuery(''); setStatusFilter('All Status'); } }}
               />
             ) : (
-              <EmptyState icon={Inbox} title="No requests yet" message={isExclusivePage ? 'Exclusive tour requests from joiners will show up here.' : 'Tour requests (new destinations) from joiners will show up here.'} />
+              <EmptyState icon={Inbox} title="No requests yet" message={isExclusivePage ? 'Private tour requests from joiners will show up here.' : 'Tour requests (new destinations) from joiners will show up here.'} />
             )
           ) : (
             filtered.map(r => (
@@ -355,11 +332,13 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
     if (!(await confirmDialog({ ...confirm, cancelLabel: 'Go Back' }))) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('exclusive_requests')
-        .update({ ...update, updated_at: new Date().toISOString() })
-        .eq('id', request.id);
-      if (error) throw error;
+      // Money received: confirmed with the admin's password (and logged for the main admin).
+      const ok = await recordPaymentWithPassword({
+        table: 'exclusive_requests', id: request.id,
+        changes: { ...update, updated_at: new Date().toISOString() },
+        what: `the payment for ${request.full_name || 'this request'}'s private tour`,
+      });
+      if (!ok) return;
       if (request.user_id) {
         await notifyUser(request.user_id, { ...notify, type: 'exclusive_request', related_id: request.id });
       }
@@ -375,15 +354,15 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
   const markDownpaymentPaid = () => record({
     confirm: {
       title: 'Mark downpayment as paid?',
-      message: `Only do this if the joiner paid ${formatPeso(downpayment)} another way (cash, bank transfer). Their exclusive tour will show as Confirmed.`,
+      message: `Only do this if the joiner paid ${formatPeso(downpayment)} another way (cash, bank transfer). Their private tour will show as Confirmed.`,
       confirmLabel: 'Mark as Paid',
     },
     update: { payment_status: 'Paid', downpayment_amount: downpayment, amount_paid: downpayment, paid_at: new Date().toISOString() },
     notify: {
-      title: 'Exclusive Tour Confirmed 🎉',
+      title: 'Private Tour Confirmed 🎉',
       message: price > 0
-        ? `We received your ${formatPeso(downpayment)} downpayment for your exclusive tour to ${request.destination}. Your booking is confirmed. You can pay the remaining ${formatPeso(Math.max(0, price - downpayment))} online under Exclusive Tours, or settle it with our team before the trip.`
-        : `We received your ${formatPeso(downpayment)} downpayment for your exclusive tour to ${request.destination}. Your booking is confirmed! We're now preparing your tour package; you'll be notified once it's ready.`,
+        ? `We received your ${formatPeso(downpayment)} downpayment for your private tour to ${request.destination}. Your booking is confirmed. You can pay the remaining ${formatPeso(Math.max(0, price - downpayment))} online under Private Tours, or settle it with our team before the trip.`
+        : `We received your ${formatPeso(downpayment)} downpayment for your private tour to ${request.destination}. Your booking is confirmed! We're now preparing your tour package; you'll be notified once it's ready.`,
     },
     done: 'Downpayment recorded',
   });
@@ -391,13 +370,13 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
   const markBalancePaid = () => record({
     confirm: {
       title: 'Mark balance as paid?',
-      message: `Only do this if the joiner paid the remaining ${formatPeso(balance)} another way (cash, bank transfer). Their exclusive tour will show as Fully Paid.`,
+      message: `Only do this if the joiner paid the remaining ${formatPeso(balance)} another way (cash, bank transfer). Their private tour will show as Fully Paid.`,
       confirmLabel: 'Mark Balance Paid',
     },
     update: { balance_settled: true, balance_amount: balance, amount_paid: paidAmount + balance, balance_paid_at: new Date().toISOString() },
     notify: {
-      title: 'Exclusive Tour Fully Paid ✅',
-      message: `Your balance payment of ${formatPeso(balance)} has been confirmed. Your exclusive tour to ${request.destination} is fully paid. See you on the trip!`,
+      title: 'Private Tour Fully Paid ✅',
+      message: `Your balance payment of ${formatPeso(balance)} has been confirmed. Your private tour to ${request.destination} is fully paid. See you on the trip!`,
     },
     done: 'Balance recorded',
   });
@@ -488,7 +467,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
   // A requested tour: its package is posted on Explore Tours, with the
   // requester's slots held for 2 days (see PackageTourForm).
   const isOpenRequest = request.request_type === 'request';
-  // Exclusive: the package waits for the downpayment (24 hours after approval).
+  // Private: the package waits for the downpayment (24 hours after approval).
   const dp = exclusiveDownpayment(request);
   const deadline = reviewDeadline(request);
   const people = Array.isArray(request.participants) ? request.participants : [];
@@ -527,14 +506,14 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       if (updateError) throw updateError;
 
       // ── Notify the joiner ──
-      const typeLabel = isExclusive ? 'Exclusive Tour' : 'Tour Request';
+      const typeLabel = isExclusive ? 'Private Tour' : 'Tour Request';
       const title = newStatus === 'Approved'
         ? `${typeLabel} Approved 🎉`
         : `${typeLabel} Update`;
 
       const message = newStatus === 'Approved'
         ? (isExclusive
-          ? `Great news! Your exclusive tour request for ${request.destination} has been approved. To continue, pay the ${formatPeso(Math.round((Number(request.budget) || 0) * 50) / 100)} downpayment (50% of your budget) within 24 hours in Exclusive Tours. Then we'll prepare your tour package.`
+          ? `Great news! Your private tour request for ${request.destination} has been approved. To continue, pay the ${formatPeso(Math.round((Number(request.budget) || 0) * 50) / 100)} downpayment (50% of your budget) within 24 hours in Private Tours. Then we'll prepare your tour package.`
           : `Great news! Your request to add ${request.destination} has been approved and will be opened for booking on Explore Tours soon, with your slots held for you.`)
         : `Your ${typeLabel.toLowerCase()} for ${request.destination} was not approved. Reason: ${rejectText}`;
 
@@ -579,7 +558,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       }}>
         <ModalHeader
           name={request.full_name}
-          label={isExclusive ? 'Exclusive Tour Request' : 'Tour Request'}
+          label={isExclusive ? 'Private Tour Request' : 'Tour Request'}
           title={request.full_name || 'Joiner'}
           onClose={onClose}
         >
@@ -718,7 +697,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               </p>
               {isExclusive && packageSentAt && request.payment_status === 'Paid' && !pkg.tour_id && (
                 <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
-                  This paid exclusive tour isn't on the Calendar, Tracking or the joiner's My Bookings yet (it was paid before that update).
+                  This paid private tour isn't on the Calendar, Tracking or the joiner's My Bookings yet (it was paid before that update).
                   Click <strong>Edit & Resend Package</strong> once to add it. If another tour is on those days, the website says which one: move that tour or these dates first.
                 </p>
               )}

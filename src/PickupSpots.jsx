@@ -66,6 +66,26 @@ const PickupSpots = ({ onClose, onChanged }) => {
     load(); onChanged?.();
   };
 
+  const spotForm = (
+    <div style={{ background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 16, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+        {editing ? `Change ${editing.name}` : 'Add a pickup spot'}
+      </p>
+      <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Name joiners see</span>
+        <input name="spot_name" value={name} maxLength={120} placeholder="e.g. Petron NLEX Bocaue" style={input} onChange={(e) => setName(e.target.value)} />
+      </label>
+      <PlaceSearch label="Where it is" name="spot_place" value={place} onChange={setPlace} placeholder="Search the place, e.g. Petron Bocaue NLEX" allowCurrent />
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+        {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(180,81,30,0.25)', background: 'transparent', color: '#7A3A18', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
+        <button type="button" onClick={save} disabled={saving || !name.trim() || !place} title={name.trim() && place ? undefined : 'Type the name and find the place first'} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none', cursor: name.trim() && place ? 'pointer' : 'not-allowed', opacity: name.trim() && place ? 1 : 0.5,
+          background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+        }}>{saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />} {editing ? 'Save Changes' : 'Add Spot'}</button>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
@@ -87,23 +107,8 @@ const PickupSpots = ({ onClose, onChanged }) => {
           <RouteMap route={null} others={(spots || []).map((s) => ({ name: s.name, lat: s.lat, lng: s.lng }))} stops={place ? [{ name: name || 'New spot', lat: place.lat, lng: place.lng }] : []} height={260} />
         </Suspense>
 
-        <div style={{ background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 16, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
-            {editing ? `Change ${editing.name}` : 'Add a pickup spot'}
-          </p>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Name joiners see</span>
-            <input name="spot_name" value={name} maxLength={120} placeholder="e.g. Petron NLEX Bocaue" style={input} onChange={(e) => setName(e.target.value)} />
-          </label>
-          <PlaceSearch label="Where it is" name="spot_place" value={place} onChange={setPlace} placeholder="Search the place, e.g. Petron Bocaue NLEX" allowCurrent />
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(180,81,30,0.25)', background: 'transparent', color: '#7A3A18', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
-            <button type="button" onClick={save} disabled={saving || !name.trim() || !place} title={name.trim() && place ? undefined : 'Type the name and find the place first'} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none', cursor: name.trim() && place ? 'pointer' : 'not-allowed', opacity: name.trim() && place ? 1 : 0.5,
-              background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
-            }}>{saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />} {editing ? 'Save Changes' : 'Add Spot'}</button>
-          </div>
-        </div>
+        {/* Adding: right here. Changing a saved spot: in its own window (below). */}
+        {!editing && spotForm}
 
         <div>
           <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
@@ -130,6 +135,20 @@ const PickupSpots = ({ onClose, onChanged }) => {
           )}
         </div>
       </div>
+
+      {/* Changing a saved spot opens in its own window */}
+      {editing && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.55)' }} onClick={reset} />
+          <div role="dialog" aria-modal="true" aria-label={`Change ${editing.name}`} style={{
+            position: 'relative', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', background: '#FDF6EE',
+            borderRadius: 20, borderTop: '6px solid #B4511E', padding: '1.25rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)',
+          }}>
+            <button type="button" onClick={reset} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+            {spotForm}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

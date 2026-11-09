@@ -368,7 +368,7 @@ function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 24 }}>
             {[
               { icon: <Users size={32} strokeWidth={1.6}/>, title: 'Joiner Tour', desc: 'Share a van and accommodation with other travelers. Perfect for solo adventurers on a budget.', tag: 'Most Popular', accent: '#A8481A' },
-              { icon: <Map size={32} strokeWidth={1.6}/>, title: 'Exclusive Tour', desc: 'Book the entire vehicle for your group. Keep your itinerary private and travel at your own pace.', tag: 'For Groups', accent: '#7A3A18' },
+              { icon: <Map size={32} strokeWidth={1.6}/>, title: 'Private Tour', desc: 'Book the entire vehicle for your group. Keep your itinerary private and travel at your own pace.', tag: 'For Groups', accent: '#7A3A18' },
               { icon: <Globe size={32} strokeWidth={1.6}/>, title: 'Request a Tour', desc: 'Have a destination in mind that isn\'t listed? Submit a custom request and we\'ll price it for you.', tag: 'Custom', accent: '#9A5B1E' },
             ].map((t, i) => (
               <div key={i} className="type-card" style={{

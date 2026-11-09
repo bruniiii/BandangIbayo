@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, MapPin, ImageIcon, Users, Eye, Bell, Sparkles, MessagesSquare, Globe, Inbox } from 'lucide-react';
+import Walkthrough from './ui/Walkthrough';
+import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
+import Feedback from './Feedback';
+import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, MapPin, ImageIcon, Users, Eye, Bell, Sparkles, MessagesSquare, Globe, Inbox, MessageSquareHeart } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, currentUser } from './supabaseClient';
 import { myBookingForNotification, tourForNotification } from './notificationTarget';
@@ -29,7 +32,6 @@ import { useChatUnread, OPEN_CHAT } from './chatStore';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
 import { profileIsComplete } from './googleAuth';
-import MenuEdgeTab from './ui/MenuEdgeTab';
 import InstallAppCard from './ui/InstallAppCard';
 import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory, tabFromUrl } from './useTabHistory';
@@ -57,9 +59,10 @@ const NAV_ITEMS = [
   { icon: <MessagesSquare size={18} strokeWidth={2} />, label: 'Messages' },
   { icon: <CalendarIcon size={18} strokeWidth={2} />,label: 'Calendar' },
   { icon: <Clock size={18} strokeWidth={2} />,       label: 'Tracking' },
-  { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Exclusive Tours' },
+  { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Private Tours' },
   { icon: <Globe size={18} strokeWidth={2} />,       label: 'Request a Tour' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
+  { icon: <MessageSquareHeart size={18} strokeWidth={2} />, label: 'Feedback' },
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
   { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
 ];
@@ -78,14 +81,27 @@ const PAGE_INFO = {
   'Messages':         { icon: MessagesSquare, title: 'Messages',         subtitle: 'Chat with your tour group, and read messages from Bandang IBAYO' },
   'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
   'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
-  'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: 'Book a private group trip, just for your group' },
+  'Private Tours':  { icon: MapIcon,      title: 'Private Tours',  subtitle: 'Book a private group trip, just for your group' },
   'Request a Tour':   { icon: Globe,        title: 'Request a Tour',   subtitle: "Suggest a destination we don't offer yet" },
   'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
+  'Feedback':         { icon: MessageSquareHeart, title: 'Feedback', subtitle: 'Tell us how to make the website better' },
   'Profile Settings': { icon: User,         title: 'Profile Settings', subtitle: 'Manage your account information and preferences' },
   'Notification':     { icon: Bell,         title: 'Notifications',    subtitle: 'Updates on your bookings, requests & account' },
 };
 
 const JoinerDashboard = () => {
+  const [tourOpen, setTourOpen] = useState(false);
+  const tourUser = useRef(null);
+  useEffect(() => {
+    currentUser().then((u) => {
+      tourUser.current = u?.id || null;
+      try { if (u && !localStorage.getItem(walkthroughKey(u.id, 'joiner'))) setTourOpen(true); } catch { /* private mode */ }
+    });
+  }, []);
+  const closeTour = () => {
+    setTourOpen(false);
+    try { localStorage.setItem(walkthroughKey(tourUser.current, 'joiner'), '1'); } catch { /* private mode */ }
+  };
   // A public tour page's "Book" button lands here as /dashboard?book=<tourId>.
   const [searchParams, setSearchParams] = useSearchParams();
   const [bookTourId, setBookTourId] = useState(() => searchParams.get('book'));
@@ -95,14 +111,14 @@ const JoinerDashboard = () => {
     const kind = searchParams.has('payment') ? 'payment' : searchParams.has('balance') ? 'balance' : null;
     return kind ? { kind, result: searchParams.get(kind), bookingId: searchParams.get('booking') } : null;
   });
-  // ...or /dashboard?exclusive=success|cancelled&request=<id> after an exclusive tour downpayment.
+  // ...or /dashboard?exclusive=success|cancelled&request=<id> after a private tour downpayment.
   const [exclusiveReturn] = useState(() => (searchParams.has('exclusive')
     ? { result: searchParams.get('exclusive'), requestId: searchParams.get('request') } : null));
   const [paymentNotice, setPaymentNotice] = useState(paymentReturn || exclusiveReturn ? { type: 'info', text: 'Checking your payment…' } : null);
   const [exclusiveKey, setExclusiveKey] = useState(0);
   const [exclusiveStart, setExclusiveStart] = useState(null); // { form, date } from the calendar
   const [myBookingsKey, setMyBookingsKey] = useState(0);
-  const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Exclusive Tours' : bookTourId ? 'Explore Tours'
+  const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Private Tours' : bookTourId ? 'Explore Tours'
     : tabFromUrl(JOINER_BASE, JOINER_TABS) || readTab(TAB_KEY, JOINER_TABS, 'HomePage')));
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
@@ -187,20 +203,20 @@ const JoinerDashboard = () => {
     return () => { active = false; };
   }, [paymentReturn]);
 
-  // Exclusive tour downpayment or balance: check it with PayMongo, then show the result.
+  // Private tour downpayment or balance: check it with PayMongo, then show the result.
   useEffect(() => {
     if (!exclusiveReturn?.requestId) return;
     let active = true;
     (async () => {
       let notice;
       if (exclusiveReturn.result === 'cancelled') {
-        notice = { type: 'info', text: 'Payment cancelled. You can pay anytime from your request under Exclusive Tours.' };
+        notice = { type: 'info', text: 'Payment cancelled. You can pay anytime from your request under Private Tours.' };
       } else {
         const { ok, data, error } = await verifyExclusivePayment({ requestId: exclusiveReturn.requestId });
         if (!ok) notice = { type: 'error', text: `We couldn't check your payment yet (${error}). It will update automatically once PayMongo confirms it.` };
         else if (data?.status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your payment yet. If you paid, it will show here once PayMongo confirms it.' };
-        else if (data?.kind === 'exclusive_balance') notice = { type: 'success', text: 'Balance received! Your exclusive tour is fully paid. ✅' };
-        else notice = { type: 'success', text: 'Downpayment received! Your exclusive tour is confirmed. 🎉' };
+        else if (data?.kind === 'exclusive_balance') notice = { type: 'success', text: 'Balance received! Your private tour is fully paid. ✅' };
+        else notice = { type: 'success', text: 'Downpayment received! Your private tour is confirmed. 🎉' };
       }
       if (!active) return;
       setPaymentNotice(notice);
@@ -300,9 +316,9 @@ const JoinerDashboard = () => {
     return () => window.removeEventListener(OPEN_CHAT, open);
   });
 
-  // A notification about a request opens Exclusive Tours or Request a Tour, whichever it's on.
+  // A notification about a request opens Private Tours or Request a Tour, whichever it's on.
   const openRequestPage = async (requestId) => {
-    let page = 'Exclusive Tours';
+    let page = 'Private Tours';
     if (requestId) {
       const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
       if (data?.request_type === 'request') page = 'Request a Tour';
@@ -522,7 +538,7 @@ const JoinerDashboard = () => {
         .limit(12);
 
       // One card per trip; its other dates are picked in the booking window.
-      const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* exclusive tours: My Bookings only */;
+      const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* private tours: My Bookings only */;
 
       setFeaturedTours(updatedTours);
     } catch (err) {
@@ -586,10 +602,12 @@ const JoinerDashboard = () => {
 
       {/* ── SIDEBAR ── */}
       {/* edge tab: opens the menu from anywhere on the page */}
-      {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
+      {/* (The menu button stays at the top now, so the edge tab isn't needed.) */}
 
       {/* Help: FAQ and user guide (not on Group Chat, where it would cover the send button) */}
-      {activeTab !== 'Messages' && !mobileNavOpen && <HelpWidget zIndex={95} />}
+      {activeTab !== 'Messages' && !mobileNavOpen && <HelpWidget zIndex={95} onStartTour={() => setTourOpen(true)} />}
+      {/* First-time walkthrough of the menu (once per account on this device) */}
+      <Walkthrough steps={JOINER_STEPS} open={tourOpen} onClose={closeTour} onMenu={setMobileNavOpen} />
 
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
@@ -729,7 +747,7 @@ const JoinerDashboard = () => {
 
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
-          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
               <button
@@ -804,104 +822,50 @@ const JoinerDashboard = () => {
 
               <InstallAppCard />
 
-              {/* hero banner */}
-              <div style={{
-                position: 'relative',
-                background: '#1A0A00',
-                borderRadius: 24,
-                padding: '3.5rem',
-                overflow: 'hidden',
-                boxShadow: '0 16px 40px rgba(26,10,0,0.22)',
-                borderBottom: '6px solid #B4511E',
-              }} className="dashboard-hero-padding">
-                <div style={{
-                  position: 'absolute', top: 0, right: 0,
-                  width: '40%', height: '100%',
-                  background: 'radial-gradient(ellipse at top right, rgba(180,81,30,0.18) 0%, transparent 70%)',
-                  pointerEvents: 'none',
-                }} />
-                <Compass
-                  size={280}
-                  style={{
-                    position: 'absolute', right: -40, bottom: -40,
-                    color: 'rgba(255,255,255,0.04)',
-                    transform: 'rotate(12deg)',
-                  }}
-                />
-
-                <div style={{ position: 'relative', zIndex: 1, maxWidth: 650, display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', background: '#B4511E', borderRadius: 999, padding: '4px 12px', marginBottom: 10, width: 'fit-content' }}>
-                    <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#FDF6EE' }}>Your Budget Travel Partner</span>
-                  </div>
-                  <h2 style={{ fontWeight: 900, fontSize: '1.8rem', letterSpacing: '-0.02em', lineHeight: 1.1, color: '#FDF6EE', margin: '0 0 10px' }}>
-                    Adventure Awaits with <span className="font-accent" style={{ color: '#E8A265' }}>Bandang IBAYO</span>
-                  </h2>
-                  <p style={{ fontSize: 12.5, lineHeight: 1.5, fontWeight: 500, color: 'rgba(232,210,190,0.85)', margin: '0 0 16px', maxWidth: 620 }}>
-                    Our mission is to make everyone witness the beauty of the Philippines. Focusing exclusively on budget-friendly land tours and overland road trips, accommodating hassle-free road trip adventures completely by land tailored for every joiner.
-                  </p>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => setActiveTab('Exclusive Tours')}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5,
-                        background: '#E8A265', color: '#1A0A00', fontWeight: 900,
-                        fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-                        border: 'none', cursor: 'pointer', borderRadius: 8, padding: '10px 18px',
-                        fontFamily: 'inherit', transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#FDF6EE'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#E8A265'}
-                    >
-                      Plan a Trip
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* TRIP PULSE */}
-              <div style={{
-                position: 'relative',
-                background: '#1A0A00',
-                borderRadius: 24,
-                padding: isMobile ? '1.5rem 1.5rem' : '2rem 2.5rem',
-                overflow: 'hidden',
-                borderBottom: '4px solid #B4511E',
-                boxShadow: '0 12px 32px rgba(26,10,0,0.18)',
-              }}>
-                <Sparkles size={160} style={{
-                  position: 'absolute', right: -20, top: -30,
-                  color: 'rgba(255,255,255,0.03)', transform: 'rotate(-8deg)',
-                }} />
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
-                  <PulseStat
-                    icon={<Compass size={20} />}
-                    label="Upcoming Trips"
-                    value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : upcomingCount}
-                    subcopy={upcomingCount > 0
-                      ? "You've got something to look forward to"
-                      : 'Your next stamp is one tap away'}
-                    onClick={() => { setBookingsFilter('upcoming'); setActiveTab('My Bookings'); }}
-                  />
-                  <div style={isMobile ? { height: 1, background: 'rgba(255,255,255,0.08)', margin: '1rem 0' } : { width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 2.5rem' }} />
-                  <PulseStat
-                    icon={<Star size={20} />}
-                    label="Completed Tours"
-                    value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : completedCount}
-                    subcopy={completedCount > 0
-                      ? 'Adventures logged and loved'
-                      : 'First stories start with first trips'}
-                    onClick={() => { setBookingsFilter('completed'); setActiveTab('My Bookings'); }}
-                  />
-                </div>
-              </div>
-
-              {/* SPLIT GRID: tours on the left, a narrow rail (calendar, tracking, reviews) on the right.
+              {/* SPLIT GRID: trips and tours on the left, a narrow rail (calendar, tracking, requests) on the right.
                   Stacks into one column on tablets and phones. */}
               <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }}>
 
                 {/* LEFT COL */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                    {/* TRIP PULSE (top left; the calendar and Tracking sit beside it, so the page fits the screen) */}
+                    <div style={{
+                      position: 'relative',
+                      background: '#1A0A00',
+                      borderRadius: 24,
+                      padding: isMobile ? '1.25rem 1.25rem' : '1.5rem 2rem',
+                      overflow: 'hidden',
+                      borderBottom: '4px solid #B4511E',
+                      boxShadow: '0 12px 32px rgba(26,10,0,0.18)',
+                    }}>
+                      <Sparkles size={160} style={{
+                        position: 'absolute', right: -20, top: -30,
+                        color: 'rgba(255,255,255,0.03)', transform: 'rotate(-8deg)',
+                      }} />
+                      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
+                        <PulseStat
+                          icon={<Compass size={20} />}
+                          label="Upcoming Trips"
+                          value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : upcomingCount}
+                          subcopy={upcomingCount > 0
+                            ? "You've got something to look forward to"
+                            : 'Your next stamp is one tap away'}
+                          onClick={() => { setBookingsFilter('upcoming'); setActiveTab('My Bookings'); }}
+                        />
+                        <div style={isMobile ? { height: 1, background: 'rgba(255,255,255,0.08)', margin: '1rem 0' } : { width: 1, background: 'rgba(255,255,255,0.08)', margin: '0 2.5rem' }} />
+                        <PulseStat
+                          icon={<Star size={20} />}
+                          label="Completed Tours"
+                          value={loadingHome ? <Skel dark w={44} h={30} style={{ display: 'inline-block' }} /> : completedCount}
+                          subcopy={completedCount > 0
+                            ? 'Adventures logged and loved'
+                            : 'First stories start with first trips'}
+                          onClick={() => { setBookingsFilter('completed'); setActiveTab('My Bookings'); }}
+                        />
+                      </div>
+                    </div>
+
 
                   {!loadingHome && nextTrip && (
                     <NextTripCard
@@ -1021,7 +985,20 @@ const JoinerDashboard = () => {
                     stop={trackingStop}
                     onClick={() => setActiveTab('Tracking')}
                   />
-                  <MyRequestsCard onOpen={(type) => setActiveTab(type === 'request' ? 'Request a Tour' : 'Exclusive Tours')} />
+                  <MyRequestsCard onOpen={(type) => setActiveTab(type === 'request' ? 'Request a Tour' : 'Private Tours')} />
+                  {/* After a trip: ask for feedback about the website (the survey). */}
+                  {!loadingHome && completedCount > 0 && (
+                    <button type="button" onClick={() => setActiveTab('Feedback')} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', cursor: 'pointer', fontFamily: 'inherit',
+                      background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 14px rgba(26,10,0,0.05)',
+                    }}>
+                      <span style={{ width: 40, height: 40, borderRadius: 12, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><MessageSquareHeart size={18} /></span>
+                      <span>
+                        <strong style={{ display: 'block', fontSize: 13, color: '#1A0A00' }}>How was your experience?</strong>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>Answer a 1-minute survey to help us improve.</span>
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1056,10 +1033,10 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Calendar' ? (
             <TourCalendar
               initialDate={calendarTarget}
-              onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab(form === 'request' ? 'Request a Tour' : 'Exclusive Tours'); }}
+              onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab(form === 'request' ? 'Request a Tour' : 'Private Tours'); }}
               onOpenMyBookings={() => { setBookingsFilter(null); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }}
             />
-          ) : activeTab === 'Exclusive Tours' || activeTab === 'Request a Tour' ? (
+          ) : activeTab === 'Private Tours' || activeTab === 'Request a Tour' ? (
             <ExclusiveTour
               key={`${activeTab}-${exclusiveKey}${focusKey || ''}`}
               type={activeTab === 'Request a Tour' ? 'request' : 'exclusive'}
@@ -1069,6 +1046,8 @@ const JoinerDashboard = () => {
             />
           ) : activeTab === 'Reviews' ? (
             <Reviews key={focusKey} isAdmin={false} focusTourId={focusId} onExplore={() => handleNavClick('Explore Tours')} />
+          ) : activeTab === 'Feedback' ? (
+            <Feedback />
           ) : activeTab === 'Profile Settings' ? (
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
@@ -1116,6 +1095,7 @@ const JoinerDashboard = () => {
 /* ── NAV ITEM ── */
 const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
   <button
+    data-tour={label}
     onClick={onClick}
     title={collapsed ? label : undefined}
     style={{

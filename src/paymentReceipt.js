@@ -236,7 +236,7 @@ export const printReceipt = async (booking, tour, part = 'payment') => {
   if (win) win.location.href = url; else window.open(url, '_blank');
 };
 
-// ── Exclusive tour receipt (50% downpayment, then the balance) ──
+// ── Private tour receipt (50% downpayment, then the balance) ──
 export const exclusiveReceiptNumber = (request) => `R-EX-${String(request.id).slice(0, 8).toUpperCase()}`;
 
 // part: 'payment' (the 50% downpayment) or 'balance' (the rest, once paid).
@@ -247,7 +247,7 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
   const down = Number(request.downpayment_amount) || Math.round(price * 50) / 100;
   const paidNow = isBalance ? (Number(request.balance_amount) || Math.max(0, price - down)) : down;
   // Remaining balance: the package price minus every payment so far (the same
-  // value shown on the joiner's Exclusive Tours page).
+  // value shown on the joiner's Private Tours page).
   const paidTotal = Number(request.amount_paid) || down;
   const remaining = isBalance || request.balance_settled ? 0 : Math.max(0, Math.round((price - paidTotal) * 100) / 100);
   const start = pkg.start_date || request.preferred_date;
@@ -263,7 +263,7 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
       header(pen);
       if (isBalance) pen.center('BALANCE RECEIPT', 9);
       pen.pair(dateOf(paidAt), timeOf(paidAt));
-      pen.pair('EXCLUSIVE TOUR', '');
+      pen.pair('PRIVATE TOUR', '');
       pen.pair(`JOINER ${String(request.full_name || '—').toUpperCase()}`, '');
       pen.pair(`${ref ? 'ONLINE' : 'RECORDED'} · ${isBalance ? 'BALANCE PAYMENT' : '50% DOWNPAYMENT'}`, '');
       if (ref) pen.pair(`REF ${ref}`, '', 7);

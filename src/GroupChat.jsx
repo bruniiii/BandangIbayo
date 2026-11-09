@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import QuickReplies from './ui/QuickReplies';
 import BrandAvatar from './ui/BrandAvatar';
 import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive, Megaphone } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
@@ -59,8 +60,44 @@ const useIsNarrow = () => {
   return narrow;
 };
 
+// Shown when the chats are opened (once per visit): the rules for chatting.
+const GUIDELINES_KEY = 'ibayo:chat-guidelines-seen';
+const CHAT_RULES = [
+  'Be kind and respectful to everyone in the group.',
+  'No bad words, insults, bullying or hate speech (they are blocked).',
+  "Keep others' personal details private: don't share their numbers, addresses or photos without asking.",
+  'No selling, spam or links to other groups.',
+  'Admins can remove messages and members who break these rules.',
+];
+const ChatGuidelines = ({ onClose }) => (
+  <div style={{ position: 'fixed', inset: 0, zIndex: 200000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} />
+    <div role="dialog" aria-modal="true" aria-labelledby="chat-rules-title" style={{
+      position: 'relative', width: '100%', maxWidth: 440, background: '#FDF6EE', borderRadius: 22, padding: '1.6rem',
+      boxShadow: '0 24px 60px rgba(26,10,0,0.35)', borderTop: '6px solid #B4511E',
+    }}>
+      <h2 id="chat-rules-title" style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 900, color: '#1A0A00', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ShieldCheck size={20} color="#B4511E" /> Chat guidelines
+      </h2>
+      <p style={{ margin: '0 0 12px', fontSize: 13, color: '#5C2A10', lineHeight: 1.6 }}>
+        For everyone's safety and privacy, please follow these rules in the group chats:
+      </p>
+      <ul style={{ margin: '0 0 18px', paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {CHAT_RULES.map((r) => <li key={r} style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.5 }}>{r}</li>)}
+      </ul>
+      <button type="button" autoFocus onClick={onClose} style={{
+        width: '100%', height: 46, borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE', cursor: 'pointer',
+        fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
+      }}>I understand</button>
+    </div>
+  </div>
+);
+
 const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
   const narrow = useIsNarrow();
+  const [showRules, setShowRules] = useState(() => { try { return !sessionStorage.getItem(GUIDELINES_KEY); } catch { return true; } });
+  const closeRules = () => { try { sessionStorage.setItem(GUIDELINES_KEY, '1'); } catch { /* private mode */ } setShowRules(false); };
+  const rules = showRules ? <ChatGuidelines onClose={closeRules} /> : null;
   const [me, setMe] = useState(null);
   const [chats, setChats] = useState(null); // null = loading
   const [openId, setOpenId] = useState(initialTourId ? String(initialTourId) : null);
@@ -90,14 +127,14 @@ const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
 
   if (chats.length === 0) {
     return (
-      <EmptyState
+      <>{rules}<EmptyState
         icon={MessagesSquare}
         title="No group chats yet"
         message={isAdmin
           ? 'A group chat opens for each tour date once someone has a paid booking.'
           : 'When you book a tour, you join its group chat with the other joiners and the Bandang IBAYO team.'}
         action={!isAdmin && onExplore ? { label: 'Explore Tours', onClick: onExplore } : null}
-      />
+      /></>
     );
   }
 
@@ -105,6 +142,7 @@ const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
   if (narrow) {
     return (
       <>
+        {rules}
         <div style={{ background: '#FDF6EE', borderRadius: 20, border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)', overflow: 'hidden' }}>
           <ChatList chats={chats} activeId={null} onPick={(id) => setOpenId(String(id))} narrow />
         </div>
@@ -124,6 +162,7 @@ const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
       boxShadow: '0 4px 20px rgba(26,10,0,0.06)', overflow: 'hidden',
       height: 'calc(100dvh - 190px)', minHeight: 420,
     }}>
+      {rules}
       <ChatList chats={chats} activeId={shownId} onPick={(id) => setOpenId(String(id))} narrow={false} />
       {openChat && <ChatWindow key={openChat.tour_id} chat={openChat} me={me} isAdmin={isAdmin} narrow={false} onBack={() => setOpenId(null)} />}
     </div>
@@ -148,21 +187,43 @@ const FullScreen = ({ children }) => {
   );
 };
 
-const ChatList = ({ chats, activeId, onPick, narrow }) => (
-  <div style={{ borderRight: narrow ? 'none' : '1px solid rgba(180,81,30,0.12)', overflowY: 'auto', minHeight: 0 }}>
-    <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#A8481A', margin: 0, padding: '16px 18px 10px' }}>
-      Tour group chats
-    </p>
-    {chats.map((c, i) => {
+// The chat list, Messenger-style: open chats and archived ones (tour ended)
+// in two separate lists, with the tabs staying at the top while it scrolls.
+const ChatList = ({ chats, activeId, onPick, narrow }) => {
+  const openCount = chats.filter((c) => c.is_open).length;
+  const archivedCount = chats.length - openCount;
+  const activeChat = chats.find((c) => String(c.tour_id) === activeId);
+  const [folder, setFolder] = useState(activeChat && !activeChat.is_open ? 'archived' : 'open');
+  const shown = chats.filter((c) => (folder === 'open' ? c.is_open : !c.is_open));
+  const unreadOpen = chats.filter((c) => c.is_open).reduce((n, c) => n + (c.unread || 0), 0);
+  return (
+  <div style={{ borderRight: narrow ? 'none' : '1px solid rgba(180,81,30,0.12)', overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'sticky', top: 0, zIndex: 2, background: '#FDF6EE', padding: '14px 14px 10px', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
+      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#A8481A', margin: '0 4px 10px' }}>
+        Tour group chats
+      </p>
+      <div role="tablist" aria-label="Chats or archived" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4 }}>
+        {[['open', 'Chats', openCount, unreadOpen], ['archived', 'Archived', archivedCount, 0]].map(([key, label, count, unread]) => (
+          <button key={key} type="button" role="tab" aria-selected={folder === key} onClick={() => setFolder(key)} style={{
+            flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '7px 8px', cursor: 'pointer',
+            fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
+            background: folder === key ? '#1A0A00' : 'transparent', color: folder === key ? '#FDF6EE' : '#5C2A10',
+          }}>
+            {key === 'archived' && <Archive size={13} />} {label} ({count})
+            {unread > 0 && <span aria-label={`${unread} unread`} style={{ background: '#B4511E', color: '#FDF6EE', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 99 ? '99+' : unread}</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+    {shown.length === 0 && (
+      <p style={{ margin: 0, padding: '18px', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>
+        {folder === 'open' ? 'No open chats right now.' : 'No archived chats yet. A chat moves here when its tour ends.'}
+      </p>
+    )}
+    {shown.map((c) => {
       const active = String(c.tour_id) === activeId;
-      const firstArchived = !c.is_open && (i === 0 || chats[i - 1].is_open);
       return (
         <div key={c.tour_id}>
-        {firstArchived && (
-          <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A3A18', margin: 0, padding: '16px 18px 6px', borderTop: i ? '1px solid rgba(180,81,30,0.12)' : 'none' }}>
-            <Archive size={13} /> Archived (tour ended)
-          </p>
-        )}
         <button
           type="button"
           onClick={() => onPick(c.tour_id)}
@@ -172,7 +233,6 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => (
             display: 'flex', gap: 12, alignItems: 'center', padding: '12px 18px',
             background: active ? 'rgba(180,81,30,0.1)' : 'transparent',
             borderLeft: active ? '3px solid #B4511E' : '3px solid transparent',
-            opacity: c.is_open ? 1 : 0.75,
           }}
         >
           <span style={{ width: 42, height: 42, borderRadius: 14, background: c.is_open ? '#1A0A00' : '#7A3A18', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -202,7 +262,8 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => (
       );
     })}
   </div>
-);
+  );
+};
 
 const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
   const [messages, setMessages] = useState(null);
@@ -603,6 +664,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
       {/* composer */}
       {canSend ? (
         <form onSubmit={send} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: narrow ? '8px 10px' : '10px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#FDF6EE', flexShrink: 0 }}>
+          {isAdmin && <QuickReplies onPick={(t) => { setText(t.slice(0, MAX_LEN)); inputRef.current?.focus(); }} />}
           <textarea
             ref={inputRef}
             value={text}

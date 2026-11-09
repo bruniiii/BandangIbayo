@@ -339,7 +339,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
           <StatusBadge booking={booking} />
         </div>
         <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.25, margin: '0 0 10px' }}>
-          {tour.is_exclusive && <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, padding: '2px 9px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Exclusive</span>}
+          {tour.is_exclusive && <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, padding: '2px 9px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
           {tour.title}
         </h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 10 : 16 }}>
@@ -460,7 +460,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         !cancelRequested;
   // Terms, section 2: no cancellations within two weeks of the tour date.
   const cancellationClosed = isOpenBooking && isWithinCancellationWindow(tour.start_date);
-  // An exclusive tour is handled with Bandang IBAYO (group chat), not cancelled here.
+  // A private tour is handled with Bandang IBAYO (group chat), not cancelled here.
   const canCancel = isOpenBooking && !cancellationClosed && !tour?.is_exclusive;
   const deadline = cancellationDeadline(tour.start_date);
   const deadlineLabel = deadline
@@ -512,7 +512,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
               <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px', lineHeight: 1.2 }}>{tour.title}</h2>
               {tour.is_exclusive && (
                 <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#1A0A00' }}>Exclusive tour</strong> · just your group. Message Bandang IBAYO in the group chat; your package and payments are in Exclusive Tours.
+                  <strong style={{ color: '#1A0A00' }}>Private tour</strong> · just your group. Message Bandang IBAYO in the group chat; your package and payments are in Private Tours.
                 </p>
               )}
               <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', fontFamily: 'monospace', letterSpacing: '0.08em' }}>
@@ -871,12 +871,12 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 
   const payBalance = async () => {
     setBusy('balance');
-    // An exclusive tour's balance is paid on its exclusive request (its payments live there).
+    // A private tour's balance is paid on its private tour request (its payments live there).
     const { ok, data, error, cancelled } = booking.tours?.is_exclusive && booking.request_id
       ? await startExclusiveBalance({ requestId: booking.request_id, accommodation: booking.accommodation || null })
       : await startBalanceCheckout({ bookingId: booking.id });
     if (!ok) {
-      if (!cancelled) toast.error("Couldn't open the payment page", /accommodation/i.test(error || '') ? 'Choose your accommodation in Exclusive Tours first, then pay the balance there.' : error);
+      if (!cancelled) toast.error("Couldn't open the payment page", /accommodation/i.test(error || '') ? 'Choose your accommodation in Private Tours first, then pay the balance there.' : error);
       setBusy(null); return;
     }
     if (data.alreadyPaid) { toast.success('Balance already paid', 'Thank you! Nothing more is due.'); setBusy(null); onChanged(); return; }

@@ -843,7 +843,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
               <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Price per person</span>
 
               <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>
-                {isOnSale(tour) && <span style={{ textDecoration: 'line-through', fontWeight: 700, color: 'rgba(122,58,24,0.75)', marginRight: 6 }}>{formatPeso(tour.price)}</span>}
+                {isOnSale(tour) && <span style={{ textDecoration: 'line-through', fontWeight: 700, color: 'rgba(122,58,24,0.9)', marginRight: 6 }}>{formatPeso(tour.price)}</span>}
                 {formatPeso(effectivePrice(tour))}
               </span>
 

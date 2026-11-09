@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { CalendarPlus } from 'lucide-react';
 import { isOnSale } from './tourUtils';
 import PriceTag from './ui/PriceTag';
 import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, CloudRain } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // TOUR CARD (Tour Management): one trip with its dates, slots and the
-// View / Edit / Add Date / Joiners / Archive actions.
+// View / Edit / Joiners / Archive actions (dates are added in Edit).
 // ─────────────────────────────────────────────
 
-const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners, onWeather = null, formatDateRange }) => {
-  // A private exclusive tour (made from an exclusive request's package).
+const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather = null, formatDateRange }) => {
+  // A private tour (made from a private request's package).
   const exclusive = !!tour.is_exclusive || (tour.dates || []).some((d) => d.is_exclusive);
   const [hovered, setHovered] = useState(false);
   const today  = new Date().toISOString().split('T')[0];
@@ -70,7 +69,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>
-              {exclusive && <span title="A private exclusive tour: only its joiner sees it" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6, padding: '2px 8px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 9.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Exclusive</span>}
+              {exclusive && <span title="A private tour: only its joiner sees it" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6, padding: '2px 8px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 9.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
               {tour.title}
             </h3>
             <PriceTag tour={tour} size={15} style={{ marginLeft: 10, flexShrink: 0 }} />
@@ -164,21 +163,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onAddDate, onJoiners,
               {icon} {label}
             </button>
           ))}
-          {!tour.is_archived && !exclusive && <button
-            type="button"
-            onClick={onAddDate}
-            title="Run this tour on another date"
-            style={{
-              minHeight: 40, padding: '0 4px',
-              border: '1px dashed rgba(180,81,30,0.45)', borderRadius: 10, cursor: 'pointer',
-              background: 'rgba(180,81,30,0.06)', color: '#A8481A',
-              fontFamily: 'inherit', fontWeight: 900,
-              fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}
-          >
-            <CalendarPlus size={12} /> Add Date
-          </button>}
+          {/* (Add Date was removed: Edit opens the same form, where dates are added.) */}
         </div>
       </div>
     </div>

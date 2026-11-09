@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import TourDayChecklist from './ui/TourDayChecklist';
+import FleetManager, { FleetPicker } from './FleetManager';
+import PrettySelect from './ui/PrettySelect';
+import DriverDocs from './ui/DriverDocs';
 import MissingHint from './ui/MissingHint';
 import { supabase } from './supabaseClient';
 import { toast, reportError } from './ui/toast';
@@ -54,6 +58,11 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
   const [currentTab, setCurrentTab] = useState('active'); // 'active' | 'archive'
   const [activeTour, setActiveTour] = useState(null);
   const [toursList, setToursList] = useState([]);
+  const [archiveMonth, setArchiveMonth] = useState('all'); // Tracking Archive month filter
+  const [driverId, setDriverId] = useState(null); // the saved driver / van picked for the tour
+  const [vanId, setVanId] = useState(null);
+  const [fleetOpen, setFleetOpen] = useState(false); // the Drivers & Vans window
+  const [fleetVersion, setFleetVersion] = useState(0); // reloads the pickers after a change
   const [meetupStops, setMeetupStops] = useState([]);
   // The stops as last saved, to spot an Update that changes nothing.
   const savedStopsRef = useRef([]);
@@ -120,6 +129,8 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
         setVehicleNotes(vehicle.vehicle_notes || '');
         setDriverName(vehicle.driver_name || '');
         setDriverContact(formatPhPhone(vehicle.driver_contact || ''));
+        setDriverId(vehicle.driver_id || null);
+        setVanId(vehicle.van_id || null);
         setIsLogisticsSaved(true);
       } else {
         setCarType('');
@@ -128,6 +139,8 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
         setVehicleNotes('');
         setDriverName('');
         setDriverContact('');
+        setDriverId(null);
+        setVanId(null);
         setIsLogisticsSaved(false);
       }
 
@@ -211,6 +224,8 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
       vehicle_notes: vehicleNotes.trim(),
       driver_name: cleanName(driverName),
       driver_contact: normalizePhone(driverContact),
+      ...(driverId ? { driver_id: driverId } : {}),
+      ...(vanId ? { van_id: vanId } : {}),
       updated_at: new Date().toISOString(),
     }], { onConflict: 'tour_id' });
 
@@ -384,6 +399,13 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
     }
   };
 
+  // Tracking Archive: tours by the month they started.
+  const monthOf = (t) => String(t.start_date || '').slice(0, 7);
+  const archiveMonths = currentTab === 'archive'
+    ? Object.entries(toursList.reduce((m, t) => { const k = monthOf(t); if (k) m[k] = (m[k] || 0) + 1; return m; }, {})).sort((a, b) => b[0].localeCompare(a[0]))
+    : [];
+  const shownTours = currentTab === 'archive' && archiveMonth !== 'all' ? toursList.filter((t) => monthOf(t) === archiveMonth) : toursList;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* ── Top Header Tabs ── */}
@@ -418,19 +440,36 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
             <History size={18} /> Tracking Archive
           </button>
         </div>
+        <button type="button" onClick={() => setFleetOpen(true)} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 16px', borderRadius: 12, cursor: 'pointer',
+          background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit',
+          fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+        }}><Truck size={15} /> Drivers & Vans</button>
       </div>
+      {fleetOpen && <FleetManager onClose={() => setFleetOpen(false)} onChanged={() => setFleetVersion((v) => v + 1)} />}
+
+      {/* Archive: pick a month to see only that month's tours */}
+      {currentTab === 'archive' && !loading && archiveMonths.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+          <label htmlFor="archive-month" style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5C2A10' }}>Month</label>
+          <div style={{ minWidth: 220 }}>
+            <PrettySelect id="archive-month" ariaLabel="Month" value={archiveMonth} onChange={setArchiveMonth}
+              options={[{ value: 'all', label: `All months (${toursList.length})` }, ...archiveMonths.map(([k, n]) => ({ value: k, label: `${monthName(k)} (${n})` }))]} />
+          </div>
+        </div>
+      )}
 
       {/* ── Cards Grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
         {loading ? (
           <SkeletonTourCards count={3} />
-        ) : toursList.length === 0 ? (
+        ) : shownTours.length === 0 ? (
           <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(180,81,30,0.2)' }}>
             <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A3A18' }}>
               No {currentTab === 'archive' ? 'archived' : 'active'} tours found.
             </p>
           </div>
-        ) : toursList.map(tour => (
+        ) : shownTours.map(tour => (
           <TrackingTourCard
             key={tour.id}
             tour={tour}
@@ -458,6 +497,9 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
           vehicleNotes={vehicleNotes} setVehicleNotes={setVehicleNotes}
           driverName={driverName} setDriverName={setDriverName}
           driverContact={driverContact} setDriverContact={setDriverContact}
+          driverId={driverId} setDriverId={setDriverId}
+          vanId={vanId} setVanId={setVanId}
+          fleetVersion={fleetVersion} onManageFleet={() => setFleetOpen(true)}
           onSaveVehicleInfo={handleSaveVehicleInfo}
           onDeleteStop={handleDeleteStop}
           onStopFieldChange={handleStopFieldChange}
@@ -655,6 +697,8 @@ const PickupRoster = ({ tourId, stops }) => {
   );
 };
 
+const monthName = (k) => { const [y, m] = k.split('-').map(Number); return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); };
+
 const TrackingConsoleModal = ({
   tour, meetupStops = [], trackingLogs = [], loadingConsole,
   isLogisticsSaved, setIsLogisticsSaved,
@@ -662,10 +706,34 @@ const TrackingConsoleModal = ({
   carType, setCarType, plateNumber, setPlateNumber,
   vehicleColor, setVehicleColor, vehicleNotes, setVehicleNotes,
   driverName, setDriverName, driverContact, setDriverContact,
+  driverId, setDriverId, vanId, setVanId, fleetVersion = 0, onManageFleet,
   onSaveVehicleInfo, onDeleteStop,
   onStopFieldChange, onUpdateStopDetails,
   onAdvanceStop, onClearFeed, clearingFeed, onClose, onAutoFillEtas,
 }) => {
+  const [docsReady, setDocsReady] = useState(false); // the driver's license/ID and photo are on file
+  const [docsKey, setDocsKey] = useState(0); // reloads the driver's ID pictures
+  // A saved driver: fill in their name and number, and use their ID and photo for this tour.
+  const pickDriver = async (d) => {
+    setDriverId(d.id);
+    setDriverName(d.name);
+    setDriverContact(formatPhPhone(d.contact || ''));
+    if (d.license_path || d.photo_path) {
+      const { error } = await supabase.from('driver_documents').upsert([{
+        tour_id: tour.id, license_path: d.license_path, photo_path: d.photo_path, updated_at: new Date().toISOString(),
+      }], { onConflict: 'tour_id' });
+      if (error) toast.error("Couldn't copy the driver's ID", error.message);
+      setDocsKey((k) => k + 1);
+    }
+  };
+  // A saved van: fill in its details.
+  const pickVan = (v) => {
+    setVanId(v.id);
+    setCarType(v.car_type);
+    setPlateNumber(v.plate_number);
+    setVehicleColor(v.color);
+    setVehicleNotes(v.notes);
+  };
   const safeStops = Array.isArray(meetupStops) ? meetupStops : [];
   // Save Driver & Vehicle stays disabled until every box is filled.
   const vehicleFilled = [carType, plateNumber, vehicleColor, vehicleNotes, driverName, driverContact].every((v) => String(v || '').trim() !== '');
@@ -718,6 +786,8 @@ const TrackingConsoleModal = ({
                 <MapPin size={14} style={{ color: '#A8481A' }} /> {tour?.destination}
               </p>
 
+              <TourDayChecklist tourId={tour?.id} logisticsSaved={isLogisticsSaved} docsReady={docsReady} />
+
               {/* Fleet & Driver */}
               <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(180,81,30,0.1)' }}>
                 <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -725,7 +795,11 @@ const TrackingConsoleModal = ({
                 </h4>
 
                 {!isLogisticsSaved ? (
-                  <form noValidate onSubmit={onSaveVehicleInfo} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <form noValidate onSubmit={(e) => {
+                    if (!docsReady) { e.preventDefault(); toast.error('Driver ID needed', "Upload the driver's license (or valid ID) and a photo of the driver first."); return; }
+                    onSaveVehicleInfo(e);
+                  }} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <FleetPicker driverId={driverId} vanId={vanId} onDriver={pickDriver} onVan={pickVan} onManage={onManageFleet} refreshKey={fleetVersion} />
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                       <input type="text" required aria-label="Van model" placeholder="Van Model (e.g. Toyota Hiace)" value={carType} onChange={e => setCarType(e.target.value)} style={inputStyle} />
                       <input type="text" required aria-label="Plate number" placeholder="Plate Number (e.g. NBT-8921)" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} style={inputStyle} />
@@ -738,15 +812,17 @@ const TrackingConsoleModal = ({
                       <input type="text" required aria-label="Driver name" data-allow="name" placeholder="Driver Name" value={driverName} onChange={e => setDriverName(e.target.value)} style={inputStyle} />
                       <input {...phoneFieldProps(driverContact, setDriverContact)} required aria-label="Driver contact number" style={inputStyle} />
                     </div>
-                    <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>All fields are required.</p>
-                    {!savingLogistics && !vehicleFilled && (
+                    <DriverDocs tourId={tour?.id} onReady={setDocsReady} refreshKey={docsKey} />
+                    <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>All fields are required. The driver's ID and photo are kept private (admins only), for liability.</p>
+                    {!savingLogistics && (!vehicleFilled || !docsReady) && (
                       <MissingHint items={[
+                        !docsReady && "Driver's license / ID and photo",
                         !String(carType || '').trim() && 'Van model', !String(plateNumber || '').trim() && 'Plate number',
                         !String(vehicleColor || '').trim() && 'Color', !String(vehicleNotes || '').trim() && 'How to spot it',
                         !String(driverName || '').trim() && 'Driver name', !String(driverContact || '').trim() && 'Driver contact number',
                       ]} />
                     )}
-                    <button type="submit" disabled={savingLogistics || !vehicleFilled} style={{
+                    <button type="submit" disabled={savingLogistics || !vehicleFilled || !docsReady} style={{
                       padding: '10px 0', background: '#B4511E', color: '#FDF6EE',
                       border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.15em', textTransform: 'uppercase', cursor: vehicleFilled ? 'pointer' : 'not-allowed', opacity: vehicleFilled ? 1 : 0.5,
@@ -762,6 +838,7 @@ const TrackingConsoleModal = ({
                     {vehicleNotes && <div><strong>How to spot it:</strong> {vehicleNotes}</div>}
                     <div><strong>Driver:</strong> {driverName}</div>
                     <div><strong>Contact:</strong> {driverContact}</div>
+                    <div style={{ gridColumn: isMobile ? 'auto' : 'span 2' }}><DriverDocs tourId={tour?.id} readOnly onReady={setDocsReady} refreshKey={docsKey} /></div>
                     <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #B4511E', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
                       Edit Driver & Vehicle
                     </button>
