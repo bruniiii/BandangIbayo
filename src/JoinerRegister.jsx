@@ -485,6 +485,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
   return (
     <div
+      className="glass-page"
       style={{
         minHeight: '100dvh',
         display: 'flex',

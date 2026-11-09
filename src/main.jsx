@@ -11,6 +11,11 @@ import { logClientError } from './errorLog';
 import { installStaleVersionReload } from './staleVersion';
 import './index.css';
 import './App.css';
+import './glass.css';
+import { applyTheme, getTheme } from './theme';
+
+// Light glass (default) or Dark glass, as chosen on this device (see theme.js).
+applyTheme(getTheme());
 
 // An old tab after a website update reloads itself (see staleVersion.js).
 installStaleVersionReload();

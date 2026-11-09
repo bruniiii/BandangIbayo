@@ -7,6 +7,7 @@ import {
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
 import HelpWidget from './ui/HelpWidget';
+import ThemeToggle from './ui/ThemeToggle';
 import { todayManila, groupTripDates, weekdayRange } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import PriceTag from './ui/PriceTag';
@@ -50,27 +51,6 @@ const LandingReviews = () => {
   );
 };
 
-// Full-screen tour photos fading one into the next.
-const BackdropSlides = ({ images }) => {
-  const [index, setIndex] = useState(0);
-  useEffect(() => {
-    if (images.length < 2) return undefined;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
-    const t = setInterval(() => setIndex((i) => (i + 1) % images.length), 7000);
-    return () => clearInterval(t);
-  }, [images.length]);
-  return (
-    <div className="lp-backdrop" aria-hidden="true">
-      {images.map((src, i) => (
-        <img key={src} src={src} alt="" className={`lp-slide${i === index ? ' is-on' : ''}`} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
-      ))}
-      <div className="lp-shade" />
-      <div className="lp-orb lp-orb-a" />
-      <div className="lp-orb lp-orb-b" />
-    </div>
-  );
-};
-
 const LandingPage = () => {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,13 +80,10 @@ const LandingPage = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const photos = [...new Set(tours.map((t) => t.image_urls?.[0]).filter(Boolean))].slice(0, 5);
-  const backdrop = photos.length ? photos : ['/nature-bg.webp'];
   const next = tours[0];
 
   return (
     <div className="lp">
-      <BackdropSlides images={backdrop} />
 
       {/* ── NAV (floating glass bar) ── */}
       <nav className={`lp-nav lp-glass${scrolled ? ' is-scrolled' : ''}`}>
@@ -115,6 +92,7 @@ const LandingPage = () => {
           <span className="lp-brand-text font-display">Bandang <span className="font-accent">IBAYO</span></span>
         </Link>
         <div className="lp-nav-links">
+          <ThemeToggle />
           <Link to="/login" className="lp-nav-login">Log in</Link>
           <Link to="/register" className="lp-btn lp-btn-amber lp-btn-sm">Join Now</Link>
         </div>
@@ -367,17 +345,6 @@ const LandingPage = () => {
 // a thin light border and a soft shadow, on top of the photo backdrop.
 const LANDING_CSS = `
 .lp { position: relative; min-height: 100dvh; color: #FFFFFF; font-family: 'Outfit', 'Inter', system-ui, sans-serif; overflow-x: hidden; isolation: isolate; }
-.lp-backdrop { position: fixed; inset: 0; z-index: -1; background: #1A0A00; overflow: hidden; }
-.lp-slide { position: absolute; inset: -4%; width: 108%; height: 108%; max-width: none; max-height: none; object-fit: cover; opacity: 0; transform: scale(1.04); transition: opacity 1.8s ease; animation: lp-drift 24s ease-in-out infinite alternate; }
-.lp-slide.is-on { opacity: 1; }
-@keyframes lp-drift { from { transform: scale(1.04) translate3d(0,0,0); } to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); } }
-.lp-shade { position: absolute; inset: 0; background:
-  radial-gradient(ellipse at 20% 10%, rgba(232,162,101,0.22), transparent 55%),
-  linear-gradient(180deg, rgba(26,10,0,0.55) 0%, rgba(26,10,0,0.62) 45%, rgba(26,10,0,0.82) 100%); }
-.lp-orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.55; }
-.lp-orb-a { width: 42vw; height: 42vw; left: -12vw; top: 40vh; background: #B4511E; animation: lp-float 18s ease-in-out infinite alternate; }
-.lp-orb-b { width: 34vw; height: 34vw; right: -10vw; top: 5vh; background: #E8A265; opacity: 0.35; animation: lp-float 22s ease-in-out infinite alternate-reverse; }
-@keyframes lp-float { from { transform: translate3d(0,0,0); } to { transform: translate3d(6vw, -8vh, 0); } }
 
 .lp-glass {
   background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
@@ -544,8 +511,7 @@ const LANDING_CSS = `
   .lp-glass { background: rgba(40,18,4,0.86); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .lp-slide, .lp-orb, .lp-scroll, .lp-hero-copy { animation: none !important; }
-  .lp-slide { transition: none; }
+  .lp-scroll, .lp-hero-copy { animation: none !important; }
 }
 `;
 
