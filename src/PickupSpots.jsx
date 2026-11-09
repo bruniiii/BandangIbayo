@@ -67,10 +67,13 @@ const PickupSpots = ({ onClose, onChanged }) => {
   };
 
   const spotForm = (
-    <div style={{ background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 16, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
-        {editing ? `Change ${editing.name}` : 'Add a pickup spot'}
-      </p>
+    // (In the Change window the fields sit straight on the window, under its own title and X.)
+    <div style={editing
+      ? { display: 'flex', flexDirection: 'column', gap: 12 }
+      : { background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 16, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {!editing && (
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>Add a pickup spot</p>
+      )}
       <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Name joiners see</span>
         <input name="spot_name" value={name} maxLength={120} placeholder="e.g. Petron NLEX Bocaue" style={input} onChange={(e) => setName(e.target.value)} />
@@ -142,9 +145,17 @@ const PickupSpots = ({ onClose, onChanged }) => {
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.55)' }} onClick={reset} />
           <div role="dialog" aria-modal="true" aria-label={`Change ${editing.name}`} style={{
             position: 'relative', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', background: '#FDF6EE',
-            borderRadius: 20, borderTop: '6px solid #B4511E', padding: '1.25rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)',
+            borderRadius: 20, borderTop: '6px solid #B4511E', padding: '1.25rem 1.5rem 1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)',
           }}>
-            <button type="button" onClick={reset} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+              <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A', minWidth: 0, overflowWrap: 'anywhere' }}>
+                Change {editing.name}
+              </p>
+              <button type="button" onClick={reset} aria-label="Close" style={{
+                flexShrink: 0, width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', cursor: 'pointer', color: '#7A3A18',
+              }}><X size={18} /></button>
+            </div>
             {spotForm}
           </div>
         </div>
