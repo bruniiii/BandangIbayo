@@ -58,7 +58,7 @@ const AuthCallback = () => {
   }, [error, navigate, params]);
 
   return (
-    <div className="glass-page" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDF6EE', padding: 24, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", textAlign: 'center' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDF6EE', padding: 24, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", textAlign: 'center' }}>
       {error ? (
         <div style={{ maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <AlertTriangle size={36} style={{ color: '#8C2F1C' }} />

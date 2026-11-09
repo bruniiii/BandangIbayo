@@ -140,7 +140,7 @@ export const PublicTourList = () => {
   }, []);
 
   return (
-    <div className="glass-page" style={pageStyle}>
+    <div style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(2rem,5vw,4rem) clamp(1rem,5vw,4rem)' }}>
         {/* Back to the top of the landing page */}
@@ -238,7 +238,7 @@ export const PublicTourDetail = () => {
 
   if (status !== 'ready') {
     return (
-      <div className="glass-page" style={pageStyle}>
+      <div style={pageStyle}>
         <PublicNav session={session} />
         {status === 'loading' ? (
           <SkeletonRegion label="Loading tour" style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(1.25rem,4vw,3rem) clamp(1rem,5vw,4rem) 4rem' }}>
@@ -289,7 +289,7 @@ export const PublicTourDetail = () => {
   ].filter(([, text]) => text);
 
   return (
-    <div className="public-tour-page glass-page" style={pageStyle}>
+    <div className="public-tour-page" style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(1.25rem,4vw,3rem) clamp(1rem,5vw,4rem) 4rem' }}>
         <Link className="text-link" to="/tours" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#7A3A18', textDecoration: 'none', marginBottom: 18 }}>

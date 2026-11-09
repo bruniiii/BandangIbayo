@@ -22,7 +22,6 @@ import ProfileSettings from './Profilesettings.jsx';
 import logoIcon from './assets/logo.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
-import ThemeToggle from './ui/ThemeToggle';
 import FavoritesButton from './ui/FavoritesButton';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
@@ -582,7 +581,7 @@ const JoinerDashboard = () => {
     : null;
 
   return (
-    <div className="joiner-dashboard-container glass-page" style={{
+    <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100dvh',
       fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
       background: '#FDF6EE',
@@ -763,7 +762,6 @@ const JoinerDashboard = () => {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <FavoritesButton onOpenTour={openFavoriteTour} />
-              <ThemeToggle />
               <NotificationBell onNotificationClick={handleNotificationNavigate} clearPaymentNotices />
 
               {/* dynamic user chip matching the Reviews identity */}
