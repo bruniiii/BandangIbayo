@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { recordPaymentWithPassword } from './paymentPassword';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { SearchX, ClipboardList } from 'lucide-react';
@@ -206,6 +207,17 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
   }, []);
 
   // ── grid column template shared by header + rows ──
+  const [section, setSection] = useState(openSection?.startsWith('refund') ? 'refunds' : 'bookings'); // Bookings | Refunds
+  // How many refunds need someone (shown on the Refunds tab).
+  const [refundCount, setRefundCount] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      supabase.from('bookings').select('id', { count: 'exact', head: true }).in('weather_refund_status', ['Due', 'Refunding']),
+      supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('weather_refund_status', 'Sent').eq('weather_refund_received', 'not_received'),
+    ]).then(([a, b]) => { if (alive) setRefundCount((a.count || 0) + (b.count || 0)); }, () => {});
+    return () => { alive = false; };
+  }, [section]);
   const bookingGridCols = '130px 180px minmax(220px, 1fr) 70px 140px 150px 170px 140px';
  
   return (
@@ -214,8 +226,21 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       {/* ── Scrollable Content (header + filters + table scroll together) ── */}
       <div style={{ display: 'flex', flexDirection: 'column' }}>
  
+      {/* ── Two parts: Bookings, and Refunds (sent manually through GCash) ── */}
+      <div role="tablist" aria-label="Booking Management" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%', marginBottom: 16 }}>
+        {[['bookings', 'Bookings'], ['refunds', 'Refunds']].map(([key, label]) => (
+          <button key={key} type="button" role="tab" aria-selected={section === key} onClick={() => setSection(key)} style={{
+            border: 'none', borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'inherit',
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            background: section === key ? '#1A0A00' : 'transparent', color: section === key ? '#FDF6EE' : '#5C2A10',
+          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
+        ))}
+      </div>
+
       {/* ── 50% refunds to send after a weather postponement or cancellation ── */}
-      <WeatherRefunds />
+      {section === 'refunds' && <WeatherRefunds standalone />}
+
+      <div style={{ display: section === 'bookings' ? 'contents' : 'none' }}>
 
       {/* ── Cancellation requests waiting for an answer ── */}
       {pendingCancels.length > 0 && (
@@ -414,6 +439,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       </div>
  
       </div>
+      </div>
  
       {selectedBooking && (
         <BookingDetailModal
@@ -423,10 +449,17 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           onStatusUpdate={async (id, status) => {
             const newBookingStatus = status === 'Confirmed' ? 'Completed' : 'Cancelled';
             const newPaymentStatus = status === 'Confirmed' ? 'Complete' : 'Rejected';
-            const { error } = await supabase.from('bookings').update({
-              booking_status: newBookingStatus,
-              payment_status: newPaymentStatus,
-            }).eq('id', id);
+            let error = null;
+            if (status === 'Confirmed') {
+              // Money received: confirmed with the admin's password (and logged for the main admin).
+              const ok = await recordPaymentWithPassword({ table: 'bookings', id, changes: { booking_status: newBookingStatus, payment_status: newPaymentStatus }, what: `the payment for ${selectedBooking.booking_number}` });
+              if (!ok) return;
+            } else {
+              ({ error } = await supabase.from('bookings').update({
+                booking_status: newBookingStatus,
+                payment_status: newPaymentStatus,
+              }).eq('id', id));
+            }
  
             if (!error) {
               sendBookingStatusEmail({ bookingId: id });
@@ -450,14 +483,17 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             }
           }}
           onSettleBalance={async (id, fullAmount) => {
-            const { data, error } = await supabase.from('bookings').update({
-              balance_settled: true,
-              balance_settled_at: new Date().toISOString(),
-              amount_paid: fullAmount,
-            }).eq('id', id).select(`
+            // Money received: confirmed with the admin's password (and logged for the main admin).
+            const ok = await recordPaymentWithPassword({
+              table: 'bookings', id,
+              changes: { balance_settled: true, balance_settled_at: new Date().toISOString(), amount_paid: fullAmount },
+              what: `the balance for ${selectedBooking.booking_number}`,
+            });
+            if (!ok) return null;
+            const { data, error } = await supabase.from('bookings').select(`
               *,
               tours ( title, destination, start_date, duration, price )
-            `).single();
+            `).eq('id', id).single();
  
             if (!error) {
               toast.success('Balance marked as paid', `${selectedBooking.booking_number} is now paid in full.`);

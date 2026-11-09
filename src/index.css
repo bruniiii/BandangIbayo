@@ -191,14 +191,9 @@ input::-ms-clear { display: none; }
   .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(26,10,0,0.14) !important; z-index: 2; }
 }
 
-/* PCs and laptops (mouse, not touch): the page never gets narrower than
-   620px. A smaller window scrolls sideways instead of squeezing the layout
-   further. Phones and tablets aren't affected. */
-@media (hover: hover) and (pointer: fine) {
-  html, body { min-width: 620px; }
-  .admin-dashboard-container,
-  .joiner-dashboard-container { min-width: 620px; position: absolute !important; }
-}
+/* (The 620px minimum width for computers was removed: a narrow window or
+   the browser's phone preview now gets the phone layout instead of
+   scrolling sideways.) */
 
 /* No zooming on phones: double-tap zoom is off (pinch is off via the
    viewport tag), and on touch screens every text box uses at least 16px text,
@@ -275,6 +270,21 @@ html { touch-action: manipulation; }
 .nature-bg {
   background: linear-gradient(rgba(253,246,238,0.55), rgba(253,246,238,0.55)), url('/nature-bg.webp') center / cover fixed, #FDF6EE;
 }
+/* The top row of every dashboard page (page name, bell, account) stays put
+   while the page scrolls under it: only the contents move. */
+.dashboard-content { --dash-pad: 2.5rem; }
+.dashboard-topbar {
+  position: sticky !important;
+  top: 0;
+  z-index: 40 !important;
+  flex-shrink: 0;
+  margin: calc(-1 * var(--dash-pad)) calc(-1 * var(--dash-pad)) 20px !important;
+  padding: 14px var(--dash-pad) !important;
+  background: rgba(253,246,238,0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(180,81,30,0.12);
+}
 .dashboard-content {
   background: linear-gradient(rgba(253,246,238,0.86), rgba(253,246,238,0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, #FDF6EE !important;
   background-attachment: fixed !important;
@@ -322,3 +332,36 @@ input[type="date"], input[type="time"], input[type="datetime-local"] {
 input[type="date"]::-webkit-date-and-time-value,
 input[type="time"]::-webkit-date-and-time-value { text-align: left; }
 .tour-date-row > div { min-width: 0; }
+
+/* Phones: nothing inside a dashboard page may push it sideways (the page
+   moved left and right while scrolling). Tour rows still swipe on their own,
+   so their arrow buttons are only shown with a mouse. */
+.dashboard-content { overflow-x: hidden; }
+@media (pointer: coarse), (max-width: 640px) {
+  .tour-row-arrow { display: none !important; }
+}
+
+/* Login page: the branding half is shown only on wide screens. */
+@media (max-width: 900px) {
+  .login-brand-side { display: none !important; }
+  .login-split { max-width: 440px !important; }
+}
+
+/* Readable disabled buttons (WCAG contrast): a disabled button is shown
+   greyed but its words stay readable, instead of fading to 40-50%. */
+button:disabled:not(.no-touch-size):not(.text-link) {
+  background: #E6D9C9 !important;
+  color: #5C3A22 !important;
+  border-color: rgba(122,58,24,0.25) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+button:disabled:not(.no-touch-size):not(.text-link) svg { color: #5C3A22 !important; }
+
+/* Registration on phones: the card fits the screen (it was wider and
+   moved sideways). */
+@media (max-width: 560px) {
+  .register-card { padding: 1.5rem 1.1rem !important; }
+  .register-card input, .register-card select, .register-card textarea { min-width: 0; }
+}

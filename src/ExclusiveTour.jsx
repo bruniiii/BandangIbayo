@@ -22,6 +22,8 @@ import { SkeletonRows } from './ui/Skeleton';
 import TermsModal from './ui/TermsModal';
 import DateRangePicker from './ui/DateRangePicker';
 import MissingHint from './ui/MissingHint';
+import StatusFilter from './ui/StatusFilter';
+import { STATUS_COLORS } from './ui/statusColors';
 import ItineraryTimeline from './ui/ItineraryTimeline';
 import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
@@ -710,15 +712,7 @@ const EditRequestModal = ({ request, onClose, onSaved }) => (
 );
 
 // ─── REQUEST STATUS + ADMIN UPDATES (shown to the joiner on this page) ─────────
-const STATUS_STYLES = {
-  'For Approval': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Unpaid: { bg: 'rgba(26,10,0,0.08)', color: '#7A3A18' },
-  'Downpayment Paid': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
-  'Fully Paid': { bg: '#A8481A', color: '#FDF6EE' },
-};
+const STATUS_STYLES = STATUS_COLORS;
 
 const RequestStatusBadge = ({ status }) => {
   const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES['For Approval'];
@@ -1239,31 +1233,12 @@ const MyRequestsSection = ({ type, refreshKey, onOpenBooking, openRequestId = nu
           {type === 'exclusive' ? 'Track your exclusive tour requests' : 'Track your tour requests'}, plus any updates from our team. You can edit a request until it's approved.
         </p>
       </div>
-      <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected'].map((st) => {
-          const on = statusFilter === st;
-          const count = st === 'All' ? requests.length : requests.filter((q) => requestStatusLabel(q) === st || requestPaymentLabel(q) === st).length;
-          const tone = STATUS_STYLES[st];
-          return (
-            <button
-              key={st} type="button" role="tab" aria-selected={on} onClick={() => setStatusFilter(st)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
-                fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#E8A265' : '#7A3A18',
-                border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.2)'}`,
-                boxShadow: on ? '0 6px 16px rgba(26,10,0,0.18)' : 'none', transition: 'background 0.15s, color 0.15s',
-              }}
-            >
-              {st}
-              <span style={{
-                minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10.5, letterSpacing: 0, background: on ? 'rgba(232,162,101,0.2)' : (tone?.bg || 'rgba(180,81,30,0.1)'), color: on ? '#E8A265' : (tone?.color || '#A8481A'),
-              }}>{count}</span>
-            </button>
-          );
-        })}
-      </div>
+      <StatusFilter
+        statuses={['All', 'For Approval', 'Approved', 'Tour Confirmed', ...(type === 'exclusive' ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected']}
+        value={statusFilter}
+        onChange={setStatusFilter}
+        count={(st) => (st === 'All' ? requests.length : requests.filter((q) => requestStatusLabel(q) === st || requestPaymentLabel(q) === st).length)}
+      />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {(() => {
           const shown = statusFilter === 'All' ? requests : requests.filter((q) => requestStatusLabel(q) === statusFilter || requestPaymentLabel(q) === statusFilter);

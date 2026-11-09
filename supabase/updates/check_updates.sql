@@ -115,5 +115,11 @@ from (values
   ('20261215 exclusive tours: budget and rates ₱3,000 – ₱100,000',
      coalesce((select pg_get_functiondef(p.oid) like '%new.budget < 3000%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                where n.nspname = 'public' and p.proname = 'exclusive_requests_flow_rules' limit 1), false))
+                where n.nspname = 'public' and p.proname = 'exclusive_requests_flow_rules' limit 1), false)),
+  ('20261216 panel feedback: payment password, removed accounts, driver ID, survey, comment edits',
+     to_regclass('public.admin_password_checks') is not null
+     and to_regclass('public.driver_documents') is not null
+     and to_regclass('public.system_feedback') is not null
+     and exists (select 1 from pg_trigger where tgname = 'bookings_payment_needs_password')
+     and exists (select 1 from pg_trigger where tgname = 'feed_comments_guard_edit'))
 ) as u(update_file, installed);

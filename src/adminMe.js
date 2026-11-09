@@ -7,7 +7,9 @@ import { supabase, currentUser } from './supabaseClient';
 // ─────────────────────────────────────────────
 
 const ADMIN_ME_CHANGED = 'ibayo:admin-me-changed';
-export const adminMeChanged = () => window.dispatchEvent(new Event(ADMIN_ME_CHANGED));
+// patch (optional): what changed, e.g. { name }, shown at once everywhere
+// (before the fresh copy from the database arrives).
+export const adminMeChanged = (patch = null) => window.dispatchEvent(new CustomEvent(ADMIN_ME_CHANGED, { detail: patch }));
 
 export const useAdminMe = () => {
   const [me, setMe] = useState({ name: '', email: '', isMain: false, loaded: false });
@@ -23,8 +25,12 @@ export const useAdminMe = () => {
       setMe({ name, email: user.email || '', isMain: !!data?.is_main_admin, loaded: true });
     };
     load();
-    window.addEventListener(ADMIN_ME_CHANGED, load);
-    return () => { alive = false; window.removeEventListener(ADMIN_ME_CHANGED, load); };
+    const onChange = (e) => {
+      if (e?.detail && alive) setMe((m) => ({ ...m, ...e.detail }));
+      load();
+    };
+    window.addEventListener(ADMIN_ME_CHANGED, onChange);
+    return () => { alive = false; window.removeEventListener(ADMIN_ME_CHANGED, onChange); };
   }, []);
   return me;
 };

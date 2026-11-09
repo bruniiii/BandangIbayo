@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import FeedbackResults from './FeedbackResults';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
 import { SearchX } from 'lucide-react';
@@ -700,10 +701,6 @@ const Reports = () => {
         </div>
       </div>
 
-      <SalesSummary onData={onSalesData} />
-
-      <TourIncome onData={onIncomeData} />
-
       {/* ── Fetch Error Banner (surfaces silent Supabase query failures instead of just showing 0 data) ── */}
       {fetchErrors.length > 0 && (
         <div style={{
@@ -887,42 +884,6 @@ const Reports = () => {
                 </div>
               </div>
 
-              {/* ── Joiner Reviews ── */}
-              <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
-              }}>
-                <SectionTitle icon={<Star size={14} />}>Joiner Reviews</SectionTitle>
-                {reviewSummary.count === 0 ? <EmptyChartNotice /> : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 20 }}>
-                    <div>
-                      <p style={{ fontSize: 'clamp(22px, 8vw, 34px)', fontWeight: 900, color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere' }}>
-                        {reviewSummary.average.toFixed(1)} <Star size={24} fill="#E8A265" color="#E8A265" />
-                      </p>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: '2px 0 14px' }}>
-                        Average of {reviewSummary.count} review{reviewSummary.count === 1 ? '' : 's'}
-                      </p>
-                      <HorizontalBarChart data={reviewSummary.stars} color="#E8A265" />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>Latest reviews</p>
-                      {reviewSummary.latest.map((r, i) => (
-                        <div key={i} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 14px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                            <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name} · {r.tour}</p>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>
-                              <Star size={12} fill="#E8A265" color="#E8A265" /> {r.rating}
-                            </span>
-                          </div>
-                          {r.comment && <p style={{ fontSize: 12, fontWeight: 500, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.5 }}>“{r.comment}”</p>}
-                          <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0' }}>{r.date}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* ── Cancellation Analytics ── */}
               {cancellationReasons.total > 0 && (
                 <div style={{
@@ -995,6 +956,52 @@ const Reports = () => {
           )}
         </>
       )}
+
+      {/* Money: below the graphs and analytics */}
+      <SalesSummary onData={onSalesData} />
+
+      <TourIncome onData={onIncomeData} />
+
+      {/* ── Joiner Reviews: at the bottom ── */}
+      {!loading && (
+      <div style={{
+        background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
+        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      }}>
+        <SectionTitle icon={<Star size={14} />}>Joiner Reviews</SectionTitle>
+        {reviewSummary.count === 0 ? <EmptyChartNotice /> : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 20 }}>
+            <div>
+              <p style={{ fontSize: 'clamp(22px, 8vw, 34px)', fontWeight: 900, color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere' }}>
+                {reviewSummary.average.toFixed(1)} <Star size={24} fill="#E8A265" color="#E8A265" />
+              </p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: '2px 0 14px' }}>
+                Average of {reviewSummary.count} review{reviewSummary.count === 1 ? '' : 's'}
+              </p>
+              <HorizontalBarChart data={reviewSummary.stars} color="#E8A265" />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>Latest reviews</p>
+              {reviewSummary.latest.map((r, i) => (
+                <div key={i} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+                    <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name} · {r.tour}</p>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>
+                      <Star size={12} fill="#E8A265" color="#E8A265" /> {r.rating}
+                    </span>
+                  </div>
+                  {r.comment && <p style={{ fontSize: 12, fontWeight: 500, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.5 }}>“{r.comment}”</p>}
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0' }}>{r.date}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      )}
+
+      {/* ── Survey results (joiners' feedback on the website) ── */}
+      <FeedbackResults />
     </div>
   );
 };

@@ -819,7 +819,6 @@ const TourManagement = ({ openTourId = null }) => {
                 onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates, tour })}
                 onView={() => setViewTour(tour)}
                 onEdit={() => openTourForm(tour)}
-                onAddDate={() => openTourForm(tour, { withNewDate: true })}
                 onJoiners={(date) => setJoinerListTour(date)}
                 onWeather={adminMe.isMain && currentTab === 'active' ? (date) => setWeatherDate({ ...date, title: tour.title }) : null}
                 formatDateRange={formatDateRange}

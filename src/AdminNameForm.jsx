@@ -48,7 +48,7 @@ const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
       .eq('id', user?.id);
     setSaving(false);
     if (err) { setError(err.message); return; }
-    adminMeChanged();
+    adminMeChanged({ name: `${first.trim()} ${last.trim()}`.replace(/\s+/g, ' ') });
     toast.success('Name saved', 'It shows at the top right and on the receipts of payments you process.');
     onSaved?.();
   };

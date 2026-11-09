@@ -10,10 +10,10 @@ import { logAdminMessages } from './adminMessages';
 import SentMessages from './ui/SentMessages';
 import {
   Search, Loader2, Users, Mail, Phone, Calendar, MapPin,
-  ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle, AlertTriangle, RotateCcw,
+  ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle, AlertTriangle, RotateCcw, ImageOff, ArchiveRestore, UserX,
 } from 'lucide-react';
 import { SkeletonRows, Skel } from './ui/Skeleton';
-import { reportError } from './ui/toast';
+import { reportError, toast } from './ui/toast';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -49,9 +49,15 @@ const formatDate = (d) => {
 // archiving existed (archived_accounts). Joiners restore their own account when they log in again.
 // Active joiners close to the inactivity limit get a yellow warning badge.
 const WARN_DAYS = 30;
+const actionBtn = (color) => ({
+  display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 12, cursor: 'pointer',
+  background: 'transparent', border: `1px solid ${color}`, color, fontFamily: 'inherit',
+  fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+});
+
 const ARCHIVE_REASONS = { deactivated: 'Deactivated their account', deleted: 'Deleted their account', inactive: 'No login for a long time' };
 const JoinerAccounts = ({ openJoinerId = null }) => {
-  const [view, setView] = useState('active'); // 'active' | 'archived'
+  const [view, setView] = useState('active'); // 'active' | 'archived' | 'removed'
   const [activity, setActivity] = useState({}); // id → { last_sign_in_at, inactive }
   const [deletedAccounts, setDeletedAccounts] = useState([]);
   const [joiners, setJoiners] = useState([]);
@@ -177,7 +183,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
   const activeJoiners = useMemo(() => joiners.filter((p) => !(p.archived_at || activity[p.id]?.inactive)), [joiners, activity]);
   // Archived: accounts on record (restorable), then ones deleted before archiving existed.
   const archived = useMemo(() => [
-    ...joiners.filter((p) => p.archived_at || activity[p.id]?.inactive).map((p) => ({
+    ...joiners.filter((p) => (p.archived_at || activity[p.id]?.inactive) && p.archive_reason !== 'removed').map((p) => ({
       ...p, archiveReason: p.archive_reason || activity[p.id]?.archive_reason || 'inactive',
       archived_at: p.archived_at || activity[p.id]?.archived_at, last_sign_in_at: activity[p.id]?.last_sign_in_at,
     })),
@@ -187,15 +193,58 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
     })),
   ], [joiners, activity, deletedAccounts]);
 
+  // An admin removes a joiner (they can't log in; bookings stay on record).
+  const removeAccount = async (p) => {
+    const reason = await confirmDialog({
+      title: `Remove ${fullName(p)}'s account?`,
+      message: "They won't be able to log in. Their bookings and payments stay on record, and an admin can restore the account later (Removed tab).",
+      reasonLabel: 'Reason (the joiner sees this when they try to log in)',
+      confirmLabel: 'Remove Account', cancelLabel: 'Cancel', tone: 'danger', typeToConfirm: 'remove',
+    });
+    if (!reason) return;
+    const { error } = await supabase.rpc('admin_remove_joiner', { p_id: p.id, p_reason: reason });
+    if (error) { toast.error("Couldn't remove the account", error.message); return; }
+    toast.success('Account removed', `${fullName(p)} can no longer log in.`);
+    openJoiner(null);
+    fetchJoiners();
+  };
+  const restoreRemoved = async (p) => {
+    if (!(await confirmDialog({ title: `Restore ${fullName(p)}'s account?`, message: 'They can log in again and are notified.', confirmLabel: 'Restore Account', cancelLabel: 'Cancel' }))) return;
+    const { error } = await supabase.rpc('admin_restore_removed_joiner', { p_id: p.id });
+    if (error) { toast.error("Couldn't restore the account", error.message); return; }
+    toast.success('Account restored', `${fullName(p)} can log in again.`);
+    openJoiner(null);
+    fetchJoiners();
+  };
+  // A profile photo that breaks the rules (nudity, offensive…): removed, and the joiner is told why.
+  const removePhoto = async (p) => {
+    const reason = await confirmDialog({
+      title: `Remove ${fullName(p)}'s profile photo?`,
+      message: 'The joiner is notified with your reason and can upload another photo.',
+      imageUrl: p.avatar_url,
+      reasonLabel: 'Reason (e.g. not appropriate, not a photo of them)',
+      confirmLabel: 'Remove Photo', cancelLabel: 'Keep Photo', tone: 'danger',
+    });
+    if (!reason) return;
+    const { error } = await supabase.rpc('admin_remove_avatar', { p_id: p.id, p_reason: reason });
+    if (error) { toast.error("Couldn't remove the photo", error.message); return; }
+    toast.success('Photo removed', 'The joiner was notified.');
+    setSelected((s) => (s && s.id === p.id ? { ...s, avatar_url: null } : s));
+    fetchJoiners();
+  };
+
+  // Removed by an admin (with the reason): only an admin can restore these.
+  const removed = useMemo(() => joiners.filter((p) => p.archive_reason === 'removed').map((p) => ({ ...p, archiveReason: 'removed' })), [joiners]);
+
   const filtered = useMemo(() => {
-    const list = view === 'archived' ? archived : activeJoiners;
+    const list = view === 'archived' ? archived : view === 'removed' ? removed : activeJoiners;
     const q = query.trim().toLowerCase();
     if (!q) return list;
     return list.filter(p => {
       const haystack = `${p.first_name || ''} ${p.last_name || ''} ${p.username || ''} ${p.email || ''} ${p.phone_number || ''}`.toLowerCase();
       return haystack.includes(q);
     });
-  }, [view, archived, activeJoiners, query]);
+  }, [view, archived, removed, activeJoiners, query]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -204,18 +253,20 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
         <div>
           <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
-            {loading ? <Skel w={140} h={11} /> : view === 'archived'
+            {loading ? <Skel w={140} h={11} /> : view === 'removed'
+              ? `${removed.length} removed account${removed.length !== 1 ? 's' : ''}`
+              : view === 'archived'
               ? `${archived.length} archived account${archived.length !== 1 ? 's' : ''}`
               : `${activeJoiners.length} active joiner${activeJoiners.length !== 1 ? 's' : ''}`}
           </p>
           <div role="tablist" aria-label="Joiner accounts" style={{ display: 'inline-flex', background: '#F2E4D0', padding: 4, borderRadius: 12, border: '1px solid rgba(180,81,30,0.14)', marginTop: 8 }}>
-            {[['active', 'Active'], ['archived', 'Archived']].map(([key, label]) => (
+            {[['active', 'Active'], ['archived', 'Archived'], ['removed', 'Removed']].map(([key, label]) => (
               <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
                 padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
                 background: view === key ? '#1A0A00' : 'transparent', color: view === key ? '#FDF6EE' : '#7A3A18',
               }}>
-                {label}{key === 'archived' && archived.length ? ` (${archived.length})` : ''}
+                {label}{key === 'archived' && archived.length ? ` (${archived.length})` : ''}{key === 'removed' && removed.length ? ` (${removed.length})` : ''}
               </button>
             ))}
           </div>
@@ -281,7 +332,9 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
               message={`No joiner's name, username or email matches "${query}".`}
               action={{ label: 'Clear Search', onClick: () => setQuery('') }}
             />
-          ) : view === 'archived' ? (
+          ) : view === 'removed' ? (
+            <EmptyState icon={Users} title="No removed accounts" message="Accounts an admin removes (with the reason) show up here. They can't log in until an admin restores them." />
+          ) : (view === 'archived' || view === 'removed') ? (
             <EmptyState icon={Users} title="No archived accounts" message="Joiners who deactivate their account, or don't log in for the time set in Admin Settings, show up here." />
           ) : (
             <EmptyState icon={Users} title="No joiners registered yet" message="New joiner accounts will show up here as soon as they sign up." />
@@ -291,7 +344,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
             <table className="joiners-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
-                  {(view === 'archived' ? ['Joiner', 'Contact', 'Archived Because', 'Last Login', 'Joined', ''] : ['Joiner', 'Contact', 'Address', 'Bookings', 'Last Login', '']).map((h) => (
+                  {((view === 'archived' || view === 'removed') ? ['Joiner', 'Contact', view === 'removed' ? 'Removed Because' : 'Archived Because', 'Last Login', 'Joined', ''] : ['Joiner', 'Contact', 'Address', 'Bookings', 'Last Login', '']).map((h) => (
                     <th key={h} style={{
                       textAlign: 'left', padding: '14px 20px', fontSize: 11.5, fontWeight: 800,
                       letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
@@ -335,11 +388,11 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                       <p style={{ fontSize: 12, color: '#1A0A00', margin: 0 }}>{p.email || '—'}</p>
                       <p style={{ fontSize: 11.5, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{p.phone_number || '—'}</p>
                     </td>
-                    {view === 'archived' ? (
+                    {(view === 'archived' || view === 'removed') ? (
                       <>
                         <td style={{ padding: '14px 20px' }}>
                           <p style={{ fontSize: 12, fontWeight: 800, color: p.archiveReason === 'inactive' ? '#8C5216' : '#8C2F1C', margin: 0 }}>
-                            {ARCHIVE_REASONS[p.archiveReason] || 'Archived'}{p.archived_at ? ` (${formatDate(p.archived_at)})` : ''}
+                            {p.archiveReason === 'removed' ? `Removed by an admin: ${p.removed_reason || '—'}` : (ARCHIVE_REASONS[p.archiveReason] || 'Archived')}{p.archived_at ? ` (${formatDate(p.archived_at)})` : ''}
                           </p>
                         </td>
                         <td style={{ padding: '14px 20px' }}>
@@ -453,6 +506,27 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
               <DetailRow icon={<Calendar size={14} />} label="Registered On" value={formatDate(selected.created_at)} />
               <DetailRow icon={<Calendar size={14} />} label="Last Login" value={activity[selected.id]?.last_sign_in_at ? formatDate(activity[selected.id].last_sign_in_at) : 'Never'} />
             </div>
+
+            {/* ── Account actions: remove the photo, remove or restore the account ── */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 18 }}>
+              {selected.avatar_url && (
+                <button type="button" onClick={() => removePhoto(selected)} style={actionBtn('#7A3A18')}>
+                  <ImageOff size={14} /> Remove Photo
+                </button>
+              )}
+              {selected.archive_reason === 'removed' ? (
+                <button type="button" onClick={() => restoreRemoved(selected)} style={actionBtn('#1B5E3B')}>
+                  <ArchiveRestore size={14} /> Restore Account
+                </button>
+              ) : !selected.archived_at && (
+                <button type="button" onClick={() => removeAccount(selected)} style={actionBtn('#8C2F1C')}>
+                  <UserX size={14} /> Remove Account
+                </button>
+              )}
+            </div>
+            {selected.archive_reason === 'removed' && (
+              <p style={{ margin: '10px 0 0', fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>Removed: {selected.removed_reason || '—'}</p>
+            )}
 
             {/* ── Email joiner ── */}
             <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 22, paddingTop: 18 }}>

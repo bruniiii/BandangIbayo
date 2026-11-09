@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Walkthrough from './ui/Walkthrough';
+import { ADMIN_STEPS, walkthroughKey } from './walkthroughSteps';
+import { downloadOverviewPDF } from './overviewPdf';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
@@ -7,7 +10,7 @@ import {
 import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from './supabaseClient';
+import { supabase, currentUser } from './supabaseClient';
 import { bookingForNotification, tourForNotification, postForNotification } from './notificationTarget';
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
@@ -29,7 +32,6 @@ import Notification from './Notification';
 import { formatPeso, archivePastTours, todayManila } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
-import MenuEdgeTab from './ui/MenuEdgeTab';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory, tabFromUrl } from './useTabHistory';
@@ -239,11 +241,27 @@ const AdminDashboard = () => {
     latestReview: null,
     avgRating: null,
     reviewCount: 0,
+    ratingBreakdown: [],
     latestPost: null,
     pendingExclusiveRequests: [], // Exclusive Tour / Request-a-Tour submissions awaiting review
     pendingExclusiveCount: 0,
   });
  
+  // First-time walkthrough of the menu (once per account on this device).
+  const [tourOpen, setTourOpen] = useState(false);
+  const tourUser = useRef(null);
+  useEffect(() => {
+    currentUser().then((u) => {
+      tourUser.current = u?.id || null;
+      try { if (u && !localStorage.getItem(walkthroughKey(u.id, 'admin'))) setTourOpen(true); } catch { /* private mode */ }
+    });
+  }, []);
+  const closeTour = () => {
+    setTourOpen(false);
+    try { localStorage.setItem(walkthroughKey(tourUser.current, 'admin'), '1'); } catch { /* private mode */ }
+  };
+  const adminSteps = me.isMain ? ADMIN_STEPS : ADMIN_STEPS.filter((st) => st.target !== 'Admin Settings');
+
   const handleLogout = async () => {
     const ok = await confirmDialog({
       title: 'Sign out?',
@@ -388,6 +406,8 @@ const AdminDashboard = () => {
       latestReview,
       avgRating,
       reviewCount: ratings.length,
+      // Stars 5 → 1 with how many reviews gave each.
+      ratingBreakdown: [5, 4, 3, 2, 1].map((stars) => ({ stars, count: ratings.filter((r) => Math.round(r) === stars).length })),
       latestPost,
       pendingExclusiveRequests: pendingExclusiveRaw || [],
       pendingExclusiveCount: pendingExclusiveCount ?? 0,
@@ -420,7 +440,8 @@ const AdminDashboard = () => {
  
       {/* ── SIDEBAR — expands on hover (desktop), tap-to-open drawer (mobile) ── */}
       {/* edge tab: opens the menu from anywhere on the page */}
-      {isMobile && !mobileNavOpen && <MenuEdgeTab onOpen={() => setMobileNavOpen(true)} />}
+      {/* (The menu button stays at the top now, so the edge tab isn't needed.) */}
+      <Walkthrough steps={adminSteps} open={tourOpen} onClose={closeTour} onMenu={setMobileNavOpen} />
 
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
@@ -560,7 +581,7 @@ const AdminDashboard = () => {
         {/* header */}
         {/* content */}
         <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE', display: 'flex', flexDirection: 'column' }}>
-          {/* Top row: page title on the left, bell and account on the right (scrolls with the page) */}
+          {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
               {/* hamburger - hidden on desktop via CSS, shown <=900px */}
@@ -581,7 +602,7 @@ const AdminDashboard = () => {
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
               {/* admin chip: who's signed in + Change Password */}
-              <AdminAccountMenu onOpenSettings={() => handleNavClick('Admin Settings')} />
+              <AdminAccountMenu onOpenSettings={() => handleNavClick('Admin Settings')} onStartTour={() => setTourOpen(true)} />
             </div>
           </div>
 
@@ -615,6 +636,11 @@ const AdminDashboard = () => {
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h2>
                 </div>
+                <button type="button" disabled={loadingStats} onClick={() => downloadOverviewPDF({ stats, snippets }).catch((e) => toast.error("Couldn't create the PDF", e.message))} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 18px', borderRadius: 12, cursor: 'pointer',
+                  background: '#E8A265', color: '#1A0A00', border: 'none', fontFamily: 'inherit',
+                  fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                }}><FileText size={15} /> Download PDF</button>
               </div>
 
               {/* KPI row */}
@@ -863,6 +889,53 @@ const AdminDashboard = () => {
                     )}
                   </ModuleCard>
 
+                  {/* This month at a glance */}
+                  <ModuleCard
+                    icon={<TrendingUp size={16} />}
+                    title="This Month at a Glance"
+                    metaLabel={new Date().toLocaleDateString('en-US', { month: 'long' })}
+                    onViewAll={() => handleNavClick('Reports')}
+                    loading={loadingStats}
+                    empty={false}
+                  >
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      {[
+                        ['Bookings', stats.bookingsThisMonth],
+                        ['Waiting for verification', stats.pendingVerification],
+                        ['Tours next month', stats.toursNextMonth],
+                        ['New joiners (7 days)', stats.joinersThisWeek],
+                      ].map(([label, value]) => (
+                        <div key={label} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
+                          <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#1A0A00' }}>{value}</p>
+                          <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: '#7A3A18', lineHeight: 1.3 }}>{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </ModuleCard>
+
+                  {/* Ratings breakdown */}
+                  <ModuleCard
+                    icon={<Star size={16} />}
+                    title="Ratings Breakdown"
+                    metaLabel={`${snippets.reviewCount} review${snippets.reviewCount === 1 ? '' : 's'}`}
+                    onViewAll={() => handleNavClick('Reviews')}
+                    loading={loadingStats}
+                    empty={!snippets.reviewCount}
+                    emptyText="No reviews yet."
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                      {snippets.ratingBreakdown.map(({ stars, count }) => (
+                        <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ width: 28, fontSize: 12, fontWeight: 800, color: '#5C2A10', whiteSpace: 'nowrap' }}>{stars} ★</span>
+                          <div style={{ flex: 1, height: 8, borderRadius: 999, background: '#F2E4D0', overflow: 'hidden' }}>
+                            <div style={{ width: `${snippets.reviewCount ? (count / snippets.reviewCount) * 100 : 0}%`, height: '100%', background: '#E8A265' }} />
+                          </div>
+                          <span style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </ModuleCard>
+
                 </div>
               </div>
             </div>
@@ -962,6 +1035,7 @@ const PAGE_INFO = {
  
 const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
   <button
+    data-tour={label}
     onClick={onClick}
     title={collapsed ? label : undefined}
     style={{

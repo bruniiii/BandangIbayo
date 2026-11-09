@@ -14,7 +14,8 @@ import { REFUND_SELECT, RefundPanel, RefundSentInfo, RefundHistoryButton } from 
 // Refund history. Hidden when there's nothing to show.
 // ─────────────────────────────────────────────
 
-const WeatherRefunds = () => {
+// standalone: shown on its own Refunds tab (says so when there's nothing to send).
+const WeatherRefunds = ({ standalone = false }) => {
   const me = useAdminMe();
   const [rows, setRows] = useState([]);
   const [missing, setMissing] = useState([]); // sent, but the joiner says they didn't get it
@@ -45,7 +46,16 @@ const WeatherRefunds = () => {
 
   if (!rows.length && !missing.length) {
     // The main admin can still open the history.
-    return me.isMain ? <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}><RefundHistoryButton /></div> : null;
+    const history = me.isMain ? <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}><RefundHistoryButton /></div> : null;
+    if (!standalone) return history;
+    return (
+      <>
+        {history}
+        <p style={{ margin: '0 0 16px', padding: '18px 20px', borderRadius: 16, background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.3)', fontSize: 13, fontWeight: 700, color: '#3F5D62', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <CloudRain size={16} /> No refunds to send right now. Refunds appear here after a tour is postponed or cancelled because of the weather.
+        </p>
+      </>
+    );
   }
   const total = rows.reduce((s, b) => s + (Number(b.weather_refund) || 0), 0);
   const waiting = rows.filter((b) => b.weather_refund_prepared_at && b.weather_refund_status === 'Due').length;

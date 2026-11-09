@@ -174,6 +174,14 @@ const JoinerLogin = () => {
 
     // An archived joiner (deactivated, or no login for a long time) chooses
     // whether to restore the account.
+    // Removed by an admin: no way back from here.
+    if (profile.archived_at && profile.archive_reason === 'removed') {
+      await supabase.auth.signOut();
+      setLoading(false);
+      setChallenge(null);
+      showError(`This account was removed by Bandang IBAYO${profile.removed_reason ? ` (${profile.removed_reason})` : ''}. Please message us if you think this is a mistake.`);
+      return;
+    }
     if (profile.archived_at) {
       const restoreError = (await askRestoreAccount(profile.archive_reason)) ? await restoreMyAccount() : 'Your account stays archived. Log in again any time to restore it.';
       if (restoreError) {
@@ -351,16 +359,21 @@ const JoinerLogin = () => {
         </div>
       )}
  
-      {/* ── CARD ── */}
-      <div style={{
+      {/* ── CARD: the login form on the left, Bandang IBAYO's branding on the right (desktop) ── */}
+      <div className="login-split" style={{
+        display: 'flex', width: '100%', maxWidth: 1000, background: '#FDF6EE', borderRadius: 28,
+        boxShadow: '0 20px 60px rgba(26,10,0,0.14)', overflow: 'hidden', borderTop: '7px solid #B4511E',
+      }}>
+      <div className="login-form-side" style={{
         position: 'relative',
         background: '#FDF6EE',
         padding: '2.5rem',
-        borderRadius: 24,
-        boxShadow: '0 20px 60px rgba(26,10,0,0.14)',
         width: '100%',
-        maxWidth: 420,
-        borderTop: '7px solid #B4511E',
+        flex: '1 1 440px',
+        maxWidth: 520,
+        margin: '0 auto',
+        boxSizing: 'border-box',
+        alignSelf: 'center',
       }}>
  
         {/* close button */}
@@ -497,8 +510,40 @@ const JoinerLogin = () => {
         </p>
  
       </div>
+      <LoginBrandPanel />
+      </div>
     </div>
   );
 };
+
+// The right half of the login page (hidden on phones and tablets: index.css).
+const LoginBrandPanel = () => (
+  <aside className="login-brand-side" aria-label="About Bandang IBAYO" style={{
+    flex: '1 1 460px', position: 'relative', minHeight: 560, color: '#FDF6EE', padding: '3rem',
+    background: "linear-gradient(160deg, rgba(26,10,0,0.92) 0%, rgba(26,10,0,0.78) 55%, rgba(140,47,28,0.85) 100%), url('/nature-bg.webp') center / cover",
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 28,
+  }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <img src={logoIcon} alt="" style={{ width: 46, height: 46, objectFit: 'contain' }} />
+      <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '-0.01em' }}>Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span></span>
+    </div>
+    <div>
+      <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Your budget travel partner</p>
+      <h2 style={{ margin: '0 0 14px', fontSize: 30, lineHeight: 1.15, fontWeight: 900, letterSpacing: '-0.02em' }}>
+        Adventures across the Philippines, by land.
+      </h2>
+      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#F2E4D0', maxWidth: 400 }}>
+        Book budget-friendly land tours and road trips, pay online, chat with your group and follow the van live on tour day.
+      </p>
+    </div>
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
+      {['Book and pay online (GCash or card)', 'Live van tracking on tour day', 'Private Exclusive Tours for your group'].map((t) => (
+        <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, fontWeight: 700, color: '#FDF6EE' }}>
+          <CheckCircle2 size={17} color="#E8A265" style={{ flexShrink: 0 }} /> {t}
+        </li>
+      ))}
+    </ul>
+  </aside>
+);
  
 export default JoinerLogin;

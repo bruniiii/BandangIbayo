@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyRound, ChevronDown, X, ShieldCheck, UserRound } from 'lucide-react';
+import { KeyRound, ChevronDown, X, ShieldCheck, UserRound, Compass } from 'lucide-react';
 import BrandAvatar from './ui/BrandAvatar';
 import ChangePassword from './ChangePassword';
 import { useAdminMe } from './adminMe';
@@ -8,7 +8,7 @@ import AdminNameForm from './AdminNameForm';
 // The box at the top right of the admin pages: the signed-in admin's name.
 // Clicking it shows their email, Change Password (admins have no Profile
 // Settings page) and, for the main admin, Admin Settings.
-const AdminAccountMenu = ({ onOpenSettings }) => {
+const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
   const [open, setOpen] = useState(false);
   const [changing, setChanging] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -79,6 +79,18 @@ const AdminAccountMenu = ({ onOpenSettings }) => {
           >
             <KeyRound size={15} style={{ color: '#A8481A' }} /> Change Password
           </button>
+          {onStartTour && (
+            <button type="button" role="menuitem" onClick={() => { setOpen(false); onStartTour(); }} style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+              background: 'none', border: 'none', borderRadius: 10, padding: '10px 12px', cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 13, fontWeight: 800, color: '#1A0A00', textAlign: 'left',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#F2E4D0'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
+            >
+              <Compass size={15} style={{ color: '#A8481A' }} /> Quick Tour
+            </button>
+          )}
           {me.isMain && onOpenSettings && (
             <button type="button" role="menuitem" onClick={() => { setOpen(false); onOpenSettings(); }} style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 10,

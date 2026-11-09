@@ -5,6 +5,7 @@ import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { toast } from './ui/toast';
 import NiceSelect from './ui/NiceSelect';
+import NiceDate from './ui/NiceDate';
 
 // ─────────────────────────────────────────────
 // SALES SUMMARY (top of Reports): money actually collected in a month, per
@@ -25,6 +26,21 @@ const monthLabel = (key) => {
   const [y, m] = key.split('-').map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 };
+// The period to show: a day (YYYY-MM-DD), a month (YYYY-MM) or a year (YYYY).
+const periodKeyOf = (iso, kind) => {
+  const d = new Date(iso);
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+  return kind === 'day' ? `${y}-${m}-${day}` : kind === 'year' ? String(y) : `${y}-${m}`;
+};
+const periodLabel = (key, kind) => {
+  if (kind === 'year') return key;
+  if (kind === 'day') {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  return monthLabel(key);
+};
+const lastYears = (n) => Array.from({ length: n }, (_, i) => String(new Date().getFullYear() - i));
 const lastMonths = (n) => {
   const now = new Date();
   return Array.from({ length: n }, (_, i) => monthKeyOf(new Date(now.getFullYear(), now.getMonth() - i, 1)));
@@ -47,7 +63,9 @@ const SalesSummary = ({ onData }) => {
   const [exclusives, setExclusives] = useState([]);
   const [rates, setRates] = useState({}); // tour id → Regular Rate
   const [loading, setLoading] = useState(true);
-  const [month, setMonth] = useState(() => monthKeyOf(new Date()));
+  const [kind, setKind] = useState('month'); // day | month | year
+  const [month, setMonth] = useState(() => monthKeyOf(new Date())); // the chosen period's key
+  const pickKind = (k) => { setKind(k); setMonth(periodKeyOf(new Date(), k)); };
   const [showBalances, setShowBalances] = useState(true);
 
   useEffect(() => {
@@ -75,7 +93,7 @@ const SalesSummary = ({ onData }) => {
   }, []);
 
   const summary = useMemo(() => {
-    const inMonth = bookings.filter((b) => monthKeyOf(b.created_at) === month && collectedOf(b) > 0);
+    const inMonth = bookings.filter((b) => periodKeyOf(b.created_at, kind) === month && collectedOf(b) > 0);
 
     const perTour = new Map();
     inMonth.forEach((b) => {
@@ -96,8 +114,8 @@ const SalesSummary = ({ onData }) => {
       if (r.payment_status !== 'Paid') return;
       const paid = Number(r.amount_paid) || 0;
       const balancePart = r.balance_settled ? Number(r.balance_amount) || 0 : 0;
-      if (r.paid_at && monthKeyOf(r.paid_at) === month) exclusiveCollected += paid - balancePart;
-      if (r.balance_settled && r.balance_paid_at && monthKeyOf(r.balance_paid_at) === month) exclusiveCollected += balancePart;
+      if (r.paid_at && periodKeyOf(r.paid_at, kind) === month) exclusiveCollected += paid - balancePart;
+      if (r.balance_settled && r.balance_paid_at && periodKeyOf(r.balance_paid_at, kind) === month) exclusiveCollected += balancePart;
     });
 
     const toursCollected = inMonth.reduce((s, b) => s + collectedOf(b), 0);
@@ -129,12 +147,12 @@ const SalesSummary = ({ onData }) => {
       balances,
       balanceTotal: balances.reduce((s, r) => s + r.amount, 0),
     };
-  }, [bookings, exclusives, rates, month]);
+  }, [bookings, exclusives, rates, month, kind]);
 
   // Reports' Download PDF includes this summary.
   useEffect(() => {
-    if (!loading) onData?.({ monthLabel: monthLabel(month), ...summary });
-  }, [loading, month, summary, onData]);
+    if (!loading) onData?.({ monthLabel: periodLabel(month, kind), ...summary });
+  }, [loading, month, kind, summary, onData]);
 
   return (
     <section aria-labelledby="sales-summary-title" style={card}>
@@ -144,14 +162,31 @@ const SalesSummary = ({ onData }) => {
           <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>Money actually received, and who still owes a balance.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <NiceSelect aria-label="Month" value={month} onChange={(e) => setMonth(e.target.value)} style={selectStyle}>
-            {lastMonths(12).map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
-          </NiceSelect>
+          <div role="tablist" aria-label="Show by" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4 }}>
+            {[['day', 'Day'], ['month', 'Month'], ['year', 'Year']].map(([k, l]) => (
+              <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => pickKind(k)} style={{
+                border: 'none', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', fontFamily: 'inherit',
+                fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                background: kind === k ? '#1A0A00' : 'transparent', color: kind === k ? '#FDF6EE' : '#5C2A10',
+              }}>{l}</button>
+            ))}
+          </div>
+          {kind === 'day' ? (
+            <NiceDate aria-label="Day" value={month} max={periodKeyOf(new Date(), 'day')} clearable={false} onChange={(e) => e.target.value && setMonth(e.target.value)} style={{ minWidth: 200 }} />
+          ) : kind === 'year' ? (
+            <NiceSelect aria-label="Year" value={month} onChange={(e) => setMonth(e.target.value)} style={selectStyle}>
+              {lastYears(5).map((k) => <option key={k} value={k}>{k}</option>)}
+            </NiceSelect>
+          ) : (
+            <NiceSelect aria-label="Month" value={month} onChange={(e) => setMonth(e.target.value)} style={selectStyle}>
+              {lastMonths(24).map((k) => <option key={k} value={k}>{monthLabel(k)}</option>)}
+            </NiceSelect>
+          )}
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: 12 }}>
-        <Stat icon={<Wallet size={17} />} label={`Collected in ${monthLabel(month)}`} value={loading ? '…' : formatPeso(summary.collected)}
+        <Stat icon={<Wallet size={17} />} label={`Collected ${kind === 'day' ? 'on' : 'in'} ${periodLabel(month, kind)}`} value={loading ? '…' : formatPeso(summary.collected)}
           sub={loading ? '' : summary.exclusiveCollected ? `${formatPeso(summary.toursCollected)} tours · ${formatPeso(summary.exclusiveCollected)} exclusive` : 'From tour bookings'} />
         <Stat icon={<Users size={17} />} label="Paid bookings" value={loading ? '…' : String(summary.bookings)} sub={loading ? '' : `${summary.pax} joiner${summary.pax === 1 ? '' : 's'}`} />
         <Stat icon={<Wallet size={17} />} label="At Regular Rate" value={loading ? '…' : formatPeso(summary.regularTotal)}
@@ -162,9 +197,9 @@ const SalesSummary = ({ onData }) => {
 
       {!loading && (
         <>
-          <p style={subTitle}>Per tour · {monthLabel(month)}</p>
+          <p style={subTitle}>Per tour · {periodLabel(month, kind)}</p>
           {summary.perTour.length === 0 ? (
-            <p style={muted}>No payments this month yet.</p>
+            <p style={muted}>No payments {kind === 'day' ? 'on this day' : `this ${kind}`} yet.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table className="stack-table" style={table}>

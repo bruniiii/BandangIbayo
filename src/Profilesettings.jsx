@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { confirmPhoto } from './ui/confirmPhoto';
 import MissingHint from './ui/MissingHint';
 import { supabase, currentUser } from './supabaseClient';
 import { shrinkImage } from './imageCompress';
@@ -43,7 +44,7 @@ const inputStyle = {
 const readOnlyInputStyle = {
   ...inputStyle,
   color: '#7A3A18',
-  opacity: 0.7,
+  opacity: 0.85,
   cursor: 'not-allowed',
 };
 
@@ -182,7 +183,7 @@ const ProfileSettings = () => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleAvatarSelect = (e) => {
+  const handleAvatarSelect = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -198,6 +199,10 @@ const ProfileSettings = () => {
       return;
     }
 
+    // Show it first and ask them to confirm it's appropriate.
+    const input = e.target;
+    if (!(await confirmPhoto(file))) { input.value = ''; return; }
+    input.value = '';
     setPendingAvatarFile(file);
     setAvatarPreview(prev => {
       if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);

@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { recordPaymentWithPassword } from './paymentPassword';
+import StatusFilter from './ui/StatusFilter';
+import { STATUS_COLORS } from './ui/statusColors';
 import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
@@ -46,16 +49,7 @@ const formatDateTime = (d) => {
   return new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-const STATUS_STYLES = {
-  'For Approval': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Approved: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  // Approved, but the joiner didn't pay the downpayment within 24 hours.
-  Unpaid: { bg: 'rgba(26,10,0,0.08)', color: '#7A3A18' },
-  'Downpayment Paid': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
-  'Fully Paid': { bg: 'rgba(122,58,24,0.16)', color: '#7A3A18' },
-};
+const STATUS_STYLES = { ...STATUS_COLORS, Pending: STATUS_COLORS['For Approval'] };
 
 // Exclusive tours are confirmed once the joiner pays 50% of the package price,
 // and fully paid once the balance is in too.
@@ -75,15 +69,16 @@ const reviewDeadline = (request) => {
 };
 
 const StatusBadge = ({ status, large = false }) => {
-  const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
+  const { bg, color, dot } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
-      background: large ? color : bg,
-      color: large ? '#FDF6EE' : color,
+      background: large ? (status === 'Fully Paid' ? bg : color) : bg,
+      color: large ? '#FFFFFF' : color,
+      border: large ? 'none' : `1px solid ${dot}`,
       borderRadius: 999,
       padding: large ? '7px 18px' : '4px 12px',
-      fontSize: large ? 11 : 9,
+      fontSize: large ? 11 : 10.5,
       fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
       whiteSpace: 'nowrap',
     }}>
@@ -207,31 +202,13 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
         </div>
 
         {/* ── Status toggle: show one status at a time ── */}
-        <div role="tablist" aria-label="Filter by status" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '-8px 0 20px' }}>
-          {['All Status', 'For Approval', 'Approved', 'Tour Confirmed', ...(isExclusivePage ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected'].map((st) => {
-            const on = statusFilter === st;
-            const count = st === 'All Status' ? requests.length : requests.filter((r) => shownStatus(r) === st || requestPaymentLabel(r) === st).length;
-            const tone = STATUS_STYLES[st];
-            return (
-              <button
-                key={st} type="button" role="tab" aria-selected={on} onClick={() => setStatusFilter(st)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8, height: 38, padding: '0 14px', borderRadius: 999, cursor: 'pointer',
-                  fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#E8A265' : '#7A3A18',
-                  border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.2)'}`,
-                  boxShadow: on ? '0 6px 16px rgba(26,10,0,0.18)' : 'none', transition: 'background 0.15s, color 0.15s',
-                }}
-              >
-                {st === 'All Status' ? 'All' : st}
-                <span style={{
-                  minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10.5, letterSpacing: 0, background: on ? 'rgba(232,162,101,0.2)' : (tone?.bg || 'rgba(180,81,30,0.1)'), color: on ? '#E8A265' : (tone?.color || '#A8481A'),
-                }}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
+        <StatusFilter
+          style={{ margin: '-8px 0 20px' }}
+          statuses={['All Status', 'For Approval', 'Approved', 'Tour Confirmed', ...(isExclusivePage ? ['Downpayment Paid', 'Fully Paid', 'Unpaid'] : []), 'Rejected']}
+          value={statusFilter}
+          onChange={setStatusFilter}
+          count={(st) => (st === 'All Status' ? requests.length : requests.filter((r) => shownStatus(r) === st || requestPaymentLabel(r) === st).length)}
+        />
 
         {/* ── List ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -355,11 +332,13 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
     if (!(await confirmDialog({ ...confirm, cancelLabel: 'Go Back' }))) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('exclusive_requests')
-        .update({ ...update, updated_at: new Date().toISOString() })
-        .eq('id', request.id);
-      if (error) throw error;
+      // Money received: confirmed with the admin's password (and logged for the main admin).
+      const ok = await recordPaymentWithPassword({
+        table: 'exclusive_requests', id: request.id,
+        changes: { ...update, updated_at: new Date().toISOString() },
+        what: `the payment for ${request.full_name || 'this request'}'s exclusive tour`,
+      });
+      if (!ok) return;
       if (request.user_id) {
         await notifyUser(request.user_id, { ...notify, type: 'exclusive_request', related_id: request.id });
       }

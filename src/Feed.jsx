@@ -342,6 +342,17 @@ const Feed = ({ isAdmin = false, focus = null }) => {
     }
   };
 
+  // Writers can edit their own comment (shows "Edited"); comments still can't be deleted.
+  const handleEditComment = async (comment, text) => {
+    const clean = text.trim();
+    if (!clean) { toast.error('Empty comment', 'Write something, or keep the comment as it is.'); return false; }
+    if (clean === comment.content) return true;
+    const { error } = await supabase.from('feed_comments').update({ content: clean }).eq('id', comment.id);
+    if (error) { toast.error("Couldn't save your comment", error.message); return false; }
+    fetchComments(postIdsRef.current);
+    return true;
+  };
+
   // Admins: pending posts in their own list, the rest below. Joiners: approved
   // posts plus their own (shown with "Waiting for approval" / "Not approved").
   const pendingPosts = isAdmin ? posts.filter(p => statusOf(p) === 'Pending') : [];
@@ -393,6 +404,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
       commentDraft={commentDrafts[post.id] || ''}
       onCommentDraftChange={(v) => handleCommentDraftChange(post.id, v)}
       onAddComment={() => handleAddComment(post.id)}
+      onEditComment={handleEditComment}
       commenting={commentingId === post.id}
     />
     </div>
@@ -551,10 +563,49 @@ const Feed = ({ isAdmin = false, focus = null }) => {
 };
 
 /* ── FEED POST CARD ── */
+// A comment's text, its time, and (for the writer) an Edit button.
+const CommentText = ({ comment: c, mine, onSave }) => {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(c.content);
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    setSaving(true);
+    const ok = await onSave?.(c, text);
+    setSaving(false);
+    if (ok) setEditing(false);
+  };
+  if (editing) {
+    return (
+      <div style={{ marginTop: 4 }}>
+        <textarea value={text} maxLength={500} rows={2} autoFocus onChange={(e) => setText(e.target.value)} aria-label="Edit your comment"
+          style={{ width: '100%', boxSizing: 'border-box', borderRadius: 10, border: '1px solid rgba(180,81,30,0.3)', padding: '6px 10px', fontFamily: 'inherit', fontSize: 16, color: '#1A0A00', background: '#FDF6EE', resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+          <button type="button" className="text-link" onClick={save} disabled={saving || !text.trim()} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 900 }}>{saving ? 'Saving…' : 'Save'}</button>
+          <button type="button" className="text-link" onClick={() => { setText(c.content); setEditing(false); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <>
+      <p style={{ fontSize: 12.5, color: '#1A0A00', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
+        {c.content}
+      </p>
+      <p style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: '4px 0 0' }}>
+        {timeAgo(c.created_at)}
+        {c.edited_at && <span style={{ fontStyle: 'italic' }} title={`Edited ${new Date(c.edited_at).toLocaleString('en-PH')}`}>· Edited</span>}
+        {mine && (
+          <button type="button" className="text-link" onClick={() => { setText(c.content); setEditing(true); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 11, fontWeight: 900 }}>Edit</button>
+        )}
+      </p>
+    </>
+  );
+};
+
 const FeedPostCard = ({
   post, status, isAdmin, canDelete, deleting, onDelete, reviewing, onApprove, onReject,
   currentUserId, reactions, reacting, pickerOpen, onTogglePicker, onQuickLike, onPickReaction,
-  comments, commentsExpanded, onToggleComments, commentDraft, onCommentDraftChange, onAddComment, commenting,
+  comments, commentsExpanded, onToggleComments, commentDraft, onCommentDraftChange, onAddComment, onEditComment, commenting,
 }) => {
   const isTourPost = post.post_type === 'tour';
   const tour = post.tours;
@@ -706,7 +757,7 @@ const FeedPostCard = ({
       {/* Not on the feed yet: an admin approves or rejects it; no reactions or comments */}
       {status !== 'Approved' ? (
         isAdmin && status === 'Pending' && (
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap', padding: '0 1.5rem 1.25rem' }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap', padding: '1rem 1.5rem 1.25rem', marginTop: 4, borderTop: '1px solid rgba(180,81,30,0.12)' }}>
             <button type="button" onClick={onReject} disabled={reviewing} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none',
               background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', cursor: 'pointer', fontFamily: 'inherit',
@@ -833,12 +884,7 @@ const FeedPostCard = ({
                         {c.user_id ? displayName(c.author, 'Joiner') : 'Deleted account'}
                       </p>
                     </div>
-                    <p style={{ fontSize: 12.5, color: '#1A0A00', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
-                      {c.content}
-                    </p>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
-                      {timeAgo(c.created_at)}
-                    </p>
+                    <CommentText comment={c} mine={!!currentUserId && c.user_id === currentUserId} onSave={onEditComment} />
                   </div>
                 </div>
               ))}
@@ -874,7 +920,7 @@ const FeedPostCard = ({
             </button>
           </div>
           <p id={`comment-note-${post.id}`} style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 4px 0' }}>
-            Comments can't be edited or deleted after posting.
+            You can edit your own comments; comments can't be deleted.
           </p>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { STATUS_COLORS } from './ui/statusColors';
 import { Calendar as CalendarIcon, Clock, Star, ChevronLeft, ChevronRight, MapPin, CheckCircle2, Wallet, Sparkles } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
 import { formatPeso, requestStatusLabel, requestPaymentLabel, requestOverdueReason } from './tourUtils';
@@ -373,12 +374,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
 // The joiner's latest Exclusive Tour and Request a Tour requests: where each
 // one is (For Approval, Approved, Tour Confirmed, Rejected) and whether the
 // tour package has arrived. Tapping one opens its page.
-const REQUEST_STATUS_COLORS = {
-  'For Approval': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Approved: { bg: 'rgba(31,138,92,0.14)', color: '#1F6B47' },
-  'Tour Confirmed': { bg: '#1A0A00', color: '#E8A265' },
-  Rejected: { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
-};
+const REQUEST_STATUS_COLORS = STATUS_COLORS;
 
 const requestNote = (r, label) => {
   if (label === 'Rejected') return requestOverdueReason(r) || 'This request was not approved.';

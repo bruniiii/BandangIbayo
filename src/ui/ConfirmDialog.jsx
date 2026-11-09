@@ -10,12 +10,15 @@ import ConfirmDialogBox from './ConfirmDialogBox';
 //     cancelLabel: 'Keep Post',
 //     tone: 'danger',                  // red button for destructive actions
 //     typeToConfirm: 'archive',        // optional: a word to type before the button works
+//     imageUrl, checkLabel,            // optional: a picture to show; a box to tick first
+//     reasonLabel,                     // optional: a reason to type; resolves to the text (or false)
+//     passwordLabel,                   // optional: a password to type; resolves to it (or false)
 //   });
 // One primary (or red) button; Cancel is always the lighter secondary button.
 // For destructive actions the safe button gets the focus, so Enter doesn't delete.
 // ─────────────────────────────────────────────
 
-export const confirmDialog = ({ title, message = '', confirmLabel = 'Continue', cancelLabel = 'Cancel', tone = 'primary', typeToConfirm = '' }) =>
+export const confirmDialog = ({ title, message = '', confirmLabel = 'Continue', cancelLabel = 'Cancel', tone = 'primary', typeToConfirm = '', imageUrl = '', checkLabel = '', reasonLabel = '', passwordLabel = '' }) =>
   new Promise((resolve) => {
     const host = document.createElement('div');
     document.body.appendChild(host);
@@ -27,5 +30,5 @@ export const confirmDialog = ({ title, message = '', confirmLabel = 'Continue', 
       previousFocus?.focus?.();
       resolve(result);
     };
-    root.render(<ConfirmDialogBox title={title} message={message} confirmLabel={confirmLabel} cancelLabel={cancelLabel} tone={tone} typeToConfirm={typeToConfirm} onClose={close} />);
+    root.render(<ConfirmDialogBox title={title} message={message} confirmLabel={confirmLabel} cancelLabel={cancelLabel} tone={tone} typeToConfirm={typeToConfirm} imageUrl={imageUrl} checkLabel={checkLabel} reasonLabel={reasonLabel} passwordLabel={passwordLabel} onClose={close} />);
   });
