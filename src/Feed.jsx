@@ -963,7 +963,7 @@ const FeedPostCard = ({
             padding: '3rem 1.5rem', cursor: 'zoom-out',
           }}
         >
-          <button
+          <button className="x-close"
             onClick={() => setLightboxIndex(null)}
             title="Close"
             style={{

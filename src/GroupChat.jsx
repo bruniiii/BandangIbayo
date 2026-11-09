@@ -712,7 +712,7 @@ const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narr
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 6px' }}>
           <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Reactions</p>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button className="x-close" type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={18} />
           </button>
         </div>

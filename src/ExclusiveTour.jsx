@@ -697,7 +697,7 @@ const EditRequestModal = ({ request, onClose, onSaved }) => (
       position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 760, maxHeight: '92dvh', overflowY: 'auto',
       borderRadius: 24, borderTop: '8px solid #B4511E', boxShadow: '0 32px 80px rgba(26,10,0,0.4)', padding: '2rem',
     }}>
-      <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}>
+      <button className="x-close" type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}>
         <X size={20} />
       </button>
       <h3 id="edit-request-title" style={{ fontSize: 18, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 4px' }}>

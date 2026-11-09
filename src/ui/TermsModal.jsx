@@ -91,7 +91,7 @@ const TermsModal = ({ onClose, onAgree }) => (
           </div>
         </div>
 
-        <button
+        <button className="x-close"
           onClick={onClose}
           style={{
             background: 'none',

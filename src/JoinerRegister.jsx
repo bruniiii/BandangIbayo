@@ -658,7 +658,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             </p>
 
             {needsEmailConfirmation ? (
-              <button
+              <button className="x-close"
                 onClick={() => navigate(loginPath)}
                 style={{
                   marginTop: 24,

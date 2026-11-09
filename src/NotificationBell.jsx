@@ -299,7 +299,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
             {notification.title}
           </h3>
         </div>
-        <button
+        <button className="x-close"
           onClick={onClose}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',

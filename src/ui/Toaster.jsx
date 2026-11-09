@@ -59,7 +59,7 @@ const Toaster = () => {
               )}
             </div>
             {t.type !== 'loading' && (
-              <button
+              <button className="x-close x-close-sm"
                 type="button"
                 aria-label="Close notification"
                 onClick={() => dismiss(t.id)}

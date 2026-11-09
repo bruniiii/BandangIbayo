@@ -28,7 +28,7 @@ const ModalHeader = ({ name, photo, label, title, children, onClose }) => (
       <p style={{ fontWeight: 900, fontSize: 18, color: '#1A0A00', margin: 0, lineHeight: 1.25, overflowWrap: 'anywhere' }}>{title}</p>
       {children && <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>{children}</div>}
     </div>
-    <button type="button" onClick={onClose} aria-label="Close" style={{
+    <button className="x-close" type="button" onClick={onClose} aria-label="Close" style={{
       position: 'absolute', top: 18, right: 18, background: 'none', border: 'none',
       cursor: 'pointer', color: 'rgba(122,58,24,0.85)', padding: 4, display: 'flex',
     }}>

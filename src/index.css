@@ -375,3 +375,44 @@ button:disabled:not(.no-touch-size):not(.text-link) svg { color: #5C3A22 !import
   .admin-search { display: none; }
   .admin-search-wide { display: block; }
 }
+
+/* Every close (X) button on the site: the same round button (a cream circle
+   with a thin border), whatever its own inline style says. Where it sits
+   (top/right) still comes from each window. */
+.x-close,
+button[aria-label="Close"],
+button[aria-label="Close help"],
+button[aria-label="Close notification"],
+a[aria-label="Close and go to the home page"] {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  background: #F2E4D0 !important;
+  border: 1px solid rgba(180,81,30,0.25) !important;
+  color: #7A3A18 !important;
+  box-shadow: 0 2px 8px rgba(26,10,0,0.08) !important;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.x-close svg,
+button[aria-label="Close"] svg,
+button[aria-label="Close help"] svg,
+button[aria-label="Close notification"] svg,
+a[aria-label="Close and go to the home page"] svg { width: 18px !important; height: 18px !important; }
+.x-close:hover,
+button[aria-label="Close"]:hover,
+button[aria-label="Close help"]:hover,
+button[aria-label="Close notification"]:hover,
+a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !important; }
+/* Smaller inside a toast message. */
+.x-close-sm, button[aria-label="Close notification"] {
+  width: 26px !important; height: 26px !important; min-width: 26px !important; min-height: 26px !important;
+}
+.x-close-sm svg, button[aria-label="Close notification"] svg { width: 14px !important; height: 14px !important; }

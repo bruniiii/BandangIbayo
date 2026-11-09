@@ -151,7 +151,7 @@ const PickupSpots = ({ onClose, onChanged }) => {
               <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A', minWidth: 0, overflowWrap: 'anywhere' }}>
                 Change {editing.name}
               </p>
-              <button type="button" onClick={reset} aria-label="Close" style={{
+              <button className="x-close" type="button" onClick={reset} aria-label="Close" style={{
                 flexShrink: 0, width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', cursor: 'pointer', color: '#7A3A18',
               }}><X size={18} /></button>

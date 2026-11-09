@@ -468,7 +468,7 @@ const AdminDashboard = () => {
         }}>
         {!isMobile && sidebarExpanded && <SidebarPinButton pinned={sidebarPinned} onToggle={toggleSidebarPin} />}
         {isMobile && mobileNavOpen && (
-          <button
+          <button className="x-close"
             onClick={() => setMobileNavOpen(false)}
             title="Close menu"
             style={{
