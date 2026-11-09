@@ -89,7 +89,7 @@ html .dashboard-content.dashboard-content {
 @keyframes gb-float { from { transform: translate3d(0,0,0); } to { transform: translate3d(6vw, -8vh, 0); } }
 html[data-theme="dark"] .gb-shade { background:
   radial-gradient(ellipse at 15% 0%, rgba(242,182,126,0.16), transparent 55%),
-  linear-gradient(180deg, rgba(8,8,12,0.40) 0%, rgba(8,8,12,0.52) 50%, rgba(8,8,12,0.70) 100%); }
+  linear-gradient(180deg, rgba(8,8,12,0.30) 0%, rgba(8,8,12,0.40) 50%, rgba(8,8,12,0.56) 100%); }
 html[data-theme="dark"] .gb-orb-a { background: #C2602A; opacity: 0.22; }
 html[data-theme="dark"] .gb-orb-b { background: #7FA7C9; opacity: 0.14; }
 @media (prefers-reduced-motion: reduce) { .gb-slide, .gb-orb { animation: none !important; } .gb-slide { transition: none; } }
@@ -123,7 +123,7 @@ html[data-theme="dark"] .dashboard-topbar { background: rgba(255,255,255,0.06) !
 # ── Surfaces ──
 w('\n/* ── LIGHT GLASS ── */')
 w(f'{L}{SURFACE}{NOT_PAGE} {{ background: linear-gradient(135deg, rgba(255,255,255,0.74), rgba(255,255,255,0.52)) !important;'
-  ' -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%);'
+  ' -webkit-backdrop-filter: blur(22px) saturate(170%) !important; backdrop-filter: blur(22px) saturate(170%) !important;'
   ' outline: 1px solid rgba(255,255,255,0.85); outline-offset: -1px; }')
 w(f'{L}{SURFACE} {SURFACE} {{ background: rgba(250,242,233,0.72) !important; -webkit-backdrop-filter: none; backdrop-filter: none;'
   ' outline: 1px solid rgba(180,81,30,0.08); outline-offset: -1px; }')
@@ -140,23 +140,26 @@ w(f'{L}button[style]:disabled:not(.no-touch-size):not(.text-link) svg {{ color: 
 
 w('\n/* ── DARK GLASS ── */')
 w('html[data-theme="dark"] { color-scheme: dark; }\nhtml[data-theme="dark"] body { color: #F6F2EE; }')
-w(f'{D}{SURFACE}{NOT_PAGE} {{ background: linear-gradient(135deg, rgba(255,255,255,0.13), rgba(255,255,255,0.05)) !important;'
-  ' -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%);'
-  ' outline: 1px solid rgba(255,255,255,0.16); outline-offset: -1px; }')
-w(f'{D}{SURFACE} {SURFACE} {{ background: rgba(255,255,255,0.06) !important; -webkit-backdrop-filter: none; backdrop-filter: none;'
-  ' outline: 1px solid rgba(255,255,255,0.09); outline-offset: -1px; }')
+w(f'{D}{SURFACE}{NOT_PAGE} {{ background: linear-gradient(135deg, rgba(255,255,255,0.17), rgba(255,255,255,0.05)), rgba(14,14,20,0.2) !important;'
+  ' -webkit-backdrop-filter: blur(26px) saturate(185%) !important; backdrop-filter: blur(26px) saturate(185%) !important;'
+  ' outline: 1px solid rgba(255,255,255,0.24); outline-offset: -1px;'
+  ' box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 18px 44px rgba(0,0,0,0.28) !important; }')
+w(f'{D}{SURFACE} {SURFACE} {{ background: rgba(255,255,255,0.08) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;'
+  ' outline: 1px solid rgba(255,255,255,0.13); outline-offset: -1px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08) !important; }')
 w(f'{D}{SURFACE} {SURFACE}[style*="flex-shrink: 0"][style*="border-top"] {{ background: transparent !important; outline: none; }}')
-w(f'{D}{MODAL} > {SURFACE}, {D}[role="dialog"]{SURFACE} {{ background: linear-gradient(160deg, rgba(44,44,52,0.86), rgba(26,26,32,0.88)) !important;'
-  ' -webkit-backdrop-filter: blur(30px) saturate(160%); backdrop-filter: blur(30px) saturate(160%); outline: 1px solid rgba(255,255,255,0.14); outline-offset: -1px; }')
-w(f'{D}{OVERLAY}, {D}{MODAL}{DARKSURF} {{ background: rgba(0,0,0,0.5) !important;'
-  ' -webkit-backdrop-filter: blur(10px) saturate(120%) !important; backdrop-filter: blur(10px) saturate(120%) !important; }')
+w(f'{D}{MODAL} > {SURFACE}, {D}[role="dialog"]{SURFACE} {{ background: linear-gradient(160deg, rgba(255,255,255,0.15), rgba(255,255,255,0.04)), rgba(16,16,22,0.58) !important;'
+  ' -webkit-backdrop-filter: blur(40px) saturate(150%) !important; backdrop-filter: blur(40px) saturate(150%) !important;'
+  ' outline: 1px solid rgba(255,255,255,0.26); outline-offset: -1px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 30px 80px rgba(0,0,0,0.45) !important; }')
+w(f'{D}{OVERLAY}, {D}{MODAL}{DARKSURF} {{ background: rgba(0,0,0,0.4) !important;'
+  ' -webkit-backdrop-filter: blur(14px) saturate(140%) !important; backdrop-filter: blur(14px) saturate(140%) !important; }')
 # Dark panels (hero cards, "System status"...): warm smoky glass. Dark buttons: glass buttons.
-w(f'{D}{DARKSURF}:not(button):not(a):not(label):not({MODAL}){NOT_PAGE} {{ background: linear-gradient(135deg, rgba(244,185,131,0.16), rgba(0,0,0,0.28)) !important;'
-  ' -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%); outline: 1px solid rgba(255,255,255,0.14); outline-offset: -1px; }')
+w(f'{D}{DARKSURF}:not(button):not(a):not(label):not({MODAL}){NOT_PAGE} {{ background: linear-gradient(135deg, rgba(244,185,131,0.2), rgba(255,255,255,0.04)), rgba(12,12,18,0.42) !important;'
+  ' -webkit-backdrop-filter: blur(26px) saturate(150%) !important; backdrop-filter: blur(26px) saturate(150%) !important;'
+  ' outline: 1px solid rgba(255,255,255,0.24); outline-offset: -1px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 18px 44px rgba(0,0,0,0.28) !important; }')
 w(f'{D}{BTN}{DARKSURF}[style] {{ background: rgba(255,255,255,0.16) !important; border: 1px solid rgba(255,255,255,0.3) !important; color: #FFFFFF !important; box-shadow: none !important; }}')
 w(f'{D}{BTN}{SURFACE}[style] {{ background: rgba(255,255,255,0.11) !important; border-color: rgba(255,255,255,0.26) !important;'
   ' -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); outline: none; color: #F6F2EE !important; }')
-w(f'{D}{FIELD} {{ background: rgba(0,0,0,0.26) !important; border-color: rgba(255,255,255,0.16) !important; color: #F6F2EE !important; outline: none; }}')
+w(f'{D}{FIELD} {{ background: rgba(0,0,0,0.2) !important; border-color: rgba(255,255,255,0.16) !important; color: #F6F2EE !important; outline: none; }}')
 w(f'{D}input[type="checkbox"], {D}input[type="radio"] {{ accent-color: #F2B67E; }}')
 w(f'{D}::placeholder {{ color: rgba(246,242,238,0.45) !important; }}')
 w(f'{D}button[style]:disabled:not(.no-touch-size):not(.text-link) {{ background: rgba(255,255,255,0.06) !important; color: rgba(246,242,238,0.5) !important;'
