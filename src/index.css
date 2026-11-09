@@ -275,7 +275,9 @@ html { touch-action: manipulation; }
 .dashboard-content { --dash-pad: 2.5rem; }
 .dashboard-topbar {
   position: sticky !important;
-  top: 0;
+  /* The browser sticks it inside the page's padding, so it's pulled up by
+     that padding to sit flush with the top (no gap above it). */
+  top: calc(-1 * var(--dash-pad));
   z-index: 40 !important;
   flex-shrink: 0;
   margin: calc(-1 * var(--dash-pad)) calc(-1 * var(--dash-pad)) 20px !important;
