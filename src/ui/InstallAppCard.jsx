@@ -39,7 +39,7 @@ const InstallAppCard = () => {
     <section aria-label="Add to home screen" style={{
       position: 'relative', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
       background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 20,
-      padding: '1rem 3rem 1rem 1.25rem',
+      padding: '1rem 1.25rem',
     }}>
       <div style={{ width: 46, height: 46, borderRadius: 14, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Smartphone size={22} />
@@ -65,10 +65,8 @@ const InstallAppCard = () => {
           <Download size={14} /> Install
         </button>
       )}
-      <button className="x-close" type="button" onClick={dismiss} aria-label="Close" style={{
-        position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer',
-        color: 'rgba(122,58,24,0.9)', padding: 6, display: 'flex',
-      }}>
+      {/* In the row, after Install (not pinned to the corner). */}
+      <button className="x-close" type="button" onClick={dismiss} aria-label="Close" style={{ marginLeft: canPrompt ? 0 : 'auto' }}>
         <X size={16} />
       </button>
     </section>
