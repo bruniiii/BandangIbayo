@@ -61,7 +61,8 @@ const StatusFilter = ({ statuses, value, onChange, count, style }) => {
             {labelOf(st)}
             <span style={{
               minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 10.5, letterSpacing: 0, background: tone ? tone.bg : 'rgba(180,81,30,0.12)', color: tone ? tone.color : '#5C2A10',
+              fontSize: 10.5, letterSpacing: 0, // (The selected All chip is dark, so its count is light on dark.)
+              background: tone ? tone.bg : on ? '#E8A265' : 'rgba(180,81,30,0.12)', color: tone ? tone.color : on ? '#1A0A00' : '#5C2A10',
               border: on && tone ? `1px solid ${tone.dot}` : 'none',
             }}>{count(st)}</span>
           </button>
