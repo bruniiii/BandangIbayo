@@ -16,7 +16,8 @@ const KINDS = [
   ['photo_path', "Driver's photo (face)", Camera],
 ];
 
-const DriverDocs = ({ tourId, onReady, readOnly = false }) => {
+// refreshKey: change it to load the pictures again (e.g. after picking a saved driver).
+const DriverDocs = ({ tourId, onReady, readOnly = false, refreshKey = 0 }) => {
   const [doc, setDoc] = useState(null); // { license_path, photo_path }
   const [urls, setUrls] = useState({});
   const [busy, setBusy] = useState('');
@@ -30,7 +31,7 @@ const DriverDocs = ({ tourId, onReady, readOnly = false }) => {
       setDoc(data || {});
     })();
     return () => { alive = false; };
-  }, [tourId]);
+  }, [tourId, refreshKey]);
 
   // Short-lived links to show the pictures.
   useEffect(() => {

@@ -121,5 +121,7 @@ from (values
      and to_regclass('public.driver_documents') is not null
      and to_regclass('public.system_feedback') is not null
      and exists (select 1 from pg_trigger where tgname = 'bookings_payment_needs_password')
-     and exists (select 1 from pg_trigger where tgname = 'feed_comments_guard_edit'))
+     and exists (select 1 from pg_trigger where tgname = 'feed_comments_guard_edit')),
+  ('20261217 saved drivers and vans',
+     to_regclass('public.fleet_drivers') is not null and to_regclass('public.fleet_vans') is not null)
 ) as u(update_file, installed);
