@@ -39,7 +39,7 @@ const SettingsTab = ({ onNavigate }) => {
   const [mode, setMode] = useState(null);
   const [message, setMessage] = useState('');
   const [until, setUntil] = useState('');
-  const [agency, setAgency] = useState({ name: '', email: '', phone: '', facebook: '', address: '' });
+  const [agency, setAgency] = useState({ name: '', email: '', phone: '', facebook: '' });
   const [emails, setEmails] = useState({ day_before: true, balance: true, monthly_summary: true });
   const [saving, setSaving] = useState('');
 
@@ -96,7 +96,7 @@ const SettingsTab = ({ onNavigate }) => {
   };
 
   const saveAgency = () => {
-    const clean = Object.fromEntries(Object.entries(agency).map(([k, v]) => [k, String(v || '').trim().slice(0, 200)]));
+    const clean = Object.fromEntries(Object.entries(agency).filter(([k]) => k !== 'address').map(([k, v]) => [k, String(v || '').trim().slice(0, 200)]));
     if (!clean.name) { toast.error('Add the agency name', 'It is shown on the maintenance page.'); return; }
     if (clean.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.email)) { toast.error('Check the email', 'It should look like name@example.com.'); return; }
     saveSetting('agency_info', clean, 'agency info');
@@ -162,7 +162,7 @@ const SettingsTab = ({ onNavigate }) => {
         <h3 style={h3}><Building2 size={16} color="#A8481A" /> Agency information</h3>
         <p style={hint}>Shown on the "We'll be back soon" page, so joiners can still reach you.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 12 }}>
-          {[['name', 'Agency name', 'Bandang IBAYO'], ['email', 'Email', 'name@example.com'], ['phone', 'Phone', '+63 900 000 0000'], ['facebook', 'Facebook / Messenger link', 'https://m.me/…'], ['address', 'Address', 'City, Province']].map(([k, l, ph]) => (
+          {[['name', 'Agency name', 'Bandang IBAYO'], ['email', 'Email', 'name@example.com'], ['phone', 'Phone', '+63 900 000 0000'], ['facebook', 'Facebook / Messenger link', 'https://m.me/…']].map(([k, l, ph]) => (
             <label key={k} style={label}>
               {l}
               <input value={agency[k] || ''} onChange={(e) => setAgency((a) => ({ ...a, [k]: e.target.value }))} placeholder={ph} maxLength={200} disabled={!canEdit}
