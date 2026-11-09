@@ -88,7 +88,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div style={{
+    <div className="glass-page" style={{
       minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00',
       padding: '3rem 1rem',

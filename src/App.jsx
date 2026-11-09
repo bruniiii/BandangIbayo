@@ -13,6 +13,8 @@ import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import MaintenanceGate from './MaintenanceGate';
 import LandingPage from './LandingPage';
+import GlassBackdrop from './ui/GlassBackdrop';
+import ThemeToggle from './ui/ThemeToggle';
 const JoinerDashboard = lazy(() => import('./JoinerDashboard'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
 const ResetPassword = lazy(() => import('./ResetPassword'));
@@ -34,7 +36,7 @@ const PublicTourDetail = lazy(() => import('./PublicTours').then((m) => ({ defau
 
 // Shown for a moment while a page's code loads.
 const PageLoading = () => (
-  <div role="status" aria-label="Loading" style={{ minHeight: '100dvh', background: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  <div role="status" aria-label="Loading" className="glass-page" style={{ minHeight: '100dvh', background: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
     <img src={logoIcon} alt="" width={56} height={56} style={{ opacity: 0.85, animation: 'ibayo-pulse 1.2s ease-in-out infinite' }} />
     <style>{'@keyframes ibayo-pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}'}</style>
   </div>
@@ -59,7 +61,14 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Pages with their own top bar show the Light/Dark glass switch there;
+  // the others get a small round one in the bottom-left corner.
+  const ownSwitch = pathname === '/' || /^\/(dashboard|admin|driver)(\/|$)/.test(pathname);
+
   return (
+    <>
+    <GlassBackdrop />
+    {!ownSwitch && <ThemeToggle floating />}
     <Suspense fallback={<PageLoading />}>
     <Routes>
       <Route path="/" element={<MaintenanceGate><LandingPage /></MaintenanceGate>} />
@@ -77,5 +86,6 @@ export default function App() {
       <Route path="*" element={<MaintenanceGate><LandingPage /></MaintenanceGate>} />
     </Routes>
     </Suspense>
+    </>
   );
 }
