@@ -416,3 +416,6 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
   width: 26px !important; height: 26px !important; min-width: 26px !important; min-height: 26px !important;
 }
 .x-close-sm svg, button[aria-label="Close notification"] svg { width: 14px !important; height: 14px !important; }
+
+/* Activity Logs filters: the dropdowns and the date boxes are the same height. */
+.activity-filters > div > button { min-height: 50px !important; }

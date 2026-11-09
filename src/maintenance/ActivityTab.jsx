@@ -18,8 +18,14 @@ const ACTION_COLOR = { added: '#1B5E3B', changed: '#1E4672', removed: '#8C2F1C' 
 const FIELD_NAMES = {
   price: 'Joiner Rate', regular_rate: 'Regular Rate', group_size: 'Slots', start_date: 'Start date', end_date: 'End date', is_archived: 'Archived',
   booking_status: 'Booking status', payment_status: 'Payment status', amount_paid: 'Amount paid', total_price: 'Total price', balance_settled: 'Balance settled',
-  slots_booked: 'Slots booked', value: 'Value', role: 'Role', archived_at: 'Archived on', first_name: 'First name', last_name: 'Last name',
+  slots_booked: 'Slots booked', value: 'Setting', role: 'Role', archived_at: 'Archived on', first_name: 'First name', last_name: 'Last name',
 };
+// Settings, in plain words (instead of their key, e.g. inactive_archive_days).
+const SETTING_NAMES = {
+  inactive_archive_days: 'Inactive joiners: days before archiving', inactive_archive_enabled: 'Inactive joiners: auto-archive on/off',
+  maintenance_mode: 'Maintenance Mode', agency_info: 'Agency information', email_settings: 'Email reminders', chat_quick_replies: 'Saved chat replies',
+};
+const recordName = (a) => (a.table_name === 'app_settings' ? SETTING_NAMES[a.summary] || String(a.summary || '').replace(/_/g, ' ') : a.summary);
 const fieldName = (k) => FIELD_NAMES[k] || k.replace(/_/g, ' ');
 const MONEY = new Set(['price', 'regular_rate', 'amount_paid', 'total_price', 'budget', 'van_rent', 'tour_guide', 'weather_refund', 'sale_price']);
 const show = (v, key = '') => {
@@ -61,10 +67,10 @@ const ActivityTab = () => {
   const text = q.trim().toLowerCase();
   const shown = list.filter((a) => (!admin || (a.admin_name || 'An admin') === admin)
     && (!type || a.table_name === type) && (!action || a.action === action)
-    && (!text || `${a.admin_name} ${TABLE_NAMES[a.table_name] || a.table_name} ${a.summary} ${(a.changed || []).join(' ')} ${JSON.stringify(a.old_values || '')} ${JSON.stringify(a.new_values || '')}`.toLowerCase().includes(text)));
+    && (!text || `${a.admin_name} ${TABLE_NAMES[a.table_name] || a.table_name} ${a.summary} ${recordName(a)} ${(a.changed || []).join(' ')} ${JSON.stringify(a.old_values || '')} ${JSON.stringify(a.new_values || '')}`.toLowerCase().includes(text)));
 
   const download = () => downloadCsv(`activity-logs-${new Date().toISOString().slice(0, 10)}.csv`, [
-    ['at', 'When'], ['admin_name', 'Admin'], ['action', 'Action'], [(r) => TABLE_NAMES[r.table_name] || r.table_name, 'Record type'], ['summary', 'Record'],
+    ['at', 'When'], ['admin_name', 'Admin'], ['action', 'Action'], [(r) => TABLE_NAMES[r.table_name] || r.table_name, 'Record type'], [(r) => recordName(r), 'Record'],
     [(r) => (r.changed || []).map(fieldName).join(', '), 'Fields changed'],
     [(r) => (r.changed || []).map((k) => `${fieldName(k)}: ${show(r.old_values?.[k], k)}`).join(' | '), 'Before'],
     [(r) => (r.changed || []).map((k) => `${fieldName(k)}: ${show(r.new_values?.[k], k)}`).join(' | '), 'After'],
@@ -72,27 +78,27 @@ const ActivityTab = () => {
 
   return (
     <section style={card}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div>
-          <h3 style={h3}><History size={16} color="#A8481A" /> Activity logs</h3>
-          <p style={hint}>Every change an admin made: tours and prices, bookings and payments, requests, accounts, drivers and settings. Click a change to see the values before and after.</p>
+      <h3 style={h3}><History size={16} color="#A8481A" /> Activity logs</h3>
+      <p style={hint}>Every change an admin made: tours and prices, bookings and payments, requests, accounts, drivers and settings. Click a change to see the values before and after.</p>
+
+      {/* Search, then Refresh and Download, on one row. */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ position: 'relative', flex: '1 1 260px', minWidth: 0 }}>
+          <Search size={16} color="#7A3A18" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by admin, tour, booking, field…" aria-label="Search activity"
+            style={{ ...input, height: 46, paddingLeft: 40, fontSize: 13.5, borderRadius: 14 }} />
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={load} style={btn(false)}><RefreshCw size={14} /> Refresh</button>
-          <button type="button" onClick={download} disabled={!shown.length} style={btn(true)}><Download size={14} /> Download</button>
-        </div>
+        <button type="button" onClick={load} style={{ ...btn(false), height: 46, borderRadius: 14 }}><RefreshCw size={14} /> Refresh</button>
+        <button type="button" onClick={download} disabled={!shown.length} style={{ ...btn(true), height: 46, borderRadius: 14 }}><Download size={14} /> Download</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(190px, 100%), 1fr))', gap: 8, marginBottom: 12 }}>
-        <PrettySelect ariaLabel="Admin" value={admin} onChange={setAdmin} options={[{ value: '', label: 'All admins' }, ...admins.map((a) => ({ value: a, label: a }))]} compact />
-        <PrettySelect ariaLabel="Record type" value={type} onChange={setType} options={[{ value: '', label: 'All records' }, ...types.map((t) => ({ value: t, label: TABLE_NAMES[t] || t }))]} compact />
-        <PrettySelect ariaLabel="Action" value={action} onChange={setAction} options={ACTIONS.map(([value, label]) => ({ value, label }))} compact />
+      {/* Filters: all the same height, in one row on wide screens. */}
+      <div className="activity-filters" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(170px, 100%), 1fr))', gap: 8, marginBottom: 14 }}>
+        <PrettySelect ariaLabel="Admin" value={admin} onChange={setAdmin} options={[{ value: '', label: 'All admins' }, ...admins.map((a) => ({ value: a, label: a }))]} />
+        <PrettySelect ariaLabel="Record type" value={type} onChange={setType} options={[{ value: '', label: 'All records' }, ...types.map((t) => ({ value: t, label: TABLE_NAMES[t] || t }))]} />
+        <PrettySelect ariaLabel="Action" value={action} onChange={setAction} options={ACTIONS.map(([value, label]) => ({ value, label }))} />
         <NiceDate value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} placeholder="From date" clearable aria-label="From date" />
         <NiceDate value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} placeholder="To date" clearable aria-label="To date" />
-        <div style={{ position: 'relative' }}>
-          <Search size={15} color="#7A3A18" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" aria-label="Search activity" style={{ ...input, paddingLeft: 34, fontSize: 13 }} />
-        </div>
       </div>
 
       {rows === null ? <p style={{ margin: 0, color: '#5C2A10' }}>Loading…</p> : shown.length === 0 ? (
@@ -113,7 +119,7 @@ const ActivityTab = () => {
                       <>
                         <strong>{a.admin_name || 'An admin'}</strong>{' '}
                         <span style={{ color: ACTION_COLOR[a.action] || '#1A0A00', fontWeight: 800 }}>{a.action}</span>{' '}
-                        {(TABLE_NAMES[a.table_name] || a.table_name).toLowerCase()} <strong>{a.summary}</strong>
+                        {(TABLE_NAMES[a.table_name] || a.table_name).toLowerCase()} <strong>{recordName(a)}</strong>
                         {a.changed?.length ? <span style={{ color: '#5C2A10' }}> ({a.changed.slice(0, 6).map(fieldName).join(', ')}{a.changed.length > 6 ? '…' : ''})</span> : null}
                         <span style={{ display: 'block', color: '#5C2A10', fontSize: 11.5, fontWeight: 600 }}>
                           {when(a.at)}{hasValues ? (isOpen ? ' · hide before and after' : ' · see before and after') : ''}
