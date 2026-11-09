@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Wrench, Mail, Phone, MessageCircle, MapPin, RefreshCw, Clock } from 'lucide-react';
+import { Wrench, Mail, Phone, MessageCircle, RefreshCw, Clock } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { useMaintenance, maintenanceChanged } from './maintenanceMode';
 import logoIcon from './assets/logo.png';
@@ -36,7 +36,6 @@ export const MaintenancePage = ({ maintenance }) => {
     a.email && [Mail, a.email, `mailto:${a.email}`],
     a.phone && [Phone, a.phone, `tel:${String(a.phone).replace(/\s/g, '')}`],
     a.facebook && [MessageCircle, 'Message us on Facebook', /^https?:\/\//.test(a.facebook) ? a.facebook : `https://${a.facebook}`],
-    a.address && [MapPin, a.address, null],
   ].filter(Boolean);
   return (
     <main className="nature-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }}>
