@@ -985,6 +985,7 @@ const AdminDashboard = () => {
            activeTab !== 'Reports' &&
            activeTab !== 'Messages' &&
            activeTab !== 'Notification' &&
+           activeTab !== 'System Maintenance' &&
            activeTab !== 'Admin Settings' && (
             <div style={{
               height: '100%', minHeight: 400,
