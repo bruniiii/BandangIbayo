@@ -283,35 +283,35 @@ const LandingPage = () => {
       {/* ── JOINER REVIEWS ── */}
       <LandingReviews />
 
-      {/* ── WHY CHOOSE US ── */}
+      {/* ── WHY CHOOSE US: heading, four equal feature cards, then the safety strip ── */}
       <section className="lp-section">
-        <div className="lp-wrap lp-two">
-          <div className="lp-glass lp-panel">
+        <div className="lp-wrap">
+          <div className="lp-head lp-center">
             <span className="lp-eyebrow">Why Us</span>
             <h2 className="lp-h2">Built for Smarter, Safer Journeys</h2>
-            <div className="lp-why">
-              {[
-                { icon: <ShieldCheck size={22} strokeWidth={1.8} />, title: 'Verified Safety', text: 'Driver names, plate numbers, and medical disclaimers shown for every trip.' },
-                { icon: <Clock size={22} strokeWidth={1.8} />, title: 'ETA Tracking', text: 'Know exactly when your vehicle is arriving at the pickup point.' },
-                { icon: <Calendar size={22} strokeWidth={1.8} />, title: 'Live Availability', text: 'Open dates, remaining seats, and full pricing — updated in real time.' },
-                { icon: <Smartphone size={22} strokeWidth={1.8} />, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
-              ].map((item) => (
-                <div key={item.title} className="lp-why-row">
-                  <div className="lp-icon lp-icon-sm">{item.icon}</div>
-                  <div>
-                    <h4 className="lp-h4">{item.title}</h4>
-                    <p className="lp-body">{item.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          </div>
+          <div className="lp-grid lp-grid-4">
+            {[
+              { icon: <ShieldCheck size={22} strokeWidth={1.8} />, title: 'Verified Safety', text: 'Driver names, plate numbers, and medical disclaimers shown for every trip.' },
+              { icon: <Clock size={22} strokeWidth={1.8} />, title: 'ETA Tracking', text: 'Know exactly when your vehicle is arriving at the pickup point.' },
+              { icon: <Calendar size={22} strokeWidth={1.8} />, title: 'Live Availability', text: 'Open dates, remaining seats, and full pricing — updated in real time.' },
+              { icon: <Smartphone size={22} strokeWidth={1.8} />, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
+            ].map((item) => (
+              <div key={item.title} className="lp-glass lp-card lp-lift">
+                <div className="lp-icon lp-icon-sm">{item.icon}</div>
+                <h4 className="lp-h4 lp-feature-title">{item.title}</h4>
+                <p className="lp-body">{item.text}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="lp-glass lp-panel lp-panel-warm">
-            <h3 className="lp-h3 lp-amber lp-h3-lg">Safety & Transparency</h3>
-            <p className="lp-body">
-              Building trust is our priority, especially for solo travelers. Organizer accountability details are always visible, and medical term acceptance is required before every booking.
-            </p>
+          <div className="lp-glass lp-panel lp-panel-warm lp-safety">
+            <div>
+              <h3 className="lp-h3 lp-amber lp-h3-lg">Safety & Transparency</h3>
+              <p className="lp-body">
+                Building trust is our priority, especially for solo travelers. Organizer accountability details are always visible, and medical term acceptance is required before every booking.
+              </p>
+            </div>
             <div className="lp-checks">
               {['Non-refundable deposit policy protects both parties.', 'Automatic email reminder sent 24 hours before departure.'].map((item) => (
                 <p key={item} className="lp-check"><CheckCircle size={17} /> {item}</p>
@@ -321,18 +321,17 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ── ABOUT & CONTACT ── */}
+      {/* ── ABOUT & CONTACT: one glass panel, two columns ── */}
       <section className="lp-section">
-        <div className="lp-wrap lp-two">
-          <div className="lp-glass lp-panel">
+        <div className="lp-wrap lp-glass lp-panel lp-about">
+          <div>
             <span className="lp-eyebrow">About</span>
             <h2 className="lp-h2 lp-about-title">Bandang<br /><span className="lp-amber">IBAYO.</span></h2>
             <p className="lp-body-lg">
               A local travel agency from Bulacan on a mission to help Filipinos explore the country. By modernizing our booking process, every trip is secure, organized, and stress-free from day one.
             </p>
           </div>
-
-          <div className="lp-glass lp-panel">
+          <div className="lp-about-contact">
             <h3 className="lp-h3 lp-h3-lg">Contact Our Coordinator</h3>
             <div className="lp-contact">
               <p className="lp-meta lp-meta-lg"><Mail size={18} /> bandangibayo@gmail.com</p>
@@ -471,9 +470,18 @@ const LANDING_CSS = `
 .lp-step { position: relative; }
 .lp-step .lp-h3 { margin-bottom: 8px; }
 .lp-step-num { position: absolute; top: 18px; right: 22px; font-size: 44px; font-weight: 900; letter-spacing: -0.04em; color: rgba(255,255,255,0.14); }
-.lp-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 24px; align-items: start; }
-.lp-why { display: flex; flex-direction: column; gap: 22px; margin-top: 26px; }
-.lp-why-row { display: flex; gap: 16px; }
+/* Why Us: four equal cards, then a full-width safety strip. */
+.lp-grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.lp-feature-title { margin: 16px 0 6px; font-size: 17px; }
+.lp-safety { margin-top: 24px; display: grid; grid-template-columns: 1.3fr 1fr; gap: clamp(1.25rem,4vw,3rem); align-items: center; }
+.lp-safety .lp-checks { margin-top: 0; }
+/* About + Contact: one panel, two columns with a divider. */
+.lp-about { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(1.5rem,4vw,3.5rem); align-items: center; }
+.lp-about-contact { padding-left: clamp(1.5rem,4vw,3.5rem); border-left: 1px solid rgba(255,255,255,0.18); }
+@media (max-width: 860px) {
+  .lp-safety, .lp-about { grid-template-columns: 1fr; }
+  .lp-about-contact { padding-left: 0; border-left: none; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.18); }
+}
 .lp-checks { display: flex; flex-direction: column; gap: 14px; margin-top: 24px; }
 .lp-check { display: flex; gap: 12px; align-items: flex-start; font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.88); margin: 0; }
 .lp-check svg { color: #F2B67E; flex-shrink: 0; margin-top: 2px; }
