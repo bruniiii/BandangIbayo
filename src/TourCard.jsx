@@ -9,7 +9,7 @@ import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, Clou
 // ─────────────────────────────────────────────
 
 const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather = null, formatDateRange }) => {
-  // A private exclusive tour (made from an exclusive request's package).
+  // A private tour (made from a private request's package).
   const exclusive = !!tour.is_exclusive || (tour.dates || []).some((d) => d.is_exclusive);
   const [hovered, setHovered] = useState(false);
   const today  = new Date().toISOString().split('T')[0];
@@ -69,7 +69,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>
-              {exclusive && <span title="A private exclusive tour: only its joiner sees it" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6, padding: '2px 8px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 9.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Exclusive</span>}
+              {exclusive && <span title="A private tour: only its joiner sees it" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6, padding: '2px 8px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 9.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
               {tour.title}
             </h3>
             <PriceTag tour={tour} size={15} style={{ marginLeft: 10, flexShrink: 0 }} />

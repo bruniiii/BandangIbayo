@@ -12,7 +12,7 @@ import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ─────────────────────────────────────────────
 // JOINER HOMEPAGE widgets: trip stats, next trip, trip readiness, calendar,
-// tracking, Exclusive & Requested Tours, and reviews.
+// tracking, Private & Requested Tours, and reviews.
 // ─────────────────────────────────────────────
 
 /* ── TRIP PULSE STAT ── */
@@ -370,8 +370,8 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
   );
 };
 
-/* ── EXCLUSIVE / REQUESTED TOURS CARD ── */
-// The joiner's latest Exclusive Tour and Request a Tour requests: where each
+/* ── PRIVATE / REQUESTED TOURS CARD ── */
+// The joiner's latest Private Tour and Request a Tour requests: where each
 // one is (For Approval, Approved, Tour Confirmed, Rejected) and whether the
 // tour package has arrived. Tapping one opens its page.
 const REQUEST_STATUS_COLORS = STATUS_COLORS;
@@ -411,7 +411,7 @@ const MyRequestsCard = ({ onOpen }) => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Sparkles size={15} style={{ color: '#A8481A' }} />
         <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
-          Exclusive &amp; Requested Tours
+          Private &amp; Requested Tours
         </span>
       </div>
 
@@ -423,7 +423,7 @@ const MyRequestsCard = ({ onOpen }) => {
             No requests yet. Plan a private trip or ask us to open a tour.
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {[['exclusive', 'Exclusive Tour'], ['request', 'Request a Tour']].map(([type, label]) => (
+            {[['exclusive', 'Private Tour'], ['request', 'Request a Tour']].map(([type, label]) => (
               <button key={type} type="button" onClick={() => onOpen(type)} style={{
                 flex: '1 1 120px', padding: '9px 10px', borderRadius: 10, border: '1px solid rgba(180,81,30,0.3)', background: 'transparent',
                 color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
@@ -443,7 +443,7 @@ const MyRequestsCard = ({ onOpen }) => {
               }}>
                 <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
-                    {r.request_type === 'request' ? 'Requested Tour' : 'Exclusive Tour'}
+                    {r.request_type === 'request' ? 'Requested Tour' : 'Private Tour'}
                   </span>
                   <span style={{ fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, background: tone.bg, color: tone.color, whiteSpace: 'nowrap' }}>{label}</span>
                 </span>

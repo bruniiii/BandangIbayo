@@ -537,7 +537,7 @@ const LoginBrandPanel = () => (
       </p>
     </div>
     <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
-      {['Book and pay online (GCash or card)', 'Live van tracking on tour day', 'Private Exclusive Tours for your group'].map((t) => (
+      {['Book and pay online (GCash or card)', 'Live van tracking on tour day', 'Private Tours for your group'].map((t) => (
         <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, fontWeight: 700, color: '#FDF6EE' }}>
           <CheckCircle2 size={17} color="#E8A265" style={{ flexShrink: 0 }} /> {t}
         </li>

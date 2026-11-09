@@ -92,7 +92,7 @@ const NAV_ITEMS = [
   { icon: <Map size={18} strokeWidth={2} />,             label: 'Tour Management' },
   { icon: <Calendar size={18} strokeWidth={2} />,        label: 'Booking Management' },
   { icon: <Users size={18} strokeWidth={2} />,           label: 'Joiner Accounts' },
-  { icon: <Shield size={18} strokeWidth={2} />,          label: 'Exclusive Tours' },
+  { icon: <Shield size={18} strokeWidth={2} />,          label: 'Private Tours' },
   { icon: <Globe size={18} strokeWidth={2} />,           label: 'Requested Tours' },
   { icon: <Clock size={18} strokeWidth={2} />,           label: 'Tracking Management' },
   { icon: <MessagesSquare size={18} strokeWidth={2} />,  label: 'Messages' },
@@ -151,9 +151,9 @@ const AdminDashboard = () => {
     if (isMobile) setMobileNavOpen(false);
   };
 
-  // A request notification opens Exclusive Tours or Requested Tours, whichever it's on.
+  // A request notification opens Private Tours or Requested Tours, whichever it's on.
   const openRequestPage = async (requestId) => {
-    let page = 'Exclusive Tours';
+    let page = 'Private Tours';
     let found = false;
     if (requestId) {
       const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
@@ -243,7 +243,7 @@ const AdminDashboard = () => {
     reviewCount: 0,
     ratingBreakdown: [],
     latestPost: null,
-    pendingExclusiveRequests: [], // Exclusive Tour / Request-a-Tour submissions awaiting review
+    pendingExclusiveRequests: [], // Private Tour / Request-a-Tour submissions awaiting review
     pendingExclusiveCount: 0,
   });
  
@@ -779,12 +779,12 @@ const AdminDashboard = () => {
                     ))}
                   </ModuleCard>
 
-                  {/* Exclusive / Requested Tours */}
+                  {/* Private / Requested Tours */}
                   <ModuleCard
                     icon={<Globe size={16} />}
-                    title="Exclusive & Requested Tours"
+                    title="Private & Requested Tours"
                     metaLabel={`${snippets.pendingExclusiveCount} for approval`}
-                    onViewAll={() => handleNavClick(snippets.pendingExclusiveRequests[0]?.request_type === 'request' ? 'Requested Tours' : 'Exclusive Tours')}
+                    onViewAll={() => handleNavClick(snippets.pendingExclusiveRequests[0]?.request_type === 'request' ? 'Requested Tours' : 'Private Tours')}
                     loading={loadingStats}
                     empty={snippets.pendingExclusiveRequests.length === 0}
                     emptyText="Nothing awaiting review."
@@ -805,7 +805,7 @@ const AdminDashboard = () => {
                           background: r.request_type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
                           borderRadius: 999, padding: '3px 9px', flexShrink: 0,
                         }}>
-                          {r.request_type === 'exclusive' ? 'Exclusive' : 'Request'}
+                          {r.request_type === 'exclusive' ? 'Private' : 'Request'}
                         </span>
                       </div>
                     ))}
@@ -946,7 +946,7 @@ const AdminDashboard = () => {
           {activeTab === 'Tour Management' && <TourManagement key={focusKey} openTourId={focusId} />}
           {activeTab === 'Booking Management' && <BookingManagement key={focusKey} openBookingId={focusId} openSection={focus?.section} />}
           {activeTab === 'Joiner Accounts' && <JoinerAccounts key={focusKey} openJoinerId={focusId} />}
-          {activeTab === 'Exclusive Tours' && <AdminExclusiveTours key={`exclusive${focusKey || ''}`} type="exclusive" openRequestId={focusId} />}
+          {activeTab === 'Private Tours' && <AdminExclusiveTours key={`exclusive${focusKey || ''}`} type="exclusive" openRequestId={focusId} />}
           {activeTab === 'Requested Tours' && <AdminExclusiveTours key={`request${focusKey || ''}`} type="request" openRequestId={focusId} />}
           {activeTab === 'Reviews' && <Reviews key={focusKey} isAdmin={true} focusTourId={focusId} />}
           {activeTab === 'Messages' && <GroupChat isAdmin />}
@@ -965,7 +965,7 @@ const AdminDashboard = () => {
            activeTab !== 'Booking Management' &&
            activeTab !== 'Reviews' &&
            activeTab !== 'Joiner Accounts' &&
-           activeTab !== 'Exclusive Tours' &&
+           activeTab !== 'Private Tours' &&
            activeTab !== 'Requested Tours' &&
            activeTab !== 'Tracking Management' &&
            activeTab !== 'Reports' &&
@@ -1021,10 +1021,10 @@ const PAGE_INFO = {
   'Tour Management':     { icon: Map,             title: 'Tour Management',     subtitle: 'Create tours, add dates and manage your postings' },
   'Booking Management':  { icon: Calendar,        title: 'Booking Management',  subtitle: 'Verify payments, track downpayments and update booking status' },
   'Joiner Accounts':     { icon: Users,           title: 'Joiner Accounts',     subtitle: 'Everyone registered as a joiner' },
-  'Exclusive Tours':     { icon: Shield,          title: 'Exclusive Tours',     subtitle: 'Private-group tour requests from joiners' },
+  'Private Tours':     { icon: Shield,          title: 'Private Tours',     subtitle: 'Private-group tour requests from joiners' },
   'Requested Tours':     { icon: Globe,           title: 'Requested Tours',     subtitle: 'New destinations joiners asked for, posted on Explore Tours once ready' },
   'Tracking Management': { icon: Clock,           title: 'Tracking Management', subtitle: "Share each tour's live location with its joiners, and check them in on the day" },
-  'Messages':            { icon: MessagesSquare,  title: 'Messages',            subtitle: 'Chat with the joiners of each tour date, and with exclusive tour joiners' },
+  'Messages':            { icon: MessagesSquare,  title: 'Messages',            subtitle: 'Chat with the joiners of each tour date, and with private tour joiners' },
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },

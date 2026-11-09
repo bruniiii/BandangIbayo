@@ -4,7 +4,7 @@ import { placeOnRoute, departureFromItinerary, addMinutesToTime, stopMinutes } f
 
 // ─────────────────────────────────────────────
 // Where each pickup point is, for a tour saved from a tour package (requested
-// and exclusive tours), the same way Tour Management works it out:
+// and private tours), the same way Tour Management works it out:
 //   • places ticked from the map's list (gas stations, malls…) or pinned on the
 //     map are saved as Pickup Spots, so they keep their location;
 //   • the stops are put in the order the van reaches them on the route;

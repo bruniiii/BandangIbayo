@@ -13,9 +13,9 @@ import NiceDate from './ui/NiceDate';
 //
 // Collected = what the agency has received: the full price for full payments,
 // the downpayment for downpayment bookings (plus the balance once settled),
-// and exclusive tour payments. Cancelled bookings still count (payments are
+// and private tour payments. Cancelled bookings still count (payments are
 // non-refundable); rejected payments don't. Tour bookings count in the month
-// they were booked, exclusive tours in the month each part was paid.
+// they were booked, private tours in the month each part was paid.
 // ─────────────────────────────────────────────
 
 const monthKeyOf = (iso) => {
@@ -83,10 +83,10 @@ const SalesSummary = ({ onData }) => {
       if (!active) return;
       setLoading(false);
       if (b.error) toast.error("Couldn't load sales", b.error.message);
-      // An exclusive tour's booking mirrors its request, which is counted below already.
+      // A private tour's booking mirrors its request, which is counted below already.
       const exclusiveIds = new Set((x.data || []).map((e) => String(e.id)));
       setBookings((b.data || []).filter((bk) => !bk.request_id || !exclusiveIds.has(String(bk.request_id))));
-      setExclusives(x.error ? [] : x.data || []); // exclusive payments are optional (older databases)
+      setExclusives(x.error ? [] : x.data || []); // private tour payments are optional (older databases)
       setRates(Object.fromEntries((r.data || []).map((row) => [row.tour_id, Number(row.regular_rate)])));
     })();
     return () => { active = false; };
@@ -108,7 +108,7 @@ const SalesSummary = ({ onData }) => {
       perTour.set(key, row);
     });
 
-    // Exclusive tours: downpayment in the month it was paid, the balance in its month.
+    // Private tours: downpayment in the month it was paid, the balance in its month.
     let exclusiveCollected = 0;
     exclusives.forEach((r) => {
       if (r.payment_status !== 'Paid') return;
@@ -129,8 +129,8 @@ const SalesSummary = ({ onData }) => {
       ...exclusives
         .filter((r) => r.payment_status === 'Paid' && !r.balance_settled && Number(r.package_details?.price) > (Number(r.amount_paid) || 0))
         .map((r) => ({
-          kind: 'Exclusive', name: r.full_name, ref: `Exclusive #${String(r.id).slice(0, 8)}`, contact: '',
-          what: r.package_details?.destination || r.destination || 'Exclusive tour', date: r.preferred_date || '',
+          kind: 'Private', name: r.full_name, ref: `Private #${String(r.id).slice(0, 8)}`, contact: '',
+          what: r.package_details?.destination || r.destination || 'Private tour', date: r.preferred_date || '',
           amount: Number(r.package_details.price) - (Number(r.amount_paid) || 0),
         })),
     ].sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999'));

@@ -1,6 +1,6 @@
 import { ShieldCheck, X, AlertTriangle } from 'lucide-react';
 
-// The Terms & Conditions, in a window. Used by registration and Exclusive
+// The Terms & Conditions, in a window. Used by registration and Private
 // Tours. onAgree is optional: without it only Close is shown.
 const TermsModal = ({ onClose, onAgree }) => (
   <div
@@ -114,7 +114,7 @@ const TermsModal = ({ onClose, onAgree }) => (
         <TermsSection title="1. Booking & Payment">
           All bookings are confirmed only after payment is received online
           (GCash, Maya or card), either in full or as a 50% downpayment.
-          Exclusive (private) tours are confirmed with a 50% downpayment of
+          Private (private) tours are confirmed with a 50% downpayment of
           the package price the agency sends you; the remaining balance can be
           paid online or settled with the agency before the trip. Every joiner is charged the
           full listed tour price regardless of age or status — the platform

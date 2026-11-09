@@ -108,9 +108,9 @@ export const safeNextPath = (next) =>
 export const CANCELLATION_CUTOFF_DAYS = 14;
 // Joiners ask to cancel; the agency approves within this many hours (or it happens automatically).
 export const CANCELLATION_APPROVAL_HOURS = 12;
-// Exclusive tours and tour requests: the earliest trip date is this many days from today.
+// Private tours and tour requests: the earliest trip date is this many days from today.
 export const TRIP_REQUEST_LEAD_DAYS = 21;
-// Admins can approve an exclusive tour or tour request only this many days
+// Admins can approve a private tour or tour request only this many days
 // before its date. Keep in sync with exclusive_requests_guard_approval().
 export const EXCLUSIVE_APPROVAL_CUTOFF_DAYS = 14;
 
@@ -127,7 +127,7 @@ const plusDays = (ymd, n) => {
 // 1 month of the request, or by 2 weeks before the trip date. The database
 // marks these Rejected too (reject_overdue_requests); until it runs, they're
 // shown as Rejected anyway.
-// Exclusive tours (20261213): after approval the joiner pays a downpayment of
+// Private tours (20261213): after approval the joiner pays a downpayment of
 // 50% of their budget within 24 hours, before the package is made.
 //   { waiting, expired, dueAt, amount } — waiting: approved, not paid yet.
 export const exclusiveDownpayment = (request) => {
@@ -168,7 +168,7 @@ export const requestStatusLabel = (request) => {
   return 'Approved';
 };
 
-// Exclusive tours only: how much is paid.
+// Private tours only: how much is paid.
 export const requestPaymentLabel = (request) => {
   if (request.request_type !== 'exclusive' || request.payment_status !== 'Paid') return null;
   return request.balance_settled ? 'Fully Paid' : 'Downpayment Paid';
@@ -264,7 +264,7 @@ export const formatPickupTime = (value) => {
   return `${((h + 11) % 12) + 1}:${m[2]} ${h < 12 ? 'AM' : 'PM'}`;
 };
 
-// ── Tour rates (Tour Management and requested tours; not exclusive tours) ──
+// ── Tour rates (Tour Management and requested tours; not private tours) ──
 // Keep in sync with tour_rates_check_limit() and tours_check_price_limit().
 export const REGULAR_RATE_MIN = 1300;
 export const REGULAR_RATE_MAX = 7500;
@@ -289,7 +289,7 @@ export const rateChecks = (regular, joiner, { regularField = 'regular_rate', joi
           : Number.isFinite(regular) && joiner < regular + JOINER_RATE_MARGIN ? `The Joiner Rate must be at least ₱${JOINER_RATE_MARGIN} more than the Regular Rate (at least ${formatPeso(regular + JOINER_RATE_MARGIN)}).` : ''],
 ];
 
-// Exclusive tours (priced for the whole group): budget, Package Price and
+// Private tours (priced for the whole group): budget, Package Price and
 // Regular Rate. Keep in sync with 20261215000000_exclusive_rates_3k_100k.sql.
 export const EXCLUSIVE_RATE_MIN = 3000;
 export const EXCLUSIVE_RATE_MAX = 100000;
@@ -297,7 +297,7 @@ export const EXCLUSIVE_RATE_MAX = 100000;
 // Tours (and requested trips) last at most 1 week.
 export const MAX_TOUR_DAYS = 7;
 
-// A tour (one van) takes at most 14 joiners per date. Exclusive tours can be
+// A tour (one van) takes at most 14 joiners per date. Private tours can be
 // bigger: every 14 people ride another van, up to 5 vans.
 export const MAX_TOUR_SLOTS = 14;
 export const VAN_SEATS = 14;

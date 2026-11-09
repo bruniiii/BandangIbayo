@@ -29,8 +29,8 @@ import { Skel, SkeletonRegion } from './ui/Skeleton';
 /* ─────────────────────────────────────────────
   TOUR CALENDAR
 ───────────────────────────────────────────── */
-// onPlanTrip(form, date): a day without tours offers an exclusive tour or a tour request.
-// onOpenMyBookings(): a joiner's own exclusive tour opens in My Bookings.
+// onPlanTrip(form, date): a day without tours offers a private tour or a tour request.
+// onOpenMyBookings(): a joiner's own private tour opens in My Bookings.
 const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
   const [currentMonth, setCurrentMonth] = useState(() =>
     initialDate ? new Date(initialDate.year, initialDate.month, 1) : new Date()
@@ -47,7 +47,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
     await archivePastTours();
     const { data: toursData } = await supabase.from('tours').select('*').eq('is_archived', false).or(notEndedFilter());
     // Joiners can only read their own bookings, so slot totals come from tour_slots_booked().
-    // (A joiner only ever sees their OWN exclusive tour here: the database hides the others.)
+    // (A joiner only ever sees their OWN private tour here: the database hides the others.)
     const updatedTours = await withAvailableSlots(toursData || []);
  
     setTours(updatedTours);
@@ -230,7 +230,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                     transition: 'all 0.2s'
                   }}>
                     {tour.is_exclusive && (
-                      <p style={{ margin: '0 0 6px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#E8A265' }}>★ Your exclusive tour</p>
+                      <p style={{ margin: '0 0 6px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#E8A265' }}>★ Your private tour</p>
                     )}
                     <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: '#FDF6EE', margin: '0 0 8px' }}>{tour.title}</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(232,210,190,0.85)', marginBottom: 4 }}>
@@ -291,10 +291,10 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                   fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
                 }}>
                   No tours scheduled.
-                  {/* Exclusive tours and requests start at least 3 weeks ahead. */}
+                  {/* Private tours and requests start at least 3 weeks ahead. */}
                   {onPlanTrip && format(selectedDate, 'yyyy-MM-dd') < addDaysPH(TRIP_REQUEST_LEAD_DAYS) && (
                     <p style={{ fontStyle: 'normal', margin: '14px 0 0', fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.9)', lineHeight: 1.6 }}>
-                      Exclusive tours and tour requests can be booked from 3 weeks ahead.
+                      Private tours and tour requests can be booked from 3 weeks ahead.
                       Pick a day from <strong style={{ color: '#E8A265' }}>{format(new Date(`${addDaysPH(TRIP_REQUEST_LEAD_DAYS)}T00:00:00`), 'MMMM d')}</strong> onwards.
                     </p>
                   )}
@@ -305,7 +305,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                         padding: '12px 16px', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE',
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                       }}>
-                        Exclusive Tour
+                        Private Tour
                       </button>
                       <button type="button" onClick={() => onPlanTrip('request', format(selectedDate, 'yyyy-MM-dd'))} style={{
                         padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(232,162,101,0.45)', background: 'transparent', color: '#E8A265',

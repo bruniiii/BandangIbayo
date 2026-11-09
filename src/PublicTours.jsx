@@ -108,7 +108,7 @@ const CenteredMessage = ({ children }) => (
   </div>
 );
 
-// (Exclusive tours are private: only in their joiner's My Bookings.)
+// (Private tours are private: only in their joiner's My Bookings.)
 const fetchOpenTours = async () => {
   const res = await supabase
     .from('tours')

@@ -59,7 +59,7 @@ const FAQS = [
   },
   {
     q: 'Can I book a private trip for my group?',
-    a: 'Yes. Use Exclusive Tours to request a private trip. We send you a package and price, and you confirm it with a 50% downpayment.',
+    a: 'Yes. Use Private Tours to request a private trip. We send you a package and price, and you confirm it with a 50% downpayment.',
   },
   {
     q: 'I forgot my password. What do I do?',

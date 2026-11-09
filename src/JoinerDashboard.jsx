@@ -59,7 +59,7 @@ const NAV_ITEMS = [
   { icon: <MessagesSquare size={18} strokeWidth={2} />, label: 'Messages' },
   { icon: <CalendarIcon size={18} strokeWidth={2} />,label: 'Calendar' },
   { icon: <Clock size={18} strokeWidth={2} />,       label: 'Tracking' },
-  { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Exclusive Tours' },
+  { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Private Tours' },
   { icon: <Globe size={18} strokeWidth={2} />,       label: 'Request a Tour' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
   { icon: <MessageSquareHeart size={18} strokeWidth={2} />, label: 'Feedback' },
@@ -81,7 +81,7 @@ const PAGE_INFO = {
   'Messages':         { icon: MessagesSquare, title: 'Messages',         subtitle: 'Chat with your tour group, and read messages from Bandang IBAYO' },
   'Calendar':         { icon: CalendarIcon, title: 'Calendar',         subtitle: 'See every open tour by date' },
   'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
-  'Exclusive Tours':  { icon: MapIcon,      title: 'Exclusive Tours',  subtitle: 'Book a private group trip, just for your group' },
+  'Private Tours':  { icon: MapIcon,      title: 'Private Tours',  subtitle: 'Book a private group trip, just for your group' },
   'Request a Tour':   { icon: Globe,        title: 'Request a Tour',   subtitle: "Suggest a destination we don't offer yet" },
   'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
   'Feedback':         { icon: MessageSquareHeart, title: 'Feedback', subtitle: 'Tell us how to make the website better' },
@@ -111,14 +111,14 @@ const JoinerDashboard = () => {
     const kind = searchParams.has('payment') ? 'payment' : searchParams.has('balance') ? 'balance' : null;
     return kind ? { kind, result: searchParams.get(kind), bookingId: searchParams.get('booking') } : null;
   });
-  // ...or /dashboard?exclusive=success|cancelled&request=<id> after an exclusive tour downpayment.
+  // ...or /dashboard?exclusive=success|cancelled&request=<id> after a private tour downpayment.
   const [exclusiveReturn] = useState(() => (searchParams.has('exclusive')
     ? { result: searchParams.get('exclusive'), requestId: searchParams.get('request') } : null));
   const [paymentNotice, setPaymentNotice] = useState(paymentReturn || exclusiveReturn ? { type: 'info', text: 'Checking your payment…' } : null);
   const [exclusiveKey, setExclusiveKey] = useState(0);
   const [exclusiveStart, setExclusiveStart] = useState(null); // { form, date } from the calendar
   const [myBookingsKey, setMyBookingsKey] = useState(0);
-  const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Exclusive Tours' : bookTourId ? 'Explore Tours'
+  const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Private Tours' : bookTourId ? 'Explore Tours'
     : tabFromUrl(JOINER_BASE, JOINER_TABS) || readTab(TAB_KEY, JOINER_TABS, 'HomePage')));
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
@@ -203,20 +203,20 @@ const JoinerDashboard = () => {
     return () => { active = false; };
   }, [paymentReturn]);
 
-  // Exclusive tour downpayment or balance: check it with PayMongo, then show the result.
+  // Private tour downpayment or balance: check it with PayMongo, then show the result.
   useEffect(() => {
     if (!exclusiveReturn?.requestId) return;
     let active = true;
     (async () => {
       let notice;
       if (exclusiveReturn.result === 'cancelled') {
-        notice = { type: 'info', text: 'Payment cancelled. You can pay anytime from your request under Exclusive Tours.' };
+        notice = { type: 'info', text: 'Payment cancelled. You can pay anytime from your request under Private Tours.' };
       } else {
         const { ok, data, error } = await verifyExclusivePayment({ requestId: exclusiveReturn.requestId });
         if (!ok) notice = { type: 'error', text: `We couldn't check your payment yet (${error}). It will update automatically once PayMongo confirms it.` };
         else if (data?.status === 'unpaid') notice = { type: 'info', text: 'We haven\'t received your payment yet. If you paid, it will show here once PayMongo confirms it.' };
-        else if (data?.kind === 'exclusive_balance') notice = { type: 'success', text: 'Balance received! Your exclusive tour is fully paid. ✅' };
-        else notice = { type: 'success', text: 'Downpayment received! Your exclusive tour is confirmed. 🎉' };
+        else if (data?.kind === 'exclusive_balance') notice = { type: 'success', text: 'Balance received! Your private tour is fully paid. ✅' };
+        else notice = { type: 'success', text: 'Downpayment received! Your private tour is confirmed. 🎉' };
       }
       if (!active) return;
       setPaymentNotice(notice);
@@ -316,9 +316,9 @@ const JoinerDashboard = () => {
     return () => window.removeEventListener(OPEN_CHAT, open);
   });
 
-  // A notification about a request opens Exclusive Tours or Request a Tour, whichever it's on.
+  // A notification about a request opens Private Tours or Request a Tour, whichever it's on.
   const openRequestPage = async (requestId) => {
-    let page = 'Exclusive Tours';
+    let page = 'Private Tours';
     if (requestId) {
       const { data } = await supabase.from('exclusive_requests').select('request_type').eq('id', requestId).maybeSingle();
       if (data?.request_type === 'request') page = 'Request a Tour';
@@ -538,7 +538,7 @@ const JoinerDashboard = () => {
         .limit(12);
 
       // One card per trip; its other dates are picked in the booking window.
-      const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* exclusive tours: My Bookings only */;
+      const updatedTours = groupTripDates(await withAvailableSlots((toursData || []).filter((t) => !t.is_exclusive))) /* private tours: My Bookings only */;
 
       setFeaturedTours(updatedTours);
     } catch (err) {
@@ -985,7 +985,7 @@ const JoinerDashboard = () => {
                     stop={trackingStop}
                     onClick={() => setActiveTab('Tracking')}
                   />
-                  <MyRequestsCard onOpen={(type) => setActiveTab(type === 'request' ? 'Request a Tour' : 'Exclusive Tours')} />
+                  <MyRequestsCard onOpen={(type) => setActiveTab(type === 'request' ? 'Request a Tour' : 'Private Tours')} />
                   {/* After a trip: ask for feedback about the website (the survey). */}
                   {!loadingHome && completedCount > 0 && (
                     <button type="button" onClick={() => setActiveTab('Feedback')} style={{
@@ -1033,10 +1033,10 @@ const JoinerDashboard = () => {
           ) : activeTab === 'Calendar' ? (
             <TourCalendar
               initialDate={calendarTarget}
-              onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab(form === 'request' ? 'Request a Tour' : 'Exclusive Tours'); }}
+              onPlanTrip={(form, date) => { setExclusiveStart({ form, date }); setExclusiveKey((k) => k + 1); setActiveTab(form === 'request' ? 'Request a Tour' : 'Private Tours'); }}
               onOpenMyBookings={() => { setBookingsFilter(null); setMyBookingsKey((k) => k + 1); setActiveTab('My Bookings'); }}
             />
-          ) : activeTab === 'Exclusive Tours' || activeTab === 'Request a Tour' ? (
+          ) : activeTab === 'Private Tours' || activeTab === 'Request a Tour' ? (
             <ExclusiveTour
               key={`${activeTab}-${exclusiveKey}${focusKey || ''}`}
               type={activeTab === 'Request a Tour' ? 'request' : 'exclusive'}

@@ -60,7 +60,7 @@ const SITE_URL = SITE_URLS[0] ?? "";
 const PAYMENT_METHODS = (Deno.env.get("PAYMONGO_PAYMENT_METHODS") ?? "gcash,paymaya,card,grab_pay")
   .split(",").map((m) => m.trim()).filter(Boolean);
 const PAYMONGO_API = "https://api.paymongo.com/v1";
-// Tour downpayment (percent of the total). Exclusive tours have their own rate below.
+// Tour downpayment (percent of the total). Private tours have their own rate below.
 const DOWNPAYMENT_PERCENT = 50;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
@@ -453,7 +453,7 @@ async function expireHolds() {
   return { released, confirmed, retry };
 }
 
-// ───────────── Exclusive tours: 50% downpayment, then the balance ─────────────
+// ───────────── Private tours: 50% downpayment, then the balance ─────────────
 const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -461,7 +461,7 @@ async function loadOwnRequest(requestId: unknown, userId: string) {
   if (requestId == null || requestId === "") throw new HttpError(400, "Missing request.");
   const { data: request, error } = await supabase.from("exclusive_requests").select("*").eq("id", requestId).maybeSingle();
   if (error) {
-    console.error("payments: couldn't load exclusive request", { requestId, error });
+    console.error("payments: couldn't load private tour request", { requestId, error });
     throw new HttpError(500, `Couldn't load your request (${error.message}). Please try again, or contact us.`);
   }
   if (!request) throw new HttpError(404, "Request not found.");
@@ -470,7 +470,7 @@ async function loadOwnRequest(requestId: unknown, userId: string) {
 }
 
 // The package price the agency sent, and half of it.
-// What to pay for an exclusive tour (20261213 flow): the downpayment is 50% of
+// What to pay for a private tour (20261213 flow): the downpayment is 50% of
 // the joiner's budget, due within 24 hours of approval, before the package;
 // the balance is the package price minus what's paid. Requests approved
 // before that update (no downpayment_due_at) pay 50% of the package price.
@@ -496,7 +496,7 @@ function exclusiveAmounts(request: any, part: "downpayment" | "balance" = "downp
   return { price, downpayment: round2(price * EXCLUSIVE_DOWNPAYMENT_RATE) };
 }
 
-// A PayMongo checkout for part of an exclusive tour's package price.
+// A PayMongo checkout for part of a private tour's package price.
 async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "balance", amount: number, price: number) {
   const base = returnBase(p.returnBaseUrl);
   const phone = checkoutPhone(p.phone);
@@ -506,14 +506,14 @@ async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "ba
     data: {
       attributes: {
         line_items: [{
-          name: `Exclusive tour: ${request.package_details?.destination || request.destination} · ${label}`,
+          name: `Private tour: ${request.package_details?.destination || request.destination} · ${label}`,
           amount: centavos(amount),
           currency: "PHP",
           quantity: 1,
         }],
         payment_method_types: PAYMENT_METHODS,
         billing: billingFor(request.full_name, request.email, phone),
-        description: `Bandang IBAYO exclusive tour ${reference}. ${label[0].toUpperCase()}${label.slice(1)} of the ₱${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })} package. Payments are non-refundable.`,
+        description: `Bandang IBAYO private tour ${reference}. ${label[0].toUpperCase()}${label.slice(1)} of the ₱${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })} package. Payments are non-refundable.`,
         reference_number: reference,
         metadata: { request_id: String(request.id), kind: part === "balance" ? "exclusive_balance" : "exclusive" },
         send_email_receipt: true,
@@ -596,7 +596,7 @@ async function verifyExclusive(userId: string, p: any) {
   return await processSession(request.balance_paymongo_checkout_id);
 }
 
-// Tells the joiner (notification + email) and the admins about an exclusive tour payment.
+// Tells the joiner (notification + email) and the admins about a private tour payment.
 async function announceExclusive(updated: any, joiner: { title: string; message: string; subject: string; email: string }, admin: { title: string; message: string }) {
   const { data: admins } = await supabase.from("profiles").select("id").eq("role", "admin");
   const rows = [
@@ -635,13 +635,13 @@ async function recordExclusiveBalance(requestId: string, amount: number, payment
 
   const peso = `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
   await announceExclusive(updated, {
-    title: "Exclusive Tour Fully Paid ✅",
-    message: `We received your ${peso} balance for your exclusive tour to ${updated.destination}. Your tour is fully paid. See you on the trip!`,
-    subject: `Your exclusive tour to ${updated.destination} is fully paid`,
-    email: `We received your ${peso} remaining balance. Your exclusive tour to ${updated.destination} is now fully paid.\n\nOur team will contact you about the final trip details. You can see your package anytime under Exclusive Tours in your Bandang IBAYO account.`,
+    title: "Private Tour Fully Paid ✅",
+    message: `We received your ${peso} balance for your private tour to ${updated.destination}. Your tour is fully paid. See you on the trip!`,
+    subject: `Your private tour to ${updated.destination} is fully paid`,
+    email: `We received your ${peso} remaining balance. Your private tour to ${updated.destination} is now fully paid.\n\nOur team will contact you about the final trip details. You can see your package anytime under Private Tours in your Bandang IBAYO account.`,
   }, {
-    title: "Exclusive Tour Balance Paid",
-    message: `${updated.full_name || "A joiner"} paid the ${peso} remaining balance for their exclusive tour to ${updated.destination}. It's fully paid.`,
+    title: "Private Tour Balance Paid",
+    message: `${updated.full_name || "A joiner"} paid the ${peso} remaining balance for their private tour to ${updated.destination}. It's fully paid.`,
   });
   return { status: "confirmed", kind: "exclusive_balance" };
 }
@@ -660,19 +660,19 @@ async function recordExclusivePayment(requestId: string, amount: number, payment
   const peso = `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`;
   const waitsForPackage = !updated.package_sent_at;
   await announceExclusive(updated, {
-    title: "Exclusive Tour Confirmed 🎉",
+    title: "Private Tour Confirmed 🎉",
     message: waitsForPackage
-      ? `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed! We're now preparing your tour package; you'll be notified once it's ready.`
-      : `We received your ${peso} downpayment for your exclusive tour to ${updated.destination}. Your tour is confirmed! You can pay the remaining balance online anytime under Exclusive Tours.`,
-    subject: `Your exclusive tour to ${updated.destination} is confirmed`,
+      ? `We received your ${peso} downpayment for your private tour to ${updated.destination}. Your tour is confirmed! We're now preparing your tour package; you'll be notified once it's ready.`
+      : `We received your ${peso} downpayment for your private tour to ${updated.destination}. Your tour is confirmed! You can pay the remaining balance online anytime under Private Tours.`,
+    subject: `Your private tour to ${updated.destination} is confirmed`,
     email: waitsForPackage
-      ? `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nWe're now preparing your tour package (itinerary, inclusions and the final price). You'll be notified once it's ready, and you can pay the remaining balance then.`
-      : `We received your ${peso} downpayment. Your exclusive tour to ${updated.destination} is confirmed!\n\nYou can pay the remaining balance online anytime under Exclusive Tours in your Bandang IBAYO account, or settle it with our team before the trip.`,
+      ? `We received your ${peso} downpayment. Your private tour to ${updated.destination} is confirmed!\n\nWe're now preparing your tour package (itinerary, inclusions and the final price). You'll be notified once it's ready, and you can pay the remaining balance then.`
+      : `We received your ${peso} downpayment. Your private tour to ${updated.destination} is confirmed!\n\nYou can pay the remaining balance online anytime under Private Tours in your Bandang IBAYO account, or settle it with our team before the trip.`,
   }, {
-    title: "Exclusive Tour Downpayment Paid",
+    title: "Private Tour Downpayment Paid",
     message: waitsForPackage
-      ? `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}. You can now create and send their tour package.`
-      : `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their exclusive tour to ${updated.destination}.`,
+      ? `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their private tour to ${updated.destination}. You can now create and send their tour package.`
+      : `${updated.full_name || "A joiner"} paid the ${peso} downpayment for their private tour to ${updated.destination}.`,
   });
   return { status: "confirmed", kind: "exclusive" };
 }

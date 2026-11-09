@@ -1,4 +1,4 @@
-// Date-range helpers for the exclusive tour form (ui/DateRangePicker.jsx).
+// Date-range helpers for the private tour form (ui/DateRangePicker.jsx).
 // Dates are 'YYYY-MM-DD' strings, compared as plain calendar days.
 
 import { daysBetween } from './tripDay';

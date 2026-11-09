@@ -23,13 +23,13 @@ import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
 
 // ─────────────────────────────────────────────
-// TOUR PACKAGE FORM (admin, Exclusive Tours / Requested Tours)
+// TOUR PACKAGE FORM (admin, Private Tours / Requested Tours)
 // The same form as "Create New Tour" in Tour Management, for an approved request:
 //  - REQUESTED TOUR: saving it posts the tour on Explore Tours (Regular Rate
 //    ₱1,300–₱7,500, Joiner Rate ₱1,800–₱7,500, accommodation, expenses and
 //    pickup points) and holds the requester's slots for 2 days
 //    (hold_requested_slots) so they get priority.
-//  - EXCLUSIVE TOUR: the package the joiner pays a 50% downpayment on. Its
+//  - PRIVATE TOUR: the package the joiner pays a 50% downpayment on. Its
 //    dates and group size are the joiner's; the admin ticks the accommodation
 //    the joiner can choose from.
 // ─────────────────────────────────────────────
@@ -67,7 +67,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     destination: pkg.destination || request.destination || '',
     price: pkg.price ?? (isOpenRequest ? '' : (request.budget || '')),
     regular_rate: pkg.regular_rate ?? '',
-    // Exclusive tours keep the joiner's group size and dates.
+    // Private tours keep the joiner's group size and dates.
     group_size: isOpenRequest ? (pkg.group_size ?? MAX_TOUR_SLOTS) : (Number(request.group_size) || ''),
     difficulty: pkg.difficulty || 'Easy',
     description: pkg.description || pkg.additional_notes || '',
@@ -301,7 +301,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
       let savedTourId = tourId;
       let heldBooking = null;
-      // A paid exclusive tour: its own private tour date (only the admins and the
+      // A paid private tour: its own private tour date (only the admins and the
       // joiner see it) and the joiner's booking, so it works with My Bookings,
       // the group chat, Tracking, the Calendar and bad-weather actions.
       if (!isOpenRequest && request.payment_status === 'Paid') {
@@ -376,7 +376,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
         <div className="responsive-modal-padding" style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
           <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>
-            {isOpenRequest ? 'Requested Tour' : 'Exclusive Tour'}
+            {isOpenRequest ? 'Requested Tour' : 'Private Tour'}
           </p>
           <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 6px' }}>
             {isOpenRequest ? (tourId ? 'Edit the Tour' : 'Create & Post the Tour') : (packageSent() ? 'Edit the Tour Package' : 'Create the Tour Package')}
@@ -663,7 +663,7 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
   return id;
 };
 
-// The exclusive package as a notification message (expense names only).
+// The private tour package as a notification message (expense names only).
 const packageMessage = ({ details, expenses }) => {
   const lines = [`📍 ${details.title} — ${details.destination}`];
   lines.push(`📅 ${details.start_date}${details.end_date && details.end_date !== details.start_date ? ` to ${details.end_date}` : ''}`);
@@ -675,7 +675,7 @@ const packageMessage = ({ details, expenses }) => {
   if (details.things_to_bring) lines.push(`🎒 Things to Bring:\n${details.things_to_bring}`);
   lines.push(`🧾 Expenses covered: ${expenseItems(expenses).map((i) => i.label).join(', ')}`);
   if (details.important_note) lines.push(`📝 ${details.important_note}`);
-  return `Here's the full package for your exclusive tour:\n\n${lines.join('\n\n')}\n\nIt's in My Bookings too. Open Exclusive Tours to pay the remaining balance.`;
+  return `Here's the full package for your private tour:\n\n${lines.join('\n\n')}\n\nIt's in My Bookings too. Open Private Tours to pay the remaining balance.`;
 };
 
 const Thumb = ({ src, onRemove, isNew }) => (
