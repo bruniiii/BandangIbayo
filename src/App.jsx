@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase, openedFromResetLink } from './supabaseClient';
 import { FaFacebook } from "react-icons/fa"; 
@@ -31,8 +31,6 @@ import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
 import { SkeletonTourCards } from './ui/Skeleton';
 import { reportError } from './ui/toast';
-import { HeroSlides, RoadTrip, TourMap, SlotsTag, MountainDivider } from './landing/LandingFx';
-import { useScrollReveal, useCardTilt, LANDING_FX_CSS } from './landing/landingHooks';
  
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -51,7 +49,7 @@ const LandingReviews = () => {
   const reviews = usePublicReviews(6);
   if (!reviews || reviews.length === 0) return null;
   return (
-    <section data-reveal style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
+    <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Joiner Stories</span>
@@ -69,7 +67,6 @@ const LandingReviews = () => {
 function LandingPage() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [booked, setBooked] = useState(null); // { [tour id]: slots taken }
  
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -91,20 +88,10 @@ function LandingPage() {
       setLoading(false);
     };
     fetchPublicTours();
-    // Slots taken per tour, for the "slots left" tag on the cards.
-    supabase.rpc('tour_slots_booked').then(({ data }) => {
-      if (data) setBooked(Object.fromEntries(data.map((r) => [r.tour_id, Number(r.slots_booked) || 0])));
-    });
   }, []);
-
-  // Landing page extras: photo hero, road trip, slide-in sections, tilting cards (landing/LandingFx).
-  const pageRef = useRef(null);
-  useScrollReveal(pageRef);
-  useCardTilt(pageRef);
-  const heroPhotos = [...new Set(tours.map((t) => t.image_urls?.[0]).filter(Boolean))].slice(0, 5);
  
   return (
-    <div ref={pageRef} className="nature-bg" style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
+    <div className="nature-bg" style={{ fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden' }}>
  
       {/* ── NAV ── */}
       <nav className="site-nav" style={{
@@ -143,8 +130,7 @@ function LandingPage() {
         gridTemplateColumns: '1fr 1fr',
         background: '#1A0A00',
         position: 'relative', overflow: 'hidden',
-      }} className={`hero-grid${heroPhotos.length ? ' hero-photos' : ''}`}>
-        <HeroSlides images={heroPhotos} />
+      }} className="hero-grid">
         {/* LEFT PANEL */}
         <div className="hero-left" style={{
           position: 'relative', zIndex: 2,
@@ -277,7 +263,7 @@ function LandingPage() {
       `}</style>
  
       {/* ── FEATURED TOURS ── */}
-      <section data-stop="Tours" data-reveal style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
+      <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem', flexWrap: 'wrap', gap: 16 }}>
             <div>
@@ -313,7 +299,6 @@ function LandingPage() {
                         padding: '5px 12px', borderRadius: 999, backdropFilter: 'blur(4px)',
                       }}>{tour.difficulty}</span>
                     )}
-                    <SlotsTag tour={tour} booked={booked ? booked[tour.id] || 0 : null} />
                   </div>
                   <div style={{ padding: '28px 28px 24px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
@@ -357,11 +342,8 @@ function LandingPage() {
         </div>
       </section>
  
-      {/* ── TOUR MAP ── */}
-      <TourMap tours={tours} />
-
       {/* ── WHAT IS A JOINER TOUR ── */}
-      <section data-stop="Joiner Tours" data-reveal style={{ padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', textAlign: 'center' }}>
+      <section style={{ padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', textAlign: 'center' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
           <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A', marginBottom: 16 }}>
             New to this?
@@ -376,7 +358,7 @@ function LandingPage() {
       </section>
  
       {/* ── TOUR TYPE GRID ── */}
-      <section data-stop="Tour Types" data-reveal style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
+      <section style={{ background: 'rgba(253,246,238,0.84)', padding: 'clamp(4rem,8vw,7rem) clamp(1.5rem,5vw,4rem)', position: 'relative', clipPath: 'polygon(0 3%, 100% 0, 100% 97%, 0 100%)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>           
             <h2 style={{ fontWeight: 900, fontSize: 'clamp(2rem,3.5vw,3rem)', letterSpacing: '-0.03em', color: '#1A0A00', marginTop: 10, marginBottom: 8 }}>
@@ -410,7 +392,7 @@ function LandingPage() {
       </section>
  
       {/* ── HOW TO BOOK ── */}
-      <section data-stop="How to Book" data-reveal style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
+      <section style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Simple Process</span>
@@ -446,8 +428,7 @@ function LandingPage() {
       <LandingReviews />
 
       {/* ── WHY CHOOSE US ── */}
-      <MountainDivider color="#1A0A00" />
-      <section data-stop="Why Us" data-reveal style={{ background: '#1A0A00', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)', position: 'relative' }}>
+      <section style={{ background: '#1A0A00', padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)', position: 'relative' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 64, alignItems: 'start', position: 'relative', zIndex: 1 }}>
           <div>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#E8A265' }}>Why Us</span>
@@ -493,8 +474,7 @@ function LandingPage() {
       </section>
 
       {/* ── ABOUT & CONTACT ── */}
-      <MountainDivider color="#1A0A00" flip />
-      <section data-stop="Contact" data-reveal style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
+      <section style={{ padding: 'clamp(5rem,10vw,8rem) clamp(1.5rem,5vw,4rem)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 56, alignItems: 'start' }}>
           <div>
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A', display: 'block', marginBottom: 16 }}>About</span>
@@ -547,9 +527,6 @@ function LandingPage() {
           © 2026 
         </p>
       </footer>
-
-      <RoadTrip rootRef={pageRef} />
-      <style>{LANDING_FX_CSS}</style>
 
       {/* Floating help: joiner FAQ and user guide */}
       <HelpWidget />
