@@ -29,7 +29,6 @@ import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/logo.png';
 import AdminAccountMenu from './AdminAccountMenu';
 import NotificationBell from './NotificationBell';
-import ThemeToggle from './ui/ThemeToggle';
 import Notification from './Notification';
 import { formatPeso, archivePastTours, todayManila } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -431,7 +430,7 @@ const AdminDashboard = () => {
   }, [activeTab]);
  
   return (
-    <div className="admin-dashboard-container glass-page" style={{
+    <div className="admin-dashboard-container" style={{
       display: 'flex', height: '100dvh',
       fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
       background: '#FDF6EE',
@@ -607,7 +606,6 @@ const AdminDashboard = () => {
                   surfaces joiner-side activity: new bookings, payment
                   submissions, cancellations, reviews, requests, registrations */}
               <AdminSearch onOpen={openFocused} />
-              <ThemeToggle />
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
               {/* admin chip: who's signed in + Change Password */}
