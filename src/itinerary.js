@@ -51,3 +51,47 @@ export const shortDate = (ymd) => {
 
 // The date of "Day n" for a tour starting on start (Day 1 = start).
 export const dateOfDay = (start, n) => (start ? addDaysYmd(start, n - 1) : '');
+
+// ── One day's stops, for the admin's itinerary editor ──
+// A day's text ("10:00 PM – Meet up at the pickup point" per line) ⇄ rows
+// { start: '22:00', end: '', text }. Lines without a time keep start ''.
+const ONE_TIME = '(\\d{1,2}):(\\d{2})\\s?([AP]M|nn|mn)';
+const LINE_RE = new RegExp(`^${ONE_TIME}(?:\\s*[–-]\\s*${ONE_TIME})?\\s*[:–-]\\s*(.+)$`, 'i');
+
+const to24 = (h, m, ap) => {
+  let hour = Number(h) % 12;
+  const s = ap.toLowerCase();
+  if (s === 'pm' || s === 'nn') hour += 12;
+  return `${String(hour).padStart(2, '0')}:${m}`;
+};
+
+// '22:00' → '10:00 PM'
+export const formatStopTime = (hhmm) => {
+  if (!hhmm) return '';
+  const [h, m] = hhmm.split(':').map(Number);
+  return `${String(h % 12 || 12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+};
+
+export const parseStops = (dayText) => (dayText || '').split('\n').map((s) => s.trim()).filter(Boolean).map((line) => {
+  const m = line.match(LINE_RE);
+  if (!m) return { start: '', end: '', text: line };
+  return { start: to24(m[1], m[2], m[3]), end: m[4] ? to24(m[4], m[5], m[6]) : '', text: m[7].trim() };
+});
+
+export const formatStops = (stops) => stops
+  .filter((s) => String(s.text || '').trim() || s.start)
+  .map((s) => {
+    const text = String(s.text || '').trim();
+    if (!s.start) return text;
+    const time = s.end ? `${formatStopTime(s.start)} – ${formatStopTime(s.end)}` : formatStopTime(s.start);
+    return `${time} – ${text}`;
+  })
+  .join('\n');
+
+// Where a new stop at `start` goes: before the first stop with a later time
+// (stops without a time, or added out of order, stay where they are).
+export const insertStop = (stops, stop) => {
+  if (!stop.start) return [...stops, stop];
+  const i = stops.findIndex((s) => s.start && s.start > stop.start);
+  return i === -1 ? [...stops, stop] : [...stops.slice(0, i), stop, ...stops.slice(i)];
+};
