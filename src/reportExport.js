@@ -243,7 +243,7 @@ export const downloadReportPDF = async (report, { print = false } = {}) => {
   doc.text('BUSINESS REPORT', tx, 80);
   doc.setCharSpace(0);
   font(8.5, 'normal', [232, 210, 190]);
-  doc.text('Your budget travel partner', tx, 96);
+  doc.text('Your travel partner', tx, 96);
   // Headline figures on the right of the band.
   if (fig['Total revenue']) {
     font(7, 'bold', [232, 210, 190]);
