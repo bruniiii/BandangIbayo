@@ -126,5 +126,9 @@ from (values
      to_regclass('public.fleet_drivers') is not null and to_regclass('public.fleet_vans') is not null),
   ('20261218 "Exclusive Tour" renamed "Private Tour" in messages',
      not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-                  where n.nspname = 'public' and p.prosrc ~ '[Ee]xclusive (tour|Tour)'))
+                  where n.nspname = 'public' and p.prosrc ~ '[Ee]xclusive (tour|Tour)')),
+  ('20261219 admin tools: maintenance, activity log, saved replies',
+     to_regprocedure('public.run_maintenance(text)') is not null
+     and to_regclass('public.admin_activity') is not null
+     and exists (select 1 from pg_policies where tablename = 'app_settings' and policyname = 'app_settings_admin_quick_replies_insert'))
 ) as u(update_file, installed);

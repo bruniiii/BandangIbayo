@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import TourDayChecklist from './ui/TourDayChecklist';
 import FleetManager, { FleetPicker } from './FleetManager';
 import PrettySelect from './ui/PrettySelect';
 import DriverDocs from './ui/DriverDocs';
@@ -785,6 +786,8 @@ const TrackingConsoleModal = ({
                 <MapPin size={14} style={{ color: '#A8481A' }} /> {tour?.destination}
               </p>
 
+              <TourDayChecklist tourId={tour?.id} logisticsSaved={isLogisticsSaved} docsReady={docsReady} />
+
               {/* Fleet & Driver */}
               <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(180,81,30,0.1)' }}>
                 <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -835,7 +838,7 @@ const TrackingConsoleModal = ({
                     {vehicleNotes && <div><strong>How to spot it:</strong> {vehicleNotes}</div>}
                     <div><strong>Driver:</strong> {driverName}</div>
                     <div><strong>Contact:</strong> {driverContact}</div>
-                    <div style={{ gridColumn: isMobile ? 'auto' : 'span 2' }}><DriverDocs tourId={tour?.id} readOnly /></div>
+                    <div style={{ gridColumn: isMobile ? 'auto' : 'span 2' }}><DriverDocs tourId={tour?.id} readOnly onReady={setDocsReady} refreshKey={docsKey} /></div>
                     <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #B4511E', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
                       Edit Driver & Vehicle
                     </button>

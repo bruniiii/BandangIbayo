@@ -286,6 +286,20 @@ const Feed = ({ isAdmin = false, focus = null }) => {
     fetchPosts();
   };
 
+  // Approve every waiting post at once (after looking through them).
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const approveAll = async () => {
+    const ids = posts.filter((p) => statusOf(p) === 'Pending').map((p) => p.id);
+    if (!ids.length) return;
+    if (!(await confirmDialog({ title: `Approve all ${ids.length} waiting posts?`, message: 'They will all show on the feed. Only do this after checking each one.', confirmLabel: 'Approve All', cancelLabel: 'Go Back' }))) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from('feed_posts').update({ status: 'Approved' }).in('id', ids);
+    setBulkBusy(false);
+    if (error) { toast.error("Couldn't approve the posts", error.message); return; }
+    toast.success(`${ids.length} posts approved`, "They're now on the feed.");
+    fetchPosts();
+  };
+
   const toggleReaction = async (postId, emoji) => {
     if (!currentUserId) { toast.info('Please log in to react to posts.'); return; }
     setReactingId(postId);
@@ -540,6 +554,15 @@ const Feed = ({ isAdmin = false, focus = null }) => {
             </span>
             <ChevronDown size={18} color="#A8481A" style={{ transform: pendingOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
+          {pendingOpen && pendingPosts.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', background: 'rgba(180,81,30,0.06)', borderRadius: 14, padding: '10px 14px' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#5C2A10' }}>Looked through them all? Approve every waiting post at once.</span>
+              <button type="button" onClick={approveAll} disabled={bulkBusy} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}>{bulkBusy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve All ({pendingPosts.length})</button>
+            </div>
+          )}
           {pendingOpen && pendingPosts.map(post => renderPost(post))}
           <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', margin: '4px 0' }} />
         </div>

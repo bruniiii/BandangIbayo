@@ -365,3 +365,11 @@ button:disabled:not(.no-touch-size):not(.text-link) svg { color: #5C3A22 !import
   .register-card { padding: 1.5rem 1.1rem !important; }
   .register-card input, .register-card select, .register-card textarea { min-width: 0; }
 }
+
+/* Admin search: in the top bar on wide screens; on phones, at the top of
+   Overview (the top bar has no room). */
+.admin-search-wide { display: none; }
+@media (max-width: 900px) {
+  .admin-search { display: none; }
+  .admin-search-wide { display: block; }
+}

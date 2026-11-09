@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Smartphone, Copy, RotateCcw, Loader2, ExternalLink } from 'lucide-react';
+import { Smartphone, Copy, RotateCcw, Loader2, ExternalLink, MessageSquare, Share2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from './toast';
 import { confirmDialog } from './ConfirmDialog';
@@ -22,16 +22,30 @@ const DriverLinkPanel = ({ tourId }) => {
   const [token, setToken] = useState(null);
   const [available, setAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [driver, setDriver] = useState(null); // { name, phone } from the tour's Fleet & Driver details
 
   const load = useCallback(async () => {
     if (!tourId) return;
-    const { data, error } = await supabase.from('tour_driver_links').select('token').eq('tour_id', tourId).maybeSingle();
+    const [{ data, error }, { data: v }] = await Promise.all([
+      supabase.from('tour_driver_links').select('token').eq('tour_id', tourId).maybeSingle(),
+      supabase.from('tour_vehicles').select('driver_name, driver_contact').eq('tour_id', tourId).maybeSingle(),
+    ]);
     setAvailable(!error);
     setToken(data?.token || null);
+    setDriver(v?.driver_contact ? { name: v.driver_name || 'the driver', phone: v.driver_contact } : null);
   }, [tourId]);
   // Loads the link when the tour opens; its state updates after the request returns.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
+
+  // The phone's share menu (Messenger, Viber…), or copy when there's none.
+  const share = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Bandang IBAYO driver link', text: 'Your trip link. On the trip, open it and tap Start Trip.', url: link }); return; }
+      catch (err) { if (err?.name === 'AbortError') return; }
+    }
+    copy();
+  };
 
   if (!available) return null;
   const link = token ? `${window.location.origin}/driver/${token}` : '';
@@ -68,6 +82,13 @@ const DriverLinkPanel = ({ tourId }) => {
           <code style={{ display: 'block', background: '#F2E4D0', borderRadius: 10, padding: '9px 11px', fontSize: 12, color: '#1A0A00', overflowWrap: 'anywhere' }}>{link}</code>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button type="button" onClick={copy} style={btn(true)}><Copy size={13} /> Copy Link</button>
+            {/* Send it straight to the driver: a text message to their number, or any app (Messenger…) */}
+            {driver && (
+              <a href={`sms:${driver.phone}?&body=${encodeURIComponent(`Hi ${driver.name}! Here's your Bandang IBAYO trip link. On the trip, open it and tap Start Trip: ${link}`)}`} style={btn(false)}>
+                <MessageSquare size={13} /> Text {driver.name.split(' ')[0]}
+              </a>
+            )}
+            <button type="button" onClick={share} style={btn(false)}><Share2 size={13} /> Share</button>
             <a href={link} target="_blank" rel="noreferrer" style={btn(false)}><ExternalLink size={13} /> Open</a>
             <button type="button" onClick={make} disabled={busy} style={btn(false)}>{busy ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RotateCcw size={13} />} New Link</button>
           </div>

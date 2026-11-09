@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import QuickReplies from './ui/QuickReplies';
 import BrandAvatar from './ui/BrandAvatar';
 import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive, Megaphone } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
@@ -663,6 +664,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
       {/* composer */}
       {canSend ? (
         <form onSubmit={send} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: narrow ? '8px 10px' : '10px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#FDF6EE', flexShrink: 0 }}>
+          {isAdmin && <QuickReplies onPick={(t) => { setText(t.slice(0, MAX_LEN)); inputRef.current?.focus(); }} />}
           <textarea
             ref={inputRef}
             value={text}

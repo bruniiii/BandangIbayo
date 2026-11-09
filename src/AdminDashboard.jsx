@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import AdminSearch from './AdminSearch';
+import AdminToday from './AdminToday';
 import Walkthrough from './ui/Walkthrough';
 import { ADMIN_STEPS, walkthroughKey } from './walkthroughSteps';
 import { downloadOverviewPDF } from './overviewPdf';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
-  ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare, ShieldCheck
+  ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare, ShieldCheck, Wrench,
 } from 'lucide-react';
 import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
@@ -22,7 +24,6 @@ import BookingManagement from './BookingManagement';
 import Feed from './Feed';
 import Reviews from './Reviews';
 import JoinerAccounts from './Joineraccounts';
-import Reports from './Reports';
 import AdminExclusiveTours from './AdminExclusiveTours';
 import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/logo.png';
@@ -50,6 +51,10 @@ import { useTabHistory, tabFromUrl } from './useTabHistory';
  
 // ─── Helpers ────────────────────────────────────────────────────────────────
  
+
+// Loaded only when opened (keeps the dashboard quick to start).
+const Reports = lazy(() => import('./Reports'));
+const SystemMaintenance = lazy(() => import('./SystemMaintenance'));
 const timeAgo = (dateStr) => {
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
   if (diff < 60) return `${diff}s ago`;
@@ -99,6 +104,7 @@ const NAV_ITEMS = [
   { icon: <FileText size={18} strokeWidth={2} />,        label: 'Reports' },
   { icon: <Star size={18} strokeWidth={2} />,            label: 'Reviews' },
   { icon: <Bell size={18} strokeWidth={2} />,            label: 'Notification' },
+  { icon: <Wrench size={18} strokeWidth={2} />,          label: 'System Maintenance' },
 ];
 // Only the main admin sees this one.
 const SETTINGS_ITEM = { icon: <ShieldCheck size={18} strokeWidth={2} />, label: 'Admin Settings' };
@@ -599,6 +605,7 @@ const AdminDashboard = () => {
               {/* notification bell — live from the `notifications` table,
                   surfaces joiner-side activity: new bookings, payment
                   submissions, cancellations, reviews, requests, registrations */}
+              <AdminSearch onOpen={openFocused} />
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
               {/* admin chip: who's signed in + Change Password */}
@@ -677,6 +684,12 @@ const AdminDashboard = () => {
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
                 />
               </div>
+
+              {/* Phones: the search box (it's in the top bar on wider screens) */}
+              <AdminSearch onOpen={openFocused} wide />
+
+              {/* Everything waiting on an admin today, and the tours leaving soon */}
+              <AdminToday onOpen={openFocused} />
 
               {/* module snapshots */}
               <div>
@@ -950,12 +963,13 @@ const AdminDashboard = () => {
           {activeTab === 'Requested Tours' && <AdminExclusiveTours key={`request${focusKey || ''}`} type="request" openRequestId={focusId} />}
           {activeTab === 'Reviews' && <Reviews key={focusKey} isAdmin={true} focusTourId={focusId} />}
           {activeTab === 'Messages' && <GroupChat isAdmin />}
-          {activeTab === 'Reports' && <Reports />}
+          {activeTab === 'Reports' && <Suspense fallback={<SkeletonRows count={4} label="Loading reports" />}><Reports /></Suspense>}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls key={focusKey} openTourId={focusId} />
           )}
           {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
           {activeTab === 'Admin Settings' && <AdminSettings />}
+          {activeTab === 'System Maintenance' && <Suspense fallback={<SkeletonRows count={4} label="Loading" />}><SystemMaintenance /></Suspense>}
           
 
           {/* FALLBACK COMING SOON SECTION */}
@@ -1028,6 +1042,7 @@ const PAGE_INFO = {
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
+  'System Maintenance':  { icon: Wrench,          title: 'System Maintenance',  subtitle: 'Keep the data clean and up to date, download backups, see who changed what' },
   'Admin Settings':      { icon: ShieldCheck,     title: 'Admin Settings',      subtitle: 'Add, archive or restore the people who can use the admin dashboard' },
 };
 

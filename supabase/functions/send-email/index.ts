@@ -617,8 +617,68 @@ async function runTripEmails() {
     out.reminders = await runReminders(tomorrowManila(), false).catch((err) => ({ error: String((err as Error)?.message || err) }));
   }
   out.balance = await runBalanceReminders(false).catch((err) => ({ error: String((err as Error)?.message || err) }));
+  // On the 1st of each month (from 8 AM): last month's summary to the main admin(s).
+  if (manilaDate(0).endsWith("-01") && manilaHour() >= 8) {
+    out.monthly = await runMonthlySummary().catch((err) => ({ error: String((err as Error)?.message || err) }));
+  }
   console.log("send-email[scheduled]:", out);
   return out;
+}
+
+// ───────────── Monthly summary (main admin) ─────────────
+// Last month's sales, bookings, refunds and balances still owed, once a month
+// to each main admin ('monthly-summary' in email_log, so it goes out once).
+async function runMonthlySummary() {
+  const now = new Date(Date.now() + 8 * 3600 * 1000);
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const ym = start.toISOString().slice(0, 7);
+  const label = start.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  // Manila month boundaries as UTC instants.
+  const from = new Date(start.getTime() - 8 * 3600 * 1000).toISOString();
+  const to = new Date(end.getTime() - 8 * 3600 * 1000).toISOString();
+
+  const [{ data: paid }, { data: priv }, { data: refunds }, { data: owing }, { data: admins }] = await Promise.all([
+    supabase.from("bookings").select("total_price, amount_paid, payment_method, balance_settled, slots_booked, tours ( title )")
+      .eq("payment_status", "Complete").not("booking_status", "in", '("Rejected")').gte("created_at", from).lt("created_at", to),
+    supabase.from("exclusive_requests").select("amount_paid, paid_at").gte("paid_at", from).lt("paid_at", to),
+    supabase.from("bookings").select("weather_refund").eq("weather_refund_status", "Sent").gte("weather_refund_at", from).lt("weather_refund_at", to),
+    supabase.from("bookings").select("total_price, amount_paid").eq("payment_status", "Complete").eq("payment_method", "Downpayment")
+      .eq("balance_settled", false).not("booking_status", "in", '("Cancelled","Rejected")'),
+    supabase.from("profiles").select("id").eq("is_main_admin", true),
+  ]);
+  const collectedOf = (b: any) => (b.payment_method === "Downpayment" && !b.balance_settled ? Number(b.amount_paid) || 0 : Number(b.total_price) || 0);
+  const tourTotal = (paid ?? []).reduce((n: number, b: any) => n + collectedOf(b), 0);
+  const privTotal = (priv ?? []).reduce((n: number, r: any) => n + (Number(r.amount_paid) || 0), 0);
+  const joiners = (paid ?? []).reduce((n: number, b: any) => n + (b.slots_booked || 1), 0);
+  const refundTotal = (refunds ?? []).reduce((n: number, b: any) => n + (Number(b.weather_refund) || 0), 0);
+  const owed = (owing ?? []).reduce((n: number, b: any) => n + Math.max(0, (Number(b.total_price) || 0) - (Number(b.amount_paid) || 0)), 0);
+  const byTour: Record<string, number> = {};
+  (paid ?? []).forEach((b: any) => {
+    const t = (Array.isArray(b.tours) ? b.tours[0] : b.tours)?.title || "Tour";
+    byTour[t] = (byTour[t] || 0) + collectedOf(b);
+  });
+  const top = Object.entries(byTour).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const row = (k: string, v: string) => `<tr><td style="padding:6px 0;color:#7A3A18;">${esc(k)}</td><td style="padding:6px 0;text-align:right;font-weight:800;">${esc(v)}</td></tr>`;
+  const html = wrapper(`Your ${label} summary`, "#B4511E", `
+    <p>Here's how Bandang IBAYO did in <strong>${esc(label)}</strong>:</p>
+    <table style="width:100%;border-collapse:collapse;font-size:15px;">
+      ${row("Collected (tours)", peso(tourTotal))}
+      ${row("Collected (private tours)", peso(privTotal))}
+      ${row("Total collected", peso(tourTotal + privTotal))}
+      ${row("Paid bookings", `${(paid ?? []).length} (${joiners} joiners)`)}
+      ${row("Weather refunds sent", peso(refundTotal))}
+      ${row("Balances still owed (all months)", `${peso(owed)} · ${(owing ?? []).length} bookings`)}
+    </table>
+    ${top.length ? `<p style="margin:18px 0 6px;font-weight:800;">Top tours</p><ol style="padding-left:18px;line-height:1.7;">${top.map(([t, v]) => `<li>${esc(t)}: ${peso(v)}</li>`).join("")}</ol>` : ""}
+    <p style="color:#7A3A18;">See the full numbers, graphs and PDF in <strong>Reports</strong>.</p>
+    ${button("Open the dashboard")}
+  `);
+  const results: string[] = [];
+  for (const a of admins ?? []) {
+    results.push(await sendOnce("monthly-summary", `${ym}:${a.id}`, await recipientFor(a.id), `Bandang IBAYO: ${label} summary`, html));
+  }
+  return results;
 }
 
 // ───────────── 15 minutes before departure ─────────────

@@ -55,7 +55,8 @@ const TourManagement = ({ openTourId = null }) => {
   // dates of a trip share the title, destination, price and details, and
   // are edited together here.
   const [editingTour, setEditingTour]           = useState(null);
-  const formTour = editingTour;
+  const [copyFrom, setCopyFrom]                 = useState(null); // Duplicate: a new tour filled in from this one
+  const formTour = editingTour || copyFrom;
   // The form's dates: { key, id (saved dates only), start_date, end_date, booked }.
   const [dateRows, setDateRows]                 = useState([]);
   const [joinerListTour, setJoinerListTour]     = useState(null);
@@ -160,13 +161,22 @@ const TourManagement = ({ openTourId = null }) => {
   ];
   const blankExpense = () => ({ key: `e-${Math.random()}`, name: '', amount: '' });
   // Opens the form for a new trip, or for a trip's details and dates (withNewDate adds an empty date to fill in).
-  const openTourForm = (trip = null, { withNewDate = false } = {}) => {
-    setEditingTour(trip);
+  // copy: a new tour filled in from this one (Duplicate); only the dates are left to pick.
+  const openTourForm = (trip = null, { withNewDate = false, copy = false } = {}) => {
+    if (copy && trip) {
+      const source = { ...trip, id: undefined, dates: [], is_archived: false, title: `${trip.title} (copy)` };
+      setEditingTour(null);
+      setCopyFrom(source);
+      trip = source;
+    } else {
+      setEditingTour(trip);
+      setCopyFrom(null);
+    }
     const saved = (trip?.dates || []).map((d) => ({
       key: d.id, id: d.id, start_date: d.start_date, end_date: d.end_date, booked: d.current_booked || 0, original: d,
       sale: !!(d.sale_starts && d.sale_ends), sale_starts: d.sale_starts || '', sale_ends: d.sale_ends || '',
     }));
-    setDateRows(trip ? (withNewDate ? [...saved, blankDateRow()] : saved) : [blankDateRow()]);
+    setDateRows(trip && !copy ? (withNewDate ? [...saved, blankDateRow()] : saved) : [blankDateRow()]);
     const stops = trip?.pickup_points || [];
     const stopNames = [...new Set(stops.map((m) => m.location_name.trim()).filter(Boolean))];
     setPickupPicked(stopNames);
@@ -269,9 +279,9 @@ const TourManagement = ({ openTourId = null }) => {
   }, [fetchTours]);
  
   useEffect(() => {
-    setTempGallery(editingTour ? editingTour.image_urls || [] : []);
+    setTempGallery(formTour ? formTour.image_urls || [] : []);
     setNewFiles([]);
-  }, [editingTour, showModal]);
+  }, [formTour, showModal]);
  
   const executeToggleArchive = async () => {
     const { ids, isArchived, dates = [], tour } = confirmAction;
@@ -571,6 +581,7 @@ const TourManagement = ({ openTourId = null }) => {
       : editingTour?.is_archived ? 'It\'s still in Tour Archive. Click Restore on it to open it for booking again.'
         : added.length ? `${added.length} new date${added.length > 1 ? 's are' : ' is'} open for booking.` : '');
     setEditingTour(null);
+    setCopyFrom(null);
     setShowModal(false);
     fetchTours();
     } finally {
@@ -819,6 +830,7 @@ const TourManagement = ({ openTourId = null }) => {
                 onConfirmAction={() => setConfirmAction({ ids: tour.dates.map((d) => d.id), isArchived: tour.is_archived, dates: tour.dates, tour })}
                 onView={() => setViewTour(tour)}
                 onEdit={() => openTourForm(tour)}
+                onDuplicate={() => openTourForm(tour, { copy: true })}
                 onJoiners={(date) => setJoinerListTour(date)}
                 onWeather={adminMe.isMain && currentTab === 'active' ? (date) => setWeatherDate({ ...date, title: tour.title }) : null}
                 formatDateRange={formatDateRange}
@@ -890,7 +902,7 @@ const TourManagement = ({ openTourId = null }) => {
                 fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em',
                 textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 28px',
               }}>
-                {editingTour ? 'Edit Tour Posting' : 'Create New Tour'}
+                {editingTour ? 'Edit Tour Posting' : copyFrom ? 'Duplicate Tour' : 'Create New Tour'}
               </h2>
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

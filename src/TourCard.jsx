@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { isOnSale } from './tourUtils';
 import PriceTag from './ui/PriceTag';
-import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, CloudRain } from 'lucide-react';
+import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, CloudRain, Copy } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // TOUR CARD (Tour Management): one trip with its dates, slots and the
 // View / Edit / Joiners / Archive actions (dates are added in Edit).
 // ─────────────────────────────────────────────
 
-const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather = null, formatDateRange }) => {
+const TourCard = ({ tour, onConfirmAction, onView, onEdit, onDuplicate, onJoiners, onWeather = null, formatDateRange }) => {
   // A private tour (made from a private request's package).
   const exclusive = !!tour.is_exclusive || (tour.dates || []).some((d) => d.is_exclusive);
   const [hovered, setHovered] = useState(false);
@@ -139,6 +139,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
           {[
             { label: 'View', icon: <Eye size={11} />, onClick: onView, style: { background: '#F2E4D0', color: '#1A0A00' } },
             { label: 'Edit', icon: <Edit size={11} />, onClick: onEdit, style: { background: '#F2E4D0', color: '#1A0A00' } },
+            ...(onDuplicate && !exclusive ? [{ label: 'Duplicate', icon: <Copy size={11} />, onClick: onDuplicate, style: { background: 'transparent', color: '#1A0A00', border: '1px solid rgba(26,10,0,0.25)' } }] : []),
             {
               label: tour.is_archived ? 'Restore' : 'Archive',
               icon: tour.is_archived ? <RefreshCw size={11} /> : <Archive size={11} />,

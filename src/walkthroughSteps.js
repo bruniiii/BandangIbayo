@@ -34,6 +34,7 @@ export const ADMIN_STEPS = [
   { target: 'Reports', title: 'Reports', body: 'Graphs and analytics, sales by day, month or year, income per tour, reviews and survey results, with PDF.' },
   { target: 'Reviews', title: 'Reviews', body: 'Read reviews and reply as Bandang IBAYO.' },
   { target: 'Notification', title: 'Notifications', body: 'New bookings, payments, requests, cancellations and refunds.' },
+  { target: 'System Maintenance', title: 'System Maintenance', body: 'A health check of the data with one-click cleanups, Excel/CSV backups, the maintenance log, and who changed what.' },
   { target: 'Admin Settings', title: 'Admin Settings', body: 'Main admin only: add or archive admins (with your password) and the inactive-joiner setting.' },
   { title: 'That\'s the tour!', body: 'You can replay it any time: click your name at the top right, then Quick Tour.' },
 ];
