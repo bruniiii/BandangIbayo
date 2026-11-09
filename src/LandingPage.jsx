@@ -368,7 +368,7 @@ const LandingPage = () => {
 const LANDING_CSS = `
 .lp { position: relative; min-height: 100dvh; color: #FFFFFF; font-family: 'Outfit', 'Inter', system-ui, sans-serif; overflow-x: hidden; isolation: isolate; }
 .lp-backdrop { position: fixed; inset: 0; z-index: -1; background: #1A0A00; overflow: hidden; }
-.lp-slide { position: absolute; inset: -4%; width: 108%; height: 108%; object-fit: cover; opacity: 0; transform: scale(1.04); transition: opacity 1.8s ease; animation: lp-drift 24s ease-in-out infinite alternate; }
+.lp-slide { position: absolute; inset: -4%; width: 108%; height: 108%; max-width: none; max-height: none; object-fit: cover; opacity: 0; transform: scale(1.04); transition: opacity 1.8s ease; animation: lp-drift 24s ease-in-out infinite alternate; }
 .lp-slide.is-on { opacity: 1; }
 @keyframes lp-drift { from { transform: scale(1.04) translate3d(0,0,0); } to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); } }
 .lp-shade { position: absolute; inset: 0; background:
