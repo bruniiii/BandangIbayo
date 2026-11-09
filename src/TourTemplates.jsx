@@ -7,7 +7,8 @@ import { linesOf, formatPeso } from './tourUtils';
 import { parseItinerary, serializeItinerary } from './itinerary';
 
 // ─────────────────────────────────────────────
-// Tour templates (pre-made tours, e.g. "Baguio"). Create New Tour → pick a
+// Tour templates (pre-made tours, e.g. "Baguio"). Create New Tour (and the
+// Private Tour / Requested Tour package form, without onBlank) → pick a
 // template → tick what to use (details, rates, photos, pickup points,
 // accommodation, lists, itinerary days, expenses) → the tour form opens
 // filled in with just those; only the dates are left to pick.
@@ -106,16 +107,18 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label="Create a tour" style={{ ...card, position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto' }}>
+      <div role="dialog" aria-modal="true" aria-label={onBlank ? 'Create a tour' : 'Use a template'} style={{ ...card, position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto' }}>
         <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
 
         {!chosen ? (
           <>
-            <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 900, color: '#1A0A00', display: 'flex', alignItems: 'center', gap: 8 }}><LayoutTemplate size={20} color="#B4511E" /> Create a tour</h3>
+            <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 900, color: '#1A0A00', display: 'flex', alignItems: 'center', gap: 8 }}><LayoutTemplate size={20} color="#B4511E" /> {onBlank ? 'Create a tour' : 'Use a template'}</h3>
             <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>
-              Start from a pre-made tour for the place and tick what you need, or start from scratch.
+              {onBlank
+                ? 'Start from a pre-made tour for the place and tick what you need, or start from scratch.'
+                : 'Pick a pre-made tour for the place and tick what you need. It fills in this form; you can still change anything.'}
             </p>
-            <button type="button" onClick={onBlank} style={{ ...btn(false), marginBottom: 14 }}><Plus size={14} /> Start From Scratch</button>
+            {onBlank && <button type="button" onClick={onBlank} style={{ ...btn(false), marginBottom: 14 }}><Plus size={14} /> Start From Scratch</button>}
             {templates === null ? <p style={{ margin: 0, color: '#7A3A18' }}>Loading…</p> : templates.length === 0 ? (
               <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#5C2A10', background: '#F2E4D0', borderRadius: 12, padding: '12px 14px' }}>
                 No templates yet. Fill in a tour once, then click <strong>Save as Template</strong> at the bottom of the tour form. Next time, pick it here.

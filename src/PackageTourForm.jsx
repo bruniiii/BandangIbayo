@@ -14,7 +14,9 @@ import { cleanAccommodation } from './accommodation';
 import { formatYmdRange, daysLabel, tripDays as countDays } from './dateRange';
 import { checkFields, textError, mediaFileError } from './validation';
 import { BAG_TAG_FEE, expenseItems } from './tourExpenses';
-import { X, Trash2, UploadCloud, Loader2 } from 'lucide-react';
+import { X, Trash2, UploadCloud, Loader2, LayoutTemplate } from 'lucide-react';
+import { TourTemplatePicker } from './TourTemplates';
+import { saveTourTemplate } from './saveTourTemplate';
 import RoutePickupPicker from './ui/RoutePickupPicker';
 import { loadPickupSpots } from './pickupSpots';
 import { locateStops } from './pickupStops';
@@ -184,6 +186,71 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     e.target.value = '';
     setNewFiles((prev) => [...prev, ...files.map((file) => ({ file, preview: URL.createObjectURL(file) }))]);
     setDirty(true);
+  };
+
+  // Tour templates (pre-made tours, like Tour Management's Create New Tour):
+  // the ticked items fill in this form. The request's dates stay, and a
+  // private tour keeps its own group size and package price.
+  const [pickTemplate, setPickTemplate] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const applyTemplate = (t) => {
+    const has = (v) => String(v ?? '').trim() !== '';
+    setForm((f) => {
+      const next = { ...f };
+      ['title', 'destination', 'description', 'difficulty', 'important_note', 'inclusions', 'exclusions', 'things_to_bring', 'itinerary']
+        .forEach((k) => { if (has(t[k])) next[k] = t[k]; });
+      if (has(t.expenses?.van_rent)) next.van_rent = t.expenses.van_rent;
+      if (has(t.expenses?.tour_guide)) next.tour_guide = t.expenses.tour_guide;
+      if (isOpenRequest) {
+        ['price', 'regular_rate'].forEach((k) => { if (has(t[k])) next[k] = t[k]; });
+        if (has(t.group_size)) next.group_size = Math.min(Number(t.group_size) || MAX_TOUR_SLOTS, MAX_TOUR_SLOTS);
+      }
+      return next;
+    });
+    if (has(t.itinerary)) setItinerary(parseItinerary(t.itinerary));
+    if (t.image_urls?.length) setGallery((g) => [...g, ...t.image_urls.filter((u) => !g.includes(u))]);
+    const places = (t.pickup_points || []).map((p) => String(p.location_name || p.location || '').trim()).filter(Boolean);
+    if (places.length) setPickedPlaces([...new Set([...pickedPlaces, ...places])]);
+    if (t.route) setRoute(t.route);
+    if (isOpenRequest && t.departure_time) setDeparture(to24h(t.departure_time));
+    if (t.accommodation_options?.length) setAccommodation(cleanAccommodation(t.accommodation_options));
+    if (t.expenses?.others?.length) setOthers(t.expenses.others.map((o) => ({ key: key(), name: o.name, amount: String(o.amount) })));
+    setPickTemplate(false);
+    setDirty(true);
+    toast.success('Template used', 'Check the details, then fill in anything still missing.');
+  };
+  const saveAsTemplate = async () => {
+    setSavingTemplate(true);
+    try {
+      let images = gallery;
+      if (newFiles.length) {
+        images = [...gallery, ...(await uploadImages())];
+        setGallery(images);
+        setNewFiles([]);
+      }
+      const num = (v) => (Number(v) > 0 ? Number(v) : '');
+      await saveTourTemplate({
+        title: form.title.trim(), destination: form.destination.trim(), description: form.description, difficulty: form.difficulty,
+        important_note: form.important_note,
+        // Per-person rates only come from a requested tour (a private tour's price is for the whole group).
+        price: isOpenRequest ? num(form.price) : '', regular_rate: isOpenRequest ? num(form.regular_rate) : '',
+        group_size: isOpenRequest ? num(form.group_size) : '',
+        image_urls: images,
+        pickup_points: pickedPlaces.map((name) => ({ location_name: name })),
+        route: route || null, departure_time: isOpenRequest ? departure || null : null,
+        accommodation_options: cleanAccommodation(accommodation),
+        inclusions: form.inclusions, exclusions: form.exclusions, things_to_bring: form.things_to_bring,
+        itinerary: serializeItinerary(itinerary),
+        expenses: {
+          van_rent: num(form.van_rent), tour_guide: num(form.tour_guide),
+          others: others.filter((o) => o.name.trim()).map((o) => ({ name: o.name.trim(), amount: Number(o.amount) || 0 })),
+        },
+      }, form.destination || form.title);
+    } catch (err) {
+      reportError("Couldn't save the template", err);
+    } finally {
+      setSavingTemplate(false);
+    }
   };
 
   const uploadImages = async () => {
@@ -386,6 +453,14 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               ? <>Requested by <strong>{request.full_name || 'a joiner'}</strong> for {request.group_size || 1} {Number(request.group_size) === 1 ? 'person' : 'people'}. It's posted on Explore Tours for other joiners, and their {Number(request.group_size) === 1 ? 'slot is' : 'slots are'} held for 2 days so they can pay first.</>
               : <>A private tour for <strong>{request.full_name || 'the joiner'}</strong>'s group of {request.group_size || '—'}. Only they see this package, and they confirm it with a 50% downpayment.</>}
           </p>
+
+          <button type="button" onClick={() => setPickTemplate(true)} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, margin: '-8px 0 20px', padding: '10px 16px', borderRadius: 999,
+            background: '#1A0A00', color: '#FDF6EE', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
+          }}>
+            <LayoutTemplate size={15} /> Use a Template
+          </button>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Gallery */}
@@ -597,6 +672,15 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             flex: 1, padding: '13px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#1A0A00',
           }}>Cancel</button>
+          <button type="button" onClick={saveAsTemplate} disabled={saving || savingTemplate}
+            title="Keep these details (not the dates) as a pre-made tour, to pick from next time."
+            style={{
+              flex: 1.4, padding: '13px 8px', background: 'transparent', border: '1px solid rgba(180,81,30,0.45)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+            {savingTemplate ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Save as Template'}
+          </button>
           <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in every field first (photo, details, rates, accommodation, expenses, pickup points, lists and itinerary). Only First pickup at is optional.'} style={{
             flex: 2, padding: '13px 0', background: '#B4511E', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#FDF6EE',
@@ -608,6 +692,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         </div>
         <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
       </form>
+      {pickTemplate && <TourTemplatePicker onUse={applyTemplate} onClose={() => setPickTemplate(false)} />}
     </div>
   );
 };
