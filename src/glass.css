@@ -1045,3 +1045,77 @@ html[data-theme="dark"] [style*="; color: rgba(140, 47, 28,"][style*="; backgrou
 /* Phone menu button in Dark glass */
 html[data-theme="dark"] .mobile-menu-btn { color: #F7EFE6 !important; }
 html[data-theme="dark"] .mobile-menu-btn svg { stroke: #F7EFE6 !important; }
+
+
+/* ═════════════════════════════════════════════
+   v2: the same glass recipe as the landing page.
+   (Later rules win over the first version above.)
+   ═════════════════════════════════════════════ */
+
+/* The photo must show: nothing solid between it and the cards. */
+main { background: transparent !important; }
+html .dashboard-content.dashboard-content.dashboard-content {
+  background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; outline: none !important;
+}
+
+/* Light glass: a brighter photo, white frosted glass. */
+.gb-shade { background:
+  radial-gradient(ellipse at 20% 10%, rgba(255,240,222,0.35), transparent 55%),
+  linear-gradient(180deg, rgba(253,246,238,0.18) 0%, rgba(253,246,238,0.32) 55%, rgba(250,238,224,0.45) 100%); }
+html[data-theme="light"] [style^="background: rgb(253, 246, 238)"]:not(.glass-page),
+html[data-theme="light"] [style*="; background: rgb(253, 246, 238)"]:not(.glass-page),
+html[data-theme="light"] [style^="background-color: rgb(253, 246, 238)"]:not(.glass-page),
+html[data-theme="light"] [style*="; background-color: rgb(253, 246, 238)"]:not(.glass-page) {
+  background: linear-gradient(135deg, rgba(255,255,255,0.66), rgba(255,255,255,0.4)) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+  outline: 1px solid rgba(255,255,255,0.75); outline-offset: -1px;
+}
+html[data-theme="light"] [style^="background: rgb(242, 228, 208)"]:not(.glass-page),
+html[data-theme="light"] [style*="; background: rgb(242, 228, 208)"]:not(.glass-page),
+html[data-theme="light"] [style^="background-color: rgb(242, 228, 208)"]:not(.glass-page),
+html[data-theme="light"] [style*="; background-color: rgb(242, 228, 208)"]:not(.glass-page) { background: rgba(255,255,255,0.42) !important; }
+html[data-theme="light"] [style^="background: rgb(255, 253, 249)"]:not(.glass-page),
+html[data-theme="light"] [style*="; background: rgb(255, 253, 249)"]:not(.glass-page),
+html[data-theme="light"] [style^="background-color: rgb(255, 253, 249)"]:not(.glass-page),
+html[data-theme="light"] [style*="; background-color: rgb(255, 253, 249)"]:not(.glass-page) { background: rgba(255,255,255,0.6) !important; }
+html[data-theme="light"] .dashboard-topbar { background: rgba(255,255,255,0.42) !important; border-bottom-color: rgba(255,255,255,0.7) !important; }
+
+/* Dark glass: exactly the landing page's glass. */
+html[data-theme="dark"] [style^="background: rgb(253, 246, 238)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background: rgb(253, 246, 238)"]:not(.glass-page),
+html[data-theme="dark"] [style^="background-color: rgb(253, 246, 238)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background-color: rgb(253, 246, 238)"]:not(.glass-page) {
+  background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06)) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  outline: 1px solid rgba(255,255,255,0.22); outline-offset: -1px;
+}
+html[data-theme="dark"] [style^="background: rgb(242, 228, 208)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background: rgb(242, 228, 208)"]:not(.glass-page),
+html[data-theme="dark"] [style^="background-color: rgb(242, 228, 208)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background-color: rgb(242, 228, 208)"]:not(.glass-page) { background: rgba(255,255,255,0.08) !important; }
+html[data-theme="dark"] [style^="background: rgb(255, 253, 249)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background: rgb(255, 253, 249)"]:not(.glass-page),
+html[data-theme="dark"] [style^="background-color: rgb(255, 253, 249)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background-color: rgb(255, 253, 249)"]:not(.glass-page) { background: rgba(255,255,255,0.1) !important; }
+/* Big dark panels and dark buttons become smoky glass instead of solid black. */
+html[data-theme="dark"] [style^="background: rgb(26, 10, 0)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background: rgb(26, 10, 0)"]:not(.glass-page),
+html[data-theme="dark"] [style^="background-color: rgb(26, 10, 0)"]:not(.glass-page),
+html[data-theme="dark"] [style*="; background-color: rgb(26, 10, 0)"]:not(.glass-page) {
+  background: linear-gradient(135deg, rgba(26,10,0,0.55), rgba(26,10,0,0.35)) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%);
+  outline: 1px solid rgba(255,255,255,0.14); outline-offset: -1px;
+}
+html[data-theme="dark"] .dashboard-topbar { background: rgba(255,255,255,0.07) !important; border-bottom-color: rgba(255,255,255,0.14) !important; }
+
+/* Side menus: see-through glass like the landing page's top bar. */
+html .admin-dashboard-container.admin-dashboard-container > aside[style],
+html .joiner-dashboard-container.joiner-dashboard-container > aside[style] {
+  background: linear-gradient(180deg, rgba(26,10,0,0.62), rgba(40,18,4,0.5)) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(150%) !important; backdrop-filter: blur(22px) saturate(150%) !important;
+  border-right: 1px solid rgba(255,255,255,0.14) !important;
+}
+html[data-theme="dark"] .admin-dashboard-container.admin-dashboard-container > aside[style],
+html[data-theme="dark"] .joiner-dashboard-container.joiner-dashboard-container > aside[style] {
+  background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04)) !important;
+}
