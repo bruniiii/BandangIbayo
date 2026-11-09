@@ -646,7 +646,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           }}
           onClick={() => setShowReceiptPreview(false)}
         >
-          <button style={{
+          <button className="x-close" style={{
             position: 'absolute', top: 32, right: 32,
             background: 'none', border: 'none', cursor: 'pointer',
             color: '#FDF6EE',

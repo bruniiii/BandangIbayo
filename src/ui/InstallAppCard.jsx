@@ -65,7 +65,7 @@ const InstallAppCard = () => {
           <Download size={14} /> Install
         </button>
       )}
-      <button type="button" onClick={dismiss} aria-label="Close" style={{
+      <button className="x-close" type="button" onClick={dismiss} aria-label="Close" style={{
         position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', cursor: 'pointer',
         color: 'rgba(122,58,24,0.9)', padding: 6, display: 'flex',
       }}>

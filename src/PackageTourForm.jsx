@@ -437,7 +437,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           maxHeight: '90dvh', display: 'flex', flexDirection: 'column',
         }}
       >
-        <button type="button" onClick={close} aria-label="Close" style={{ position: 'absolute', top: 20, right: 20, zIndex: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
+        <button className="x-close" type="button" onClick={close} aria-label="Close" style={{ position: 'absolute', top: 20, right: 20, zIndex: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
           <X size={22} />
         </button>
 

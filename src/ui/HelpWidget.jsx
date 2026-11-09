@@ -111,7 +111,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
                 <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265', margin: 0 }}>Help for joiners</p>
                 <p style={{ fontSize: 16, fontWeight: 900, margin: '2px 0 0' }}>How can we help?</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close help" style={{ background: 'rgba(253,246,238,0.12)', border: 'none', color: '#FDF6EE', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button className="x-close" type="button" onClick={() => setOpen(false)} aria-label="Close help" style={{ background: 'rgba(253,246,238,0.12)', border: 'none', color: '#FDF6EE', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} />
               </button>
             </div>

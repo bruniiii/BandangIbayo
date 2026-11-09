@@ -122,7 +122,7 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setChanging(false)} />
           <div role="dialog" aria-label="Change password" style={{ position: 'relative', width: '100%', maxWidth: 620, maxHeight: '92dvh', overflowY: 'auto', borderRadius: 22 }}>
-            <button type="button" onClick={() => setChanging(false)} aria-label="Close" style={{
+            <button className="x-close" type="button" onClick={() => setChanging(false)} aria-label="Close" style={{
               position: 'absolute', top: 14, right: 14, zIndex: 1, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18',
             }}><X size={18} /></button>
             <ChangePassword startOpen onClose={() => setChanging(false)} />

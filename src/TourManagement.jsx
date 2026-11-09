@@ -737,7 +737,7 @@ const TourManagement = ({ openTourId = null }) => {
           }}
           onClick={() => setSelectedImage(null)}
         >
-          <button style={{
+          <button className="x-close" style={{
             position: 'absolute', top: 32, right: 32,
             background: 'none', border: 'none', cursor: 'pointer',
             color: '#FDF6EE',
@@ -935,7 +935,7 @@ const TourManagement = ({ openTourId = null }) => {
             }}
           >
             {/* Close: a round button with its own background, so it stays clear over the map and text. */}
-            <button
+            <button className="x-close"
               type="button" onClick={closeTourModal} aria-label="Close"
               style={{
                 position: 'absolute', top: 14, right: 14, zIndex: 10,

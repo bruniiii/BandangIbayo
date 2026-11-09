@@ -274,7 +274,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
             }}>
 
-                <button onClick={onClose} style={{
+                <button className="x-close" onClick={onClose} style={{
 
                     position: 'absolute', top: 24, right: 24, zIndex: 50,
 

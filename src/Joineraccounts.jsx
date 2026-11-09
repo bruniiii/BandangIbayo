@@ -468,7 +468,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
               borderTop: '6px solid #B4511E', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
             }}
           >
-            <button
+            <button className="x-close"
               onClick={() => openJoiner(null)}
               style={{
                 position: 'absolute', top: 18, right: 18, background: 'none', border: 'none',
@@ -651,7 +651,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
             background: '#FDF6EE', borderRadius: 24, padding: '2rem', width: '100%', maxWidth: 560,
             boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '6px solid #B4511E', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
           }}>
-            <button onClick={() => setShowAllSent(false)} aria-label="Close" style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
+            <button className="x-close" onClick={() => setShowAllSent(false)} aria-label="Close" style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
               <X size={20} />
             </button>
             <h3 style={{ fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: '0 0 16px', letterSpacing: '-0.02em' }}>Sent Messages</h3>
@@ -791,7 +791,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               </p>
             </div>
           </div>
-          <button onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
+          <button className="x-close" onClick={onClose} disabled={sending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
             <X size={20} />
           </button>
         </div>

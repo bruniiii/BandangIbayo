@@ -524,7 +524,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
               <p style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#1A0A00' }}>
                 <ScanLine size={16} style={{ color: '#A8481A' }} /> Check-in
               </p>
-              <button type="button" onClick={() => setCheckInTourId(null)} aria-label="Close" style={{
+              <button className="x-close" type="button" onClick={() => setCheckInTourId(null)} aria-label="Close" style={{
                 background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: '50%', width: 34, height: 34,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1A0A00',
               }}><X size={18} /></button>
@@ -759,7 +759,7 @@ const TrackingConsoleModal = ({
       }}>
         {/* Top Controls */}
         <div style={{ position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 50, display: 'flex', gap: isMobile ? 8 : 12 }}>
-          <button
+          <button className="x-close"
             type="button"
             onClick={onClose}
             style={{
