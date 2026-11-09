@@ -124,11 +124,11 @@ const LandingPage = () => {
       <header className="lp-hero">
         <div className="lp-hero-inner">
           <div className="lp-hero-copy">
-            <span className="lp-chip lp-glass"><MapPin size={14} /> Group tours across the Philippines</span>
+            <span className="lp-chip lp-glass"><MapPin size={14} /> Tours across the Luzon, Philippines</span>
             <h1 className="lp-h1">
               Explore<br />
               <span className="font-accent lp-amber">More</span><br />
-              <span className="font-accent lp-h1-small">Adventures.</span>
+              <span className="font-accent lp-h1-small">Adventures</span>
             </h1>
             <p className="lp-lead">
               Join group tours across the Philippines. Share the ride, split the cost, and discover more places.
