@@ -113,7 +113,9 @@ from (values
   ('20261214 one tour per day counts approved exclusive tours',
      exists (select 1 from pg_trigger where tgname = 'exclusive_requests_one_per_day')),
   ('20261215 exclusive tours: budget and rates ₱3,000 – ₱100,000',
+     -- (After 20261222 the ₱3,000 comes from the booking rules instead.)
      coalesce((select pg_get_functiondef(p.oid) like '%new.budget < 3000%'
+                      or pg_get_functiondef(p.oid) like '%new.budget < public.rule_num(''private_budget_min'')%'
                  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                 where n.nspname = 'public' and p.proname = 'exclusive_requests_flow_rules' limit 1), false)),
   ('20261216 panel feedback: payment password, removed accounts, driver ID, survey, comment edits',
