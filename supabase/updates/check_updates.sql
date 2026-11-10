@@ -140,5 +140,6 @@ from (values
      and to_regprocedure('public.booking_rules_check()') is not null
      and not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                       where n.nspname = 'public' and p.proname = 'start_online_booking' and p.prosrc like '%interval ''30 minutes''%')),
-  ('20261223 suppliers', to_regclass('public.suppliers') is not null)
+  ('20261223 suppliers', to_regclass('public.suppliers') is not null),
+  ('20261224 tour expense lines (supplier checklist)', to_regclass('public.tour_expense_lines') is not null and to_regprocedure('public.tour_inclusion_names(bigint)') is not null)
 ) as u(update_file, installed);

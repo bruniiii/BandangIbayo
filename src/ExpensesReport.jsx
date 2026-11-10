@@ -3,7 +3,7 @@ import { Wallet, ChevronDown, AlertCircle, Search, Download } from 'lucide-react
 import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
-import { expenseItems, expensesTotal } from './tourExpenses';
+import { lineCost } from './tourExpenses';
 import { toast } from './ui/toast';
 import NiceSelect from './ui/NiceSelect';
 import StatusFilter from './ui/StatusFilter';
@@ -17,7 +17,7 @@ import { PieChart } from './ReportCharts';
 //    expense by name) with a pie chart.
 //  • By month (for a year or all time) and by tour date, each tour opening
 //    to its own items.
-// Expenses are the ones saved on each tour date (tour_expenses), set in Tour
+// Expenses are each tour date's expense lines (tour_expense_lines), set in Tour
 // Management, Requested Tours and Private Tours. Tours are counted in the
 // month they start.
 // ─────────────────────────────────────────────
@@ -73,13 +73,15 @@ const ExpensesReport = ({ onData }) => {
     (async () => {
       const [t, e] = await Promise.all([
         supabase.from('tours').select('id, title, destination, start_date, end_date, is_exclusive, weather_status'),
-        supabase.from('tour_expenses').select('*'),
+        supabase.from('tour_expense_lines').select('*').order('sort_order'),
       ]);
       if (!active) return;
       setLoading(false);
       if (t.error || e.error) toast.error("Couldn't load the expenses", (t.error || e.error).message);
       setTours(t.data || []);
-      setExpenses(Object.fromEntries((e.data || []).map((x) => [x.tour_id, x])));
+      const by = {};
+      (e.data || []).forEach((x) => { (by[x.tour_id] ||= []).push(x); });
+      setExpenses(by);
     })();
     return () => { active = false; };
   }, []);
@@ -92,9 +94,16 @@ const ExpensesReport = ({ onData }) => {
   const rows = useMemo(() => inScope
     .filter((t) => expenses[t.id])
     .map((t) => {
-      const e = expenses[t.id];
-      const items = expenseItems(e);
-      return { tour: t, items, total: expensesTotal(e), others: items.slice(3) };
+      // Van Rent, Tour Guide and Bag Tag first (the columns), then the rest.
+      const all = expenses[t.id].map((l) => ({ label: l.label, amount: lineCost(l), category: l.category }));
+      const pick = (cat) => all.filter((i) => i.category === cat);
+      const sum = (list) => list.reduce((x, i) => x + i.amount, 0);
+      const van = pick('van_rental'), guide = pick('tour_guide'), bag = pick('bag_tag');
+      const items = [
+        { label: 'Van Rent', amount: sum(van) }, { label: 'Tour Guide', amount: sum(guide) }, { label: 'Bag Tag', amount: sum(bag) },
+        ...all.filter((i) => !['van_rental', 'tour_guide', 'bag_tag'].includes(i.category)),
+      ];
+      return { tour: t, items, total: sum(all), others: items.slice(3), lines: all };
     })
     .sort((a, b) => String(a.tour.start_date).localeCompare(String(b.tour.start_date))), [inScope, expenses]);
   const missing = inScope.filter((t) => !expenses[t.id] && t.weather_status !== 'cancelled');
@@ -299,7 +308,7 @@ const ExpensesReport = ({ onData }) => {
                             <td colSpan={8} style={{ padding: '4px 10px 16px', background: 'rgba(242,228,208,0.45)' }}>
                               <table style={{ ...table, minWidth: 0, maxWidth: 480 }}>
                                 <tbody>
-                                  {r.items.map((i, n) => (
+                                  {r.lines.map((i, n) => (
                                     <tr key={`${i.label}-${n}`}>
                                       <td style={td}>{i.label}</td>
                                       <td style={{ ...td, textAlign: 'right' }}>{formatPeso(i.amount)}</td>

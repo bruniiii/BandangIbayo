@@ -13,7 +13,8 @@ import { AccommodationCheckboxes } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
 import { formatYmdRange, daysLabel, tripDays as countDays } from './dateRange';
 import { checkFields, textError, mediaFileError } from './validation';
-import { BAG_TAG_FEE, expenseItems } from './tourExpenses';
+import { linesFromLegacy, formLinesOf, linesPayload, linesErrors, saveTourLines, matchLineIds } from './tourExpenses';
+import SupplierChecklist from './ui/SupplierChecklist';
 import {
   EXCLUSIVE_APPROVAL_CUTOFF_DAYS, PRIVATE_DOWNPAYMENT_PERCENT, REGULAR_RATE_MIN, REGULAR_RATE_MAX, JOINER_RATE_MIN, JOINER_RATE_MAX,
   VAN_RENT_MIN, VAN_RENT_MAX, TOUR_GUIDE_MIN, TOUR_GUIDE_MAX, periodText, rangeText,
@@ -86,12 +87,15 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     end_date: isOpenRequest
       ? (pkg.end_date || request.preferred_end_date || request.preferred_date || '')
       : (request.preferred_end_date || request.preferred_date || pkg.end_date || ''),
-    van_rent: pkg.expenses?.van_rent ?? '',
-    tour_guide: pkg.expenses?.tour_guide ?? '',
   }));
   const [accommodation, setAccommodation] = useState(() => cleanAccommodation(pkg.accommodation_options));
   const [accommodationError, setAccommodationError] = useState('');
-  const [others, setOthers] = useState(() => (pkg.expenses?.others || []).map((o) => ({ key: key(), name: o.name, amount: String(o.amount) })));
+  // Suppliers & expenses (the checklist): the tour's saved lines, or older
+  // package amounts (kept for admins only), or just the Bag Tag.
+  const [lines, setLines_] = useState(() => linesFromLegacy(pkg.expenses || null));
+  const setExpenseLines = (next) => { setLines_(next); setDirty(true); };
+  // Per-person costs: a requested tour's max slots, or the private group's size.
+  const people = isOpenRequest ? (Number(form.group_size) || 0) : (Number(request.group_size) || 0);
   const [pickups, setPickups] = useState(() => {
     const saved = Array.isArray(pkg.pickup_points) ? pkg.pickup_points : [];
     return saved.map((p) => ({ key: key(), location: p.location, time: to24h(p.time) }));
@@ -118,9 +122,9 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   // Send/Post stays disabled until every required box is filled (the checks on
   // submit still catch wrong amounts and dates).
   const blank = (v) => String(v ?? '').trim() === '';
-  const filled = !['title', 'destination', 'price', 'regular_rate', 'van_rent', 'tour_guide', 'start_date', 'end_date', 'group_size'].some((k) => blank(form[k]))
+  const filled = !['title', 'destination', 'price', 'regular_rate', 'start_date', 'end_date', 'group_size'].some((k) => blank(form[k]))
     && pickups.some((r) => r.location.trim())
-    && others.every((o) => (blank(o.name) && blank(o.amount)) || (!blank(o.name) && !blank(o.amount)))
+    && lines.every((l) => !blank(l.label) && !blank(l.rate))
     && (isOpenRequest || accommodation.length > 0)
     // Every field (only "Van leaves at" and extra expenses are optional), and a
     // requested tour's photo, since it's posted on Explore Tours.
@@ -129,15 +133,14 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     && (!isOpenRequest || (gallery.length + newFiles.length) > 0 && accommodation.length > 0);
   // The same, named (shown above the button).
   const FIELD_LABELS = {
-    title: 'Tour title', destination: 'Destination', price: 'Price', regular_rate: 'Regular Rate', van_rent: 'Van rent',
-    tour_guide: 'Tour guide fee', start_date: 'Start date', end_date: 'End date', group_size: 'Group size',
+    title: 'Tour title', destination: 'Destination', price: 'Price', regular_rate: 'Regular Rate', start_date: 'Start date', end_date: 'End date', group_size: 'Group size',
     description: 'Description', inclusions: 'Inclusions', exclusions: 'Exclusions', things_to_bring: 'Things to bring', important_note: 'Important Notes',
   };
   const missingList = [
     isOpenRequest && (gallery.length + newFiles.length) === 0 && 'Tour photo',
     ...Object.keys(FIELD_LABELS).filter((k) => blank(form[k])).map((k) => ({ label: FIELD_LABELS[k], name: k })),
     !pickups.some((r) => r.location.trim()) && 'Pickup points',
-    others.some((o) => blank(o.name) !== blank(o.amount)) && 'Other expenses (each needs a name and an amount)',
+    lines.some((l) => blank(l.label) || blank(l.rate)) && 'Suppliers & Expenses (each line needs a name and a rate)',
     accommodation.length === 0 && 'Accommodation',
     !Object.values(itinerary).some((v) => String(v || '').trim()) && 'Itinerary',
   ];
@@ -173,6 +176,23 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     return () => { active = false; };
   }, [tourId]);
 
+  // The checklist of the posted tour, or the older package's amounts (admins only).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (tourId) {
+        const { data } = await supabase.from('tour_expense_lines').select('*').eq('tour_id', tourId).order('sort_order');
+        if (active && data?.length) { setLines_(formLinesOf(data)); return; }
+      }
+      if (!pkg.expenses && request.id) {
+        const { data } = await supabase.from('exclusive_package_costs').select('expenses').eq('request_id', request.id).maybeSingle();
+        if (active && data?.expenses) setLines_(linesFromLegacy(data.expenses));
+      }
+    })();
+    return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourId, request.id]);
+
   const set = (field) => (e) => { setForm((f) => ({ ...f, [field]: e.target.value })); setDirty(true); };
   // Price fields show 000,000,000.00; the form keeps the plain number.
   const money = (field) => moneyField(form[field], (v) => { setForm((f) => ({ ...f, [field]: v })); setDirty(true); });
@@ -203,8 +223,6 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       const next = { ...f };
       ['title', 'destination', 'description', 'difficulty', 'important_note', 'inclusions', 'exclusions', 'things_to_bring', 'itinerary']
         .forEach((k) => { if (has(t[k])) next[k] = t[k]; });
-      if (has(t.expenses?.van_rent)) next.van_rent = t.expenses.van_rent;
-      if (has(t.expenses?.tour_guide)) next.tour_guide = t.expenses.tour_guide;
       if (isOpenRequest) {
         ['price', 'regular_rate'].forEach((k) => { if (has(t[k])) next[k] = t[k]; });
         if (has(t.group_size)) next.group_size = Math.min(Number(t.group_size) || MAX_TOUR_SLOTS, MAX_TOUR_SLOTS);
@@ -218,7 +236,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     if (t.route) setRoute(t.route);
     if (isOpenRequest && t.departure_time) setDeparture(to24h(t.departure_time));
     if (t.accommodation_options?.length) setAccommodation(cleanAccommodation(t.accommodation_options));
-    if (t.expenses?.others?.length) setOthers(t.expenses.others.map((o) => ({ key: key(), name: o.name, amount: String(o.amount) })));
+    if (t.expense_lines?.length) setLines_(formLinesOf(t.expense_lines));
+    else if (t.expenses && (has(t.expenses.van_rent) || has(t.expenses.tour_guide) || t.expenses.others?.length)) setLines_(linesFromLegacy(t.expenses));
     setPickTemplate(false);
     setDirty(true);
     toast.success('Template used', 'Check the details, then fill in anything still missing.');
@@ -245,10 +264,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         accommodation_options: cleanAccommodation(accommodation),
         inclusions: form.inclusions, exclusions: form.exclusions, things_to_bring: form.things_to_bring,
         itinerary: serializeItinerary(itinerary),
-        expenses: {
-          van_rent: num(form.van_rent), tour_guide: num(form.tour_guide),
-          others: others.filter((o) => o.name.trim()).map((o) => ({ name: o.name.trim(), amount: Number(o.amount) || 0 })),
-        },
+        expense_lines: linesPayload(lines).map((l) => ({ ...l, id: undefined })),
       }, form.destination || form.title);
     } catch (err) {
       reportError("Couldn't save the template", err);
@@ -276,12 +292,9 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     const formEl = e.target;
     const price = Number(form.price);
     const regular = Number(form.regular_rate);
-    const van = Number(form.van_rent);
-    const guide = Number(form.tour_guide);
     const slots = Number(form.group_size);
     const tripDays = (new Date(form.end_date) - new Date(form.start_date)) / 86400000 + 1;
     const stops = pickups.map((r) => ({ ...r, location: r.location.trim() })).filter((r) => r.location);
-    const extra = others.filter((o) => o.name.trim() || String(o.amount).trim());
     const requestedSlots = Number(request.group_size) || 1;
 
     const ok = checkFields(formEl, [
@@ -296,12 +309,6 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           : regular < EXCLUSIVE_RATE_MIN ? `The Regular Rate must be at least ${formatPeso(EXCLUSIVE_RATE_MIN)}.`
             : regular > EXCLUSIVE_RATE_MAX ? `The Regular Rate can be at most ${formatPeso(EXCLUSIVE_RATE_MAX)}.` : ''],
       ]),
-      ['van_rent', !(van >= VAN_RENT_MIN) ? `Van Rent must be at least ${formatPeso(VAN_RENT_MIN)}.` : van > VAN_RENT_MAX ? `Van Rent can be at most ${formatPeso(VAN_RENT_MAX)}.` : ''],
-      ['tour_guide', !(guide >= TOUR_GUIDE_MIN) ? `Tour Guide must be at least ${formatPeso(TOUR_GUIDE_MIN)}.` : guide > TOUR_GUIDE_MAX ? `Tour Guide can be at most ${formatPeso(TOUR_GUIDE_MAX)}.` : ''],
-      ...extra.flatMap((o, i) => [
-        [`other_name_${i}`, !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
-        [`other_amount_${i}`, !(String(o.amount).trim() !== '' && Number(o.amount) >= 0) ? 'Enter the amount (₱0 or more).' : ''],
-      ]),
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
         ? (isOpenRequest ? `The tour must start at least ${periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} from today.` : "The start date can't be in the past.") : ''],
       ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
@@ -311,6 +318,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['description', textError(form.description, 'Description', { required: false, max: 5000 })],
     ]);
     if (!ok) return;
+    const lineProblems = linesErrors(lines, people, { vanMin: VAN_RENT_MIN, vanMax: VAN_RENT_MAX, guideMin: TOUR_GUIDE_MIN, guideMax: TOUR_GUIDE_MAX });
+    if (lineProblems.length) { toast.error('Check the Suppliers & Expenses', lineProblems[0]); return; }
     if (!isOpenRequest && accommodation.length === 0) {
       setAccommodationError('Tick at least one accommodation for the joiner to choose from.');
       formEl.querySelector('[name="accommodation_options"]')?.focus();
@@ -329,12 +338,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
     setSaving(true);
     try {
       const image_urls = [...gallery, ...(await uploadImages())];
-      const expenses = {
-        van_rent: Math.round(van * 100) / 100,
-        tour_guide: Math.round(guide * 100) / 100,
-        bag_tag: BAG_TAG_FEE,
-        others: extra.map((o) => ({ name: o.name.trim(), amount: Math.round(Number(o.amount) * 100) / 100 })),
-      };
+      // What the joiner sees the package covers: the names only.
+      const covered = lines.map((l) => l.label.trim()).filter(Boolean);
       const details = {
         title: form.title.trim(),
         destination: form.destination.trim(),
@@ -378,12 +383,12 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       if (!isOpenRequest && request.payment_status === 'Paid') {
         savedTourId = await saveTour({
           tourId, details: { ...details, is_exclusive: true, exclusive_request_id: request.id, difficulty: pkg.difficulty || 'Moderate' },
-          image_urls, regular, expenses, pickup_points, withGeo: spotsInfo.available, feedPost: false,
+          image_urls, regular, lines, people, pickup_points, withGeo: spotsInfo.available, feedPost: false,
         });
         const { error: bookingError } = await supabase.rpc('exclusive_make_booking', { p_request_id: request.id, p_tour_id: savedTourId });
         if (bookingError) toast.error("Package saved, but the joiner's booking wasn't made", bookingError.message);
       } else if (isOpenRequest) {
-        savedTourId = await saveTour({ tourId, details, image_urls, regular, expenses, pickup_points, withGeo: spotsInfo.available });
+        savedTourId = await saveTour({ tourId, details, image_urls, regular, lines, people, pickup_points, withGeo: spotsInfo.available });
         const { data, error } = await supabase.rpc('hold_requested_slots', { p_request_id: request.id, p_tour_id: savedTourId });
         if (error) toast.error("Tour posted, but the requester's slots weren't held", error.message);
         else heldBooking = data;
@@ -395,7 +400,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         regular_rate: Math.round(regular * 100) / 100,
         ...(isOpenRequest ? { tour_id: savedTourId, held_booking_id: heldBooking?.id ?? pkg.held_booking_id ?? null } : {}),
         ...(!isOpenRequest && savedTourId ? { tour_id: savedTourId } : {}),
-        expenses,
+        covered,
         pickup_points,
         image_urls,
       };
@@ -410,7 +415,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           title: isOpenRequest ? 'Your requested tour was updated' : (packageSent() ? 'Your tour package was updated 📋' : 'Your Tour Package Details 📋'),
           message: isOpenRequest
             ? `${details.title} on Explore Tours has new details. Open Request a Tour to see them.`
-            : packageMessage({ details, expenses }),
+            : packageMessage({ details, covered }),
           type: 'exclusive_package',
           related_id: request.id,
         });
@@ -519,36 +524,19 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               onChange={(v) => { setAccommodation(v); setAccommodationError(''); setDirty(true); }}
             />
 
-            {/* Expenses */}
-            <div style={sectionBox}>
-              <label style={{ ...labelStyle, opacity: 1 }}>Expenses</label>
-              <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                <Field label="Van Rent (₱)" name="van_rent" {...money('van_rent')} placeholder={rangeText(VAN_RENT_MIN, VAN_RENT_MAX)} />
-                <Field label="Tour Guide (₱)" name="tour_guide" {...money('tour_guide')} placeholder={rangeText(TOUR_GUIDE_MIN, TOUR_GUIDE_MAX)} />
-                <div>
-                  <label style={labelStyle}>Bag Tag (₱)</label>
-                  <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>{BAG_TAG_FEE.toFixed(2)} <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span></p>
-                </div>
-              </div>
-              {others.map((o, i) => (
-                <div key={o.key} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr) 40px', gap: 10, alignItems: 'end', marginTop: 10 }}>
-                  <div>
-                    <label style={labelStyle}>Other expense</label>
-                    <input name={`other_name_${i}`} value={o.name} maxLength={60} placeholder="e.g. Entrance Fee, Jeep"
-                      onChange={(e) => { setOthers((rows) => rows.map((x) => (x.key === o.key ? { ...x, name: e.target.value } : x))); setDirty(true); }} style={inputStyle} />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Amount (₱)</label>
-                    <input name={`other_amount_${i}`} {...moneyField(o.amount, (v) => { setOthers((rows) => rows.map((x) => (x.key === o.key ? { ...x, amount: v } : x))); setDirty(true); })} style={inputStyle} />
-                  </div>
-                  <button type="button" aria-label="Remove this expense" onClick={() => { setOthers((rows) => rows.filter((x) => x.key !== o.key)); setDirty(true); }} style={iconBtn(false)}>
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              ))}
-              <button type="button" onClick={() => { setOthers((rows) => [...rows, { key: key(), name: '', amount: '' }]); setDirty(true); }} style={addBtn}>+ Add Other Expense</button>
-              <p style={hint}>Once they've paid, joiners see the names of these expenses (not the prices) on their booking and receipt.</p>
-            </div>
+            {/* Suppliers & expenses (joiners see the names only, once they've paid) */}
+            <SupplierChecklist
+              destination={form.destination}
+              people={people}
+              price={Number(form.price) || 0}
+              priceIsTotal={!isOpenRequest}
+              peopleLabel={isOpenRequest ? 'joiners' : 'people'}
+              lines={lines}
+              onChange={setExpenseLines}
+              excludeTourIds={tourId ? [tourId] : []}
+              onInclusionAdd={(name) => setForm((f) => (linesOf(f.inclusions).some((x) => x.toLowerCase() === name.trim().toLowerCase()) ? f : { ...f, inclusions: [...linesOf(f.inclusions), name.trim()].join('\n') }))}
+              onInclusionRemove={(name) => setForm((f) => ({ ...f, inclusions: linesOf(f.inclusions).filter((x) => x.toLowerCase() !== name.trim().toLowerCase()).join('\n') }))}
+            />
 
             {/* Dates */}
             <div style={sectionBox}>
@@ -704,7 +692,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 // The tour on Explore Tours for a requested tour (like Tour Management saves
 // one): the tour date, its Regular Rate, expenses, pickup points and, the
 // first time, a feed post.
-const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup_points, withGeo = false, feedPost = true }) => {
+const saveTour = async ({ tourId, details, image_urls, regular, lines, people, pickup_points, withGeo = false, feedPost = true }) => {
   const row = { ...details, image_urls, duration: durationOf(details.start_date, details.end_date), is_archived: false };
   let id = tourId;
   if (id) {
@@ -717,8 +705,9 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
   }
   const { error: rateError } = await supabase.from('tour_rates').upsert([{ tour_id: id, regular_rate: Math.round(regular * 100) / 100 }], { onConflict: 'tour_id' });
   if (rateError) throw rateError;
-  const { error: expError } = await supabase.from('tour_expenses').upsert([{ tour_id: id, ...expenses }], { onConflict: 'tour_id' });
-  if (expError) throw expError;
+  // Suppliers & expenses (each line keeps its id, so actual amounts and ratings stay).
+  const { data: ownLines } = await supabase.from('tour_expense_lines').select('*').eq('tour_id', id);
+  await saveTourLines(id, people, matchLineIds(lines, ownLines || []));
 
   // Pickup points: add new ones, remove ones nobody picked (times are set in Tracking).
   const { data: existing } = await supabase.from('tour_meetups').select('id, location_name, scheduled_time').eq('tour_id', id);
@@ -753,7 +742,7 @@ const saveTour = async ({ tourId, details, image_urls, regular, expenses, pickup
 };
 
 // The private tour package as a notification message (expense names only).
-const packageMessage = ({ details, expenses }) => {
+const packageMessage = ({ details, covered }) => {
   const lines = [`📍 ${details.title} — ${details.destination}`];
   lines.push(`📅 ${details.start_date}${details.end_date && details.end_date !== details.start_date ? ` to ${details.end_date}` : ''}`);
   lines.push(`💰 Package price: ${formatPeso(details.price)}`);
@@ -762,7 +751,7 @@ const packageMessage = ({ details, expenses }) => {
   if (details.inclusions) lines.push(`✅ Inclusions:\n${details.inclusions}`);
   if (details.exclusions) lines.push(`❌ Exclusions:\n${details.exclusions}`);
   if (details.things_to_bring) lines.push(`🎒 Things to Bring:\n${details.things_to_bring}`);
-  lines.push(`🧾 Expenses covered: ${expenseItems(expenses).map((i) => i.label).join(', ')}`);
+  if (covered?.length) lines.push(`🧾 Expenses covered: ${covered.join(', ')}`);
   if (details.important_note) lines.push(`📝 ${details.important_note}`);
   return `Here's the full package for your private tour:\n\n${lines.join('\n\n')}\n\nIt's in My Bookings too. Open Private Tours to pay the remaining balance.`;
 };
@@ -793,14 +782,5 @@ const inputStyle = {
   borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
 };
 const sectionBox = { background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' };
-const addBtn = {
-  marginTop: 10, width: '100%', minHeight: 38, borderRadius: 12, cursor: 'pointer', border: '1px dashed rgba(180,81,30,0.45)',
-  background: 'transparent', color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
-};
-const hint = { fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 0 0' };
-const iconBtn = (disabled) => ({
-  width: 40, height: 40, borderRadius: 12, border: '1px solid rgba(122,58,24,0.3)', background: 'transparent', color: '#7A3A18',
-  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.4 : 1,
-});
 
 export default PackageTourForm;

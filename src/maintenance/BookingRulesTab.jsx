@@ -12,7 +12,8 @@ import { card, h3, hint, btn, input, row, when, spin } from './shared';
 // System Maintenance → Booking Rules
 // The business rules the whole website follows, in one place (the
 // booking_rules table). All admins can look; only the main admin can change
-// them (the database refuses anyone else). A change applies to new bookings
+// them (the database refuses anyone else). (Van Rent, Tour Guide and Bag Tag
+// limits stay in the database but aren't on this page: suppliers set those costs.) A change applies to new bookings
 // only: every booking keeps the cancellation cutoff, downpayment and weather
 // refund it was made under. Every change goes to the activity log.
 // ─────────────────────────────────────────────
@@ -59,13 +60,6 @@ const GROUPS = [
     ['van_seats', 'Seats per van', 'people', 1, 100, true, 'Also the biggest group for a tour request (one van).'],
     ['max_vans', 'Vans per private tour', 'vans', 1, 50, true, 'A private tour group can fill up to this many vans.'],
   ]],
-  ['Tour expenses', [
-    ['van_rent_min', 'Van Rent, lowest', '₱', 0, 10000000, false, ''],
-    ['van_rent_max', 'Van Rent, highest', '₱', 0, 10000000, false, ''],
-    ['tour_guide_min', 'Tour Guide, lowest', '₱', 0, 10000000, false, ''],
-    ['tour_guide_max', 'Tour Guide, highest', '₱', 0, 10000000, false, ''],
-    ['bag_tag_fee', 'Bag Tag fee', '₱', 0, 10000000, false, 'Fixed fee per tour.'],
-  ]],
 ];
 const FIELDS = GROUPS.flatMap(([group, list]) => list.map((f) => ({ key: f[0], label: f[1], unit: f[2], min: f[3], max: f[4], whole: f[5], help: f[6], group })));
 const FIELD = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
@@ -74,8 +68,6 @@ const PAIRS = [
   ['private_budget_min', 'private_budget_max', 'The lowest budget can\'t be more than the highest.'],
   ['regular_rate_min', 'regular_rate_max', 'The lowest Regular Rate can\'t be more than the highest.'],
   ['joiner_rate_min', 'joiner_rate_max', 'The lowest Joiner Rate can\'t be more than the highest.'],
-  ['van_rent_min', 'van_rent_max', 'The lowest Van Rent can\'t be more than the highest.'],
-  ['tour_guide_min', 'tour_guide_max', 'The lowest Tour Guide fee can\'t be more than the highest.'],
   ['request_approval_cutoff_days', 'request_lead_days', 'The approval cutoff can\'t be more than the earliest trip date.'],
 ];
 

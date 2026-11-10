@@ -3,7 +3,7 @@ import { TrendingUp, ChevronDown, AlertCircle } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
-import { expenseItems, expensesTotal } from './tourExpenses';
+import { lineCost } from './tourExpenses';
 import { toast } from './ui/toast';
 import NiceSelect from './ui/NiceSelect';
 
@@ -47,14 +47,16 @@ const TourIncome = ({ onData }) => {
         supabase.from('tours').select('id, title, start_date, end_date, price'),
         supabase.from('bookings').select('id, tour_id, booking_number, full_name, slots_booked, total_price, amount_paid, payment_method, payment_status, booking_status, balance_settled')
           .eq('payment_status', 'Complete'),
-        supabase.from('tour_expenses').select('*'),
+        supabase.from('tour_expense_lines').select('*').order('sort_order'),
       ]);
       if (!active) return;
       setLoading(false);
       if (t.error || b.error) toast.error("Couldn't load tour income", (t.error || b.error).message);
       setTours(t.data || []);
       setBookings(b.data || []);
-      setExpenses(Object.fromEntries((e.data || []).map((x) => [x.tour_id, x])));
+      const by = {};
+      (e.data || []).forEach((x) => { (by[x.tour_id] ||= []).push(x); });
+      setExpenses(by);
     })();
     return () => { active = false; };
   }, []);
@@ -68,7 +70,7 @@ const TourIncome = ({ onData }) => {
       const fees = active.reduce((s, b) => s + (Number(b.total_price) || 0), 0) + cancelled.reduce((s, b) => s + paidOf(b), 0);
       const collected = list.reduce((s, b) => s + paidOf(b), 0);
       const exp = expenses[t.id] || null;
-      const expTotal = expensesTotal(exp);
+      const expTotal = (exp || []).reduce((sum, l) => sum + lineCost(l), 0);
       return {
         tour: t, active, cancelled, fees, collected, toCollect: Math.max(0, fees - collected),
         pax: active.reduce((s, b) => s + (b.slots_booked || 1), 0),
@@ -193,8 +195,8 @@ const Breakdown = ({ row }) => (
       {row.expenses ? (
         <table style={{ ...table, minWidth: 0 }}>
           <tbody>
-            {expenseItems(row.expenses).map((i) => (
-              <tr key={i.label}><td style={td}>{i.label}</td><td style={{ ...td, textAlign: 'right' }}>{formatPeso(i.amount)}</td></tr>
+            {row.expenses.map((l) => (
+              <tr key={l.id}><td style={td}>{l.label}{l.is_unplanned ? ' (unplanned)' : ''}</td><td style={{ ...td, textAlign: 'right' }}>{formatPeso(lineCost(l))}</td></tr>
             ))}
             <tr><td style={{ ...td, fontWeight: 900 }}>Total</td><td style={{ ...td, fontWeight: 900, textAlign: 'right' }}>{formatPeso(row.expTotal)}</td></tr>
           </tbody>

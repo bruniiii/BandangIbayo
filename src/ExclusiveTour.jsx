@@ -1007,9 +1007,9 @@ const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysO
               )}
 
               {/* Once booked (downpayment paid): what the trip covers, names only, no prices */}
-              {isPaid && pkg.expenses && (
+              {isPaid && (pkg.covered?.length > 0 || pkg.expenses) && (
                 <PackageDetail label="Tour Expenses (covered)" icon={<CheckCircle2 size={11} />}>
-                  {expenseItems(pkg.expenses).map((i) => `✓ ${i.label}`).join('\n')}
+                  {(Array.isArray(pkg.covered) ? pkg.covered : expenseItems(pkg.expenses).map((i) => i.label)).map((label) => `✓ ${label}`).join('\n')}
                 </PackageDetail>
               )}
 
