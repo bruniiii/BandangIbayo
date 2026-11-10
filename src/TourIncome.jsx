@@ -1,9 +1,8 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { TrendingUp, ChevronDown, AlertCircle } from 'lucide-react';
-import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
-import { lineCost } from './tourExpenses';
+import { loadTourFinance, tourMoney, paidOf } from './tourFinance';
 import { toast } from './ui/toast';
 import NiceSelect from './ui/NiceSelect';
 
@@ -29,56 +28,34 @@ const monthOptions = () => {
 };
 // Losses as "−₱1,000.00".
 const money = (n) => (n < 0 ? `−${formatPeso(-n)}` : formatPeso(n));
-const paidOf = (b) => (b.payment_method === 'Downpayment' && !b.balance_settled ? Number(b.amount_paid) || 0 : Number(b.total_price) || 0);
 
 // onData: gets the rows shown (for the Reports PDF).
 const TourIncome = ({ onData }) => {
-  const [tours, setTours] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [expenses, setExpenses] = useState({});
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [open, setOpen] = useState(null);
 
   useEffect(() => {
     let active = true;
-    (async () => {
-      const [t, b, e] = await Promise.all([
-        supabase.from('tours').select('id, title, start_date, end_date, price'),
-        supabase.from('bookings').select('id, tour_id, booking_number, full_name, slots_booked, total_price, amount_paid, payment_method, payment_status, booking_status, balance_settled')
-          .eq('payment_status', 'Complete'),
-        supabase.from('tour_expense_lines').select('*').order('sort_order'),
-      ]);
+    loadTourFinance().then((d) => {
       if (!active) return;
       setLoading(false);
-      if (t.error || b.error) toast.error("Couldn't load tour income", (t.error || b.error).message);
-      setTours(t.data || []);
-      setBookings(b.data || []);
-      const by = {};
-      (e.data || []).forEach((x) => { (by[x.tour_id] ||= []).push(x); });
-      setExpenses(by);
-    })();
+      if (d.error) toast.error("Couldn't load tour income", d.error.message);
+      setData(d);
+    });
     return () => { active = false; };
   }, []);
 
-  const rows = useMemo(() => tours
+  // The same figures as the Expenses section (tourFinance.js).
+  const rows = useMemo(() => (data ? data.tours : [])
     .filter((t) => monthKeyOf(t.start_date) === month)
     .map((t) => {
-      const list = bookings.filter((b) => b.tour_id === t.id && b.booking_status !== 'Rejected');
-      const active = list.filter((b) => b.booking_status !== 'Cancelled');
-      const cancelled = list.filter((b) => b.booking_status === 'Cancelled');
-      const fees = active.reduce((s, b) => s + (Number(b.total_price) || 0), 0) + cancelled.reduce((s, b) => s + paidOf(b), 0);
-      const collected = list.reduce((s, b) => s + paidOf(b), 0);
-      const exp = expenses[t.id] || null;
-      const expTotal = (exp || []).reduce((sum, l) => sum + lineCost(l), 0);
-      return {
-        tour: t, active, cancelled, fees, collected, toCollect: Math.max(0, fees - collected),
-        pax: active.reduce((s, b) => s + (b.slots_booked || 1), 0),
-        expenses: exp, expTotal, income: fees - expTotal,
-      };
+      const m = tourMoney(t, data);
+      return { ...m, expenses: m.hasLines ? m.lines : null, expTotal: m.cost, income: m.net };
     })
     .filter((r) => r.active.length || r.cancelled.length || r.expenses)
-    .sort((a, b) => String(a.tour.start_date).localeCompare(String(b.tour.start_date))), [tours, bookings, expenses, month]);
+    .sort((a, b) => String(a.tour.start_date).localeCompare(String(b.tour.start_date))), [data, month]);
 
   const totals = rows.reduce((s, r) => ({ fees: s.fees + r.fees, exp: s.exp + r.expTotal, income: s.income + r.income }), { fees: 0, exp: 0, income: 0 });
 
@@ -191,12 +168,12 @@ const Breakdown = ({ row }) => (
       </table>
     </div>
     <div>
-      <p style={subTitle}>Expenses</p>
+      <p style={subTitle}>Expenses · {row.basis}</p>
       {row.expenses ? (
         <table style={{ ...table, minWidth: 0 }}>
           <tbody>
             {row.expenses.map((l) => (
-              <tr key={l.id}><td style={td}>{l.label}{l.is_unplanned ? ' (unplanned)' : ''}</td><td style={{ ...td, textAlign: 'right' }}>{formatPeso(lineCost(l))}</td></tr>
+              <tr key={l.id}><td style={td}>{l.label}{l.is_unplanned ? ' (unplanned)' : ''}</td><td style={{ ...td, textAlign: 'right' }}>{formatPeso(l.cost)}</td></tr>
             ))}
             <tr><td style={{ ...td, fontWeight: 900 }}>Total</td><td style={{ ...td, fontWeight: 900, textAlign: 'right' }}>{formatPeso(row.expTotal)}</td></tr>
           </tbody>

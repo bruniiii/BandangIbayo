@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 // REPORT PDF (admin Reports page: Download PDF)
 // One A4 document with everything on the Reports page: a branded cover with
-// the headline figures, highlights, payments, Sales Summary, Income per Tour, Expenses, the monthly comparison and forecast, booking
+// the headline figures, highlights, payments, Sales Summary, Income per Tour, Expenses & Profit, the monthly comparison and forecast, booking
 // status and payment splits, tour performance, joiner reviews, cancellations,
 // customers, seasonal trends and the full booking list.
 // Built in the browser with jsPDF (loaded only when downloading). Amounts use
@@ -329,25 +329,50 @@ export const downloadReportPDF = async (report, { print = false } = {}) => {
     );
   }
 
-  // ── Expenses (from the Expenses card): by kind, then by tour date ──
+  // ── Expenses & Profit (from the Expenses & Profit card) ──
   const exp = report.expenses;
   if (exp) {
-    heading('Expenses', exp.periodLabel);
-    const share = (n) => (exp.total > 0 ? `${Math.round((n / exp.total) * 1000) / 10}%` : '0%');
+    const t = exp.totals;
+    const share = (n) => (t.cost > 0 ? `${Math.round((n / t.cost) * 1000) / 10}%` : '0%');
+    const pctTxt = (n) => (n == null ? '-' : `${Math.round(n * 10) / 10}%`);
+    heading('Expenses & Profit', exp.periodLabel);
     table(
-      [{ label: 'Expense', width: 4 }, { label: 'Tours', width: 1.2, align: 'right' }, { label: 'Amount', width: 2.4, align: 'right' }, { label: 'Share', width: 1.4, align: 'right' }],
-      exp.kinds.map((k) => [k.label, String(k.tours), php(k.amount), share(k.amount)]),
-      {
-        emptyText: `No expenses saved for ${exp.periodLabel}`,
-        totalRow: exp.kinds.length ? ['Total', String(exp.tours), php(exp.total), '100%'] : null,
-      },
+      [{ label: 'Joiner fees', width: 2.4, align: 'right' }, { label: 'Collected', width: 2.4, align: 'right' }, { label: 'Expenses', width: 2.4, align: 'right' }, { label: 'Net income', width: 2.4, align: 'right' }, { label: 'Margin', width: 1.4, align: 'right' }],
+      [[php(t.fees), php(t.collected), php(t.cost), php(t.net), pctTxt(t.margin)]],
     );
+    subhead('By category', 60);
+    table(
+      [{ label: 'Category', width: 4 }, { label: 'Tours', width: 1.2, align: 'right' }, { label: 'Amount', width: 2.4, align: 'right' }, { label: 'Share', width: 1.4, align: 'right' }],
+      exp.categories.map((c) => [c.label, String(c.tours), php(c.amount), share(c.amount)]),
+      { emptyText: `No expenses for ${exp.periodLabel}`, totalRow: exp.categories.length ? ['Total', '', php(t.cost), '100%'] : null },
+    );
+    if (exp.suppliers.length) {
+      subhead('By supplier', 60);
+      table(
+        [{ label: 'Supplier', width: 3.6 }, { label: 'Tours used', width: 1.6, align: 'right' }, { label: 'Total paid', width: 2.4, align: 'right' }, { label: 'Rating', width: 1.8, align: 'right' }],
+        exp.suppliers.map((x) => [x.name, String(x.tours), php(x.amount), x.rating?.count ? `${x.rating.avg.toFixed(1)} (${x.rating.count})` : '-']),
+      );
+    }
     if (exp.rows.length) {
       subhead(`By tour date (${exp.rows.length})`, 60);
       table(
-        [{ label: 'Tour', width: 3.6 }, { label: 'Start', width: 1.7 }, { label: 'Van Rent', width: 1.9, align: 'right' }, { label: 'Tour Guide', width: 1.9, align: 'right' }, { label: 'Bag Tag', width: 1.6, align: 'right' }, { label: 'Other', width: 1.9, align: 'right' }, { label: 'Total', width: 2, align: 'right' }],
-        exp.rows.map((r) => [r.tour.title, r.tour.start_date || '-', php(r.items[0]?.amount || 0), php(r.items[1]?.amount || 0), php(r.items[2]?.amount || 0),
-          php(r.others.reduce((s, o) => s + o.amount, 0)), php(r.total)]),
+        [{ label: 'Tour', width: 3.4 }, { label: 'Start', width: 1.7 }, { label: 'Fees', width: 2, align: 'right' }, { label: 'Expenses', width: 2, align: 'right' }, { label: 'Amounts', width: 1.7 }, { label: 'Net', width: 2, align: 'right' }, { label: 'Margin', width: 1.3, align: 'right' }],
+        exp.rows.map((r) => [r.tour.title, r.tour.start_date || '-', php(r.fees), r.hasLines ? php(r.cost) : 'Not set', r.hasLines ? (r.final ? 'Actual' : 'Estimated') : '-', php(r.net), pctTxt(r.margin)]),
+      );
+      exp.rows.filter((r) => r.lines.length).forEach((r) => {
+        subhead(`${r.tour.title} (${r.tour.start_date}) · ${r.basis}`, 50);
+        table(
+          [{ label: 'Expense', width: 3.2 }, { label: 'Supplier', width: 2.6 }, { label: 'Category', width: 1.8 }, { label: 'Estimated', width: 1.9, align: 'right' }, { label: 'Actual', width: 1.9, align: 'right' }],
+          r.lines.map((l) => [l.label + (l.is_unplanned ? ' (unplanned)' : ''), l.supplierName || '-', l.category.replace('_', ' '), l.is_unplanned ? '-' : php(l.estimated), l.actual != null ? php(l.actual) : '-']),
+          { totalRow: ['Total', '', '', php(r.estimated), r.actual != null ? php(r.actual) : '-'] },
+        );
+      });
+    }
+    if (exp.compared.length) {
+      subhead('Estimated vs actual cost', 60);
+      table(
+        [{ label: 'Tour', width: 3.6 }, { label: 'Estimated', width: 2.2, align: 'right' }, { label: 'Actual', width: 2.2, align: 'right' }, { label: 'Difference', width: 2.2, align: 'right' }],
+        exp.compared.map((r) => [r.tour.title, php(r.estimated), php(r.actual), `${r.actual - r.estimated >= 0 ? '+' : '-'}${php(Math.abs(r.actual - r.estimated))}`]),
       );
     }
   }
