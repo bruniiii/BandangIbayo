@@ -522,7 +522,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
               <p style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#1A0A00' }}>
-                <ScanLine size={16} style={{ color: '#A8481A' }} /> Check-in
+                <ScanLine size={16} style={{ color: '#A8481A' }} /> Check-in / Check-out
               </p>
               <button className="x-close" type="button" onClick={() => setCheckInTourId(null)} aria-label="Close" style={{
                 background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: '50%', width: 34, height: 34,

@@ -20,6 +20,9 @@ import NiceSelect from './ui/NiceSelect';
 // can be typed instead when a phone can't show the QR, or a joiner can be
 // checked in (or undone) straight from the list.
 // Check-in opens on the day the tour starts and stays open until it ends.
+// CHECK-OUT: at drop-off, switch to Check out and scan the same QR (or type
+// the booking number, or use the list). Only joiners who checked in can be
+// checked out; it's open until the day after the tour ends.
 // ─────────────────────────────────────────────
 
 const RESULT_STYLES = {
@@ -48,6 +51,13 @@ const checkInOpen = (t) => {
   const today = todayManila();
   return today >= t.start_date && today <= (t.end_date || t.start_date);
 };
+// Check-out: from the first day until the day after the last (late drop-offs).
+const dayAfter = (ymd) => { const [y, m, d] = ymd.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10); };
+const checkOutOpen = (t) => {
+  if (!t?.start_date) return false;
+  const today = todayManila();
+  return today >= t.start_date && today <= dayAfter(t.end_date || t.start_date);
+};
 const tourDates = (t) => formatDateRange(t.start_date, t.duration);
 const peso = (n) => `₱${(Number(n) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -65,6 +75,18 @@ const describe = (r) => {
   }
 };
 
+const describeOut = (r) => {
+  const who = (r.full_name && r.full_name.toUpperCase() !== 'N/A' ? r.full_name : r.account_name) || 'This joiner';
+  const pax = r.slots_booked > 1 ? `${r.slots_booked} people` : '1 person';
+  switch (r.result) {
+    case 'ok': return { tone: 'ok', title: `Checked out — ${who}`, detail: `Dropped off · ${pax} · ${r.booking_number}` };
+    case 'already_out': return { tone: 'already', title: `${who} is already checked out`, detail: `Checked out at ${timeOf(r.checked_out_at)} · ${pax} · ${r.booking_number}` };
+    case 'not_checked_in': return { tone: 'bad', title: `${who} never checked in`, detail: `Only joiners who checked in can be checked out. ${r.booking_number}` };
+    case 'not_open': return { tone: 'bad', title: 'Check-out is not open', detail: `Check-out is open from the first day of the tour until the day after it ends${r.tour_start ? ` (${formatYmdRange(r.tour_start, r.tour_end || r.tour_start)})` : ''}.` };
+    default: return describe(r);
+  }
+};
+
 // tourId: open on this tour (from Tracking Management's Check-in button).
 const AdminCheckIn = ({ tourId: startTourId = null }) => {
   const [tours, setTours] = useState([]);
@@ -78,6 +100,11 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
   const [cameraOn, setCameraOn] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const [show, setShow] = useState('waiting'); // joiner list: 'waiting' | 'in' | 'all'
+  // 'in': checking joiners in (start of the trip); 'out': checking them out at drop-off.
+  const [mode, setMode] = useState('in');
+  const modeRef = useRef('in');
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  const [outAvailable, setOutAvailable] = useState(true);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -110,13 +137,17 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
   const loadRoster = useCallback(async (id, quiet = false) => {
     if (!id) { setRoster([]); return; }
     if (!quiet) setLoadingRoster(true);
-    const { data, error } = await supabase
+    const fetchList = (cols) => supabase
       .from('bookings')
-      .select('id, user_id, booking_number, full_name, contact_number, slots_booked, payment_status, booking_status, checked_in_at')
+      .select(cols)
       .eq('tour_id', id)
       .eq('payment_status', 'Complete')
       .not('booking_status', 'in', '("Cancelled","Rejected")')
       .order('full_name', { ascending: true });
+    const base = 'id, user_id, booking_number, full_name, contact_number, slots_booked, payment_status, booking_status, checked_in_at';
+    // checked_out_at comes with the check-out update; without it, check-in works as before.
+    let { data, error } = await fetchList(`${base}, checked_out_at`);
+    if (error) { ({ data, error } = await fetchList(base)); setOutAvailable(false); } else setOutAvailable(true);
     if (error) { setLoadingRoster(false); if (!quiet) toast.error("Couldn't load the joiner list", error.message); return; }
     // The account holders' names and numbers, for bookings saved without them
     // (loaded separately: bookings and profiles aren't linked in the database).
@@ -147,11 +178,15 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
     if (!code || !id || busyRef.current) return;
     busyRef.current = true;
     setChecking(true);
-    const { data, error } = await supabase.rpc('check_in_booking', { p_code: code, p_tour_id: /^\d+$/.test(id) ? Number(id) : id });
+    const tid = /^\d+$/.test(id) ? Number(id) : id;
+    const out = modeRef.current === 'out';
+    const { data, error } = out
+      ? await supabase.rpc('check_out_booking', { p_code: code, p_tour_id: tid })
+      : await supabase.rpc('check_in_booking', { p_code: code, p_tour_id: tid });
     busyRef.current = false;
     setChecking(false);
     if (error) { toast.error("Couldn't check this code", error.message); return false; }
-    setResult(data);
+    setResult(data ? { ...data, mode: out ? 'out' : 'in' } : data);
     if (data?.result === 'ok') {
       navigator.vibrate?.(120);
       loadRoster(id);
@@ -170,6 +205,19 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
     const { error } = await supabase.rpc('undo_check_in', { p_booking_id: bookingId });
     if (error) { toast.error("Couldn't undo the check-in", error.message); return; }
     toast.info('Check-in undone');
+    setResult(null);
+    loadRoster(tourId);
+  };
+
+  const undoOut = async (bookingId, name) => {
+    if (!(await confirmDialog({
+      title: 'Undo this check-out?',
+      message: `${name || 'This joiner'} will be marked as not checked out (still checked in).`,
+      confirmLabel: 'Undo Check-out', cancelLabel: 'Keep It', tone: 'danger',
+    }))) return;
+    const { error } = await supabase.rpc('undo_check_out', { p_booking_id: bookingId });
+    if (error) { toast.error("Couldn't undo the check-out", error.message); return; }
+    toast.info('Check-out undone');
     setResult(null);
     loadRoster(tourId);
   };
@@ -278,16 +326,30 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
     }))) return;
     verify(b.booking_number);
   };
+  const checkOutFromList = async (b) => {
+    if (!(await confirmDialog({
+      title: `Check out ${nameOf(b)}?`,
+      message: `${b.booking_number} · ${b.slots_booked > 1 ? `${b.slots_booked} people` : '1 person'} dropped off.`,
+      confirmLabel: 'Check Out', cancelLabel: 'Cancel',
+    }))) return;
+    verify(b.booking_number);
+  };
+  const switchMode = (m) => { setMode(m); modeRef.current = m; setResult(null); setShow('waiting'); lastScanRef.current = { code: '', at: 0 }; };
 
   const tour = tours.find((t) => String(t.id) === tourId);
-  const totalPeople = roster.reduce((n, b) => n + (b.slots_booked || 1), 0);
-  const inPeople = roster.filter((b) => b.checked_in_at).reduce((n, b) => n + (b.slots_booked || 1), 0);
-  const waitingCount = roster.filter((b) => !b.checked_in_at).length;
-  // Not checked in first, so you see who you're still waiting for.
-  const shownRoster = roster
-    .filter((b) => (show === 'waiting' ? !b.checked_in_at : show === 'in' ? !!b.checked_in_at : true))
-    .sort((a, b) => Number(!!a.checked_in_at) - Number(!!b.checked_in_at));
-  const shown = result ? describe(result) : null;
+  const isOut = mode === 'out';
+  // Check-out counts the joiners who checked in.
+  const base = isOut ? roster.filter((b) => b.checked_in_at) : roster;
+  const doneOf = (b) => (isOut ? !!b.checked_out_at : !!b.checked_in_at);
+  const basePeople = base.reduce((n, b) => n + (b.slots_booked || 1), 0);
+  const inPeople = base.filter(doneOf).reduce((n, b) => n + (b.slots_booked || 1), 0);
+  const waitingCount = base.filter((b) => !doneOf(b)).length;
+  // Not done first, so you see who you're still waiting for.
+  const shownRoster = (isOut ? base : roster)
+    .filter((b) => (show === 'waiting' ? !doneOf(b) : show === 'in' ? doneOf(b) : true))
+    .sort((a, b) => Number(doneOf(a)) - Number(doneOf(b)));
+  const open = isOut ? checkOutOpen : checkInOpen;
+  const shown = result ? (result.mode === 'out' ? describeOut(result) : describe(result)) : null;
   const tone = shown ? RESULT_STYLES[shown.tone] : null;
 
   return (
@@ -321,9 +383,22 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             </NiceSelect>
             )}
 
-            {tour && !checkInOpen(tour) && (
+            {outAvailable && (
+              <div role="group" aria-label="Check in or check out" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4, marginBottom: 14 }}>
+                {[['in', 'Check in (pickup)'], ['out', 'Check out (drop-off)']].map(([m, text]) => (
+                  <button key={m} type="button" aria-pressed={mode === m} onClick={() => switchMode(m)} style={{
+                    flex: 1, minHeight: 38, border: 'none', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
+                    letterSpacing: '0.08em', textTransform: 'uppercase', background: mode === m ? '#1A0A00' : 'transparent', color: mode === m ? '#FDF6EE' : '#5C2A10',
+                  }}>{text}</button>
+                ))}
+              </div>
+            )}
+
+            {tour && !open(tour) && (
               <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C5216', background: 'rgba(232,162,101,0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
-                This tour is on {tourDates(tour)}. Check-in opens on the day of the tour, so joiners can't be checked in yet.
+                {isOut
+                  ? `This tour is on ${tourDates(tour)}. Check-out is open from the first day of the tour until the day after it ends.`
+                  : `This tour is on ${tourDates(tour)}. Check-in opens on the day of the tour, so joiners can't be checked in yet.`}
               </p>
             )}
 
@@ -347,11 +422,11 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                 ? <button type="button" onClick={stopCamera} style={secondaryBtn()}><CameraOff size={15} /> Stop Camera</button>
                 : (() => {
                   // Scanning opens on the day the tour starts.
-                  const locked = !tourId || !checkInOpen(tour);
+                  const locked = !tourId || !open(tour);
                   return (
                     <button type="button" onClick={startCamera} disabled={locked} aria-disabled={locked} style={{ ...primaryBtn(locked), cursor: locked ? 'not-allowed' : 'pointer' }}
-                      title={tour && !checkInOpen(tour) ? `Scanning opens on the day of the tour (${tourDates(tour)})` : undefined}>
-                      <Camera size={15} /> Start Scanning
+                      title={tour && !open(tour) ? `Scanning opens on the day of the tour (${tourDates(tour)})` : undefined}>
+                      <Camera size={15} /> {isOut ? 'Scan to Check Out' : 'Start Scanning'}
                     </button>
                   );
                 })()}
@@ -386,7 +461,12 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                 {(result.result === 'ok' || result.result === 'already') && Number(result.balance_due) > 0 && (
                   <p style={{ fontSize: 13, fontWeight: 800, color: '#8C5216', margin: '8px 0 0' }}>Balance to collect: {peso(result.balance_due)}</p>
                 )}
-                {(result.result === 'ok' || result.result === 'already') && (
+                {result.mode === 'out' && (result.result === 'ok' || result.result === 'already_out') && (
+                  <button type="button" className="text-link" onClick={() => undoOut(result.booking_id, result.full_name)} style={{ background: 'none', border: 'none', padding: '8px 0 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                    <Undo2 size={13} /> Undo check-out
+                  </button>
+                )}
+                {result.mode !== 'out' && (result.result === 'ok' || result.result === 'already') && (
                   <button type="button" className="text-link" onClick={() => undo(result.booking_id, result.full_name)} style={{ background: 'none', border: 'none', padding: '8px 0 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Undo2 size={13} /> Undo check-in
                   </button>
@@ -400,23 +480,23 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
               <p style={{ ...label, margin: 0 }}>Joiner list{tour ? ` · ${tour.title}` : ''}</p>
               <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: 22, fontWeight: 900 }}>{inPeople}</span> / {totalPeople} checked in
+                <span style={{ fontSize: 22, fontWeight: 900 }}>{inPeople}</span> / {basePeople} {isOut ? 'checked out' : 'checked in'}
               </p>
             </div>
             {roster.length > 0 && (
               <>
                 {/* How far along check-in is */}
-                <div role="progressbar" aria-valuemin={0} aria-valuemax={totalPeople} aria-valuenow={inPeople} aria-label="Checked in"
+                <div role="progressbar" aria-valuemin={0} aria-valuemax={basePeople} aria-valuenow={inPeople} aria-label={isOut ? 'Checked out' : 'Checked in'}
                   style={{ height: 10, borderRadius: 999, background: '#F2E4D0', overflow: 'hidden', margin: '0 0 10px' }}>
-                  <div style={{ width: `${totalPeople ? (inPeople / totalPeople) * 100 : 0}%`, height: '100%', background: inPeople === totalPeople ? '#2E9B5F' : '#B4511E', transition: 'width 0.3s' }} />
+                  <div style={{ width: `${basePeople ? (inPeople / basePeople) * 100 : 0}%`, height: '100%', background: inPeople === basePeople ? '#2E9B5F' : '#B4511E', transition: 'width 0.3s' }} />
                 </div>
                 <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? '#8C5216' : '#2E6B4A', margin: '0 0 10px' }}>
                   {waitingCount
-                    ? `Still waiting for ${waitingCount} booking${waitingCount === 1 ? '' : 's'} (${totalPeople - inPeople} ${totalPeople - inPeople === 1 ? 'person' : 'people'}).`
-                    : 'Everyone is checked in! 🎉'}
+                    ? `${isOut ? 'Not checked out yet' : 'Still waiting for'}: ${waitingCount} booking${waitingCount === 1 ? '' : 's'} (${basePeople - inPeople} ${basePeople - inPeople === 1 ? 'person' : 'people'}).`
+                    : isOut ? (base.length ? 'Everyone is checked out! 🏁' : 'No one has checked in yet.') : 'Everyone is checked in! 🎉'}
                 </p>
                 <div role="group" aria-label="Show" style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
-                  {[['waiting', `Not yet (${waitingCount})`], ['in', `Checked in (${roster.length - waitingCount})`], ['all', `All (${roster.length})`]].map(([key, text]) => (
+                  {[['waiting', `Not yet (${waitingCount})`], ['in', `${isOut ? 'Checked out' : 'Checked in'} (${base.length - waitingCount})`], ['all', `All (${base.length})`]].map(([key, text]) => (
                     <button key={key} type="button" aria-pressed={show === key} onClick={() => setShow(key)} style={chip(show === key)}>{text}</button>
                   ))}
                 </div>
@@ -428,11 +508,36 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
               <EmptyState compact icon={Users} title="No confirmed joiners yet" message="Paid bookings for this tour will appear here." />
             ) : shownRoster.length === 0 ? (
               <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
-                {show === 'waiting' ? 'No one left to check in.' : 'No one has checked in yet.'}
+                {isOut ? (show === 'waiting' ? 'No one left to check out.' : 'No one has checked out yet.') : (show === 'waiting' ? 'No one left to check in.' : 'No one has checked in yet.')}
               </p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {shownRoster.map((b) => (
+                {shownRoster.map((b) => (isOut ? (
+                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_out_at ? 'rgba(46,107,74,0.08)' : '#FDF6EE', border: '1px solid rgba(180,81,30,0.1)' }}>
+                    {b.checked_out_at
+                      ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked out" />
+                      : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(122,58,24,0.45)', flexShrink: 0 }} />}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{b.booking_number} · in {timeOf(b.checked_in_at)}</p>
+                    </div>
+                    {!b.checked_out_at && phoneOf(b) && (
+                      <a href={`tel:${phoneOf(b).replace(/[^\d+]/g, '')}`} aria-label={`Call ${nameOf(b)}`} title={`Call ${phoneOf(b)}`} style={callBtn}>
+                        <Phone size={14} />
+                      </a>
+                    )}
+                    {b.checked_out_at ? (
+                      <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: '#2E6B4A', whiteSpace: 'nowrap' }}>out {timeOf(b.checked_out_at)}</span>
+                        <button type="button" onClick={() => undoOut(b.id, nameOf(b))} style={rowLinkBtn}><Undo2 size={12} /> Undo</button>
+                      </span>
+                    ) : (
+                      <button type="button" onClick={() => checkOutFromList(b)} disabled={checking || !checkOutOpen(tour)} title={checkOutOpen(tour) ? 'Check out without the QR' : 'Check-out is open during the tour and the day after'} style={rowCheckBtn(checking || !checkOutOpen(tour))}>
+                        <CheckCircle2 size={13} /> Check out
+                      </button>
+                    )}
+                  </li>
+                ) : (
                   <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_in_at ? 'rgba(46,107,74,0.08)' : '#FDF6EE', border: '1px solid rgba(180,81,30,0.1)' }}>
                     {b.checked_in_at
                       ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked in" />
@@ -457,7 +562,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                       </button>
                     )}
                   </li>
-                ))}
+                )))}
               </ul>
             )}
           </div>
