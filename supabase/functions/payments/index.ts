@@ -60,10 +60,35 @@ const SITE_URL = SITE_URLS[0] ?? "";
 const PAYMENT_METHODS = (Deno.env.get("PAYMONGO_PAYMENT_METHODS") ?? "gcash,paymaya,card,grab_pay")
   .split(",").map((m) => m.trim()).filter(Boolean);
 const PAYMONGO_API = "https://api.paymongo.com/v1";
-// Tour downpayment (percent of the total). Private tours have their own rate below.
-const DOWNPAYMENT_PERCENT = 50;
+// The booking rules (System Maintenance → Booking Rules) live in the database.
+// These are only used if they can't be read.
+const DEFAULT_RULES = {
+  downpayment_percent: 50,
+  cancellation_cutoff_days: 14,
+  private_downpayment_percent: 50,
+};
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+async function bookingRules(): Promise<typeof DEFAULT_RULES> {
+  try {
+    const { data, error } = await supabase.rpc("get_booking_rules");
+    if (error || !data) return DEFAULT_RULES;
+    return { ...DEFAULT_RULES, ...data };
+  } catch (_err) {
+    return DEFAULT_RULES;
+  }
+}
+// A booking keeps the rules it was made under (rule_… columns), so a later
+// change to the rules doesn't touch it.
+async function downpaymentPercentOf(booking: any): Promise<number> {
+  const own = Number(booking?.rule_downpayment_percent);
+  return own > 0 ? own : Number((await bookingRules()).downpayment_percent);
+}
+async function cancelDaysOf(booking: any): Promise<number> {
+  const own = booking?.rule_cancel_days;
+  return own != null && own !== "" ? Number(own) : Number((await bookingRules()).cancellation_cutoff_days);
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -131,6 +156,7 @@ function returnBase(requested: unknown) {
 
 async function createSession(opts: {
   booking: any; tour: any; amount: number; kind: "booking" | "balance"; label: string; base: string; phone: string;
+  cancelDays?: number;
 }) {
   const { booking, tour, amount, kind, label, base } = opts;
   const phone = checkoutPhone(opts.phone);
@@ -146,7 +172,7 @@ async function createSession(opts: {
         }],
         payment_method_types: PAYMENT_METHODS,
         billing: billingFor(booking.full_name, booking.email, phone),
-        description: `Bandang IBAYO booking ${booking.booking_number}. Payments are non-refundable; bookings can be cancelled up to 14 days before the tour.`,
+        description: `Bandang IBAYO booking ${booking.booking_number}. Payments are non-refundable; bookings can be cancelled up to ${opts.cancelDays ?? 14} days before the tour.`,
         reference_number: booking.booking_number,
         metadata: { booking_id: String(booking.id), kind },
         send_email_receipt: true,
@@ -292,12 +318,13 @@ async function createCheckout(userId: string, p: any) {
 
   const { data: tour } = await supabase.from("tours").select("id, title").eq("id", booking.tour_id).single();
   const full = p.paymentType === "full";
-  const amount = full ? Number(booking.total_price) : Math.round(Number(booking.total_price) * DOWNPAYMENT_PERCENT) / 100; // 50%, to the centavo
+  const percent = await downpaymentPercentOf(booking);
+  const amount = full ? Number(booking.total_price) : Math.round(Number(booking.total_price) * percent) / 100; // to the centavo
 
   try {
     const session = await createSession({
       booking, tour, amount, kind: "booking", base: returnBase(p.returnBaseUrl), phone: p.phone,
-      label: full ? "Full payment" : "50% downpayment",
+      label: full ? "Full payment" : `${percent}% downpayment`, cancelDays: await cancelDaysOf(booking),
     });
     await supabase.from("bookings")
       .update({ paymongo_checkout_id: session.id, paymongo_checkout_url: session.url })
@@ -364,10 +391,11 @@ async function payHeld(userId: string, p: any) {
   if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
 
   const full = p.paymentType === "full";
-  const amount = full ? Number(prepared.total_price) : Math.round(Number(prepared.total_price) * DOWNPAYMENT_PERCENT) / 100;
+  const percent = await downpaymentPercentOf(booking);
+  const amount = full ? Number(prepared.total_price) : Math.round(Number(prepared.total_price) * percent) / 100;
   const session = await createSession({
     booking: prepared, tour: booking.tours, amount, kind: "booking", base: returnBase(p.returnBaseUrl), phone: p.phone,
-    label: full ? "Full payment" : "50% downpayment",
+    label: full ? "Full payment" : `${percent}% downpayment`, cancelDays: await cancelDaysOf(booking),
   });
   await supabase.from("bookings")
     .update({ paymongo_checkout_id: session.id, paymongo_checkout_url: session.url })
@@ -454,7 +482,6 @@ async function expireHolds() {
 }
 
 // ───────────── Private tours: 50% downpayment, then the balance ─────────────
-const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 async function loadOwnRequest(requestId: unknown, userId: string) {
@@ -474,7 +501,7 @@ async function loadOwnRequest(requestId: unknown, userId: string) {
 // the joiner's budget, due within 24 hours of approval, before the package;
 // the balance is the package price minus what's paid. Requests approved
 // before that update (no downpayment_due_at) pay 50% of the package price.
-function exclusiveAmounts(request: any, part: "downpayment" | "balance" = "downpayment") {
+function exclusiveAmounts(request: any, part: "downpayment" | "balance" = "downpayment", rate = 0.5) {
   if (request.request_type !== "exclusive" || request.status !== "Approved") {
     throw new HttpError(409, "This request isn't approved.");
   }
@@ -486,14 +513,15 @@ function exclusiveAmounts(request: any, part: "downpayment" | "balance" = "downp
   }
   if (request.downpayment_due_at) {
     if (Date.now() > new Date(request.downpayment_due_at).getTime()) {
-      throw new HttpError(410, "The 24 hours to pay the downpayment have passed, so this request was closed. You can send a new request.");
+      throw new HttpError(410, "The time to pay the downpayment has passed, so this request was closed. You can send a new request.");
     }
-    const downpayment = round2(Number(request.downpayment_amount) || Number(request.budget) * EXCLUSIVE_DOWNPAYMENT_RATE);
+    // The amount was fixed when the request was approved; a later rule change doesn't move it.
+    const downpayment = round2(Number(request.downpayment_amount) || Number(request.budget) * rate);
     if (!(downpayment > 0)) throw new HttpError(409, "This request has no downpayment amount.");
-    return { price: price ?? round2(downpayment / EXCLUSIVE_DOWNPAYMENT_RATE), downpayment };
+    return { price: price ?? (Number(request.budget) > 0 ? Number(request.budget) : round2(downpayment / rate)), downpayment };
   }
   if (!price) throw new HttpError(409, "This request has no package price to pay yet. You'll be notified once the agency sends it.");
-  return { price, downpayment: round2(price * EXCLUSIVE_DOWNPAYMENT_RATE) };
+  return { price, downpayment: round2(price * rate) };
 }
 
 // A PayMongo checkout for part of a private tour's package price.
@@ -501,7 +529,8 @@ async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "ba
   const base = returnBase(p.returnBaseUrl);
   const phone = checkoutPhone(p.phone);
   const reference = `EX-${String(request.id).slice(0, 8).toUpperCase()}${part === "balance" ? "-BAL" : ""}`;
-  const label = part === "balance" ? "remaining balance" : "50% downpayment";
+  const share = price > 0 ? Math.round((amount / price) * 100) : 0;
+  const label = part === "balance" ? "remaining balance" : (share > 0 && share < 100 ? `${share}% downpayment` : "downpayment");
   const session = await paymongo("POST", "/checkout_sessions", {
     data: {
       attributes: {
@@ -529,7 +558,7 @@ async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "ba
 
 // The rest of the package price, once the downpayment is in.
 async function payExclusiveBalance(request: any, p: any) {
-  if (request.payment_status !== "Paid") throw new HttpError(409, "Please pay the 50% downpayment first.");
+  if (request.payment_status !== "Paid") throw new HttpError(409, "Please pay the downpayment first.");
   if (request.balance_settled) return { alreadyPaid: true };
   const { price } = exclusiveAmounts(request, "balance");
   const balance = round2(Math.max(0, price - Number(request.amount_paid || 0)));
@@ -560,7 +589,8 @@ async function payExclusive(userId: string, p: any) {
   const request = await loadOwnRequest(p.requestId, userId);
   if (p.part === "balance") return await payExclusiveBalance(request, p);
   if (request.payment_status === "Paid") return { alreadyPaid: true };
-  const { price, downpayment } = exclusiveAmounts(request);
+  const rate = Number((await bookingRules()).private_downpayment_percent) / 100 || 0.5;
+  const { price, downpayment } = exclusiveAmounts(request, "downpayment", rate);
   // With a package already sent (older flow), the accommodation is chosen now.
   if (request.package_sent_at) {
     const accommodation = chosenAccommodation(request.package_details?.accommodation_options, p.accommodation);
@@ -737,7 +767,7 @@ async function weatherRefund(userId: string, payload: any) {
         data: {
           attributes: {
             amount, payment_id: x.id, reason: "others",
-            notes: `Bandang IBAYO ${claimed.booking_number}: 50% refund (tour date cancelled/postponed for bad weather)`,
+            notes: `Bandang IBAYO ${claimed.booking_number}: weather refund (tour date cancelled/postponed for bad weather)`,
             metadata: { booking_id: String(claimed.id) },
           },
         },
@@ -766,7 +796,7 @@ async function weatherRefund(userId: string, payload: any) {
     await supabase.from("notifications").insert({
       user_id: claimed.user_id, type: "booking", related_id: null,
       title: "Refund sent 💸",
-      message: `Your 50% refund of ₱${sentPesos.toLocaleString("en-PH", { minimumFractionDigits: 2 })} for ${claimed.booking_number} was sent back to your payment (GCash, Maya or card) through PayMongo. It can take a few days to show. Tap "I received it" in My Bookings once it's there.`,
+      message: `Your refund of ₱${sentPesos.toLocaleString("en-PH", { minimumFractionDigits: 2 })} for ${claimed.booking_number} was sent back to your payment (GCash, Maya or card) through PayMongo. It can take a few days to show. Tap "I received it" in My Bookings once it's there.`,
     });
   }
   return { status: left > 0 ? "partial" : "sent", refunded: sentPesos, left: left / 100, refunds };
@@ -842,7 +872,7 @@ async function syncRefund(b: any) {
         await supabase.from("notifications").insert(admins.map((x: any) => ({
           user_id: x.id, type: "booking", related_id: null,
           title: "A refund didn't go through ⚠️",
-          message: `PayMongo couldn't send the 50% refund for ${b.booking_number}. It's back in Weather refunds to send in Booking Management: the main admin can send it again (PayMongo or GCash).`,
+          message: `PayMongo couldn't send the weather refund for ${b.booking_number}. It's back in Weather refunds to send in Booking Management: the main admin can send it again (PayMongo or GCash).`,
         })));
       }
     }

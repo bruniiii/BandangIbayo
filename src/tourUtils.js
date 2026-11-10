@@ -1,5 +1,18 @@
 import { supabase } from './supabaseClient';
 import { reportError } from './ui/toast';
+import {
+  CANCELLATION_CUTOFF_DAYS, EXCLUSIVE_APPROVAL_CUTOFF_DAYS, REQUEST_REVIEW_DAYS, SALE_DISCOUNT, DOWNPAYMENT_PERCENT,
+  PRIVATE_DOWNPAYMENT_PERCENT, REGULAR_RATE_MIN, REGULAR_RATE_MAX, JOINER_RATE_MIN, JOINER_RATE_MAX, JOINER_RATE_MARGIN,
+  periodText,
+} from './bookingRules';
+// The business rules (cancellation cutoff, downpayment, rate limits, …) come
+// from the database: System Maintenance → Booking Rules (see bookingRules.js).
+export {
+  CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, TRIP_REQUEST_LEAD_DAYS, EXCLUSIVE_APPROVAL_CUTOFF_DAYS,
+  REQUEST_REVIEW_DAYS, SALE_DISCOUNT, DOWNPAYMENT_PERCENT, REGULAR_RATE_MIN, REGULAR_RATE_MAX, JOINER_RATE_MIN,
+  JOINER_RATE_MAX, JOINER_RATE_MARGIN, RATE_HINT, EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX, MAX_TOUR_DAYS, MAX_TOUR_SLOTS,
+  VAN_SEATS, MAX_VANS,
+} from './bookingRules';
 
 // Archives tours whose end date has passed (archive_past_tours() in the
 // database, which also runs nightly), and sends joiners their "Pickup Starts
@@ -103,20 +116,6 @@ export const safeNextPath = (next) =>
     ? next
     : null;
 
-// Terms, section 2: no cancellations within two weeks of the tour date.
-// Keep in sync with cancellation_cutoff_days() in the database.
-export const CANCELLATION_CUTOFF_DAYS = 14;
-// Joiners ask to cancel; the agency approves within this many hours (or it happens automatically).
-export const CANCELLATION_APPROVAL_HOURS = 12;
-// Private tours and tour requests: the earliest trip date is this many days from today.
-export const TRIP_REQUEST_LEAD_DAYS = 21;
-// Admins can approve a private tour or tour request only this many days
-// before its date. Keep in sync with exclusive_requests_guard_approval().
-export const EXCLUSIVE_APPROVAL_CUTOFF_DAYS = 14;
-
-// The agency has this many days to review a request and send its tour package.
-// Keep in sync with reject_overdue_requests() in the database.
-export const REQUEST_REVIEW_DAYS = 30;
 
 const plusDays = (ymd, n) => {
   const [y, m, d] = ymd.split('-').map(Number);
@@ -138,7 +137,7 @@ export const exclusiveDownpayment = (request) => {
     waiting,
     expired: waiting && !!dueAt && dueAt.getTime() < Date.now(),
     dueAt,
-    amount: Number(request?.downpayment_amount) || Math.round((Number(request?.budget) || 0) * 50) / 100,
+    amount: Number(request?.downpayment_amount) || Math.round((Number(request?.budget) || 0) * PRIVATE_DOWNPAYMENT_PERCENT) / 100,
   };
 };
 
@@ -149,10 +148,10 @@ export const requestOverdueReason = (request) => {
   // Waiting for the 24-hour downpayment: shown as Unpaid instead.
   if (request.request_type === 'exclusive' && request.downpayment_due_at) return null;
   if (request.preferred_date && request.preferred_date < plusDays(todayManila(), EXCLUSIVE_APPROVAL_CUTOFF_DAYS)) {
-    return "The tour package wasn't ready at least 2 weeks before the trip date.";
+    return `The tour package wasn't ready at least ${periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} before the trip date.`;
   }
   if (request.created_at && Date.now() - new Date(request.created_at).getTime() > REQUEST_REVIEW_DAYS * 86400e3) {
-    return "The tour package wasn't ready within 1 month of the request.";
+    return `The tour package wasn't ready within ${periodText(REQUEST_REVIEW_DAYS)} of the request.`;
   }
   return null;
 };
@@ -178,14 +177,15 @@ export const requestPaymentLabel = (request) => {
 export const requestEditable = (request) => request.status === 'Pending' && !requestOverdueReason(request);
 
 // Last day a joiner can cancel (YYYY-MM-DD), and whether that's still possible today.
-export const cancellationDeadline = (startDate) => {
+// days: the booking's own cutoff (cancelDaysOf(booking)); today's rule if not given.
+export const cancellationDeadline = (startDate, days = CANCELLATION_CUTOFF_DAYS) => {
   if (!startDate) return null;
   const [y, m, d] = startDate.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d - CANCELLATION_CUTOFF_DAYS)).toISOString().slice(0, 10);
+  return new Date(Date.UTC(y, m - 1, d - days)).toISOString().slice(0, 10);
 };
 
-export const isWithinCancellationWindow = (startDate) => {
-  const deadline = cancellationDeadline(startDate);
+export const isWithinCancellationWindow = (startDate, days = CANCELLATION_CUTOFF_DAYS) => {
+  const deadline = cancellationDeadline(startDate, days);
   return !!deadline && todayManila() > deadline;
 };
 
@@ -194,9 +194,8 @@ export const formatPeso = (amount) =>
   `₱${(Number(amount) || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // SALE: a tour date can be on sale between its sale_starts and sale_ends
-// dates (Philippine time, both included): joiners pay 5% less than the Joiner
-// Rate. Keep in sync with tour_effective_price() in the database.
-export const SALE_DISCOUNT = 0.05;
+// dates (Philippine time, both included): joiners pay less than the Joiner
+// Rate (the sale discount is a booking rule; the database does the same in tour_effective_price()).
 export const isOnSale = (tour, today = todayManila()) =>
   !!(tour?.sale_starts && tour?.sale_ends && today >= tour.sale_starts && today <= tour.sale_ends);
 export const salePriceOf = (price) => Math.round(Number(price || 0) * (1 - SALE_DISCOUNT) * 100) / 100;
@@ -212,9 +211,9 @@ export const isStaffRole = (role) => role === 'admin' || role === 'archived_admi
 // Inclusions, Exclusions, Things to Bring: saved one item per line.
 export const linesOf = (text) => (text || '').split('\n').map((x) => x.trim()).filter(Boolean);
 
-// 50% downpayment, rounded to the centavo (same rule as the payments function).
-export const DOWNPAYMENT_PERCENT = 50;
-export const downpaymentFor = (total) => Math.round((Number(total) || 0) * DOWNPAYMENT_PERCENT) / 100;
+// The downpayment (a booking rule), rounded to the centavo (same rule as the payments function).
+// percent: the booking's own downpayment (downpaymentPercentOf(booking)); today's rule if not given.
+export const downpaymentFor = (total, percent = DOWNPAYMENT_PERCENT) => Math.round((Number(total) || 0) * percent) / 100;
 
 // The downpayment a booking actually paid. Bookings from before the switch to
 // 50% paid 40%; the database remembers it (bookings.downpayment_amount).
@@ -265,14 +264,7 @@ export const formatPickupTime = (value) => {
 };
 
 // ── Tour rates (Tour Management and requested tours; not private tours) ──
-// Keep in sync with tour_rates_check_limit() and tours_check_price_limit().
-export const REGULAR_RATE_MIN = 1300;
-export const REGULAR_RATE_MAX = 7500;
-export const JOINER_RATE_MIN = 1800;
-export const JOINER_RATE_MAX = 7500;
-// The Joiner Rate stays at least this much above the Regular Rate.
-export const JOINER_RATE_MARGIN = 500;
-export const RATE_HINT = `Admins only, never shown to joiners. Regular Rate ₱1,300.00 – ₱7,500.00; Joiner Rate (what joiners pay) ₱1,800.00 – ₱7,500.00, at least ₱${JOINER_RATE_MARGIN} more than the Regular Rate.`;
+// The limits are booking rules (see bookingRules.js).
 
 const centavosOnly = (n) => Math.abs(Math.round(n * 100) - n * 100) <= 1e-6;
 
@@ -286,19 +278,6 @@ export const rateChecks = (regular, joiner, { regularField = 'regular_rate', joi
     : joiner < JOINER_RATE_MIN ? `The Joiner Rate must be at least ${formatPeso(JOINER_RATE_MIN)}.`
       : joiner > JOINER_RATE_MAX ? `The Joiner Rate can be at most ${formatPeso(JOINER_RATE_MAX)}.`
         : !centavosOnly(joiner) ? 'The Joiner Rate can have at most 2 decimal places (centavos).'
-          : Number.isFinite(regular) && joiner < regular + JOINER_RATE_MARGIN ? `The Joiner Rate must be at least ₱${JOINER_RATE_MARGIN} more than the Regular Rate (at least ${formatPeso(regular + JOINER_RATE_MARGIN)}).` : ''],
+          : Number.isFinite(regular) && joiner < regular + JOINER_RATE_MARGIN ? `The Joiner Rate must be at least ${formatPeso(JOINER_RATE_MARGIN)} more than the Regular Rate (at least ${formatPeso(regular + JOINER_RATE_MARGIN)}).` : ''],
 ];
 
-// Private tours (priced for the whole group): budget, Package Price and
-// Regular Rate. Keep in sync with 20261215000000_exclusive_rates_3k_100k.sql.
-export const EXCLUSIVE_RATE_MIN = 3000;
-export const EXCLUSIVE_RATE_MAX = 100000;
-
-// Tours (and requested trips) last at most 1 week.
-export const MAX_TOUR_DAYS = 7;
-
-// A tour (one van) takes at most 14 joiners per date. Private tours can be
-// bigger: every 14 people ride another van, up to 5 vans.
-export const MAX_TOUR_SLOTS = 14;
-export const VAN_SEATS = 14;
-export const MAX_VANS = 5;

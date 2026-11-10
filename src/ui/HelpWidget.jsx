@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { X, ChevronDown, UserPlus, Compass, CreditCard, Backpack, QrCode, Star } from 'lucide-react';
+import {
+  CANCELLATION_CUTOFF_DAYS, DOWNPAYMENT_PERCENT, PAYMENT_HOLD_MINUTES, PRIVATE_DOWNPAYMENT_PERCENT, WEATHER_CHOICE_HOURS,
+  WEATHER_REFUND_PERCENT, hoursText, minutesText,
+} from '../bookingRules';
 
 // Where "Message us on Facebook" goes: the Bandang IBAYO Facebook page.
 const FACEBOOK_URL = 'https://www.facebook.com/bandangibayo';
@@ -16,7 +20,8 @@ const FacebookIcon = ({ size = 18 }) => (
 // opens the joiner FAQ and a step-by-step guide to using the site.
 // ─────────────────────────────────────────────
 
-const FAQS = [
+// Built when shown, so the numbers follow the Booking Rules.
+const faqs = () => [
   {
     q: 'What is a joiner tour?',
     a: 'You join a group tour with other travelers and share the van, guide and other costs, so the trip costs less than going alone.',
@@ -27,15 +32,15 @@ const FAQS = [
   },
   {
     q: 'How do I book a tour?',
-    a: 'Open a tour, pick a date and your pickup point, choose how many people are coming (add their names and numbers), then pay online. Your slots are held for 30 minutes while you pay.',
+    a: `Open a tour, pick a date and your pickup point, choose how many people are coming (add their names and numbers), then pay online. Your slots are held for ${minutesText(PAYMENT_HOLD_MINUTES)} while you pay.`,
   },
   {
     q: 'How can I pay? Can I pay a downpayment?',
-    a: 'Pay online with GCash, Maya, card or GrabPay. You can pay in full or a 50% downpayment. The rest can be paid online from My Bookings or on the day of the tour.',
+    a: `Pay online with GCash, Maya, card or GrabPay. You can pay in full or a ${DOWNPAYMENT_PERCENT}% downpayment. The rest can be paid online from My Bookings or on the day of the tour.`,
   },
   {
     q: 'Can I cancel or move my booking?',
-    a: 'You can cancel up to 14 days before the tour: open the booking in My Bookings, choose a reason and confirm. It is cancelled right away. Payments are non-refundable. If the same trip runs on another date, you can move your booking there instead and your payment carries over.',
+    a: `You can cancel up to ${CANCELLATION_CUTOFF_DAYS} days before the tour: open the booking in My Bookings, choose a reason and confirm. It is cancelled right away. Payments are non-refundable. If the same trip runs on another date, you can move your booking there instead and your payment carries over.`,
   },
   {
     q: 'What if the tour is full?',
@@ -43,7 +48,7 @@ const FAQS = [
   },
   {
     q: 'What if the weather is bad?',
-    a: 'A tour date may be postponed or cancelled because of bad weather, road closures or other safety concerns. You get a notice and a message in the tour\'s group chat. Within 48 hours, choose in My Bookings: keep your slot on the new date (if it was postponed), move to another date of the same tour, or get a 50% refund. No choice in 48 hours = 50% refund.',
+    a: `A tour date may be postponed or cancelled because of bad weather, road closures or other safety concerns. You get a notice and a message in the tour's group chat. Within ${hoursText(WEATHER_CHOICE_HOURS)}, choose in My Bookings: keep your slot on the new date (if it was postponed), move to another date of the same tour, or get a ${WEATHER_REFUND_PERCENT}% refund. No choice in ${hoursText(WEATHER_CHOICE_HOURS)} = ${WEATHER_REFUND_PERCENT}% refund.`,
   },
   {
     q: 'Where will I be picked up?',
@@ -59,7 +64,7 @@ const FAQS = [
   },
   {
     q: 'Can I book a private trip for my group?',
-    a: 'Yes. Use Private Tours to request a private trip. We send you a package and price, and you confirm it with a 50% downpayment.',
+    a: `Yes. Use Private Tours to request a private trip. We send you a package and price, and you confirm it with a ${PRIVATE_DOWNPAYMENT_PERCENT}% downpayment.`,
   },
   {
     q: 'I forgot my password. What do I do?',
@@ -67,10 +72,10 @@ const FAQS = [
   },
 ];
 
-const GUIDE = [
+const guide = () => [
   { Icon: UserPlus, title: 'Create your account', points: ['Tap Join Now and fill in your details.', 'Enter the 6-digit code we email you.', 'Log in with your username or email.'] },
   { Icon: Compass, title: 'Find a tour', points: ['Open Explore Tours, or use the Calendar to see tours by date.', 'Filter by month, price or trip length.', 'Tap a tour to see the itinerary, inclusions and things to bring.'] },
-  { Icon: CreditCard, title: 'Book and pay', points: ['Pick a date, your pickup point and how many people are coming.', 'Choose full payment or a 50% downpayment.', 'Pay with GCash, Maya, card or GrabPay. Your receipt is in My Bookings.'] },
+  { Icon: CreditCard, title: 'Book and pay', points: ['Pick a date, your pickup point and how many people are coming.', `Choose full payment or a ${DOWNPAYMENT_PERCENT}% downpayment.`, 'Pay with GCash, Maya, card or GrabPay. Your receipt is in My Bookings.'] },
   { Icon: Backpack, title: 'Get ready', points: ['We remind you the evening before, with the meeting time and pickup point.', 'Tick off your packing list in My Bookings.', 'Chat with your group in Group Chat.'] },
   { Icon: QrCode, title: 'On tour day', points: ['Show your check-in QR to the coordinator.', 'Follow the van and pickup times under Tracking.', 'Pay any remaining balance if you haven\'t yet.'] },
   { Icon: Star, title: 'After the trip', points: ['Rate your trip and share photos in Reviews.', 'Book your next adventure!'] },
@@ -137,7 +142,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             )}
             {tab === 'faq' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {FAQS.map((f, i) => {
+                {faqs().map((f, i) => {
                   const isOpen = openFaq === i;
                   return (
                     <div key={f.q} style={{ background: isOpen ? '#FFF' : '#FFFBF6', borderRadius: 14, border: `1px solid ${isOpen ? 'rgba(180,81,30,0.35)' : 'rgba(180,81,30,0.15)'}` }}>
@@ -156,7 +161,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
               </div>
             ) : (
               <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {GUIDE.map((step, i) => (
+                {guide().map((step, i) => (
                   <li key={step.title} style={{ display: 'flex', gap: 12, background: '#FFFBF6', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 14, padding: '12px 12px' }}>
                     <span style={{ width: 36, height: 36, borderRadius: 12, background: '#B4511E', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <step.Icon size={17} />

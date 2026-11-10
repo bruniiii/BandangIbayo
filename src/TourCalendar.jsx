@@ -12,6 +12,7 @@ import {
   ChevronLeft, ChevronRight, MapPin, Users, Loader2
 } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
+import { periodText } from './bookingRules';
 
 // ── PALETTE ──────────────────────────────────────────────  
 // #1A0A00  espresso dark
@@ -291,10 +292,10 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                   fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
                 }}>
                   No tours scheduled.
-                  {/* Private tours and requests start at least 3 weeks ahead. */}
+                  {/* Private tours and requests start at least TRIP_REQUEST_LEAD_DAYS ahead. */}
                   {onPlanTrip && format(selectedDate, 'yyyy-MM-dd') < addDaysPH(TRIP_REQUEST_LEAD_DAYS) && (
                     <p style={{ fontStyle: 'normal', margin: '14px 0 0', fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.9)', lineHeight: 1.6 }}>
-                      Private tours and tour requests can be booked from 3 weeks ahead.
+                      Private tours and tour requests can be booked from {periodText(TRIP_REQUEST_LEAD_DAYS)} ahead.
                       Pick a day from <strong style={{ color: '#E8A265' }}>{format(new Date(`${addDaysPH(TRIP_REQUEST_LEAD_DAYS)}T00:00:00`), 'MMMM d')}</strong> onwards.
                     </p>
                   )}

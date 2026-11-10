@@ -4,6 +4,7 @@ import WeatherNotice from './ui/WeatherNotice';
 import { supabase, currentUser } from './supabaseClient';
 import { toast, reportError } from './ui/toast';
 import { withAvailableSlots, formatPeso, downpaymentFor, DOWNPAYMENT_PERCENT, formatPickupTime, effectivePrice, isOnSale } from './tourUtils';
+import { CANCELLATION_CUTOFF_DAYS, PAYMENT_HOLD_MINUTES, minutesText } from './bookingRules';
 import { TripDatePicker } from './ui/TripDates';
 import { startCheckout } from './payments';
 import { fullNameError, phoneError, cleanName, normalizePhone } from './validation';
@@ -87,7 +88,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     const isFullyBooked = liveSlots <= 0;
     const isAlmostFull = !isFullyBooked && liveSlots <= 3;
     const maxBookingLimit = Math.max(0, liveSlots);
-    // On sale on this date: 5% off the Joiner Rate (the database charges the same).
+    // On sale on this date: the sale discount off the Joiner Rate (the database charges the same).
     const subtotal = effectivePrice(tour) * numPersons;
     const downpaymentAmount = downpaymentFor(subtotal);
     const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
@@ -935,14 +936,14 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                 <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
-                    You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for 30 minutes.
+                    You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for {minutesText(PAYMENT_HOLD_MINUTES)}.
                 </p>
                 <p style={{ fontSize: 11, fontWeight: 800, color: '#8C2F1C', margin: '8px 0 0' }}>
-                    Payments are non-refundable. You can cancel up to 14 days before the tour, but the amount paid won't be returned.
+                    Payments are non-refundable. You can cancel up to {CANCELLATION_CUTOFF_DAYS} days before the tour, but the amount paid won't be returned.
                 </p>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', marginTop: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.18)', borderRadius: 14, padding: '10px 12px' }}>
                     <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
-                    <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
+                    <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close {CANCELLATION_CUTOFF_DAYS} days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
                 </label>
                 {!agreed && !busy && <MissingHint style={{ marginTop: 10 }} items={['Tick the agreement box to choose how to pay']} />}
 
@@ -1011,7 +1012,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
                     <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay 50% now; pay the rest online later or in person on the tour day</p>
+                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay {DOWNPAYMENT_PERCENT}% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
                 )}

@@ -1,11 +1,13 @@
 import { supabase } from './supabaseClient';
+import { BAG_TAG_FEE } from './bookingRules';
 
 // ─────────────────────────────────────────────
 // TOUR EXPENSES (tour_expenses table): what a tour date costs the agency.
 // Admins set them in Tour Management; joiners booked on the tour can read them.
 // ─────────────────────────────────────────────
 
-export const BAG_TAG_FEE = 260;
+// The Bag Tag fee is a booking rule (System Maintenance → Booking Rules).
+export { BAG_TAG_FEE };
 
 // [{ label, amount }] in the order shown everywhere (van, guide, bag tag, others).
 export const expenseItems = (e) => (e ? [

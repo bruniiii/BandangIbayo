@@ -10,13 +10,14 @@ import { weatherRefundStatus } from './payments';
 import { RefundProofLink } from './RefundPanel';
 import { downloadRefundReceipt } from './paymentReceipt';
 import NiceSelect from './ui/NiceSelect';
+import { weatherRefundPercentOf } from './bookingRules';
 
 // ─────────────────────────────────────────────
 // My Bookings: a tour date postponed or cancelled because of bad weather.
-//   Cancelled → choose within 48 hours: another date of the same tour, or a
-//     50% refund (no choice = 50% refund).
-//   Postponed → the same: within 48 hours keep the slot on the new date, move
-//     to another date, or a 50% refund (no choice = 50% refund).
+//   Cancelled → choose before the deadline: another date of the same tour, or a
+//     refund (no choice = refund). The refund share was fixed when they booked.
+//   Postponed → the same: keep the slot on the new date, move
+//     to another date, or a refund (no choice = refund).
 //   Refund → shows whether it was sent.
 //   booking: the booking (with weather_* columns) + weather: the tour's
 //     { weather_status, weather_reason, weather_note, weather_old_start, weather_old_end }
@@ -100,7 +101,9 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
   const cancelled = weather?.weather_status === 'cancelled';
   const title = booking.tours?.title || 'Your tour';
   const why = [weather?.weather_reason, weather?.weather_note].filter(Boolean).join(' · ');
-  const refund = Math.round((Number(booking.amount_paid) || 0) * 50) / 100;
+  // The refund share this booking was made under (Booking Rules), the same as the database pays.
+  const pct = weatherRefundPercentOf(booking);
+  const refund = Math.round((Number(booking.amount_paid) || 0) * pct) / 100;
 
   // Other open dates of the same tour, with room for this booking: only ones
   // starting after this (postponed or cancelled) tour's last day.
@@ -131,9 +134,9 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
       message: 'Your slot and payment carry over to that date, and you join its group chat.',
       confirmLabel: 'Move My Booking', cancelLabel: 'Go Back',
     } : {
-      title: `Take the 50% refund (${formatPeso(refund)})?`,
-      message: `Your booking is closed and Bandang IBAYO sends ${formatPeso(refund)} (50% of the ${formatPeso(booking.amount_paid)} you paid) to your GCash. This can't be undone.`,
-      confirmLabel: 'Get 50% Refund', cancelLabel: 'Go Back', tone: 'danger',
+      title: `Take the ${pct}% refund (${formatPeso(refund)})?`,
+      message: `Your booking is closed and Bandang IBAYO sends ${formatPeso(refund)} (${pct}% of the ${formatPeso(booking.amount_paid)} you paid) to your GCash. This can't be undone.`,
+      confirmLabel: `Get ${pct}% Refund`, cancelLabel: 'Go Back', tone: 'danger',
     }))) return;
     setBusy(kind);
     const { error } = await supabase.rpc('weather_choose', { p_booking_id: booking.id, p_choice: kind, p_new_tour_id: kind === 'move' ? target.id : null });
@@ -161,7 +164,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
     </button>
   );
 
-  // The 50% refund: waiting to be sent, or sent. A small bar; the details (and
+  // The refund: waiting to be sent, or sent. A small bar; the details (and
   // where PayMongo is with it) show when the joiner opens it.
   if (choice === 'refund') {
     const sent = booking.weather_refund_status === 'Sent';
@@ -240,7 +243,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
         )}
       </div>
       <button type="button" disabled={!!busy} onClick={() => choose('refund')} style={btn('rgba(140,47,28,0.08)', '#8C2F1C', '1px solid rgba(140,47,28,0.35)')}>
-        {busy === 'refund' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Wallet size={14} />} Get a 50% refund ({formatPeso(refund)})
+        {busy === 'refund' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Wallet size={14} />} Get a {pct}% refund ({formatPeso(refund)})
       </button>
     </div>
   );
@@ -252,7 +255,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
         {title} on {formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)} was cancelled{why ? ` because of ${why}` : ''}.
       </p>
       <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#8C2F1C' }}>
-        Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the 50% refund.
+        Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the {pct}% refund.
       </p>
       {options}
       {chatBtn}
@@ -266,7 +269,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
       {title} was moved{weather?.weather_old_start ? ` from ${formatYmdRange(weather.weather_old_start, weather.weather_old_end)}` : ''} to {formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)}{why ? ` because of ${why}` : ''}.
     </p>
     <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#8C2F1C' }}>
-      Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the 50% refund.
+      Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the {pct}% refund.
     </p>
     <button type="button" disabled={!!busy} onClick={() => choose('stay')} style={btn('#1F6B4A', '#FDF6EE')}>
       {busy === 'stay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={14} />} Keep my slot on the new date

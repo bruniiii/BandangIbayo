@@ -5,7 +5,7 @@ import { formatPeso } from './tourUtils';
 
 // ─────────────────────────────────────────────
 // My Bookings: one "My Refunds" button instead of a bar per refund. It opens
-// a window with every refund (bad-weather 50% refunds): waiting to be sent,
+// a window with every refund (bad-weather refunds): waiting to be sent,
 // sent (with the receipt, the refund receipt and "I received it"), and done.
 //   <MyRefunds bookings={…} weather={…} onChanged={…} focusId={booking id} />
 //   focusId: a refund notice was opened → the window opens with that refund open.
@@ -64,7 +64,7 @@ const MyRefunds = ({ bookings, weather, onChanged, focusId = null }) => {
             </div>
             <div style={{ overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
-                50% refunds for tour dates changed because of bad weather. Open one to see how it was sent, the receipts, and to confirm you received it.
+                Refunds for tour dates changed because of bad weather. Open one to see how it was sent, the receipts, and to confirm you received it.
               </p>
               {refunds.map((b) => (
                 <WeatherChoiceCard key={b.id} booking={b} weather={weather[String(b.tour_id)]} onChanged={onChanged} defaultOpen={refunds.length === 1 || String(b.id) === String(focusId)} />

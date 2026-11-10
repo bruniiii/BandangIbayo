@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import { toast } from '../ui/toast';
 import { confirmDialog } from '../ui/ConfirmDialog';
 import { card, h3, hint, row, btn, when, spin } from './shared';
+import { PAYMENT_HOLD_MINUTES, minutesText } from '../bookingRules';
 
 // ─────────────────────────────────────────────
 // Data Maintenance: where to update and correct records (tours, prices,
@@ -21,9 +22,10 @@ const TASKS = [
 ];
 const TASK_NAMES = Object.fromEntries(TASKS.map((t) => [t.key, t.title]));
 
-const AUTOMATIC = [
+// Built when shown, so the payment hold follows the Booking Rules.
+const automatic = () => [
   ['Every day', 'Past tours move to Tour Archive; inactive joiners are archived; old error reports are deleted.'],
-  ['Every 15 minutes', 'Unpaid checkouts expire and their slots open again.'],
+  ['Every 5 minutes', `Checkouts not paid within ${minutesText(PAYMENT_HOLD_MINUTES)} expire and their slots open again.`],
   ['Every hour', 'Overdue cancellation requests are approved; requests not answered in time are closed; trip emails go out.'],
   ['Every 5 minutes (tour day)', "Departure reminders, and alerts when the van's location goes quiet."],
   ['1st of the month', "Last month's summary is emailed to the main admin."],
@@ -154,7 +156,7 @@ const DataTab = ({ onNavigate }) => {
         <h3 style={h3}><Clock size={16} color="#A8481A" /> Runs automatically</h3>
         <p style={hint}>The database does these by itself, so the data stays up to date even when no one is cleaning.</p>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
-          {AUTOMATIC.map(([w, t]) => (
+          {automatic().map(([w, t]) => (
             <li key={w} style={{ display: 'flex', gap: 10, fontSize: 12.5, color: '#1A0A00' }}>
               <CheckCircle2 size={15} color="#2E9B5F" style={{ flexShrink: 0, marginTop: 2 }} />
               <span><strong>{w}:</strong> {t}</span>
