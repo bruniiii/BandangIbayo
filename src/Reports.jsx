@@ -9,6 +9,7 @@ import { formatYmdRange } from './dateRange';
 import { downloadReportPDF } from './reportExport';
 import SalesSummary from './SalesSummary';
 import TourIncome from './TourIncome';
+import ExpensesReport from './ExpensesReport';
 import { Calendar, Users, Clock, XCircle, AlertCircle, TrendingUp, TrendingDown, ClipboardList, Star, Printer, Bell, Sparkles, PieChart, Trophy, ThumbsDown, FileText } from 'lucide-react';
 import { Skel, SkeletonRegion } from './ui/Skeleton';
 import { CANCEL_REASONS } from './cancelReasons';
@@ -564,11 +565,13 @@ const Reports = () => {
     return { count, average, stars, latest };
   }, [reviews, profiles]);
 
-  // Sales Summary and Income per Tour pass up what they show, for the PDF.
+  // Sales Summary, Income per Tour and Expenses pass up what they show, for the PDF.
   const [salesData, setSalesData] = useState(null);
   const [incomeData, setIncomeData] = useState(null);
   const onSalesData = useCallback((d) => setSalesData(d), []);
   const onIncomeData = useCallback((d) => setIncomeData(d), []);
+  const [expensesData, setExpensesData] = useState(null);
+  const onExpensesData = useCallback((d) => setExpensesData(d), []);
 
   // ── notifications ──
   const notifications = useMemo(() => {
@@ -618,6 +621,7 @@ const Reports = () => {
       alerts: notifications.map((n) => n.text),
       sales: salesData,
       income: incomeData,
+      expenses: expensesData,
       comparison: {
         thisLabel: monthlyComparison.thisMonthLabel,
         lastLabel: monthlyComparison.lastMonthLabel,
@@ -961,6 +965,8 @@ const Reports = () => {
       <SalesSummary onData={onSalesData} />
 
       <TourIncome onData={onIncomeData} />
+
+      <ExpensesReport onData={onExpensesData} />
 
       {/* ── Joiner Reviews: at the bottom ── */}
       {!loading && (
