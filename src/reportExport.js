@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────
 // REPORT PDF (admin Reports page: Download PDF)
 // One A4 document with everything on the Reports page: a branded cover with
-// the headline figures, highlights, payments, Sales Summary, Income per Tour, the monthly comparison and forecast, booking
+// the headline figures, highlights, payments, Sales Summary, Income per Tour, Expenses, the monthly comparison and forecast, booking
 // status and payment splits, tour performance, joiner reviews, cancellations,
 // customers, seasonal trends and the full booking list.
 // Built in the browser with jsPDF (loaded only when downloading). Amounts use
@@ -327,6 +327,29 @@ export const downloadReportPDF = async (report, { print = false } = {}) => {
         totalRow: income.rows.length ? ['Total', '', php(income.totals.fees), php(income.totals.exp), php(income.totals.income)] : null,
       },
     );
+  }
+
+  // ── Expenses (from the Expenses card): by kind, then by tour date ──
+  const exp = report.expenses;
+  if (exp) {
+    heading('Expenses', exp.periodLabel);
+    const share = (n) => (exp.total > 0 ? `${Math.round((n / exp.total) * 1000) / 10}%` : '0%');
+    table(
+      [{ label: 'Expense', width: 4 }, { label: 'Tours', width: 1.2, align: 'right' }, { label: 'Amount', width: 2.4, align: 'right' }, { label: 'Share', width: 1.4, align: 'right' }],
+      exp.kinds.map((k) => [k.label, String(k.tours), php(k.amount), share(k.amount)]),
+      {
+        emptyText: `No expenses saved for ${exp.periodLabel}`,
+        totalRow: exp.kinds.length ? ['Total', String(exp.tours), php(exp.total), '100%'] : null,
+      },
+    );
+    if (exp.rows.length) {
+      subhead(`By tour date (${exp.rows.length})`, 60);
+      table(
+        [{ label: 'Tour', width: 3.6 }, { label: 'Start', width: 1.7 }, { label: 'Van Rent', width: 1.9, align: 'right' }, { label: 'Tour Guide', width: 1.9, align: 'right' }, { label: 'Bag Tag', width: 1.6, align: 'right' }, { label: 'Other', width: 1.9, align: 'right' }, { label: 'Total', width: 2, align: 'right' }],
+        exp.rows.map((r) => [r.tour.title, r.tour.start_date || '-', php(r.items[0]?.amount || 0), php(r.items[1]?.amount || 0), php(r.items[2]?.amount || 0),
+          php(r.others.reduce((s, o) => s + o.amount, 0)), php(r.total)]),
+      );
+    }
   }
 
   // ── This month vs last month, and the forecast ──

@@ -317,7 +317,8 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
 // Pie chart: each slice is one share of the whole, with a thin gap between
 // slices, a hover tooltip and a legend with counts and percentages.
 //   segments: [{ label, value, color }]
-const PieChart = ({ segments, size = 180 }) => {
+// format: how a value is written (e.g. pesos); numbers as they are by default.
+const PieChart = ({ segments, size = 180, format = (v) => v }) => {
   const [hover, setHover] = useState(null);
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   if (total === 0) return <EmptyChartNotice />;
@@ -340,7 +341,7 @@ const PieChart = ({ segments, size = 180 }) => {
     <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
       <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img"
-          aria-label={`Pie chart: ${slices.map((s) => `${s.label} ${s.value} (${pct(s.value)}%)`).join(', ')}`}>
+          aria-label={`Pie chart: ${slices.map((s) => `${s.label} ${format(s.value)} (${pct(s.value)}%)`).join(', ')}`}>
           {slices.map((s, i) => (
             <path key={s.label} d={s.d} fill={s.color} stroke="#FDF6EE" strokeWidth={2} strokeLinejoin="round"
               opacity={hover == null || hover === i ? 1 : 0.45}
@@ -354,7 +355,7 @@ const PieChart = ({ segments, size = 180 }) => {
             background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 700,
             whiteSpace: 'normal', width: 'max-content', lineHeight: 1.35, boxShadow: '0 6px 18px rgba(26,10,0,0.25)', zIndex: 2,
           }}>
-            {active.label}: {active.value} ({pct(active.value)}%)
+            {active.label}: {format(active.value)} ({pct(active.value)}%)
           </div>
         )}
       </div>
@@ -364,11 +365,11 @@ const PieChart = ({ segments, size = 180 }) => {
             style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, fontWeight: 700, color: '#1A0A00', opacity: hover == null || hover === i ? 1 : 0.55 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: s.color, flexShrink: 0 }} />
             <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{s.label}</span>
-            <span style={{ marginLeft: 'auto', color: '#7A3A18', fontWeight: 800, whiteSpace: 'nowrap' }}>{s.value} · {pct(s.value)}%</span>
+            <span style={{ marginLeft: 'auto', color: '#7A3A18', fontWeight: 800, whiteSpace: 'nowrap' }}>{format(s.value)} · {pct(s.value)}%</span>
           </li>
         ))}
         <li style={{ fontSize: 11.5, fontWeight: 800, color: '#7A3A18', borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 8 }}>
-          Total: {total}
+          Total: {format(total)}
         </li>
       </ul>
     </div>
