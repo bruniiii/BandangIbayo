@@ -21,7 +21,7 @@ import CheckInQr from './ui/CheckInQr';
 import PackingChecklist from './ui/PackingChecklist';
 import TripDayCard from './TripDayCard';
 import { openGroupChat } from './chatStore';
-import { fetchTourExpenses, expenseItems } from './tourExpenses';
+import { fetchInclusionNames } from './tourExpenses';
 import { tripDayBookings } from './tripDay';
 import { 
   ShoppingBag, MapPin, Calendar,
@@ -1106,16 +1106,16 @@ const TourExpensesSection = ({ tourId }) => {
   const [expenses, setExpenses] = useState(undefined);
   useEffect(() => {
     let active = true;
-    fetchTourExpenses(tourId).then((e) => { if (active) setExpenses(e); });
+    fetchInclusionNames(tourId).then((e) => { if (active) setExpenses(e); });
     return () => { active = false; };
   }, [tourId]);
-  if (!expenses) return null;
+  if (!expenses?.length) return null;
   return (
     <ViewSection title="Tour Expenses" icon={<Wallet size={14} style={{ color: '#A8481A' }} />}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        {expenseItems(expenses).map((item) => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#1A0A00' }}>
-            <CheckCircle2 size={14} style={{ color: '#1F8A5C', flexShrink: 0 }} /><span>{item.label}</span>
+        {expenses.map((label, i) => (
+          <div key={`${label}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#1A0A00' }}>
+            <CheckCircle2 size={14} style={{ color: '#1F8A5C', flexShrink: 0 }} /><span>{label}</span>
           </div>
         ))}
       </div>

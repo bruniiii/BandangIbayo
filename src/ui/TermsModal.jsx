@@ -1,11 +1,19 @@
+import { useEffect, useState } from 'react';
 import { ShieldCheck, X, AlertTriangle } from 'lucide-react';
+import { loadPolicy, policySections } from '../policies';
 import {
   CANCELLATION_CUTOFF_DAYS, DOWNPAYMENT_PERCENT, PRIVATE_DOWNPAYMENT_PERCENT, WEATHER_CHOICE_HOURS, WEATHER_REFUND_PERCENT, hoursText,
 } from '../bookingRules';
 
 // The Terms & Conditions, in a window. Used by registration and Private
 // Tours. onAgree is optional: without it only Close is shown.
-const TermsModal = ({ onClose, onAgree }) => (
+// The text is the current version from System Maintenance → Policies &
+// Content; the built-in text below is shown until it loads (or if it can't).
+const TermsModal = ({ onClose, onAgree }) => {
+  const [policy, setPolicy] = useState(null);
+  useEffect(() => { let alive = true; loadPolicy('terms').then((p) => { if (alive) setPolicy(p); }); return () => { alive = false; }; }, []);
+  const sections = policy ? policySections(policy.body) : null;
+  return (
   <div
     style={{
       position: 'fixed',
@@ -114,6 +122,10 @@ const TermsModal = ({ onClose, onAgree }) => (
           flex: 1,
         }}
       >
+        {sections ? sections.map((sec, i) => (
+          <TermsSection key={i} title={sec.title}>{sec.text}</TermsSection>
+        )) : (
+        <>
         <TermsSection title="1. Booking & Payment">
           All bookings are confirmed only after payment is received online
           (GCash, Maya or card), either in full or as a {DOWNPAYMENT_PERCENT}% downpayment.
@@ -177,6 +189,8 @@ const TermsModal = ({ onClose, onAgree }) => (
           moderated by the agency to maintain a trustworthy platform for
           future joiners.
         </TermsSection>
+        </>
+        )}
 
         <div
           style={{
@@ -254,7 +268,8 @@ const TermsModal = ({ onClose, onAgree }) => (
       )}
     </div>
   </div>
-);
+  );
+};
 
 const TermsSection = ({ title, children }) => (
   <div style={{ marginBottom: 22 }}>
@@ -278,6 +293,7 @@ const TermsSection = ({ title, children }) => (
         color: '#7A3A18',
         lineHeight: 1.7,
         margin: 0,
+        whiteSpace: 'pre-line',
       }}
     >
       {children}

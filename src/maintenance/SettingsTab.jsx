@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Power, Building2, Mail, Settings, Loader2, Lock, UserCog, KeyRound, AlertTriangle } from 'lucide-react';
+import { Power, Mail, Settings, Loader2, Lock, UserCog, KeyRound, AlertTriangle } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../ui/toast';
 import { confirmDialog } from '../ui/ConfirmDialog';
@@ -11,7 +11,7 @@ import { card, h3, hint, btn, input, label, row, when, spin } from './shared';
 // System Settings (the main admin changes them; other admins can look):
 //  • Maintenance Mode: the joiner side shows "We'll be back soon" with this
 //    message (set_maintenance). Admins keep working.
-//  • Agency info: shown on the "We'll be back soon" page.
+//  (Agency information has its own tab now.)
 //  • Email reminders: day-before, balance and monthly summary on/off
 //    (the send-email function checks them).
 //  • Where the other settings are (admin profile, password, admins,
@@ -39,7 +39,6 @@ const SettingsTab = ({ onNavigate }) => {
   const [mode, setMode] = useState(null);
   const [message, setMessage] = useState('');
   const [until, setUntil] = useState('');
-  const [agency, setAgency] = useState({ name: '', email: '', phone: '', facebook: '' });
   const [emails, setEmails] = useState({ day_before: true, balance: true, monthly_summary: true });
   const [saving, setSaving] = useState('');
 
@@ -53,7 +52,6 @@ const SettingsTab = ({ onNavigate }) => {
     setMessage(mm.message || '');
     setUntil(mm.until || '');
     const byKey = Object.fromEntries((s.data || []).map((r) => [r.key, r.value]));
-    if (byKey.agency_info) setAgency((a) => ({ ...a, ...byKey.agency_info }));
     if (byKey.email_settings) setEmails((e) => ({ ...e, ...byKey.email_settings }));
   };
   // eslint-disable-next-line react-hooks/set-state-in-effect -- loads the settings when the tab opens
@@ -91,16 +89,10 @@ const SettingsTab = ({ onNavigate }) => {
     const { error } = await supabase.from('app_settings').upsert([{ key, value, updated_at: new Date().toISOString() }], { onConflict: 'key' });
     setSaving('');
     if (error) { toast.error(`Couldn't save the ${what}`, error.message); return false; }
-    toast.success(`${what[0].toUpperCase()}${what.slice(1)} saved`, "It's in Activity Logs.");
+    toast.success(`${what[0].toUpperCase()}${what.slice(1)} saved`, "It's in Audit Trail.");
     return true;
   };
 
-  const saveAgency = () => {
-    const clean = Object.fromEntries(Object.entries(agency).filter(([k]) => k !== 'address').map(([k, v]) => [k, String(v || '').trim().slice(0, 200)]));
-    if (!clean.name) { toast.error('Add the agency name', 'It is shown on the maintenance page.'); return; }
-    if (clean.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.email)) { toast.error('Check the email', 'It should look like name@example.com.'); return; }
-    saveSetting('agency_info', clean, 'agency info');
-  };
 
   const setEmail = async (k, v) => {
     const next = { ...emails, [k]: v };
@@ -152,28 +144,6 @@ const SettingsTab = ({ onNavigate }) => {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
             <button type="button" onClick={saveMessage} disabled={saving === 'message'} style={btn(false)}>
               {saving === 'message' ? <Loader2 size={14} style={spin} /> : null} Save Message
-            </button>
-          </div>
-        )}
-      </section>
-
-      {/* Agency info */}
-      <section style={card}>
-        <h3 style={h3}><Building2 size={16} color="#A8481A" /> Agency information</h3>
-        <p style={hint}>Shown on the "We'll be back soon" page, so joiners can still reach you.</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 12 }}>
-          {[['name', 'Agency name', 'Bandang IBAYO'], ['email', 'Email', 'name@example.com'], ['phone', 'Phone', '+63 900 000 0000'], ['facebook', 'Facebook / Messenger link', 'https://m.me/…']].map(([k, l, ph]) => (
-            <label key={k} style={label}>
-              {l}
-              <input value={agency[k] || ''} onChange={(e) => setAgency((a) => ({ ...a, [k]: e.target.value }))} placeholder={ph} maxLength={200} disabled={!canEdit}
-                style={{ ...input, textTransform: 'none', letterSpacing: 0, fontWeight: 500 }} />
-            </label>
-          ))}
-        </div>
-        {canEdit && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-            <button type="button" onClick={saveAgency} disabled={saving === 'agency_info'} style={btn(true)}>
-              {saving === 'agency_info' ? <Loader2 size={14} style={spin} /> : null} Save Agency Info
             </button>
           </div>
         )}

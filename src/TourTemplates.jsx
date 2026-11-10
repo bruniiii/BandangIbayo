@@ -46,6 +46,10 @@ const itemsOf = (d) => {
   if (d.expenses?.van_rent) add('Expenses', 'exp:van_rent', `Van rent: ${formatPeso(d.expenses.van_rent)}`);
   if (d.expenses?.tour_guide) add('Expenses', 'exp:tour_guide', `Tour guide: ${formatPeso(d.expenses.tour_guide)}`);
   (d.expenses?.others || []).forEach((o, i) => add('Expenses', `other:${i}`, `${o.name}: ${formatPeso(o.amount)}`));
+  // Suppliers & expenses (newer templates); the Bag Tag is always added anyway.
+  (d.expense_lines || []).forEach((l, i) => {
+    if (l.category !== 'bag_tag') add('Expenses', `line:${i}`, `${l.label}: ${formatPeso(l.rate)}${l.rate_basis === 'per_person' ? ' per person' : ''}`);
+  });
   return items;
 };
 
@@ -69,6 +73,7 @@ const pickFrom = (d, on) => {
       van_rent: has('exp:van_rent') ? d.expenses?.van_rent : '', tour_guide: has('exp:tour_guide') ? d.expenses?.tour_guide : '',
       others: (d.expenses?.others || []).filter((_, i) => has(`other:${i}`)),
     },
+    expense_lines: (d.expense_lines || []).filter((l, i) => l.category !== 'bag_tag' && has(`line:${i}`)),
   };
 };
 

@@ -17,8 +17,8 @@ const PROTECTIONS = [
   'Passwords need 8+ characters with upper and lower case, a number and a symbol.',
   'After 3 wrong passwords, the account is locked for 15 minutes.',
   'Recording a payment by hand needs the admin to type their password again.',
-  'Only the main admin can add or archive admins, issue refunds, change System Settings and turn on Maintenance Mode.',
-  'Every change an admin makes is saved in Activity Logs (who, what, when, before and after).',
+  'Only the main admin can add or archive admins, issue refunds, change booking rules, policies, the chat filter, agency information and Maintenance Mode, and download backups.',
+  'Every change an admin makes is saved in Audit Trail (who, what, when, before and after).',
 ];
 
 const SecurityTab = ({ onNavigate }) => {

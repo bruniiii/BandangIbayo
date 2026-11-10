@@ -12,6 +12,7 @@ import { ReviewCard } from './ui/ReviewCards';
 import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
 import { reportError } from './ui/toast';
+import { AGENCY } from './agencyInfo';
 
 // ─────────────────────────────────────────────
 // LANDING PAGE: sleek, dark "booking platform" design.
@@ -380,12 +381,12 @@ const LandingPremium = () => {
           </div>
           <div className="lx-contact">
             <h3 className="lx-h3 lx-h3-lg">Contact Our Coordinator</h3>
-            <p className="lx-meta lx-meta-lg"><Mail size={18} /> bandangibayo@gmail.com</p>
-            <p className="lx-meta lx-meta-lg"><MapPin size={18} /> Bulacan, Philippines</p>
+            <p className="lx-meta lx-meta-lg"><Mail size={18} /> {AGENCY.email}</p>
+            <p className="lx-meta lx-meta-lg"><MapPin size={18} /> {AGENCY.address}</p>
             <div className="lx-contact-buttons">
-              <a href="https://facebook.com/bandangibayo" target="_blank" rel="noreferrer" className="lx-btn lx-btn-ghost lx-btn-sm"><FaFacebook size={17} /> Facebook</a>
+              <a href={AGENCY.facebook} target="_blank" rel="noreferrer" className="lx-btn lx-btn-ghost lx-btn-sm"><FaFacebook size={17} /> Facebook</a>
               {/* Tapping it on a phone starts a call. */}
-              <a href="tel:+639993071958" aria-label="Call Bandang IBAYO at +63 999 307 1958" className="lx-btn lx-btn-ghost lx-btn-sm"><Phone size={16} /> +63 999 307 1958</a>
+              <a href={`tel:${AGENCY.phone.replace(/[^\d+]/g, '')}`} aria-label={`Call ${AGENCY.name} at ${AGENCY.phone}`} className="lx-btn lx-btn-ghost lx-btn-sm"><Phone size={16} /> {AGENCY.phone}</a>
             </div>
           </div>
         </div>

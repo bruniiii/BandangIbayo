@@ -14,6 +14,7 @@ import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
 import { SkeletonTourCards } from './ui/Skeleton';
 import { reportError } from './ui/toast';
+import { AGENCY } from './agencyInfo';
 
 // The original landing page (warm brown and cream). Not shown right now:
 // App.jsx shows LandingPremium. To switch back, import this in App.jsx instead.
@@ -465,23 +466,23 @@ export default function LandingClassic() {
             <h3 style={{ fontWeight: 900, fontSize: 20, color: '#1A0A00', margin: '0 0 20px' }}>Contact Our Coordinator</h3>           
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
-                <Mail size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> bandangibayo@gmail.com
+                <Mail size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> {AGENCY.email}
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
-                <MapPin size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> Bulacan, Philippines
+                <MapPin size={18} style={{ color: '#A8481A', flexShrink: 0 }}/> {AGENCY.address}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-              <a href="https://facebook.com/bandangibayo" target="_blank" rel="noreferrer" style={{
+              <a href={AGENCY.facebook} target="_blank" rel="noreferrer" style={{
                 display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 13,
                 color: '#1877F2', textDecoration: 'none', background: '#EFF6FF',
                 border: '1px solid #BFDBFE', borderRadius: 12, padding: '10px 18px',
               }}><FaFacebook size={18}/> Facebook</a>
               {/* Tapping it on a phone starts a call. */}
-              <a href="tel:+639993071958" aria-label="Call Bandang IBAYO at +63 999 307 1958" style={{
+              <a href={`tel:${AGENCY.phone.replace(/[^\d+]/g, '')}`} aria-label={`Call ${AGENCY.name} at ${AGENCY.phone}`} style={{
                 display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 13,
                 color: '#7A3A18', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.15)',
                 borderRadius: 12, padding: '10px 18px', textDecoration: 'none',
-              }}><Phone size={16} style={{ color: '#A8481A' }}/> +63 999 307 1958</a>
+              }}><Phone size={16} style={{ color: '#A8481A' }}/> {AGENCY.phone}</a>
             </div>
             </div>
           </div>

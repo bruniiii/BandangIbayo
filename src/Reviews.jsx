@@ -78,6 +78,18 @@ const StarPicker = ({ value, onChange }) => {
   );
 };
 
+// Smaller stars for each part of the trip (tap the same star again to clear).
+const PartStars = ({ label, value, onChange }) => (
+  <div role="radiogroup" aria-label={`Rating for ${label}`} style={{ display: 'flex', gap: 2 }}>
+    {[1, 2, 3, 4, 5].map((n) => (
+      <button key={n} type="button" role="radio" aria-checked={value === n} aria-label={`${n} star${n === 1 ? '' : 's'}`} onClick={() => onChange(n)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, display: 'flex' }}>
+        <Star size={20} fill={n <= value ? '#E8A265' : 'none'} color={n <= value ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
+      </button>
+    ))}
+  </div>
+);
+
 // focusTourId (from a notification): opens the review form on that tour if it
 // can still be reviewed, otherwise scrolls to the review of it.
 const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
@@ -86,6 +98,10 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
   const [reviewableTours, setReviewableTours] = useState([]);
   const [selectedTourId, setSelectedTourId] = useState('');
   const [rating, setRating] = useState(0);
+  // Optional: a star rating for each part of the trip (inclusion names only),
+  // for joiners who checked in. Kept against the supplier for the admins.
+  const [parts, setParts] = useState([]);
+  const [partRatings, setPartRatings] = useState({});
   const [comment, setComment] = useState('');
   const [mediaItems, setMediaItems] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -257,6 +273,17 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
     return uploaded;
   };
 
+  // The parts of the chosen trip this joiner can still rate.
+  useEffect(() => {
+    let alive = true;
+    setPartRatings({});
+    if (!selectedTourId || isAdmin) { setParts([]); return undefined; }
+    supabase.rpc('my_rateable_inclusions', { p_tour_id: selectedTourId }).then(({ data, error }) => {
+      if (alive) setParts(error ? [] : (data || []).filter((x) => x.my_rating == null));
+    });
+    return () => { alive = false; };
+  }, [selectedTourId, isAdmin]);
+
   const handleSubmit = async () => {
     if (!selectedTourId || rating === 0) { toast.info('Almost there', 'Please choose a tour and give it a star rating.'); return; }
     if (comment.trim().length > REVIEW_MAX) { toast.error('Review is too long', `${REVIEW_MAX} characters at most.`); return; }
@@ -283,7 +310,15 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
       }]);
       if (error) throw error;
 
+      // The parts of the trip (optional; the review is already posted).
+      const partList = Object.entries(partRatings).filter(([, v]) => v > 0).map(([line_id, r]) => ({ line_id, rating: r }));
+      if (partList.length) {
+        const { error: partError } = await supabase.rpc('rate_inclusions', { p_tour_id: selectedTourId, p_ratings: partList });
+        if (partError) toast.error("Your review was posted, but the part ratings weren't saved", partError.message);
+      }
+
       setSelectedTourId('');
+      setPartRatings({});
       setRating(0);
       setComment('');
       mediaItems.forEach(m => URL.revokeObjectURL(m.preview));
@@ -375,6 +410,23 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                 Your Rating
               </label>
               <StarPicker value={rating} onChange={setRating} />
+
+              {parts.length > 0 && (
+                <div style={{ marginTop: 16, background: '#F2E4D0', borderRadius: 14, padding: '12px 14px' }}>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>
+                    Rate each part of the trip <span style={{ letterSpacing: 0, textTransform: 'none', fontWeight: 600 }}>(optional)</span>
+                  </p>
+                  <p style={{ margin: '4px 0 8px', fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>It helps us keep what you liked and change what you didn't.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {parts.map((p) => (
+                      <div key={p.line_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', minWidth: 0 }}>{p.label}</span>
+                        <PartStars label={p.label} value={partRatings[p.line_id] || 0} onChange={(n) => setPartRatings((r) => ({ ...r, [p.line_id]: r[p.line_id] === n ? 0 : n }))} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <textarea
                 value={comment}

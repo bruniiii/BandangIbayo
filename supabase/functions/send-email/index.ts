@@ -144,10 +144,11 @@ function buildEmail(opts: {
     ? `<p style="margin:0;color:#1A0A00;font-size:14px;white-space:pre-wrap;line-height:1.6;">${esc(tour.important_note)}</p>`
     : "";
 
+  const t = tpl("reminder", { name, tour: tour.title, when: reminderWhen(), see_you: REMINDER_LEAD_DAYS === 1 ? "tomorrow" : "soon", booking: booking.booking_number, date: prettyDate(tour.start_date) });
   const html = `
   <div style="font-family:'Inter',Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#1A0A00;background:#FDF6EE;">
-    <h2 style="color:#C45C26;margin:0 0 6px;">See you ${REMINDER_LEAD_DAYS === 1 ? "tomorrow" : "soon"}! 🚐</h2>
-    <p style="margin:0 0 16px;font-size:14px;color:#7A3A18;">Hi ${esc(name)}, this is a friendly reminder that your tour starts ${reminderWhen()}.</p>
+    <h2 style="color:#C45C26;margin:0 0 6px;">${t.heading}</h2>
+    <div style="margin:0 0 16px;font-size:14px;color:#7A3A18;">${t.body}</div>
 
     <div style="background:#1A0A00;border-radius:14px;padding:16px 18px;color:#FDF6EE;">
       <p style="margin:0;font-size:17px;font-weight:800;">${esc(tour.title)}</p>
@@ -240,7 +241,7 @@ async function runReminders(date: string, dryRun: boolean) {
         from: `"Bandang IBAYO" <${GMAIL_USER}>`,
         to,
         replyTo: GMAIL_USER,
-        subject: `Reminder: ${tour.title} starts ${reminderWhen()} 🚐 (${b.booking_number})`,
+        subject: tpl("reminder", { name, tour: tour.title, when: reminderWhen(), booking: b.booking_number, date: prettyDate(tour.start_date) }).subject,
         html: buildEmail({ name, booking: b, tour, vehicle: vehicleByTour[b.tour_id], stops: stopsByTour[b.tour_id] }),
       });
 
@@ -275,38 +276,80 @@ const wrapper = (title: string, titleColor: string, bodyHtml: string) => `
   </div>
 `;
 
-// What the joiner says they paid: the amount they submitted, else what their payment option requires.
+// What the joiner says they paid: the amount they submitted, else what their
+// payment option requires (the downpayment their booking was made under).
 const amountSubmitted = (b: any) =>
-  b.amount_paid ?? (b.payment_method === "Downpayment" ? Math.round((b.total_price || 0) * 50) / 100 : b.total_price || 0);
+  b.amount_paid ?? (b.payment_method === "Downpayment" ? Math.round((b.total_price || 0) * (Number(b.rule_downpayment_percent) || 50)) / 100 : b.total_price || 0);
 
-const bookingSubmittedEmail = (name: string, b: any, tour: any) => ({
-  subject: `Booking Received — ${b.booking_number}`,
-  html: wrapper("Booking Received", "#1A0A00", `
-    <p>Thanks for booking with Bandang IBAYO, ${esc(name)}!</p>
-    <p>We've received your booking for <strong>${esc(tour?.title)}</strong>.</p>
+// ───────────── Notification templates (System Maintenance → Notification Templates) ─────────────
+// Each email's subject, heading and message can be changed by the admins
+// (notification_templates). These defaults are used when there's no change
+// saved (keep them the same as src/emailTemplates.js). Words in {braces} are
+// filled in; **text** is bold; a blank line starts a new paragraph.
+const TEMPLATE_DEFAULTS: Record<string, { subject: string; heading: string; message: string }> = {
+  reminder: { subject: "Reminder: {tour} starts {when} 🚐 ({booking})", heading: "See you {see_you}! 🚐", message: "Hi {name}, this is a friendly reminder that your tour starts {when}." },
+  booking_received: { subject: "Booking Received — {booking}", heading: "Booking Received", message: "Thanks for booking with Bandang IBAYO, {name}!\n\nWe've received your booking for **{tour}**. Your payment is now pending verification. We'll email you again as soon as it's confirmed." },
+  booking_confirmed: { subject: "Booking Confirmed 🎉 — {booking}", heading: "You're Confirmed!", message: "Hi {name}, your payment for **{tour}** has been verified.\n\nSee you on the trip! Pickup and driver details will be posted in the app closer to your departure date." },
+  booking_rejected: { subject: "Booking Update — {booking}", heading: "Payment Verification Issue", message: "Hi {name}, we weren't able to verify the payment for your booking of **{tour}** ({booking}).\n\nPlease reach out to us so we can help sort this out." },
+  balance_reminder: { subject: "Balance reminder: {balance} due for {tour} ({booking})", heading: "Your balance is due soon", message: "Hi {name}, your tour is coming up!\n\nYou paid a downpayment of {paid}. The remaining balance of **{balance}** is due on or before the day of the tour.\n\nYou can pay it online now from **My Bookings → Pay balance online** (GCash, Maya or card), or pay in person on the day of the tour." },
+  cancellation_approved: { subject: "Cancellation approved — {booking}", heading: "Your cancellation was approved", message: "Hi {name},\n\nYour cancellation for **{tour}** ({date}), booking **{booking}**, has been approved, and your slot has been released.\n\nAs agreed when booking, payments are non-refundable. We hope to see you on another trip soon!" },
+  pickup_day: { subject: "Pickup starts today: {tour} 🚐", heading: "Pickup starts today! 🚐", message: "Hi {name}, today is the day for **{tour}**.\n\nPlease be at your pickup point a few minutes early, and have your check-in QR ready (My Bookings → Day trip). You can see where the van is under **Tracking**." },
+  review_invite: { subject: "How was {tour}? ⭐", heading: "How was your trip? ⭐", message: "Hi {name}, thank you for joining **{tour}**! We hope you had a great time.\n\nWould you take a minute to rate your trip? Your review helps other travelers choose their next adventure, and helps us make every trip better.\n\nLog in and open **Reviews** to leave yours (photos welcome!)." },
+  departure_soon: { subject: "⏰ Your pickup is in 15 minutes — {tour}", heading: "Your pickup is in 15 minutes ⏰", message: "Hi {name},\n\nYour pickup for **{tour}** is coming up{at_stop}. Please be at the pickup point now. You can see where the van is under **Tracking**." },
+  waitlist_opening: { subject: "A slot opened up: {tour}", heading: "A slot opened up! 🎉", message: "Hi {name}, good news: a slot just opened on a tour you're waiting for.\n\nLog in to Bandang IBAYO and book now. Slots go to whoever books first." },
+};
+let templateCache: { at: number; rows: Record<string, any> } | null = null;
+async function loadTemplates() {
+  if (templateCache && Date.now() - templateCache.at < 60_000) return;
+  try {
+    const { data, error } = await supabase.from("notification_templates").select("key, subject, heading, message").eq("is_active", true);
+    templateCache = { at: Date.now(), rows: error ? {} : Object.fromEntries((data ?? []).map((r: any) => [r.key, r])) };
+  } catch (_err) {
+    templateCache = { at: Date.now(), rows: {} };
+  }
+}
+const fillIn = (text: string, vars: Record<string, unknown>) =>
+  String(text ?? "").replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k] ?? "") : m));
+// { subject, heading (safe HTML), body (paragraphs, safe HTML) } for an email.
+function tpl(key: string, vars: Record<string, unknown>) {
+  const t = templateCache?.rows[key] ?? TEMPLATE_DEFAULTS[key];
+  const safeVars = Object.fromEntries(Object.entries(vars).map(([k, v]) => [k, esc(String(v ?? ""))]));
+  const body = esc(String(t.message ?? "")).split(/\n\s*\n/).map((para) =>
+    `<p style="line-height:1.6;">${fillIn(para, safeVars).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br/>")}</p>`).join("");
+  return { subject: fillIn(t.subject, vars), heading: fillIn(esc(t.heading), safeVars), body };
+}
+
+const bookingVars = (name: string, b: any, tour: any) => ({
+  name, tour: tour?.title ?? "", booking: b.booking_number, date: tour?.start_date ? prettyDate(tour.start_date) : "",
+});
+const bookingSubmittedEmail = (name: string, b: any, tour: any) => {
+  const t = tpl("booking_received", bookingVars(name, b, tour));
+  return {
+    subject: t.subject,
+    html: wrapper(t.heading, "#1A0A00", `
+    ${t.body}
     <p><strong>Booking Reference:</strong> ${esc(b.booking_number)}<br/>
     <strong>Amount Paid Now:</strong> ${peso(amountSubmitted(b))}</p>
-    <p>Your payment is now pending verification. We'll email you again as soon as it's confirmed.</p>
   `),
-});
+  };
+};
 
-const bookingConfirmedEmail = (name: string, b: any, tour: any) => ({
-  subject: `Booking Confirmed 🎉 — ${b.booking_number}`,
-  html: wrapper("You're Confirmed!", "#C45C26", `
-    <p>Hi ${esc(name)}, your payment for <strong>${esc(tour?.title)}</strong> has been verified.</p>
+const bookingConfirmedEmail = (name: string, b: any, tour: any) => {
+  const t = tpl("booking_confirmed", bookingVars(name, b, tour));
+  return {
+    subject: t.subject,
+    html: wrapper(t.heading, "#C45C26", `
+    ${t.body}
     <p><strong>Booking Reference:</strong> ${esc(b.booking_number)}<br/>
     ${tour?.start_date ? `<strong>Tour Date:</strong> ${prettyDate(tour.start_date)}<br/>` : ""}</p>
-    <p>See you on the trip! Pickup and driver details will be posted in the app closer to your departure date.</p>
   `),
-});
+  };
+};
 
-const bookingRejectedEmail = (name: string, b: any, tour: any) => ({
-  subject: `Booking Update — ${b.booking_number}`,
-  html: wrapper("Payment Verification Issue", "#8C2F1C", `
-    <p>Hi ${esc(name)}, we weren't able to verify the payment for your booking of <strong>${esc(tour?.title)}</strong> (${esc(b.booking_number)}).</p>
-    <p>Please reach out to us so we can help sort this out.</p>
-  `),
-});
+const bookingRejectedEmail = (name: string, b: any, tour: any) => {
+  const t = tpl("booking_rejected", bookingVars(name, b, tour));
+  return { subject: t.subject, html: wrapper(t.heading, "#8C2F1C", t.body) };
+};
 
 const customEmail = (name: string, subject: string, message: string) => ({
   subject,
@@ -467,21 +510,21 @@ async function runBalanceReminders(dryRun: boolean) {
         : { data: null };
       const to = await recipientFor(b.user_id, b.email);
       if (to) {
+        const balanceTpl = tpl("balance_reminder", {
+          name: displayName(profile, b.full_name), tour: tour.title, booking: b.booking_number, date: prettyDate(tour.start_date),
+          balance: peso(balance), paid: peso(b.amount_paid),
+        });
         await transporter.sendMail({
           from: `"Bandang IBAYO" <${GMAIL_USER}>`,
           to,
           replyTo: GMAIL_USER,
-          subject: `Balance reminder: ${peso(balance)} due for ${tour.title} (${b.booking_number})`,
-          html: wrapper("Your balance is due soon", "#C45C26", `
-            <p>Hi ${esc(displayName(profile, b.full_name))}, your tour is coming up!</p>
+          subject: balanceTpl.subject,
+          html: wrapper(balanceTpl.heading, "#C45C26", `
+            ${balanceTpl.body}
             <p><strong>${esc(tour.title)}</strong><br/>
             📍 ${esc(tour.destination)}<br/>
             📅 ${prettyDate(tour.start_date)}<br/>
             Booking reference: ${esc(b.booking_number)}</p>
-            <p>You paid a downpayment of ${peso(b.amount_paid)}. The remaining balance of
-            <strong>${peso(balance)}</strong> is due on or before the day of the tour.</p>
-            <p>You can pay it online now from <strong>My Bookings → Pay balance online</strong>
-            (GCash, Maya or card), or pay in person on the day of the tour.</p>
           `),
         });
       }
@@ -539,16 +582,10 @@ async function nameOf(userId: string | null, fallback?: string | null) {
   return displayName(data, fallback);
 }
 
-const cancellationApprovedEmail = (name: string, b: any, tour: any) => ({
-  subject: `Cancellation approved — ${b.booking_number}`,
-  html: wrapper("Your cancellation was approved", "#8C2F1C", `
-    <p>Hi ${esc(name)},</p>
-    <p>Your cancellation for <strong>${esc(tour?.title)}</strong>${tour?.start_date ? ` (${prettyDate(tour.start_date)})` : ""}, booking
-    <strong>${esc(b.booking_number)}</strong>, has been approved, and your slot has been released.</p>
-    <p style="color:#7A3A18;">As agreed when booking, payments are non-refundable. We hope to see you on another trip soon!</p>
-    ${button("Browse other tours")}
-  `),
-});
+const cancellationApprovedEmail = (name: string, b: any, tour: any) => {
+  const t = tpl("cancellation_approved", bookingVars(name, b, tour));
+  return { subject: t.subject, html: wrapper(t.heading, "#8C2F1C", `${t.body}${button("Browse other tours")}`) };
+};
 
 async function sendCancellationEmail(b: any) {
   const tour = Array.isArray(b.tours) ? b.tours[0] : b.tours;
@@ -586,13 +623,13 @@ async function runTripEmails() {
       const stopsHtml = list.length
         ? `<ul style="padding-left:18px;line-height:1.7;">${list.map((s: any) => `<li><strong>${esc(s.location_name)}</strong>${s.scheduled_time ? ` — ${esc(s.scheduled_time)}` : ""}${s.note ? ` <em>(${esc(s.note)})</em>` : ""}</li>`).join("")}</ul>`
         : `<p>Pickup points and times will be posted in the app under <strong>Tracking</strong>.</p>`;
+      const pt = tpl("pickup_day", { name: await nameOf(n.user_id), tour: tour.title, date: prettyDate(tour.start_date) });
       results.push(await sendOnce("pickup-day", `${n.tour_id}:${n.user_id}`, await recipientFor(n.user_id),
-        `Pickup starts today: ${tour.title} 🚐`,
-        wrapper("Pickup starts today! 🚐", "#C45C26", `
-          <p>Hi ${esc(await nameOf(n.user_id))}, today is the day for <strong>${esc(tour.title)}</strong>.</p>
+        pt.subject,
+        wrapper(pt.heading, "#C45C26", `
+          ${pt.body}
           ${list[0] ? `<p style="font-size:16px;font-weight:800;">First pickup: ${esc(list[0].location_name)}${list[0].scheduled_time ? ` at ${esc(list[0].scheduled_time)}` : ""}</p>` : ""}
           ${stopsHtml}
-          <p>Please be at your pickup point a few minutes early, and have your check-in QR ready (My Bookings → Day trip). You can see where the van is under <strong>Tracking</strong>.</p>
           ${button("Open Tracking")}
         `)));
     }
@@ -626,14 +663,10 @@ async function runTripEmails() {
         .eq("tour_id", i.tour_id).eq("user_id", i.user_id);
       if (reviewed) { results.push("skipped"); continue; }
       const tour = Array.isArray(i.tours) ? i.tours[0] : i.tours;
+      const rt = tpl("review_invite", { name: await nameOf(i.user_id), tour: tour?.title ?? "", date: tour?.start_date ? prettyDate(tour.start_date) : "" });
       results.push(await sendOnce("review-invite", `${i.tour_id}:${i.user_id}`, await recipientFor(i.user_id),
-        `How was ${tour?.title}? ⭐`,
-        wrapper("How was your trip? ⭐", "#C45C26", `
-          <p>Hi ${esc(await nameOf(i.user_id))}, thank you for joining <strong>${esc(tour?.title)}</strong>! We hope you had a great time.</p>
-          <p>Would you take a minute to rate your trip? Your review helps other travelers choose their next adventure, and helps us make every trip better.</p>
-          <p>Log in and open <strong>Reviews</strong> to leave yours (photos welcome!).</p>
-          ${button("Rate your trip")}
-        `)));
+        rt.subject,
+        wrapper(rt.heading, "#C45C26", `${rt.body}${button("Rate your trip")}`)));
     }
     return results;
   });
@@ -727,12 +760,14 @@ async function runDepartureEmails() {
     const { data: stops } = await supabase.from("tour_meetups").select("location_name, scheduled_time")
       .eq("tour_id", b.tour_id).order("created_at", { ascending: true });
     const stop = (stops ?? []).find((s: any) => String(s.location_name).trim().toLowerCase() === String(b.pickup_point ?? "").trim().toLowerCase()) ?? (stops ?? [])[0];
+    const dt = tpl("departure_soon", {
+      name: await nameOf(b.user_id, b.full_name), tour: tour?.title ?? "your tour", booking: b.booking_number,
+      at_stop: stop ? ` at ${stop.location_name}${stop.scheduled_time ? `, ${stop.scheduled_time}` : ""}` : "",
+    });
     results.push(await sendOnce("departure-15-email", String(b.id), await recipientFor(b.user_id, b.email),
-      `⏰ Your pickup is in 15 minutes — ${tour?.title ?? "your tour"}`,
-      wrapper("Your pickup is in 15 minutes ⏰", "#C45C26", `
-        <p>Hi ${esc(await nameOf(b.user_id, b.full_name))},</p>
-        <p>Your pickup for <strong>${esc(tour?.title)}</strong> is coming up${stop ? ` at <strong>${esc(stop.location_name)}</strong>${stop.scheduled_time ? `, <strong>${esc(stop.scheduled_time)}</strong>` : ""}` : ""}.</p>
-        <p>Please be at the pickup point now. You can see where the van is under <strong>Tracking</strong>.</p>
+      dt.subject,
+      wrapper(dt.heading, "#C45C26", `
+        ${dt.body}
         <p style="color:#7A3A18;">Booking ${esc(b.booking_number)}</p>
         ${button("Open Tracking")}
       `)));
@@ -808,17 +843,17 @@ async function sendWaitlistEmails(tourId: unknown) {
       .from("profiles").select("first_name, last_name, email").eq("id", w.user_id).maybeSingle();
     const to = await recipientFor(w.user_id, profile?.email);
     if (to) {
+      const wt = tpl("waitlist_opening", { name: displayName(profile), tour: tour.title, date: prettyDate(tour.start_date) });
       await transporter.sendMail({
         from: `"Bandang IBAYO" <${GMAIL_USER}>`,
         to,
         replyTo: GMAIL_USER,
-        subject: `A slot opened up: ${tour.title}`,
-        html: wrapper("A slot opened up! 🎉", "#C45C26", `
-          <p>Hi ${esc(displayName(profile))}, good news: a slot just opened on a tour you're waiting for.</p>
+        subject: wt.subject,
+        html: wrapper(wt.heading, "#C45C26", `
+          ${wt.body}
           <p><strong>${esc(tour.title)}</strong><br/>
           📍 ${esc(tour.destination)}<br/>
           📅 ${prettyDate(tour.start_date)}</p>
-          <p>Log in to Bandang IBAYO and book now. Slots go to whoever books first.</p>
         `),
       });
       sent++;
@@ -834,6 +869,7 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.json().catch(() => ({}));
+    await loadTemplates(); // the admins' email texts (Notification Templates)
 
     if (!GMAIL_APP_PASSWORD && !payload.dryRun) {
       return reply({ error: "GMAIL_APP_PASSWORD not configured" }, 500);

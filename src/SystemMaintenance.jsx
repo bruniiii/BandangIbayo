@@ -1,45 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, Wrench, ShieldCheck, History, Settings, Power, Scale } from 'lucide-react';
+import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2 } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
 import BookingRulesTab from './maintenance/BookingRulesTab';
-import OverviewTab from './maintenance/OverviewTab';
-import DatabaseTab from './maintenance/DatabaseTab';
-import DataTab from './maintenance/DataTab';
-import SecurityTab from './maintenance/SecurityTab';
+import SuppliersTab from './maintenance/SuppliersTab';
+import DriversVansTab from './maintenance/DriversVansTab';
+import PickupPointsTab from './maintenance/PickupPointsTab';
+import PoliciesTab from './maintenance/PoliciesTab';
+import TemplatesTab from './maintenance/TemplatesTab';
+import ChatFilterTab from './maintenance/ChatFilterTab';
+import AgencyTab from './maintenance/AgencyTab';
 import ActivityTab from './maintenance/ActivityTab';
-import SettingsTab from './maintenance/SettingsTab';
+import DatabaseTab from './maintenance/DatabaseTab';
+import SystemStatusTab from './maintenance/SystemStatusTab';
 
 // ─────────────────────────────────────────────
-// Admin → System Maintenance: the website's control center.
-//  Booking Rules: the business rules the whole website follows (cancellation
-//     cutoff, downpayment, refunds, rate limits…); the main admin changes them.
-//  System Overview: status (Operational / Under Maintenance), database
-//     connection, totals, last maintenance and backup.
-//  Database Management: data check for incomplete or inconsistent
-//     records, CSV backups and their history.
-//  Data Maintenance: where to update records, cleanups of outdated data,
-//     what runs automatically, maintenance log.
-//  Security Maintenance: admin accounts, failed/locked logins, protections.
-//  Activity Logs: who changed what, when, before and after.
-//  System Settings (main admin): Maintenance Mode, agency info, email
-//     reminders.
-// Every save shows a message and is recorded in Activity Logs.
+// Admin → System Maintenance: reference data and business rules, changed
+// here instead of in the code. All admins can look; the database decides
+// who can change what (booking rules, policies, the chat filter, agency
+// information and exports: the main admin only).
+//   Booking Rules · Suppliers · Drivers & Vehicles · Pickup Points ·
+//   Policies & Content · Notification Templates · Chat Filter ·
+//   Agency Information · Audit Trail · Backup & Export · System Status
+// Master data is archived and restored, never deleted.
 // ─────────────────────────────────────────────
 
 const TABS = [
   ['rules', 'Booking Rules', Scale],
-  ['overview', 'System Overview', Activity],
-  ['database', 'Database Management', Database],
-  ['data', 'Data Maintenance', Wrench],
-  ['security', 'Security Maintenance', ShieldCheck],
-  ['activity', 'Activity Logs', History],
-  ['settings', 'System Settings', Settings],
+  ['suppliers', 'Suppliers', Truck],
+  ['fleet', 'Drivers & Vehicles', Bus],
+  ['pickup', 'Pickup Points', MapPin],
+  ['policies', 'Policies & Content', FileText],
+  ['templates', 'Notification Templates', Mail],
+  ['chat', 'Chat Filter', ShieldBan],
+  ['agency', 'Agency Information', Building2],
+  ['audit', 'Audit Trail', History],
+  ['backup', 'Backup & Export', Database],
+  ['status', 'System Status', Activity],
 ];
 const SAVED_TAB = 'ibayo:maintenance-tab';
+// Tabs from before (saved in this browser) open their new place.
+const OLD_TABS = { overview: 'status', settings: 'status', data: 'status', security: 'status', activity: 'audit', database: 'backup' };
 
 const readTab = () => {
-  try { const t = localStorage.getItem(SAVED_TAB); return TABS.some(([k]) => k === t) ? t : 'overview'; } catch { return 'overview'; }
+  try {
+    const t = localStorage.getItem(SAVED_TAB);
+    const k = OLD_TABS[t] || t;
+    return TABS.some(([x]) => x === k) ? k : 'status';
+  } catch { return 'status'; }
 };
 
 // Phones: the tabs become one menu.
@@ -60,7 +68,10 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
   const [tab, setTabState] = useState(readTab);
   const narrow = useNarrow();
   const maintenance = useMaintenance();
-  const setTab = (t) => {
+  const [statusPart, setStatusPart] = useState('overview');
+  const setTab = (raw) => {
+    const t = OLD_TABS[raw] || raw;
+    if (raw in OLD_TABS && t === 'status') setStatusPart(raw === 'overview' ? 'overview' : raw);
     setTabState(t);
     try { localStorage.setItem(SAVED_TAB, t); } catch { /* not saved */ }
   };
@@ -73,7 +84,7 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
           background: '#FBEDE6', color: '#8C2F1C', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer', textAlign: 'left',
         }}>
           <Power size={16} style={{ flexShrink: 0 }} />
-          <span>Maintenance Mode is on: joiners see the "We'll be back soon" page. Open System Settings to turn it off.</span>
+          <span>Maintenance Mode is on: joiners see the "We'll be back soon" page. Open System Status → Maintenance Mode to turn it off.</span>
         </button>
       )}
 
@@ -102,12 +113,16 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       )}
 
       {tab === 'rules' && <BookingRulesTab />}
-      {tab === 'overview' && <OverviewTab onTab={setTab} />}
-      {tab === 'database' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
-      {tab === 'data' && <DataTab onNavigate={onNavigate} />}
-      {tab === 'security' && <SecurityTab onNavigate={onNavigate} />}
-      {tab === 'activity' && <ActivityTab />}
-      {tab === 'settings' && <SettingsTab onNavigate={onNavigate} />}
+      {tab === 'suppliers' && <SuppliersTab />}
+      {tab === 'fleet' && <DriversVansTab />}
+      {tab === 'pickup' && <PickupPointsTab />}
+      {tab === 'policies' && <PoliciesTab />}
+      {tab === 'templates' && <TemplatesTab />}
+      {tab === 'chat' && <ChatFilterTab />}
+      {tab === 'agency' && <AgencyTab />}
+      {tab === 'audit' && <ActivityTab />}
+      {tab === 'backup' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
+      {tab === 'status' && <SystemStatusTab key={statusPart} start={statusPart} onNavigate={onNavigate} onTab={setTab} />}
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>
   );

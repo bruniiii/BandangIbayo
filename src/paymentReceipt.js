@@ -1,7 +1,8 @@
 import { formatDateRange, bookingDownpayment } from './tourUtils';
 import { formatYmdRange } from './dateRange';
-import { fetchTourExpenses, expenseItems } from './tourExpenses';
+import { fetchInclusionNames, expenseItems } from './tourExpenses';
 import { PRIVATE_DOWNPAYMENT_PERCENT, weatherRefundPercentOf } from './bookingRules';
+import { AGENCY } from './agencyInfo';
 
 // ─────────────────────────────────────────────
 // PAYMENT RECEIPTS (PDF), in the style of a printed till receipt: narrow
@@ -128,7 +129,7 @@ const makePen = (doc, W) => {
 const header = (pen) => {
   pen.center('BANDANG IBAYO', 15);
   pen.center('Joiner tours across the Philippines', 7.5, false);
-  pen.center('bandangibayo@gmail.com', 7.5, false);
+  pen.center(AGENCY.email, 7.5, false);
   pen.gap(6);
 };
 
@@ -140,12 +141,14 @@ const footer = (pen, qr, caption, text) => {
 };
 
 // Expense names only: joiners don't see what each item costs.
-const expenseLines = (pen, expenses) => {
-  const items = expenseItems(expenses);
+// names: the tour's inclusion names (tour_inclusion_names), or an older
+// package's expenses object.
+const expenseLines = (pen, names) => {
+  const items = Array.isArray(names) ? names : expenseItems(names).map((i) => i.label);
   if (!items.length) return;
   pen.gap(2);
   pen.pair('INCLUSION', '', 7.5);
-  items.forEach((i) => pen.item('', i.label, ''));
+  items.forEach((label) => pen.item('', label, ''));
 };
 
 // Who processed the payment: the admin who recorded or verified it, or
@@ -162,7 +165,7 @@ export const hasBalanceReceipt = (booking) => booking.payment_method === 'Downpa
 // part: 'payment' (the full payment or the downpayment) or 'balance' (the
 // remaining balance, once it's paid).
 const bookingReceipt = async (booking, tour, { expenses, part = 'payment' } = {}) => {
-  const exp = expenses === undefined ? await fetchTourExpenses(booking.tour_id) : expenses;
+  const exp = expenses === undefined ? await fetchInclusionNames(booking.tour_id) : expenses;
   const pax = booking.slots_booked || 1;
   const discount = Number(booking.sale_discount) || 0;
   const total = Number(booking.total_price) || 0;
@@ -278,7 +281,7 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
       pen.item(request.group_size || 1, `${pkg.title || pkg.destination || request.destination}${start ? ` (${formatYmdRange(start, end)})` : ''}`, php(price));
       const room = request.accommodation || pkg.accommodation;
       if (room) pen.item('', `Accommodation: ${room}`, '');
-      expenseLines(pen, pkg.expenses);
+      expenseLines(pen, Array.isArray(pkg.covered) ? pkg.covered : pkg.expenses);
       pen.gap(10);
       pen.big('AMOUNT', php(paidNow));
       pen.total('SUBTOTAL', php(price));
