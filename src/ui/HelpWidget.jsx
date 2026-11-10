@@ -4,9 +4,8 @@ import {
   CANCELLATION_CUTOFF_DAYS, DOWNPAYMENT_PERCENT, PAYMENT_HOLD_MINUTES, PRIVATE_DOWNPAYMENT_PERCENT, WEATHER_CHOICE_HOURS,
   WEATHER_REFUND_PERCENT, hoursText, minutesText,
 } from '../bookingRules';
+import { AGENCY } from '../agencyInfo';
 
-// Where "Message us on Facebook" goes: the Bandang IBAYO Facebook page.
-const FACEBOOK_URL = 'https://www.facebook.com/bandangibayo';
 
 // The Facebook "f" logo (lucide has no brand icons).
 const FacebookIcon = ({ size = 18 }) => (
@@ -183,7 +182,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
           <div style={{ padding: '10px 14px 14px', borderTop: '1px solid rgba(180,81,30,0.12)', textAlign: 'center' }}>
             <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>Still have questions? Chat with us right away.</p>
             <a
-              href={FACEBOOK_URL}
+              href={AGENCY.facebook}
               target="_blank"
               rel="noopener noreferrer"
               style={{

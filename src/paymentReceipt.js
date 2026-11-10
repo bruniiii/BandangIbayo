@@ -2,6 +2,7 @@ import { formatDateRange, bookingDownpayment } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { fetchInclusionNames, expenseItems } from './tourExpenses';
 import { PRIVATE_DOWNPAYMENT_PERCENT, weatherRefundPercentOf } from './bookingRules';
+import { AGENCY } from './agencyInfo';
 
 // ─────────────────────────────────────────────
 // PAYMENT RECEIPTS (PDF), in the style of a printed till receipt: narrow
@@ -128,7 +129,7 @@ const makePen = (doc, W) => {
 const header = (pen) => {
   pen.center('BANDANG IBAYO', 15);
   pen.center('Joiner tours across the Philippines', 7.5, false);
-  pen.center('bandangibayo@gmail.com', 7.5, false);
+  pen.center(AGENCY.email, 7.5, false);
   pen.gap(6);
 };
 

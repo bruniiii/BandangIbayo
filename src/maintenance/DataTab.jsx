@@ -95,7 +95,7 @@ const DataTab = ({ onNavigate }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <section style={card}>
         <h3 style={h3}><MapIcon size={16} color="#A8481A" /> Update records</h3>
-        <p style={hint}>Where to update or correct each kind of record. Every change is saved in Activity Logs.</p>
+        <p style={hint}>Where to update or correct each kind of record. Every change is saved in Audit Trail.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 8 }}>
           {SHORTCUTS.map((s) => {
             const Icon = s.icon;

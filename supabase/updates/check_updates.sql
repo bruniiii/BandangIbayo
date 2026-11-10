@@ -144,5 +144,6 @@ from (values
   ('20261224 tour expense lines (supplier checklist)', to_regclass('public.tour_expense_lines') is not null and exists (select 1 from pg_proc where proname = 'tour_inclusion_names')),
   ('20261225 actual expenses after a tour (final lock)', exists (select 1 from pg_proc where proname = 'set_expenses_final')),
   ('20261226 ratings per inclusion', to_regclass('public.inclusion_ratings') is not null),
-  ('20261227 check-out at drop-off', exists (select 1 from pg_proc where proname = 'check_out_booking'))
+  ('20261227 check-out at drop-off', exists (select 1 from pg_proc where proname = 'check_out_booking')),
+  ('20261228 maintenance tabs (archive, policies, templates, chat filter, audit lock, exports)', to_regclass('public.site_policies') is not null and to_regclass('public.chat_filter_words') is not null and exists (select 1 from pg_proc where proname = 'export_data'))
 ) as u(update_file, installed);

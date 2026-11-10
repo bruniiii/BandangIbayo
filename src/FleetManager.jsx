@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { X, Plus, Pencil, Trash2, Loader2, Truck, UserRound, IdCard, Camera, CheckCircle2 } from 'lucide-react';
+import { X, Plus, Pencil, Archive, Loader2, Truck, UserRound, IdCard, Camera, CheckCircle2 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -179,13 +179,13 @@ const FleetManager = ({ onClose, onChanged }) => {
   const remove = async (kind, item) => {
     const what = kind === 'drivers' ? item.name : `${item.car_type} · ${item.plate_number}`;
     if (!(await confirmDialog({
-      title: `Remove ${what}?`,
-      message: "It won't be offered for new tours anymore. Tours that already used it keep their details.",
-      confirmLabel: 'Remove', cancelLabel: 'Keep It', tone: 'danger',
+      title: `Archive ${what}?`,
+      message: "It won't be offered for new tours anymore. Tours that already used it keep their details, and it can be restored in System Maintenance → Drivers & Vehicles.",
+      confirmLabel: 'Archive', cancelLabel: 'Keep It', tone: 'danger',
     }))) return;
     const { error } = await supabase.from(kind === 'drivers' ? 'fleet_drivers' : 'fleet_vans').update({ is_active: false, updated_at: new Date().toISOString() }).eq('id', item.id);
-    if (error) { toast.error("Couldn't remove it", error.message); return; }
-    toast.success('Removed', what);
+    if (error) { toast.error("Couldn't archive it", error.message); return; }
+    toast.success('Archived', what);
     load(); onChanged?.();
   };
 
@@ -253,7 +253,7 @@ const FleetManager = ({ onClose, onChanged }) => {
                   </p>
                 </div>
                 <button type="button" onClick={() => setEditing({ kind: tab, item })} aria-label="Change" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4 }}><Pencil size={15} /></button>
-                <button type="button" onClick={() => remove(tab, item)} aria-label="Remove" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 4 }}><Trash2 size={15} /></button>
+                <button type="button" onClick={() => remove(tab, item)} aria-label="Archive" title="Archive" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 4 }}><Archive size={15} /></button>
               </li>
             ))}
           </ul>

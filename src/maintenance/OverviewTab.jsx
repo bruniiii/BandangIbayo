@@ -53,7 +53,7 @@ const OverviewTab = ({ onTab }) => {
           </p>
           <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 600, color: '#F2E4D0' }}>
             {db.ok === null ? '' : !db.ok ? `${db.error} (run the latest database update: install_updates.sql)`
-              : m.on ? `Joiners see the "We'll be back soon" page${m.started_at ? ` since ${when(m.started_at)}` : ''}. Turn it off in System Settings.`
+              : m.on ? `Joiners see the "We'll be back soon" page${m.started_at ? ` since ${when(m.started_at)}` : ''}. Turn it off in Maintenance Mode & Emails.`
                 : 'Joiners can browse, book and pay as normal.'}
           </p>
         </div>
@@ -82,14 +82,14 @@ const OverviewTab = ({ onTab }) => {
               {data?.last_maintenance ? when(data.last_maintenance) : 'No cleanup run from this page yet (the automatic ones still run).'}
               {outdated ? ` · ${outdated} outdated item${outdated === 1 ? '' : 's'} waiting` : ''}
             </p>
-            <button type="button" onClick={() => onTab('data')} style={btn(!!outdated)}><Wrench size={14} /> Data Maintenance</button>
+            <button type="button" onClick={() => onTab('data')} style={btn(!!outdated)}><Wrench size={14} /> Cleanups</button>
           </div>
           <div style={{ background: '#F2E4D0', borderRadius: 14, padding: '12px 14px' }}>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>Last backup</p>
             <p style={{ margin: '2px 0 8px', fontSize: 12.5, fontWeight: 600, color: '#5C2A10' }}>
               {data?.last_backup ? when(data.last_backup) : 'No backup downloaded yet.'}
             </p>
-            <button type="button" onClick={() => onTab('database')} style={btn(!data?.last_backup)}><Download size={14} /> Database Management</button>
+            <button type="button" onClick={() => onTab('database')} style={btn(!data?.last_backup)}><Download size={14} /> Backup & Export</button>
           </div>
         </div>
       </section>

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, Download, Loader2, History, RefreshCw, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
+import { ShieldCheck, Download, Loader2, History, RefreshCw, AlertTriangle, CheckCircle2, ChevronRight, Lock } from 'lucide-react';
+import { useAdminMe } from '../adminMe';
 import { supabase } from '../supabaseClient';
 import { toast } from '../ui/toast';
 import { downloadCsv } from '../csvExport';
 import { card, h3, hint, row, btn, when, spin } from './shared';
 
 // ─────────────────────────────────────────────
-// Database Management: checks for incomplete or inconsistent records
+// Backup & Export (was Database Management): checks for incomplete or inconsistent records
 // (data_integrity), Excel/CSV backups of each kind of record, and the
 // list of backups downloaded (backup_log).
 // ─────────────────────────────────────────────
@@ -18,13 +19,14 @@ const CHECKS = {
   overpaid: { title: 'Bookings paid more than their total', fix: 'Check the payment, then fix the amount or refund the extra.', page: 'Booking Management' },
   open_tour_missing_details: { title: 'Open tours missing details', fix: 'Add the missing price, slots, photo or pickup points.', page: 'Tour Management' },
   bad_dates: { title: 'Tours that end before they start', fix: 'Fix the dates in the tour form.', page: 'Tour Management' },
-  past_tour_open: { title: 'Tours that ended but are still open', fix: 'Data Maintenance → Clean Up moves them to Tour Archive.', page: null },
+  past_tour_open: { title: 'Tours that ended but are still open', fix: 'System Status → Cleanups moves them to Tour Archive.', page: null },
   joiner_missing_contact: { title: 'Joiners without a name or phone number', fix: 'They are asked to finish their profile when they log in.', page: 'Joiner Accounts' },
 };
 
-const BACKUPS = [['bookings', 'Bookings'], ['tours', 'Tours & schedules'], ['joiners', 'Joiners (customers)'], ['private', 'Private tours & requests'], ['refunds', 'Refunds'], ['activity', 'Activity logs']];
+const BACKUPS = [['bookings', 'Bookings'], ['tours', 'Tours & schedules'], ['joiners', 'Joiners (customers)'], ['private', 'Private tours & requests'], ['refunds', 'Refunds'], ['suppliers', 'Suppliers'], ['expenses', 'Tour expenses'], ['activity', 'Audit trail']];
 
 const DatabaseTab = ({ onNavigate, onTab }) => {
+  const me = useAdminMe();
   const [checks, setChecks] = useState(null);
   const [checkError, setCheckError] = useState('');
   const [counts, setCounts] = useState(null);
@@ -44,72 +46,74 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
   // (Runs the checks when the tab opens.)
   useEffect(() => { load(); }, []);
 
-  const logBackup = async (what, rows) => {
-    const { data: me } = await supabase.auth.getUser();
-    const { data: p } = me?.user ? await supabase.from('profiles').select('first_name, last_name').eq('id', me.user.id).maybeSingle() : { data: null };
-    await supabase.from('backup_log').insert([{ what, rows, admin_name: `${p?.first_name || ''} ${p?.last_name || ''}`.trim() || null }]);
+  // Exports run in the database (export_data): only the main admin can, and
+  // each one is recorded in the backup list there.
+  const fetchExport = async (what) => {
+    const { data, error } = await supabase.rpc('export_data', { p_what: what });
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
   };
 
-  const exportData = async (kind, label) => {
+  const exportData = async (kind) => {
     setExporting(kind);
     try {
       const day = new Date().toISOString().slice(0, 10);
       let rows = [];
       if (kind === 'bookings') {
-        const { data, error } = await supabase.from('bookings').select('*, tours ( title, start_date, end_date )').order('created_at', { ascending: false });
-        if (error) throw error;
-        rows = data || [];
+        rows = await fetchExport('bookings');
         downloadCsv(`bookings-${day}.csv`, [
           ['booking_number', 'Booking no.'], ['full_name', 'Joiner'], ['contact_number', 'Contact'], ['email', 'Email'],
-          [(r) => r.tours?.title, 'Tour'], [(r) => r.tours?.start_date, 'Start'], [(r) => r.tours?.end_date, 'End'],
+          ['tour_title', 'Tour'], ['tour_start', 'Start'], ['tour_end', 'End'],
           ['slots_booked', 'Slots'], ['total_price', 'Total (PHP)'], ['amount_paid', 'Paid (PHP)'], ['payment_method', 'Payment method'],
           ['payment_status', 'Payment status'], ['booking_status', 'Booking status'], [(r) => (r.balance_settled ? 'Yes' : 'No'), 'Balance settled'],
-          ['pickup_point', 'Pickup point'], ['created_at', 'Booked at'],
+          ['pickup_point', 'Pickup point'], ['checked_in_at', 'Checked in'], ['checked_out_at', 'Checked out'], ['created_at', 'Booked at'],
         ], rows);
       } else if (kind === 'tours') {
-        const { data, error } = await supabase.from('tours').select('*').order('start_date', { ascending: false });
-        if (error) throw error;
-        rows = data || [];
+        rows = await fetchExport('tours');
         downloadCsv(`tours-${day}.csv`, [
           ['title', 'Tour'], ['destination', 'Destination'], ['start_date', 'Start'], ['end_date', 'End'], ['price', 'Joiner Rate (PHP)'],
           ['group_size', 'Slots'], ['difficulty', 'Difficulty'], [(r) => (r.is_exclusive ? 'Private' : 'Joiner'), 'Type'], [(r) => (r.is_archived ? 'Archived' : 'Open'), 'Status'],
         ], rows);
       } else if (kind === 'joiners') {
-        const { data, error } = await supabase.from('profiles').select('*').not('role', 'in', '(admin,archived_admin)').order('created_at', { ascending: false });
-        if (error) throw error;
-        rows = data || [];
+        rows = await fetchExport('joiners');
         downloadCsv(`joiners-${day}.csv`, [
           ['first_name', 'First name'], ['last_name', 'Last name'], ['username', 'Username'], ['email', 'Email'], ['phone_number', 'Phone'],
           ['address', 'Address'], ['emergency_contact_name', 'Emergency contact'], ['emergency_contact_number', 'Emergency number'],
           ['created_at', 'Registered'], [(r) => (r.archived_at ? `Archived (${r.archive_reason || ''})` : 'Active'), 'Status'],
         ], rows);
       } else if (kind === 'private') {
-        const { data, error } = await supabase.from('exclusive_requests').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        rows = data || [];
+        rows = await fetchExport('requests');
         downloadCsv(`private-tours-and-requests-${day}.csv`, [
           [(r) => (r.request_type === 'request' ? 'Requested tour' : 'Private tour'), 'Type'], ['full_name', 'Name'], ['contact', 'Contact'], ['email', 'Email'],
           ['destination', 'Destination'], ['preferred_date', 'From'], ['preferred_end_date', 'To'], ['group_size', 'People'], ['budget', 'Budget (PHP)'],
           ['status', 'Status'], ['payment_status', 'Payment'], ['amount_paid', 'Paid (PHP)'], ['created_at', 'Sent at'],
         ], rows);
       } else if (kind === 'refunds') {
-        const { data, error } = await supabase.from('bookings').select('booking_number, full_name, weather_refund, weather_refund_status, weather_refund_ref, weather_refund_at, weather_refund_received, tours ( title )').not('weather_refund_status', 'is', null).order('weather_refund_at', { ascending: false });
-        if (error) throw error;
-        rows = data || [];
+        rows = await fetchExport('refunds');
         downloadCsv(`refunds-${day}.csv`, [
-          ['booking_number', 'Booking no.'], ['full_name', 'Joiner'], [(r) => r.tours?.title, 'Tour'], ['weather_refund', 'Refund (PHP)'],
-          ['weather_refund_status', 'Status'], ['weather_refund_ref', 'GCash reference'], ['weather_refund_at', 'Sent at'], ['weather_refund_received', 'Joiner confirmed'],
+          ['booking_number', 'Booking no.'], ['full_name', 'Joiner'], ['weather_refund', 'Refund (PHP)'],
+          ['weather_refund_status', 'Status'], ['weather_refund_ref', 'GCash reference'], ['weather_refund_at', 'Sent at'],
         ], rows);
       } else if (kind === 'activity') {
-        const { data, error } = await supabase.from('admin_activity').select('*').order('at', { ascending: false }).limit(5000);
-        if (error) throw error;
-        rows = data || [];
-        downloadCsv(`activity-logs-${day}.csv`, [
+        rows = await fetchExport('activity');
+        downloadCsv(`audit-trail-${day}.csv`, [
           ['at', 'When'], ['admin_name', 'Admin'], ['action', 'Action'], ['table_name', 'Record type'], ['summary', 'Record'],
           ['changed', 'Fields changed'], ['old_values', 'Before'], ['new_values', 'After'],
         ], rows);
+      } else if (kind === 'suppliers') {
+        rows = await fetchExport('suppliers');
+        downloadCsv(`suppliers-${day}.csv`, [
+          ['name', 'Supplier'], ['supplier_type', 'Type'], ['inclusion_name', 'Joiners see'], ['contact_person', 'Contact person'], ['contact_number', 'Contact number'],
+          ['destinations', 'Destinations'], ['default_rate', 'Default rate (PHP)'], ['rate_basis', 'Rate basis'], [(r) => (r.is_active ? 'Active' : 'Archived'), 'Status'], ['notes', 'Notes'],
+        ], rows);
+      } else if (kind === 'expenses') {
+        rows = await fetchExport('expenses');
+        downloadCsv(`tour-expenses-${day}.csv`, [
+          ['tour_title', 'Tour'], ['tour_start', 'Start'], ['label', 'Expense'], ['category', 'Category'], ['supplier', 'Supplier'],
+          ['rate', 'Rate (PHP)'], ['rate_basis', 'Basis'], ['quantity', 'Quantity'], ['estimated_amount', 'Estimated (PHP)'], ['actual_amount', 'Actual (PHP)'],
+          [(r) => (r.is_unplanned ? 'Yes' : 'No'), 'Unplanned'], ['actual_note', 'Note'],
+        ], rows);
       }
-      await logBackup(label, rows.length);
       toast.success('Backup downloaded', `${rows.length} record${rows.length === 1 ? '' : 's'}. Open it in Excel or Google Sheets.`);
       load();
     } catch (err) {
@@ -164,7 +168,7 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
                         </ul>
                       )}
                     </div>
-                    {n > 0 && !info.page && <button type="button" onClick={() => onTab('data')} style={btn(true)}>Data Maintenance</button>}
+                    {n > 0 && !info.page && <button type="button" onClick={() => onTab('data')} style={btn(true)}>Cleanups</button>}
                   </div>
                 );
               })}
@@ -179,9 +183,14 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
           Download a copy of the records. The files open in Excel or Google Sheets.
           {counts ? ` Stored now: ${counts.bookings ?? '—'} bookings, ${(Number(counts.active_tours) || 0) + (Number(counts.archived_tours) || 0)} tours, ${(Number(counts.joiners) || 0) + (Number(counts.archived_joiners) || 0)} joiner accounts.` : ''}
         </p>
+        {!me.isMain && (
+          <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 12px' }}>
+            <Lock size={15} /> Only the main admin can download backups. You can see the backup history below.
+          </p>
+        )}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {BACKUPS.map(([k, l]) => (
-            <button key={k} type="button" onClick={() => exportData(k, l)} disabled={!!exporting} style={btn(false)}>
+            <button key={k} type="button" onClick={() => exportData(k)} disabled={!!exporting || !me.isMain} style={{ ...btn(false), opacity: me.isMain ? 1 : 0.5, cursor: me.isMain ? 'pointer' : 'not-allowed' }}>
               {exporting === k ? <Loader2 size={14} style={spin} /> : <Download size={14} />} {l}
             </button>
           ))}

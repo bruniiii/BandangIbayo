@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
-import { MapPin, Plus, Trash2, X, Loader2, Pencil } from 'lucide-react';
+import { MapPin, Plus, Archive, X, Loader2, Pencil } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -56,12 +56,14 @@ const PickupSpots = ({ onClose, onChanged }) => {
 
   const remove = async (s) => {
     if (!(await confirmDialog({
-      title: `Remove ${s.name}?`,
-      message: 'It won\'t be suggested for new tours anymore. Tours that already use it keep it.',
-      confirmLabel: 'Remove Spot', cancelLabel: 'Keep It', tone: 'danger',
+      title: `Archive ${s.name}?`,
+      message: 'It won\'t be suggested for new tours anymore. Tours that already use it keep it, and it can be restored in System Maintenance → Pickup Points.',
+      confirmLabel: 'Archive Spot', cancelLabel: 'Keep It', tone: 'danger',
     }))) return;
-    const { error } = await supabase.from('pickup_spots').delete().eq('id', s.id);
-    if (error) { toast.error("Couldn't remove it", error.message); return; }
+    // Archived, never deleted (before the 20261228 update: removed as before).
+    let { error } = await supabase.from('pickup_spots').update({ is_active: false }).eq('id', s.id);
+    if (error && /is_active/.test(error.message)) ({ error } = await supabase.from('pickup_spots').delete().eq('id', s.id));
+    if (error) { toast.error("Couldn't archive it", error.message); return; }
     if (editing?.id === s.id) reset();
     load(); onChanged?.();
   };
@@ -131,7 +133,7 @@ const PickupSpots = ({ onClose, onChanged }) => {
                     {s.address && <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18', overflowWrap: 'anywhere' }}>{s.address}</p>}
                   </div>
                   <button type="button" onClick={() => { setEditing(s); setName(s.name); setPlace({ name: s.address || s.name, lat: s.lat, lng: s.lng }); }} aria-label={`Change ${s.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4 }}><Pencil size={15} /></button>
-                  <button type="button" onClick={() => remove(s)} aria-label={`Remove ${s.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 4 }}><Trash2 size={15} /></button>
+                  <button type="button" onClick={() => remove(s)} aria-label={`Archive ${s.name}`} title="Archive" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 4 }}><Archive size={15} /></button>
                 </li>
               ))}
             </ul>

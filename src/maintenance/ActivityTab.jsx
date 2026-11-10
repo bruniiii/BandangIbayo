@@ -5,9 +5,11 @@ import PrettySelect from '../ui/PrettySelect';
 import NiceDate from '../ui/NiceDate';
 import { downloadCsv } from '../csvExport';
 import { card, h3, hint, btn, input, when, TABLE_NAMES } from './shared';
+import Pager from '../ui/Pager';
+import { paginate } from '../ui/paginate';
 
 // ─────────────────────────────────────────────
-// Activity Logs: who added, changed or removed what, when, and (for
+// Audit Trail: who added, changed or removed what, when, and (for
 // changes) each field's value before and after. Filter by admin, record
 // type, action and dates; download as CSV.
 // ─────────────────────────────────────────────
@@ -50,6 +52,7 @@ const ActivityTab = () => {
   const [to, setTo] = useState('');
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(null);
+  const [pageNo, setPageNo] = useState(1);
 
   const load = async () => {
     let query = supabase.from('admin_activity').select('*').order('at', { ascending: false }).limit(PAGE);
@@ -69,6 +72,9 @@ const ActivityTab = () => {
     && (!type || a.table_name === type) && (!action || a.action === action)
     && (!text || `${a.admin_name} ${TABLE_NAMES[a.table_name] || a.table_name} ${a.summary} ${recordName(a)} ${(a.changed || []).join(' ')} ${JSON.stringify(a.old_values || '')} ${JSON.stringify(a.new_values || '')}`.toLowerCase().includes(text)));
 
+  // 25 changes a page.
+  const { visible: pageRows, pages: pageCount, current: pageNow } = paginate(shown, pageNo, 25);
+
   const download = () => downloadCsv(`activity-logs-${new Date().toISOString().slice(0, 10)}.csv`, [
     ['at', 'When'], ['admin_name', 'Admin'], ['action', 'Action'], [(r) => TABLE_NAMES[r.table_name] || r.table_name, 'Record type'], [(r) => recordName(r), 'Record'],
     [(r) => (r.changed || []).map(fieldName).join(', '), 'Fields changed'],
@@ -78,8 +84,8 @@ const ActivityTab = () => {
 
   return (
     <section style={card}>
-      <h3 style={h3}><History size={16} color="#A8481A" /> Activity logs</h3>
-      <p style={hint}>Every change an admin made: tours and prices, bookings and payments, requests, accounts, drivers and settings. Click a change to see the values before and after.</p>
+      <h3 style={h3}><History size={16} color="#A8481A" /> Audit Trail</h3>
+      <p style={hint}>Every change an admin made: tours and prices, bookings and payments, requests, accounts, suppliers, expenses, drivers and settings. Click a change to see the values before and after. Entries can't be edited or deleted by anyone.</p>
 
       {/* Search, then Refresh and Download, on one row. */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
@@ -109,7 +115,7 @@ const ActivityTab = () => {
             {shown.length} change{shown.length === 1 ? '' : 's'}{list.length >= PAGE ? ` (latest ${PAGE}; pick dates to see older ones)` : ''}
           </p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
-            {shown.map((a) => {
+            {pageRows.map((a) => {
               const hasValues = !!(a.action === 'changed' && a.changed?.length && (a.old_values || a.new_values));
               const isOpen = open === a.id;
               return (
@@ -147,6 +153,7 @@ const ActivityTab = () => {
               );
             })}
           </ul>
+          <Pager page={pageNow} pages={pageCount} onPage={setPageNo} />
         </>
       )}
     </section>

@@ -294,7 +294,7 @@ const BookingRulesTab = () => {
       <div style={card}>
         <h3 style={h3}><History size={16} color="#B4511E" /> Recent rule changes</h3>
         {history.length === 0 ? (
-          <p style={{ ...hint, margin: 0 }}>No changes yet. Every change is saved in Activity Logs with who made it and the old and new values.</p>
+          <p style={{ ...hint, margin: 0 }}>No changes yet. Every change is saved in Audit Trail with who made it and the old and new values.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {history.map((h) => (
