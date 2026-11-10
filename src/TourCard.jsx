@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { isOnSale } from './tourUtils';
+import { isOnSale, todayManila } from './tourUtils';
 import PriceTag from './ui/PriceTag';
-import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, CloudRain } from 'lucide-react';
+import { Edit, Archive, Eye, MapPin, Users, ImageIcon, Calendar, RefreshCw, CloudRain, Receipt } from 'lucide-react';
 
 // ─────────────────────────────────────────────
 // TOUR CARD (Tour Management): one trip with its dates, slots and the
 // View / Edit / Joiners / Archive actions (dates are added in Edit).
 // ─────────────────────────────────────────────
 
-const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather = null, formatDateRange }) => {
+// onExpenses(date): the Actual Expenses of a date that has ended.
+const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather = null, onExpenses = null, formatDateRange }) => {
   // A private tour (made from a private request's package).
   const exclusive = !!tour.is_exclusive || (tour.dates || []).some((d) => d.is_exclusive);
   const [hovered, setHovered] = useState(false);
@@ -115,6 +116,20 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                       display: 'flex', alignItems: 'center', gap: 4,
                     }}
                   ><Users size={11} /> Joiners</button>
+                  {onExpenses && (d.end_date || d.start_date) < todayManila() && (
+                    <button
+                      type="button"
+                      onClick={() => onExpenses(d)}
+                      title="Actual expenses of this date"
+                      aria-label={`Actual expenses of ${formatDateRange(d.start_date, d.duration)}`}
+                      style={{
+                        flexShrink: 0, minHeight: 32, padding: '0 9px', borderRadius: 8, cursor: 'pointer',
+                        border: `1px solid ${d.expenses_final_at ? 'rgba(46,107,74,0.45)' : 'rgba(122,58,24,0.25)'}`, background: '#FDF6EE',
+                        color: d.expenses_final_at ? '#2E6B4A' : '#1A0A00', display: 'flex', alignItems: 'center', gap: 4,
+                        fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                      }}
+                    ><Receipt size={11} /> {d.expenses_final_at ? 'Final' : 'Expenses'}</button>
+                  )}
                   {onWeather && (
                     <button
                       type="button"

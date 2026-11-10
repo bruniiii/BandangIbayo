@@ -141,5 +141,6 @@ from (values
      and not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
                       where n.nspname = 'public' and p.proname = 'start_online_booking' and p.prosrc like '%interval ''30 minutes''%')),
   ('20261223 suppliers', to_regclass('public.suppliers') is not null),
-  ('20261224 tour expense lines (supplier checklist)', to_regclass('public.tour_expense_lines') is not null and exists (select 1 from pg_proc where proname = 'tour_inclusion_names'))
+  ('20261224 tour expense lines (supplier checklist)', to_regclass('public.tour_expense_lines') is not null and exists (select 1 from pg_proc where proname = 'tour_inclusion_names')),
+  ('20261225 actual expenses after a tour (final lock)', exists (select 1 from pg_proc where proname = 'set_expenses_final'))
 ) as u(update_file, installed);

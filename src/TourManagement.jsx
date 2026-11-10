@@ -38,6 +38,7 @@ import { loadPickupSpots } from './pickupSpots';
 import { findRoute } from './routeApi';
 import { placeOnRoute, departureFromItinerary, addMinutesToTime, to24h, stopMinutes } from './geo';
 import WeatherActionModal from './WeatherActionModal';
+import ActualExpenses from './ActualExpenses';
 import { useAdminMe } from './adminMe';
 import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
@@ -72,6 +73,8 @@ const TourManagement = ({ openTourId = null }) => {
   const [joinerListTour, setJoinerListTour]     = useState(null);
   // Bad weather: postpone or cancel one date (main admin only).
   const [weatherDate, setWeatherDate]           = useState(null);
+  // An ended date's Actual Expenses window.
+  const [expensesDate, setExpensesDate]         = useState(null);
   const adminMe = useAdminMe();
   const [tours, setTours]                       = useState([]);
   const [filteredTours, setFilteredTours]       = useState([]);
@@ -664,6 +667,7 @@ const TourManagement = ({ openTourId = null }) => {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {weatherDate && <WeatherActionModal date={weatherDate} onClose={() => setWeatherDate(null)} onDone={fetchTours} />}
+      {expensesDate && <ActualExpenses tour={expensesDate} onClose={() => setExpensesDate(null)} onSaved={fetchTours} />}
       {joinerListTour && (
         <JoinerListModal tour={joinerListTour} onClose={() => setJoinerListTour(null)} />
       )}
@@ -881,6 +885,7 @@ const TourManagement = ({ openTourId = null }) => {
                 onEdit={() => openTourForm(tour)}
                 onJoiners={(date) => setJoinerListTour(date)}
                 onWeather={adminMe.isMain && currentTab === 'active' ? (date) => setWeatherDate({ ...date, title: tour.title }) : null}
+                onExpenses={(date) => setExpensesDate({ ...date, title: tour.title })}
                 formatDateRange={formatDateRange}
               />
             ))
