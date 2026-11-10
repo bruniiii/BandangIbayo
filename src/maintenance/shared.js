@@ -20,5 +20,5 @@ export const spin = { animation: 'spin 1s linear infinite' };
 export const TABLE_NAMES = {
   tours: 'Tour', tour_rates: 'Regular Rate', tour_expenses: 'Tour expenses', bookings: 'Booking', exclusive_requests: 'Private tour / request',
   feed_posts: 'Feed post', pickup_spots: 'Pickup spot', fleet_drivers: 'Driver', fleet_vans: 'Van', tour_vehicles: 'Tour driver & van',
-  app_settings: 'Setting', tour_templates: 'Tour template', profiles: 'Account', booking_rules: 'Booking rules',
+  app_settings: 'Setting', tour_templates: 'Tour template', profiles: 'Account', booking_rules: 'Booking rules', suppliers: 'Supplier',
 };

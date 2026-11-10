@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, Wrench, ShieldCheck, History, Settings, Power, Scale } from 'lucide-react';
+import { Activity, Database, Wrench, ShieldCheck, History, Settings, Power, Scale, Truck } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
 import BookingRulesTab from './maintenance/BookingRulesTab';
+import SuppliersTab from './maintenance/SuppliersTab';
 import OverviewTab from './maintenance/OverviewTab';
 import DatabaseTab from './maintenance/DatabaseTab';
 import DataTab from './maintenance/DataTab';
@@ -14,6 +15,7 @@ import SettingsTab from './maintenance/SettingsTab';
 // Admin → System Maintenance: the website's control center.
 //  Booking Rules: the business rules the whole website follows (cancellation
 //     cutoff, downpayment, refunds, rate limits…); the main admin changes them.
+//  Suppliers: van rentals, guides, boats, places to stay, attractions, food.
 //  System Overview: status (Operational / Under Maintenance), database
 //     connection, totals, last maintenance and backup.
 //  Database Management: data check for incomplete or inconsistent
@@ -29,6 +31,7 @@ import SettingsTab from './maintenance/SettingsTab';
 
 const TABS = [
   ['rules', 'Booking Rules', Scale],
+  ['suppliers', 'Suppliers', Truck],
   ['overview', 'System Overview', Activity],
   ['database', 'Database Management', Database],
   ['data', 'Data Maintenance', Wrench],
@@ -102,6 +105,7 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       )}
 
       {tab === 'rules' && <BookingRulesTab />}
+      {tab === 'suppliers' && <SuppliersTab />}
       {tab === 'overview' && <OverviewTab onTab={setTab} />}
       {tab === 'database' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
       {tab === 'data' && <DataTab onNavigate={onNavigate} />}
