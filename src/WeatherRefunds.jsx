@@ -7,7 +7,7 @@ import { useAdminMe } from './adminMe';
 import { REFUND_SELECT, RefundPanel, RefundSentInfo, RefundHistoryButton } from './RefundPanel';
 
 // ─────────────────────────────────────────────
-// Booking Management: 50% refunds to send after a weather postponement or
+// Booking Management: weather refunds to send after a weather postponement or
 // cancellation. Any admin prepares one (sent manually through GCash, with the receipt);
 // only the main admin approves and sends it (RefundPanel). Refunds a joiner
 // says they didn't get are listed too. The main admin also sees the
@@ -101,7 +101,7 @@ const WeatherRefunds = ({ standalone = false }) => {
       )}
       {!collapsed && rows.length > 0 && (
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
-          50% of what each joiner paid. Refunds are sent manually through GCash: any admin adds the GCash reference and receipt; only the main admin approves and sends it.
+          The weather refund share of what each joiner paid (the rule when they booked). Refunds are sent manually through GCash: any admin adds the GCash reference and receipt; only the main admin approves and sends it.
         </p>
       )}
       {!collapsed && rows.map((b) => row(b, false))}

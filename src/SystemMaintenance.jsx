@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, Wrench, ShieldCheck, History, Settings, Power } from 'lucide-react';
+import { Activity, Database, Wrench, ShieldCheck, History, Settings, Power, Scale } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
+import BookingRulesTab from './maintenance/BookingRulesTab';
 import OverviewTab from './maintenance/OverviewTab';
 import DatabaseTab from './maintenance/DatabaseTab';
 import DataTab from './maintenance/DataTab';
@@ -10,21 +11,24 @@ import ActivityTab from './maintenance/ActivityTab';
 import SettingsTab from './maintenance/SettingsTab';
 
 // ─────────────────────────────────────────────
-// Admin → System Maintenance: the website's control center, in six tabs.
-//  1. System Overview: status (Operational / Under Maintenance), database
+// Admin → System Maintenance: the website's control center.
+//  Booking Rules: the business rules the whole website follows (cancellation
+//     cutoff, downpayment, refunds, rate limits…); the main admin changes them.
+//  System Overview: status (Operational / Under Maintenance), database
 //     connection, totals, last maintenance and backup.
-//  2. Database Management: data check for incomplete or inconsistent
+//  Database Management: data check for incomplete or inconsistent
 //     records, CSV backups and their history.
-//  3. Data Maintenance: where to update records, cleanups of outdated data,
+//  Data Maintenance: where to update records, cleanups of outdated data,
 //     what runs automatically, maintenance log.
-//  4. Security Maintenance: admin accounts, failed/locked logins, protections.
-//  5. Activity Logs: who changed what, when, before and after.
-//  6. System Settings (main admin): Maintenance Mode, agency info, email
+//  Security Maintenance: admin accounts, failed/locked logins, protections.
+//  Activity Logs: who changed what, when, before and after.
+//  System Settings (main admin): Maintenance Mode, agency info, email
 //     reminders.
 // Every save shows a message and is recorded in Activity Logs.
 // ─────────────────────────────────────────────
 
 const TABS = [
+  ['rules', 'Booking Rules', Scale],
   ['overview', 'System Overview', Activity],
   ['database', 'Database Management', Database],
   ['data', 'Data Maintenance', Wrench],
@@ -38,7 +42,7 @@ const readTab = () => {
   try { const t = localStorage.getItem(SAVED_TAB); return TABS.some(([k]) => k === t) ? t : 'overview'; } catch { return 'overview'; }
 };
 
-// Phones: the six tabs become one menu.
+// Phones: the tabs become one menu.
 const useNarrow = () => {
   const q = '(max-width: 640px)';
   const [narrow, setNarrow] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(q).matches);
@@ -97,6 +101,7 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       </div>
       )}
 
+      {tab === 'rules' && <BookingRulesTab />}
       {tab === 'overview' && <OverviewTab onTab={setTab} />}
       {tab === 'database' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
       {tab === 'data' && <DataTab onNavigate={onNavigate} />}

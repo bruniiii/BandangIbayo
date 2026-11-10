@@ -14,6 +14,10 @@ import { cleanAccommodation } from './accommodation';
 import { formatYmdRange, daysLabel, tripDays as countDays } from './dateRange';
 import { checkFields, textError, mediaFileError } from './validation';
 import { BAG_TAG_FEE, expenseItems } from './tourExpenses';
+import {
+  EXCLUSIVE_APPROVAL_CUTOFF_DAYS, PRIVATE_DOWNPAYMENT_PERCENT, REGULAR_RATE_MIN, REGULAR_RATE_MAX, JOINER_RATE_MIN, JOINER_RATE_MAX,
+  VAN_RENT_MIN, VAN_RENT_MAX, TOUR_GUIDE_MIN, TOUR_GUIDE_MAX, periodText, rangeText,
+} from './bookingRules';
 import { X, Trash2, UploadCloud, Loader2, LayoutTemplate } from 'lucide-react';
 import { TourTemplatePicker } from './TourTemplates';
 import { saveTourTemplate } from './saveTourTemplate';
@@ -28,10 +32,10 @@ import NiceDate from './ui/NiceDate';
 // TOUR PACKAGE FORM (admin, Private Tours / Requested Tours)
 // The same form as "Create New Tour" in Tour Management, for an approved request:
 //  - REQUESTED TOUR: saving it posts the tour on Explore Tours (Regular Rate
-//    ₱1,300–₱7,500, Joiner Rate ₱1,800–₱7,500, accommodation, expenses and
+//    and Joiner Rate within the Booking Rules limits, accommodation, expenses and
 //    pickup points) and holds the requester's slots for 2 days
 //    (hold_requested_slots) so they get priority.
-//  - PRIVATE TOUR: the package the joiner pays a 50% downpayment on. Its
+//  - PRIVATE TOUR: the package the joiner pays a downpayment on. Its
 //    dates and group size are the joiner's; the admin ticks the accommodation
 //    the joiner can choose from.
 // ─────────────────────────────────────────────
@@ -55,14 +59,14 @@ const to24h = (value) => {
   return `${String(h).padStart(2, '0')}:${m[2]}`;
 };
 const key = () => Math.random().toString(36).slice(2);
-// Requests are approved at least 2 weeks before the trip (same rule as approving).
-const APPROVAL_DAYS = 14;
+// Requests are approved at least EXCLUSIVE_APPROVAL_CUTOFF_DAYS before the trip
+// (same rule as approving; a booking rule).
 
 const PackageTourForm = ({ request, onClose, onSent }) => {
   const isOpenRequest = request.request_type === 'request';
   const pkg = request.package_details || {};
   const tourId = pkg.tour_id || null;
-  const minStart = isOpenRequest ? addDays(todayManila(), APPROVAL_DAYS) : todayManila();
+  const minStart = isOpenRequest ? addDays(todayManila(), EXCLUSIVE_APPROVAL_CUTOFF_DAYS) : todayManila();
 
   const [form, setForm] = useState(() => ({
     title: pkg.title || request.destination || '',
@@ -292,14 +296,14 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           : regular < EXCLUSIVE_RATE_MIN ? `The Regular Rate must be at least ${formatPeso(EXCLUSIVE_RATE_MIN)}.`
             : regular > EXCLUSIVE_RATE_MAX ? `The Regular Rate can be at most ${formatPeso(EXCLUSIVE_RATE_MAX)}.` : ''],
       ]),
-      ['van_rent', !(van >= 15000) ? 'Van Rent must be at least ₱15,000.' : van > 30000 ? 'Van Rent can be at most ₱30,000.' : ''],
-      ['tour_guide', !(guide >= 1300) ? 'Tour Guide must be at least ₱1,300.' : guide > 2000 ? 'Tour Guide can be at most ₱2,000.' : ''],
+      ['van_rent', !(van >= VAN_RENT_MIN) ? `Van Rent must be at least ${formatPeso(VAN_RENT_MIN)}.` : van > VAN_RENT_MAX ? `Van Rent can be at most ${formatPeso(VAN_RENT_MAX)}.` : ''],
+      ['tour_guide', !(guide >= TOUR_GUIDE_MIN) ? `Tour Guide must be at least ${formatPeso(TOUR_GUIDE_MIN)}.` : guide > TOUR_GUIDE_MAX ? `Tour Guide can be at most ${formatPeso(TOUR_GUIDE_MAX)}.` : ''],
       ...extra.flatMap((o, i) => [
         [`other_name_${i}`, !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
         [`other_amount_${i}`, !(String(o.amount).trim() !== '' && Number(o.amount) >= 0) ? 'Enter the amount (₱0 or more).' : ''],
       ]),
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
-        ? (isOpenRequest ? 'The tour must start at least 2 weeks from today.' : "The start date can't be in the past.") : ''],
+        ? (isOpenRequest ? `The tour must start at least ${periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} from today.` : "The start date can't be in the past.") : ''],
       ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
       ['pickup_new', stops.length === 0 ? 'Tick at least one pickup spot.' : ''],
       ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : isOpenRequest && slots > MAX_TOUR_SLOTS && slots !== Number(pkg.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots.` : slots > 200 ? 'That looks too high. Please check the number.'
@@ -319,7 +323,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         : { title: 'Post this tour?', message: `It opens for booking on Explore Tours right away, and ${request.full_name || 'the requester'} gets ${requestedSlots} slot${requestedSlots === 1 ? '' : 's'} held for 2 days to pay.`, confirmLabel: 'Post Tour', cancelLabel: 'Keep Editing' })
       : { title: packageSent() ? 'Send the updated package?' : 'Send this package?', message: request.payment_status === 'Paid'
           ? `${request.full_name || 'The joiner'} will be notified, and the tour shows in their My Bookings (with the group chat, Tracking and the Calendar). Their balance is ${formatPeso(Math.max(0, price - (Number(request.amount_paid) || 0)))}.`
-          : `${request.full_name || 'The joiner'} will be notified and can pay the 50% downpayment.`, confirmLabel: 'Send Package', cancelLabel: 'Keep Editing' }))) return;
+          : `${request.full_name || 'The joiner'} will be notified and can pay the ${PRIVATE_DOWNPAYMENT_PERCENT}% downpayment.`, confirmLabel: 'Send Package', cancelLabel: 'Keep Editing' }))) return;
 
     savingRef.current = true;
     setSaving(true);
@@ -451,7 +455,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 24px', lineHeight: 1.6 }}>
             {isOpenRequest
               ? <>Requested by <strong>{request.full_name || 'a joiner'}</strong> for {request.group_size || 1} {Number(request.group_size) === 1 ? 'person' : 'people'}. It's posted on Explore Tours for other joiners, and their {Number(request.group_size) === 1 ? 'slot is' : 'slots are'} held for 2 days so they can pay first.</>
-              : <>A private tour for <strong>{request.full_name || 'the joiner'}</strong>'s group of {request.group_size || '—'}. Only they see this package, and they confirm it with a 50% downpayment.</>}
+              : <>A private tour for <strong>{request.full_name || 'the joiner'}</strong>'s group of {request.group_size || '—'}. Only they see this package, and they confirm it with a {PRIVATE_DOWNPAYMENT_PERCENT}% downpayment.</>}
           </p>
 
           <button type="button" onClick={() => setPickTemplate(true)} style={{
@@ -493,18 +497,18 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
               <Field label="Destination" name="destination" data-allow="place" value={form.destination} onChange={set('destination')} maxLength={120} />
-              <Field label="Regular Rate (₱)" name="regular_rate" {...money('regular_rate')} placeholder={isOpenRequest ? '1,300.00 – 7,500.00' : '3,000.00 – 100,000.00'} />
+              <Field label="Regular Rate (₱)" name="regular_rate" {...money('regular_rate')} placeholder={isOpenRequest ? rangeText(REGULAR_RATE_MIN, REGULAR_RATE_MAX) : rangeText(EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX)} />
             </div>
             {isOpenRequest ? (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
-                <Field label="Joiner Rate (₱)" name="price" {...money('price')} placeholder="1,800.00 – 7,500.00" />
+                <Field label="Joiner Rate (₱)" name="price" {...money('price')} placeholder={rangeText(JOINER_RATE_MIN, JOINER_RATE_MAX)} />
                 <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>{RATE_HINT}</p>
               </div>
             ) : (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
-                <Field label="Package Price (₱, whole group)" name="price" {...money('price')} placeholder="3,000.00 – 100,000.00" />
+                <Field label="Package Price (₱, whole group)" name="price" {...money('price')} placeholder={rangeText(EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX)} />
                 <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
-                  The Package Price is what the joiner pays (50% downpayment first). The Regular Rate is for admins only. Both ₱3,000.00 – ₱100,000.00.
+                  The Package Price is what the joiner pays ({PRIVATE_DOWNPAYMENT_PERCENT}% downpayment first). The Regular Rate is for admins only. Both ₱{rangeText(EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX).replace(' – ', ' – ₱')}.
                 </p>
               </div>
             )}
@@ -519,8 +523,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             <div style={sectionBox}>
               <label style={{ ...labelStyle, opacity: 1 }}>Expenses</label>
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                <Field label="Van Rent (₱)" name="van_rent" {...money('van_rent')} placeholder="15,000.00 – 30,000.00" />
-                <Field label="Tour Guide (₱)" name="tour_guide" {...money('tour_guide')} placeholder="1,300.00 – 2,000.00" />
+                <Field label="Van Rent (₱)" name="van_rent" {...money('van_rent')} placeholder={rangeText(VAN_RENT_MIN, VAN_RENT_MAX)} />
+                <Field label="Tour Guide (₱)" name="tour_guide" {...money('tour_guide')} placeholder={rangeText(TOUR_GUIDE_MIN, TOUR_GUIDE_MAX)} />
                 <div>
                   <label style={labelStyle}>Bag Tag (₱)</label>
                   <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>{BAG_TAG_FEE.toFixed(2)} <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span></p>
@@ -550,7 +554,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             <div style={sectionBox}>
               <label style={{ ...labelStyle, opacity: 1 }}>Tour Dates</label>
               <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
-                {isOpenRequest ? `Filled in from the request. It must start at least 2 weeks from today and last at most ${MAX_TOUR_DAYS} days.` : "The joiner's requested dates."}
+                {isOpenRequest ? `Filled in from the request. It must start at least ${periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} from today and last at most ${MAX_TOUR_DAYS} days.` : "The joiner's requested dates."}
               </p>
               {!isOpenRequest ? (
                 <p style={{ ...inputStyle, margin: 0, background: '#FDF6EE' }}>

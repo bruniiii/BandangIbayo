@@ -9,6 +9,7 @@ import { setupInstallApp } from './installApp';
 import { reportError } from './ui/toast';
 import { logClientError } from './errorLog';
 import { installStaleVersionReload } from './staleVersion';
+import { hasCachedRules, loadBookingRules } from './bookingRules';
 import './index.css';
 import './App.css';
 
@@ -58,7 +59,7 @@ window.addEventListener('unhandledrejection', (e) => {
   logClientError(err);
 });
  
-ReactDOM.createRoot(document.getElementById('root')).render(
+const start = () => ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Router>
       <ErrorBoundary>
@@ -68,3 +69,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </Router>
   </React.StrictMode>
 );
+
+// The booking rules (System Maintenance → Booking Rules) are read before the
+// first screen. With a copy saved from the last visit, the page starts right
+// away and the copy is refreshed in the background; on a first visit it waits
+// for them (at most 4 seconds, then the usual values are used).
+const rulesLoaded = loadBookingRules().catch(() => null);
+if (hasCachedRules()) {
+  start();
+} else {
+  Promise.race([rulesLoaded, new Promise((resolve) => setTimeout(resolve, 4000))]).then(start);
+}

@@ -69,7 +69,23 @@ const peso = (n: number) =>
 // A day in Asia/Manila (UTC+8), as YYYY-MM-DD — matches tours.start_date
 const manilaDate = (daysFromToday: number) =>
   new Date(Date.now() + 8 * 3600 * 1000 + daysFromToday * 24 * 3600 * 1000).toISOString().slice(0, 10);
-const tomorrowManila = () => manilaDate(1);
+
+// Reminder timing comes from the booking rules (System Maintenance → Booking
+// Rules). The values below are used only if the rules can't be read.
+let REMINDER_LEAD_DAYS = 1;      // tour reminder: this many days before the tour
+let BALANCE_REMINDER_DAYS = 3;   // balance reminder: from this many days before
+async function loadReminderRules() {
+  try {
+    const { data, error } = await supabase.rpc("get_booking_rules");
+    if (error || !data) return;
+    const lead = Number(data.reminder_lead_days), balance = Number(data.balance_reminder_days);
+    if (Number.isInteger(lead) && lead >= 1) REMINDER_LEAD_DAYS = lead;
+    if (Number.isInteger(balance) && balance >= 1) BALANCE_REMINDER_DAYS = balance;
+  } catch (_err) { /* keep the defaults */ }
+}
+const reminderDate = () => manilaDate(REMINDER_LEAD_DAYS);
+// "tomorrow", or "in 2 days"
+const reminderWhen = () => (REMINDER_LEAD_DAYS === 1 ? "tomorrow" : `in ${REMINDER_LEAD_DAYS} days`);
 
 const prettyDate = (ymd: string) => {
   const [y, m, d] = ymd.split("-").map(Number);
@@ -130,8 +146,8 @@ function buildEmail(opts: {
 
   const html = `
   <div style="font-family:'Inter',Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#1A0A00;background:#FDF6EE;">
-    <h2 style="color:#C45C26;margin:0 0 6px;">See you tomorrow! 🚐</h2>
-    <p style="margin:0 0 16px;font-size:14px;color:#7A3A18;">Hi ${esc(name)}, this is a friendly reminder that your tour starts tomorrow.</p>
+    <h2 style="color:#C45C26;margin:0 0 6px;">See you ${REMINDER_LEAD_DAYS === 1 ? "tomorrow" : "soon"}! 🚐</h2>
+    <p style="margin:0 0 16px;font-size:14px;color:#7A3A18;">Hi ${esc(name)}, this is a friendly reminder that your tour starts ${reminderWhen()}.</p>
 
     <div style="background:#1A0A00;border-radius:14px;padding:16px 18px;color:#FDF6EE;">
       <p style="margin:0;font-size:17px;font-weight:800;">${esc(tour.title)}</p>
@@ -224,7 +240,7 @@ async function runReminders(date: string, dryRun: boolean) {
         from: `"Bandang IBAYO" <${GMAIL_USER}>`,
         to,
         replyTo: GMAIL_USER,
-        subject: `Reminder: ${tour.title} starts tomorrow 🚐 (${b.booking_number})`,
+        subject: `Reminder: ${tour.title} starts ${reminderWhen()} 🚐 (${b.booking_number})`,
         html: buildEmail({ name, booking: b, tour, vehicle: vehicleByTour[b.tour_id], stops: stopsByTour[b.tour_id] }),
       });
 
@@ -233,8 +249,8 @@ async function runReminders(date: string, dryRun: boolean) {
       if (b.user_id) {
         await supabase.from("notifications").insert([{
           user_id: b.user_id,
-          title: "Your tour starts tomorrow 🚐",
-          message: `Reminder: ${tour.title} (${b.booking_number}) departs tomorrow, ${prettyDate(tour.start_date)}. Check the Tracking tab for pickup ETAs and driver details.`,
+          title: `Your tour starts ${reminderWhen()} 🚐`,
+          message: `Reminder: ${tour.title} (${b.booking_number}) departs ${reminderWhen()}, ${prettyDate(tour.start_date)}. Check the Tracking tab for pickup ETAs and driver details.`,
           type: "tracking",
         }]);
       }
@@ -421,10 +437,11 @@ async function buildNormalEmail(payload: any, callerId: string | null, trustedSe
 
 // ───────────── Balance reminders ─────────────
 // Downpayment bookings (downpayment confirmed, balance not yet settled) whose
-// tour starts in 2–3 days. Each booking is reminded once (balance_reminder_sent_at).
+// tour starts in a few days (2–3 by default; see the booking rules). Each booking is reminded once (balance_reminder_sent_at).
 async function runBalanceReminders(dryRun: boolean) {
   if (!(await emailOn("balance"))) return { skipped: "Balance reminders are switched off in System Settings." };
-  const from = manilaDate(2), to = manilaDate(3);
+  await loadReminderRules();
+  const from = manilaDate(Math.max(1, BALANCE_REMINDER_DAYS - 1)), to = manilaDate(BALANCE_REMINDER_DAYS);
   const { data: bookings, error } = await supabase
     .from("bookings")
     .select("id, user_id, booking_number, full_name, email, total_price, amount_paid, balance_settled, tours!inner ( title, destination, start_date )")
@@ -623,7 +640,8 @@ async function runTripEmails() {
 
   // Day-before reminders go out in the evening.
   if (manilaHour() >= 17) {
-    out.reminders = await runReminders(tomorrowManila(), false).catch((err) => ({ error: String((err as Error)?.message || err) }));
+    await loadReminderRules();
+    out.reminders = await runReminders(reminderDate(), false).catch((err) => ({ error: String((err as Error)?.message || err) }));
   }
   out.balance = await runBalanceReminders(false).catch((err) => ({ error: String((err as Error)?.message || err) }));
   // On the 1st of each month (from 8 AM): last month's summary to the main admin(s).
@@ -835,8 +853,9 @@ Deno.serve(async (req) => {
         return reply({ error: "Forbidden: reminders can only be triggered by the scheduler" }, 403);
       }
       // Run independently, so a problem with one kind of reminder doesn't stop the other.
+      await loadReminderRules();
       const [result, balance] = await Promise.all([
-        runReminders(payload.date || tomorrowManila(), !!payload.dryRun)
+        runReminders(payload.date || reminderDate(), !!payload.dryRun)
           .catch((err) => ({ error: String((err as Error)?.message || err) })),
         runBalanceReminders(!!payload.dryRun)
           .catch((err) => ({ error: String((err as Error)?.message || err) })),

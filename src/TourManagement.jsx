@@ -12,6 +12,10 @@ import { confirmDialog } from './ui/ConfirmDialog';
 import { sendWaitlistOpeningsEmail } from './Email';
 import JoinerListModal from './JoinerManifest';
 import { formatPeso, archivePastTours, groupTripDates, formatDateRange as formatTourDates, salePriceOf, rateChecks, RATE_HINT, MAX_TOUR_DAYS, MAX_TOUR_SLOTS, linesOf, tripForDate, todayManila } from './tourUtils';
+import {
+  TOUR_LEAD_DAYS, SALE_DISCOUNT, REGULAR_RATE_MIN, REGULAR_RATE_MAX, JOINER_RATE_MIN, JOINER_RATE_MAX,
+  VAN_RENT_MIN, VAN_RENT_MAX, TOUR_GUIDE_MIN, TOUR_GUIDE_MAX, periodText, rangeText,
+} from './bookingRules';
 import { moneyInputProps, blockSignKeys, moneyField, moneyNumber, moneyDisplay } from './moneyInput';
 import { checkFields, textError, mediaFileError } from './validation';
 import { Plus, Edit, Archive, X, Search, Loader2, Trash2, UploadCloud, RefreshCw, History, ChevronDown, MapPin } from 'lucide-react';
@@ -243,7 +247,7 @@ const TourManagement = ({ openTourId = null }) => {
 
   const getMinStartDate = () => {
     const date = new Date();
-    date.setDate(date.getDate() + 21);
+    date.setDate(date.getDate() + TOUR_LEAD_DAYS);
     return date.toISOString().split('T')[0];
   };
  
@@ -423,20 +427,20 @@ const TourManagement = ({ openTourId = null }) => {
       return twin !== -1 ? `${label}These days overlap Date ${twin + 1} of this trip. Only one tour per day.` : '';
     };
     // Each date's typing mistakes, shown at that date's field. A saved date may
-    // keep its start date even if it's now less than 3 weeks away.
+    // keep its start date even if it's now closer than TOUR_LEAD_DAYS.
     const dateChecks = dateRows.flatMap((r, i) => {
       const changed = !r.id || r.start_date !== r.original.start_date;
       const tripDays = (new Date(r.end_date) - new Date(r.start_date)) / 86400000 + 1;
       const label = dateRows.length > 1 ? `Date ${i + 1}: ` : '';
       return [
         [`start_date_${i}`, !r.start_date ? `${label}Pick a start date.` : ''],
-        [`start_date_${i}`, changed && r.start_date < minStart ? `${label}The start date must be at least 3 weeks from today.` : ''],
+        [`start_date_${i}`, changed && r.start_date < minStart ? `${label}The start date must be at least ${periodText(TOUR_LEAD_DAYS)} from today.` : ''],
         [`start_date_${i}`, dateRows.findIndex((o) => o.start_date === r.start_date) !== i ? `${label}This trip already has a date starting that day.` : ''],
         [`end_date_${i}`, !r.end_date ? `${label}Pick an end date.` : ''],
         [`end_date_${i}`, r.end_date < r.start_date ? `${label}The end date can't be before the start date.` : ''],
-        [`end_date_${i}`, tripDays > MAX_TOUR_DAYS ? `${label}A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
+        [`end_date_${i}`, tripDays > MAX_TOUR_DAYS ? `${label}A tour can be at most ${MAX_TOUR_DAYS} days long.` : ''],
         [`start_date_${i}`, r.end_date >= r.start_date ? overlapError(r, i, label) : ''],
-        // Sale (5% off the Joiner Rate) on this date only, ending by the day the tour starts.
+        // Sale (a discount off the Joiner Rate, see Booking Rules) on this date only, ending by the day the tour starts.
         [`sale_starts_${i}`, r.sale && !r.sale_starts ? `${label}Pick when the sale starts.` : ''],
         [`sale_ends_${i}`, r.sale && !r.sale_ends ? `${label}Pick when the sale ends.` : ''],
         [`sale_ends_${i}`, r.sale && r.sale_ends < r.sale_starts ? `${label}The sale can't end before it starts.` : ''],
@@ -452,10 +456,10 @@ const TourManagement = ({ openTourId = null }) => {
       ['destination', textError(formData.get('destination'), 'Destination', { min: 2, max: 120 })],
       ...rateChecks(regularRate, price),
       ...dateChecks,
-      ['van_rent', !Number.isFinite(vanRent) || vanRent < 15000 ? 'Van Rent must be at least ₱15,000.' : ''],
-      ['van_rent', vanRent > 30000 ? 'Van Rent can be at most ₱30,000.' : ''],
-      ['tour_guide', !Number.isFinite(tourGuide) || tourGuide < 1300 ? 'Tour Guide must be at least ₱1,300.' : ''],
-      ['tour_guide', tourGuide > 2000 ? 'Tour Guide can be at most ₱2,000.' : ''],
+      ['van_rent', !Number.isFinite(vanRent) || vanRent < VAN_RENT_MIN ? `Van Rent must be at least ${formatPeso(VAN_RENT_MIN)}.` : ''],
+      ['van_rent', vanRent > VAN_RENT_MAX ? `Van Rent can be at most ${formatPeso(VAN_RENT_MAX)}.` : ''],
+      ['tour_guide', !Number.isFinite(tourGuide) || tourGuide < TOUR_GUIDE_MIN ? `Tour Guide must be at least ${formatPeso(TOUR_GUIDE_MIN)}.` : ''],
+      ['tour_guide', tourGuide > TOUR_GUIDE_MAX ? `Tour Guide can be at most ${formatPeso(TOUR_GUIDE_MAX)}.` : ''],
       ...otherExpenses.flatMap((o, i) => [
         [`other_name_${i}`, (o.name.trim() || o.amount) && !o.name.trim() ? 'Name this expense, e.g. Entrance Fee.' : ''],
         [`other_amount_${i}`, o.name.trim() && !(Number(o.amount) >= 0 && String(o.amount).trim() !== '') ? 'Enter the amount (₱0 or more).' : ''],
@@ -993,10 +997,10 @@ const TourManagement = ({ openTourId = null }) => {
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} required />
-                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder="1,800.00 – 7,500.00" defaultValue={moneyDisplay(formTour?.price)} onChange={(e) => setFormTourPrice(String(moneyNumber(e.target.value) || ''))} required />
+                  <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder={rangeText(JOINER_RATE_MIN, JOINER_RATE_MAX)} defaultValue={moneyDisplay(formTour?.price)} onChange={(e) => setFormTourPrice(String(moneyNumber(e.target.value) || ''))} required />
                 </div>
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
-                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder="1,300.00 – 7,500.00" defaultValue={moneyDisplay(formTour?.regular_rate)} required />
+                  <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder={rangeText(REGULAR_RATE_MIN, REGULAR_RATE_MAX)} defaultValue={moneyDisplay(formTour?.regular_rate)} required />
                   <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
                     {RATE_HINT}
                   </p>
@@ -1008,8 +1012,8 @@ const TourManagement = ({ openTourId = null }) => {
                 <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Expenses</label>
                   <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                    <ModalInput label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder="15,000.00 – 30,000.00" defaultValue={moneyDisplay(formTour?.expenses?.van_rent)} onChange={() => setFormDirty(true)} required />
-                    <ModalInput label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder="1,300.00 – 2,000.00" defaultValue={moneyDisplay(formTour?.expenses?.tour_guide)} onChange={() => setFormDirty(true)} required />
+                    <ModalInput label="Van Rent (₱)" name="van_rent" {...moneyInputProps} placeholder={rangeText(VAN_RENT_MIN, VAN_RENT_MAX)} defaultValue={moneyDisplay(formTour?.expenses?.van_rent)} onChange={() => setFormDirty(true)} required />
+                    <ModalInput label="Tour Guide (₱)" name="tour_guide" {...moneyInputProps} placeholder={rangeText(TOUR_GUIDE_MIN, TOUR_GUIDE_MAX)} defaultValue={moneyDisplay(formTour?.expenses?.tour_guide)} onChange={() => setFormDirty(true)} required />
                     <div>
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 5 }}>Bag Tag (₱)</label>
                       <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>260.00 <span style={{ fontWeight: 600, color: '#7A3A18' }}>(fixed)</span></p>
@@ -1086,10 +1090,10 @@ const TourManagement = ({ openTourId = null }) => {
                           <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
                             {[calculateDuration(r.start_date, r.end_date), r.id ? `${r.booked} booked` : 'New date'].filter(Boolean).join(' · ')}
                           </p>
-                          {/* Sale: 5% off the Joiner Rate for this date, between two days. */}
+                          {/* Sale: the sale discount off the Joiner Rate for this date, between two days. */}
                           <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#8C2F1C', cursor: 'pointer' }}>
                             <input type="checkbox" checked={r.sale} onChange={(e) => updateDateRow(r.key, 'sale', e.target.checked)} style={{ width: 16, height: 16, accentColor: '#8C2F1C' }} />
-                            Put this date on sale (5% off the Joiner Rate)
+                            Put this date on sale ({Math.round(SALE_DISCOUNT * 1000) / 10}% off the Joiner Rate)
                           </label>
                           {r.sale && (
                             <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

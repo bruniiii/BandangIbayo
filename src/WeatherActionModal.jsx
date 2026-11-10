@@ -6,16 +6,17 @@ import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { formatYmdRange, addDaysYmd } from './dateRange';
 import { todayManila } from './tourUtils';
+import { WEATHER_CHOICE_HOURS, hoursText } from './bookingRules';
 import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
 
 // ─────────────────────────────────────────────
 // Bad weather (main admin): postpone or cancel one tour date.
-//   Postpone: new start/end dates; joiners have 48 hours to keep their slot
-//     on the new date, move to another date or take a 50% refund.
-//   Cancel: the date closes; joiners have 48 hours to move to another date
-//     of the same tour or take a 50% refund.
-//   Both: no choice in 48 hours = 50% refund.
+//   Postpone: new start/end dates; joiners have the time set in Booking Rules to keep their slot
+//     on the new date, move to another date or take a weather refund.
+//   Cancel: the date closes; joiners have the time set in Booking Rules to move to another date
+//     of the same tour or take a weather refund.
+//   Both: no choice in the time set in Booking Rules = weather refund.
 // Both post a pinned 📢 notice in the tour's group chat and notify the joiners
 // (weather_postpone / weather_cancel in the 20261204 update).
 //   date: { id, title, start_date, end_date, current_booked }
@@ -58,11 +59,11 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
     const why = `${reason}${note.trim() ? ` (${note.trim()})` : ''}`;
     if (!(await confirmDialog(isCancel ? {
       title: `Cancel ${date.title} on ${formatYmdRange(date.start_date, date.end_date)}?`,
-      message: `Reason: ${why}.\n\nThe date closes. ${booked ? `The ${booked} booked joiner${booked === 1 ? '' : 's'} get a notice and a pinned message in the group chat, and have 48 hours to move to another date of this tour or take a 50% refund. No choice in 48 hours = 50% refund.` : 'Nobody is booked on it yet.'}`,
+      message: `Reason: ${why}.\n\nThe date closes. ${booked ? `The ${booked} booked joiner${booked === 1 ? '' : 's'} get a notice and a pinned message in the group chat, and have ${hoursText(WEATHER_CHOICE_HOURS)} to move to another date of this tour or take a weather refund. No choice in ${hoursText(WEATHER_CHOICE_HOURS)} = weather refund.` : 'Nobody is booked on it yet.'}`,
       confirmLabel: 'Cancel This Date', cancelLabel: 'Go Back', tone: 'danger',
     } : {
       title: `Postpone to ${formatYmdRange(start, end)}?`,
-      message: `Reason: ${why}.\n\n${booked ? `The ${booked} booked joiner${booked === 1 ? '' : 's'} get a notice and a pinned message in the group chat, and have 48 hours to keep their slot on the new date, move to another date of this tour or take a 50% refund. No choice in 48 hours = 50% refund.` : 'Nobody is booked on it yet.'}`,
+      message: `Reason: ${why}.\n\n${booked ? `The ${booked} booked joiner${booked === 1 ? '' : 's'} get a notice and a pinned message in the group chat, and have ${hoursText(WEATHER_CHOICE_HOURS)} to keep their slot on the new date, move to another date of this tour or take a weather refund. No choice in ${hoursText(WEATHER_CHOICE_HOURS)} = weather refund.` : 'Nobody is booked on it yet.'}`,
       confirmLabel: 'Postpone', cancelLabel: 'Go Back',
     }))) return;
     setBusy(true);
@@ -82,8 +83,8 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
       author_id: user?.id || null,
       post_type: 'post',
       content: isCancel
-        ? `⛈️ CANCELLED: ${date.title} on ${old} is cancelled because of ${why}. Stay safe, everyone! Booked joiners: please check My Bookings to move to another date or get a 50% refund.`
-        : `⛈️ POSTPONED: ${date.title} is moved from ${old} to ${formatYmdRange(start, end)} because of ${why}. Stay safe, everyone! Booked joiners: please check My Bookings to keep your slot, move to another date or get a 50% refund.`,
+        ? `⛈️ CANCELLED: ${date.title} on ${old} is cancelled because of ${why}. Stay safe, everyone! Booked joiners: please check My Bookings to move to another date or get a refund.`
+        : `⛈️ POSTPONED: ${date.title} is moved from ${old} to ${formatYmdRange(start, end)} because of ${why}. Stay safe, everyone! Booked joiners: please check My Bookings to keep your slot, move to another date or get a refund.`,
     }]);
     if (feedError) toast.error("It wasn't posted to the Feed", feedError.message);
     toast.success(isCancel ? 'Date cancelled' : 'Date postponed', `The joiners were notified, the group chat has a pinned notice${feedError ? '' : ', and it was posted on the Feed'}.`);
@@ -118,8 +119,8 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {choice('postpone', CalendarClock, 'Postpone', 'Move this date to new days. Joiners keep their slot, move to another date or get a 50% refund.')}
-          {choice('cancel', Ban, 'Cancel this date', 'Joiners move to another date or get a 50% refund.')}
+          {choice('postpone', CalendarClock, 'Postpone', 'Move this date to new days. Joiners keep their slot, move to another date or get a weather refund.')}
+          {choice('cancel', Ban, 'Cancel this date', 'Joiners move to another date or get a weather refund.')}
         </div>
 
         <div>
@@ -153,8 +154,8 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
 
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#3F5D62', background: 'rgba(63,93,98,0.08)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
           {action === 'cancel'
-            ? 'Joiners get a notice, a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have 48 hours to move to another date of this tour (and its group chat) or take a 50% refund; no choice = 50% refund. The chat stays open 7 days for questions. Refunds to send show in Booking Management.'
-            : 'Joiners get a notice (with the old and new dates), a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have 48 hours to keep their slot on the new date (payment and pickup point carry over), move to another date of this tour or take a 50% refund; no choice = 50% refund.'}
+            ? `Joiners get a notice, a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have ${hoursText(WEATHER_CHOICE_HOURS)} to move to another date of this tour (and its group chat) or take a weather refund; no choice = weather refund. The chat stays open 7 days for questions. Refunds to send show in Booking Management.`
+            : `Joiners get a notice (with the old and new dates), a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have ${hoursText(WEATHER_CHOICE_HOURS)} to keep their slot on the new date (payment and pickup point carry over), move to another date of this tour or take a weather refund; no choice = weather refund.`}
         </p>
 
         {!busy && !ready && (

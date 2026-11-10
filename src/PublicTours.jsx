@@ -17,6 +17,7 @@ import EmptyState from './ui/EmptyState';
 import { CalendarClock } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRegion, Skel } from './ui/Skeleton';
 import { reportError } from './ui/toast';
+import { DOWNPAYMENT_PERCENT } from './bookingRules';
 
 // ─────────────────────────────────────────────
 // PUBLIC TOUR PAGES (no login needed)
@@ -360,7 +361,7 @@ export const PublicTourDetail = () => {
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)' }}>Price per joiner</div>
               <PriceTag tour={tour} size={34} color="#FDF6EE" mutedColor="rgba(232,210,190,0.75)" align="flex-start" />
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or 50% downpayment online (GCash, Maya, card)</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or {DOWNPAYMENT_PERCENT}% downpayment online (GCash, Maya, card)</div>
             </div>
 
             {tour.dates.length > 1 && (

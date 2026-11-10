@@ -8,6 +8,7 @@ import { notifyUser } from './notifications';
 import { useReceiptUrl } from './receipts';
 import { printReceipt, balanceRemaining } from './paymentReceipt';
 import { formatPeso, bookingDownpayment, formatDateRange as formatTourDates } from './tourUtils';
+import { CANCELLATION_APPROVAL_HOURS, PAYMENT_HOLD_MINUTES, minutesText, weatherRefundPercentOf } from './bookingRules';
 import { MapPin, Loader2, Eye, X, CheckCircle2, XCircle, Hash, User, CreditCard, AlertCircle, Image as ImageIcon, Wallet, Printer, Users, History } from 'lucide-react';
 import { SkeletonLines } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
@@ -36,10 +37,10 @@ const WeatherRefundBox = ({ booking, onSent }) => {
   return (
     <div style={{ marginTop: 12, background: sent ? 'rgba(31,107,74,0.08)' : 'rgba(63,93,98,0.08)', border: `1.5px solid ${sent ? 'rgba(31,107,74,0.35)' : 'rgba(63,93,98,0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
       <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? '#1F6B4A' : '#3F5D62' }}>
-        50% refund {sent ? '· sent' : '· to send'}
+        {weatherRefundPercentOf(b)}% refund {sent ? '· sent' : '· to send'}
       </p>
       <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00' }}>
-        {formatPeso(b.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>(50% of the {formatPeso(b.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
+        {formatPeso(b.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>({weatherRefundPercentOf(b)}% of the {formatPeso(b.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
       </p>
       {sent ? <RefundSentInfo booking={b} onDone={reload} /> : <RefundPanel booking={b} onDone={reload} />}
     </div>
@@ -324,7 +325,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Online Payment (PayMongo)</p>
                   <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
-                    The joiner hasn't finished paying yet. The slots are released automatically if they don't pay within 30 minutes.
+                    The joiner hasn't finished paying yet. The slots are released automatically if they don't pay within {minutesText(PAYMENT_HOLD_MINUTES)}.
                   </p>
                 </div>
               ) : booking.receipt_url ? (
@@ -368,7 +369,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   <p style={{ fontSize: 13.5, fontWeight: 900, color: '#8C2F1C', margin: 0 }}>Cancellation requested</p>
                   <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0', lineHeight: 1.6 }}>
                     Asked {formatDateTime(booking.cancellation_requested_at)}. Reason: “{booking.cancellation_reason || '—'}”.
-                    {' '}Joiners' cancellations are now instant; this older request is approved automatically within 12 hours if you don't approve it first.
+                    {' '}Joiners' cancellations are now instant; this older request is approved automatically within {CANCELLATION_APPROVAL_HOURS} hours if you don't approve it first.
                   </p>
                 </div>
               </div>
@@ -388,7 +389,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               icon={<XCircle size={20} />}
               title={weatherCancel ? 'Tour Cancelled by Bandang IBAYO' : 'Booking Cancelled'}
               text={weatherCancel
-                ? 'Bandang IBAYO cancelled this tour date (bad weather or safety). The joiner took the 50% refund (or didn\'t choose within 48 hours). The slot was released.'
+                ? `Bandang IBAYO cancelled this tour date (bad weather or safety). The joiner took the ${weatherRefundPercentOf(booking)}% refund (or didn't choose in time). The slot was released.`
                 : booking.cancellation_reason ? "Cancelled at the joiner's request. The slot has been released back to the tour." : 'This booking was cancelled. The slot has been released back to the tour.'}
             >
               {booking.cancellation_reason && (
@@ -479,7 +480,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   <p style={labelStyle}>Payment Status</p>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '4px 0 0', lineHeight: 1.5 }}>
                     {weatherCancel
-                      ? `Cancelled by Bandang IBAYO, so there's no balance to collect. 50% refund: ${formatPeso(booking.weather_refund)}${refundSent ? ' (sent)' : refundDue ? ' (to send)' : ''}.`
+                      ? `Cancelled by Bandang IBAYO, so there's no balance to collect. ${weatherRefundPercentOf(booking)}% refund: ${formatPeso(booking.weather_refund)}${refundSent ? ' (sent)' : refundDue ? ' (to send)' : ''}.`
                       : "This booking was cancelled, so there's no balance to collect. Payments made are non-refundable."}
                   </p>
                 </div>

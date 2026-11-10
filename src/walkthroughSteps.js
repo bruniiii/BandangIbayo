@@ -6,7 +6,7 @@ export const JOINER_STEPS = [
   { title: 'Welcome to Bandang IBAYO!', body: "Here's a quick tour of the menu so you know where everything is. It takes less than a minute; you can skip it any time." },
   { target: 'HomePage', title: 'Homepage', body: 'Your next trip, how many tours you\'ve done, the calendar, tracking and the newest tour packages, all at a glance.' },
   { target: 'Feed', title: 'Feed', body: 'News from Bandang IBAYO: new tours, announcements, and posts from other joiners. Postponed or cancelled tours are posted here too.' },
-  { target: 'Explore Tours', title: 'Explore Tours', body: 'Browse every open tour. Pick a date and a pickup point, then pay in full or with a 50% downpayment through GCash or card.' },
+  { target: 'Explore Tours', title: 'Explore Tours', body: 'Browse every open tour. Pick a date and a pickup point, then pay in full or with a downpayment through GCash or card.' },
   { target: 'My Bookings', title: 'My Bookings', body: 'Your receipts, QR code for check-in, things to bring, balance payments, cancellations, and your refunds.' },
   { target: 'Messages', title: 'Messages', body: 'Chat with your tour group and the team, and read messages from Bandang IBAYO.' },
   { target: 'Calendar', title: 'Calendar', body: 'Every tour by date. Tap an empty day to plan a Private Tour or request a new one.' },

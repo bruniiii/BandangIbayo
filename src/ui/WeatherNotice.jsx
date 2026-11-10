@@ -1,4 +1,5 @@
 import { CloudRain } from 'lucide-react';
+import { WEATHER_REFUND_PERCENT } from '../bookingRules';
 
 // Shown on every tour's details: the date can move for safety reasons.
 const WeatherNotice = ({ compact = false }) => (
@@ -17,7 +18,7 @@ const WeatherNotice = ({ compact = false }) => (
       <p style={{ fontSize: compact ? 12 : 13, fontWeight: 700, lineHeight: 1.6, color: '#1A0A00', margin: 0 }}>
         The tour date may be postponed or cancelled because of bad weather (typhoons, heavy rain), road closures or
         other safety concerns. We'll tell you right away, and you can keep the new date, move to another date of the tour
-        or get a 50% refund.
+        or get a {WEATHER_REFUND_PERCENT}% refund.
       </p>
     </div>
   </div>

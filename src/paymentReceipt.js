@@ -1,6 +1,7 @@
 import { formatDateRange, bookingDownpayment } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { fetchTourExpenses, expenseItems } from './tourExpenses';
+import { PRIVATE_DOWNPAYMENT_PERCENT, weatherRefundPercentOf } from './bookingRules';
 
 // ─────────────────────────────────────────────
 // PAYMENT RECEIPTS (PDF), in the style of a printed till receipt: narrow
@@ -200,7 +201,7 @@ const bookingReceipt = async (booking, tour, { expenses, part = 'payment' } = {}
       pen.gap(4);
       pen.columns();
       pen.item(pax, `${tour?.title || 'Tour'} (${formatDateRange(tour?.start_date, tour?.duration)})`, php(total + discount));
-      if (discount > 0) pen.item('', 'Sale discount (5%)', `- ${php(discount)}`);
+      if (discount > 0) pen.item('', `Sale discount (${pctOf(discount, total + discount)}%)`, `- ${php(discount)}`);
       if (booking.accommodation) pen.item('', `Accommodation: ${booking.accommodation}`, '');
       if (booking.pickup_point) pen.item('', `Pickup: ${booking.pickup_point}`, '');
       if (companions.length) pen.item('', `With: ${companions.join(', ')}`, '');
@@ -236,15 +237,19 @@ export const printReceipt = async (booking, tour, part = 'payment') => {
   if (win) win.location.href = url; else window.open(url, '_blank');
 };
 
-// ── Private tour receipt (50% downpayment, then the balance) ──
+// ── Private tour receipt (the downpayment, then the balance) ──
+// The share one amount is of another, as a percent (50, 12.5). Receipts show
+// the rate a booking was actually charged, whatever today's Booking Rules say.
+const pctOf = (part, whole) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
+
 export const exclusiveReceiptNumber = (request) => `R-EX-${String(request.id).slice(0, 8).toUpperCase()}`;
 
-// part: 'payment' (the 50% downpayment) or 'balance' (the rest, once paid).
+// part: 'payment' (the downpayment) or 'balance' (the rest, once paid).
 export const downloadExclusiveReceipt = async (request, part = 'payment') => {
   const pkg = request.package_details || {};
   const price = Number(pkg.price) || 0;
   const isBalance = part === 'balance' && !!request.balance_settled;
-  const down = Number(request.downpayment_amount) || Math.round(price * 50) / 100;
+  const down = Number(request.downpayment_amount) || Math.round(price * PRIVATE_DOWNPAYMENT_PERCENT) / 100;
   const paidNow = isBalance ? (Number(request.balance_amount) || Math.max(0, price - down)) : down;
   // Remaining balance: the package price minus every payment so far (the same
   // value shown on the joiner's Private Tours page).
@@ -265,7 +270,7 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
       pen.pair(dateOf(paidAt), timeOf(paidAt));
       pen.pair('PRIVATE TOUR', '');
       pen.pair(`JOINER ${String(request.full_name || '—').toUpperCase()}`, '');
-      pen.pair(`${ref ? 'ONLINE' : 'RECORDED'} · ${isBalance ? 'BALANCE PAYMENT' : '50% DOWNPAYMENT'}`, '');
+      pen.pair(`${ref ? 'ONLINE' : 'RECORDED'} · ${isBalance ? 'BALANCE PAYMENT' : (price > 0 ? `${pctOf(down, price)}% DOWNPAYMENT` : 'DOWNPAYMENT')}`, '');
       if (ref) pen.pair(`REF ${ref}`, '', 7);
       pen.pair(`PROCESSED BY ${processedBy(isBalance ? request.balance_processed_by_name : request.processed_by_name, !!ref).toUpperCase()}`, '', 7);
       pen.gap(4);
@@ -290,7 +295,7 @@ export const downloadExclusiveReceipt = async (request, part = 'payment') => {
   doc.save(filename);
 };
 
-// ── Refund receipt (a weather cancellation's 50% refund) ──
+// ── Refund receipt (a weather cancellation's refund) ──
 // Its own receipt, separate from the payment receipts: what was paid, what
 // was refunded, how (PayMongo or GCash) and its reference. No check-in QR:
 // it isn't a ticket.
@@ -300,6 +305,7 @@ const refundReceipt = async (booking) => {
   const tour = booking.tours || {};
   const refund = Number(booking.weather_refund) || 0;
   const paid = Number(booking.amount_paid) || 0;
+  const refundPct = pctOf(refund, paid) || weatherRefundPercentOf(booking);
   const sentAt = booking.weather_refund_at || new Date();
   const ref = String(booking.weather_refund_ref || '').replace(/\s*·\s*(FAILED.*|reopened)$/i, '');
   const method = booking.weather_refund_method === 'gcash' ? 'GCASH'
@@ -320,12 +326,12 @@ const refundReceipt = async (booking) => {
       pen.gap(4);
       pen.columns();
       pen.item(booking.slots_booked || 1, `${tour.title || 'Tour'}${dates ? ` (${dates})` : ''}`, php(paid));
-      pen.item('', '50% refund for the bad-weather change', `- ${php(refund)}`);
+      pen.item('', `${refundPct}% refund for the bad-weather change`, `- ${php(refund)}`);
       pen.gap(10);
       pen.big('REFUNDED', php(refund));
       pen.total('AMOUNT PAID', php(paid));
-      pen.total('REFUND (50%)', php(refund));
-      pen.total('NON-REFUNDABLE (50%)', php(Math.max(0, paid - refund)));
+      pen.total(`REFUND (${refundPct}%)`, php(refund));
+      pen.total(`NON-REFUNDABLE (${Math.round((100 - refundPct) * 10) / 10}%)`, php(Math.max(0, paid - refund)));
       pen.gap(4);
       if (booking.weather_refund_received === 'received') {
         pen.note(`Received by the joiner (confirmed ${dateOf(booking.weather_refund_received_at || new Date())}).`);

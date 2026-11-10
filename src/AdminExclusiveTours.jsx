@@ -10,6 +10,7 @@ import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { notifyUser } from "./notifications";
 import { formatPeso, requestOverdueReason, requestStatusLabel, requestPaymentLabel, exclusiveDownpayment, REQUEST_REVIEW_DAYS, EXCLUSIVE_APPROVAL_CUTOFF_DAYS } from './tourUtils';
+import { PRIVATE_DOWNPAYMENT_PERCENT, PRIVATE_DOWNPAYMENT_DUE_HOURS, holdText, periodText } from './bookingRules';
 import PackageTourForm from './PackageTourForm';
 import {
   Search, Loader2, Globe, Shield, X, MapPin, Calendar, Users,
@@ -51,15 +52,14 @@ const formatDateTime = (d) => {
 
 const STATUS_STYLES = { ...STATUS_COLORS, Pending: STATUS_COLORS['For Approval'] };
 
-// Private tours are confirmed once the joiner pays 50% of the package price,
-// and fully paid once the balance is in too.
-const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
+// Private tours are confirmed once the joiner pays the downpayment (a share of
+// the package price, set in Booking Rules), and fully paid once the balance is in too.
 // For Approval (just sent) → Approved → Tour Confirmed (package sent), or
 // Rejected (by an admin, or automatically when the package wasn't ready in time).
 const shownStatus = requestStatusLabel;
 
-// The last day to send the package: 1 month after the request, and at least
-// 2 weeks before the trip, whichever comes first.
+// The last day to send the package: REQUEST_REVIEW_DAYS after the request, and
+// at least EXCLUSIVE_APPROVAL_CUTOFF_DAYS before the trip, whichever comes first.
 const reviewDeadline = (request) => {
   const byMonth = request.created_at ? new Date(new Date(request.created_at).getTime() + REQUEST_REVIEW_DAYS * 86400e3) : null;
   const byTrip = request.preferred_date ? new Date(`${request.preferred_date}T00:00:00+08:00`) : null;
@@ -319,11 +319,13 @@ const DetailRow = ({ icon, label, value }) => (
 const DownpaymentSection = ({ request, price, onChanged }) => {
   const [saving, setSaving] = useState(false);
   const isPaid = request.payment_status === 'Paid';
-  // New flow: 50% of the budget, before the package (24 hours to pay).
+  // New flow: a share of the budget, before the package (Booking Rules).
   const dp = exclusiveDownpayment(request);
   const downpayment = dp.waiting || (isPaid && request.downpayment_due_at)
     ? (isPaid ? Number(request.downpayment_amount) || Number(request.amount_paid) || dp.amount : dp.amount)
-    : Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
+    : Math.round(price * PRIVATE_DOWNPAYMENT_PERCENT) / 100;
+  // Share of the budget the downpayment is (fixed when the request was approved).
+  const budgetShare = Number(request.budget) > 0 ? Math.round((downpayment / Number(request.budget)) * 1000) / 10 : PRIVATE_DOWNPAYMENT_PERCENT;
   const paidAmount = Number(request.amount_paid) || 0;
   const balance = Math.max(0, Math.round((price - paidAmount) * 100) / 100);
   const fullyPaid = isPaid && (request.balance_settled || balance <= 0);
@@ -389,16 +391,16 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
     title = 'Downpayment Paid · Confirmed';
     text = `Paid ${formatPeso(paidAmount)} on ${formatDateTime(request.paid_at)}. Remaining balance: ${formatPeso(balance)}. The joiner can pay it online, or you can mark it paid.`;
   } else if (dp.waiting) {
-    title = dp.expired ? 'Unpaid · 24 hours passed' : '50% Downpayment · due in 24 hours';
+    title = dp.expired ? 'Unpaid · time to pay passed' : `${budgetShare}% Downpayment · due ${formatDateTime(dp.dueAt)}`;
     text = dp.expired
       ? `The joiner didn't pay the ${formatPeso(downpayment)} downpayment by ${formatDateTime(dp.dueAt)}, so they didn't continue. Nothing else is needed.`
-      : `Waiting for the joiner to pay ${formatPeso(downpayment)} (50% of their ${formatPeso(request.budget)} budget) by ${formatDateTime(dp.dueAt)}. You can create the tour package once it's paid.`;
+      : `Waiting for the joiner to pay ${formatPeso(downpayment)} (${budgetShare}% of their ${formatPeso(request.budget)} budget) by ${formatDateTime(dp.dueAt)}. You can create the tour package once it's paid.`;
   } else if (price > 0) {
-    title = '50% Downpayment';
-    text = `Waiting for the joiner to pay the 50% downpayment of ${formatPeso(downpayment)} (package price ${formatPeso(price)}).`;
+    title = `${PRIVATE_DOWNPAYMENT_PERCENT}% Downpayment`;
+    text = `Waiting for the joiner to pay the ${PRIVATE_DOWNPAYMENT_PERCENT}% downpayment of ${formatPeso(downpayment)} (package price ${formatPeso(price)}).`;
   } else {
-    title = '50% Downpayment';
-    text = 'Send the tour package with a price first. The joiner can then pay a 50% downpayment online to confirm.';
+    title = `${PRIVATE_DOWNPAYMENT_PERCENT}% Downpayment`;
+    text = `Send the tour package with a price first. The joiner can then pay a ${PRIVATE_DOWNPAYMENT_PERCENT}% downpayment online to confirm.`;
   }
 
   const action = !isPaid && ((dp.waiting && !dp.expired) || (!dp.waiting && price > 0))
@@ -513,7 +515,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
       const message = newStatus === 'Approved'
         ? (isExclusive
-          ? `Great news! Your private tour request for ${request.destination} has been approved. To continue, pay the ${formatPeso(Math.round((Number(request.budget) || 0) * 50) / 100)} downpayment (50% of your budget) within 24 hours in Private Tours. Then we'll prepare your tour package.`
+          ? `Great news! Your private tour request for ${request.destination} has been approved. To continue, pay the ${formatPeso(Math.round((Number(request.budget) || 0) * PRIVATE_DOWNPAYMENT_PERCENT) / 100)} downpayment (${PRIVATE_DOWNPAYMENT_PERCENT}% of your budget) within ${holdText(PRIVATE_DOWNPAYMENT_DUE_HOURS)} in Private Tours. Then we'll prepare your tour package.`
           : `Great news! Your request to add ${request.destination} has been approved and will be opened for booking on Explore Tours soon, with your slots held for you.`)
         : `Your ${typeLabel.toLowerCase()} for ${request.destination} was not approved. Reason: ${rejectText}`;
 
@@ -527,7 +529,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
       }
 
       toast.success(decision === 'approve' ? 'Request approved' : 'Request rejected',
-        decision === 'approve' && isExclusive ? 'The joiner was asked to pay the downpayment within 24 hours. You can make the package once it\'s paid.' : 'The joiner has been notified.');
+        decision === 'approve' && isExclusive ? `The joiner was asked to pay the downpayment within ${holdText(PRIVATE_DOWNPAYMENT_DUE_HOURS)}. You can make the package once it's paid.` : 'The joiner has been notified.');
       onResolved();
     } catch (err) {
       toast.error("Couldn't update request", err.message);
@@ -620,7 +622,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
             }}>
               <XCircle size={18} style={{ color: '#7A3A18', flexShrink: 0, marginTop: 1 }} />
               <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
-                <strong style={{ color: '#1A0A00' }}>Rejected automatically.</strong> {overdueReason} The tour package must be sent within 1 month of the request, and at least 2 weeks before the trip.
+                <strong style={{ color: '#1A0A00' }}>Rejected automatically.</strong> {overdueReason} The tour package must be sent within {periodText(REQUEST_REVIEW_DAYS)} of the request, and at least {periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} before the trip.
               </p>
             </div>
           )}
@@ -693,7 +695,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     : "Fill in the tour like Create New Tour. Posting it opens it on Explore Tours for other joiners, and holds the requester's slots for 2 days so they can pay first.")
                   : (packageSentAt
                     ? 'Send updated details if anything about the trip has changed.'
-                    : "Fill in the tour like Create New Tour. The joiner is notified and pays a 50% downpayment to confirm.")}
+                    : `Fill in the tour like Create New Tour. The joiner is notified and pays a ${PRIVATE_DOWNPAYMENT_PERCENT}% downpayment to confirm.`)}
               </p>
               {isExclusive && packageSentAt && request.payment_status === 'Paid' && !pkg.tour_id && (
                 <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
@@ -704,7 +706,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               {isExclusive && dp.waiting ? (
                 <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: dp.expired ? '#8C2F1C' : '#A8481A', lineHeight: 1.55 }}>
                   {dp.expired
-                    ? 'The joiner didn\'t pay the downpayment within 24 hours, so this request didn\'t continue. No package is needed.'
+                    ? 'The joiner didn\'t pay the downpayment in time, so this request didn\'t continue. No package is needed.'
                     : `Waiting for the downpayment (due ${formatDateTime(dp.dueAt)}). You can create the tour package once it's paid.`}
                 </p>
               ) : (

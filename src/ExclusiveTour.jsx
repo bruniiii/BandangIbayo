@@ -8,6 +8,10 @@ import {
   requestOverdueReason, requestStatusLabel, requestPaymentLabel, requestEditable, exclusiveDownpayment,
 } from './tourUtils';
 import { expenseItems } from './tourExpenses';
+import {
+  EXCLUSIVE_RATE_MIN as MIN_EXCLUSIVE_BUDGET, EXCLUSIVE_RATE_MAX as MAX_EXCLUSIVE_BUDGET, REQUEST_GAP_DAYS,
+  PRIVATE_DOWNPAYMENT_PERCENT, REQUESTED_HOLD_HOURS, periodText, holdText,
+} from './bookingRules';
 import { downloadExclusiveReceipt } from './paymentReceipt';
 import { checkFields, flagField, fullNameError, phoneError, emailError, textError, addDaysPH, normalizePhone, formatPhPhone, cleanName } from './validation';
 import { moneyField, blockSignKeys } from './moneyInput';
@@ -40,18 +44,16 @@ import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 //    still open.
 // ─────────────────────────────────────────────
 
-// The least and most a joiner can enter as their private tour budget.
-const MIN_EXCLUSIVE_BUDGET = 3000;
-const MAX_EXCLUSIVE_BUDGET = 100000;
-// One request (Private or Request a Tour, together) every 2 weeks.
-const REQUEST_GAP_DAYS = 14;
-// Share of the package price paid up front to confirm a private tour
-// (the payments function uses the same rate).
-const EXCLUSIVE_DOWNPAYMENT_RATE = 0.5;
-// The most people a group can have: a requested tour fits one van (14);
-// a private tour can fill up to 5 vans of 14 (70).
-const MAX_GROUP = VAN_SEATS * MAX_VANS;
-const maxGroupFor = (type) => (type === 'request' ? MAX_TOUR_SLOTS : MAX_GROUP);
+// The budget limits, the gap between requests (Private or Request a Tour,
+// together), the downpayment and the van sizes are booking rules
+// (System Maintenance → Booking Rules, see bookingRules.js).
+// The most people a group can have: a requested tour fits one van;
+// a private tour can fill several vans.
+const maxGroup = () => VAN_SEATS * MAX_VANS;
+const maxGroupFor = (type) => (type === 'request' ? MAX_TOUR_SLOTS : maxGroup());
+// "3 weeks ahead, for up to 1 week"
+const leadText = () => periodText(TRIP_REQUEST_LEAD_DAYS);
+const maxDaysText = () => (MAX_TOUR_DAYS % 7 === 0 ? `${periodText(MAX_TOUR_DAYS)} (${MAX_TOUR_DAYS} days)` : periodText(MAX_TOUR_DAYS));
 const vansFor = (size) => Math.ceil(size / VAN_SEATS);
 
 // ── PALETTE ──────────────────────────────────────────────
@@ -112,10 +114,10 @@ const checkRequestFields = (formEl, form, type) => {
     ['groupSize', !Number.isInteger(size) || size < 1 ? 'Group size must be a whole number, at least 1.'
       : size > maxGroupFor(type) ? (type === 'request'
         ? `A requested tour takes at most ${MAX_TOUR_SLOTS} people (one van).`
-        : `Private tours fit up to ${MAX_VANS} vans of ${VAN_SEATS} (${MAX_GROUP} people). For a bigger group, please message us.`) : ''],
-    ['preferredDate', !form.preferredDate ? 'Please choose your trip dates.' : form.preferredDate < earliestTripDate() ? 'Trips can be booked from 3 weeks ahead. Please pick a later date.' : ''],
+        : `Private tours fit up to ${MAX_VANS} vans of ${VAN_SEATS} (${maxGroup()} people). For a bigger group, please message us.`) : ''],
+    ['preferredDate', !form.preferredDate ? 'Please choose your trip dates.' : form.preferredDate < earliestTripDate() ? `Trips can be booked from ${leadText()} ahead. Please pick a later date.` : ''],
     ['preferredDate', form.preferredDate && !form.preferredEndDate ? 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).' : ''],
-    ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
+    ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most ${maxDaysText()} long.` : ''],
     ...people.flatMap((p, i) => [
       [`participant_name_${i}`, fullNameError(p.full_name, `Name of person ${i + 1}`)],
       [`participant_contact_${i}`, phoneError(p.contact_number, `Contact number of person ${i + 1}`, { mobile: true })],
@@ -198,7 +200,7 @@ const TripDatesFields = ({ form, setForm }) => (
         onChange={({ start, end }) => setForm((prev) => ({ ...prev, preferredDate: start, preferredEndDate: end }))}
         style={inputStyle}
       />
-      <span style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', marginTop: 6 }}>Trips can be booked from 3 weeks ahead, for up to 1 week.</span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', marginTop: 6 }}>Trips can be booked from {leadText()} ahead, for up to {periodText(MAX_TOUR_DAYS)}.</span>
     </div>
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <label style={labelStyle}>Number of Days</label>
@@ -225,7 +227,7 @@ const ParticipantsFields = ({ participants, onChange, showVans = false }) => (
     {showVans && participants.length > VAN_SEATS && (
       <p role="note" style={{ margin: '0 0 4px', background: 'rgba(180,81,30,0.1)', border: '1px solid rgba(180,81,30,0.3)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
         A van fits {VAN_SEATS} people, so your group of {participants.length} needs {vansFor(participants.length)} vans.
-        {' '}Persons {VAN_SEATS + 1}–{Math.min(participants.length, VAN_SEATS * 2)} ride the second van{participants.length > VAN_SEATS * 2 ? ', and so on' : ''}. Up to {MAX_VANS} vans ({MAX_GROUP} people).
+        {' '}Persons {VAN_SEATS + 1}–{Math.min(participants.length, VAN_SEATS * 2)} ride the second van{participants.length > VAN_SEATS * 2 ? ', and so on' : ''}. Up to {MAX_VANS} vans ({maxGroup()} people).
       </p>
     )}
     {participants.map((p, i) => (
@@ -292,7 +294,7 @@ const formFromRequestFields = (r) => ({
 
 // One row per person in the group; person 1 starts as the requester.
 const sizeParticipants = (list, size, form) => {
-  const n = Number.isInteger(size) && size >= 1 ? Math.min(size, MAX_GROUP) : 0;
+  const n = Number.isInteger(size) && size >= 1 ? Math.min(size, maxGroup()) : 0;
   return Array.from({ length: n }, (_, i) => list[i]
     || (i === 0 ? { full_name: form.fullName || '', contact_number: form.contact || '' } : { full_name: '', contact_number: '' }));
 };
@@ -394,7 +396,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
         const kind = lastReq.request_type === 'exclusive' ? 'Private Tour' : 'Request a Tour';
         const when = new Date(next).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' });
         toast.info(`You already have an active request (${kind})`,
-          `${lastReq.destination || 'Your request'} · ${requestStatusLabel(lastReq)}. You can send one request every 2 weeks; your next one can be sent on ${when}.`);
+          `${lastReq.destination || 'Your request'} · ${requestStatusLabel(lastReq)}. You can send one request every ${periodText(REQUEST_GAP_DAYS)}; your next one can be sent on ${when}.`);
       }
     })();
     return () => { alive = false; };
@@ -416,7 +418,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
     if (!checkRequestFields(formEl, form, type)) return;
     if (isExclusive && form.budget !== '' && Number(form.budget) > MAX_EXCLUSIVE_BUDGET) { flagField(formEl, 'budget', `Budget can be up to ${formatPeso(MAX_EXCLUSIVE_BUDGET)}.`); return; }
     if (isExclusive && form.budget !== '' && Number(form.budget) < MIN_EXCLUSIVE_BUDGET) { flagField(formEl, 'budget', `The budget must be at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}.`); return; }
-    if (!editing && nextRequestAt) { toast.error('One request every 2 weeks', `You can send your next request on ${nextText}.`); return; }
+    if (!editing && nextRequestAt) { toast.error(`One request every ${periodText(REQUEST_GAP_DAYS)}`, `You can send your next request on ${nextText}.`); return; }
     if (isExclusive && !form.agreeTerms) { toast.info('Please accept the terms and conditions.'); return; }
     setLoading(true);
 
@@ -515,7 +517,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
     <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       {tooSoon && (
         <p role="status" style={{ margin: 0, background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#8C2F1C', lineHeight: 1.5 }}>
-          You can send one request every 2 weeks (Private Tour or Request a Tour). Your next request can be sent on <strong>{nextText}</strong>. You can still edit a request that's For Approval below.
+          You can send one request every {periodText(REQUEST_GAP_DAYS)} (Private Tour or Request a Tour). Your next request can be sent on <strong>{nextText}</strong>. You can still edit a request that's For Approval below.
         </p>
       )}
       {!editing && (
@@ -531,7 +533,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
             <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.6, margin: '4px 0 0' }}>
               {isExclusive
                 ? 'Private tours reserve the entire vehicle and itinerary just for your group. No other joiners. The agency handles all coordination — accommodation, van, guide. You pay all-in.'
-                : <>Don't see your dream destination listed? Request it here. Once it's approved and the tour is posted on Explore Tours, <strong>your group's slots are held for you for 2 days</strong> so you can pay first, and other joiners can book the rest.</>}
+                : <>Don't see your dream destination listed? Request it here. Once it's approved and the tour is posted on Explore Tours, <strong>your group's slots are held for you for {holdText(REQUESTED_HOLD_HOURS)}</strong> so you can pay first, and other joiners can book the rest.</>}
             </p>
           </div>
         </div>
@@ -561,7 +563,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
                 if (Number(v) > MAX_EXCLUSIVE_BUDGET) return;
                 setForm((prev) => ({ ...prev, budget: v }));
               })}
-              placeholder="3,000.00 to 100,000.00"
+              placeholder={`${MIN_EXCLUSIVE_BUDGET.toLocaleString('en-PH', { minimumFractionDigits: 2 })} to ${MAX_EXCLUSIVE_BUDGET.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`}
               required
             />
           )}
@@ -612,7 +614,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
             {[
               ['Bandang IBAYO reviews your request', 'It shows as For Approval. You can still edit it until then.'],
               ['The tour is prepared and posted on Explore Tours', 'It shows as Tour Confirmed, and other joiners can book it too'],
-              ['Your slots are held for you for 2 days', "Pay in My Bookings to keep them (you'll enter who's coming then), or they're released"],
+              [`Your slots are held for you for ${holdText(REQUESTED_HOLD_HOURS)}`, "Pay in My Bookings to keep them (you'll enter who's coming then), or they're released"],
             ].map(([step, desc], i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <span style={{
@@ -672,7 +674,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           type="submit"
           className="request-submit-btn"
           disabled={!canSubmit}
-          title={canSubmit || loading ? undefined : tooSoon ? `One request every 2 weeks: you can send the next one on ${nextText}` : missing ? 'Fill in all the boxes marked * first' : lowBudget ? `The budget must be at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}` : 'Tick the Terms & Conditions box first'}
+          title={canSubmit || loading ? undefined : tooSoon ? `One request every ${periodText(REQUEST_GAP_DAYS)}: you can send the next one on ${nextText}` : missing ? 'Fill in all the boxes marked * first' : lowBudget ? `The budget must be at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}` : 'Tick the Terms & Conditions box first'}
           style={{
             flex: editing ? '2 1 220px' : '0 1 340px', margin: editing ? 0 : '0 auto', padding: '16px 28px', background: isExclusive ? '#1A0A00' : '#B4511E', color: '#FDF6EE',
             borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, fontFamily: 'inherit', lineHeight: 1.4,
@@ -911,10 +913,10 @@ const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysO
                 <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 14, padding: '12px 14px' }}>
                   <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
                     {heldReleased
-                      ? "Your tour is posted on Explore Tours, but the 2 days to pay for your held slots ran out, so they were released to other joiners. You can still book it on Explore Tours while slots are left."
+                      ? "Your tour is posted on Explore Tours, but the time to pay for your held slots ran out, so they were released to other joiners. You can still book it on Explore Tours while slots are left."
                       : heldPaid
                         ? 'Your tour is posted on Explore Tours, and your slots are paid. See your booking in My Bookings.'
-                        : 'Your tour is posted on Explore Tours, and your slots are held for you for 2 days. Pay in My Bookings to keep them.'}
+                        : `Your tour is posted on Explore Tours, and your slots are held for you for ${holdText(REQUESTED_HOLD_HOURS)}. Pay in My Bookings to keep them.`}
                   </p>
                   {heldReleased ? (onExplore && (
                     <button type="button" onClick={onExplore} style={{
@@ -1058,7 +1060,9 @@ const DownpaymentPanel = ({ request, price }) => {
   const [accommodation, setAccommodation] = useState(choices.includes(request.accommodation) ? request.accommodation : '');
   const dp = exclusiveDownpayment(request);
   const newFlow = !!request.downpayment_due_at; // 50% of the budget, before the package
-  const downpayment = newFlow ? dp.amount : Math.round(price * EXCLUSIVE_DOWNPAYMENT_RATE * 100) / 100;
+  const downpayment = newFlow ? dp.amount : Math.round(price * PRIVATE_DOWNPAYMENT_PERCENT) / 100;
+  // Share of the budget the downpayment is (fixed when the request was approved).
+  const budgetShare = Number(request.budget) > 0 ? Math.round((downpayment / Number(request.budget)) * 1000) / 10 : PRIVATE_DOWNPAYMENT_PERCENT;
   const isPaid = request.payment_status === 'Paid';
   const paidSoFar = Number(request.amount_paid) || (isPaid ? downpayment : 0);
   const balance = price > 0 ? Math.max(0, Math.round((price - paidSoFar) * 100) / 100) : 0;
@@ -1142,7 +1146,7 @@ const DownpaymentPanel = ({ request, price }) => {
     return (
       <div style={{ background: 'rgba(26,10,0,0.05)', border: '1px solid rgba(26,10,0,0.15)', borderRadius: 16, padding: '14px 16px' }}>
         <p style={{ fontSize: 13, fontWeight: 800, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
-          The 24 hours to pay the {formatPeso(downpayment)} downpayment passed ({dueText}), so this request didn't continue. You're welcome to send a new request.
+          The time to pay the {formatPeso(downpayment)} downpayment passed ({dueText}), so this request didn't continue. You're welcome to send a new request.
         </p>
       </div>
     );
@@ -1154,10 +1158,10 @@ const DownpaymentPanel = ({ request, price }) => {
         <div>
           <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>Approved! Pay to continue</p>
           <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.6 }}>
-            Pay the <strong>{formatPeso(downpayment)} downpayment</strong> (50% of your {formatPeso(request.budget)} budget) <strong>by {dueText}</strong> to confirm your private tour.
+            Pay the <strong>{formatPeso(downpayment)} downpayment</strong> ({budgetShare}% of your {formatPeso(request.budget)} budget) <strong>by {dueText}</strong> to confirm your private tour.
             Then we'll prepare your tour package; the balance is the package price minus this downpayment. Pay online with GCash, Maya or card. Payments are non-refundable.
           </p>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: '6px 0 0' }}>Not paid in 24 hours = the request won't continue.</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: '6px 0 0' }}>Not paid by then = the request won't continue.</p>
         </div>
         <PayButton busy={busy} onClick={pay(startExclusiveDownpayment, 'Downpayment already paid', 'Your private tour is confirmed.')}>
           Pay {formatPeso(downpayment)} Downpayment
@@ -1171,7 +1175,7 @@ const DownpaymentPanel = ({ request, price }) => {
       <div>
         <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A', margin: 0 }}>Confirm your tour</p>
         <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.6 }}>
-          {choices.length > 0 ? 'Choose your accommodation, then pay' : 'Pay'} a <strong>50% downpayment of {formatPeso(downpayment)}</strong> (of the {formatPeso(price)} package) to lock in your private tour.
+          {choices.length > 0 ? 'Choose your accommodation, then pay' : 'Pay'} a <strong>{Math.round((downpayment / price) * 100) || PRIVATE_DOWNPAYMENT_PERCENT}% downpayment of {formatPeso(downpayment)}</strong> (of the {formatPeso(price)} package) to lock in your private tour.
           Pay online with GCash, Maya or card. Payments are non-refundable.
         </p>
       </div>

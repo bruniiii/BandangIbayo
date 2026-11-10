@@ -1,4 +1,7 @@
 import { ShieldCheck, X, AlertTriangle } from 'lucide-react';
+import {
+  CANCELLATION_CUTOFF_DAYS, DOWNPAYMENT_PERCENT, PRIVATE_DOWNPAYMENT_PERCENT, WEATHER_CHOICE_HOURS, WEATHER_REFUND_PERCENT, hoursText,
+} from '../bookingRules';
 
 // The Terms & Conditions, in a window. Used by registration and Private
 // Tours. onAgree is optional: without it only Close is shown.
@@ -113,8 +116,8 @@ const TermsModal = ({ onClose, onAgree }) => (
       >
         <TermsSection title="1. Booking & Payment">
           All bookings are confirmed only after payment is received online
-          (GCash, Maya or card), either in full or as a 50% downpayment.
-          Private (private) tours are confirmed with a 50% downpayment of
+          (GCash, Maya or card), either in full or as a {DOWNPAYMENT_PERCENT}% downpayment.
+          Private tours are confirmed with a {PRIVATE_DOWNPAYMENT_PERCENT}% downpayment of
           the package price the agency sends you; the remaining balance can be
           paid online or settled with the agency before the trip. Every joiner is charged the
           full listed tour price regardless of age or status — the platform
@@ -123,8 +126,8 @@ const TermsModal = ({ onClose, onAgree }) => (
 
         <TermsSection title="2. Non-Refundable & Cancellation Policy">
           All payments made through the platform are strictly
-          non-refundable. Cancellations are not accepted within two (2)
-          weeks of the scheduled tour date. This policy protects the
+          non-refundable. Cancellations are not accepted within {CANCELLATION_CUTOFF_DAYS} days
+          of the scheduled tour date. This policy protects the
           agency from the financial losses caused by last-minute
           withdrawals, since the cost of shared transport and
           accommodations depends on a fixed number of confirmed
@@ -146,10 +149,10 @@ const TermsModal = ({ onClose, onAgree }) => (
           (such as typhoons or heavy rain), road closures, or other safety
           concerns. Affected joiners are notified right away and in the
           tour's group chat. Whether a date is postponed or cancelled, you
-          have 48 hours to choose: keep your slot on the new date (if it was
+          have {hoursText(WEATHER_CHOICE_HOURS)} to choose: keep your slot on the new date (if it was
           postponed), move to another date of the same tour, or receive a
-          50% refund of what you paid. If you don't choose within 48 hours,
-          the 50% refund is given.
+          {WEATHER_REFUND_PERCENT}% refund of what you paid. If you don't choose within {hoursText(WEATHER_CHOICE_HOURS)},
+          the {WEATHER_REFUND_PERCENT}% refund is given.
         </TermsSection>
 
         <TermsSection title="5. Tracking & Vehicle Information">

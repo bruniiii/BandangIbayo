@@ -6,7 +6,8 @@ import EmptyState from './ui/EmptyState';
 import { Compass, Mountain, CalendarX2, QrCode, MessagesSquare, BedDouble } from 'lucide-react';
 import { toast, reportError } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
-import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_CUTOFF_DAYS, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale, downpaymentFor, DOWNPAYMENT_PERCENT } from './tourUtils';
+import { cancellationDeadline, isWithinCancellationWindow, CANCELLATION_APPROVAL_HOURS, withAvailableSlots, todayManila, formatPeso, formatDateRange as formatTourDates, formatPickupTime, effectivePrice, isOnSale, downpaymentFor } from './tourUtils';
+import { cancelDaysOf, downpaymentPercentOf } from './bookingRules';
 import { sendWaitlistOpeningsEmail } from './Email';
 import WeatherChoiceCard from './WeatherChoiceCard';
 import MyRefunds from './MyRefunds';
@@ -129,7 +130,7 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
         const isVerified = booking.payment_status === 'Complete' || booking.booking_status === 'Completed';
         // A cancelled or rejected booking never counts as a completed trip, even after the tour date.
         const isCancelled = booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected';
-        // Bad weather, shown at the top: a choice still open, or a 50% refund (until the joiner confirms
+        // Bad weather, shown at the top: a choice still open, or a weather refund (until the joiner confirms
         // they got it and 30 days have passed since it was sent).
         const now = Date.now();
         const showWeather = (booking.weather_choice === 'pending' && booking.weather_deadline && new Date(booking.weather_deadline).getTime() > now)
@@ -154,7 +155,7 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
           // Postponed / cancelled: its choice card at the top, not the booking details.
           setFocusWeather(String(target.id));
         } else if (target && target.weather_choice === 'refund') {
-          // Its 50% refund, opened in My Refunds.
+          // Its weather refund, opened in My Refunds.
           setFocusRefund(String(target.id));
         } else if (target) {
           // Show it on the tab it belongs to, then open its details.
@@ -459,10 +460,10 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         !isAwaitingPayment &&
                         !cancelRequested;
   // Terms, section 2: no cancellations within two weeks of the tour date.
-  const cancellationClosed = isOpenBooking && isWithinCancellationWindow(tour.start_date);
+  const cancellationClosed = isOpenBooking && isWithinCancellationWindow(tour.start_date, cancelDaysOf(booking));
   // A private tour is handled with Bandang IBAYO (group chat), not cancelled here.
   const canCancel = isOpenBooking && !cancellationClosed && !tour?.is_exclusive;
-  const deadline = cancellationDeadline(tour.start_date);
+  const deadline = cancellationDeadline(tour.start_date, cancelDaysOf(booking));
   const deadlineLabel = deadline
     ? new Date(`${deadline}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : '';
@@ -645,7 +646,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   }}>
                     <ShieldAlert size={18} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 2 }} />
                     <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
-                      Cancellations for this tour closed on <strong>{deadlineLabel}</strong>. Per our Terms, bookings can't be cancelled within {CANCELLATION_CUTOFF_DAYS} days of the tour date.
+                      Cancellations for this tour closed on <strong>{deadlineLabel}</strong>. Per our Terms, bookings can't be cancelled within {cancelDaysOf(booking)} days of the tour date.
                     </p>
                   </div>
                 )}
@@ -857,7 +858,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
   const holdUntil = booking.hold_expires_at
     ? new Date(booking.hold_expires_at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })
     : null;
-  // Slots the agency held for the tour this joiner requested (2 days to pay).
+  // Slots the agency held for the tour this joiner requested (REQUESTED_HOLD_HOURS to pay).
   if (isAwaitingPayment && booking.request_id) return <HeldSlotsPayment booking={booking} onChanged={onChanged} />;
 
   const cancel = async () => {
@@ -927,7 +928,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
 };
 
 // The joiner requested this tour, so the agency held their group's slots when
-// it was posted. They choose full payment or a 50% downpayment, name the
+// it was posted. They choose full payment or a downpayment, name the
 // people joining them, and pay before the hold runs out (or the slots go to others).
 const HeldSlotsPayment = ({ booking, onChanged }) => {
   const others = Math.max(0, (booking.slots_booked || 1) - 1);
@@ -938,11 +939,12 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
   const [problem, setProblem] = useState('');
   const [accommodation, setAccommodation] = useState(booking.accommodation || '');
   const accommodationChoices = cleanAccommodation(booking.tours?.accommodation_options);
-  // Today's price for this date (5% off while it's on sale), the same as the database charges.
+  // Today's price for this date (the sale discount while it's on sale), the same as the database charges.
   const total = (booking.tours ? effectivePrice(booking.tours) * (booking.slots_booked || 1) : 0) || Number(booking.total_price || 0);
   // A date on sale is paid in full (no downpayment).
   const onSale = !!booking.tours && isOnSale(booking.tours);
-  const amount = paymentType === 'full' || onSale ? total : downpaymentFor(total);
+  const percent = downpaymentPercentOf(booking);
+  const amount = paymentType === 'full' || onSale ? total : downpaymentFor(total, percent);
   const until = booking.hold_expires_at
     ? new Date(booking.hold_expires_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
     : null;
@@ -1008,7 +1010,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       </p>
 
       <div role="radiogroup" aria-label="Payment" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-        {[['full', 'Full payment', total], ...(onSale ? [] : [['down', `${DOWNPAYMENT_PERCENT}% downpayment`, downpaymentFor(total)]])].map(([key, label, value]) => (
+        {[['full', 'Full payment', total], ...(onSale ? [] : [['down', `${percent}% downpayment`, downpaymentFor(total, percent)]])].map(([key, label, value]) => (
           <button key={key} type="button" role="radio" aria-checked={paymentType === key} onClick={() => setPaymentType(key)} style={choice(paymentType === key)}>
             <span style={{ display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A8481A' }}>{label}</span>
             <span style={{ display: 'block', fontSize: 16, fontWeight: 900 }}>{formatPeso(value)}</span>
@@ -1070,7 +1072,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
 
       <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 12px', cursor: 'pointer' }}>
         <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
-        <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close 14 days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
+        <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close {cancelDaysOf(booking)} days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
       </label>
 
       {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '0 0 10px' }}>{problem}</p>}
