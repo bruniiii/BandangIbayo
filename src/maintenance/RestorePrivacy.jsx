@@ -50,8 +50,7 @@ export const PrivacySetting = () => {
     <section style={card}>
       <h3 style={h3}><ShieldOff size={16} color="#A8481A" /> Data privacy</h3>
       <p style={hint}>
-        A joiner can ask for their data or for it to be removed (Data Privacy Act): open them in Joiner Accounts → Download Their Data or Remove Personal Details.
-        You can also remove the details of joiners who have been archived for a long time, automatically.
+        Remove the personal details of joiners who have been archived for a long time, automatically (their bookings and payments stay, under "Removed joiner").
       </p>
       {!me.isMain && <p style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 10px' }}><Lock size={15} /> Only the main admin can change this.</p>}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

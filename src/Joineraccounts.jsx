@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { reportError, toast } from './ui/toast';
-import JoinerPrivacyActions from './ui/JoinerPrivacyActions';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -531,8 +530,6 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
             {selected.archive_reason === 'removed' && (
               <p style={{ margin: '10px 0 0', fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>Removed: {selected.removed_reason || '—'}</p>
             )}
-            {/* Data Privacy Act requests (main admin) */}
-            <JoinerPrivacyActions joiner={selected} onChanged={() => { setSelected(null); fetchJoiners(); }} />
 
             {/* ── Email joiner ── */}
             <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 22, paddingTop: 18 }}>
