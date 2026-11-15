@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Walkthrough from './ui/Walkthrough';
 import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
 import TermsUpdateCheck from './ui/TermsUpdateCheck';
+import { loadChatFilter } from './profanity';
 import Feedback from './Feedback';
 import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, MapPin, ImageIcon, Users, Eye, Bell, Sparkles, MessagesSquare, Globe, Inbox, MessageSquareHeart } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -92,6 +93,8 @@ const PAGE_INFO = {
 };
 
 const JoinerDashboard = () => {
+  // The chat preview hides the same words as the database (Chat Filter).
+  useEffect(() => { loadChatFilter().catch(() => {}); }, []);
   const [tourOpen, setTourOpen] = useState(false);
   const tourUser = useRef(null);
   useEffect(() => {

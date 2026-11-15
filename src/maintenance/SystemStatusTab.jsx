@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Activity, Power, Wrench, ShieldCheck } from 'lucide-react';
+import { Activity, Power, Wrench, ShieldCheck, Timer } from 'lucide-react';
 import OverviewTab from './OverviewTab';
 import SettingsTab from './SettingsTab';
 import DataTab from './DataTab';
 import SecurityTab from './SecurityTab';
+import HealthTab from './HealthTab';
 
 // ─────────────────────────────────────────────
 // System Maintenance → System Status
@@ -15,6 +16,7 @@ import SecurityTab from './SecurityTab';
 const PARTS = [
   ['overview', 'Overview', Activity],
   ['settings', 'Maintenance Mode & Emails', Power],
+  ['health', 'Jobs & Emails', Timer],
   ['data', 'Cleanups', Wrench],
   ['security', 'Security', ShieldCheck],
 ];
@@ -39,6 +41,7 @@ const SystemStatusTab = ({ onNavigate, onTab, start = 'overview' }) => {
       </div>
       {part === 'overview' && <OverviewTab onTab={go} />}
       {part === 'settings' && <SettingsTab onNavigate={onNavigate} />}
+      {part === 'health' && <HealthTab />}
       {part === 'data' && <DataTab onNavigate={onNavigate} />}
       {part === 'security' && <SecurityTab onNavigate={onNavigate} />}
     </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Download, Loader2, History, RefreshCw, AlertTriangle, CheckCircle2, ChevronRight, Lock } from 'lucide-react';
 import { useAdminMe } from '../adminMe';
+import { RestoreHelp, PrivacySetting } from './RestorePrivacy';
 import { supabase } from '../supabaseClient';
 import { toast } from '../ui/toast';
 import { downloadCsv } from '../csvExport';
@@ -211,6 +212,9 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
           </ul>
         )}
       </section>
+
+      <RestoreHelp />
+      <PrivacySetting />
     </div>
   );
 };
