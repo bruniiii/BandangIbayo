@@ -42,6 +42,10 @@ import ActualExpenses from './ActualExpenses';
 import { useAdminMe } from './adminMe';
 import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
+import DestinationOptions from './ui/DestinationOptions';
+import { ensureDestination } from './destinations';
+import { DIFFICULTY_LEVELS } from './optionLists';
+import { blackoutOn } from './siteContent';
 
  
 // ── PALETTE ──────────────────────────────────────────────
@@ -449,6 +453,8 @@ const TourManagement = ({ openTourId = null }) => {
         [`end_date_${i}`, r.end_date < r.start_date ? `${label}The end date can't be before the start date.` : ''],
         [`end_date_${i}`, tripDays > MAX_TOUR_DAYS ? `${label}A tour can be at most ${MAX_TOUR_DAYS} days long.` : ''],
         [`start_date_${i}`, r.end_date >= r.start_date ? overlapError(r, i, label) : ''],
+        // No-tour dates (System Maintenance → Site Content).
+        [`start_date_${i}`, changed && blackoutOn(r.start_date, r.end_date) ? `${label}No tours on those days: ${blackoutOn(r.start_date, r.end_date)}.` : ''],
         // Sale (a discount off the Joiner Rate, see Booking Rules) on this date only, ending by the day the tour starts.
         [`sale_starts_${i}`, r.sale && !r.sale_starts ? `${label}Pick when the sale starts.` : ''],
         [`sale_ends_${i}`, r.sale && !r.sale_ends ? `${label}Pick when the sale ends.` : ''],
@@ -541,6 +547,8 @@ const TourManagement = ({ openTourId = null }) => {
         .upsert(rateIds.map((id) => ({ tour_id: id, regular_rate: Math.round(regularRate * 100) / 100 })), { onConflict: 'tour_id' });
       if (rateError) toast.error("Tour saved, but the Regular Rate wasn't", rateError.message);
 
+      // A new destination joins the saved list (System Maintenance → Destinations).
+      ensureDestination(formData.get('destination')).then((added) => { if (added) toast.info('Added to Destinations', String(formData.get('destination')).trim()); });
       // Suppliers & expenses of every date (per-person lines × the date's max slots).
       try {
         for (const id of rateIds) {
@@ -1005,7 +1013,8 @@ const TourManagement = ({ openTourId = null }) => {
                 <ModalInput label="Tour Title" name="title" defaultValue={formTour?.title} placeholder="e.g., Mt. Pulag" required />
  
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <ModalInput label="Destination" name="destination" data-allow="place" defaultValue={formTour?.destination} onChange={(e) => setFormDestination(e.target.value)} required />
+                  <ModalInput label="Destination" name="destination" data-allow="place" list="tour-destinations" autoComplete="off" defaultValue={formTour?.destination} onChange={(e) => setFormDestination(e.target.value)} required />
+                  <DestinationOptions id="tour-destinations" />
                   <ModalInput label="Joiner Rate (₱)" name="price" {...moneyInputProps} placeholder={rangeText(JOINER_RATE_MIN, JOINER_RATE_MAX)} defaultValue={moneyDisplay(formTour?.price)} onChange={(e) => setFormTourPrice(String(moneyNumber(e.target.value) || ''))} required />
                 </div>
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
@@ -1165,9 +1174,7 @@ const TourManagement = ({ openTourId = null }) => {
                     <label style={labelStyle}>Difficulty</label>
                     <NiceSelect name="difficulty" defaultValue={formTour?.difficulty || 'Easy'}
                       style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
-                      <option value="Easy">Easy</option>
-                      <option value="Moderate">Moderate</option>
-                      <option value="Challenging">Challenging</option>
+                      {[...new Set([...DIFFICULTY_LEVELS, ...(formTour?.difficulty ? [formTour.difficulty] : [])])].map((d) => <option key={d} value={d}>{d}</option>)}
                     </NiceSelect>
                   </div>
                 </div>

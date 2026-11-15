@@ -5,6 +5,7 @@ import {
   WEATHER_REFUND_PERCENT, hoursText, minutesText,
 } from '../bookingRules';
 import { AGENCY } from '../agencyInfo';
+import { helpFaqs } from '../optionLists';
 
 
 // The Facebook "f" logo (lucide has no brand icons).
@@ -20,7 +21,9 @@ const FacebookIcon = ({ size = 18 }) => (
 // ─────────────────────────────────────────────
 
 // Built when shown, so the numbers follow the Booking Rules.
-const faqs = () => [
+// The FAQ from System Maintenance → Lists & FAQ, or this built-in one.
+const faqs = () => helpFaqs() || builtInFaqs();
+const builtInFaqs = () => [
   {
     q: 'What is a joiner tour?',
     a: 'You join a group tour with other travelers and share the van, guide and other costs, so the trip costs less than going alone.',

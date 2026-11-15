@@ -33,6 +33,8 @@ import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { tripDays, daysLabel, formatYmdRange } from './dateRange';
+import DestinationOptions from './ui/DestinationOptions';
+import { blackoutOn } from './siteContent';
 
 // ─────────────────────────────────────────────
 // PRIVATE TOURS and REQUEST A TOUR (joiner): two pages in the sidebar, the
@@ -117,6 +119,7 @@ const checkRequestFields = (formEl, form, type) => {
         : `Private tours fit up to ${MAX_VANS} vans of ${VAN_SEATS} (${maxGroup()} people). For a bigger group, please message us.`) : ''],
     ['preferredDate', !form.preferredDate ? 'Please choose your trip dates.' : form.preferredDate < earliestTripDate() ? `Trips can be booked from ${leadText()} ahead. Please pick a later date.` : ''],
     ['preferredDate', form.preferredDate && !form.preferredEndDate ? 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).' : ''],
+    ['preferredDate', blackoutOn(form.preferredDate, form.preferredEndDate || form.preferredDate) ? `We don't run tours on those days: ${blackoutOn(form.preferredDate, form.preferredEndDate || form.preferredDate)}. Please pick other dates.` : ''],
     ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most ${maxDaysText()} long.` : ''],
     ...people.flatMap((p, i) => [
       [`participant_name_${i}`, fullNameError(p.full_name, `Name of person ${i + 1}`)],
@@ -551,7 +554,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {sectionTitle(2, isExclusive ? 'Trip Details' : 'Destination & Tour Details')}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
-          <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} required />
+          <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} list="request-destinations" autoComplete="off" required />
+          <DestinationOptions id="request-destinations" />
           <InputField name="groupSize" label={isExclusive ? 'Participants' : `Participants (max ${MAX_TOUR_SLOTS})`} type="number" min="1" max={maxGroupFor(type)} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
           <TripDatesFields form={form} setForm={setForm} />
           {isExclusive && (

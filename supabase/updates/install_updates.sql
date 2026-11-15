@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- All database updates from 20261111 to 20261228, in order, in one go.
+-- All database updates from 20261111 to 20270102, in order, in one go.
 --
 -- Paste the whole file into the Supabase SQL Editor and click Run.
 -- It runs as one transaction: if anything fails, nothing is changed, and the
@@ -8,7 +8,7 @@
 -- Afterwards, run supabase/updates/check_updates.sql: every row should say
 -- "installed".
 --
--- Generated from supabase/migrations/20261111…20261228 — edit those, not this.
+-- Generated from supabase/migrations/20261111…20270102 — edit those, not this.
 -- ─────────────────────────────────────────────
 
 begin;
@@ -8016,5 +8016,863 @@ begin
   end if;
 end;
 $$;
+
+-- ════════════ 20261229000000_terms_acceptance.sql ════════════
+-- ─────────────────────────────────────────────
+-- Which Terms & Conditions each joiner agreed to
+--
+-- profiles.terms_version / terms_accepted_at: the version of the Terms
+-- (System Maintenance → Policies & Content) a joiner agreed to, and when.
+--   • Registration records the current version (the auth function calls
+--     record_terms_acceptance).
+--   • When a newer version is published, joiners are asked to agree to it
+--     the next time they open the website (accept_current_terms).
+--   • Only these functions set the two fields (not the profile form).
+--   • Joiners who registered before this update agreed to version 1 (the
+--     text the website showed until now), on the day they registered.
+--
+-- Run after 20261228000000_maintenance_tabs.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+alter table public.profiles add column if not exists terms_version integer;
+alter table public.profiles add column if not exists terms_accepted_at timestamptz;
+
+create or replace function public.current_terms_version()
+returns integer
+language sql
+stable
+security definer
+set search_path = public
+as $$ select (select version from public.site_policies where slug = 'terms' and is_current) $$;
+revoke all on function public.current_terms_version() from public;
+grant execute on function public.current_terms_version() to anon, authenticated, service_role;
+
+-- The two fields change only through the functions below.
+create or replace function public.profiles_guard_terms()
+returns trigger
+language plpgsql
+as $$
+begin
+  if public.is_client_request()
+     and coalesce(current_setting('app.terms_accept', true), '') <> 'on'
+     and (new.terms_version is distinct from old.terms_version or new.terms_accepted_at is distinct from old.terms_accepted_at) then
+    raise exception 'The Terms you agreed to can only be recorded by agreeing to them.';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists profiles_guard_terms on public.profiles;
+create trigger profiles_guard_terms before update on public.profiles
+  for each row execute function public.profiles_guard_terms();
+
+-- A joiner agrees to the current version.
+create or replace function public.accept_current_terms()
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v integer := public.current_terms_version();
+begin
+  if auth.uid() is null then raise exception 'Please log in first.'; end if;
+  if v is null then return null; end if;
+  perform set_config('app.terms_accept', 'on', true);
+  update public.profiles set terms_version = v, terms_accepted_at = now() where id = auth.uid();
+  perform set_config('app.terms_accept', 'off', true);
+  return v;
+end;
+$$;
+revoke all on function public.accept_current_terms() from public;
+grant execute on function public.accept_current_terms() to authenticated;
+
+-- Registration (the auth function, with the service role key).
+create or replace function public.record_terms_acceptance(p_user_id uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v integer := coalesce(public.current_terms_version(), 1);
+begin
+  update public.profiles set terms_version = v, terms_accepted_at = now() where id = p_user_id;
+  return v;
+end;
+$$;
+revoke all on function public.record_terms_acceptance(uuid) from public, anon, authenticated;
+grant execute on function public.record_terms_acceptance(uuid) to service_role;
+
+-- Joiners from before this update: version 1, when they registered.
+do $$
+begin
+  perform set_config('app.terms_accept', 'on', true);
+  update public.profiles
+     set terms_version = 1, terms_accepted_at = coalesce(created_at, now())
+   where terms_version is null
+     and coalesce(role, 'joiner') = 'joiner'
+     and created_at < now();
+  perform set_config('app.terms_accept', 'off', true);
+end;
+$$;
+
+-- ════════════ 20261230000000_destinations.sql ════════════
+-- ─────────────────────────────────────────────
+-- Destinations (System Maintenance → Destinations)
+--
+-- One saved list of destinations (name and region), so tours and suppliers
+-- use the same names and the supplier checklist and Reports match them.
+--   • Filled in from the destinations already used by tours and suppliers.
+--   • Everyone can read the active ones (the request forms suggest them);
+--     admins add, edit, archive and restore. Never deleted.
+--   • A destination an upcoming tour goes to can't be archived.
+--   • Names are unique (ignoring capitals and spaces).
+--
+-- Run after 20261229000000_terms_acceptance.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create table if not exists public.destinations (
+  id uuid primary key default gen_random_uuid(),
+  name text not null check (length(btrim(name)) between 2 and 120),
+  region text check (coalesce(length(region), 0) <= 80),
+  is_active boolean not null default true,
+  archived_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists destinations_name_unique on public.destinations (lower(regexp_replace(btrim(name), '\s+', ' ', 'g')));
+
+alter table public.destinations enable row level security;
+revoke all on public.destinations from anon, authenticated;
+grant select on public.destinations to anon, authenticated;
+grant insert, update on public.destinations to authenticated;
+drop policy if exists "destinations_read" on public.destinations;
+create policy "destinations_read" on public.destinations
+  for select to anon, authenticated using (is_active or public.is_admin());
+drop policy if exists "destinations_admin_insert" on public.destinations;
+create policy "destinations_admin_insert" on public.destinations
+  for insert to authenticated with check (public.is_admin());
+drop policy if exists "destinations_admin_update" on public.destinations;
+create policy "destinations_admin_update" on public.destinations
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
+drop trigger if exists destinations_no_delete on public.destinations;
+create trigger destinations_no_delete before delete on public.destinations
+  for each row execute function public.no_hard_delete();
+
+create or replace function public.destinations_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_tours text[];
+begin
+  new.name := regexp_replace(btrim(new.name), '\s+', ' ', 'g');
+  new.region := nullif(btrim(coalesce(new.region, '')), '');
+  if exists (select 1 from public.destinations d where d.id <> new.id and lower(d.name) = lower(new.name)) then
+    raise exception '"%" is already in the list.', new.name;
+  end if;
+  if tg_op = 'UPDATE' and old.is_active and not new.is_active then
+    select coalesce(array_agg(distinct t.title || ' (' || to_char(t.start_date, 'Mon FMDD, YYYY') || ')'), '{}') into v_tours
+      from public.tours t
+     where lower(btrim(t.destination)) = lower(old.name)
+       and coalesce(t.end_date, t.start_date) >= (now() at time zone 'Asia/Manila')::date
+       and not coalesce(t.is_archived, false)
+       and coalesce(t.weather_status, '') <> 'cancelled';
+    if cardinality(v_tours) > 0 then
+      raise exception '% can''t be archived: upcoming tour% go% there: %.', old.name,
+        case when cardinality(v_tours) = 1 then '' else 's' end, case when cardinality(v_tours) = 1 then 'es' else '' end,
+        array_to_string(v_tours, ', ');
+    end if;
+  end if;
+  if tg_op = 'UPDATE' and new.is_active is distinct from old.is_active then
+    new.archived_at := case when new.is_active then null else now() end;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists destinations_guard on public.destinations;
+create trigger destinations_guard before insert or update on public.destinations
+  for each row execute function public.destinations_guard();
+
+do $$
+begin
+  if to_regprocedure('public.log_admin_activity()') is not null then
+    drop trigger if exists destinations_admin_activity on public.destinations;
+    create trigger destinations_admin_activity after insert or update or delete on public.destinations
+      for each row execute function public.log_admin_activity();
+  end if;
+end;
+$$;
+
+-- The destinations already in use.
+insert into public.destinations (name)
+select distinct on (lower(n)) n
+  from (
+    select regexp_replace(btrim(destination), '\s+', ' ', 'g') as n from public.tours where btrim(coalesce(destination, '')) <> ''
+    union all
+    select regexp_replace(btrim(d), '\s+', ' ', 'g') from public.suppliers, unnest(destinations) d where btrim(coalesce(d, '')) <> ''
+  ) x
+ where length(n) between 2 and 120
+   and not exists (select 1 from public.destinations e where lower(e.name) = lower(x.n))
+ order by lower(n), n;
+
+-- ════════════ 20261231000000_option_lists_faq.sql ════════════
+-- ─────────────────────────────────────────────
+-- Editable short lists and the Help FAQ (System Maintenance → Lists & FAQ)
+--
+-- Lists that were typed into the code are now kept here and edited by the
+-- admins: cancellation reasons, bad-weather reasons, reasons for rejecting a
+-- request, accommodation choices and difficulty levels. The Help button's
+-- FAQ too (words in {braces} are the Booking Rules, filled in when shown).
+--   • Everyone reads the active items (the forms show them); admins add,
+--     edit, reorder, archive and restore. Never deleted.
+--   • An accommodation or difficulty an upcoming tour uses can't be
+--     archived (the database says which tour).
+--   • accommodation_choices() reads the list.
+--   • Seeded with the exact items the website used, so nothing changes.
+--
+-- Run after 20261230000000_destinations.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+create table if not exists public.option_lists (
+  id uuid primary key default gen_random_uuid(),
+  list_key text not null check (list_key in ('cancel_reasons', 'weather_reasons', 'reject_reasons', 'accommodation', 'difficulty')),
+  label text not null check (length(btrim(label)) between 1 and 80),
+  sort_order integer not null default 0,
+  is_active boolean not null default true,
+  archived_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists option_lists_unique on public.option_lists (list_key, lower(btrim(label)));
+
+create table if not exists public.help_faqs (
+  id uuid primary key default gen_random_uuid(),
+  question text not null check (length(btrim(question)) between 3 and 200),
+  answer text not null check (length(btrim(answer)) between 3 and 2000),
+  sort_order integer not null default 0,
+  is_active boolean not null default true,
+  archived_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['option_lists', 'help_faqs'] loop
+    execute format('alter table public.%I enable row level security', t);
+    execute format('revoke all on public.%I from anon, authenticated', t);
+    execute format('grant select on public.%I to anon, authenticated', t);
+    execute format('grant insert, update on public.%I to authenticated', t);
+    execute format('drop policy if exists %I on public.%I', t || '_read', t);
+    execute format('create policy %I on public.%I for select to anon, authenticated using (is_active or public.is_admin())', t || '_read', t);
+    execute format('drop policy if exists %I on public.%I', t || '_admin_insert', t);
+    execute format('create policy %I on public.%I for insert to authenticated with check (public.is_admin())', t || '_admin_insert', t);
+    execute format('drop policy if exists %I on public.%I', t || '_admin_update', t);
+    execute format('create policy %I on public.%I for update to authenticated using (public.is_admin()) with check (public.is_admin())', t || '_admin_update', t);
+    execute format('drop trigger if exists %I on public.%I', t || '_no_delete', t);
+    execute format('create trigger %I before delete on public.%I for each row execute function public.no_hard_delete()', t || '_no_delete', t);
+    if to_regprocedure('public.log_admin_activity()') is not null then
+      execute format('drop trigger if exists %I on public.%I', t || '_admin_activity', t);
+      execute format('create trigger %I after insert or update or delete on public.%I for each row execute function public.log_admin_activity()', t || '_admin_activity', t);
+    end if;
+  end loop;
+end;
+$$;
+
+create or replace function public.option_lists_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_tours text[];
+begin
+  new.label := regexp_replace(btrim(new.label), '\s+', ' ', 'g');
+  if tg_op = 'UPDATE' and new.list_key is distinct from old.list_key then
+    raise exception 'An item can''t move to another list.';
+  end if;
+  if tg_op = 'UPDATE' and old.is_active and (not new.is_active or new.label is distinct from old.label)
+     and old.list_key in ('accommodation', 'difficulty') then
+    select coalesce(array_agg(distinct t.title || ' (' || to_char(t.start_date, 'Mon FMDD, YYYY') || ')'), '{}') into v_tours
+      from public.tours t
+     where coalesce(t.end_date, t.start_date) >= (now() at time zone 'Asia/Manila')::date
+       and not coalesce(t.is_archived, false)
+       and ((old.list_key = 'accommodation' and old.label = any (coalesce(t.accommodation_options, '{}')))
+         or (old.list_key = 'difficulty' and t.difficulty = old.label));
+    if cardinality(v_tours) > 0 then
+      raise exception '"%" can''t be %: upcoming tour% use% it: %.', old.label,
+        case when not new.is_active then 'archived' else 'renamed' end,
+        case when cardinality(v_tours) = 1 then '' else 's' end, case when cardinality(v_tours) = 1 then 's' else '' end,
+        array_to_string(v_tours, ', ');
+    end if;
+  end if;
+  if tg_op = 'UPDATE' and new.is_active is distinct from old.is_active then
+    new.archived_at := case when new.is_active then null else now() end;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists option_lists_guard on public.option_lists;
+create trigger option_lists_guard before insert or update on public.option_lists
+  for each row execute function public.option_lists_guard();
+
+create or replace function public.help_faqs_touch()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'UPDATE' and new.is_active is distinct from old.is_active then
+    new.archived_at := case when new.is_active then null else now() end;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists help_faqs_touch on public.help_faqs;
+create trigger help_faqs_touch before update on public.help_faqs
+  for each row execute function public.help_faqs_touch();
+
+-- The items the website used.
+insert into public.option_lists (list_key, label, sort_order)
+select v.k, v.l, v.o from (values
+  ('cancel_reasons', 'Schedule conflict / change of plans', 1),
+  ('cancel_reasons', 'Work or school commitments', 2),
+  ('cancel_reasons', 'Personal or family emergency', 3),
+  ('cancel_reasons', 'Health reasons / feeling unwell', 4),
+  ('cancel_reasons', 'Financial reasons', 5),
+  ('cancel_reasons', 'Weather or safety concerns', 6),
+  ('cancel_reasons', 'Travel companion(s) can’t join', 7),
+  ('cancel_reasons', 'Booked the wrong tour or date', 8),
+  ('cancel_reasons', 'No longer interested in this tour', 9),
+  ('weather_reasons', 'Typhoon (PAGASA signal)', 1),
+  ('weather_reasons', 'Heavy rain / flooding', 2),
+  ('weather_reasons', 'Road closure or landslide', 3),
+  ('weather_reasons', 'Trail or park closed (DENR / LGU)', 4),
+  ('weather_reasons', 'Other safety concern', 5),
+  ('reject_reasons', 'The dates are not available', 1),
+  ('reject_reasons', 'Destination not offered right now', 2),
+  ('reject_reasons', 'Group size not possible', 3),
+  ('reject_reasons', 'Budget is too low for this trip', 4),
+  ('reject_reasons', 'Unsafe, closed or restricted destination', 5),
+  ('reject_reasons', 'Other', 6),
+  ('accommodation', 'Tent', 1),
+  ('accommodation', 'AC Room', 2),
+  ('accommodation', 'Non-AC Room', 3),
+  ('difficulty', 'Easy', 1),
+  ('difficulty', 'Moderate', 2),
+  ('difficulty', 'Challenging', 3)
+) as v(k, l, o)
+where not exists (select 1 from public.option_lists x where x.list_key = v.k and lower(x.label) = lower(v.l));
+
+insert into public.help_faqs (question, answer, sort_order)
+select v.q, v.a, v.o from (values
+  ('What is a joiner tour?', 'You join a group tour with other travelers and share the van, guide and other costs, so the trip costs less than going alone.', 1),
+  ('How do I create an account?', 'Tap Join Now, fill in your details and click Register. We email you a 6-digit code; enter it and your account is ready. Any email address works.', 2),
+  ('How do I book a tour?', 'Open a tour, pick a date and your pickup point, choose how many people are coming (add their names and numbers), then pay online. Your slots are held for {payment_hold_minutes} minutes while you pay.', 3),
+  ('How can I pay? Can I pay a downpayment?', 'Pay online with GCash, Maya, card or GrabPay. You can pay in full or a {downpayment_percent}% downpayment. The rest can be paid online from My Bookings or on the day of the tour.', 4),
+  ('Can I cancel or move my booking?', 'You can cancel up to {cancellation_cutoff_days} days before the tour: open the booking in My Bookings, choose a reason and confirm. It is cancelled right away. Payments are non-refundable. If the same trip runs on another date, you can move your booking there instead and your payment carries over.', 5),
+  ('What if the tour is full?', 'Join the waitlist on that tour. If a slot opens, we''ll notify and email you. Slots go to whoever books first.', 6),
+  ('What if the weather is bad?', 'A tour date may be postponed or cancelled because of bad weather, road closures or other safety concerns. You get a notice and a message in the tour''s group chat. Within {weather_choice_hours} hours, choose in My Bookings: keep your slot on the new date (if it was postponed), move to another date of the same tour, or get a {weather_refund_percent}% refund. No choice in {weather_choice_hours} hours = {weather_refund_percent}% refund.', 7),
+  ('Where will I be picked up?', 'When you book, choose your pickup point from the list for that tour. You can see it in My Bookings, on your receipt, and on the Day trip card; pickup times are under Tracking.', 8),
+  ('What do I need on the day of the tour?', 'Your check-in QR (My Bookings → View Details, or the Day trip card). Show it to the coordinator. You can follow the van and see pickup times under Tracking.', 9),
+  ('Can I talk to the other joiners?', 'Yes. Once your payment is confirmed, you join the Group Chat for your tour with the other joiners and the Bandang IBAYO team.', 10),
+  ('Can I book a private trip for my group?', 'Yes. Use Private Tours to request a private trip. We send you a package and price, and you confirm it with a {private_downpayment_percent}% downpayment.', 11),
+  ('I forgot my password. What do I do?', 'On the login page, tap "Forgot password?" and enter your email. We send you a link to set a new password.', 12)
+) as v(q, a, o)
+where not exists (select 1 from public.help_faqs);
+
+-- Accommodation choices come from the list now.
+create or replace function public.accommodation_choices()
+returns text[]
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(array_agg(label order by sort_order, label), array['Tent', 'AC Room', 'Non-AC Room'])
+    from public.option_lists where list_key = 'accommodation' and is_active
+$$;
+
+-- Tours and bookings were limited to the three built-in accommodations;
+-- now any accommodation in the list (active, or archived but already used).
+alter table public.tours drop constraint if exists tours_accommodation_options_check;
+alter table public.bookings drop constraint if exists bookings_accommodation_check;
+
+create or replace function public.accommodation_check()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_bad text;
+begin
+  if tg_table_name = 'tours' then
+    if tg_op = 'UPDATE' and new.accommodation_options is not distinct from old.accommodation_options then return new; end if;
+    select x into v_bad from unnest(coalesce(new.accommodation_options, '{}')) x
+     where not exists (select 1 from public.option_lists o where o.list_key = 'accommodation' and o.label = x
+                        and (o.is_active or (tg_op = 'UPDATE' and x = any (coalesce(old.accommodation_options, '{}')))))
+     limit 1;
+    if v_bad is not null then raise exception '"%" isn''t an accommodation in Lists & FAQ.', v_bad; end if;
+  else
+    if tg_op = 'UPDATE' and new.accommodation is not distinct from old.accommodation then return new; end if;
+    if new.accommodation is not null and not exists (select 1 from public.option_lists o where o.list_key = 'accommodation' and o.label = new.accommodation) then
+      raise exception '"%" isn''t an accommodation choice.', new.accommodation;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists tours_accommodation_check on public.tours;
+create trigger tours_accommodation_check before insert or update on public.tours
+  for each row execute function public.accommodation_check();
+drop trigger if exists bookings_accommodation_check on public.bookings;
+create trigger bookings_accommodation_check before insert or update on public.bookings
+  for each row execute function public.accommodation_check();
+
+-- ════════════ 20270101000000_site_content_blackouts.sql ════════════
+-- ─────────────────────────────────────────────
+-- Site content and no-tour dates (System Maintenance → Site Content)
+--
+--  • Announcement banner: a short notice joiners see on the homepage and
+--    their dashboard (e.g. a typhoon advisory) without Maintenance Mode.
+--    Any admin can post or remove it.
+--  • Landing page: the headline, the text under it, and optional hero photos
+--    (when there are none, open tours' photos are used, as now). Main admin.
+--  • No-tour dates: days the agency doesn't run tours (holidays, days off).
+--    New tours, date changes and private tour / tour requests can't fall on
+--    them; a no-tour date can't be set on days that already have tours.
+--  get_site_content() is readable by everyone.
+--
+-- Run after 20261231000000_option_lists_faq.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+-- ── Announcement and landing page ──
+create or replace function public.get_site_content()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'announcement', (select case
+        when (value ->> 'on')::boolean and (coalesce(value ->> 'until', '') = '' or (value ->> 'until')::timestamptz > now())
+          then value - 'by' end
+        from public.app_settings where key = 'announcement'),
+    'landing', coalesce((select value from public.app_settings where key = 'landing_content'), '{}'::jsonb)
+  )
+$$;
+revoke all on function public.get_site_content() from public;
+grant execute on function public.get_site_content() to anon, authenticated, service_role;
+
+create or replace function public.set_announcement(p_on boolean, p_message text, p_tone text default 'info', p_until timestamptz default null)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v jsonb;
+begin
+  if not public.is_admin() then raise exception 'Only admins can post announcements.'; end if;
+  if p_on and length(btrim(coalesce(p_message, ''))) < 5 then raise exception 'Write the announcement (5 characters or more).'; end if;
+  if length(coalesce(p_message, '')) > 300 then raise exception 'Keep the announcement under 300 characters.'; end if;
+  if coalesce(p_tone, 'info') not in ('info', 'warning') then raise exception 'Unknown banner color.'; end if;
+  if p_on and p_until is not null and p_until <= now() then raise exception 'The end time has already passed.'; end if;
+  v := jsonb_build_object('on', coalesce(p_on, false), 'message', nullif(btrim(coalesce(p_message, '')), ''), 'tone', coalesce(p_tone, 'info'),
+                          'until', p_until, 'posted_at', now(), 'by', auth.uid());
+  insert into public.app_settings (key, value, updated_at) values ('announcement', v, now())
+  on conflict (key) do update set value = excluded.value, updated_at = now();
+  return v - 'by';
+end;
+$$;
+revoke all on function public.set_announcement(boolean, text, text, timestamptz) from public;
+grant execute on function public.set_announcement(boolean, text, text, timestamptz) to authenticated;
+
+create or replace function public.set_landing_content(p_content jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v jsonb := coalesce(p_content, '{}'::jsonb);
+  v_photos jsonb := coalesce(v -> 'hero_images', '[]'::jsonb);
+begin
+  if not public.is_main_admin() then raise exception 'Only the main admin can change the landing page.'; end if;
+  if length(coalesce(v ->> 'headline', '')) > 80 or length(coalesce(v ->> 'headline_accent', '')) > 60 then raise exception 'Keep the headline short (80 characters or less).'; end if;
+  if length(coalesce(v ->> 'lead', '')) > 240 then raise exception 'Keep the text under the headline under 240 characters.'; end if;
+  if jsonb_typeof(v_photos) <> 'array' or jsonb_array_length(v_photos) > 6 then raise exception 'Up to 6 hero photos.'; end if;
+  if exists (select 1 from jsonb_array_elements_text(v_photos) u where u !~* '^https?://') then raise exception 'Hero photos must be uploaded images.'; end if;
+  v := jsonb_build_object('headline', nullif(btrim(coalesce(v ->> 'headline', '')), ''), 'headline_accent', nullif(btrim(coalesce(v ->> 'headline_accent', '')), ''),
+                          'lead', nullif(btrim(coalesce(v ->> 'lead', '')), ''), 'hero_images', v_photos);
+  insert into public.app_settings (key, value, updated_at) values ('landing_content', v, now())
+  on conflict (key) do update set value = excluded.value, updated_at = now();
+  return v;
+end;
+$$;
+revoke all on function public.set_landing_content(jsonb) from public;
+grant execute on function public.set_landing_content(jsonb) to authenticated;
+
+-- ── No-tour dates ──
+create table if not exists public.blackout_dates (
+  id uuid primary key default gen_random_uuid(),
+  start_date date not null,
+  end_date date not null,
+  reason text not null check (length(btrim(reason)) between 2 and 120),
+  is_active boolean not null default true,
+  archived_at timestamptz,
+  created_at timestamptz not null default now(),
+  check (end_date >= start_date and end_date - start_date <= 366)
+);
+alter table public.blackout_dates enable row level security;
+revoke all on public.blackout_dates from anon, authenticated;
+grant select on public.blackout_dates to anon, authenticated;
+grant insert, update on public.blackout_dates to authenticated;
+drop policy if exists "blackout_dates_read" on public.blackout_dates;
+create policy "blackout_dates_read" on public.blackout_dates for select to anon, authenticated using (is_active or public.is_admin());
+drop policy if exists "blackout_dates_admin_insert" on public.blackout_dates;
+create policy "blackout_dates_admin_insert" on public.blackout_dates for insert to authenticated with check (public.is_admin());
+drop policy if exists "blackout_dates_admin_update" on public.blackout_dates;
+create policy "blackout_dates_admin_update" on public.blackout_dates for update to authenticated using (public.is_admin()) with check (public.is_admin());
+drop trigger if exists blackout_dates_no_delete on public.blackout_dates;
+create trigger blackout_dates_no_delete before delete on public.blackout_dates for each row execute function public.no_hard_delete();
+
+-- The no-tour date (if any) that touches these days.
+create or replace function public.blackout_on(p_start date, p_end date)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select b.reason || ' (' || to_char(b.start_date, 'Mon FMDD') || case when b.end_date <> b.start_date then ' – ' || to_char(b.end_date, 'Mon FMDD') else '' end || ')'
+    from public.blackout_dates b
+   where b.is_active and b.start_date <= coalesce(p_end, p_start) and b.end_date >= p_start
+   order by b.start_date limit 1
+$$;
+revoke all on function public.blackout_on(date, date) from public;
+grant execute on function public.blackout_on(date, date) to anon, authenticated;
+
+-- A no-tour date can't cover days that already have tours.
+create or replace function public.blackout_dates_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_tours text[];
+begin
+  new.reason := btrim(new.reason);
+  if new.is_active and (tg_op = 'INSERT' or not old.is_active or new.start_date <> old.start_date or new.end_date <> old.end_date) then
+    select coalesce(array_agg(t.title || ' (' || to_char(t.start_date, 'Mon FMDD') || ')' order by t.start_date), '{}') into v_tours
+      from public.tours t
+     where t.start_date <= new.end_date and coalesce(t.end_date, t.start_date) >= new.start_date
+       and not coalesce(t.is_archived, false) and coalesce(t.weather_status, '') <> 'cancelled';
+    if cardinality(v_tours) > 0 then
+      raise exception 'Tours are already set on those days: %. Move or cancel them first.', array_to_string(v_tours, ', ');
+    end if;
+  end if;
+  if tg_op = 'UPDATE' and new.is_active is distinct from old.is_active then
+    new.archived_at := case when new.is_active then null else now() end;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists blackout_dates_guard on public.blackout_dates;
+create trigger blackout_dates_guard before insert or update on public.blackout_dates
+  for each row execute function public.blackout_dates_guard();
+
+-- Tours and requests can't fall on a no-tour date (checked when the dates are set or changed).
+create or replace function public.tours_check_blackout()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v text;
+begin
+  if tg_op = 'INSERT' or new.start_date is distinct from old.start_date or new.end_date is distinct from old.end_date then
+    v := public.blackout_on(new.start_date, coalesce(new.end_date, new.start_date));
+    if v is not null then raise exception 'No tours on those days: %.', v; end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists tours_check_blackout on public.tours;
+create trigger tours_check_blackout before insert or update on public.tours
+  for each row execute function public.tours_check_blackout();
+
+create or replace function public.requests_check_blackout()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v text;
+begin
+  if new.preferred_date is not null
+     and (tg_op = 'INSERT' or new.preferred_date is distinct from old.preferred_date or new.preferred_end_date is distinct from old.preferred_end_date) then
+    v := public.blackout_on(new.preferred_date, coalesce(new.preferred_end_date, new.preferred_date));
+    if v is not null then raise exception 'We don''t run tours on those days: %. Please pick other dates.', v; end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists requests_check_blackout on public.exclusive_requests;
+create trigger requests_check_blackout before insert or update on public.exclusive_requests
+  for each row execute function public.requests_check_blackout();
+
+do $$
+begin
+  if to_regprocedure('public.log_admin_activity()') is not null then
+    drop trigger if exists blackout_dates_admin_activity on public.blackout_dates;
+    create trigger blackout_dates_admin_activity after insert or update or delete on public.blackout_dates
+      for each row execute function public.log_admin_activity();
+  end if;
+end;
+$$;
+
+-- ════════════ 20270102000000_health_privacy.sql ════════════
+-- ─────────────────────────────────────────────
+-- Job & email health, joiner data requests, chat filter preview
+--
+--  • system_jobs(): each scheduled job (pg_cron) with its last run and the
+--    failures of the last 24 hours, for System Status (admins).
+--  • email_failures: emails that couldn't be sent (the send-email function
+--    records them); admins read them. Nothing is deleted.
+--  • export_joiner_data(): one joiner's data as a file (main admin), for a
+--    Data Privacy Act request.
+--  • anonymize_joiner(): removes a joiner's personal details for good
+--    (main admin; not while they have an upcoming trip). Bookings and money
+--    records stay, under "Removed joiner".
+--  • Auto-anonymize: joiners archived longer than the days set by the main
+--    admin (off by default) are anonymized every day.
+--  • chat_filter_list(): the active blocked words for joiners' preview.
+--
+-- Run after 20270101000000_site_content_blackouts.sql. Safe to run more than once.
+-- ─────────────────────────────────────────────
+
+-- ── Scheduled jobs ──
+create or replace function public.system_jobs()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v jsonb;
+begin
+  if not public.is_admin() then raise exception 'Only admins can see this.'; end if;
+  if to_regclass('cron.job') is null then return jsonb_build_object('available', false, 'jobs', '[]'::jsonb); end if;
+  execute $q$
+    select coalesce(jsonb_agg(jsonb_build_object(
+      'name', j.jobname, 'schedule', j.schedule, 'active', j.active,
+      'last_run', l.start_time, 'last_status', l.status, 'last_message', left(l.return_message, 300),
+      'failed_24h', coalesce(f.n, 0)) order by j.jobname), '[]')
+      from cron.job j
+      left join lateral (select d.start_time, d.status, d.return_message from cron.job_run_details d
+                          where d.jobid = j.jobid order by d.start_time desc limit 1) l on true
+      left join lateral (select count(*) as n from cron.job_run_details d
+                          where d.jobid = j.jobid and d.status = 'failed' and d.start_time > now() - interval '24 hours') f on true
+  $q$ into v;
+  return jsonb_build_object('available', true, 'jobs', v);
+exception when others then
+  return jsonb_build_object('available', false, 'jobs', '[]'::jsonb, 'error', sqlerrm);
+end;
+$$;
+revoke all on function public.system_jobs() from public;
+grant execute on function public.system_jobs() to authenticated;
+
+-- ── Emails that failed ──
+create table if not exists public.email_failures (
+  id bigserial primary key,
+  kind text not null,
+  ref text,
+  recipient text,
+  subject text,
+  error text,
+  at timestamptz not null default now()
+);
+create index if not exists email_failures_at on public.email_failures (at desc);
+alter table public.email_failures enable row level security;
+revoke all on public.email_failures from anon, authenticated;
+grant select on public.email_failures to authenticated;
+drop policy if exists "email_failures_admin_read" on public.email_failures;
+create policy "email_failures_admin_read" on public.email_failures for select to authenticated using (public.is_admin());
+
+-- ── Joiner data requests ──
+create or replace function public.export_joiner_data(p_user_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v jsonb;
+begin
+  if not public.is_main_admin() then raise exception 'Only the main admin can export a joiner''s data.'; end if;
+  select jsonb_build_object(
+    'exported_at', now(),
+    'profile', (select to_jsonb(p) - 'is_main_admin' from public.profiles p where p.id = p_user_id),
+    'bookings', (select coalesce(jsonb_agg(to_jsonb(b) - 'checkin_code' order by b.created_at), '[]') from public.bookings b where b.user_id = p_user_id),
+    'requests', (select coalesce(jsonb_agg(to_jsonb(r) order by r.created_at), '[]') from public.exclusive_requests r where r.user_id = p_user_id),
+    'reviews', (select coalesce(jsonb_agg(to_jsonb(r) order by r.created_at), '[]') from public.reviews r where r.user_id = p_user_id),
+    'part_ratings', (select coalesce(jsonb_agg(jsonb_build_object('tour_id', r.tour_id, 'rating', r.rating, 'at', r.created_at)), '[]') from public.inclusion_ratings r where r.user_id = p_user_id)
+  ) into v;
+  if v -> 'profile' is null or v -> 'profile' = 'null'::jsonb then raise exception 'Joiner not found.'; end if;
+  insert into public.backup_log (what, rows, admin_name)
+  values ('one joiner''s data', 1, (select nullif(btrim(concat_ws(' ', first_name, last_name)), '') from public.profiles where id = auth.uid()));
+  return v;
+end;
+$$;
+revoke all on function public.export_joiner_data(uuid) from public;
+grant execute on function public.export_joiner_data(uuid) to authenticated;
+
+-- The work of anonymizing (no permission check; called below).
+create or replace function public.anonymize_joiner_now(p_user_id uuid, p_reason text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  -- table, column, new value (SQL); a column the database doesn't have is skipped.
+  v_cols text[][] := array[
+    ['profiles', 'first_name', quote_literal('Removed joiner')], ['profiles', 'middle_name', 'null'], ['profiles', 'last_name', 'null'],
+    ['profiles', 'suffix', 'null'], ['profiles', 'username', quote_literal('removed-' || left(replace(p_user_id::text, '-', ''), 12))],
+    ['profiles', 'email', 'null'], ['profiles', 'phone_number', 'null'], ['profiles', 'date_of_birth', 'null'], ['profiles', 'address', 'null'],
+    ['profiles', 'province', 'null'], ['profiles', 'city_municipality', 'null'], ['profiles', 'barangay', 'null'], ['profiles', 'street', 'null'],
+    ['profiles', 'avatar_url', 'null'], ['profiles', 'emergency_contact_name', 'null'], ['profiles', 'emergency_contact_number', 'null'],
+    ['bookings', 'full_name', quote_literal('Removed joiner')], ['bookings', 'contact_number', 'null'], ['bookings', 'email', 'null'],
+    ['bookings', 'companions', quote_literal('[]') || '::jsonb'], ['bookings', 'gcash_number', 'null'],
+    ['exclusive_requests', 'full_name', quote_literal('Removed joiner')], ['exclusive_requests', 'contact', 'null'],
+    ['exclusive_requests', 'contact_number', 'null'], ['exclusive_requests', 'email', 'null'], ['exclusive_requests', 'notes', 'null'],
+    ['exclusive_requests', 'participants', quote_literal('[]') || '::jsonb']
+  ];
+  v_sets jsonb := '{}'::jsonb;
+  i integer;
+  t text;
+  v_set text;
+begin
+  perform set_config('app.trusted_booking_write', 'on', true);
+  perform set_config('app.joiner_request_edit', 'on', true);
+  for i in 1 .. array_length(v_cols, 1) loop
+    if exists (select 1 from information_schema.columns
+                where table_schema = 'public' and table_name = v_cols[i][1] and column_name = v_cols[i][2]) then
+      v_sets := jsonb_set(v_sets, array[v_cols[i][1]],
+        to_jsonb(coalesce(v_sets ->> v_cols[i][1] || ', ', '') || quote_ident(v_cols[i][2]) || ' = ' || v_cols[i][3]));
+    end if;
+  end loop;
+  foreach t in array array['profiles', 'bookings', 'exclusive_requests'] loop
+    v_set := v_sets ->> t;
+    if v_set is not null then
+      execute format('update public.%I set %s where %I = $1', t, v_set, case when t = 'profiles' then 'id' else 'user_id' end) using p_user_id;
+    end if;
+  end loop;
+  update public.profiles
+     set archived_at = coalesce(archived_at, now()), archive_reason = 'anonymized: ' || left(coalesce(p_reason, ''), 200)
+   where id = p_user_id;
+  -- They can't log in anymore, and the email address is gone.
+  update auth.users
+     set email = 'removed-' || replace(p_user_id::text, '-', '') || '@removed.invalid',
+         raw_user_meta_data = '{}'::jsonb, banned_until = '9999-12-31'::timestamptz
+   where id = p_user_id;
+end;
+$$;
+revoke all on function public.anonymize_joiner_now(uuid, text) from public, anon, authenticated;
+
+create or replace function public.anonymize_joiner(p_user_id uuid, p_reason text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_main_admin() then raise exception 'Only the main admin can remove a joiner''s personal details.'; end if;
+  if length(btrim(coalesce(p_reason, ''))) < 5 then raise exception 'Write the reason (e.g. the joiner asked by email on …).'; end if;
+  if (select role from public.profiles where id = p_user_id) is distinct from 'joiner' then raise exception 'Only joiner accounts can be anonymized.'; end if;
+  if exists (select 1 from public.bookings b join public.tours t on t.id = b.tour_id
+              where b.user_id = p_user_id and b.booking_status not in ('Cancelled', 'Rejected')
+                and coalesce(t.end_date, t.start_date) >= (now() at time zone 'Asia/Manila')::date) then
+    raise exception 'This joiner has an upcoming trip. Cancel it (or wait until it''s over) first.';
+  end if;
+  perform public.anonymize_joiner_now(p_user_id, p_reason);
+end;
+$$;
+revoke all on function public.anonymize_joiner(uuid, text) from public;
+grant execute on function public.anonymize_joiner(uuid, text) to authenticated;
+
+-- Auto-anonymize (app_settings 'privacy' → anonymize_after_days; off when empty).
+create or replace function public.set_privacy_settings(p_days integer)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_main_admin() then raise exception 'Only the main admin can change this.'; end if;
+  if p_days is not null and (p_days < 180 or p_days > 3650) then raise exception 'Pick from 180 days to 10 years, or turn it off.'; end if;
+  insert into public.app_settings (key, value, updated_at) values ('privacy', jsonb_build_object('anonymize_after_days', p_days), now())
+  on conflict (key) do update set value = excluded.value, updated_at = now();
+  return jsonb_build_object('anonymize_after_days', p_days);
+end;
+$$;
+revoke all on function public.set_privacy_settings(integer) from public;
+grant execute on function public.set_privacy_settings(integer) to authenticated;
+
+create or replace function public.anonymize_old_archived()
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_days integer := (select (value ->> 'anonymize_after_days')::int from public.app_settings where key = 'privacy');
+  r record;
+  n integer := 0;
+begin
+  if v_days is null then return 0; end if;
+  for r in select id from public.profiles
+            where coalesce(role, 'joiner') = 'joiner' and archived_at is not null
+              and archived_at < now() - make_interval(days => v_days)
+              and coalesce(archive_reason, '') not like 'anonymized%' loop
+    perform public.anonymize_joiner_now(r.id, 'archived over ' || v_days || ' days');
+    n := n + 1;
+  end loop;
+  if n > 0 and to_regclass('public.maintenance_log') is not null then
+    insert into public.maintenance_log (task, affected) values ('anonymize_old_archived', n);
+  end if;
+  return n;
+end;
+$$;
+revoke all on function public.anonymize_old_archived() from public, anon, authenticated;
+
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.unschedule(jobid) from cron.job where jobname = 'anonymize-old-archived';
+    perform cron.schedule('anonymize-old-archived', '40 16 * * *', 'select public.anonymize_old_archived()');
+  end if;
+end;
+$$;
+
+-- ── Chat filter: the joiners' preview uses the same words ──
+create or replace function public.chat_filter_list()
+returns text[]
+language sql
+stable
+security definer
+set search_path = public
+as $$ select coalesce(array_agg(word order by word), '{}') from public.chat_filter_words where is_active $$;
+revoke all on function public.chat_filter_list() from public;
+grant execute on function public.chat_filter_list() to authenticated;
 
 commit;

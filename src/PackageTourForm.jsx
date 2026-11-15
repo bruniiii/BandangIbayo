@@ -28,6 +28,10 @@ import { locateStops } from './pickupStops';
 import { addMinutesToTime } from './geo';
 import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
+import DestinationOptions from './ui/DestinationOptions';
+import { ensureDestination } from './destinations';
+import { DIFFICULTY_LEVELS } from './optionLists';
+import { blackoutOn } from './siteContent';
 
 // ─────────────────────────────────────────────
 // TOUR PACKAGE FORM (admin, Private Tours / Requested Tours)
@@ -312,6 +316,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
         ? (isOpenRequest ? `The tour must start at least ${periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} from today.` : "The start date can't be in the past.") : ''],
       ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
+      ['start_date', form.start_date && blackoutOn(form.start_date, form.end_date || form.start_date) ? `No tours on those days: ${blackoutOn(form.start_date, form.end_date || form.start_date)}.` : ''],
       ['pickup_new', stops.length === 0 ? 'Tick at least one pickup spot.' : ''],
       ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : isOpenRequest && slots > MAX_TOUR_SLOTS && slots !== Number(pkg.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots.` : slots > 200 ? 'That looks too high. Please check the number.'
         : isOpenRequest && slots < requestedSlots ? `Max slots must fit the requester's group of ${requestedSlots}.` : ''],
@@ -394,6 +399,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         else heldBooking = data;
       }
 
+      ensureDestination(details.destination).catch(() => {});
       const sentAt = new Date().toISOString();
       const packageDetails = {
         ...details,
@@ -501,7 +507,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             <Field label="Tour Title" name="title" value={form.title} onChange={set('title')} placeholder="e.g., Mt. Pulag" maxLength={120} />
 
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label="Destination" name="destination" data-allow="place" value={form.destination} onChange={set('destination')} maxLength={120} />
+              <Field label="Destination" name="destination" data-allow="place" list="package-destinations" autoComplete="off" value={form.destination} onChange={set('destination')} maxLength={120} />
+              <DestinationOptions id="package-destinations" />
               <Field label="Regular Rate (₱)" name="regular_rate" {...money('regular_rate')} placeholder={isOpenRequest ? rangeText(REGULAR_RATE_MIN, REGULAR_RATE_MAX) : rangeText(EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX)} />
             </div>
             {isOpenRequest ? (
@@ -615,9 +622,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                 <div>
                   <label style={labelStyle}>Difficulty</label>
                   <NiceSelect name="difficulty" value={form.difficulty} onChange={set('difficulty')} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
-                    <option value="Easy">Easy</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Challenging">Challenging</option>
+                    {[...new Set([...DIFFICULTY_LEVELS, ...(form.difficulty ? [form.difficulty] : [])])].map((d) => <option key={d} value={d}>{d}</option>)}
                   </NiceSelect>
                 </div>
               </div>

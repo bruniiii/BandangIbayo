@@ -237,7 +237,7 @@ async function runReminders(date: string, dryRun: boolean) {
     if (dryRun) { sent++; continue; }
 
     try {
-      await transporter.sendMail({
+      await sendMailLogged({
         from: `"Bandang IBAYO" <${GMAIL_USER}>`,
         to,
         replyTo: GMAIL_USER,
@@ -514,7 +514,7 @@ async function runBalanceReminders(dryRun: boolean) {
           name: displayName(profile, b.full_name), tour: tour.title, booking: b.booking_number, date: prettyDate(tour.start_date),
           balance: peso(balance), paid: peso(b.amount_paid),
         });
-        await transporter.sendMail({
+        await sendMailLogged({
           from: `"Bandang IBAYO" <${GMAIL_USER}>`,
           to,
           replyTo: GMAIL_USER,
@@ -564,11 +564,28 @@ async function claim(kind: string, ref: string) {
 }
 const unclaim = (kind: string, ref: string) => supabase.from("email_log").delete().eq("kind", kind).eq("ref", ref);
 
+// An email that can't be sent is recorded (email_failures, shown in System
+// Status → Overview) before the error goes on as before.
+const maskEmail = (to: unknown) => String(to ?? "").replace(/^(.{2}).*(@.*)$/, "$1…$2");
+async function sendMailLogged(opts: any, kind = "email", ref: string | null = null) {
+  try {
+    return await transporter.sendMail(opts);
+  } catch (err) {
+    try {
+      await supabase.from("email_failures").insert({
+        kind, ref, recipient: maskEmail(opts?.to), subject: String(opts?.subject ?? "").slice(0, 200),
+        error: String((err as Error)?.message ?? err).slice(0, 500),
+      });
+    } catch (_e) { /* the table comes with the 20270102 update */ }
+    throw err;
+  }
+}
+
 async function sendOnce(kind: string, ref: string, to: string | null, subject: string, html: string) {
   if (!to) return "skipped";
   if (!(await claim(kind, ref))) return "already";
   try {
-    await transporter.sendMail({ from: `"Bandang IBAYO" <${GMAIL_USER}>`, to, replyTo: GMAIL_USER, subject, html });
+    await sendMailLogged({ from: `"Bandang IBAYO" <${GMAIL_USER}>`, to, replyTo: GMAIL_USER, subject, html }, kind, ref);
     return "sent";
   } catch (err) {
     await unclaim(kind, ref);
@@ -844,7 +861,7 @@ async function sendWaitlistEmails(tourId: unknown) {
     const to = await recipientFor(w.user_id, profile?.email);
     if (to) {
       const wt = tpl("waitlist_opening", { name: displayName(profile), tour: tour.title, date: prettyDate(tour.start_date) });
-      await transporter.sendMail({
+      await sendMailLogged({
         from: `"Bandang IBAYO" <${GMAIL_USER}>`,
         to,
         replyTo: GMAIL_USER,
@@ -932,7 +949,7 @@ Deno.serve(async (req) => {
     const email = await buildNormalEmail(payload, callerId, trustedServer);
     if (!email.to) return reply({ error: "This joiner has no email address on file." }, 422);
 
-    const info = await transporter.sendMail({
+    const info = await sendMailLogged({
       from: `"Bandang IBAYO" <${GMAIL_USER}>`,
       to: email.to,
       replyTo: GMAIL_USER,

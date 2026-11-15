@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { reportError, toast } from './ui/toast';
+import JoinerPrivacyActions from './ui/JoinerPrivacyActions';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -504,6 +505,9 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
               <DetailRow icon={<ShieldAlert size={14} />} label="Emergency Contact" value={[selected.emergency_contact_name, selected.emergency_contact_number].filter(Boolean).join(' · ') || null} />
               <DetailRow icon={<Compass size={14} />} label="Total Bookings" value={String(bookingCounts[selected.id] || 0)} />
               <DetailRow icon={<Calendar size={14} />} label="Registered On" value={formatDate(selected.created_at)} />
+              {'terms_version' in selected && (
+                <DetailRow icon={<Calendar size={14} />} label="Terms Agreed To" value={selected.terms_version ? `Version ${selected.terms_version}${selected.terms_accepted_at ? ` · ${formatDate(selected.terms_accepted_at)}` : ''}` : 'Not yet'} />
+              )}
               <DetailRow icon={<Calendar size={14} />} label="Last Login" value={activity[selected.id]?.last_sign_in_at ? formatDate(activity[selected.id].last_sign_in_at) : 'Never'} />
             </div>
 
@@ -527,6 +531,8 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
             {selected.archive_reason === 'removed' && (
               <p style={{ margin: '10px 0 0', fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>Removed: {selected.removed_reason || '—'}</p>
             )}
+            {/* Data Privacy Act requests (main admin) */}
+            <JoinerPrivacyActions joiner={selected} onChanged={() => { setSelected(null); fetchJoiners(); }} />
 
             {/* ── Email joiner ── */}
             <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 22, paddingTop: 18 }}>

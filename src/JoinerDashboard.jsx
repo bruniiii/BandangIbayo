@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Walkthrough from './ui/Walkthrough';
 import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
+import TermsUpdateCheck from './ui/TermsUpdateCheck';
+import { loadChatFilter } from './profanity';
 import Feedback from './Feedback';
 import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, MapPin, ImageIcon, Users, Eye, Bell, Sparkles, MessagesSquare, Globe, Inbox, MessageSquareHeart } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -38,6 +40,7 @@ import { useTabHistory, tabFromUrl } from './useTabHistory';
 import { Skel } from './ui/Skeleton';
 import { PulseStat, NextTripCard, TripReadinessCard, CalendarWidget, TrackingSnippet, MyRequestsCard, HomeReviews } from './HomeWidgets';
 import { reportError } from './ui/toast';
+import AnnouncementBanner from './ui/AnnouncementBanner';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -90,6 +93,8 @@ const PAGE_INFO = {
 };
 
 const JoinerDashboard = () => {
+  // The chat preview hides the same words as the database (Chat Filter).
+  useEffect(() => { loadChatFilter().catch(() => {}); }, []);
   const [tourOpen, setTourOpen] = useState(false);
   const tourUser = useRef(null);
   useEffect(() => {
@@ -608,6 +613,7 @@ const JoinerDashboard = () => {
       {activeTab !== 'Messages' && !mobileNavOpen && <HelpWidget zIndex={95} onStartTour={() => setTourOpen(true)} />}
       {/* First-time walkthrough of the menu (once per account on this device) */}
       <Walkthrough steps={JOINER_STEPS} open={tourOpen} onClose={closeTour} onMenu={setMobileNavOpen} />
+      <TermsUpdateCheck />
 
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}
@@ -817,6 +823,7 @@ const JoinerDashboard = () => {
             </div>
           )}
 
+          <AnnouncementBanner style={{ marginBottom: 16 }} />
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 

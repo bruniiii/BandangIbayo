@@ -34,10 +34,19 @@ const escape = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '
 // Longest first, so "putang ina mo" is caught before "putang ina".
 // (No lookbehind, which older iPhones don't support: the character before
 // the word is matched and kept.)
-const PATTERN = new RegExp(
-  `(^|[^\\p{L}\\p{N}_])(${[...SENSITIVE_WORDS].sort((a, b) => b.length - a.length).map(escape).join('|')})(?![\\p{L}\\p{N}_])`,
+const buildPattern = (words) => new RegExp(
+  `(^|[^\\p{L}\\p{N}_])(${[...words].sort((a, b) => b.length - a.length).map(escape).join('|')})(?![\\p{L}\\p{N}_])`,
   'giu',
 );
+let PATTERN = buildPattern(SENSITIVE_WORDS);
+
+// The words the main admin keeps in System Maintenance → Chat Filter, so the
+// preview hides the same words the database does (logged-in joiners).
+export const loadChatFilter = async () => {
+  const { supabase } = await import('./supabaseClient');
+  const { data, error } = await supabase.rpc('chat_filter_list');
+  if (!error && Array.isArray(data) && data.length) PATTERN = buildPattern(data);
+};
 
 export const MASK = '****';
 

@@ -13,6 +13,8 @@ import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
 import { reportError } from './ui/toast';
 import { AGENCY } from './agencyInfo';
+import AnnouncementBanner from './ui/AnnouncementBanner';
+import { SITE } from './siteContent';
 
 // ─────────────────────────────────────────────
 // LANDING PAGE: sleek, dark "booking platform" design.
@@ -95,11 +97,16 @@ const LandingPremium = () => {
 
   // The hero's featured tours (those with a photo) take turns.
   const featured = useMemo(() => tours.filter((t) => t.image_urls?.[0]).slice(0, 5), [tours]);
+  // Hero photos: the ones set in System Maintenance → Site Content, else the featured tours' photos.
+  const landing = SITE.landing || {};
+  const customPhotos = Array.isArray(landing.hero_images) ? landing.hero_images.filter(Boolean) : [];
+  const heroPhotos = customPhotos.length ? customPhotos : featured.map((t) => t.image_urls[0]);
+  const slideCount = heroPhotos.length;
   useEffect(() => {
-    if (featured.length < 2 || lessMotion()) return undefined;
-    const t = setInterval(() => setSlide((i) => (i + 1) % featured.length), 7000);
+    if (slideCount < 2 || lessMotion()) return undefined;
+    const t = setInterval(() => setSlide((i) => (i + 1) % slideCount), 7000);
     return () => clearInterval(t);
-  }, [featured.length]);
+  }, [slideCount]);
   const hero = featured[slide % Math.max(1, featured.length)] || null;
   const upNext = featured.length > 1 ? [1, 2].map((n) => featured[(slide + n) % featured.length]).filter((t, i, a) => t && t.id !== hero?.id && a.indexOf(t) === i) : [];
 
@@ -148,16 +155,19 @@ const LandingPremium = () => {
       {/* ── HERO: full-screen tour photo, centred headline, search ── */}
       <header className="lx-hero">
         <div className="lx-hero-bg" aria-hidden="true">
-          {featured.length ? featured.map((t, i) => (
-            <img key={t.id} src={t.image_urls[0]} alt="" className={i === slide % featured.length ? 'is-on' : ''} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
+          {heroPhotos.length ? heroPhotos.map((src, i) => (
+            <img key={src} src={src} alt="" className={i === slide % heroPhotos.length ? 'is-on' : ''} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
           )) : <div className="lx-hero-empty"><img src="/hero-logo.webp" alt="" /></div>}
           <div className="lx-hero-shade" />
         </div>
 
         <div className="lx-hero-copy">
+          <AnnouncementBanner style={{ marginBottom: 14, maxWidth: 640, textAlign: 'left' }} />
           <span className="lx-pill"><Sparkles size={13} /> {tours.length ? `${tours.length} tour${tours.length === 1 ? '' : 's'} open for booking` : 'Group tours across the Philippines'}</span>
-          <h1 className="lx-h1">Your next adventure<br /><i>is</i> <em>one seat away.</em></h1>
-          <p className="lx-lead">Join group tours across the Philippines. Share the ride, split the cost, and discover more places.</p>
+          {landing.headline || landing.headline_accent
+            ? <h1 className="lx-h1">{landing.headline}{landing.headline && landing.headline_accent ? <br /> : null}{landing.headline_accent && <em>{landing.headline_accent}</em>}</h1>
+            : <h1 className="lx-h1">Your next adventure<br /><i>is</i> <em>one seat away.</em></h1>}
+          <p className="lx-lead">{landing.lead || 'Join group tours across the Philippines. Share the ride, split the cost, and discover more places.'}</p>
 
           <form className="lx-search" onSubmit={search} role="search" aria-label="Search tours">
             <label className="lx-field">
@@ -186,7 +196,8 @@ const LandingPremium = () => {
         </div>
 
         {/* The tour in the photo, and the ones coming up */}
-        {hero && (
+        {/* (With the agency's own photos there's no tour "in the photo".) */}
+        {hero && !customPhotos.length && (
           <div className="lx-hero-foot">
             <Link to={`/tours/${hero.id}`} className="lx-glass lx-now" key={hero.id}>
               <span className="lx-tiny">In the photo</span>

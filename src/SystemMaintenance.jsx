@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2 } from 'lucide-react';
+import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks, LayoutTemplate } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
 import BookingRulesTab from './maintenance/BookingRulesTab';
 import SuppliersTab from './maintenance/SuppliersTab';
 import DriversVansTab from './maintenance/DriversVansTab';
 import PickupPointsTab from './maintenance/PickupPointsTab';
+import DestinationsTab from './maintenance/DestinationsTab';
 import PoliciesTab from './maintenance/PoliciesTab';
 import TemplatesTab from './maintenance/TemplatesTab';
+import ListsTab from './maintenance/ListsTab';
+import SiteContentTab from './maintenance/SiteContentTab';
 import ChatFilterTab from './maintenance/ChatFilterTab';
 import AgencyTab from './maintenance/AgencyTab';
 import ActivityTab from './maintenance/ActivityTab';
@@ -19,9 +22,9 @@ import SystemStatusTab from './maintenance/SystemStatusTab';
 // here instead of in the code. All admins can look; the database decides
 // who can change what (booking rules, policies, the chat filter, agency
 // information and exports: the main admin only).
-//   Booking Rules · Suppliers · Drivers & Vehicles · Pickup Points ·
-//   Policies & Content · Notification Templates · Chat Filter ·
-//   Agency Information · Audit Trail · Backup & Export · System Status
+//   Booking Rules · Suppliers · Drivers & Vehicles · Destinations · Pickup Points ·
+//   Policies & Content · Lists & FAQ · Notification Templates · Chat Filter ·
+//   Agency Information · Site Content · Audit Trail · Backup & Export · System Status
 // Master data is archived and restored, never deleted.
 // ─────────────────────────────────────────────
 
@@ -29,11 +32,14 @@ const TABS = [
   ['rules', 'Booking Rules', Scale],
   ['suppliers', 'Suppliers', Truck],
   ['fleet', 'Drivers & Vehicles', Bus],
+  ['destinations', 'Destinations', MapIcon],
   ['pickup', 'Pickup Points', MapPin],
   ['policies', 'Policies & Content', FileText],
+  ['lists', 'Lists & FAQ', ListChecks],
   ['templates', 'Notification Templates', Mail],
   ['chat', 'Chat Filter', ShieldBan],
   ['agency', 'Agency Information', Building2],
+  ['site', 'Site Content', LayoutTemplate],
   ['audit', 'Audit Trail', History],
   ['backup', 'Backup & Export', Database],
   ['status', 'System Status', Activity],
@@ -115,11 +121,14 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       {tab === 'rules' && <BookingRulesTab />}
       {tab === 'suppliers' && <SuppliersTab />}
       {tab === 'fleet' && <DriversVansTab />}
+      {tab === 'destinations' && <DestinationsTab />}
       {tab === 'pickup' && <PickupPointsTab />}
       {tab === 'policies' && <PoliciesTab />}
+      {tab === 'lists' && <ListsTab />}
       {tab === 'templates' && <TemplatesTab />}
       {tab === 'chat' && <ChatFilterTab />}
       {tab === 'agency' && <AgencyTab />}
+      {tab === 'site' && <SiteContentTab />}
       {tab === 'audit' && <ActivityTab />}
       {tab === 'backup' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
       {tab === 'status' && <SystemStatusTab key={statusPart} start={statusPart} onNavigate={onNavigate} onTab={setTab} />}
