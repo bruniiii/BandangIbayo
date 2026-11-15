@@ -39,6 +39,7 @@ import { useTabHistory, tabFromUrl } from './useTabHistory';
 import { Skel } from './ui/Skeleton';
 import { PulseStat, NextTripCard, TripReadinessCard, CalendarWidget, TrackingSnippet, MyRequestsCard, HomeReviews } from './HomeWidgets';
 import { reportError } from './ui/toast';
+import AnnouncementBanner from './ui/AnnouncementBanner';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -819,6 +820,7 @@ const JoinerDashboard = () => {
             </div>
           )}
 
+          <AnnouncementBanner style={{ marginBottom: 16 }} />
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 

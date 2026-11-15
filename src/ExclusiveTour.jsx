@@ -34,6 +34,7 @@ import { cleanAccommodation } from './accommodation';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { tripDays, daysLabel, formatYmdRange } from './dateRange';
 import DestinationOptions from './ui/DestinationOptions';
+import { blackoutOn } from './siteContent';
 
 // ─────────────────────────────────────────────
 // PRIVATE TOURS and REQUEST A TOUR (joiner): two pages in the sidebar, the
@@ -118,6 +119,7 @@ const checkRequestFields = (formEl, form, type) => {
         : `Private tours fit up to ${MAX_VANS} vans of ${VAN_SEATS} (${maxGroup()} people). For a bigger group, please message us.`) : ''],
     ['preferredDate', !form.preferredDate ? 'Please choose your trip dates.' : form.preferredDate < earliestTripDate() ? `Trips can be booked from ${leadText()} ahead. Please pick a later date.` : ''],
     ['preferredDate', form.preferredDate && !form.preferredEndDate ? 'Tap the last day of your trip on the calendar (tap the same day twice for a one-day trip).' : ''],
+    ['preferredDate', blackoutOn(form.preferredDate, form.preferredEndDate || form.preferredDate) ? `We don't run tours on those days: ${blackoutOn(form.preferredDate, form.preferredEndDate || form.preferredDate)}. Please pick other dates.` : ''],
     ['preferredDate', days > MAX_TOUR_DAYS ? `A trip can be at most ${maxDaysText()} long.` : ''],
     ...people.flatMap((p, i) => [
       [`participant_name_${i}`, fullNameError(p.full_name, `Name of person ${i + 1}`)],

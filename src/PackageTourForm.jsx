@@ -31,6 +31,7 @@ import NiceDate from './ui/NiceDate';
 import DestinationOptions from './ui/DestinationOptions';
 import { ensureDestination } from './destinations';
 import { DIFFICULTY_LEVELS } from './optionLists';
+import { blackoutOn } from './siteContent';
 
 // ─────────────────────────────────────────────
 // TOUR PACKAGE FORM (admin, Private Tours / Requested Tours)
@@ -315,6 +316,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
       ['start_date', !form.start_date ? 'Pick a start date.' : form.start_date < minStart
         ? (isOpenRequest ? `The tour must start at least ${periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} from today.` : "The start date can't be in the past.") : ''],
       ['end_date', !form.end_date ? 'Pick an end date.' : form.end_date < form.start_date ? "The end date can't be before the start date." : tripDays > MAX_TOUR_DAYS ? `A tour can be at most 1 week (${MAX_TOUR_DAYS} days) long.` : ''],
+      ['start_date', form.start_date && blackoutOn(form.start_date, form.end_date || form.start_date) ? `No tours on those days: ${blackoutOn(form.start_date, form.end_date || form.start_date)}.` : ''],
       ['pickup_new', stops.length === 0 ? 'Tick at least one pickup spot.' : ''],
       ['group_size', !Number.isInteger(slots) || slots < 1 ? 'Enter a whole number, at least 1.' : isOpenRequest && slots > MAX_TOUR_SLOTS && slots !== Number(pkg.group_size) ? `A tour can have at most ${MAX_TOUR_SLOTS} slots.` : slots > 200 ? 'That looks too high. Please check the number.'
         : isOpenRequest && slots < requestedSlots ? `Max slots must fit the requester's group of ${requestedSlots}.` : ''],
