@@ -9,6 +9,7 @@ import { todayManila } from './tourUtils';
 import { WEATHER_CHOICE_HOURS, hoursText } from './bookingRules';
 import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
+import { WEATHER_REASONS } from './optionLists';
 
 // ─────────────────────────────────────────────
 // Bad weather (main admin): postpone or cancel one tour date.
@@ -22,13 +23,6 @@ import NiceDate from './ui/NiceDate';
 //   date: { id, title, start_date, end_date, current_booked }
 // ─────────────────────────────────────────────
 
-const WEATHER_REASONS = [
-  'Typhoon (PAGASA signal)',
-  'Heavy rain / flooding',
-  'Road closure or landslide',
-  'Trail or park closed (DENR / LGU)',
-  'Other safety concern',
-];
 
 const label = { display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', marginBottom: 6 };
 const input = {

@@ -30,6 +30,7 @@ import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
 import DestinationOptions from './ui/DestinationOptions';
 import { ensureDestination } from './destinations';
+import { DIFFICULTY_LEVELS } from './optionLists';
 
 // ─────────────────────────────────────────────
 // TOUR PACKAGE FORM (admin, Private Tours / Requested Tours)
@@ -619,9 +620,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                 <div>
                   <label style={labelStyle}>Difficulty</label>
                   <NiceSelect name="difficulty" value={form.difficulty} onChange={set('difficulty')} style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
-                    <option value="Easy">Easy</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Challenging">Challenging</option>
+                    {[...new Set([...DIFFICULTY_LEVELS, ...(form.difficulty ? [form.difficulty] : [])])].map((d) => <option key={d} value={d}>{d}</option>)}
                   </NiceSelect>
                 </div>
               </div>

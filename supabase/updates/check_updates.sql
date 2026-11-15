@@ -147,5 +147,6 @@ from (values
   ('20261227 check-out at drop-off', exists (select 1 from pg_proc where proname = 'check_out_booking')),
   ('20261228 maintenance tabs (archive, policies, templates, chat filter, audit lock, exports)', to_regclass('public.site_policies') is not null and to_regclass('public.chat_filter_words') is not null and exists (select 1 from pg_proc where proname = 'export_data')),
   ('20261229 which Terms version each joiner agreed to', exists (select 1 from pg_proc where proname = 'accept_current_terms')),
-  ('20261230 destinations list', to_regclass('public.destinations') is not null)
+  ('20261230 destinations list', to_regclass('public.destinations') is not null),
+  ('20261231 editable lists and Help FAQ', to_regclass('public.option_lists') is not null and to_regclass('public.help_faqs') is not null)
 ) as u(update_file, installed);

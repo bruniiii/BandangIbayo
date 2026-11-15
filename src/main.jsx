@@ -11,6 +11,7 @@ import { logClientError } from './errorLog';
 import { installStaleVersionReload } from './staleVersion';
 import { hasCachedRules, loadBookingRules } from './bookingRules';
 import { loadAgencyInfo } from './agencyInfo';
+import { loadOptionLists } from './optionLists';
 import './index.css';
 import './App.css';
 
@@ -75,7 +76,7 @@ const start = () => ReactDOM.createRoot(document.getElementById('root')).render(
 // first screen. With a copy saved from the last visit, the page starts right
 // away and the copy is refreshed in the background; on a first visit it waits
 // for them (at most 4 seconds, then the usual values are used).
-const rulesLoaded = Promise.all([loadBookingRules().catch(() => null), loadAgencyInfo().catch(() => null)]);
+const rulesLoaded = Promise.all([loadBookingRules().catch(() => null), loadAgencyInfo().catch(() => null), loadOptionLists().catch(() => null)]);
 if (hasCachedRules()) {
   start();
 } else {

@@ -21,6 +21,7 @@ import { SkeletonRows } from './ui/Skeleton';
 import ModalHeader from './ui/ModalHeader';
 import NiceSelect from './ui/NiceSelect';
 import { formatYmdRange, daysLabel } from './dateRange';
+import { REJECT_REASONS } from './optionLists';
 
 // ── PALETTE ──────────────────────────────────────────────
 // #1A0A00  espresso dark
@@ -445,14 +446,6 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
 };
 
 // Why a request is rejected: the joiner sees the reason (and the details).
-const REJECT_REASONS = [
-  'The dates are not available',
-  'Destination not offered right now',
-  'Group size not possible',
-  'Budget is too low for this trip',
-  'Unsafe, closed or restricted destination',
-  'Other',
-];
 
 const RequestDetailModal = ({ request, onClose, onResolved }) => {
   const [submitting, setSubmitting] = useState(null); // 'approve' | 'reject' | null

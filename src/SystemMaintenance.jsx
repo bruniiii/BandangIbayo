@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon } from 'lucide-react';
+import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
 import BookingRulesTab from './maintenance/BookingRulesTab';
@@ -9,6 +9,7 @@ import PickupPointsTab from './maintenance/PickupPointsTab';
 import DestinationsTab from './maintenance/DestinationsTab';
 import PoliciesTab from './maintenance/PoliciesTab';
 import TemplatesTab from './maintenance/TemplatesTab';
+import ListsTab from './maintenance/ListsTab';
 import ChatFilterTab from './maintenance/ChatFilterTab';
 import AgencyTab from './maintenance/AgencyTab';
 import ActivityTab from './maintenance/ActivityTab';
@@ -21,7 +22,7 @@ import SystemStatusTab from './maintenance/SystemStatusTab';
 // who can change what (booking rules, policies, the chat filter, agency
 // information and exports: the main admin only).
 //   Booking Rules · Suppliers · Drivers & Vehicles · Destinations · Pickup Points ·
-//   Policies & Content · Notification Templates · Chat Filter ·
+//   Policies & Content · Lists & FAQ · Notification Templates · Chat Filter ·
 //   Agency Information · Audit Trail · Backup & Export · System Status
 // Master data is archived and restored, never deleted.
 // ─────────────────────────────────────────────
@@ -33,6 +34,7 @@ const TABS = [
   ['destinations', 'Destinations', MapIcon],
   ['pickup', 'Pickup Points', MapPin],
   ['policies', 'Policies & Content', FileText],
+  ['lists', 'Lists & FAQ', ListChecks],
   ['templates', 'Notification Templates', Mail],
   ['chat', 'Chat Filter', ShieldBan],
   ['agency', 'Agency Information', Building2],
@@ -120,6 +122,7 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       {tab === 'destinations' && <DestinationsTab />}
       {tab === 'pickup' && <PickupPointsTab />}
       {tab === 'policies' && <PoliciesTab />}
+      {tab === 'lists' && <ListsTab />}
       {tab === 'templates' && <TemplatesTab />}
       {tab === 'chat' && <ChatFilterTab />}
       {tab === 'agency' && <AgencyTab />}
