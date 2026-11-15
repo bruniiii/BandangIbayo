@@ -504,6 +504,9 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
               <DetailRow icon={<ShieldAlert size={14} />} label="Emergency Contact" value={[selected.emergency_contact_name, selected.emergency_contact_number].filter(Boolean).join(' · ') || null} />
               <DetailRow icon={<Compass size={14} />} label="Total Bookings" value={String(bookingCounts[selected.id] || 0)} />
               <DetailRow icon={<Calendar size={14} />} label="Registered On" value={formatDate(selected.created_at)} />
+              {'terms_version' in selected && (
+                <DetailRow icon={<Calendar size={14} />} label="Terms Agreed To" value={selected.terms_version ? `Version ${selected.terms_version}${selected.terms_accepted_at ? ` · ${formatDate(selected.terms_accepted_at)}` : ''}` : 'Not yet'} />
+              )}
               <DetailRow icon={<Calendar size={14} />} label="Last Login" value={activity[selected.id]?.last_sign_in_at ? formatDate(activity[selected.id].last_sign_in_at) : 'Never'} />
             </div>
 

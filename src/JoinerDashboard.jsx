@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Walkthrough from './ui/Walkthrough';
 import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
+import TermsUpdateCheck from './ui/TermsUpdateCheck';
 import Feedback from './Feedback';
 import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronLeft, ChevronRight, Menu, X, Rss, MapPin, ImageIcon, Users, Eye, Bell, Sparkles, MessagesSquare, Globe, Inbox, MessageSquareHeart } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -608,6 +609,7 @@ const JoinerDashboard = () => {
       {activeTab !== 'Messages' && !mobileNavOpen && <HelpWidget zIndex={95} onStartTour={() => setTourOpen(true)} />}
       {/* First-time walkthrough of the menu (once per account on this device) */}
       <Walkthrough steps={JOINER_STEPS} open={tourOpen} onClose={closeTour} onMenu={setMobileNavOpen} />
+      <TermsUpdateCheck />
 
       <aside
         className={`dashboard-sidebar ${mobileNavOpen ? 'is-open' : ''}`}

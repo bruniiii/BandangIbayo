@@ -9,7 +9,8 @@ import {
 // Tours. onAgree is optional: without it only Close is shown.
 // The text is the current version from System Maintenance → Policies &
 // Content; the built-in text below is shown until it loads (or if it can't).
-const TermsModal = ({ onClose, onAgree }) => {
+// updated: asking a joiner to agree to a newer version.
+const TermsModal = ({ onClose, onAgree, updated = false }) => {
   const [policy, setPolicy] = useState(null);
   useEffect(() => { let alive = true; loadPolicy('terms').then((p) => { if (alive) setPolicy(p); }); return () => { alive = false; }; }, []);
   const sections = policy ? policySections(policy.body) : null;
@@ -84,7 +85,7 @@ const TermsModal = ({ onClose, onAgree }) => {
                 margin: 0,
               }}
             >
-              Terms &amp; Conditions
+              {updated ? 'Updated ' : ''}Terms &amp; Conditions
             </h3>
 
             <p
@@ -122,6 +123,11 @@ const TermsModal = ({ onClose, onAgree }) => {
           flex: 1,
         }}
       >
+        {updated && (
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.08)', borderRadius: 12, padding: '10px 12px', margin: '0 0 18px', lineHeight: 1.5 }}>
+            We updated our Terms & Conditions{policy?.version ? ` (version ${policy.version})` : ''}. Please read them and agree to keep booking with us.
+          </p>
+        )}
         {sections ? sections.map((sec, i) => (
           <TermsSection key={i} title={sec.title}>{sec.text}</TermsSection>
         )) : (

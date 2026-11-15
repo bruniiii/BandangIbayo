@@ -387,6 +387,8 @@ async function verifySignup(p: any) {
     if (error) throw new HttpError(400, error.message);
     const { terms_accepted: _t, ...profileRow } = profile;
     await admin.from("profiles").update(profileRow).eq("id", existing.id);
+    // They agreed to the Terms on the form: record which version (Policies & Content).
+    await admin.rpc("record_terms_acceptance", { p_user_id: existing.id }).then(() => {}, () => {});
   } else {
     const created = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: profile });
     if (created.error) {
@@ -401,6 +403,7 @@ async function verifySignup(p: any) {
     const { terms_accepted: _t, ...profileRow } = profile;
     const { error: saveError } = await admin.from("profiles").upsert({ id: created.data.user.id, email, ...profileRow }, { onConflict: "id" });
     if (saveError) console.error("signup: couldn't save the profile details", saveError.message);
+    await admin.rpc("record_terms_acceptance", { p_user_id: created.data.user.id }).then(() => {}, () => {});
   }
   await admin.from("signup_challenges").delete().eq("id", challenge.id);
   return await startSession(email);
