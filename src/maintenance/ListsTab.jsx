@@ -50,7 +50,8 @@ const ListsTab = () => {
   useEffect(() => { load(section); }, [section]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const table = isFaq ? 'help_faqs' : 'option_lists';
-  const nameOf = (x) => (isFaq ? x.question : x.label);
+  // (Rows of the other kind can still be on screen for a moment while switching.)
+  const nameOf = (x) => (isFaq ? x.question ?? x.label : x.label ?? x.question) || '';
   const changed = async () => { await loadOptionLists().catch(() => null); load(); };
 
   const add = async () => {
@@ -100,7 +101,7 @@ const ListsTab = () => {
       <p style={hint}>The choices the website offers in its forms, and the Help FAQ. Changes show the next time a page is opened.</p>
       <div role="tablist" aria-label="Which list" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {SECTIONS.map(([k, l]) => (
-          <button key={k} type="button" role="tab" aria-selected={section === k} onClick={() => { setSection(k); setAdding(''); }} style={{
+          <button key={k} type="button" role="tab" aria-selected={section === k} onClick={() => { if (k !== section) { setRows(null); setSection(k); setAdding(''); } }} style={{
             minHeight: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
             background: section === k ? '#1A0A00' : '#FDF6EE', color: section === k ? '#FDF6EE' : '#5C2A10', border: `1px solid ${section === k ? '#1A0A00' : 'rgba(180,81,30,0.25)'}`,
           }}>{l}</button>
@@ -121,7 +122,7 @@ const ListsTab = () => {
         pageSize={20}
         placeholder={isFaq ? 'Search questions' : 'Search this list'}
         empty="Nothing in this list yet."
-        textOf={(x) => (isFaq ? `${x.question} ${x.answer}` : x.label)}
+        textOf={(x) => (isFaq ? `${x.question || ''} ${x.answer || ''}` : x.label || '')}
         onEdit={(x) => setEditing(x)}
         onArchive={(x) => setActive(x, false)}
         onRestore={(x) => setActive(x, true)}
@@ -129,7 +130,7 @@ const ListsTab = () => {
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <div style={{ minWidth: 0, flex: 1 }}>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00', overflowWrap: 'anywhere' }}>{nameOf(x)}</p>
-              {isFaq && <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>{x.answer.length > 160 ? `${x.answer.slice(0, 160)}…` : x.answer}</p>}
+              {isFaq && <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>{String(x.answer || '').length > 160 ? `${String(x.answer).slice(0, 160)}…` : x.answer || ''}</p>}
             </div>
             {x.is_active && (
               <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
