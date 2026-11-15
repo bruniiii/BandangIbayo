@@ -28,6 +28,8 @@ import { locateStops } from './pickupStops';
 import { addMinutesToTime } from './geo';
 import NiceSelect from './ui/NiceSelect';
 import NiceDate from './ui/NiceDate';
+import DestinationOptions from './ui/DestinationOptions';
+import { ensureDestination } from './destinations';
 
 // ─────────────────────────────────────────────
 // TOUR PACKAGE FORM (admin, Private Tours / Requested Tours)
@@ -394,6 +396,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
         else heldBooking = data;
       }
 
+      ensureDestination(details.destination).catch(() => {});
       const sentAt = new Date().toISOString();
       const packageDetails = {
         ...details,
@@ -501,7 +504,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             <Field label="Tour Title" name="title" value={form.title} onChange={set('title')} placeholder="e.g., Mt. Pulag" maxLength={120} />
 
             <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <Field label="Destination" name="destination" data-allow="place" value={form.destination} onChange={set('destination')} maxLength={120} />
+              <Field label="Destination" name="destination" data-allow="place" list="package-destinations" autoComplete="off" value={form.destination} onChange={set('destination')} maxLength={120} />
+              <DestinationOptions id="package-destinations" />
               <Field label="Regular Rate (₱)" name="regular_rate" {...money('regular_rate')} placeholder={isOpenRequest ? rangeText(REGULAR_RATE_MIN, REGULAR_RATE_MAX) : rangeText(EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX)} />
             </div>
             {isOpenRequest ? (

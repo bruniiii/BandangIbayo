@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2 } from 'lucide-react';
+import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
 import BookingRulesTab from './maintenance/BookingRulesTab';
 import SuppliersTab from './maintenance/SuppliersTab';
 import DriversVansTab from './maintenance/DriversVansTab';
 import PickupPointsTab from './maintenance/PickupPointsTab';
+import DestinationsTab from './maintenance/DestinationsTab';
 import PoliciesTab from './maintenance/PoliciesTab';
 import TemplatesTab from './maintenance/TemplatesTab';
 import ChatFilterTab from './maintenance/ChatFilterTab';
@@ -19,7 +20,7 @@ import SystemStatusTab from './maintenance/SystemStatusTab';
 // here instead of in the code. All admins can look; the database decides
 // who can change what (booking rules, policies, the chat filter, agency
 // information and exports: the main admin only).
-//   Booking Rules · Suppliers · Drivers & Vehicles · Pickup Points ·
+//   Booking Rules · Suppliers · Drivers & Vehicles · Destinations · Pickup Points ·
 //   Policies & Content · Notification Templates · Chat Filter ·
 //   Agency Information · Audit Trail · Backup & Export · System Status
 // Master data is archived and restored, never deleted.
@@ -29,6 +30,7 @@ const TABS = [
   ['rules', 'Booking Rules', Scale],
   ['suppliers', 'Suppliers', Truck],
   ['fleet', 'Drivers & Vehicles', Bus],
+  ['destinations', 'Destinations', MapIcon],
   ['pickup', 'Pickup Points', MapPin],
   ['policies', 'Policies & Content', FileText],
   ['templates', 'Notification Templates', Mail],
@@ -115,6 +117,7 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       {tab === 'rules' && <BookingRulesTab />}
       {tab === 'suppliers' && <SuppliersTab />}
       {tab === 'fleet' && <DriversVansTab />}
+      {tab === 'destinations' && <DestinationsTab />}
       {tab === 'pickup' && <PickupPointsTab />}
       {tab === 'policies' && <PoliciesTab />}
       {tab === 'templates' && <TemplatesTab />}

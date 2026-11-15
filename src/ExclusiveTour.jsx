@@ -33,6 +33,7 @@ import { AccommodationSelect } from './ui/Accommodation';
 import { cleanAccommodation } from './accommodation';
 import { confirmDialog } from './ui/ConfirmDialog';
 import { tripDays, daysLabel, formatYmdRange } from './dateRange';
+import DestinationOptions from './ui/DestinationOptions';
 
 // ─────────────────────────────────────────────
 // PRIVATE TOURS and REQUEST A TOUR (joiner): two pages in the sidebar, the
@@ -551,7 +552,8 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {sectionTitle(2, isExclusive ? 'Trip Details' : 'Destination & Tour Details')}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: 16 }}>
-          <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} required />
+          <InputField name="destination" data-allow="place" label={isExclusive ? 'Destination' : 'Requested Destination'} placeholder={isExclusive ? 'e.g. Mt. Pulag, Sagada, Batanes' : 'e.g. Sagada, Mountain Province'} value={form.destination} onChange={set('destination')} list="request-destinations" autoComplete="off" required />
+          <DestinationOptions id="request-destinations" />
           <InputField name="groupSize" label={isExclusive ? 'Participants' : `Participants (max ${MAX_TOUR_SLOTS})`} type="number" min="1" max={maxGroupFor(type)} step="1" onKeyDown={blockSignKeys} placeholder={isExclusive ? 'e.g. 10' : 'e.g. 4'} value={form.groupSize} onChange={setGroupSize} required />
           <TripDatesFields form={form} setForm={setForm} />
           {isExclusive && (

@@ -13,6 +13,7 @@ import {
   SUPPLIER_TYPES, TYPE_LABEL, TYPE_INCLUSION, BASIS_LABEL, loadSuppliers, loadSupplierRatings, supplierErrorText, sameText,
 } from '../suppliers';
 import { card, h3, hint, btn, input, label, spin } from './shared';
+import { loadDestinations } from '../destinations';
 
 // ─────────────────────────────────────────────
 // System Maintenance → Suppliers
@@ -191,6 +192,9 @@ const SupplierForm = ({ supplier, all, knownDestinations, onClose, onSaved }) =>
     notes: supplier.notes || '', default_rate: String(supplier.default_rate ?? ''), destinations: supplier.destinations || [],
   }));
   const [destText, setDestText] = useState('');
+  // The saved Destinations list, suggested first.
+  const [savedDestinations, setSavedDestinations] = useState([]);
+  useEffect(() => { loadDestinations().then((r) => setSavedDestinations(r.map((d) => d.name))); }, []);
   const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
   const errors = formErrors(f, all, supplier.id);
@@ -289,7 +293,7 @@ const SupplierForm = ({ supplier, all, knownDestinations, onClose, onSaved }) =>
               placeholder="e.g. Baguio City (Enter to add)" style={{ ...field('destinations'), flex: 1 }} />
             <button type="button" style={btn(false)} onClick={() => addDest(destText)}><Plus size={13} /> Add</button>
           </div>
-          <datalist id="supplier-destinations">{knownDestinations.map((d) => <option key={d} value={d} />)}</datalist>
+          <datalist id="supplier-destinations">{[...new Set([...savedDestinations, ...knownDestinations])].map((d) => <option key={d} value={d} />)}</datalist>
           {err('destinations')}
         </div>
 
