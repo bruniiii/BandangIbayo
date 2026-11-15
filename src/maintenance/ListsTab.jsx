@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ListChecks, Plus, X, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import { ListChecks, Plus, X, Loader2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast, reportError } from '../ui/toast';
 import { confirmDialog } from '../ui/ConfirmDialog';
@@ -12,7 +12,7 @@ import { card, h3, hint, btn, input, label, spin } from './shared';
 // System Maintenance → Lists & FAQ
 // The short lists the forms offer (cancellation reasons, bad-weather
 // reasons, request rejection reasons, accommodation choices, difficulty
-// levels) and the Help button's FAQ. Admins add, edit, reorder, archive and
+// levels) and the Help button's FAQ. Admins add, edit, archive and
 // restore; nothing is deleted. An accommodation or difficulty an upcoming
 // tour uses can't be archived or renamed.
 // ─────────────────────────────────────────────
@@ -72,19 +72,6 @@ const ListsTab = () => {
     toast.success(on ? 'Restored' : 'Archived', nameOf(x));
     changed();
   };
-  // Swap with the neighbour in the active list.
-  const move = async (x, dir) => {
-    const active = (rows || []).filter((r) => r.is_active);
-    const i = active.findIndex((r) => r.id === x.id);
-    const other = active[i + dir];
-    if (!other) return;
-    const a = { id: x.id, sort_order: other.sort_order ?? i + dir }, b = { id: other.id, sort_order: x.sort_order ?? i };
-    if (a.sort_order === b.sort_order) { a.sort_order = i + dir; b.sort_order = i; }
-    const r1 = await supabase.from(table).update({ sort_order: a.sort_order }).eq('id', a.id);
-    const r2 = await supabase.from(table).update({ sort_order: b.sort_order }).eq('id', b.id);
-    if (r1.error || r2.error) { reportError("Couldn't move it", r1.error || r2.error); return; }
-    changed();
-  };
 
   if (problem) {
     return (
@@ -132,12 +119,6 @@ const ListsTab = () => {
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00', overflowWrap: 'anywhere' }}>{nameOf(x)}</p>
               {isFaq && <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>{String(x.answer || '').length > 160 ? `${String(x.answer).slice(0, 160)}…` : x.answer || ''}</p>}
             </div>
-            {x.is_active && (
-              <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <button type="button" aria-label="Move up" onClick={() => move(x, -1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 2 }}><ArrowUp size={14} /></button>
-                <button type="button" aria-label="Move down" onClick={() => move(x, 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 2 }}><ArrowDown size={14} /></button>
-              </span>
-            )}
           </div>
         )}
       />
