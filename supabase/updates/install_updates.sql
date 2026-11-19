@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────
--- All database updates from 20261111 to 20270102, in order, in one go.
+-- All database updates from 20261111 to 20270103, in order, in one go.
 --
 -- Paste the whole file into the Supabase SQL Editor and click Run.
 -- It runs as one transaction: if anything fails, nothing is changed, and the
@@ -8,7 +8,7 @@
 -- Afterwards, run supabase/updates/check_updates.sql: every row should say
 -- "installed".
 --
--- Generated from supabase/migrations/20261111…20270102 — edit those, not this.
+-- Generated from supabase/migrations/20261111…20270103 — edit those, not this.
 -- ─────────────────────────────────────────────
 
 begin;
@@ -8874,5 +8874,22 @@ set search_path = public
 as $$ select coalesce(array_agg(word order by word), '{}') from public.chat_filter_words where is_active $$;
 revoke all on function public.chat_filter_list() from public;
 grant execute on function public.chat_filter_list() to authenticated;
+
+-- ════════════ 20270103000000_van_seats.sql ════════════
+-- ─────────────────────────────────────────────
+-- Seats per van. Each saved van says how many people it carries; Tracking
+-- warns when a tour has more slots than the van picked for it.
+-- Existing vans start at 14 (the Booking Rules "Seats per van").
+-- ─────────────────────────────────────────────
+
+alter table public.fleet_vans
+  add column if not exists seats integer not null default 14;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conrelid = 'public.fleet_vans'::regclass and conname = 'fleet_vans_seats_check') then
+    alter table public.fleet_vans add constraint fleet_vans_seats_check check (seats between 1 and 100);
+  end if;
+end $$;
 
 commit;

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Truck, UserRound, Plus } from 'lucide-react';
+import { Truck, UserRound, Plus, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../ui/toast';
 import { confirmDialog } from '../ui/ConfirmDialog';
-import FleetManager from '../FleetManager';
+import { DriverForm, VanForm } from '../FleetForms';
 import { formatPhPhone } from '../validation';
 import RecordList from './RecordList';
 import { card, h3, hint, btn } from './shared';
@@ -18,7 +18,7 @@ import { card, h3, hint, btn } from './shared';
 const DriversVansTab = () => {
   const [kind, setKind] = useState('drivers');
   const [rows, setRows] = useState({ drivers: null, vans: null });
-  const [manage, setManage] = useState(false);
+  const [editing, setEditing] = useState(null); // { kind, item|null }
 
   const load = async () => {
     const [d, v] = await Promise.all([
@@ -40,6 +40,9 @@ const DriversVansTab = () => {
     load();
   };
 
+  const done = () => { setEditing(null); load(); };
+  const title = !editing ? '' : editing.item ? `Edit ${editing.kind === 'drivers' ? editing.item.name : editing.item.plate_number}` : editing.kind === 'drivers' ? 'Add a Driver' : 'Add a Van';
+
   return (
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -47,7 +50,7 @@ const DriversVansTab = () => {
           <h3 style={h3}><Truck size={16} color="#B4511E" /> Drivers & Vehicles</h3>
           <p style={hint}>The drivers and vans you pick for each tour in Tracking. Only admins see this list (drivers' numbers and IDs stay private).</p>
         </div>
-        <button type="button" style={btn(true)} onClick={() => setManage(true)}><Plus size={14} /> Add or Edit</button>
+        <button type="button" style={btn(true)} onClick={() => setEditing({ kind, item: null })}><Plus size={14} /> {kind === 'drivers' ? 'Add Driver' : 'Add Van'}</button>
       </div>
       <div role="tablist" aria-label="Drivers or vans" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 12 }}>
         {[['drivers', 'Drivers', UserRound], ['vans', 'Vans', Truck]].map((t) => {
@@ -64,9 +67,9 @@ const DriversVansTab = () => {
         key={kind}
         items={rows[kind]}
         placeholder={kind === 'drivers' ? 'Search drivers (name, number)' : 'Search vans (model, plate, color)'}
-        empty={kind === 'drivers' ? 'No saved drivers yet. Click Add or Edit.' : 'No saved vans yet. Click Add or Edit.'}
+        empty={kind === 'drivers' ? 'No saved drivers yet. Click Add Driver.' : 'No saved vans yet. Click Add Van.'}
         textOf={(x) => (kind === 'drivers' ? `${x.name} ${x.contact}` : `${x.car_type} ${x.plate_number} ${x.color} ${x.notes}`)}
-        onEdit={() => setManage(true)}
+        onEdit={(x) => setEditing({ kind, item: x })}
         onArchive={(x) => setActive(x, false)}
         onRestore={(x) => setActive(x, true)}
         render={(x) => (kind === 'drivers' ? (
@@ -78,12 +81,25 @@ const DriversVansTab = () => {
         ) : (
           <>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{x.car_type}</p>
-            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#5C2A10' }}>{x.plate_number} · {x.color}</p>
+            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#5C2A10' }}>{x.plate_number} · {x.color} · {x.seats ?? 14} seats</p>
             {x.notes && <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>{x.notes}</p>}
           </>
         ))}
       />
-      {manage && <FleetManager onClose={() => { setManage(false); load(); }} onChanged={load} />}
+      {editing && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={() => setEditing(null)} />
+          <div role="dialog" aria-modal="true" aria-label={title} style={{ position: 'relative', width: '100%', maxWidth: 600, maxHeight: '92vh', overflowY: 'auto', background: '#FDF6EE', borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>{title}</h3>
+              <button type="button" className="x-close" onClick={() => setEditing(null)} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+            </div>
+            {editing.kind === 'drivers'
+              ? <DriverForm driver={editing.item} onDone={done} onCancel={() => setEditing(null)} />
+              : <VanForm van={editing.item} vans={(rows.vans || []).filter((v) => v.is_active !== false)} onDone={done} onCancel={() => setEditing(null)} />}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

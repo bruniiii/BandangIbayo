@@ -799,7 +799,7 @@ const TrackingConsoleModal = ({
                     if (!docsReady) { e.preventDefault(); toast.error('Driver ID needed', "Upload the driver's license (or valid ID) and a photo of the driver first."); return; }
                     onSaveVehicleInfo(e);
                   }} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <FleetPicker driverId={driverId} vanId={vanId} onDriver={pickDriver} onVan={pickVan} onManage={onManageFleet} refreshKey={fleetVersion} />
+                    <FleetPicker driverId={driverId} vanId={vanId} onDriver={pickDriver} onVan={pickVan} onManage={onManageFleet} refreshKey={fleetVersion} slots={tour?.group_size || 0} />
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10 }}>
                       <input type="text" required aria-label="Van model" placeholder="Van Model (e.g. Toyota Hiace)" value={carType} onChange={e => setCarType(e.target.value)} style={inputStyle} />
                       <input type="text" required aria-label="Plate number" placeholder="Plate Number (e.g. NBT-8921)" value={plateNumber} onChange={e => setPlateNumber(e.target.value)} style={inputStyle} />
