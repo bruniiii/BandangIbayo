@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
-  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Sparkles, Bus,
+  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
@@ -162,7 +162,6 @@ const LandingTropical = () => {
         </div>
         <div className="lk-hero-copy">
           <AnnouncementBanner style={{ marginBottom: 14, maxWidth: 640, textAlign: 'left' }} />
-          <span className="lk-pill"><Sparkles size={14} /> {tours.length ? `${tours.length} tour${tours.length === 1 ? '' : 's'} open for booking` : 'Group tours across the Philippines'}</span>
           {landing.headline || landing.headline_accent
             ? <h1 className="lk-h1">{landing.headline}{landing.headline && landing.headline_accent ? <br /> : null}{landing.headline_accent && <em>{landing.headline_accent}</em>}</h1>
             : <h1 className="lk-h1">Your next adventure <br />is <em>one seat away.</em></h1>}
@@ -444,7 +443,6 @@ const PAGE_CSS = `
 .lk-hero-shade { position: absolute; inset: 0; background: var(--hero-shade); }
 .lk-hero-copy { position: relative; z-index: 2; width: 100%; max-width: 1000px; margin: 0 auto; text-align: center; animation: lk-rise 0.8s ease both; }
 @keyframes lk-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-.lk-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
   background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .lk-h1 { margin: 20px 0 16px; font-size: clamp(2.7rem, 7vw, 5.8rem); line-height: 1.02; font-weight: 800; letter-spacing: -0.04em; text-shadow: 0 4px 30px rgba(0,0,0,0.35); }
 .lk-hero .lk-h1 em { color: var(--hero-accent); }
