@@ -33,6 +33,9 @@
     <meta name="twitter:image" content="https://www.bandangibayo.website/og-image.jpg" />
     <!-- The home page's photo starts downloading right away (not after the app's code loads). -->
     <script>if (location.pathname === '/') { var hl = document.createElement('link'); hl.rel = 'preload'; hl.as = 'image'; hl.href = '/hero-elnido.webp'; hl.fetchPriority = 'high'; document.head.appendChild(hl); }</script>
+    <!-- Low-power phones (2-4 GB memory or 4 or fewer cores) get solid top bars
+         instead of the frosted ones, which make scrolling lag on them. index.css: data-lite. -->
+    <script>try { var mem = navigator.deviceMemory, cores = navigator.hardwareConcurrency, phone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); if ((phone && ((mem && mem <= 4) || (cores && cores <= 4))) || matchMedia('(prefers-reduced-transparency: reduce)').matches) document.documentElement.dataset.lite = '1'; } catch (e) {}</script>
     <!-- Light or dark mode, set before the page draws (theme.js keeps it up to date). -->
     <script>try { var t = localStorage.getItem('ibayo:theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = t; if (t === 'dark') document.querySelector('meta[name="theme-color"]').content = '#071C26'; } catch (e) {}</script>
   </head>

@@ -617,3 +617,13 @@ td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rot
 :root[data-theme="dark"] { --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.95 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); --paper-sheet: #0C2733; }
 .paper-card { background-image: var(--paper-grain) !important; background-size: 180px !important; background-repeat: repeat !important;
   box-shadow: 0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22), 6px 7px 0 -1px var(--paper-sheet), 6px 7px 2px 0 rgba(var(--ib-shadow-rgb, 26,10,0), 0.1) !important; }
+
+/* Low-power phones (index.html sets data-lite): the frosted, see-through
+   top bars are re-blurred on every frame while scrolling, which makes
+   scrolling lag on these phones. They get solid bars instead; every other
+   device keeps the frosted look. */
+:root[data-lite] .dashboard-topbar, :root[data-lite] .lk-nav.is-scrolled, :root[data-lite] .site-nav {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+:root[data-lite] .dashboard-topbar, :root[data-lite] .site-nav { background: rgb(var(--ib-cream-rgb, 253,246,238)) !important; }
+:root[data-lite] .lk-tropical { --nav-bg: #FFF8EE; }
+:root[data-lite][data-theme="dark"] .lk-tropical { --nav-bg: #08202B; }
