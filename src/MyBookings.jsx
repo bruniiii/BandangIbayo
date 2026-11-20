@@ -302,7 +302,9 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
   const isMobile = useIsMobile();
   const tour = booking.tours || {};
   return (
+    // Looks like a boarding pass: the price and button are its tear-off stub (index.css: .boarding-pass).
     <div
+      className={`boarding-pass${isMobile ? ' is-mobile' : ''}`}
       style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24,
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
@@ -353,7 +355,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         </div>
       </div>
 
-      <div style={{
+      <div className="bp-stub" style={{
         display: 'flex',
         flexDirection: isMobile ? 'row' : 'column',
         alignItems: 'center',
@@ -366,6 +368,12 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         paddingTop: isMobile ? 14 : 0,
         flexShrink: 0,
       }}>
+        {!isMobile && (
+          <div aria-hidden="true" className="bp-pass">
+            <span className="journal-hand">Boarding pass</span>
+            <span className="bp-barcode" />
+          </div>
+        )}
         <div style={{ textAlign: isMobile ? 'left' : 'center' }}>
           <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 2px' }}>Total price</p>
           <p style={{ fontSize: isMobile ? 20 : 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.1 }}>{formatPeso(booking.total_price)}</p>
@@ -471,7 +479,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
-      <div style={{
+      <div className="paper-card" style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 900,
         borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
@@ -1029,7 +1037,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
 
       {namesOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }}>
-          <div role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
+          <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
             background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
             borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '2rem',
             display: 'flex', flexDirection: 'column', gap: 14,

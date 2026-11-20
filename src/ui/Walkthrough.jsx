@@ -75,7 +75,7 @@ const Walkthrough = ({ steps, open, onClose, onMenu }) => {
         }} />
       ) : <div aria-hidden="true" style={{ position: 'fixed', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.62)' }} />}
 
-      <div style={{
+      <div className="paper-card" style={{
         position: 'fixed', width: CARD_W, maxWidth: 'calc(100vw - 24px)', boxSizing: 'border-box', ...cardStyle,
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 18, padding: '1.1rem 1.2rem', boxShadow: '0 20px 50px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '5px solid var(--ib-accent, #B4511E)',
       }}>

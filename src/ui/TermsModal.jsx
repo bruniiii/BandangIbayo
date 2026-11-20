@@ -28,7 +28,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
       padding: 16,
     }}
   >
-    <div
+    <div className="paper-card"
       style={{
         position: 'relative',
         background: 'var(--ib-cream, #FDF6EE)',

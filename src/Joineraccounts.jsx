@@ -459,7 +459,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
             padding: '2rem',
           }}
         >
-          <div
+          <div className="paper-card"
             onClick={(e) => e.stopPropagation()}
             className="responsive-modal-padding"
             style={{
@@ -650,7 +650,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
           position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
         }}>
-          <div onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Sent messages" className="responsive-modal-padding" style={{
+          <div onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Sent messages" className="paper-card responsive-modal-padding" style={{
             background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, padding: '2rem', width: '100%', maxWidth: 560,
             boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '6px solid var(--ib-accent, #B4511E)', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
           }}>
@@ -773,7 +773,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
       }}
     >
-      <div
+      <div className="paper-card"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, width: '100%', maxWidth: 560,

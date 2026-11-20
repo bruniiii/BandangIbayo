@@ -34,13 +34,12 @@ const parseDays = (text) => {
   return days;
 };
 
+// One day's stops along a dashed trail: a pin for each stop and a little
+// flag at the last one (index.css: .trail).
 const Items = ({ items }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+  <ol className="trail">
     {items.map((item, i) => (
-      <div key={i} style={{
-        display: 'flex', alignItems: 'flex-start', gap: 10,
-        background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 12, padding: '9px 12px', maxWidth: '100%',
-      }}>
+      <li key={i} className={`trail-stop${i === items.length - 1 ? ' is-last' : ''}`}>
         {item.time && (
           <span style={{
             flexShrink: 0, fontSize: 11, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)',
@@ -49,9 +48,9 @@ const Items = ({ items }) => (
           }}>{item.time}</span>
         )}
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.4 }}>{item.activity}</span>
-      </div>
+      </li>
     ))}
-  </div>
+  </ol>
 );
 
 // "Day 2" → "Day 2 · Sat, Oct 26" when the tour's start date is known.
