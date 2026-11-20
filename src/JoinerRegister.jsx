@@ -57,7 +57,7 @@ const CodeTimer = ({ sentAt, minutes }) => {
   return (
     <p role="timer" aria-live="off" style={{
       margin: '10px 0 0', fontSize: 12.5, fontWeight: 800, textAlign: 'center',
-      color: expired ? '#8C2F1C' : left <= 60 ? '#B4511E' : '#7A3A18',
+      color: expired ? 'var(--ib-red, #8C2F1C)' : left <= 60 ? 'var(--ib-accent, #B4511E)' : 'var(--ib-rust, #7A3A18)',
     }}>
       {expired ? 'This code has expired. Tap Resend code to get a new one.' : <>Code expires in <span style={{ fontVariantNumeric: 'tabular-nums' }}>{mm}:{ss}</span></>}
     </p>
@@ -447,10 +447,10 @@ const JoinerRegister = ({ mode = 'register' }) => {
     width: '100%',
     padding: '12px 16px',
     borderRadius: 10,
-    border: '1.5px solid rgba(180,81,30,0.2)',
-    background: '#FDF6EE',
+    border: '1.5px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+    background: 'var(--ib-cream, #FDF6EE)',
     fontSize: 14,
-    color: '#1A0A00',
+    color: 'var(--ib-dark, #1A0A00)',
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
@@ -463,7 +463,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
     fontWeight: 800,
     letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: '#7A3A18',
+    color: 'var(--ib-rust, #7A3A18)',
     marginBottom: 6,
     opacity: 0.9,
   };
@@ -473,7 +473,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
     left: 13,
     top: '50%',
     transform: 'translateY(-50%)',
-    color: '#A8481A',
+    color: 'var(--ib-sienna, #A8481A)',
     opacity: 0.65,
     pointerEvents: 'none',
   };
@@ -490,9 +490,9 @@ const JoinerRegister = ({ mode = 'register' }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
         fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-        color: '#1A0A00',
+        color: 'var(--ib-dark, #1A0A00)',
         padding: '3rem 1rem',
         position: 'relative',
         overflowX: 'hidden',
@@ -502,7 +502,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
       {codeStep && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 190, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(10px)', padding: 20,
+          background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)', padding: 20,
         }}>
           <form
             onSubmit={handleVerifyCode}
@@ -510,22 +510,22 @@ const JoinerRegister = ({ mode = 'register' }) => {
             aria-modal="true"
             aria-labelledby="code-title"
             style={{
-              background: '#FDF6EE', padding: '2.5rem 2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
-              borderTop: '8px solid #B4511E', maxWidth: 420, width: '100%', boxSizing: 'border-box',
+              background: 'var(--ib-cream, #FDF6EE)', padding: '2.5rem 2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)',
+              borderTop: '8px solid var(--ib-accent, #B4511E)', maxWidth: 420, width: '100%', boxSizing: 'border-box',
               display: 'flex', flexDirection: 'column', gap: 18,
             }}
           >
             <div style={{ textAlign: 'center' }}>
               <div style={{
-                width: 64, height: 64, borderRadius: '50%', background: '#B4511E', color: '#FDF6EE',
+                width: 64, height: 64, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
               }}>
                 <MailCheck size={30} />
               </div>
-              <h3 id="code-title" style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.02em', color: '#1A0A00', textTransform: 'uppercase', margin: '0 0 8px' }}>
+              <h3 id="code-title" style={{ fontWeight: 900, fontSize: 22, letterSpacing: '-0.02em', color: 'var(--ib-dark, #1A0A00)', textTransform: 'uppercase', margin: '0 0 8px' }}>
                 Verify Your Email
               </h3>
-              <p style={{ margin: 0, fontSize: 13, color: '#7A3A18', lineHeight: 1.6 }}>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.6 }}>
                 We sent a 6-digit code to <strong>{codeStep.sentTo}</strong>. Enter it below to finish creating your account.
                 It's valid for {codeStep.expiresInMinutes} minutes. Check your Spam or Promotions folder if you don't see it.
               </p>
@@ -539,20 +539,20 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 autoFocus
               />
               {codeError && (
-                <p id="signup-code-error" role="alert" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 800, color: '#8C2F1C', lineHeight: 1.5, textAlign: 'center' }}>
+                <p id="signup-code-error" role="alert" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', lineHeight: 1.5, textAlign: 'center' }}>
                   {codeError}
                 </p>
               )}
               <CodeTimer sentAt={codeStep.sentAt} minutes={codeStep.expiresInMinutes} />
               {codeInfo && !codeError && (
-                <p role="status" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 700, color: '#7A3A18', textAlign: 'center' }}>{codeInfo}</p>
+                <p role="status" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', textAlign: 'center' }}>{codeInfo}</p>
               )}
             </div>
             <button
               type="submit"
               disabled={verifying || code.length !== 6}
               style={{
-                background: verifying || code.length !== 6 ? 'rgba(180,81,30,0.45)' : '#B4511E', color: '#FDF6EE', border: 'none',
+                background: verifying || code.length !== 6 ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.45)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none',
                 borderRadius: 12, padding: '14px 20px', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase',
                 cursor: verifying || code.length !== 6 ? 'default' : 'pointer', fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -593,19 +593,19 @@ const JoinerRegister = ({ mode = 'register' }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(26,10,0,0.88)',
+            background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)',
             backdropFilter: 'blur(10px)',
             padding: 20,
           }}
         >
           <div
             style={{
-              background: '#FDF6EE',
+              background: 'var(--ib-cream, #FDF6EE)',
               padding: '3.5rem',
               borderRadius: 40,
-              boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
+              boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)',
               textAlign: 'center',
-              borderTop: '8px solid #B4511E',
+              borderTop: '8px solid var(--ib-accent, #B4511E)',
               maxWidth: 420,
               width: '100%',
             }}
@@ -615,13 +615,13 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 width: 88,
                 height: 88,
                 borderRadius: '50%',
-                background: '#B4511E',
+                background: 'var(--ib-accent, #B4511E)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 28px',
-                boxShadow: '0 12px 32px rgba(180,81,30,0.45)',
-                color: '#FDF6EE',
+                boxShadow: '0 12px 32px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
+                color: 'var(--ib-cream, #FDF6EE)',
               }}
             >
               <CheckCircle2 size={44} strokeWidth={2.5} />
@@ -632,7 +632,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 fontWeight: 900,
                 fontSize: 26,
                 letterSpacing: '-0.03em',
-                color: '#1A0A00',
+                color: 'var(--ib-dark, #1A0A00)',
                 textTransform: 'uppercase',
                 margin: '0 0 10px',
               }}
@@ -648,7 +648,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 fontWeight: 800,
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: '#7A3A18',
+                color: 'var(--ib-rust, #7A3A18)',
                 opacity: 0.9,
               }}
             >
@@ -662,8 +662,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 onClick={() => navigate(loginPath)}
                 style={{
                   marginTop: 24,
-                  background: '#1A0A00',
-                  color: '#E8A265',
+                  background: 'var(--ib-dark, #1A0A00)',
+                  color: 'var(--ib-amber, #E8A265)',
                   border: 'none',
                   borderRadius: 10,
                   padding: '12px 24px',
@@ -693,7 +693,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      background: '#B4511E',
+                      background: 'var(--ib-accent, #B4511E)',
                       animation: `bounce 0.9s ${delay}s infinite`,
                     }}
                   />
@@ -716,15 +716,15 @@ const JoinerRegister = ({ mode = 'register' }) => {
         className="register-card"
         style={{
           position: 'relative',
-          background: '#FDF6EE',
+          background: 'var(--ib-cream, #FDF6EE)',
           padding: '2.5rem',
           borderRadius: 24,
-          boxShadow: '0 20px 60px rgba(26,10,0,0.14)',
+          boxShadow: '0 20px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)',
           width: '100%',
           minWidth: 0,
           boxSizing: 'border-box',
           maxWidth: 760,
-          borderTop: '7px solid #B4511E',
+          borderTop: '7px solid var(--ib-accent, #B4511E)',
         }}
       >
         {/* CLOSE */}
@@ -739,7 +739,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             height: 44,
             justifyContent: 'center',
             borderRadius: 12,
-            color: 'rgba(122,58,24,0.85)',
+            color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
             display: 'flex',
             alignItems: 'center',
           }}
@@ -772,7 +772,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               fontWeight: 900,
               fontSize: 28,
               letterSpacing: '-0.03em',
-              color: '#1A0A00',
+              color: 'var(--ib-dark, #1A0A00)',
               margin: '0 0 8px',
             }}
           >
@@ -782,7 +782,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
           <p
             style={{
               fontSize: 14,
-              color: '#7A3A18',
+              color: 'var(--ib-rust, #7A3A18)',
               opacity: 0.9,
               margin: 0,
               fontWeight: 500,
@@ -792,13 +792,13 @@ const JoinerRegister = ({ mode = 'register' }) => {
               ? `Signed in with Google${googleUser?.email ? ` as ${googleUser.email}` : ''}. Finish your traveler profile to start booking.`
               : 'Create your traveler profile for Bandang Ibayo.'}
           </p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0' }}>
             Fields marked <RequiredMark /> are required.
           </p>
         </div>
 
         {completing && !googleUser ? (
-          <div role="status" style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: '#A8481A' }}>
+          <div role="status" style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'var(--ib-sienna, #A8481A)' }}>
             <Loader2 size={26} style={{ animation: 'spin 1s linear infinite' }} />
           </div>
         ) : (
@@ -821,8 +821,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
               textAlign: 'center',
               gap: 12,
               padding: 18,
-              background: 'rgba(242,228,208,0.55)',
-              border: '1px solid rgba(180,81,30,0.15)',
+              background: 'rgba(var(--ib-parch-rgb, 242,228,208), 0.55)',
+              border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
               borderRadius: 16,
             }}
           >
@@ -833,12 +833,12 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 borderRadius: '50%',
                 overflow: 'hidden',
                 flexShrink: 0,
-                background: '#1A0A00',
+                background: 'var(--ib-dark, #1A0A00)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '2px solid rgba(180,81,30,0.2)',
-                boxShadow: '0 8px 20px rgba(26,10,0,0.12)',
+                border: '2px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+                boxShadow: '0 8px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.12)',
               }}
             >
               {avatarPreview ? (
@@ -852,7 +852,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   }}
                 />
               ) : (
-                <UserRound size={30} color="#E8A265" />
+                <UserRound size={30} color="var(--ib-amber, #E8A265)" />
               )}
             </div>
 
@@ -874,8 +874,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 7,
-                    background: '#1A0A00',
-                    color: '#E8A265',
+                    background: 'var(--ib-dark, #1A0A00)',
+                    color: 'var(--ib-amber, #E8A265)',
                     padding: '10px 14px',
                     borderRadius: 10,
                     cursor: 'pointer',
@@ -904,8 +904,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
                     onClick={handleRemoveAvatar}
                     style={{
                       background: 'transparent',
-                      border: '1px solid rgba(180,81,30,0.25)',
-                      color: '#7A3A18',
+                      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)',
+                      color: 'var(--ib-rust, #7A3A18)',
                       padding: '9px 13px',
                       borderRadius: 10,
                       cursor: 'pointer',
@@ -922,7 +922,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               <p
                 style={{
                   fontSize: 11,
-                  color: '#7A3A18',
+                  color: 'var(--ib-rust, #7A3A18)',
                   opacity: 0.9,
                   margin: '8px 0 0',
                 }}
@@ -1019,7 +1019,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   name="email"
                   type="email"
                   placeholder="juan@email.com"
-                  style={completing ? { ...inputWithIconStyle, background: '#F2E4D0', color: '#7A3A18' } : inputWithIconStyle}
+                  style={completing ? { ...inputWithIconStyle, background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-rust, #7A3A18)' } : inputWithIconStyle}
                   {...(completing ? { value: googleUser?.email || '', readOnly: true, 'aria-readonly': true } : {})}
                   required
                 />
@@ -1154,7 +1154,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
           <div
             style={{
-              borderTop: '1px solid rgba(180,81,30,0.15)',
+              borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
               marginTop: 4,
             }}
           />
@@ -1183,7 +1183,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   width: 16,
                   height: 16,
                   flexShrink: 0,
-                  accentColor: '#B4511E',
+                  accentColor: 'var(--ib-accent, #B4511E)',
                   cursor: 'pointer',
                 }}
               />
@@ -1191,7 +1191,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               <span
                 style={{
                   fontSize: 12.5,
-                  color: '#7A3A18',
+                  color: 'var(--ib-rust, #7A3A18)',
                   lineHeight: 1.6,
                   fontWeight: 500,
                 }}
@@ -1205,7 +1205,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                     background: 'none',
                     border: 'none',
                     padding: 0,
-                    color: '#A8481A',
+                    color: 'var(--ib-sienna, #A8481A)',
                     fontWeight: 800,
                     textDecoration: 'underline',
                     cursor: 'pointer',
@@ -1251,9 +1251,9 @@ const JoinerRegister = ({ mode = 'register' }) => {
               width: '100%',
               opacity: agreedToTerms && registerFilled ? 1 : 0.5,
               background: loading
-                ? '#A8481A'
-                : '#A8481A',
-              color: '#FDF6EE',
+                ? 'var(--ib-sienna, #A8481A)'
+                : 'var(--ib-sienna, #A8481A)',
+              color: 'var(--ib-cream, #FDF6EE)',
               fontWeight: 900,
               fontSize: 13,
               letterSpacing: '0.1em',
@@ -1264,7 +1264,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               cursor: loading || !agreedToTerms || !registerFilled ? 'not-allowed' : 'pointer',
               boxShadow: loading || !agreedToTerms || !registerFilled
                 ? 'none'
-                : '0 8px 24px rgba(168,72,26,0.38)',
+                : '0 8px 24px rgba(var(--ib-sienna-rgb, 168,72,26), 0.38)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1302,7 +1302,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             textAlign: 'center',
             marginTop: '1.5rem',
             fontSize: 13,
-            color: '#7A3A18',
+            color: 'var(--ib-rust, #7A3A18)',
             opacity: 0.9,
           }}
         >
@@ -1311,7 +1311,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             to={loginPath}
             onClick={completing ? () => supabase.auth.signOut() : undefined}
             style={{
-              color: '#A8481A',
+              color: 'var(--ib-sienna, #A8481A)',
               fontWeight: 800,
               textDecoration: 'none',
             }}

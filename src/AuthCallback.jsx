@@ -58,17 +58,17 @@ const AuthCallback = () => {
   }, [error, navigate, params]);
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FDF6EE', padding: 24, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", textAlign: 'center' }}>
+    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--ib-cream, #FDF6EE)', padding: 24, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", textAlign: 'center' }}>
       {error ? (
         <div style={{ maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <AlertTriangle size={36} style={{ color: '#8C2F1C' }} />
-          <h1 style={{ fontSize: 22, color: '#1A0A00', margin: 0 }}>Couldn't sign in with Google</h1>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{error}</p>
+          <AlertTriangle size={36} style={{ color: 'var(--ib-red, #8C2F1C)' }} />
+          <h1 style={{ fontSize: 22, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Couldn't sign in with Google</h1>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{error}</p>
           <Link to="/login" className="text-link" style={{ fontSize: 14 }}>Back to login</Link>
         </div>
       ) : (
-        <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, color: '#7A3A18' }}>
-          <Loader2 size={30} style={{ color: '#A8481A', animation: 'spin 1s linear infinite' }} />
+        <div role="status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, color: 'var(--ib-rust, #7A3A18)' }}>
+          <Loader2 size={30} style={{ color: 'var(--ib-sienna, #A8481A)', animation: 'spin 1s linear infinite' }} />
           <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>Signing you in…</p>
         </div>
       )}

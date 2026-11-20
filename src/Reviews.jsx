@@ -53,7 +53,7 @@ const formatTourDate = (startStr, endStr) => {
 const StarRow = ({ rating, size = 14 }) => (
   <div style={{ display: 'flex', gap: 2 }}>
     {[1, 2, 3, 4, 5].map(n => (
-      <Star key={n} size={size} fill={n <= rating ? '#E8A265' : 'none'} color={n <= rating ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
+      <Star key={n} size={size} fill={n <= rating ? 'var(--ib-amber, #E8A265)' : 'none'} color={n <= rating ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)'} />
     ))}
   </div>
 );
@@ -71,7 +71,7 @@ const StarPicker = ({ value, onChange }) => {
           onMouseLeave={() => setHover(0)}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}
         >
-          <Star size={26} fill={n <= (hover || value) ? '#E8A265' : 'none'} color={n <= (hover || value) ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
+          <Star size={26} fill={n <= (hover || value) ? 'var(--ib-amber, #E8A265)' : 'none'} color={n <= (hover || value) ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)'} />
         </button>
       ))}
     </div>
@@ -84,7 +84,7 @@ const PartStars = ({ label, value, onChange }) => (
     {[1, 2, 3, 4, 5].map((n) => (
       <button key={n} type="button" role="radio" aria-checked={value === n} aria-label={`${n} star${n === 1 ? '' : 's'}`} onClick={() => onChange(n)}
         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 3, display: 'flex' }}>
-        <Star size={20} fill={n <= value ? '#E8A265' : 'none'} color={n <= value ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
+        <Star size={20} fill={n <= value ? 'var(--ib-amber, #E8A265)' : 'none'} color={n <= value ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)'} />
       </button>
     ))}
   </div>
@@ -344,28 +344,28 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
 
       {/* average rating */}
         {avgRating && (
-          <div style={{ alignSelf: 'flex-end', display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 999, padding: '8px 16px' }}>
+          <div style={{ alignSelf: 'flex-end', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', borderRadius: 999, padding: '8px 16px' }}>
             <StarRow rating={Math.round(avgRating)} size={13} />
-            <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{avgRating}</span>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>({reviews.length})</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{avgRating}</span>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>({reviews.length})</span>
           </div>
         )}
 
       {/* composer — joiner only */}
       {!isAdmin && (
         <div {...focusAttr('review-form')} style={{
-          background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
         }}>
           {reviewableTours.length === 0 ? (
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
               Once you've completed a tour, it'll show up here so you can leave a review.
             </p>
           ) : (
             <>
               <label style={{
                 display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 6,
+                textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginBottom: 6,
               }}>
                 Which tour would you like to review?
               </label>
@@ -374,9 +374,9 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                 value={selectedTourId}
                 onChange={(e) => setSelectedTourId(e.target.value)}
                 style={{
-                  width: '100%', boxSizing: 'border-box', background: '#F2E4D0',
-                  border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14,
-                  padding: '11px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00',
+                  width: '100%', boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 14,
+                  padding: '11px 14px', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)',
                   fontFamily: 'inherit', outline: 'none',
                 }}
               >
@@ -394,7 +394,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                 return (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
-                    fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9,
+                    fontSize: 11, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
                   }}>
                     <Calendar size={12} /> Tour date: {formatTourDate(selectedTour.start_date, selectedTour.end_date)}
                   </div>
@@ -405,22 +405,22 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
 
               <label style={{
                 display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
-                textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, marginBottom: 8,
+                textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginBottom: 8,
               }}>
                 Your Rating
               </label>
               <StarPicker value={rating} onChange={setRating} />
 
               {parts.length > 0 && (
-                <div style={{ marginTop: 16, background: '#F2E4D0', borderRadius: 14, padding: '12px 14px' }}>
-                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>
+                <div style={{ marginTop: 16, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px' }}>
+                  <p style={{ margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>
                     Rate each part of the trip <span style={{ letterSpacing: 0, textTransform: 'none', fontWeight: 600 }}>(optional)</span>
                   </p>
-                  <p style={{ margin: '4px 0 8px', fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>It helps us keep what you liked and change what you didn't.</p>
+                  <p style={{ margin: '4px 0 8px', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>It helps us keep what you liked and change what you didn't.</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {parts.map((p) => (
                       <div key={p.line_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', minWidth: 0 }}>{p.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', minWidth: 0 }}>{p.label}</span>
                         <PartStars label={p.label} value={partRatings[p.line_id] || 0} onChange={(n) => setPartRatings((r) => ({ ...r, [p.line_id]: r[p.line_id] === n ? 0 : n }))} />
                       </div>
                     ))}
@@ -436,9 +436,9 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                 rows={3}
                 style={{
                   width: '100%', boxSizing: 'border-box', resize: 'vertical', marginTop: 16,
-                  background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
+                  background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
                   borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
-                  color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+                  color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
                 }}
               />
 
@@ -453,10 +453,10 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                       )}
                       {item.type === 'video' && (
                         <div style={{
-                          position: 'absolute', bottom: 4, left: 4, background: 'rgba(26,10,0,0.7)',
+                          position: 'absolute', bottom: 4, left: 4, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)',
                           borderRadius: 6, padding: '2px 5px', display: 'flex', alignItems: 'center',
                         }}>
-                          <Video size={10} color="#FDF6EE" />
+                          <Video size={10} color="var(--ib-cream, #FDF6EE)" />
                         </div>
                       )}
                       <button
@@ -465,7 +465,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                         style={{
                           position: 'absolute', top: -6, right: -6,
                           width: 20, height: 20, borderRadius: '50%',
-                          background: '#1A0A00', color: '#FDF6EE', border: '2px solid #FDF6EE',
+                          background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: '2px solid var(--ib-cream, #FDF6EE)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                         }}
                       >
@@ -483,7 +483,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
                     fontSize: 11.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: '#7A3A18', opacity: 0.9,
+                    color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
                     background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
                   }}
                 >
@@ -503,11 +503,11 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                   disabled={submitting || !selectedTourId || rating === 0}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(180,81,30,0.4)' : '#B4511E',
-                    color: '#FDF6EE', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                    background: (submitting || !selectedTourId || rating === 0) ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'var(--ib-accent, #B4511E)',
+                    color: 'var(--ib-cream, #FDF6EE)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
                     border: 'none', cursor: (submitting || !selectedTourId || rating === 0) ? 'not-allowed' : 'pointer',
-                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(180,81,30,0.3)',
+                    fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
                   }}
                 >
                   {submitting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -558,15 +558,15 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
    Reviews can't be deleted, by the joiner or by an admin. */
 const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply }) => (
   <div style={{
-    background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
-    border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+    background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem 1.5rem',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
   }}>
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-          background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#E8A265', fontWeight: 900, fontSize: 15, overflow: 'hidden',
+          background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 15, overflow: 'hidden',
         }}>
           {review.author?.avatar_url ? (
             <img loading="lazy" decoding="async" src={review.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -575,10 +575,10 @@ const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply })
           )}
         </div>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
             {review.user_id ? displayName(review.author) : 'Deleted account'}
           </p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '3px 0 0' }}>
             {formatDate(review.created_at)}
           </p>
         </div>
@@ -589,17 +589,17 @@ const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply })
     {review.tours && (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         <span style={{
-          background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
+          background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, padding: '4px 12px',
           fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-          color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
+          color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', gap: 5,
         }}>
           <MapPin size={10} /> {review.tours.title}
         </span>
         {review.tours.start_date && (
           <span style={{
-            background: '#F2E4D0', borderRadius: 999, padding: '4px 12px',
+            background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, padding: '4px 12px',
             fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-            color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5,
+            color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', gap: 5,
           }}>
             <Calendar size={10} /> {formatTourDate(review.tours.start_date, review.tours.end_date)}
           </span>
@@ -612,7 +612,7 @@ const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply })
     </div>
 
     {review.comment && (
-      <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6, margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>
         {review.comment}
       </p>
     )}
@@ -629,16 +629,16 @@ const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply })
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit',
             borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 800,
-            border: review.helpfulMine ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.25)',
-            background: review.helpfulMine ? 'rgba(180,81,30,0.12)' : 'transparent',
-            color: review.helpfulMine ? '#A8481A' : '#7A3A18',
+            border: review.helpfulMine ? '1px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)',
+            background: review.helpfulMine ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : 'transparent',
+            color: review.helpfulMine ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)',
           }}
         >
-          <ThumbsUp size={14} fill={review.helpfulMine ? '#B4511E' : 'none'} />
+          <ThumbsUp size={14} fill={review.helpfulMine ? 'var(--ib-accent, #B4511E)' : 'none'} />
           Helpful{review.helpful ? ` (${review.helpful})` : ''}
         </button>
       ) : review.helpful > 0 ? (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)' }}>
           <ThumbsUp size={14} /> {review.helpful} {review.helpful === 1 ? 'person' : 'people'} found this helpful
         </span>
       ) : null}
@@ -666,8 +666,8 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
 
   if (editing) {
     return (
-      <div style={{ marginTop: 14, borderLeft: '3px solid #B4511E', paddingLeft: 12 }}>
-        <label htmlFor={`reply-${review.id}`} style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A' }}>
+      <div style={{ marginTop: 14, borderLeft: '3px solid var(--ib-accent, #B4511E)', paddingLeft: 12 }}>
+        <label htmlFor={`reply-${review.id}`} style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
           Reply as Bandang IBAYO
         </label>
         <textarea
@@ -680,13 +680,13 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
           placeholder="Thank the joiner or answer their comment…"
           style={{
             width: '100%', boxSizing: 'border-box', marginTop: 6, padding: '10px 12px', borderRadius: 12,
-            border: '1px solid rgba(180,81,30,0.25)', background: '#FFF', fontFamily: 'inherit', fontSize: 13,
-            color: '#1A0A00', resize: 'vertical',
+            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: '#FFF', fontFamily: 'inherit', fontSize: 13,
+            color: 'var(--ib-dark, #1A0A00)', resize: 'vertical',
           }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={save} disabled={saving || !text.trim()} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, background: '#B4511E', color: '#FDF6EE', border: 'none',
+            display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none',
             borderRadius: 999, padding: '8px 16px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
             cursor: saving || !text.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
           }}>
@@ -694,11 +694,11 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
             {review.admin_reply ? 'Save Changes' : 'Post Reply'}
           </button>
           <button type="button" onClick={() => setEditing(false)} disabled={saving} style={{
-            background: 'none', border: 'none', color: '#7A3A18', fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+            background: 'none', border: 'none', color: 'var(--ib-rust, #7A3A18)', fontSize: 12, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
           }}>
             Cancel
           </button>
-          <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>{text.length}/{REPLY_MAX}</span>
+          <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{text.length}/{REPLY_MAX}</span>
         </div>
       </div>
     );
@@ -707,13 +707,13 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
   return (
     <>
       {review.admin_reply && (
-        <div style={{ marginTop: 14, background: 'rgba(180,81,30,0.07)', borderLeft: '3px solid #B4511E', borderRadius: '0 12px 12px 0', padding: '10px 12px' }}>
-          <p style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ marginTop: 14, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)', borderLeft: '3px solid var(--ib-accent, #B4511E)', borderRadius: '0 12px 12px 0', padding: '10px 12px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', margin: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <BrandAvatar size={22} /> Reply from Bandang IBAYO
-            {review.admin_reply_at && <span style={{ fontWeight: 700, color: '#7A3A18' }}>· {formatDate(review.admin_reply_at)}</span>}
-            {review.admin_reply_edited_at && <span style={{ fontWeight: 800, color: '#7A3A18', fontStyle: 'italic' }} title={`Edited ${formatDate(review.admin_reply_edited_at)}`}>· Edited</span>}
+            {review.admin_reply_at && <span style={{ fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>· {formatDate(review.admin_reply_at)}</span>}
+            {review.admin_reply_edited_at && <span style={{ fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', fontStyle: 'italic' }} title={`Edited ${formatDate(review.admin_reply_edited_at)}`}>· Edited</span>}
           </p>
-          <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6, margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>
             {review.admin_reply}
           </p>
         </div>
@@ -721,8 +721,8 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
       {isAdmin && (
         <button type="button" onClick={() => { setText(review.admin_reply || ''); setEditing(true); }} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, background: 'none',
-          border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, padding: '6px 14px', cursor: 'pointer',
-          fontFamily: 'inherit', fontSize: 12, fontWeight: 800, color: '#7A3A18',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 999, padding: '6px 14px', cursor: 'pointer',
+          fontFamily: 'inherit', fontSize: 12, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)',
         }}>
           <MessageSquare size={13} /> {review.admin_reply ? 'Edit Reply' : 'Reply'}
         </button>

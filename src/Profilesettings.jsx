@@ -19,23 +19,23 @@ import { Skel, SkeletonRegion } from './ui/Skeleton';
 import NiceDate from './ui/NiceDate';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
 // ---------------------------------------------------------
 
 const inputStyle = {
   width: '100%',
   padding: '11px 14px 11px 40px',
   borderRadius: 12,
-  border: '1px solid rgba(180,81,30,0.18)',
-  background: '#F2E4D0',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
+  background: 'var(--ib-parch, #F2E4D0)',
   fontSize: 13.5,
   fontWeight: 600,
-  color: '#1A0A00',
+  color: 'var(--ib-dark, #1A0A00)',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -43,7 +43,7 @@ const inputStyle = {
 
 const readOnlyInputStyle = {
   ...inputStyle,
-  color: '#7A3A18',
+  color: 'var(--ib-rust, #7A3A18)',
   opacity: 0.85,
   cursor: 'not-allowed',
 };
@@ -54,7 +54,7 @@ const labelStyle = {
   fontWeight: 800,
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
-  color: '#7A3A18',
+  color: 'var(--ib-rust, #7A3A18)',
   marginBottom: 7,
   opacity: 0.9,
 };
@@ -65,7 +65,7 @@ const Field = ({ label, icon, children }) => (
     <div style={{ position: 'relative' }}>
       <span style={{
         position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
-        color: '#A8481A', opacity: 0.9, display: 'flex', pointerEvents: 'none',
+        color: 'var(--ib-sienna, #A8481A)', opacity: 0.9, display: 'flex', pointerEvents: 'none',
       }}>
         {icon}
       </span>
@@ -78,19 +78,19 @@ const Field = ({ label, icon, children }) => (
 const InfoRow = ({ label, icon, value, note }) => (
   <div style={{ minWidth: 0 }}>
     <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-      <span style={{ color: '#A8481A', display: 'flex' }}>{icon}</span> {label}
+      <span style={{ color: 'var(--ib-sienna, #A8481A)', display: 'flex' }}>{icon}</span> {label}
     </p>
-    <p style={{ fontSize: 14, fontWeight: 700, color: value ? '#1A0A00' : 'rgba(122,58,24,0.7)', margin: 0, overflowWrap: 'anywhere' }}>
+    <p style={{ fontSize: 14, fontWeight: 700, color: value ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.7)', margin: 0, overflowWrap: 'anywhere' }}>
       {value || 'Not set'}
-      {note && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A', background: 'rgba(180,81,30,0.12)', borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle' }}>{note}</span>}
+      {note && <span style={{ marginLeft: 8, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle' }}>{note}</span>}
     </p>
   </div>
 );
 
 // "Primary" choice beside an email or phone field.
 const PrimaryRadio = ({ name, checked, onChange, disabled }) => (
-  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 11.5, fontWeight: 800, color: disabled ? 'rgba(122,58,24,0.5)' : '#7A3A18', cursor: disabled ? 'not-allowed' : 'pointer' }}>
-    <input type="radio" name={name} checked={checked} onChange={onChange} disabled={disabled} style={{ accentColor: '#B4511E', width: 15, height: 15, margin: 0 }} />
+  <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 11.5, fontWeight: 800, color: disabled ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.5)' : 'var(--ib-rust, #7A3A18)', cursor: disabled ? 'not-allowed' : 'pointer' }}>
+    <input type="radio" name={name} checked={checked} onChange={onChange} disabled={disabled} style={{ accentColor: 'var(--ib-accent, #B4511E)', width: 15, height: 15, margin: 0 }} />
     Primary
   </label>
 );
@@ -370,11 +370,11 @@ const ProfileSettings = () => {
   if (loading) {
     return (
       <SkeletonRegion label="Loading profile" style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 780, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
           <Skel w={84} h={84} r={999} />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}><Skel w="40%" h={16} /><Skel w="30%" h={11} /><Skel w={120} h={30} r={10} /></div>
         </div>
-        <div style={{ background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 16 }}>
+        <div style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 16 }}>
           {Array.from({ length: 6 }, (_, i) => (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 7 }}><Skel w="35%" h={9} /><Skel h={40} r={12} /></div>
           ))}
@@ -389,16 +389,16 @@ const ProfileSettings = () => {
 
       {/* avatar card */}
       <div style={{
-        background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.75rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
         display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
       }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <div style={{
             width: 84, height: 84, borderRadius: '50%', overflow: 'hidden',
-            background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#E8A265', fontWeight: 900, fontSize: 28,
-            boxShadow: '0 6px 20px rgba(26,10,0,0.25)',
+            background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 28,
+            boxShadow: '0 6px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)',
           }}>
             {avatarPreview ? (
               <img src={avatarPreview} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -409,16 +409,16 @@ const ProfileSettings = () => {
           {avatarBusy && (
             <div style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'rgba(26,10,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Loader2 size={20} color="#FDF6EE" style={{ animation: 'spin 1s linear infinite' }} />
+              <Loader2 size={20} color="var(--ib-cream, #FDF6EE)" style={{ animation: 'spin 1s linear infinite' }} />
             </div>
           )}
         </div>
 
         <div style={{ flex: 1, minWidth: 180 }}>
-          <p style={{ fontWeight: 900, fontSize: 17, color: '#1A0A00', margin: 0 }}>{fullName}</p>
-          <p style={{ fontSize: 12.5, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>{profile?.email}</p>
+          <p style={{ fontWeight: 900, fontSize: 17, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{fullName}</p>
+          <p style={{ fontSize: 12.5, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '3px 0 0' }}>{profile?.email}</p>
 
           {editing && <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
             <button
@@ -426,7 +426,7 @@ const ProfileSettings = () => {
               disabled={saving}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                background: '#1A0A00', color: '#E8A265', border: 'none',
+                background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none',
                 borderRadius: 10, padding: '9px 16px', fontSize: 11.5, fontWeight: 800,
                 cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
               }}
@@ -460,19 +460,19 @@ const ProfileSettings = () => {
 
       {/* personal information card: shown first, editable after Edit Profile */}
       <div style={{
-        background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.75rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
           <div>
-            <h3 style={{ fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>Personal Information</h3>
-            <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
+            <h3 style={{ fontWeight: 900, fontSize: 15, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Personal Information</h3>
+            <p style={{ fontSize: 12, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0' }}>
               {editing ? 'Update your details, then click Save Changes.' : 'Your details. Click Edit Profile to change them.'}
             </p>
           </div>
           {!editing && (
             <button type="button" onClick={() => setEditing(true)} style={{
-              display: 'flex', alignItems: 'center', gap: 8, background: '#1A0A00', color: '#E8A265', fontWeight: 900, fontSize: 12,
+              display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12,
               letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', borderRadius: 12, padding: '12px 22px', cursor: 'pointer', fontFamily: 'inherit',
             }}>
               <PencilLine size={15} /> Edit Profile
@@ -492,7 +492,7 @@ const ProfileSettings = () => {
             <InfoRow label="Address" icon={<MapPin size={14} />} value={profile?.address} />
             <InfoRow label="Emergency Contact Name" icon={<User size={14} />} value={profile?.emergency_contact_name} />
             <InfoRow label="Emergency Contact Number" icon={<Phone size={14} />} value={formatPhPhone(profile?.emergency_contact_number || '')} />
-            <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0, lineHeight: 1.6 }}>
               Your primary email receives notification emails, and your primary phone number is used for your bookings.
             </p>
           </div>
@@ -536,7 +536,7 @@ const ProfileSettings = () => {
             <PrimaryRadio name="primary-phone" checked={form.primary_phone === 'secondary'} disabled={!form.secondary_phone.trim()} onChange={() => setForm((f) => ({ ...f, primary_phone: 'secondary' }))} />
           </div>
         </div>
-        <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '-4px 0 16px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '-4px 0 16px', lineHeight: 1.5 }}>
           Your primary email receives notification emails. Your primary phone number is the one used for your bookings.
         </p>
 
@@ -557,10 +557,10 @@ const ProfileSettings = () => {
 
         <div style={{ marginBottom: 20 }}>
           <p style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-            <MapPin size={14} style={{ color: '#A8481A' }} /> Address
+            <MapPin size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Address
           </p>
           {!form.province && form.address && (
-            <p style={{ fontSize: 12, color: '#7A3A18', margin: '0 0 10px' }}>
+            <p style={{ fontSize: 12, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 10px' }}>
               Current address: <strong>{form.address}</strong>. Choose your province, city/municipality and barangay below to update it.
             </p>
           )}
@@ -575,14 +575,14 @@ const ProfileSettings = () => {
         </div>
 
         {!saving && !profileFilled && <MissingHint items={profileMissing} style={{ marginBottom: 12 }} />}
-        <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={cancelEditing}
             disabled={saving}
             style={{
-              display: 'flex', alignItems: 'center', gap: 8, background: '#F2E4D0', color: '#1A0A00', fontWeight: 900, fontSize: 12,
-              letterSpacing: '0.08em', textTransform: 'uppercase', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12,
+              display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-dark, #1A0A00)', fontWeight: 900, fontSize: 12,
+              letterSpacing: '0.08em', textTransform: 'uppercase', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 12,
               padding: '13px 22px', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
             }}
           >
@@ -594,11 +594,11 @@ const ProfileSettings = () => {
             title={profileFilled ? undefined : 'Fill in your first and last name (and the street, if you picked a province) first'}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, opacity: profileFilled ? 1 : 0.5,
-              background: saving ? 'rgba(26,10,0,0.5)' : '#1A0A00',
-              color: '#E8A265', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
+              background: saving ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.5)' : 'var(--ib-dark, #1A0A00)',
+              color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
               textTransform: 'uppercase', border: 'none', borderRadius: 12,
               padding: '13px 26px', cursor: saving || !profileFilled ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit', boxShadow: saving ? 'none' : '0 8px 20px rgba(26,10,0,0.25)',
+              fontFamily: 'inherit', boxShadow: saving ? 'none' : '0 8px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)',
             }}
           >
             {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={15} />}

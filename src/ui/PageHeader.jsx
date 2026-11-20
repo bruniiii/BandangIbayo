@@ -6,15 +6,15 @@ const PageHeader = ({ icon, title, subtitle }) => {
   return (
   <div className="page-header" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
     <div aria-hidden="true" style={{
-      width: 38, height: 38, borderRadius: 11, background: '#1A0A00', flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265',
+      width: 38, height: 38, borderRadius: 11, background: 'var(--ib-dark, #1A0A00)', flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-amber, #E8A265)',
     }}>
       <Icon size={18} />
     </div>
     <div style={{ minWidth: 0 }}>
-      <h1 style={{ fontSize: 18, letterSpacing: '-0.01em', color: '#1A0A00', margin: 0, lineHeight: 1.2 }}>{title}</h1>
+      <h1 style={{ fontSize: 18, letterSpacing: '-0.01em', color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.2 }}>{title}</h1>
       {subtitle && (
-        <p className="page-header-subtitle" style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: '2px 0 0' }}>{subtitle}</p>
+        <p className="page-header-subtitle" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>{subtitle}</p>
       )}
     </div>
   </div>

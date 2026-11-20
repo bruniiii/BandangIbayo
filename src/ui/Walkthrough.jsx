@@ -71,22 +71,22 @@ const Walkthrough = ({ steps, open, onClose, onMenu }) => {
       {rect ? (
         <div aria-hidden="true" style={{
           position: 'fixed', left: rect.left - PAD, top: rect.top - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2,
-          borderRadius: 14, boxShadow: '0 0 0 9999px rgba(26,10,0,0.62)', border: '2px solid #E8A265', transition: 'all 0.25s ease', pointerEvents: 'none',
+          borderRadius: 14, boxShadow: '0 0 0 9999px rgba(var(--ib-dark-rgb, 26,10,0), 0.62)', border: '2px solid var(--ib-amber, #E8A265)', transition: 'all 0.25s ease', pointerEvents: 'none',
         }} />
-      ) : <div aria-hidden="true" style={{ position: 'fixed', inset: 0, background: 'rgba(26,10,0,0.62)' }} />}
+      ) : <div aria-hidden="true" style={{ position: 'fixed', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.62)' }} />}
 
       <div style={{
         position: 'fixed', width: CARD_W, maxWidth: 'calc(100vw - 24px)', boxSizing: 'border-box', ...cardStyle,
-        background: '#FDF6EE', borderRadius: 18, padding: '1.1rem 1.2rem', boxShadow: '0 20px 50px rgba(26,10,0,0.4)', borderTop: '5px solid #B4511E',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 18, padding: '1.1rem 1.2rem', boxShadow: '0 20px 50px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', borderTop: '5px solid var(--ib-accent, #B4511E)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
             <Compass size={13} /> Quick tour · {i + 1} of {steps.length}
           </span>
-          <button type="button" onClick={onClose} aria-label="Skip the tour" className="no-touch-size" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4 }}><X size={16} /></button>
+          <button type="button" onClick={onClose} aria-label="Skip the tour" className="no-touch-size" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', padding: 4 }}><X size={16} /></button>
         </div>
-        <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 900, color: '#1A0A00' }}>{step.title}</h3>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#5C2A10', lineHeight: 1.55 }}>{step.body}</p>
+        <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{step.title}</h3>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.55 }}>{step.body}</p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 14 }}>
           <button type="button" onClick={onClose} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Skip tour</button>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -106,7 +106,7 @@ const Walkthrough = ({ steps, open, onClose, onMenu }) => {
 const navBtn = (main) => ({
   display: 'inline-flex', alignItems: 'center', gap: 4, height: 36, padding: '0 14px', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit',
   fontWeight: 900, fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase',
-  background: main ? '#B4511E' : 'transparent', color: main ? '#FDF6EE' : '#5C2A10', border: main ? 'none' : '1px solid rgba(180,81,30,0.3)',
+  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 
 export default Walkthrough;

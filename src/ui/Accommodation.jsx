@@ -8,7 +8,7 @@ import { ACCOMMODATION_OPTIONS, cleanAccommodation } from '../accommodation';
 
 const label = {
   display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase',
-  color: '#7A3A18', opacity: 0.9, marginBottom: 6,
+  color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginBottom: 6,
 };
 
 // Admin: tick the accommodation joiners can choose from.
@@ -27,22 +27,22 @@ export const AccommodationCheckboxes = ({ value = [], onChange, required = false
             <label key={option} style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none',
               padding: '9px 14px', borderRadius: 12, fontSize: 12.5, fontWeight: 800,
-              background: on ? 'rgba(180,81,30,0.12)' : '#F2E4D0', color: on ? '#A8481A' : '#7A3A18',
-              border: `1px solid ${error ? '#8C2F1C' : on ? 'rgba(180,81,30,0.45)' : 'rgba(180,81,30,0.18)'}`,
+              background: on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : 'var(--ib-parch, #F2E4D0)', color: on ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)',
+              border: `1px solid ${error ? 'var(--ib-red, #8C2F1C)' : on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.45)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}`,
             }}>
               <input
                 type="checkbox"
                 name={i === 0 ? name : undefined}
                 checked={on}
                 onChange={() => toggle(option)}
-                style={{ width: 16, height: 16, accentColor: '#B4511E', margin: 0 }}
+                style={{ width: 16, height: 16, accentColor: 'var(--ib-accent, #B4511E)', margin: 0 }}
               />
               {option}
             </label>
           );
         })}
       </div>
-      <p style={{ fontSize: 11.5, fontWeight: 600, color: error ? '#8C2F1C' : '#7A3A18', margin: '6px 0 0' }}>
+      <p style={{ fontSize: 11.5, fontWeight: 600, color: error ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-rust, #7A3A18)', margin: '6px 0 0' }}>
         {error || (required ? 'Tick at least one. Joiners choose from these.' : 'Optional. Joiners choose from the ones you tick.')}
       </p>
     </fieldset>
@@ -65,7 +65,7 @@ export const AccommodationSelect = ({ options = [], value, onChange, error = '',
         onChange={onChange}
         options={choices.map((o) => ({ value: o, label: o }))}
       />
-      {error && <p role="alert" style={{ fontSize: 12, fontWeight: 800, color: '#8C2F1C', margin: '6px 2px 0' }}>{error}</p>}
+      {error && <p role="alert" style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', margin: '6px 2px 0' }}>{error}</p>}
     </div>
   );
 };

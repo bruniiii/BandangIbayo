@@ -36,7 +36,7 @@ const PublicTourDetail = lazy(() => import('./PublicTours').then((m) => ({ defau
 
 // Shown for a moment while a page's code loads.
 const PageLoading = () => (
-  <div role="status" aria-label="Loading" style={{ minHeight: '100dvh', background: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+  <div role="status" aria-label="Loading" style={{ minHeight: '100dvh', background: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
     <img src={logoIcon} alt="" width={56} height={56} style={{ opacity: 0.85, animation: 'ibayo-pulse 1.2s ease-in-out infinite' }} />
     <style>{'@keyframes ibayo-pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}'}</style>
   </div>
@@ -60,6 +60,15 @@ export default function App() {
     // Only when the site first opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // The joiner side uses the Bright & Tropical colours (index.css); the admin
+  // and driver pages keep the espresso ones for now.
+  const tropical = !/^\/(admin|driver)(\/|$)/.test(pathname);
+  useEffect(() => {
+    if (tropical) document.documentElement.dataset.skin = 'tropical';
+    else delete document.documentElement.dataset.skin;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', tropical ? '#0B3B4F' : '#1A0A00');
+  }, [tropical]);
 
   return (
     <Suspense fallback={<PageLoading />}>

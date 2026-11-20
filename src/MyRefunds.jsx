@@ -37,33 +37,33 @@ const MyRefunds = ({ bookings, weather, onChanged, focusId = null }) => {
     <>
       <button type="button" onClick={() => setOpen(true)} style={{
         display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 16px', borderRadius: 14, cursor: 'pointer',
-        background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.3)', color: '#1A0A00', fontFamily: 'inherit',
+        background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit',
         fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase',
       }}>
-        <Wallet size={15} style={{ color: '#B4511E' }} /> My Refunds ({refunds.length})
-        {toConfirm > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: '#B4511E', color: '#FDF6EE', fontSize: 10, letterSpacing: '0.04em' }}>{toConfirm} to confirm</span>}
+        <Wallet size={15} style={{ color: 'var(--ib-accent, #B4511E)' }} /> My Refunds ({refunds.length})
+        {toConfirm > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontSize: 10, letterSpacing: '0.04em' }}>{toConfirm} to confirm</span>}
       </button>
 
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} />
+          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
           <div role="dialog" aria-modal="true" aria-label="My refunds" style={{
             position: 'relative', width: '100%', maxWidth: 640, maxHeight: '88vh', display: 'flex', flexDirection: 'column',
-            background: '#F2E4D0', borderRadius: 22, boxShadow: '0 24px 60px rgba(26,10,0,0.35)', overflow: 'hidden',
+            background: 'var(--ib-parch, #F2E4D0)', borderRadius: 22, boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', overflow: 'hidden',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px', background: '#FDF6EE', borderBottom: '1px solid rgba(180,81,30,0.15)' }}>
-              <Wallet size={20} style={{ color: '#B4511E', flexShrink: 0 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px', background: 'var(--ib-cream, #FDF6EE)', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)' }}>
+              <Wallet size={20} style={{ color: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: '#1A0A00' }}>My Refunds</p>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
+                <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>My Refunds</p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>
                   {refunds.length} refund{refunds.length === 1 ? '' : 's'} · {formatPeso(total)}
                   {onTheWay ? ` · ${onTheWay} on the way` : ''}{toConfirm ? ` · ${toConfirm} to confirm` : ''}
                 </p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
             </div>
             <div style={{ overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
                 Refunds for tour dates changed because of bad weather. Open one to see how it was sent, the receipts, and to confirm you received it.
               </p>
               {refunds.map((b) => (

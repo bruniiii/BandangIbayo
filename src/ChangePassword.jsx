@@ -14,14 +14,14 @@ import { usePopupError } from './ui/usePopupError';
 
 const inputStyle = {
   width: '100%', padding: '11px 14px', borderRadius: 12,
-  border: '1px solid rgba(180,81,30,0.18)', background: '#F2E4D0',
-  fontSize: 13.5, fontWeight: 600, color: '#1A0A00', outline: 'none',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', background: 'var(--ib-parch, #F2E4D0)',
+  fontSize: 13.5, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', outline: 'none',
   boxSizing: 'border-box', fontFamily: 'inherit',
 };
 
 const labelStyle = {
   display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.1em',
-  textTransform: 'uppercase', color: '#7A3A18', marginBottom: 7, opacity: 0.9,
+  textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', marginBottom: 7, opacity: 0.9,
 };
 
 // Password box with an eye button that shows or hides what's typed.
@@ -48,7 +48,7 @@ const PasswordInput = ({ id, value, onChange, autoComplete, minLength }) => {
         style={{
           position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: '#7A3A18',
+          background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)',
         }}
       >
         {visible ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -96,20 +96,20 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
   if (!open) {
     return (
       <div style={{
-        background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap',
       }}>
         <div>
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>
-            <KeyRound size={17} style={{ color: '#A8481A' }} /> Password
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
+            <KeyRound size={17} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Password
           </h3>
-          <p style={{ fontSize: 12, color: message.tone === 'success' && message.text ? '#3F5D62' : '#7A3A18', opacity: 0.9, margin: '4px 0 0', fontWeight: message.text ? 700 : 400 }}>
+          <p style={{ fontSize: 12, color: message.tone === 'success' && message.text ? '#3F5D62' : 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', fontWeight: message.text ? 700 : 400 }}>
             {message.text && message.tone === 'success' ? message.text : 'Keep your account safe with a strong password.'}
           </p>
         </div>
         <button type="button" onClick={() => { setMessage({ text: '', tone: 'error' }); setOpen(true); }} style={{
-          display: 'flex', alignItems: 'center', gap: 8, background: '#1A0A00', color: '#E8A265', fontWeight: 900, fontSize: 12,
+          display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12,
           letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', borderRadius: 12, padding: '12px 22px', cursor: 'pointer', fontFamily: 'inherit',
         }}>
           <KeyRound size={15} /> Change Password
@@ -120,15 +120,15 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
 
   return (
     <form onSubmit={handleSubmit} style={{
-      background: '#FDF6EE', borderRadius: 20, padding: '1.75rem',
-      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.75rem',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
       display: 'flex', flexDirection: 'column', gap: 16,
     }}>
       <div>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: '#1A0A00', margin: 0 }}>
-          <KeyRound size={17} style={{ color: '#A8481A' }} /> Change Password
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
+          <KeyRound size={17} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Change Password
         </h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0' }}>
+        <p style={{ fontSize: 12, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0' }}>
           Enter your current password, then choose a new one.
         </p>
       </div>
@@ -148,7 +148,7 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
           <label style={labelStyle} htmlFor="confirm-new-password">Confirm New Password</label>
           <PasswordInput id="confirm-new-password" autoComplete="new-password" minLength={8} value={confirm} onChange={setConfirm} />
           {confirm && confirm !== next && (
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#8C2F1C', margin: '8px 0 0' }}>Passwords do not match.</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: '8px 0 0' }}>Passwords do not match.</p>
           )}
         </div>
       </div>
@@ -156,22 +156,22 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
       {message.text && (
         <p role={message.tone === 'error' ? 'alert' : 'status'} style={{
           fontSize: 12, fontWeight: 700, lineHeight: 1.6, margin: 0, padding: '10px 14px', borderRadius: 10,
-          color: message.tone === 'error' ? '#8C2F1C' : '#3F5D62',
-          background: message.tone === 'error' ? 'rgba(140,47,28,0.08)' : 'rgba(63,93,98,0.1)',
+          color: message.tone === 'error' ? 'var(--ib-red, #8C2F1C)' : '#3F5D62',
+          background: message.tone === 'error' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)' : 'rgba(63,93,98,0.1)',
         }}>
           {message.text}
         </p>
       )}
 
-      <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
+      <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', paddingTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
         <button type="button" onClick={close} disabled={saving} style={{
-          background: '#F2E4D0', color: '#1A0A00', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
-          border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, padding: '13px 22px', cursor: 'pointer', fontFamily: 'inherit',
+          background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-dark, #1A0A00)', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 12, padding: '13px 22px', cursor: 'pointer', fontFamily: 'inherit',
         }}>Cancel</button>
         <button type="submit" disabled={saving || !current || !next || !confirm} style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          background: saving || !current || !next || !confirm ? 'rgba(26,10,0,0.5)' : '#1A0A00',
-          color: '#E8A265', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
+          background: saving || !current || !next || !confirm ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.5)' : 'var(--ib-dark, #1A0A00)',
+          color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
           textTransform: 'uppercase', border: 'none', borderRadius: 12,
           padding: '13px 26px', cursor: saving || !current || !next || !confirm ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
         }}>

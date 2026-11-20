@@ -41,7 +41,7 @@ const AdminInbox = ({ onRead, focus = null }) => {
     return <EmptyState icon={Inbox} title="No messages yet" message="Messages and tour updates from Bandang IBAYO will show up here." />;
   }
   return (
-    <div style={{ background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)' }}>
+    <div style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
       <ul style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {rows.map((m) => <MessageItem key={m.id} m={m} defaultOpen={m.id === focusId} unread={!m.read_at} tourName={m.source === 'tour' ? tourNames[m.tour_id] : ''} />)}
       </ul>

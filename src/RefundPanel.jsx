@@ -32,7 +32,7 @@ const smallBtn = (bg, fg, border = 'none', off = false) => ({
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
   cursor: off ? 'not-allowed' : 'pointer', opacity: off ? 0.5 : 1,
 });
-const note = { margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 };
+const note = { margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 };
 
 // The GCash receipt screenshot: a short-lived private link (admins and the joiner).
 export const RefundProofLink = ({ path, label = 'See the GCash receipt' }) => {
@@ -179,7 +179,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         <p style={{ ...note, color: '#8C5216', fontWeight: 700 }}>
           Being sent through PayMongo. If it still says this after 10 minutes, the main admin can tap Send again: anything already refunded is counted, so it's never sent twice.
         </p>
-        {isMain && <button type="button" onClick={retryPaymongo} disabled={!!busy} style={{ ...smallBtn('#B4511E', '#FDF6EE'), alignSelf: 'flex-start' }}><Wallet size={13} /> Send again</button>}
+        {isMain && <button type="button" onClick={retryPaymongo} disabled={!!busy} style={{ ...smallBtn('var(--ib-accent, #B4511E)', 'var(--ib-cream, #FDF6EE)'), alignSelf: 'flex-start' }}><Wallet size={13} /> Send again</button>}
       </div>
     );
   }
@@ -187,7 +187,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
   // Waiting for the main admin.
   if (prepared) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(232,162,101,0.14)', border: '1px solid rgba(180,81,30,0.3)', borderRadius: 12, padding: '10px 12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', borderRadius: 12, padding: '10px 12px' }}>
         <p style={{ margin: 0, fontSize: 12.5, fontWeight: 900, color: '#8C5216' }}>
           Waiting for the main admin's approval · {b.weather_refund_method === 'gcash' ? 'GCash' : 'PayMongo'}
         </p>
@@ -198,10 +198,10 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         {b.weather_refund_method !== 'gcash' && <p style={{ ...note, fontWeight: 800 }}>Prepared for PayMongo, which isn't used for refunds anymore: send it back and prepare it with GCash.</p>}
         {isMain ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {b.weather_refund_method === 'gcash' && <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', '#FDF6EE')}>
+            {b.weather_refund_method === 'gcash' && <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', 'var(--ib-cream, #FDF6EE)')}>
               {busy === 'approve' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={13} />} Approve & Send
             </button>}
-            <button type="button" onClick={sendBack} disabled={!!busy} style={smallBtn('transparent', '#8C2F1C', '1px solid rgba(140,47,28,0.4)')}>
+            <button type="button" onClick={sendBack} disabled={!!busy} style={smallBtn('transparent', 'var(--ib-red, #8C2F1C)', '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.4)')}>
               <Undo2 size={13} /> Send back
             </button>
           </div>
@@ -222,8 +222,8 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         <input aria-label="GCash reference of the refund" placeholder="GCash reference no. (13 digits) *" value={ref} maxLength={13}
               inputMode="numeric" pattern="\d{13}" autoComplete="off"
               onChange={(e) => setRef(e.target.value.replace(/\D/g, '').slice(0, 13))}
-          style={{ flex: '1 1 180px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
-        <label style={{ ...smallBtn('#F2E4D0', '#7A3A18', '1px dashed rgba(180,81,30,0.45)'), maxWidth: '100%' }}>
+          style={{ flex: '1 1 180px', minWidth: 0, background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10, padding: '9px 10px', fontSize: 16, fontFamily: 'inherit', color: 'var(--ib-dark, #1A0A00)' }} />
+        <label style={{ ...smallBtn('var(--ib-parch, #F2E4D0)', 'var(--ib-rust, #7A3A18)', '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.45)'), maxWidth: '100%' }}>
           <Upload size={13} />
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }}>{file ? file.name : 'GCash receipt *'}</span>
           <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ display: 'none' }} />
@@ -236,7 +236,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         ]} />
       )}
       <button type="button" onClick={submit} disabled={!!busy || !ready} title={ready ? undefined : 'Add the 13-digit GCash reference no. and the receipt first'}
-        style={{ ...smallBtn(isMain ? '#B4511E' : '#3F5D62', '#FDF6EE', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
+        style={{ ...smallBtn(isMain ? 'var(--ib-accent, #B4511E)' : '#3F5D62', 'var(--ib-cream, #FDF6EE)', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
         {busy === 'submit' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : isMain ? <Wallet size={13} /> : <CheckCircle2 size={13} />}
         {isMain ? 'Send refund' : 'Send for approval'}
       </button>
@@ -259,7 +259,7 @@ const PaymongoState = ({ bookingId }) => {
         : state.status === 'failed' ? 'PayMongo: the refund FAILED. It was moved back to Weather refunds to send.'
           : state.status === 'manual' ? '' : `Couldn't check with PayMongo${state.error ? `: ${state.error}` : ''}.`;
   if (!text) return null;
-  return <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: state?.status === 'failed' ? '#8C2F1C' : state?.status === 'succeeded' ? '#1F6B4A' : '#8C5216' }}>{text}</p>;
+  return <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: state?.status === 'failed' ? 'var(--ib-red, #8C2F1C)' : state?.status === 'succeeded' ? '#1F6B4A' : '#8C5216' }}>{text}</p>;
 };
 
 // ── A refund already sent: how, the receipt, PayMongo, and the joiner's answer ──
@@ -294,13 +294,13 @@ export const RefundSentInfo = ({ booking: b, onDone }) => {
         {b.weather_refund_proof && <RefundProofLink path={b.weather_refund_proof} />}
       </div>
       {b.weather_refund_method !== 'gcash' && /ref_[A-Za-z0-9]+/.test(b.weather_refund_ref || '') && <PaymongoState bookingId={b.id} />}
-      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: received === 'received' ? '#1F6B4A' : received === 'not_received' ? '#8C2F1C' : '#8C5216' }}>
+      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: received === 'received' ? '#1F6B4A' : received === 'not_received' ? 'var(--ib-red, #8C2F1C)' : '#8C5216' }}>
         {received === 'received' ? `✓ The joiner confirmed they received it (${when(b.weather_refund_received_at)}).`
           : received === 'not_received' ? `⚠ The joiner says they didn't get it (${when(b.weather_refund_received_at)}).`
             : 'Waiting for the joiner to confirm they received it.'}
       </p>
       {me.isMain && received !== 'received' && (
-        <button type="button" onClick={reopen} disabled={busy} style={{ ...smallBtn('transparent', '#8C2F1C', '1px solid rgba(140,47,28,0.4)'), alignSelf: 'flex-start' }}>
+        <button type="button" onClick={reopen} disabled={busy} style={{ ...smallBtn('transparent', 'var(--ib-red, #8C2F1C)', '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.4)'), alignSelf: 'flex-start' }}>
           {busy ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <RotateCcw size={13} />} Send again
         </button>
       )}
@@ -328,16 +328,16 @@ const stepText = (r, joiner) => {
     default: return `${by}: ${r.action}.`;
   }
 };
-const DOT = { sent: '#B4511E', paymongo_succeeded: '#B4511E', received: '#1A0A00', not_received: '#8C2F1C', failed: '#8C2F1C' };
+const DOT = { sent: 'var(--ib-accent, #B4511E)', paymongo_succeeded: 'var(--ib-accent, #B4511E)', received: 'var(--ib-dark, #1A0A00)', not_received: 'var(--ib-red, #8C2F1C)', failed: 'var(--ib-red, #8C2F1C)' };
 // Where the refund is now, from its latest step.
 const nowOf = (steps) => {
   const last = [...steps].reverse().find((r) => r.action !== 'paymongo_succeeded') || steps[steps.length - 1];
   switch (last?.action) {
-    case 'received': return { t: 'Done · joiner received it', bg: '#1A0A00', fg: '#E8A265' };
-    case 'not_received': return { t: "Joiner didn't get it", bg: '#8C2F1C', fg: '#FDF6EE' };
-    case 'sent': return { t: 'Sent · waiting for the joiner', bg: '#B4511E', fg: '#FDF6EE' };
-    case 'prepared': return { t: 'Waiting for approval', bg: 'transparent', fg: '#B4511E', bd: '1px solid rgba(180,81,30,0.5)' };
-    default: return { t: 'To send', bg: 'transparent', fg: '#7A3A18', bd: '1px solid rgba(122,58,24,0.4)' };
+    case 'received': return { t: 'Done · joiner received it', bg: 'var(--ib-dark, #1A0A00)', fg: 'var(--ib-amber, #E8A265)' };
+    case 'not_received': return { t: "Joiner didn't get it", bg: 'var(--ib-red, #8C2F1C)', fg: 'var(--ib-cream, #FDF6EE)' };
+    case 'sent': return { t: 'Sent · waiting for the joiner', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-cream, #FDF6EE)' };
+    case 'prepared': return { t: 'Waiting for approval', bg: 'transparent', fg: 'var(--ib-accent, #B4511E)', bd: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.5)' };
+    default: return { t: 'To send', bg: 'transparent', fg: 'var(--ib-rust, #7A3A18)', bd: '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.4)' };
   }
 };
 
@@ -376,24 +376,24 @@ export const RefundHistoryButton = () => {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} style={smallBtn('#1A0A00', '#E8A265')}><History size={13} /> Refund history</button>
+      <button type="button" onClick={() => setOpen(true)} style={smallBtn('var(--ib-dark, #1A0A00)', 'var(--ib-amber, #E8A265)')}><History size={13} /> Refund history</button>
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} />
-          <div role="dialog" aria-label="Refund history" style={{ position: 'relative', width: '100%', maxWidth: 720, maxHeight: '88vh', display: 'flex', flexDirection: 'column', background: '#F2E4D0', borderRadius: 22, boxShadow: '0 24px 60px rgba(26,10,0,0.35)', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px', background: '#FDF6EE', borderBottom: '1px solid rgba(180,81,30,0.15)' }}>
-              <History size={20} style={{ color: '#B4511E', flexShrink: 0 }} />
+          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
+          <div role="dialog" aria-label="Refund history" style={{ position: 'relative', width: '100%', maxWidth: 720, maxHeight: '88vh', display: 'flex', flexDirection: 'column', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 22, boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px', background: 'var(--ib-cream, #FDF6EE)', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)' }}>
+              <History size={20} style={{ color: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: '#1A0A00' }}>Refund history</p>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>
+                <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Refund history</p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>
                   {rows ? `${groups.length} refund${groups.length === 1 ? '' : 's'}` : 'Loading…'} · each one's steps, in order. Nothing here can be changed or deleted.
                 </p>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
             </div>
             <div style={{ padding: '12px 16px 0' }}>
               <input aria-label="Search the refund history" placeholder="Search booking no., joiner, tour or reference" value={search} onChange={(e) => setSearch(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00' }} />
+                style={{ width: '100%', boxSizing: 'border-box', background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontFamily: 'inherit', color: 'var(--ib-dark, #1A0A00)' }} />
             </div>
             <div style={{ overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {rows === null ? <p style={note}>Loading…</p> : shown.length === 0 ? <p style={note}>{q ? 'Nothing matches that search.' : 'No refunds yet.'}</p> : shown.map((g) => {
@@ -406,26 +406,26 @@ export const RefundHistoryButton = () => {
                 const method = methodName([...g.steps].reverse().find((r) => r.method)?.method);
                 const now = nowOf(g.steps);
                 return (
-                  <div key={g.key} style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: '12px 14px' }}>
+                  <div key={g.key} style={{ background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, padding: '12px 14px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
                       <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-                        <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{joiner || 'Joiner'} · <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{g.booking_number || '—'}</span></p>
+                        <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{joiner || 'Joiner'} · <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{g.booking_number || '—'}</span></p>
                         {tour?.title && (
-                          <p style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 800, color: '#B4511E' }}>
-                            {tour.title}{tourDates ? <span style={{ fontWeight: 700, color: '#7A3A18' }}> · {tourDates}</span> : null}
+                          <p style={{ margin: '3px 0 0', fontSize: 13, fontWeight: 800, color: 'var(--ib-accent, #B4511E)' }}>
+                            {tour.title}{tourDates ? <span style={{ fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}> · {tourDates}</span> : null}
                           </p>
                         )}
-                        <p style={{ margin: '2px 0 0', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>{amount != null ? `Refunded ${formatPeso(amount)}` : ''}{method ? ` · ${method}` : ''}</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{amount != null ? `Refunded ${formatPeso(amount)}` : ''}{method ? ` · ${method}` : ''}</p>
                       </div>
                       <span style={{ padding: '3px 10px', borderRadius: 999, background: now.bg, color: now.fg, border: now.bd || `1px solid ${now.bg}`, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{now.t}</span>
                     </div>
-                    <ol style={{ listStyle: 'none', margin: '10px 0 0', padding: '0 0 0 4px', display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 10 }}>
+                    <ol style={{ listStyle: 'none', margin: '10px 0 0', padding: '0 0 0 4px', display: 'flex', flexDirection: 'column', gap: 8, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', paddingTop: 10 }}>
                       {g.steps.map((r) => (
                         <li key={r.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                          <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: '50%', marginTop: 5, flexShrink: 0, background: DOT[r.action] || 'rgba(122,58,24,0.45)' }} />
+                          <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: '50%', marginTop: 5, flexShrink: 0, background: DOT[r.action] || 'rgba(var(--ib-rust-rgb, 122,58,24), 0.45)' }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#1A0A00', lineHeight: 1.45 }}>{stepText(r, joiner)}</p>
-                            <p style={{ margin: '1px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18', overflowWrap: 'anywhere' }}>
+                            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.45 }}>{stepText(r, joiner)}</p>
+                            <p style={{ margin: '1px 0 0', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', overflowWrap: 'anywhere' }}>
                               {when(r.created_at)}{r.reference ? ` · Ref ${r.reference.replace(/^(PayMongo|GCash)\s+/i, '')}` : ''}{r.note && !['paymongo_succeeded', 'failed'].includes(r.action) ? ` · ${r.note}` : ''}
                             </p>
                             {r.proof && <RefundProofLink path={r.proof} label="GCash receipt" />}

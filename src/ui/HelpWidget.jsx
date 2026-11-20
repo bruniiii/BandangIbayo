@@ -108,26 +108,26 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
           style={{
             position: 'fixed', zIndex, right: 20, bottom: 92,
             width: 380, maxWidth: 'calc(100vw - 24px)', height: 'min(620px, calc(100dvh - 120px))',
-            background: '#FDF6EE', borderRadius: 22, border: '1px solid rgba(180,81,30,0.18)',
-            boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
+            boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}
         >
-          <div style={{ background: '#1A0A00', color: '#FDF6EE', padding: '16px 18px 12px' }}>
+          <div style={{ background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', padding: '16px 18px 12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
               <div>
-                <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265', margin: 0 }}>Help for joiners</p>
+                <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)', margin: 0 }}>Help for joiners</p>
                 <p style={{ fontSize: 16, fontWeight: 900, margin: '2px 0 0' }}>How can we help?</p>
               </div>
-              <button className="x-close" type="button" onClick={() => setOpen(false)} aria-label="Close help" style={{ background: 'rgba(253,246,238,0.12)', border: 'none', color: '#FDF6EE', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button className="x-close" type="button" onClick={() => setOpen(false)} aria-label="Close help" style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none', color: 'var(--ib-cream, #FDF6EE)', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} />
               </button>
             </div>
-            <div role="tablist" style={{ display: 'flex', gap: 6, marginTop: 14, background: 'rgba(253,246,238,0.08)', padding: 4, borderRadius: 12 }}>
+            <div role="tablist" style={{ display: 'flex', gap: 6, marginTop: 14, background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.08)', padding: 4, borderRadius: 12 }}>
               {[['faq', 'FAQ'], ['guide', 'User Guide']].map(([key, label]) => (
                 <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
                   flex: 1, border: 'none', borderRadius: 9, padding: '8px 0', cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  background: tab === key ? '#B4511E' : 'transparent', color: tab === key ? '#FDF6EE' : 'rgba(232,210,190,0.85)',
+                  background: tab === key ? 'var(--ib-accent, #B4511E)' : 'transparent', color: tab === key ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
                 }}>
                   {label}
                 </button>
@@ -139,7 +139,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             {onStartTour && (
               <button type="button" onClick={() => { setOpen(false); onStartTour(); }} style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12, height: 44, borderRadius: 12, cursor: 'pointer',
-                background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
               }}><Compass size={15} /> Take the Quick Tour</button>
             )}
             {tab === 'faq' ? (
@@ -147,16 +147,16 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
                 {faqs().map((f, i) => {
                   const isOpen = openFaq === i;
                   return (
-                    <div key={f.q} style={{ background: isOpen ? '#FFF' : '#FFFBF6', borderRadius: 14, border: `1px solid ${isOpen ? 'rgba(180,81,30,0.35)' : 'rgba(180,81,30,0.15)'}` }}>
+                    <div key={f.q} style={{ background: isOpen ? '#FFF' : '#FFFBF6', borderRadius: 14, border: `1px solid ${isOpen ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.15)'}` }}>
                       <button type="button" onClick={() => setOpenFaq(isOpen ? null : i)} aria-expanded={isOpen} style={{
                         width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
                         padding: '11px 12px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                        textAlign: 'left', fontSize: 13.5, fontWeight: 800, color: '#1A0A00',
+                        textAlign: 'left', fontSize: 13.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)',
                       }}>
                         <span>{f.q}</span>
-                        <ChevronDown size={16} style={{ color: '#A8481A', flexShrink: 0, transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+                        <ChevronDown size={16} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
                       </button>
-                      {isOpen && <p style={{ margin: 0, padding: '0 12px 12px', fontSize: 13, lineHeight: 1.6, fontWeight: 500, color: '#7A3A18' }}>{f.a}</p>}
+                      {isOpen && <p style={{ margin: 0, padding: '0 12px 12px', fontSize: 13, lineHeight: 1.6, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)' }}>{f.a}</p>}
                     </div>
                   );
                 })}
@@ -164,16 +164,16 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             ) : (
               <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {guide().map((step, i) => (
-                  <li key={step.title} style={{ display: 'flex', gap: 12, background: '#FFFBF6', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 14, padding: '12px 12px' }}>
-                    <span style={{ width: 36, height: 36, borderRadius: 12, background: '#B4511E', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <li key={step.title} style={{ display: 'flex', gap: 12, background: '#FFFBF6', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 14, padding: '12px 12px' }}>
+                    <span style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <step.Icon size={17} />
                     </span>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ fontSize: 13.5, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px' }}>
-                        <span style={{ color: '#A8481A' }}>Step {i + 1}.</span> {step.title}
+                      <p style={{ fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 4px' }}>
+                        <span style={{ color: 'var(--ib-sienna, #A8481A)' }}>Step {i + 1}.</span> {step.title}
                       </p>
                       <ul style={{ margin: 0, paddingLeft: 16, listStyle: 'disc', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        {step.points.map((p) => <li key={p} style={{ fontSize: 12.5, lineHeight: 1.5, fontWeight: 500, color: '#7A3A18' }}>{p}</li>)}
+                        {step.points.map((p) => <li key={p} style={{ fontSize: 12.5, lineHeight: 1.5, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)' }}>{p}</li>)}
                       </ul>
                     </div>
                   </li>
@@ -182,8 +182,8 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             )}
           </div>
 
-          <div style={{ padding: '10px 14px 14px', borderTop: '1px solid rgba(180,81,30,0.12)', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>Still have questions? Chat with us right away.</p>
+          <div style={{ padding: '10px 14px 14px', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>Still have questions? Chat with us right away.</p>
             <a
               href={AGENCY.facebook}
               target="_blank"
@@ -209,7 +209,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
         style={{
           position: 'fixed', zIndex, right: 20, bottom: 20, width: 56, height: 56, padding: 0,
           borderRadius: '50%', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-          background: '#B4511E', color: '#FDF6EE', boxShadow: '0 12px 30px rgba(180,81,30,0.45)',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', boxShadow: '0 12px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >

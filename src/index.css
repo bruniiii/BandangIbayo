@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
-/* Site typeface and base colours (espresso #1A0A00 on cream #FDF6EE). */
+/* Site typeface and base colours (espresso #1A0A00 on cream #FDF6EE; the tropical skin overrides them, see below). */
 html, body {
   font-family: 'Outfit', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  color: #1A0A00;
+  color: var(--ib-dark, #1A0A00);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -26,8 +26,8 @@ h1[style*="uppercase"], h2[style*="uppercase"], h3[style*="uppercase"], h4[style
   font-style: normal;
   font-weight: 800 !important;
 }
-::placeholder { color: rgba(122,58,24,0.7); opacity: 1; }
-::selection { background: rgba(196,92,38,0.25); color: #1A0A00; }
+::placeholder { color: rgba(var(--ib-rust-rgb, 122,58,24), 0.7); opacity: 1; }
+::selection { background: rgba(var(--ib-orange-rgb, 196,92,38), 0.25); color: var(--ib-dark, #1A0A00); }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
@@ -46,23 +46,23 @@ select:-webkit-autofill:focus {
    Use className="text-link" on any <a>/<Link>/<button> that reads as text.
    ───────────────────────────────────────────── */
 .text-link {
-  color: #A8481A !important;
+  color: var(--ib-sienna, #A8481A) !important;
   text-decoration: underline !important;
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
   cursor: pointer;
   font-weight: 800;
 }
-.text-link:hover { color: #9E4316 !important; text-decoration-thickness: 2px; }
+.text-link:hover { color: var(--ib-sienna-hover, #9E4316) !important; text-decoration-thickness: 2px; }
 
 /* Clickable cards lift a little on hover so they read as clickable. */
 .clickable-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(26,10,0,0.12) !important; }
+.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(var(--ib-dark-rgb, 26,10,0), 0.12) !important; }
 
 /* Keyboard users can always see where they are. */
 a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
 input:focus-visible, select:focus-visible, textarea:focus-visible, [role="option"]:focus-visible {
-  outline: 3px solid rgba(180,81,30,0.55);
+  outline: 3px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.55);
   outline-offset: 2px;
 }
 
@@ -99,28 +99,28 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
 }
 
 /* Joiner homepage: the tour row scrolls sideways; keep a slim, visible bar. */
-.tour-packages-scroll { scrollbar-width: thin; scrollbar-color: rgba(180,81,30,0.45) transparent; }
+.tour-packages-scroll { scrollbar-width: thin; scrollbar-color: rgba(var(--ib-accent-rgb, 180,81,30), 0.45) transparent; }
 .tour-packages-scroll::-webkit-scrollbar { height: 8px; }
-.tour-packages-scroll::-webkit-scrollbar-track { background: rgba(180,81,30,0.08); border-radius: 999px; }
-.tour-packages-scroll::-webkit-scrollbar-thumb { background: rgba(180,81,30,0.45); border-radius: 999px; }
-.tour-packages-scroll::-webkit-scrollbar-thumb:hover { background: rgba(180,81,30,0.7); }
+.tour-packages-scroll::-webkit-scrollbar-track { background: rgba(var(--ib-accent-rgb, 180,81,30), 0.08); border-radius: 999px; }
+.tour-packages-scroll::-webkit-scrollbar-thumb { background: rgba(var(--ib-accent-rgb, 180,81,30), 0.45); border-radius: 999px; }
+.tour-packages-scroll::-webkit-scrollbar-thumb:hover { background: rgba(var(--ib-accent-rgb, 180,81,30), 0.7); }
 .tour-row-arrow {
   position: absolute; top: calc(50% - 6px); transform: translateY(-50%); z-index: 2;
-  width: 40px; height: 40px; border-radius: 50%; border: 2px solid #FDF6EE;
-  background: #1A0A00; color: #FDF6EE; cursor: pointer;
+  width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ib-cream, #FDF6EE);
+  background: var(--ib-dark, #1A0A00); color: var(--ib-cream, #FDF6EE); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 6px 18px rgba(26,10,0,0.3); transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 6px 18px rgba(var(--ib-dark-rgb, 26,10,0), 0.3); transition: background 0.15s, transform 0.15s;
 }
-.tour-row-arrow:hover { background: #B4511E; transform: translateY(-50%) scale(1.06); }
+.tour-row-arrow:hover { background: var(--ib-accent, #B4511E); transform: translateY(-50%) scale(1.06); }
 
 /* ── Skeleton loading (ui/Skeleton.jsx) ── */
 .skel {
-  background: linear-gradient(90deg, rgba(180,81,30,0.09) 25%, rgba(180,81,30,0.17) 37%, rgba(180,81,30,0.09) 63%);
+  background: linear-gradient(90deg, rgba(var(--ib-accent-rgb, 180,81,30), 0.09) 25%, rgba(var(--ib-accent-rgb, 180,81,30), 0.17) 37%, rgba(var(--ib-accent-rgb, 180,81,30), 0.09) 63%);
   background-size: 400% 100%;
   animation: skel-shimmer 1.4s ease infinite;
 }
 .skel-dark {
-  background: linear-gradient(90deg, rgba(253,246,238,0.07) 25%, rgba(253,246,238,0.15) 37%, rgba(253,246,238,0.07) 63%);
+  background: linear-gradient(90deg, rgba(var(--ib-cream-rgb, 253,246,238), 0.07) 25%, rgba(var(--ib-cream-rgb, 253,246,238), 0.15) 37%, rgba(var(--ib-cream-rgb, 253,246,238), 0.07) 63%);
   background-size: 400% 100%;
 }
 @keyframes skel-shimmer {
@@ -156,7 +156,7 @@ input::-ms-clear { display: none; }
 
 /* Group chat: the react button stays quiet until you point at it. */
 .chat-react-btn { opacity: 0.45; transition: opacity 0.15s, background 0.15s; }
-.chat-react-btn:hover, .chat-react-btn:focus-visible { opacity: 1; background: rgba(180,81,30,0.1) !important; }
+.chat-react-btn:hover, .chat-react-btn:focus-visible { opacity: 1; background: rgba(var(--ib-accent-rgb, 180,81,30), 0.1) !important; }
 
 /* Landing help button: on phones the panel spans the screen width. */
 @media (max-width: 560px) {
@@ -171,24 +171,24 @@ input::-ms-clear { display: none; }
    it and no arrow buttons, instead of the browser's plain bar on the edge. */
 /* Firefox only: in Chrome/Edge these two would switch off the styles below. */
 @supports (-moz-appearance: none) {
-  * { scrollbar-width: thin; scrollbar-color: rgba(122, 58, 24, 0.45) transparent; }
+  * { scrollbar-width: thin; scrollbar-color: rgba(var(--ib-rust-rgb, 122,58,24),  0.45) transparent; }
 }
 *::-webkit-scrollbar { width: 12px; height: 12px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(122, 58, 24, 0.4);
+  background-color: rgba(var(--ib-rust-rgb, 122,58,24),  0.4);
   border: 4px solid transparent;
   border-radius: 999px;
   background-clip: padding-box;
 }
-*::-webkit-scrollbar-thumb:hover { background-color: rgba(122, 58, 24, 0.65); }
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--ib-rust-rgb, 122,58,24),  0.65); }
 *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 *::-webkit-scrollbar-corner { background: transparent; }
 
 /* Tour cards grow a little when the mouse is over them. */
 .grow-card { transition: transform 0.25s, box-shadow 0.25s; position: relative; }
 @media (hover: hover) {
-  .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(26,10,0,0.14) !important; z-index: 2; }
+  .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(var(--ib-dark-rgb, 26,10,0), 0.14) !important; z-index: 2; }
 }
 
 /* (The 620px minimum width for computers was removed: a narrow window or
@@ -222,7 +222,7 @@ html { touch-action: manipulation; }
   table.stack-table > tbody > tr {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; box-sizing: border-box; width: 100%;
     padding: 14px; margin: 0 0 10px; border-radius: 16px;
-    background: rgba(242,228,208,0.55); border: 1px solid rgba(180,81,30,0.14);
+    background: rgba(var(--ib-parch-rgb, 242,228,208), 0.55); border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14);
   }
   table.stack-table > tbody > tr > td {
     display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
@@ -230,12 +230,12 @@ html { touch-action: manipulation; }
   }
   table.stack-table > tbody > tr > td::before {
     content: attr(data-label); font-size: 10px; font-weight: 900; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #A8481A; line-height: 1.3;
+    text-transform: uppercase; color: var(--ib-sienna, #A8481A); line-height: 1.3;
   }
   /* The title: the whole width, a little bigger, with a line under it. */
   table.stack-table > tbody > tr > td:first-child {
-    grid-column: 1 / -1; font-size: 15px; font-weight: 900; color: #1A0A00;
-    padding-bottom: 10px !important; border-bottom: 1px solid rgba(180,81,30,0.16) !important;
+    grid-column: 1 / -1; font-size: 15px; font-weight: 900; color: var(--ib-dark, #1A0A00);
+    padding-bottom: 10px !important; border-bottom: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.16) !important;
   }
   table.stack-table > tbody > tr > td:first-child::before,
   table.stack-table > tbody > tr > td[data-label=""]::before,
@@ -268,7 +268,7 @@ html { touch-action: manipulation; }
    behind the landing page and both dashboards. A cream overlay keeps the
    cards and text easy to read. */
 .nature-bg {
-  background: linear-gradient(rgba(253,246,238,0.55), rgba(253,246,238,0.55)), url('/nature-bg.webp') center / cover fixed, #FDF6EE;
+  background: linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.55), rgba(var(--ib-cream-rgb, 253,246,238), 0.55)), url('/nature-bg.webp') center / cover fixed, var(--ib-cream, #FDF6EE);
 }
 /* The top row of every dashboard page (page name, bell, account) stays put
    while the page scrolls under it: only the contents move. */
@@ -282,13 +282,13 @@ html { touch-action: manipulation; }
   flex-shrink: 0;
   margin: calc(-1 * var(--dash-pad)) calc(-1 * var(--dash-pad)) 20px !important;
   padding: 14px var(--dash-pad) !important;
-  background: rgba(253,246,238,0.9);
+  background: rgba(var(--ib-cream-rgb, 253,246,238), 0.9);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(180,81,30,0.12);
+  border-bottom: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12);
 }
 .dashboard-content {
-  background: linear-gradient(rgba(253,246,238,0.86), rgba(253,246,238,0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, #FDF6EE !important;
+  background: linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.86), rgba(var(--ib-cream-rgb, 253,246,238), 0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, var(--ib-cream, #FDF6EE) !important;
   background-attachment: fixed !important;
 }
 @media (pointer: coarse) {
@@ -298,8 +298,8 @@ html { touch-action: manipulation; }
 
 /* An item opened from a notification glows for a moment (focusTarget.js). */
 @keyframes focusFlash {
-  0%, 55% { box-shadow: 0 0 0 4px rgba(232,162,101,0.95), 0 10px 30px rgba(180,81,30,0.25); }
-  100% { box-shadow: 0 0 0 0 rgba(232,162,101,0); }
+  0%, 55% { box-shadow: 0 0 0 4px rgba(var(--ib-amber-rgb, 232,162,101), 0.95), 0 10px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--ib-amber-rgb, 232,162,101), 0); }
 }
 .focus-flash { animation: focusFlash 2.6s ease-out; border-radius: 18px; }
 
@@ -352,14 +352,14 @@ input[type="time"]::-webkit-date-and-time-value { text-align: left; }
 /* Readable disabled buttons (WCAG contrast): a disabled button is shown
    greyed but its words stay readable, instead of fading to 40-50%. */
 button:disabled:not(.no-touch-size):not(.text-link) {
-  background: #E6D9C9 !important;
-  color: #5C3A22 !important;
-  border-color: rgba(122,58,24,0.25) !important;
+  background: var(--ib-disabled-bg, #E6D9C9) !important;
+  color: var(--ib-disabled-text, #5C3A22) !important;
+  border-color: rgba(var(--ib-rust-rgb, 122,58,24), 0.25) !important;
   box-shadow: none !important;
   opacity: 1 !important;
   filter: none !important;
 }
-button:disabled:not(.no-touch-size):not(.text-link) svg { color: #5C3A22 !important; }
+button:disabled:not(.no-touch-size):not(.text-link) svg { color: var(--ib-disabled-text, #5C3A22) !important; }
 
 /* Registration on phones: the card fits the screen (it was wider and
    moved sideways). */
@@ -394,10 +394,10 @@ a[aria-label="Close and go to the home page"] {
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
-  background: #F2E4D0 !important;
-  border: 1px solid rgba(180,81,30,0.25) !important;
-  color: #7A3A18 !important;
-  box-shadow: 0 2px 8px rgba(26,10,0,0.08) !important;
+  background: var(--ib-parch, #F2E4D0) !important;
+  border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25) !important;
+  color: var(--ib-rust, #7A3A18) !important;
+  box-shadow: 0 2px 8px rgba(var(--ib-dark-rgb, 26,10,0), 0.08) !important;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -419,3 +419,18 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
 
 /* Activity Logs filters: the dropdowns and the date boxes are the same height. */
 .activity-filters > div > button { min-height: 50px !important; }
+
+/* ═════════ Bright & Tropical skin ═════════
+   Matches the landing page (sand, ocean blue, sunset orange). App.jsx turns
+   it on for the joiner side (landing, login, register, tours, dashboard);
+   the admin pages keep the espresso colours (the fallbacks in each var()). */
+:root[data-skin="tropical"] {
+  --ib-dark: #0B3B4F; --ib-deep: #134B5F; --ib-brown: #0B3B4F; --ib-rust: #3F6372;
+  --ib-sienna: #0A7C94; --ib-sienna-hover: #086A7F; --ib-accent: #FF7A3D; --ib-amber: #FFB547;
+  --ib-cream: #FFF8EE; --ib-parch: #FDEBD3; --ib-red: #C4361F;
+  --ib-accent-rgb: 10,139,166; --ib-dark-rgb: 11,59,79; --ib-rust-rgb: 63,99,114; --ib-red-rgb: 196,54,31;
+  --ib-cream-rgb: 255,248,238; --ib-soft-rgb: 214,234,240; --ib-amber-rgb: 255,181,71;
+  --ib-sienna-rgb: 10,124,148; --ib-parch-rgb: 253,235,211; --ib-orange-rgb: 255,122,61;
+  --ib-primary-btn: #FF7A3D; --ib-primary-btn-text: #FFFFFF;
+  --ib-disabled-bg: #DCE7EA; --ib-disabled-text: #3F5A66;
+}

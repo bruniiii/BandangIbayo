@@ -13,12 +13,12 @@ import { SkeletonRows } from './ui/Skeleton';
 import NiceSelect from './ui/NiceSelect';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
 // #3F5D62  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
@@ -44,15 +44,15 @@ const dayLabels = () => {
 // (see notifications.js, AdminExclusiveTours.jsx, BookingManagement.jsx, etc.)
 const TYPE_META = {
   booking:            { Icon: CreditCard,     color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Booking' },
-  payment:            { Icon: Wallet,         color: '#A8481A', bg: 'rgba(180,81,30,0.14)',  label: 'Payment' },
-  cancellation:       { Icon: XCircle,        color: '#8C2F1C', bg: 'rgba(140,47,28,0.12)',  label: 'Cancellation' },
-  exclusive_request:  { Icon: Globe,          color: '#7A3A18', bg: 'rgba(122,58,24,0.12)',  label: 'Private / Request' },
-  exclusive_package:  { Icon: Package,        color: '#A8481A', bg: 'rgba(180,81,30,0.14)',  label: 'Tour Package' },
-  review:             { Icon: Star,           color: '#8C5216', bg: 'rgba(232,162,101,0.25)',label: 'Review' },
+  payment:            { Icon: Wallet,         color: 'var(--ib-sienna, #A8481A)', bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',  label: 'Payment' },
+  cancellation:       { Icon: XCircle,        color: 'var(--ib-red, #8C2F1C)', bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)',  label: 'Cancellation' },
+  exclusive_request:  { Icon: Globe,          color: 'var(--ib-rust, #7A3A18)', bg: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.12)',  label: 'Private / Request' },
+  exclusive_package:  { Icon: Package,        color: 'var(--ib-sienna, #A8481A)', bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',  label: 'Tour Package' },
+  review:             { Icon: Star,           color: '#8C5216', bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)',label: 'Review' },
   account:            { Icon: Users,          color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Account' },
-  tour:               { Icon: MapIconLucide,  color: '#1A0A00', bg: 'rgba(26,10,0,0.08)',    label: 'Tour' },
-  tracking:           { Icon: Bus,            color: '#B4511E', bg: 'rgba(180,81,30,0.14)',  label: 'Tracking' },
-  default:            { Icon: Bell,           color: '#7A3A18', bg: 'rgba(122,58,24,0.1)',   label: 'Update' },
+  tour:               { Icon: MapIconLucide,  color: 'var(--ib-dark, #1A0A00)', bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)',    label: 'Tour' },
+  tracking:           { Icon: Bus,            color: 'var(--ib-accent, #B4511E)', bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',  label: 'Tracking' },
+  default:            { Icon: Bell,           color: 'var(--ib-rust, #7A3A18)', bg: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.1)',   label: 'Update' },
 };
 
 const metaFor = (type) => TYPE_META[type] || TYPE_META.default;
@@ -211,10 +211,10 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
   });
 
   const selectStyle = {
-    appearance: 'none', background: '#F2E4D0',
-    border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
+    appearance: 'none', background: 'var(--ib-parch, #F2E4D0)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12,
     padding: '9px 30px 9px 14px', fontSize: 11.5, fontWeight: 700,
-    color: '#1A0A00', fontFamily: 'inherit', outline: 'none', cursor: 'pointer',
+    color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none', cursor: 'pointer',
   };
 
   return (
@@ -228,8 +228,8 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
               onClick={markAllRead}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999,
-                padding: '9px 16px', cursor: 'pointer', color: '#7A3A18', fontFamily: 'inherit',
+                background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 999,
+                padding: '9px 16px', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
               }}
             >
@@ -242,9 +242,9 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
             title="Clear all notifications"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(140,47,28,0.08)', border: 'none', borderRadius: 999,
+              background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: 'none', borderRadius: 999,
               padding: '9px 12px', cursor: notifications.length ? 'pointer' : 'default',
-              color: '#8C2F1C', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+              color: 'var(--ib-red, #8C2F1C)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
               letterSpacing: '0.08em', textTransform: 'uppercase', opacity: notifications.length ? 1 : 0.4,
             }}
           >
@@ -255,7 +255,7 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
 
       {/* filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', background: '#F2E4D0', padding: 5, borderRadius: 14, border: '1px solid rgba(180,81,30,0.14)' }}>
+        <div style={{ display: 'flex', background: 'var(--ib-parch, #F2E4D0)', padding: 5, borderRadius: 14, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
           {[['all', 'All'], ['unread', 'Unread']].map(([key, label]) => (
             <button
               key={key}
@@ -263,8 +263,8 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
               style={{
                 padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: tab === key ? '#1A0A00' : 'transparent',
-                color: tab === key ? '#FDF6EE' : '#7A3A18',
+                background: tab === key ? 'var(--ib-dark, #1A0A00)' : 'transparent',
+                color: tab === key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
                 transition: 'all 0.15s',
               }}
             >
@@ -357,7 +357,7 @@ const NotificationSection = ({ title, items, menuOpenId, setMenuOpenId, menuRef,
   <div>
     <h3 style={{
       fontSize: 11.5, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
-      color: '#7A3A18', opacity: 0.9, margin: '0 0 10px',
+      color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 10px',
     }}>
       {title}
     </h3>
@@ -389,8 +389,8 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
       style={{
         position: 'relative', display: 'flex', alignItems: 'flex-start', gap: 12,
         padding: '14px 16px', borderRadius: 16, cursor: 'pointer',
-        background: notification.is_read ? (hovered ? '#F8F3EA' : '#FDF6EE') : (hovered ? 'rgba(180,81,30,0.1)' : 'rgba(180,81,30,0.07)'),
-        border: '1px solid rgba(180,81,30,0.1)',
+        background: notification.is_read ? (hovered ? '#F8F3EA' : 'var(--ib-cream, #FDF6EE)') : (hovered ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)'),
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)',
         transition: 'background 0.15s',
       }}
       onClick={onOpen}
@@ -403,25 +403,25 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{notification.title}</p>
+        <p style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{notification.title}</p>
         <p style={{
-          fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5,
+          fontSize: 12, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
           {notification.message}
         </p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Clock size={10} /> {timeAgo(notification.created_at)}
         </p>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         {!notification.is_read && (
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#B4511E' }} />
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)' }} />
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onToggleMenu(); }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)', padding: 4 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', padding: 4 }}
         >
           <MoreHorizontal size={16} />
         </button>
@@ -433,8 +433,8 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
           onClick={(e) => e.stopPropagation()}
           style={{
             position: 'absolute', top: 44, right: 12, zIndex: 20,
-            background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
-            boxShadow: '0 12px 32px rgba(26,10,0,0.2)', overflow: 'hidden', minWidth: 150,
+            background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12,
+            boxShadow: '0 12px 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)', overflow: 'hidden', minWidth: 150,
           }}
         >
           <button
@@ -442,7 +442,7 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: 8,
               padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
-              color: '#8C2F1C', fontFamily: 'inherit', fontWeight: 800, fontSize: 11, textAlign: 'left',
+              color: 'var(--ib-red, #8C2F1C)', fontFamily: 'inherit', fontWeight: 800, fontSize: 11, textAlign: 'left',
             }}
           >
             <Trash2 size={13} /> Remove

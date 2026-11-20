@@ -108,27 +108,27 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
         aria-haspopup="dialog" aria-expanded={open} aria-label={rest['aria-label'] ? `${rest['aria-label']}${current ? `: ${nice(current)}` : ''}` : undefined}
         style={{
           width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-          background: '#FDF6EE', padding: '10px 12px', borderRadius: 14, fontFamily: 'inherit', minHeight: 46,
+          background: 'var(--ib-cream, #FDF6EE)', padding: '10px 12px', borderRadius: 14, fontFamily: 'inherit', minHeight: 46,
           cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1,
-          border: `1px solid ${invalid ? '#8C2F1C' : open ? '#B4511E' : 'rgba(180,81,30,0.18)'}`,
-          boxShadow: open ? '0 0 0 3px rgba(180,81,30,0.14)' : 'none', transition: 'border-color 0.15s, box-shadow 0.15s',
+          border: `1px solid ${invalid ? 'var(--ib-red, #8C2F1C)' : open ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}`,
+          boxShadow: open ? '0 0 0 3px rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' : 'none', transition: 'border-color 0.15s, box-shadow 0.15s',
         }}
       >
-        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: current ? '#B4511E' : 'rgba(180,81,30,0.1)', color: current ? '#FDF6EE' : '#A8481A' }}>
+        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: current ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: current ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
           <Calendar size={14} />
         </span>
-        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 800, color: current ? '#1A0A00' : '#7A3A18' }}>
+        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 800, color: current ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-rust, #7A3A18)' }}>
           {current ? nice(current) : placeholder}
         </span>
-        <ChevronDown size={16} style={{ flexShrink: 0, color: '#A8481A', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown size={16} style={{ flexShrink: 0, color: 'var(--ib-sienna, #A8481A)', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
 
       {open && (
         <div role="dialog" aria-label="Choose a date" style={{
           position: 'absolute', zIndex: 60, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), ...(toLeft ? { right: 0 } : { left: 0 }),
           width: 296, maxWidth: 'calc(100vw - 40px)', boxSizing: 'border-box',
-          background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16,
-          boxShadow: '0 18px 40px rgba(26,10,0,0.18)', padding: 12, animation: 'ps-in 0.14s ease-out',
+          background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16,
+          boxShadow: '0 18px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.18)', padding: 12, animation: 'ps-in 0.14s ease-out',
         }}>
           <style>{'@keyframes ps-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }'}</style>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -137,18 +137,18 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
               <button type="button" className="no-touch-size" onClick={() => setMonths((o) => !o)} aria-expanded={months} aria-label={`Month: ${MONTHS[view.m]}. Choose a month`}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 8px', borderRadius: 10, cursor: 'pointer',
-                  border: `1px solid ${months ? '#B4511E' : 'rgba(180,81,30,0.18)'}`, background: months ? 'rgba(180,81,30,0.1)' : '#FDF6EE',
-                  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 900, color: '#1A0A00',
+                  border: `1px solid ${months ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}`, background: months ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'var(--ib-cream, #FDF6EE)',
+                  fontFamily: 'inherit', fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)',
                 }}>
                 {MONTHS[view.m]}
-                <ChevronDown size={13} style={{ color: '#A8481A', transition: 'transform 0.2s', transform: months ? 'rotate(180deg)' : 'none' }} />
+                <ChevronDown size={13} style={{ color: 'var(--ib-sienna, #A8481A)', transition: 'transform 0.2s', transform: months ? 'rotate(180deg)' : 'none' }} />
               </button>
               {years ? (
                 <div style={{ width: 96 }}>
                   <PrettySelect compact ariaLabel="Year" value={String(view.y)} options={years.map((y) => ({ value: String(y), label: String(y) }))}
                     onChange={(y) => setView((v) => ({ ...v, y: Number(y) }))} />
                 </div>
-              ) : <span style={{ fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{view.y}</span>}
+              ) : <span style={{ fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{view.y}</span>}
             </div>
             <button type="button" className="no-touch-size" onClick={() => shift(1)} disabled={!canNext} aria-label="Next month" style={navBtn(!canNext)}><ChevronRight size={16} /></button>
           </div>
@@ -163,8 +163,8 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
                     onClick={() => { setView((v) => ({ ...v, m })); setMonths(false); }}
                     style={{
                       height: 40, borderRadius: 10, padding: 0, fontFamily: 'inherit', fontSize: 12.5, fontWeight: sel ? 900 : 800,
-                      border: sel ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.14)',
-                      background: sel ? '#B4511E' : 'transparent', color: sel ? '#FDF6EE' : off ? 'rgba(122,58,24,0.3)' : '#1A0A00',
+                      border: sel ? '1px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',
+                      background: sel ? 'var(--ib-accent, #B4511E)' : 'transparent', color: sel ? 'var(--ib-cream, #FDF6EE)' : off ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-dark, #1A0A00)',
                       cursor: off ? 'not-allowed' : 'pointer',
                     }}>{name.slice(0, 3)}</button>
                 );
@@ -172,7 +172,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
             </div>
           ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
-            {WEEKDAYS.map((w) => <span key={w} style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, color: '#A8481A', padding: '4px 0' }}>{w}</span>)}
+            {WEEKDAYS.map((w) => <span key={w} style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', padding: '4px 0' }}>{w}</span>)}
             {cells.map((d, i) => {
               if (!d) return <span key={`e${i}`} />;
               const off = (min && d < min) || (max && d > max);
@@ -181,8 +181,8 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
                 <button key={d} type="button" className="no-touch-size" disabled={off} onClick={() => pick(d)} aria-pressed={sel}
                   aria-label={nice(d)}
                   style={{
-                    height: 34, borderRadius: 10, border: d === today && !sel ? '1px solid rgba(180,81,30,0.45)' : '1px solid transparent',
-                    background: sel ? '#B4511E' : 'transparent', color: sel ? '#FDF6EE' : off ? 'rgba(122,58,24,0.3)' : '#1A0A00',
+                    height: 34, borderRadius: 10, border: d === today && !sel ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.45)' : '1px solid transparent',
+                    background: sel ? 'var(--ib-accent, #B4511E)' : 'transparent', color: sel ? 'var(--ib-cream, #FDF6EE)' : off ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-dark, #1A0A00)',
                     fontFamily: 'inherit', fontSize: 13, fontWeight: sel ? 900 : 700, cursor: off ? 'not-allowed' : 'pointer', padding: 0,
                   }}>{Number(d.slice(8))}</button>
               );
@@ -192,7 +192,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
           {showClear && (
             <button type="button" className="no-touch-size" onClick={() => pick('')} style={{
               marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0,
-              color: '#A8481A', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer',
+              color: 'var(--ib-sienna, #A8481A)', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, cursor: 'pointer',
             }}><X size={13} /> Clear</button>
           )}
         </div>
@@ -202,7 +202,7 @@ const NiceDate = ({ value, defaultValue, onChange, min = '', max = '', name, id,
 };
 
 const navBtn = (off) => ({
-  width: 32, height: 32, borderRadius: 10, border: '1px solid rgba(180,81,30,0.18)', background: '#FDF6EE', color: '#A8481A',
+  width: 32, height: 32, borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-sienna, #A8481A)',
   display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: off ? 'not-allowed' : 'pointer', opacity: off ? 0.35 : 1, padding: 0, flexShrink: 0,
 });
 
