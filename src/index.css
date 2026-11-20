@@ -268,7 +268,7 @@ html { touch-action: manipulation; }
    behind the landing page and both dashboards. A cream overlay keeps the
    cards and text easy to read. */
 .nature-bg {
-  background: linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.55), rgba(var(--ib-cream-rgb, 253,246,238), 0.55)), url('/nature-bg.webp') center / cover fixed, var(--ib-cream, #FDF6EE);
+  background: url('/topo-light.svg') 0 0 / 640px repeat, linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.55), rgba(var(--ib-cream-rgb, 253,246,238), 0.55)), url('/nature-bg.webp') center / cover fixed, var(--ib-cream, #FDF6EE);
 }
 /* The top row of every dashboard page (page name, bell, account) stays put
    while the page scrolls under it: only the contents move. */
@@ -288,7 +288,7 @@ html { touch-action: manipulation; }
   border-bottom: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12);
 }
 .dashboard-content {
-  background: linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.86), rgba(var(--ib-cream-rgb, 253,246,238), 0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, var(--ib-cream, #FDF6EE) !important;
+  background: url('/topo-light.svg') 0 0 / 640px repeat, linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.86), rgba(var(--ib-cream-rgb, 253,246,238), 0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, var(--ib-cream, #FDF6EE) !important;
   background-attachment: fixed !important;
 }
 @media (pointer: coarse) {
@@ -461,3 +461,61 @@ a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surfa
 /* Browser-filled fields (saved logins) in dark mode: dark box, light words. */
 :root[data-theme="dark"] input:-webkit-autofill, :root[data-theme="dark"] textarea:-webkit-autofill, :root[data-theme="dark"] select:-webkit-autofill {
   -webkit-text-fill-color: #E8F2F5 !important; -webkit-box-shadow: 0 0 0 1000px #12384A inset !important; }
+
+
+/* ═════════ Travel-journal touches (the whole site) ═════════
+   The landing page's handwritten, hand-drawn look carried everywhere:
+   faint topographic map lines behind pages, page icons as passport stamps,
+   brush-stroke underlines, handwritten notes (Caveat), tour cards as
+   tickets with a torn edge, strips of tape on the login/register cards and
+   a little van on the loading screen. */
+:root { --journal-topo: url('/topo-light.svg'); --journal-notch: #F3EADF; --journal-tape: rgba(255,210,122,0.78); }
+:root[data-theme="dark"] { --journal-topo: url('/topo-dark.svg'); --journal-notch: #0B2531; --journal-tape: rgba(255,194,102,0.55); }
+:root[data-theme="dark"] .dashboard-content, :root[data-theme="dark"] .nature-bg { background-image: var(--journal-topo), linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.86), rgba(var(--ib-cream-rgb, 253,246,238), 0.86)), url('/nature-bg.webp') !important; }
+
+.journal-hand { font-family: 'Caveat', 'Outfit', cursive !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+
+/* Pages on plain "paper" (login, register, passwords, public tours): map lines. */
+.journal-paper { background-image: var(--journal-topo) !important; background-size: 640px !important; background-repeat: repeat !important; }
+
+/* Page header: the icon as a slightly tilted passport stamp, the title with a brush stroke. */
+.journal-stamp { transform: rotate(-4deg); outline: 1.5px dashed rgba(var(--ib-amber-rgb, 232,162,101), 0.7); outline-offset: -5px; }
+.journal-title { position: relative; display: inline-block; padding-bottom: 3px; isolation: isolate; }
+.journal-title::after { content: ''; position: absolute; left: -2px; right: -4px; bottom: -2px; height: 7px; z-index: -1; opacity: 0.85;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M2 7 C 25 3, 55 4, 98 5' fill='none' stroke='%23FF7A3D' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%; }
+.page-header-subtitle.journal-hand { transform: rotate(-1deg); transform-origin: left; }
+
+/* Small section headings in the dashboards (Latest Tour Packages, Today: to do…): a hand-drawn underline. */
+.dashboard-content h2[style*="uppercase"], .dashboard-content h3[style*="uppercase"] { padding-bottom: 6px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'%3E%3Cpath d='M2 5 C 30 2, 60 7, 98 3' fill='none' stroke='%23FF7A3D' stroke-width='3' stroke-linecap='round' opacity='0.8'/%3E%3C/svg%3E") no-repeat left bottom / 46px 6px; }
+
+/* Tour cards as tickets: a dashed tear line with two punched notches. */
+.ticket-tear { position: relative; height: 0; border-top: 2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28); margin: 0 14px; }
+.ticket-tear::before, .ticket-tear::after { content: ''; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--journal-notch); }
+.ticket-tear::before { left: -24px; }
+.ticket-tear::after { right: -24px; }
+
+/* Login / register / password cards: two strips of tape holding the page down. */
+.journal-card { position: relative; }
+.journal-card::before, .journal-card::after { content: ''; position: absolute; top: 2px; width: 84px; height: 22px; z-index: 3; pointer-events: none;
+  background: var(--journal-tape); box-shadow: 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12);
+  -webkit-mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent calc(100% - 3px)); }
+.journal-card::before { left: 18px; transform: rotate(-5deg); }
+.journal-card::after { right: 64px; transform: rotate(4deg); }
+
+/* Empty states: the doodle's circle bobs gently. */
+@media (prefers-reduced-motion: no-preference) {
+  .journal-doodle > div { animation: journal-bob 4s ease-in-out infinite; }
+}
+@keyframes journal-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+
+/* Loading screen: the logo and a little van driving along a dashed road. */
+.journal-loading { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: var(--journal-topo) 0 0 / 640px repeat, var(--ib-cream, #FDF6EE); }
+:root[data-theme="dark"] .journal-loading { background-color: #071C26; }
+.journal-loading img { opacity: 0.9; }
+.journal-loading p { margin: 0; font-size: 22px; color: var(--ib-sienna, #A8481A); transform: rotate(-2deg); }
+.journal-road { position: relative; width: 160px; height: 24px; border-bottom: 3px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.45); }
+.journal-van { position: absolute; bottom: -1px; left: 0; font-size: 22px; line-height: 1; transform: scaleX(-1); animation: journal-drive 2.2s ease-in-out infinite alternate; }
+@keyframes journal-drive { from { left: 0; } to { left: calc(100% - 26px); } }
+@media (prefers-reduced-motion: reduce) { .journal-van { animation: none; left: 40%; } }

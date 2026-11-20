@@ -484,7 +484,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
   };
 
   return (
-    <div
+    <div className="journal-paper"
       style={{
         minHeight: '100dvh',
         display: 'flex',
@@ -713,7 +713,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
       {/* MAIN CARD */}
       <div
-        className="register-card"
+        className="journal-card register-card"
         style={{
           position: 'relative',
           background: 'var(--ib-cream, #FDF6EE)',

@@ -406,6 +406,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
   return (
 
     <div
+      className="journal-ticket"
 
       style={{
 
@@ -486,6 +487,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
 
 
+      <div className="ticket-tear" aria-hidden="true" />
       {/* Body */}
 
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

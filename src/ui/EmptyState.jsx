@@ -23,17 +23,22 @@ const EmptyState = ({ icon: Icon, title, message, action, secondaryAction, compa
       }}
     >
       {Icon && (
-        <div aria-hidden="true" style={{ position: 'relative', width: size + 24, height: size + 8, marginBottom: compact ? 2 : 6 }}>
-          {/* Soft "illustration": a warm circle with the icon and two little accents. */}
+        <div aria-hidden="true" className="journal-doodle" style={{ position: 'relative', width: size + 96, height: size + 14, marginBottom: compact ? 2 : 6 }}>
+          {/* A travel-journal doodle: a dashed trail winding to a little flag,
+              two pencil mountains, and the icon in a warm circle. */}
+          <svg viewBox="0 0 196 110" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}>
+            <path d="M6 100 C 30 92, 34 70, 58 74 S 86 98, 112 84 S 150 40, 172 30" fill="none" stroke="var(--ib-accent, #B4511E)" strokeWidth="2" strokeDasharray="5 6" strokeLinecap="round" opacity="0.55" />
+            <path d="M172 30 L172 6 M172 7 L188 12 L172 18" fill="none" stroke="var(--ib-sienna, #A8481A)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
+            <path d="M2 64 L14 48 L22 58 L30 44 L44 64" fill="none" stroke="var(--ib-sienna, #A8481A)" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" opacity="0.45" />
+            <path d="M150 104 L160 92 L168 100 L176 88 L190 104" fill="none" stroke="var(--ib-amber, #E8A265)" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" opacity="0.8" />
+          </svg>
           <div style={{
-            position: 'absolute', left: 12, top: 0, width: size, height: size, borderRadius: '50%',
+            position: 'absolute', left: 48, top: 4, width: size, height: size, borderRadius: '50%',
             background: dark ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)' : 'linear-gradient(145deg, var(--ib-peach-1, #F7E3CC), var(--ib-peach-2, #F2D3B3))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(-4deg)',
           }}>
             <Icon size={compact ? 28 : 42} strokeWidth={1.6} style={{ color: dark ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }} />
           </div>
-          <span style={{ position: 'absolute', right: 2, top: 10, width: 12, height: 12, borderRadius: '50%', background: 'var(--ib-amber, #E8A265)', opacity: 0.7 }} />
-          <span style={{ position: 'absolute', left: 4, bottom: 6, width: 8, height: 8, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)', opacity: 0.35 }} />
         </div>
       )}
       <p style={{ margin: 0, fontSize: compact ? 14 : 17, fontWeight: 900, color: dark ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)', letterSpacing: '-0.01em' }}>{title}</p>
