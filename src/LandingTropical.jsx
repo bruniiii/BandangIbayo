@@ -7,7 +7,7 @@ import {
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
 import HelpWidget from './ui/HelpWidget';
-import { todayManila, groupTripDates, weekdayRange, formatPeso } from './tourUtils';
+import { todayManila, groupTripDates, weekdayRange } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
@@ -31,7 +31,6 @@ const FALLBACK_PHOTO = '/tour-placeholder.webp';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthLabel = (ym) => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
-const shortDay = (d) => (d ? `${MONTHS[Number(d.slice(5, 7)) - 1].slice(0, 3)} ${Number(d.slice(8, 10))}` : '');
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const [year, month, day] = dateString.split('-');
@@ -131,7 +130,6 @@ const LandingTropical = () => {
     const t = setInterval(() => setSlide((i) => (i + 1) % slideCount), 7000);
     return () => clearInterval(t);
   }, [slideCount]);
-  const hero = !customPhotos.length && featured.length ? featured[slide % featured.length] : null;
 
   const slotsLeft = (d) => (booked ? Math.max(0, (Number(d.group_size) || 0) - (booked[d.id] || 0)) : null);
   const places = useMemo(() => [...new Set(tours.map((t) => String(t.destination || '').trim()).filter(Boolean))].sort(), [tours]);
@@ -154,7 +152,6 @@ const LandingTropical = () => {
   // Photos for the tour-type cards and the "why us" photo: trip photos, else the agency's.
   const pool = [...tripPhotos.map((p) => p.src), ...heroPhotos].filter((s, i, a) => a.indexOf(s) === i);
   const photo = (i) => pool[i % Math.max(1, pool.length)] || FALLBACK_PHOTO;
-  const heroLeft = hero ? slotsLeft(hero) : null;
   const [priceColor, priceMuted] = ['#0B3B4F', 'rgba(11,59,79,0.6)'];
 
   return (
@@ -183,13 +180,6 @@ const LandingTropical = () => {
             <img key={src} src={src} alt="" className={i === slide % heroPhotos.length ? 'is-on' : ''} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
           ))}
           <div className="lk-hero-shade" />
-          {hero && (
-            <Link to={`/tours/${hero.id}`} className="lk-now" key={hero.id}>
-              <span className="lk-tiny">In the photo</span>
-              <b>{hero.title}</b>
-              <span>Leaves {shortDay(hero.start_date)}{heroLeft != null ? ` · ${heroLeft === 0 ? 'fully booked' : `${heroLeft} slot${heroLeft === 1 ? '' : 's'} left`}` : ''} · from {formatPeso(hero.price)}</span>
-            </Link>
-          )}
         </div>
         <div className="lk-hero-copy">
           <AnnouncementBanner style={{ marginBottom: 14, maxWidth: 640, textAlign: 'left' }} />
@@ -519,12 +509,8 @@ const PAGE_CSS = `
   padding: 2px 20px 2px 0; cursor: pointer; max-width: 200px; text-overflow: ellipsis;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right center; }
 .lk-search-go { margin-left: 8px; padding: 0 26px; }
-.lk .lk-now { position: absolute; z-index: 3; left: clamp(1rem, 4vw, 3.5rem); bottom: 28px; display: flex; flex-direction: column; gap: 3px; padding: 12px 18px; border-radius: 18px; text-decoration: none;
   max-width: 360px; color: #FFFFFF; background: rgba(0,0,0,0.38); border: 1px solid rgba(255,255,255,0.3); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-.lk-now b { font-size: 16px; }
-.lk-now span:last-child { font-size: 13.5px; opacity: 0.85; }
 .lk-tiny { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0; }
-.lk-now .lk-tiny { color: #FFFFFF; opacity: 0.75; }
 
 .lk-section { padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 4vw, 3.5rem); scroll-margin-top: 60px; }
 .lk-alt { background: var(--bg2); }
@@ -626,8 +612,7 @@ const PAGE_CSS = `
   .lk-field + .lk-field { border-left: none; border-top: 1px solid rgba(0,0,0,0.1); }
   .lk-field select { max-width: none; width: 100%; }
   .lk-search-go { margin: 8px 0 0; padding: 15px; }
-  .lk-now { right: 1rem; max-width: none; bottom: 18px; }
-  .lk-brand span { font-size: 16px; }
+    .lk-brand span { font-size: 16px; }
   .lk-brand img { width: 34px; height: 34px; }
   .lk-steps { grid-template-columns: 1fr; gap: 28px; }
   .lk-steps::before { top: 0; bottom: 0; left: 34px; right: auto; border-top: none; border-left: 3px dashed var(--line-strong); }
