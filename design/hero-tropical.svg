@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1350" width="2400" height="1350">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0B6F8C"/>
+      <stop offset="0.35" stop-color="#3FB3C4"/>
+      <stop offset="0.62" stop-color="#FFD9A0"/>
+      <stop offset="0.72" stop-color="#FFB46B"/>
+    </linearGradient>
+    <radialGradient id="sunglow" cx="0.62" cy="0.6" r="0.45">
+      <stop offset="0" stop-color="#FFF3C9" stop-opacity="0.95"/>
+      <stop offset="0.25" stop-color="#FFD27A" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FF7A3D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5FC6C9"/>
+      <stop offset="0.4" stop-color="#17A3B3"/>
+      <stop offset="1" stop-color="#0A6F86"/>
+    </linearGradient>
+    <linearGradient id="shallow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#7EE3D6" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#7EE3D6" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FCE3B8"/>
+      <stop offset="1" stop-color="#EFC58C"/>
+    </linearGradient>
+    <linearGradient id="glint" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF1C2" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FFD27A" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="karstFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5A9AA0"/><stop offset="1" stop-color="#8FC1B9"/>
+    </linearGradient>
+    <linearGradient id="karstMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1D6E6F"/><stop offset="1" stop-color="#2E8A7E"/>
+    </linearGradient>
+    <linearGradient id="karstNear" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0E4B50"/><stop offset="1" stop-color="#14605A"/>
+    </linearGradient>
+    <g id="palmLeaf">
+      <path d="M0 0 C 90 -40 210 -30 300 40 C 210 0 110 0 0 0 Z"/>
+    </g>
+    <g id="bird"><path d="M0 0 q 12 -12 24 0 q 12 -12 24 0" fill="none" stroke="#0B3B4F" stroke-width="4" stroke-linecap="round"/></g>
+  </defs>
+
+  <!-- sky -->
+  <rect width="2400" height="900" fill="url(#sky)"/>
+  <rect width="2400" height="900" fill="url(#sunglow)"/>
+  <circle cx="1490" cy="790" r="120" fill="#FFF4CF"/>
+  <circle cx="1490" cy="790" r="170" fill="#FFE29A" opacity="0.35"/>
+
+  <!-- clouds -->
+  <g fill="#FFFFFF">
+    <g opacity="0.85">
+      <ellipse cx="380" cy="300" rx="220" ry="46"/><ellipse cx="300" cy="270" rx="110" ry="60"/><ellipse cx="440" cy="255" rx="130" ry="75"/>
+    </g>
+    <g opacity="0.75">
+      <ellipse cx="1960" cy="230" rx="260" ry="44"/><ellipse cx="1880" cy="200" rx="120" ry="62"/><ellipse cx="2030" cy="185" rx="150" ry="80"/>
+    </g>
+    <g opacity="0.55"><ellipse cx="1180" cy="430" rx="230" ry="28"/><ellipse cx="1240" cy="410" rx="110" ry="38"/></g>
+    <g opacity="0.5" fill="#FFE7C2"><ellipse cx="820" cy="620" rx="260" ry="20"/><ellipse cx="1900" cy="660" rx="300" ry="18"/></g>
+  </g>
+
+  <!-- birds -->
+  <use href="#bird" x="1650" y="430"/><use href="#bird" x="1715" y="470" transform="scale(1)"/><use href="#bird" x="1600" y="490"/>
+
+  <!-- far karst islands -->
+  <path fill="url(#karstFar)" d="M140 900 L170 760 Q190 700 230 690 Q260 640 300 660 Q330 610 370 650 Q410 700 420 760 L450 900 Z"/>
+  <path fill="url(#karstFar)" d="M1700 900 L1730 790 Q1760 720 1810 730 Q1840 680 1890 700 Q1930 660 1980 720 Q2010 760 2030 820 L2060 900 Z"/>
+  <path fill="url(#karstFar)" opacity="0.8" d="M980 900 L1000 840 Q1020 810 1060 815 Q1090 790 1120 820 L1140 900 Z"/>
+
+  <!-- mid karst islands -->
+  <path fill="url(#karstMid)" d="M-20 900 L-20 600 Q20 520 80 540 Q110 470 170 500 Q220 450 260 520 Q300 560 310 640 Q330 700 380 760 Q420 820 520 900 Z"/>
+  <path fill="url(#karstMid)" d="M1930 900 Q2000 800 2040 700 Q2060 600 2110 560 Q2150 500 2210 530 Q2260 470 2320 520 Q2380 540 2420 600 L2420 900 Z"/>
+  <!-- a lone sea stack -->
+  <path fill="url(#karstMid)" d="M1980 905 L1990 840 Q1995 790 2020 780 Q2050 770 2060 810 L2075 905 Z" transform="translate(-260 0)"/>
+  <!-- foliage bumps on karsts -->
+  <g fill="#2F8F6E" opacity="0.7">
+    <ellipse cx="90" cy="545" rx="50" ry="20"/><ellipse cx="180" cy="505" rx="55" ry="22"/><ellipse cx="2200" cy="535" rx="60" ry="22"/><ellipse cx="2310" cy="522" rx="55" ry="20"/>
+  </g>
+
+  <!-- sea -->
+  <rect y="895" width="2400" height="455" fill="url(#sea)"/>
+  <rect y="895" width="2400" height="8" fill="#FFE9B8" opacity="0.6"/>
+  <!-- sun path on water -->
+  <path d="M1440 900 L1540 900 L1700 1350 L1280 1350 Z" fill="url(#glint)" opacity="0.3"/>
+  <g stroke="#FFF6D8" stroke-linecap="round" opacity="0.85">
+    <line x1="1450" y1="925" x2="1530" y2="925" stroke-width="5"/>
+    <line x1="1420" y1="955" x2="1560" y2="955" stroke-width="5"/>
+    <line x1="1400" y1="995" x2="1500" y2="995" stroke-width="6"/>
+    <line x1="1530" y1="1000" x2="1600" y2="1000" stroke-width="6"/>
+    <line x1="1370" y1="1050" x2="1470" y2="1050" stroke-width="7"/>
+    <line x1="1520" y1="1060" x2="1640" y2="1060" stroke-width="7"/>
+    <line x1="1340" y1="1120" x2="1450" y2="1120" stroke-width="8"/>
+    <line x1="1560" y1="1130" x2="1680" y2="1130" stroke-width="8"/>
+  </g>
+  <!-- gentle wave lines -->
+  <g fill="none" stroke="#B9F0EA" stroke-linecap="round" opacity="0.45" stroke-width="4">
+    <path d="M200 980 q40 -10 80 0 t80 0"/><path d="M700 1010 q40 -10 80 0 t80 0"/><path d="M1000 950 q30 -8 60 0 t60 0"/>
+    <path d="M1850 990 q40 -10 80 0 t80 0"/><path d="M2100 1060 q40 -10 80 0 t80 0"/><path d="M900 1120 q50 -12 100 0 t100 0"/>
+  </g>
+
+  <!-- bangka boats -->
+  <g transform="translate(860 985)">
+    <path d="M-40 6 L240 6" stroke="#0B3B4F" stroke-width="4"/>
+    <path d="M-40 34 L240 34" stroke="#0B3B4F" stroke-width="4"/>
+    <path d="M30 -2 Q40 30 30 50 M170 -2 Q160 30 170 50" stroke="#0B3B4F" stroke-width="4" fill="none"/>
+    <path d="M0 14 Q100 40 220 14 L200 30 Q100 50 20 30 Z" fill="#FFFFFF"/>
+    <path d="M10 22 Q100 44 210 22" stroke="#FF7A3D" stroke-width="5" fill="none"/>
+    <rect x="70" y="-26" width="80" height="38" rx="4" fill="#0A8BA6"/>
+    <rect x="62" y="-32" width="96" height="10" rx="3" fill="#FF7A3D"/>
+    <ellipse cx="110" cy="58" rx="150" ry="8" fill="#0A6F86" opacity="0.35"/>
+  </g>
+  <g transform="translate(1120 928) scale(0.45)">
+    <path d="M-40 6 L240 6 M-40 34 L240 34" stroke="#0B3B4F" stroke-width="5"/>
+    <path d="M0 14 Q100 40 220 14 L200 30 Q100 50 20 30 Z" fill="#FFFFFF"/>
+    <rect x="70" y="-26" width="80" height="38" rx="4" fill="#FFD27A"/>
+  </g>
+
+  <!-- beach (bottom left) -->
+  <path d="M-20 1350 L-20 1080 Q260 1060 520 1130 Q780 1200 980 1290 Q1060 1330 1100 1350 Z" fill="url(#sand)"/>
+  <path d="M-20 1078 Q260 1058 520 1128 Q780 1198 980 1288 Q1060 1328 1100 1350" fill="none" stroke="#FFFFFF" stroke-width="10" opacity="0.8"/>
+  <path d="M-20 1060 Q260 1040 520 1110 Q780 1180 990 1270" fill="none" stroke="url(#shallow)" stroke-width="30" opacity="0.6"/>
+
+  <!-- left palm -->
+  <g fill="#0B3B4F">
+    <path d="M250 1350 Q240 1180 200 1020 Q170 900 120 790 L140 782 Q200 890 230 1010 Q270 1170 285 1350 Z"/>
+    <g transform="translate(128 786)">
+      <use href="#palmLeaf" transform="rotate(-20) scale(1.2)"/>
+      <use href="#palmLeaf" transform="rotate(15) scale(1.15)"/>
+      <use href="#palmLeaf" transform="rotate(50) scale(0.95)"/>
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(-25) scale(1.1)"/>
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(20) scale(1.05)"/>
+      <use href="#palmLeaf" transform="rotate(-60) scale(0.85)"/>
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(-65) scale(0.8)"/>
+      <circle cx="0" cy="12" r="14" fill="#5A3A1E"/><circle cx="18" cy="16" r="12" fill="#5A3A1E"/>
+    </g>
+  </g>
+  <!-- small left palm -->
+  <g fill="#0E4B50" transform="translate(420 0)">
+    <path d="M60 1180 Q70 1060 110 960 L122 966 Q86 1065 80 1180 Z"/>
+    <g transform="translate(116 962) scale(0.6)">
+      <use href="#palmLeaf" transform="rotate(-25)"/><use href="#palmLeaf" transform="rotate(20)"/>
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(-20)"/><use href="#palmLeaf" transform="scale(-1 1) rotate(25)"/>
+      <use href="#palmLeaf" transform="rotate(-65) scale(0.8)"/><use href="#palmLeaf" transform="scale(-1 1) rotate(-65) scale(0.8)"/>
+    </g>
+  </g>
+
+  <!-- right foreground foliage -->
+  <g fill="#0B3B4F">
+    <path d="M2400 1350 L1900 1350 Q1960 1260 2060 1230 Q2120 1160 2220 1170 Q2300 1120 2400 1140 Z"/>
+    <path d="M2160 1350 Q2150 1150 2190 960 Q2220 820 2290 700 L2306 710 Q2245 830 2215 965 Q2180 1150 2195 1350 Z"/>
+    <g transform="translate(2296 704)">
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(-15) scale(1.2)"/>
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(20) scale(1.1)"/>
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(55) scale(0.9)"/>
+      <use href="#palmLeaf" transform="rotate(-20) scale(1)"/>
+      <use href="#palmLeaf" transform="rotate(25) scale(0.95)"/>
+      <use href="#palmLeaf" transform="scale(-1 1) rotate(-60) scale(0.85)"/>
+      <use href="#palmLeaf" transform="rotate(-62) scale(0.75)"/>
+      <circle cx="0" cy="12" r="14" fill="#5A3A1E"/><circle cx="-18" cy="16" r="12" fill="#5A3A1E"/>
+    </g>
+  </g>
+  <!-- leafy fronds bottom right -->
+  <g fill="#0E4B50">
+    <path d="M2400 1250 Q2250 1180 2100 1260 Q2260 1220 2400 1290 Z"/>
+    <path d="M1980 1350 Q2050 1250 2180 1230 Q2080 1280 2040 1350 Z"/>
+  </g>
+</svg>
