@@ -647,7 +647,7 @@ const JoinerDashboard = () => {
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
-              color: 'var(--ib-on-ink, #FDF6EE)',
+              color: 'var(--ib-on-accent, #FDF6EE)',
               zIndex: 30,
               boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)',
               transition: 'background 0.2s, transform 0.2s',
@@ -928,7 +928,7 @@ const JoinerDashboard = () => {
                           <div style={{ height: 115, background: 'var(--ib-parch, #F2E4D0)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                             {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={32} /></div>}
                             <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>{tour.difficulty}</span></div>
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust-solid, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
+                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust-solid, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: (isFull) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
                           </div>
                           <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                             <div>
@@ -1124,7 +1124,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
       background: active ? 'var(--ib-accent, #B4511E)' : 'transparent',
-      color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
+      color: active ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
       boxShadow: active ? '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'none',

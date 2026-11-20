@@ -776,7 +776,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '13px 26px',
-                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
                 fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',

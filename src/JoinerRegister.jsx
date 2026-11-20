@@ -517,7 +517,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
           >
             <div style={{ textAlign: 'center' }}>
               <div style={{
-                width: 64, height: 64, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                width: 64, height: 64, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
               }}>
                 <MailCheck size={30} />
@@ -552,7 +552,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               type="submit"
               disabled={verifying || code.length !== 6}
               style={{
-                background: verifying || code.length !== 6 ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.45)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
+                background: verifying || code.length !== 6 ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.45)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', border: 'none',
                 borderRadius: 12, padding: '14px 20px', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase',
                 cursor: verifying || code.length !== 6 ? 'default' : 'pointer', fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -621,7 +621,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 justifyContent: 'center',
                 margin: '0 auto 28px',
                 boxShadow: '0 12px 32px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
-                color: 'var(--ib-on-ink, #FDF6EE)',
+                color: 'var(--ib-on-accent, #FDF6EE)',
               }}
             >
               <CheckCircle2 size={44} strokeWidth={2.5} />

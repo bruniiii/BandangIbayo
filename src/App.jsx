@@ -12,8 +12,8 @@ const AdminDashboard = lazy(() => import('./AdminDashboard'));
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import MaintenanceGate from './MaintenanceGate';
-// The landing page: Bright & Tropical (the earlier ones are in LandingPremium.jsx
-// and LandingClassic.jsx).
+// The landing page: Bright & Tropical (the two earlier designs were removed;
+// they're in the git history).
 import LandingPage from './LandingTropical';
 const JoinerDashboard = lazy(() => import('./JoinerDashboard'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));

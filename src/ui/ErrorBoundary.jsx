@@ -33,7 +33,7 @@ export default class ErrorBoundary extends React.Component {
             This page couldn't load. Reloading usually fixes it. The problem was reported to Bandang IBAYO.
           </p>
           <button type="button" onClick={() => window.location.reload()} style={{
-            marginTop: 6, padding: '14px 28px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+            marginTop: 6, padding: '14px 28px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
             fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase',
           }}>Reload</button>
         </div>

@@ -290,7 +290,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             border: 'none', borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
             background: section === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: section === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
+          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
         ))}
       </div>
 
@@ -360,7 +360,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           </button>
           <button type="button" onClick={remindAll} disabled={reminding} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 12,
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', border: 'none', borderRadius: 12,
             padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
             letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
           }}>{reminding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Bell size={13} />} Remind All</button>

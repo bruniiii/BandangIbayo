@@ -559,7 +559,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
               <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>Looked through them all? Approve every waiting post at once.</span>
               <button type="button" onClick={approveAll} disabled={bulkBusy} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
               }}>{bulkBusy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve All ({pendingPosts.length})</button>
             </div>
           )}
@@ -674,7 +674,7 @@ const FeedPostCard = ({
               {displayName(post.author)}
               {isStaffRole(post.author?.role) && (
                 <span style={{
-                  marginLeft: 8, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                  marginLeft: 8, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
                   borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle',
                 }}>Admin</span>
@@ -790,7 +790,7 @@ const FeedPostCard = ({
             </button>
             <button type="button" onClick={onApprove} disabled={reviewing} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 999, border: 'none',
-              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit',
+              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
               {reviewing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve
@@ -934,7 +934,7 @@ const FeedPostCard = ({
               style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
                 background: (commenting || !commentDraft.trim()) ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-accent, #B4511E)',
-                color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
+                color: 'var(--ib-on-accent, #FDF6EE)', border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: (commenting || !commentDraft.trim()) ? 'not-allowed' : 'pointer',
               }}

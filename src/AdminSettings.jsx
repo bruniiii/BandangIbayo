@@ -271,7 +271,7 @@ const AdminSettings = () => {
           <button type="button" onClick={() => { setAdding(true); setError(''); }} disabled={full}
             title={full ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
             display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, border: 'none', cursor: full ? 'not-allowed' : 'pointer', opacity: full ? 0.5 : 1,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
             boxShadow: '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
           }}><Plus size={15} /> Add Admin</button>
         </div>
@@ -344,7 +344,7 @@ const AdminSettings = () => {
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>
               <Archive size={14} /> Archived Admins
               <span style={{ padding: '1px 9px', borderRadius: 999, background: 'var(--ib-parch, #F2E4D0)', fontSize: 11.5, color: 'var(--ib-sienna, #A8481A)' }}>{archivedOnly.length}</span>
-              {requests > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10.5, letterSpacing: '0.06em' }}>{requests} asking to be restored</span>}
+              {requests > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontSize: 10.5, letterSpacing: '0.06em' }}>{requests} asking to be restored</span>}
             </span>
             <ChevronDown size={16} style={{ color: 'var(--ib-rust, #7A3A18)', transition: 'transform 0.2s', transform: showArchived ? 'rotate(180deg)' : 'none' }} />
           </button>

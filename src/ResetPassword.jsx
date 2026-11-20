@@ -154,7 +154,7 @@ const ResetPassword = () => {
               style={{
                 width: '100%',
                 background: loading || !password || !confirmPassword ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.55)' : 'var(--ib-accent, #B4511E)',
-                color: 'var(--ib-on-ink, #FDF6EE)',
+                color: 'var(--ib-on-accent, #FDF6EE)',
                 fontWeight: 900,
                 fontSize: 13,
                 letterSpacing: '0.1em',

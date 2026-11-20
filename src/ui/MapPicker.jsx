@@ -113,7 +113,7 @@ const MapPicker = ({ title = 'Pick the place on the map', near = null, askName =
           {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>{error}</p>}
           <button type="button" onClick={confirm} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
           }}><Check size={16} /> Use this place</button>
         </div>
       </div>

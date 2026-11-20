@@ -89,7 +89,7 @@ export const EtaAutoFill = ({ stops = [], onAutoFill }) => {
         <button type="button" onClick={fill} disabled={!departure || busy} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, border: 'none',
           cursor: !departure || busy ? 'not-allowed' : 'pointer', opacity: departure ? 1 : 0.5,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Clock size={14} />} Fill In ETAs</button>
       </div>
       {preview.length > 0 && (

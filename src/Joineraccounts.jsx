@@ -617,7 +617,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                       disabled={sending || !subject.trim() || !body.trim()}
                       style={{
                         flex: 1.6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
+                        padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', border: 'none',
                         borderRadius: 999, cursor: sending || !subject.trim() || !body.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                         fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                         boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', opacity: sending ? 0.6 : !subject.trim() || !body.trim() ? 0.5 : 1,
@@ -905,7 +905,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
             disabled={sending || picked.size === 0 || !subject.trim() || !body.trim()}
             style={{
               flex: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 999,
+              padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', border: 'none', borderRadius: 999,
               cursor: sending || picked.size === 0 || !subject.trim() || !body.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 900,
               fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
               boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', opacity: sending ? 0.7 : picked.size === 0 || !subject.trim() || !body.trim() ? 0.5 : 1,

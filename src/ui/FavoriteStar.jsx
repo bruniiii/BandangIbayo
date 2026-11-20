@@ -15,7 +15,7 @@ const FavoriteStar = ({ trip, size = 36, style }) => {
       style={{
         width: size, height: size, borderRadius: '50%', border: 'none', cursor: 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: on ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.92)', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-sienna, #A8481A)',
+        background: on ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.92)', color: on ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-sienna, #A8481A)',
         boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)', transition: 'transform 0.15s, background 0.15s',
         ...style,
       }}

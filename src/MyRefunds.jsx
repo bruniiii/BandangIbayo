@@ -41,7 +41,7 @@ const MyRefunds = ({ bookings, weather, onChanged, focusId = null }) => {
         fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase',
       }}>
         <Wallet size={15} style={{ color: 'var(--ib-accent, #B4511E)' }} /> My Refunds ({refunds.length})
-        {toConfirm > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10, letterSpacing: '0.04em' }}>{toConfirm} to confirm</span>}
+        {toConfirm > 0 && <span style={{ padding: '2px 8px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontSize: 10, letterSpacing: '0.04em' }}>{toConfirm} to confirm</span>}
       </button>
 
       {open && (

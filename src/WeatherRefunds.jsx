@@ -85,7 +85,7 @@ const WeatherRefunds = ({ standalone = false }) => {
         <p style={{ flex: '1 1 260px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: 'var(--ib-slate, #3F5D62)', margin: 0, flexWrap: 'wrap' }}>
           <CloudRain size={16} style={{ flexShrink: 0 }} />
           {rows.length ? `Weather refunds to send: ${rows.length} · ${formatPeso(total)}` : 'Weather refunds'}
-          {waiting > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 11 }}>{waiting} waiting for the main admin</span>}
+          {waiting > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontSize: 11 }}>{waiting} waiting for the main admin</span>}
         </p>
         {me.isMain && <RefundHistoryButton />}
         <button type="button" onClick={toggle} aria-expanded={!collapsed} aria-label={collapsed ? 'Show weather refunds' : 'Minimize weather refunds'} style={{

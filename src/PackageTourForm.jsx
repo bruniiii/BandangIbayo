@@ -680,7 +680,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           </button>
           <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in every field first (photo, details, rates, accommodation, expenses, pickup points, lists and itinerary). Only First pickup at is optional.'} style={{
             flex: 2, padding: '13px 0', background: 'var(--ib-accent, #B4511E)', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
-            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-on-ink, #FDF6EE)',
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-on-accent, #FDF6EE)',
             boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
             {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />

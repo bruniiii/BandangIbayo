@@ -815,7 +815,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={() => handleDownloadReceipt('balance')}
                     disabled={!!downloadingReceipt}
                     style={{
-                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -896,7 +896,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
     flex: 1, minWidth: 160, padding: '12px 0', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
     fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-    background: primary ? 'var(--ib-accent, #B4511E)' : 'var(--ib-cream, #FDF6EE)', color: primary ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
+    background: primary ? 'var(--ib-accent, #B4511E)' : 'var(--ib-cream, #FDF6EE)', color: primary ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
     border: primary ? 'none' : '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)',
   });
 
@@ -1068,7 +1068,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
               }}>Back</button>
               <button type="button" onClick={() => pay({ namesDone: true })} disabled={!namesFilled} style={{
-                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
               }}>Continue to Payment</button>
             </div>
@@ -1092,7 +1092,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
         <button type="button" disabled={busy !== null || !agreed || needsRoom} onClick={() => pay()} title={needsRoom ? 'Choose your accommodation first' : agreed ? undefined : 'Tick the agreement above first'} style={{
           flex: 2, minWidth: 180, padding: '12px 0', borderRadius: 14, border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: agreed && !needsRoom ? 'pointer' : 'not-allowed', opacity: agreed && !needsRoom ? 1 : 0.5,
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: agreed && !needsRoom ? 'pointer' : 'not-allowed', opacity: agreed && !needsRoom ? 1 : 0.5,
         }}>
           {busy === 'pay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(amount)} now
         </button>

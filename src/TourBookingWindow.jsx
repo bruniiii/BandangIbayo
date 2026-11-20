@@ -542,7 +542,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         background: isFullyBooked ? 'var(--ib-surface-2, #EDEAE3)' : 'var(--ib-accent, #B4511E)',
 
-                                        color: isFullyBooked ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-on-ink, #FDF6EE)',
+                                        color: isFullyBooked ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-on-accent, #FDF6EE)',
 
                                         border: 'none', borderRadius: 14, cursor: isFullyBooked || bookChoicesMissing ? 'not-allowed' : 'pointer',
 
@@ -1062,7 +1062,7 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
                 </div>
                 <CompanionFields companions={companions} onChange={onChange} error={error} />
                 <button type="button" onClick={onContinue} disabled={!namesFilled} style={{
-                    width: '100%', padding: '14px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 16, cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
+                    width: '100%', padding: '14px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', border: 'none', borderRadius: 16, cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
                     fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
                 }}>
                     Continue to Payment

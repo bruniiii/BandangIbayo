@@ -86,7 +86,7 @@ const ChatGuidelines = ({ onClose }) => (
         {CHAT_RULES.map((r) => <li key={r} style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.5 }}>{r}</li>)}
       </ul>
       <button type="button" autoFocus onClick={onClose} style={{
-        width: '100%', height: 46, borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer',
+        width: '100%', height: 46, borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: 'pointer',
         fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
       }}>I understand</button>
     </div>
@@ -210,7 +210,7 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => {
             background: folder === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: folder === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
           }}>
             {key === 'archived' && <Archive size={13} />} {label} ({count})
-            {unread > 0 && <span aria-label={`${unread} unread`} style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 99 ? '99+' : unread}</span>}
+            {unread > 0 && <span aria-label={`${unread} unread`} style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 99 ? '99+' : unread}</span>}
           </button>
         ))}
       </div>
@@ -251,7 +251,7 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => {
                 {c.last_message || 'No messages yet. Say hi!'}
               </span>
               {c.unread > 0 && (
-                <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {c.unread > 99 ? '99+' : c.unread}
                 </span>
               )}
@@ -499,7 +499,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
               <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', gap: 8, marginTop: sameAuthor ? 0 : 6 }}>
                 {!mine && fromAdmin && <BrandAvatar size={30} style={{ visibility: sameAuthor ? 'hidden' : 'visible' }} />}
                 {!mine && !fromAdmin && (
-                  <span aria-hidden="true" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, visibility: sameAuthor ? 'hidden' : 'visible', background: fromAdmin ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)', color: fromAdmin ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-amber, #E8A265)', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  <span aria-hidden="true" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, visibility: sameAuthor ? 'hidden' : 'visible', background: fromAdmin ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)', color: fromAdmin ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-amber, #E8A265)', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {author?.avatar_url && !fromAdmin ? <img src={author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(author)}
                   </span>
                 )}
@@ -507,7 +507,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                   {!mine && !sameAuthor && (
                     <p style={{ fontSize: 11, fontWeight: 800, color: fromAdmin ? 'var(--ib-accent, #B4511E)' : 'var(--ib-rust, #7A3A18)', margin: '0 0 2px 4px', display: 'flex', alignItems: 'center', gap: 5 }}>
                       {nameFor(author, isAdmin)}
-                      {fromAdmin && <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin</span>}
+                      {fromAdmin && <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin</span>}
                     </p>
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexDirection: mine ? 'row-reverse' : 'row', maxWidth: '100%' }}>
@@ -521,7 +521,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                       className={`chat-note${mine ? ' is-mine' : ''}${i % 2 ? ' tilt-right' : ''}`}
                       style={{
                         background: mine ? 'var(--ib-accent, #B4511E)' : fromAdmin ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : 'var(--ib-parch, #F2E4D0)',
-                        color: mine ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)',
+                        color: mine ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-dark, #1A0A00)',
                         border: fromAdmin && !mine ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)' : 'none',
                         borderRadius: 16, padding: '8px 12px', fontSize: narrow ? 15 : 13.5, fontWeight: 500, lineHeight: 1.45,
                         whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', cursor: 'pointer', minWidth: 0,
@@ -683,7 +683,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
           />
           <button type="submit" disabled={!text.trim() || sending} aria-label="Send" style={{
             width: 42, height: 42, borderRadius: 14, border: 'none', flexShrink: 0,
-            background: !text.trim() || sending ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+            background: !text.trim() || sending ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
             cursor: !text.trim() || sending ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {sending ? <Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={17} />}
@@ -738,7 +738,7 @@ const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narr
             const isMe = r.user_id === me;
             return (
               <li key={r.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px' }}>
-                {isStaffRole(p?.role) ? <BrandAvatar size={36} /> : <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: isStaffRole(p?.role) ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)', color: isStaffRole(p?.role) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-amber, #E8A265)', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {isStaffRole(p?.role) ? <BrandAvatar size={36} /> : <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: isStaffRole(p?.role) ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)', color: isStaffRole(p?.role) ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-amber, #E8A265)', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {p?.avatar_url && !isStaffRole(p.role) ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
                 </span>}
                 <span style={{ flex: 1, minWidth: 0 }}>

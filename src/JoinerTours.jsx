@@ -469,7 +469,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
           <span style={{
 
-            background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+            background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: (isFull) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-on-accent, #FDF6EE)',
 
             borderRadius: 999, padding: '4px 10px',
 

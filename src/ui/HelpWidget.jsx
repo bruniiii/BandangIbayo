@@ -127,7 +127,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
                 <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
                   flex: 1, border: 'none', borderRadius: 9, padding: '8px 0', cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  background: tab === key ? 'var(--ib-accent, #B4511E)' : 'transparent', color: tab === key ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
+                  background: tab === key ? 'var(--ib-accent, #B4511E)' : 'transparent', color: tab === key ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
                 }}>
                   {label}
                 </button>
@@ -165,7 +165,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
               <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {guide().map((step, i) => (
                   <li key={step.title} style={{ display: 'flex', gap: 12, background: 'var(--ib-surface, #FFFBF6)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 14, padding: '12px 12px' }}>
-                    <span style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <step.Icon size={17} />
                     </span>
                     <div style={{ minWidth: 0 }}>
@@ -209,7 +209,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
         style={{
           position: 'fixed', zIndex, right: 20, bottom: 20, width: 56, height: 56, padding: 0,
           borderRadius: '50%', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', boxShadow: '0 12px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', boxShadow: '0 12px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >

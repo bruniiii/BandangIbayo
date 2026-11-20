@@ -111,7 +111,7 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.3); transition: background 0.15s, transform 0.15s;
 }
-.tour-row-arrow:hover { background: var(--ib-accent, #B4511E); transform: translateY(-50%) scale(1.06); }
+.tour-row-arrow:hover { background: var(--ib-accent, #B4511E); color: var(--ib-on-accent, #FDF6EE); transform: translateY(-50%) scale(1.06); }
 
 /* ── Skeleton loading (ui/Skeleton.jsx) ── */
 .skel {
@@ -435,7 +435,7 @@ a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surfa
   --ib-accent-rgb: 10,139,166; --ib-dark-rgb: 11,59,79; --ib-rust-rgb: 63,99,114; --ib-red-rgb: 196,54,31;
   --ib-cream-rgb: 255,248,238; --ib-soft-rgb: 214,234,240; --ib-amber-rgb: 255,181,71;
   --ib-sienna-rgb: 10,124,148; --ib-parch-rgb: 253,235,211; --ib-orange-rgb: 255,122,61;
-  --ib-primary-btn: #FF7A3D; --ib-primary-btn-text: #FFFFFF;
+  --ib-primary-btn: #FF7A3D; --ib-primary-btn-text: #0B3B4F;
   --ib-disabled-bg: #DCE7EA; --ib-disabled-text: #3F5A66;
   /* Navy areas (sidebar, dark cards and buttons, overlays), the light words
      on them, and shadows: they stay dark/light in both light and dark mode. */
@@ -444,6 +444,9 @@ a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surfa
   /* Solid red / teal / slate fills (white words on them): the same deep
      colours in light and dark mode. */
   --ib-red-solid: #C4361F; --ib-sienna-solid: #0A7C94; --ib-rust-solid: #3F6372;
+  /* Words on the sunset-orange buttons and badges: navy (white on this orange
+     is too faint to read, 2.6:1; navy is 4.6:1). */
+  --ib-on-accent: #0B3B4F;
 }
 
 /* ═════════ Dark mode ═════════

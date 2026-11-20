@@ -76,7 +76,7 @@ const TripDayCard = ({ booking }) => {
             {formatDateRange(tour.start_date, tour.duration)} · {booking.slots_booked || 1} {booking.slots_booked === 1 ? 'person' : 'persons'} · {booking.booking_number}
           </p>
         </div>
-        <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>
+        <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>
           {whenLabel(tour)}
         </span>
       </div>

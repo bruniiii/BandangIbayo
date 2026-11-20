@@ -63,7 +63,7 @@ const FavoritesButton = ({ onOpenTour }) => {
         {count > 0 && (
           <span style={{
             position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', borderRadius: 999,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontSize: 10, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
             border: '2px solid var(--ib-cream, #FDF6EE)',
           }}>{count}</span>
         )}
@@ -108,7 +108,7 @@ const FavoritesButton = ({ onOpenTour }) => {
                     </p>
                   </button>
                   <button type="button" onClick={() => toggleFavorite({ title: t.title, dates: t.starredIds.map((id) => ({ id })) })} aria-label={`Remove ${t.title} from Favorites`} title="Remove from Favorites"
-                    style={{ width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    style={{ width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Star size={15} fill="currentColor" />
                   </button>
                 </div>

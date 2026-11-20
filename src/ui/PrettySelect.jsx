@@ -72,7 +72,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
         }}
       >
         {Icon && (
-          <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: selected ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
+          <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: selected ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
             <Icon size={14} />
           </span>
         )}
