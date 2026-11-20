@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
-  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus,
+  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus, Sun, Moon,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
@@ -61,7 +61,26 @@ const SCRIPT_FONT = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600;70
 // Shown in the moving ribbon under the photo when there are few destinations.
 const KINDS = ['Mountains', 'Beaches', 'Islands', 'Waterfalls', 'Sunrise hikes', 'Food trips'];
 
+// Light or dark: the visitor's choice (saved on this device), else their
+// phone or computer's setting.
+const THEME_KEY = 'ibayo:theme';
+const savedTheme = () => { try { return localStorage.getItem(THEME_KEY); } catch { return null; } };
+const systemDark = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+
 const LandingTropical = () => {
+  const [dark, setDark] = useState(() => { const t = savedTheme(); return t ? t === 'dark' : !!systemDark(); });
+  // Follow the device's setting while the visitor hasn't picked one.
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mq) return undefined;
+    const onChange = (e) => { if (!savedTheme()) setDark(e.matches); };
+    mq.addEventListener?.('change', onChange);
+    return () => mq.removeEventListener?.('change', onChange);
+  }, []);
+  const toggleTheme = () => setDark((d) => {
+    try { localStorage.setItem(THEME_KEY, d ? 'light' : 'dark'); } catch { /* private mode */ }
+    return !d;
+  });
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [booked, setBooked] = useState(null); // { [tour date id]: slots taken }
@@ -143,10 +162,10 @@ const LandingTropical = () => {
   // Photos for the tour-type cards and the "why us" photo: trip photos, else the agency's.
   const pool = [...tripPhotos.map((p) => p.src), ...heroPhotos].filter((s, i, a) => a.indexOf(s) === i);
   const photo = (i) => pool[i % Math.max(1, pool.length)] || FALLBACK_PHOTO;
-  const [priceColor, priceMuted] = ['#0B3B4F', 'rgba(11,59,79,0.6)'];
+  const [priceColor, priceMuted] = ['var(--text)', 'var(--muted)'];
 
   return (
-    <div className="lk lk-tropical" ref={pageRef}>
+    <div className={`lk lk-tropical${dark ? ' is-dark' : ''}`} ref={pageRef}>
       <nav className={`lk-nav${scrolled ? ' is-scrolled' : ''}`}>
         <Link to="/" className="lk-brand" aria-label="Bandang IBAYO home">
           <img src={logoIcon} alt="BANDANG IBAYO" />
@@ -158,6 +177,9 @@ const LandingTropical = () => {
           ))}
         </div>
         <div className="lk-nav-right">
+          <button type="button" className="lk-theme" onClick={toggleTheme} aria-pressed={dark} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} title={dark ? 'Light mode' : 'Dark mode'}>
+            {dark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <Link to="/login" className="lk-login">Log in</Link>
           <Link to="/register" className="lk-btn lk-btn-main lk-btn-sm">Join now</Link>
         </div>
@@ -451,6 +473,10 @@ const PAGE_CSS = `
 .lk-links a.is-here { opacity: 1; font-weight: 800; }
 .lk-links a.is-here::after { transform: scaleX(1) rotate(-1.5deg); opacity: 1; }
 .lk-nav-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.lk-theme { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;
+  background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.35); color: inherit; transition: background 0.2s ease, transform 0.2s ease; }
+.lk-theme:hover { background: rgba(255,255,255,0.24); transform: rotate(-12deg); }
+.lk-nav.is-scrolled .lk-theme { background: var(--panel); border-color: var(--line-strong); }
 .lk-login { font-size: 15.5px; font-weight: 700; text-decoration: none; }
 
 .lk-hero { position: relative; min-height: 92dvh; display: flex; flex-direction: column; justify-content: center; padding: 120px clamp(1rem, 4vw, 3.5rem) 110px; box-sizing: border-box; overflow: hidden; color: #FFFFFF; }
@@ -662,6 +688,26 @@ const PAGE_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .lk-ribbon-track, .lk-van { animation: none !important; }
 }
+
+/* ═════════ Dark mode (the moon button in the menu) ═════════
+   Night by the sea: deep ocean navy, teal and sunset orange. The --ib-*
+   colours (shared parts like the reviews, prices and help button) are
+   flipped here too, only inside the landing page. */
+.lk-tropical.is-dark { color-scheme: dark;
+  --bg: #08202B; --bg2: #0C2A37; --panel: #113442; --text: #EAF4F6; --muted: #A9C3CB; --accent: #FF8A52; --accent2: #4CC3DA; --on-accent: #FFFFFF;
+  --line: rgba(234,244,246,0.1); --line-strong: rgba(76,195,218,0.4); --btn-shadow: 0 10px 24px rgba(255,122,61,0.25);
+  --card-shadow: 0 14px 40px rgba(0,0,0,0.4); --icon-bg: rgba(76,195,218,0.14); --nav-bg: rgba(8,32,43,0.86);
+  --ib-dark: #EAF4F6; --ib-deep: #0C2A37; --ib-brown: #EAF4F6; --ib-rust: #A9C3CB; --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3;
+  --ib-accent: #FF8A52; --ib-amber: #FFC266; --ib-cream: #113442; --ib-parch: #0C2A37; --ib-red: #FF7A66;
+  --ib-dark-rgb: 234,244,246; --ib-rust-rgb: 169,195,203; --ib-accent-rgb: 76,195,218; --ib-sienna-rgb: 76,195,218; --ib-cream-rgb: 17,52,66;
+  --ib-parch-rgb: 12,42,55; --ib-soft-rgb: 169,195,203; --ib-amber-rgb: 255,194,102; --ib-red-rgb: 255,122,102; }
+.lk-tropical.is-dark .lk-type, .lk-tropical.is-dark .lk-strip figure { background: var(--panel); box-shadow: 0 16px 36px rgba(0,0,0,0.45); }
+.lk-tropical.is-dark .lk-strip figcaption { color: var(--text); }
+.lk-tropical.is-dark .lk-van { background: var(--panel); color: var(--accent2); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+.lk-tropical.is-dark .lk-alt::before { background: radial-gradient(circle, rgba(255,138,82,0.18), rgba(255,138,82,0) 70%); }
+.lk-tropical.is-dark .lk-alt::after { background: radial-gradient(circle, rgba(76,195,218,0.14), rgba(76,195,218,0) 70%); }
+.lk-tropical.is-dark .lk-card-tear { border-top-color: rgba(234,244,246,0.18); }
+.lk-tropical.is-dark .lk-ribbon { background: #0A6F86; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
 `;
 
 export default LandingTropical;
