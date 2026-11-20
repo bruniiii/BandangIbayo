@@ -31,7 +31,7 @@ const GoogleButton = ({ nextPath = null, label = 'Continue with Google' }) => {
         width: '100%', minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
         background: '#FFFFFF', color: '#1F1F1F', border: '1.5px solid rgba(var(--ib-dark-rgb, 26,10,0), 0.18)', borderRadius: 14,
         fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
-        boxShadow: '0 2px 8px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        boxShadow: '0 2px 8px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
       }}
     >
       {busy ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <GoogleMark />}

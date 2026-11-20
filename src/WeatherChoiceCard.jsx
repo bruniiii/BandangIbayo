@@ -149,7 +149,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
 
   const shell = (children, tone = '#3F5D62') => (
     <section aria-label={`${title}: weather update`} style={{
-      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: `2px solid ${tone}`, padding: '1.1rem 1.2rem', boxShadow: '0 6px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.08)',
+      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: `2px solid ${tone}`, padding: '1.1rem 1.2rem', boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.08)',
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>{children}</section>
   );
@@ -171,12 +171,12 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
     const got = booking.weather_refund_received === 'received';
     // In the site's colors: the status is a small label, not the whole card.
     const status = !sent ? { t: 'On the way', bg: 'transparent', fg: 'var(--ib-accent, #B4511E)', bd: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.5)' }
-      : got ? { t: 'Received ✓', bg: 'var(--ib-dark, #1A0A00)', fg: 'var(--ib-amber, #E8A265)', bd: '1px solid var(--ib-dark, #1A0A00)' }
-        : { t: 'Sent · please confirm', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-cream, #FDF6EE)', bd: '1px solid var(--ib-accent, #B4511E)' };
+      : got ? { t: 'Received ✓', bg: 'var(--ib-ink, #1A0A00)', fg: 'var(--ib-amber, #E8A265)', bd: '1px solid var(--ib-dark, #1A0A00)' }
+        : { t: 'Sent · please confirm', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-on-ink, #FDF6EE)', bd: '1px solid var(--ib-accent, #B4511E)' };
     return (
       <section aria-label={`${title}: refund`} style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', padding: '0.85rem 1rem',
-        boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)', display: 'flex', flexDirection: 'column', gap: 10,
+        boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)', display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <p style={{ margin: 0, flex: '1 1 220px', minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>

@@ -7,7 +7,7 @@ const BrandAvatar = ({ size = 36, radius = '50%', style }) => (
     aria-hidden="true"
     style={{
       width: size, height: size, borderRadius: radius, flexShrink: 0, overflow: 'hidden',
-      background: 'var(--ib-dark, #1A0A00)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--ib-ink, #1A0A00)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       ...style,
     }}
   >

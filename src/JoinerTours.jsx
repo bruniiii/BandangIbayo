@@ -220,7 +220,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
 
-        boxShadow: '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+        boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 
         display: SHOW_FILTERS ? 'flex' : 'none', flexWrap: 'wrap', gap: 12, alignItems: 'center',
 
@@ -415,7 +415,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
 
-        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
 
         // Grows a little when the mouse is over it.
         transform: hovered ? 'translateY(-5px) scale(1.07)' : 'none',
@@ -468,7 +468,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
           <span style={{
 
-            background: isFull ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+            background: isFull ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
 
             borderRadius: 999, padding: '4px 10px',
 
@@ -579,15 +579,15 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
             transition: 'all 0.2s',
 
-            background: isFull ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-dark, #1A0A00)',
+            background: isFull ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-ink, #1A0A00)',
 
-            color: isFull ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' : 'var(--ib-cream, #FDF6EE)',
+            color: isFull ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' : 'var(--ib-on-ink, #FDF6EE)',
 
           }}
 
           onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; }}
 
-          onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-dark, #1A0A00)'; }}
+          onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'; }}
 
         >
 

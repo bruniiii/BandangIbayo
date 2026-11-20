@@ -95,7 +95,7 @@ const ResetPassword = () => {
     }}>
       <div style={{
         background: 'var(--ib-cream, #FDF6EE)', padding: '2.5rem', borderRadius: 24,
-        boxShadow: '0 20px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)', width: '100%', maxWidth: 420,
+        boxShadow: '0 20px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)', width: '100%', maxWidth: 420,
         borderTop: '7px solid var(--ib-accent, #B4511E)',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -154,7 +154,7 @@ const ResetPassword = () => {
               style={{
                 width: '100%',
                 background: loading || !password || !confirmPassword ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.55)' : 'var(--ib-accent, #B4511E)',
-                color: 'var(--ib-cream, #FDF6EE)',
+                color: 'var(--ib-on-ink, #FDF6EE)',
                 fontWeight: 900,
                 fontSize: 13,
                 letterSpacing: '0.1em',

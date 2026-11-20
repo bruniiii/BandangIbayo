@@ -69,7 +69,7 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
             />
             <button type="button" onClick={search} disabled={busy} style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', flexShrink: 0,
-              background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+              background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />} Search</button>
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

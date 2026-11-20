@@ -34,7 +34,7 @@ const SystemStatusTab = ({ onNavigate, onTab, start = 'overview' }) => {
             <button key={p[0]} type="button" role="tab" aria-selected={on} onClick={() => setPart(p[0])} style={{
               flex: '1 1 150px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 38, border: 'none', borderRadius: 10,
               cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: on ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: on ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+              background: on ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
             }}><Icon size={14} /> {p[1]}</button>
           );
         })}

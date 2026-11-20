@@ -116,8 +116,8 @@ const TemplateForm = ({ kind, saved, onClose, onSaved }) => {
   const paragraphs = fillIn(f.message, SAMPLE_VARS).split(/\n\s*\n/);
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label={`Edit ${name}`} style={{ position: 'relative', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div role="dialog" aria-modal="true" aria-label={`Edit ${name}`} style={{ position: 'relative', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{name}</h3>
           <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
@@ -127,7 +127,7 @@ const TemplateForm = ({ kind, saved, onClose, onSaved }) => {
         <label style={label}>Heading<input value={f.heading} maxLength={120} onChange={(e) => setF({ ...f, heading: e.target.value })} style={inp} /></label>
         <label style={label}>Message<textarea value={f.message} rows={7} maxLength={4000} onChange={(e) => setF({ ...f, message: e.target.value })} style={{ ...inp, resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit' }} /></label>
         {unknown.length > 0 && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{[...new Set(unknown)].map((w) => `{${w}}`).join(', ')} can't be filled in for this email.</p>}
-        <div style={{ background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '14px 16px' }}>
+        <div style={{ background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '14px 16px' }}>
           <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Preview · {fillIn(f.subject, SAMPLE_VARS)}</p>
           <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 900, color: '#C45C26' }}>{fillIn(f.heading, SAMPLE_VARS)}</p>
           {paragraphs.map((p, i) => (

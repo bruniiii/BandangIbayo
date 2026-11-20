@@ -29,7 +29,7 @@ export const TripDatePicker = ({ dates, activeId, onPick, dark = false, disabled
               fontFamily: 'inherit', textAlign: 'left',
               border: active ? '2px solid var(--ib-accent, #B4511E)' : `1px solid ${dark ? 'rgba(var(--ib-cream-rgb, 253,246,238), 0.2)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
               background: active ? (dark ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-cream, #FDF6EE)') : (dark ? 'rgba(var(--ib-cream-rgb, 253,246,238), 0.06)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.5)'),
-              color: dark ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-dark, #1A0A00)',
+              color: dark ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)',
             }}
           >
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800 }}>
@@ -39,7 +39,7 @@ export const TripDatePicker = ({ dates, activeId, onPick, dark = false, disabled
                 background: active ? 'radial-gradient(circle, var(--ib-accent, #B4511E) 45%, transparent 50%)' : 'transparent',
               }} />
               {formatDateRange(d.start_date, d.duration)}
-              {isOnSale(d) && <span style={{ background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Sale {Math.round(SALE_DISCOUNT * 100)}% off</span>}
+              {isOnSale(d) && <span style={{ background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Sale {Math.round(SALE_DISCOUNT * 100)}% off</span>}
             </span>
             <span style={{ fontSize: 11.5, fontWeight: 800, whiteSpace: 'nowrap', color: full ? (dark ? 'var(--ib-amber, #E8A265)' : 'var(--ib-red, #8C2F1C)') : dark ? 'rgba(var(--ib-soft-rgb, 232,210,190), 0.9)' : 'var(--ib-rust, #7A3A18)' }}>
               {slotsText(d)}
@@ -60,7 +60,7 @@ export const TripDateLines = ({ dates, max = 3, showSlots = true, fontSize = 11.
       {shown.map((d) => (
         <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           <Calendar size={12} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} />
-          <span style={{ flex: 1, minWidth: 0 }}>{formatDateRange(d.start_date, d.duration)} {isOnSale(d) && <span style={{ background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Sale {Math.round(SALE_DISCOUNT * 100)}% off</span>}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>{formatDateRange(d.start_date, d.duration)} {isOnSale(d) && <span style={{ background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Sale {Math.round(SALE_DISCOUNT * 100)}% off</span>}</span>
           {showSlots && (
             <span style={{ fontSize: fontSize - 0.5, letterSpacing: '0.06em', color: (d.available_slots ?? 1) <= 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-rust, #7A3A18)', whiteSpace: 'nowrap' }}>{slotsText(d)}</span>
           )}

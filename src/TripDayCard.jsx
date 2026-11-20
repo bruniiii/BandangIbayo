@@ -65,18 +65,18 @@ const TripDayCard = ({ booking }) => {
   return (
     <section aria-label={`Day trip: ${tour.title}`} style={{
       background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, overflow: 'hidden',
-      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', boxShadow: '0 10px 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.10)',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', boxShadow: '0 10px 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.10)',
     }}>
       {/* header */}
-      <div style={{ background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', padding: '1.1rem 1.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', padding: '1.1rem 1.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0 }}>
           <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)', margin: 0 }}>Day trip</p>
-          <h3 style={{ fontSize: 20, color: 'var(--ib-cream, #FDF6EE)', margin: '4px 0 2px', lineHeight: 1.2 }}>{tour.title}</h3>
-          <p style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.85)', margin: 0 }}>
+          <h3 style={{ fontSize: 20, color: 'var(--ib-on-ink, #FDF6EE)', margin: '4px 0 2px', lineHeight: 1.2 }}>{tour.title}</h3>
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)', margin: 0 }}>
             {formatDateRange(tour.start_date, tour.duration)} · {booking.slots_booked || 1} {booking.slots_booked === 1 ? 'person' : 'persons'} · {booking.booking_number}
           </p>
         </div>
-        <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>
+        <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>
           {whenLabel(tour)}
         </span>
       </div>

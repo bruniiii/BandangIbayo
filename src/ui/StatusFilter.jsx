@@ -52,9 +52,9 @@ const StatusFilter = ({ statuses, value, onChange, count, style }) => {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: on ? (tone?.bg || 'var(--ib-dark, #1A0A00)') : 'var(--ib-cream, #FDF6EE)', color: on ? (tone?.color || 'var(--ib-cream, #FDF6EE)') : 'var(--ib-brown, #5C2A10)',
+              background: on ? (tone?.bg || 'var(--ib-ink, #1A0A00)') : 'var(--ib-cream, #FDF6EE)', color: on ? (tone?.color || 'var(--ib-on-ink, #FDF6EE)') : 'var(--ib-brown, #5C2A10)',
               border: `${on ? 2 : 1}px solid ${on ? (tone?.dot || 'var(--ib-dark, #1A0A00)') : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
-              boxShadow: on ? '0 6px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.12)' : 'none', transition: 'background 0.15s, color 0.15s',
+              boxShadow: on ? '0 6px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12)' : 'none', transition: 'background 0.15s, color 0.15s',
             }}
           >
             {tone && <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: '50%', background: tone.dot, flexShrink: 0 }} />}

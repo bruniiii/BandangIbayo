@@ -167,7 +167,7 @@ const SalesSummary = ({ onData }) => {
               <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => pickKind(k)} style={{
                 border: 'none', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: kind === k ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: kind === k ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+                background: kind === k ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: kind === k ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
               }}>{l}</button>
             ))}
           </div>
@@ -266,7 +266,7 @@ const Stat = ({ icon, label, value, sub, tone }) => (
 
 const card = {
   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
-  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 };
 const selectStyle = {
   background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12, padding: '9px 12px',

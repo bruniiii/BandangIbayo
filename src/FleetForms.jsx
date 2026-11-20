@@ -30,7 +30,7 @@ const label = { display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: 
 const btn = (main) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, padding: '0 18px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
+  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 
 // ── Add or change one driver ──

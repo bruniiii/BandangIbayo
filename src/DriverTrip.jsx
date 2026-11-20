@@ -182,7 +182,7 @@ const DriverTrip = () => {
         </div>
 
         {/* Big status + Start / End */}
-        <div style={{ background: sharing ? '#1F6B4A' : 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ background: sharing ? '#1F6B4A' : 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 20, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Navigation size={16} /> {sharing ? 'Sharing the van\'s location' : 'Not sharing yet'}
           </p>
@@ -200,12 +200,12 @@ const DriverTrip = () => {
           {!sharing ? (
             <button type="button" onClick={start} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '18px', borderRadius: 16, border: 'none', cursor: 'pointer',
-              background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', fontWeight: 900, fontSize: 16, letterSpacing: '0.08em', textTransform: 'uppercase',
+              background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', fontFamily: 'inherit', fontWeight: 900, fontSize: 16, letterSpacing: '0.08em', textTransform: 'uppercase',
             }}><Navigation size={20} /> Start Trip</button>
           ) : (
             <button type="button" onClick={stop} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px', borderRadius: 16, border: '2px solid var(--ib-cream, #FDF6EE)', cursor: 'pointer',
-              background: 'transparent', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
+              background: 'transparent', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
             }}><Square size={16} /> End Trip</button>
           )}
         </div>
@@ -226,7 +226,7 @@ const DriverTrip = () => {
           <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Pickup stops</p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {stops.map((s, i) => (
-              <li key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.status === 'ARRIVED' ? 'rgba(31,107,74,0.1)' : '#FFF', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 12, padding: '10px 12px' }}>
+              <li key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.status === 'ARRIVED' ? 'rgba(31,107,74,0.1)' : 'var(--ib-surface, #FFF)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 12, padding: '10px 12px' }}>
                 {s.status === 'ARRIVED' ? <CheckCircle2 size={18} color="#1F6B4A" /> : <MapPin size={18} color="var(--ib-accent, #B4511E)" />}
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{i + 1}. {s.name}</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: liveTimes[i] ? '#1F6B4A' : 'var(--ib-rust, #7A3A18)', textAlign: 'right' }}>

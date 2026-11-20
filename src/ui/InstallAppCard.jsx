@@ -41,7 +41,7 @@ const InstallAppCard = () => {
       background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 20,
       padding: '1rem 1.25rem',
     }}>
-      <div style={{ width: 46, height: 46, borderRadius: 14, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ width: 46, height: 46, borderRadius: 14, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Smartphone size={22} />
       </div>
       <div style={{ flex: '1 1 220px', minWidth: 0 }}>
@@ -59,7 +59,7 @@ const InstallAppCard = () => {
       {canPrompt && (
         <button type="button" onClick={install} style={{
           display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 14,
-          border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900,
+          border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900,
           fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap',
         }}>
           <Download size={14} /> Install

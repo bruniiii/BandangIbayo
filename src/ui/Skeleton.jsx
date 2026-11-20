@@ -16,7 +16,7 @@ export const SkeletonRegion = ({ label = 'Loading', children, style }) => (
 
 const card = {
   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, overflow: 'hidden',
-  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 };
 
 // Tour cards (Explore Tours, Tour Management, landing, /tours).

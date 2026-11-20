@@ -39,10 +39,10 @@ const PaymentPhoneBox = ({ initial, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={() => onClose(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
+      <div onClick={() => onClose(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
       <form role="dialog" aria-modal="true" aria-labelledby="pay-phone-title" onSubmit={submit} noValidate style={{
         position: 'relative', width: '100%', maxWidth: 420, background: COLORS.cream, borderRadius: 22, padding: '1.6rem',
-        boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', borderTop: `6px solid ${COLORS.primary}`,
+        boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', borderTop: `6px solid ${COLORS.primary}`,
       }}>
         <h2 id="pay-phone-title" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 17, color: 'var(--ib-dark, #1A0A00)' }}>
           <Phone size={18} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Your contact number
@@ -57,7 +57,7 @@ const PaymentPhoneBox = ({ initial, onClose }) => {
           aria-invalid={!!problem}
           style={{
             width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
-            color: 'var(--ib-dark, #1A0A00)', background: '#FFFDF9', outline: 'none', border: `1px solid ${problem ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
+            color: 'var(--ib-dark, #1A0A00)', background: 'var(--ib-surface, #FFFDF9)', outline: 'none', border: `1px solid ${problem ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
           }}
         />
         {problem && <p role="alert" style={{ margin: '6px 2px 0', fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{problem}</p>}

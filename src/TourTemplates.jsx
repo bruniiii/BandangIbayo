@@ -16,11 +16,11 @@ import { parseItinerary, serializeItinerary } from './itinerary';
 //   <TourTemplatePicker onUse={(trip) => …} onBlank={() => …} onClose={…} />
 // ─────────────────────────────────────────────
 
-const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)' };
+const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)' };
 const btn = (main) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, padding: '0 18px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
+  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 const sectionTitle = { margin: '14px 0 6px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' };
 
@@ -111,7 +111,7 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label={onBlank ? 'Create a tour' : 'Use a template'} style={{ ...card, position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto' }}>
         <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
 
@@ -134,7 +134,7 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
                   <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '10px 12px' }}>
                     {t.data?.image_urls?.[0]
                       ? <img src={t.data.image_urls[0]} alt="" style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                      : <span style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><LayoutTemplate size={18} /></span>}
+                      : <span style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><LayoutTemplate size={18} /></span>}
                     <button type="button" onClick={() => choose(t)} style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
                       <span style={{ display: 'block', fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{t.name}</span>
                       <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{t.data?.destination || ''}{t.data?.price ? ` · ${formatPeso(t.data.price)}` : ''}</span>

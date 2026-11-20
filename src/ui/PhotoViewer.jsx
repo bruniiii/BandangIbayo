@@ -10,7 +10,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const round = {
   position: 'absolute', width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer',
-  background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.16)', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.16)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
 
 const PhotoViewer = ({ images = [], start = 0, onClose }) => {
@@ -44,7 +44,7 @@ const PhotoViewer = ({ images = [], start = 0, onClose }) => {
         if (Math.abs(d) > 50) { e.stopPropagation(); go(d > 0 ? i - 1 : i + 1); }
       }}
       style={{
-        position: 'fixed', inset: 0, zIndex: 20000, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.94)',
+        position: 'fixed', inset: 0, zIndex: 20000, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.94)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '64px 12px', boxSizing: 'border-box', touchAction: 'pan-y',
       }}
     >
@@ -58,7 +58,7 @@ const PhotoViewer = ({ images = [], start = 0, onClose }) => {
         <>
           <button type="button" aria-label="Previous photo" onClick={(e) => { e.stopPropagation(); go(i - 1); }} style={{ ...round, left: 10, top: '50%', transform: 'translateY(-50%)' }}><ChevronLeft size={24} /></button>
           <button type="button" aria-label="Next photo" onClick={(e) => { e.stopPropagation(); go(i + 1); }} style={{ ...round, right: 10, top: '50%', transform: 'translateY(-50%)' }}><ChevronRight size={24} /></button>
-          <p style={{ position: 'absolute', bottom: 18, left: 0, right: 0, margin: 0, textAlign: 'center', color: 'var(--ib-cream, #FDF6EE)', fontSize: 13, fontWeight: 800, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}>
+          <p style={{ position: 'absolute', bottom: 18, left: 0, right: 0, margin: 0, textAlign: 'center', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 13, fontWeight: 800, fontFamily: "'Outfit', 'Inter', system-ui, sans-serif" }}>
             {i + 1} / {count}
           </p>
         </>

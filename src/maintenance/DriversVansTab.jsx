@@ -58,7 +58,7 @@ const DriversVansTab = () => {
           return (
             <button key={t[0]} type="button" role="tab" aria-selected={kind === t[0]} onClick={() => setKind(t[0])} style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit',
-              fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', background: kind === t[0] ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: kind === t[0] ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+              fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', background: kind === t[0] ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: kind === t[0] ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
             }}><Icon size={14} /> {t[1]}</button>
           );
         })}
@@ -88,8 +88,8 @@ const DriversVansTab = () => {
       />
       {editing && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={() => setEditing(null)} />
-          <div role="dialog" aria-modal="true" aria-label={title} style={{ position: 'relative', width: '100%', maxWidth: 600, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={() => setEditing(null)} />
+          <div role="dialog" aria-modal="true" aria-label={title} style={{ position: 'relative', width: '100%', maxWidth: 600, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{title}</h3>
               <button type="button" className="x-close" onClick={() => setEditing(null)} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>

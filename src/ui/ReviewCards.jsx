@@ -21,7 +21,7 @@ export const ReviewCard = ({ review, compact = false }) => {
   return (
   <article style={{
     background: 'var(--ib-cream, #FDF6EE)', borderRadius: compact ? 18 : 22, padding: compact ? '1.1rem 1.2rem' : '1.5rem',
-    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 18px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
     display: 'flex', flexDirection: 'column', gap: compact ? 10 : 14, height: '100%', boxSizing: 'border-box',
   }}>
     {!compact && review.photo_url && (
@@ -45,7 +45,7 @@ export const ReviewCard = ({ review, compact = false }) => {
       {review.reviewer_avatar ? (
         <img src={review.reviewer_avatar} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
       ) : (
-        <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, flexShrink: 0 }}>
+        <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, flexShrink: 0 }}>
           {initials(review.reviewer_name)}
         </span>
       )}

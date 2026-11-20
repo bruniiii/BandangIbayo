@@ -70,7 +70,7 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
         }}
       >
         {/* Same look as the site's other date boxes (NiceDate). */}
-        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: start ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: start ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
+        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: start ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: start ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
           <Calendar size={14} />
         </span>
         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
@@ -82,7 +82,7 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
           position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 50,
           width: 300, maxWidth: 'calc(100vw - 48px)', boxSizing: 'border-box',
           background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.22)', borderRadius: 18,
-          boxShadow: '0 18px 44px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)', padding: 14,
+          boxShadow: '0 18px 44px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)', padding: 14,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <button type="button" onClick={() => shift(-1)} disabled={!canGoBack} aria-label="Previous month" style={navBtn(!canGoBack)}><ChevronLeft size={16} /></button>
@@ -112,7 +112,7 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
                     height: 36, border: 'none', borderRadius: 10, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 800,
                     cursor: disabled ? 'default' : 'pointer',
                     background: isEdge ? 'var(--ib-accent, #B4511E)' : inRange || isHoverEnd ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.16)' : 'transparent',
-                    color: isEdge ? 'var(--ib-cream, #FDF6EE)' : disabled ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-dark, #1A0A00)',
+                    color: isEdge ? 'var(--ib-on-ink, #FDF6EE)' : disabled ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-dark, #1A0A00)',
                   }}
                 >
                   {Number(day.slice(8))}

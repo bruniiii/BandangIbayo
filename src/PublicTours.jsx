@@ -13,6 +13,7 @@ import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, g
 import PriceTag from './ui/PriceTag';
 import { TripDatePicker } from './ui/TripDates';
 import logoIcon from './assets/logo.png';
+import ThemeToggle from './ui/ThemeToggle';
 import EmptyState from './ui/EmptyState';
 import { CalendarClock } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRegion, Skel } from './ui/Skeleton';
@@ -65,6 +66,7 @@ const PublicNav = ({ session }) => {
       </span>
     </Link>
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+      <ThemeToggle style={{ borderRadius: '50%' }} />
       {/* Already on the list: go back to the top instead of doing nothing. */}
       <Link
         to="/tours"
@@ -93,7 +95,7 @@ const navLink = {
 };
 const navCta = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  fontSize: 13, fontWeight: 900, color: 'var(--ib-cream, #FDF6EE)', textDecoration: 'none',
+  fontSize: 13, fontWeight: 900, color: 'var(--ib-on-ink, #FDF6EE)', textDecoration: 'none',
   background: 'var(--ib-accent, #B4511E)', borderRadius: 10, padding: '9px 16px',
   letterSpacing: '0.04em', whiteSpace: 'nowrap',
 };
@@ -250,7 +252,7 @@ export const PublicTourDetail = () => {
                 <Skel h={300} r={18} style={{ marginTop: 12 }} />
                 <Skel w="25%" h={10} style={{ marginTop: 12 }} /><Skel w="95%" h={12} /><Skel w="85%" h={12} /><Skel w="60%" h={12} />
               </div>
-              <div style={{ background: 'var(--ib-dark, #1A0A00)', borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ background: 'var(--ib-ink, #1A0A00)', borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <Skel dark w="40%" h={10} /><Skel dark w="60%" h={30} /><Skel dark w="85%" h={10} />
                 <Skel dark h={44} r={12} /><Skel dark h={44} r={12} />
                 <Skel dark w="70%" h={12} /><Skel dark w="55%" h={12} />
@@ -354,13 +356,13 @@ export const PublicTourDetail = () => {
 
           {/* ── Right: price and booking ── */}
           <aside className="public-tour-aside" style={{
-            position: 'sticky', top: 88, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+            position: 'sticky', top: 88, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
             borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 18,
-            boxShadow: '0 16px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.18)',
+            boxShadow: '0 16px 40px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)',
           }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>Price per joiner</div>
-              <PriceTag tour={tour} size={34} color="var(--ib-cream, #FDF6EE)" mutedColor="rgba(var(--ib-soft-rgb, 232,210,190), 0.75)" align="flex-start" />
+              <PriceTag tour={tour} size={34} color="var(--ib-on-ink, #FDF6EE)" mutedColor="rgba(var(--ib-soft-rgb, 232,210,190), 0.75)" align="flex-start" />
               <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>Pay in full or {DOWNPAYMENT_PERCENT}% downpayment online (GCash, Maya, card)</div>
             </div>
 
@@ -375,7 +377,7 @@ export const PublicTourDetail = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {facts.map(([icon, text], i) => (
-                <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.9)' }}>
+                <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.9)' }}>
                   <span style={{ color: 'var(--ib-amber, #E8A265)', display: 'flex' }}>{icon}</span>{text}
                 </p>
               ))}
@@ -383,7 +385,7 @@ export const PublicTourDetail = () => {
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 800, marginBottom: 6 }}>
-                <span style={{ color: isFull ? 'var(--ib-amber, #E8A265)' : 'var(--ib-cream, #FDF6EE)' }}>
+                <span style={{ color: isFull ? 'var(--ib-amber, #E8A265)' : 'var(--ib-on-ink, #FDF6EE)' }}>
                   {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
                 </span>
                 <span style={{ color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>{tour.current_booked} / {capacity}</span>
@@ -402,7 +404,7 @@ export const PublicTourDetail = () => {
                 fontSize: 14, fontWeight: 900, letterSpacing: '0.04em',
                 cursor: canBook ? 'pointer' : 'not-allowed',
                 background: canBook ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)',
-                color: canBook ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.85)',
+                color: canBook ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
               }}
             >
               {hasDeparted ? 'This tour has departed' : isFull ? (session ? 'Join the waitlist' : 'Log in to join the waitlist') : session ? 'Book this tour' : 'Log in to book'}
@@ -418,7 +420,7 @@ export const PublicTourDetail = () => {
               onClick={handleShare}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                border: '1.5px solid rgba(var(--ib-soft-rgb, 232,210,190), 0.25)', background: 'transparent', color: 'var(--ib-cream, #FDF6EE)',
+                border: '1.5px solid rgba(var(--ib-soft-rgb, 232,210,190), 0.25)', background: 'transparent', color: 'var(--ib-on-ink, #FDF6EE)',
                 borderRadius: 14, padding: '12px 18px', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer',
               }}
             >
@@ -431,12 +433,12 @@ export const PublicTourDetail = () => {
       {/* Phones: the booking card sits below the itinerary, so keep Book reachable. */}
       <div className="public-tour-mobilebar" style={{
         display: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40,
-        background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', padding: '12px 16px',
+        background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', padding: '12px 16px',
         alignItems: 'center', justifyContent: 'space-between', gap: 12,
-        boxShadow: '0 -8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)',
+        boxShadow: '0 -8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
       }}>
         <div style={{ minWidth: 0 }}>
-          <PriceTag tour={tour} size={20} color="var(--ib-cream, #FDF6EE)" mutedColor="rgba(var(--ib-soft-rgb, 232,210,190), 0.75)" align="flex-start" showBadge={false} />
+          <PriceTag tour={tour} size={20} color="var(--ib-on-ink, #FDF6EE)" mutedColor="rgba(var(--ib-soft-rgb, 232,210,190), 0.75)" align="flex-start" showBadge={false} />
           <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>
             {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
           </div>
@@ -450,7 +452,7 @@ export const PublicTourDetail = () => {
             fontSize: 13, fontWeight: 900, flexShrink: 0,
             cursor: canBook ? 'pointer' : 'not-allowed',
             background: canBook ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)',
-            color: canBook ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.85)',
+            color: canBook ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
           }}
         >
           {hasDeparted ? 'Departed' : isFull ? 'Join waitlist' : session ? 'Book now' : 'Log in to book'}

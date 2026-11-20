@@ -130,8 +130,8 @@ const SearchSelect = ({
           role="listbox"
           style={{
             position: 'absolute', zIndex: 30, left: 0, right: 0, top: 'calc(100% + 4px)', margin: 0, padding: 4,
-            listStyle: 'none', maxHeight: 260, overflowY: 'auto', background: '#FFFDF9',
-            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 12, boxShadow: '0 12px 30px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)',
+            listStyle: 'none', maxHeight: 260, overflowY: 'auto', background: 'var(--ib-surface, #FFFDF9)',
+            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 12, boxShadow: '0 12px 30px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)',
           }}
         >
           {shown.length === 0 && <li style={{ padding: '12px', fontSize: 13, color: 'var(--ib-rust, #7A3A18)' }}>{emptyText}</li>}

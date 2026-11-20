@@ -38,7 +38,7 @@ const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, van = null, m
   const mineMin = mineLive ? mineLive.minutes : mineKm != null ? Math.max(1, Math.round((mineKm / speed) * 60)) : null;
 
   return (
-    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <p style={label}><Route size={14} /> The van's route</p>
       {route?.start && route?.end && (
         <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
@@ -89,7 +89,7 @@ export const EtaAutoFill = ({ stops = [], onAutoFill }) => {
         <button type="button" onClick={fill} disabled={!departure || busy} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, border: 'none',
           cursor: !departure || busy ? 'not-allowed' : 'pointer', opacity: departure ? 1 : 0.5,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Clock size={14} />} Fill In ETAs</button>
       </div>
       {preview.length > 0 && (

@@ -89,7 +89,7 @@ const ChatFilterTab = () => {
         <input value={test} maxLength={500} onChange={(e) => setTest(e.target.value)} placeholder="Try a sentence to see what gets hidden" aria-label="Test sentence" style={{ ...inp, flex: '1 1 240px' }} />
         <button type="button" style={btn(false)} disabled={!test.trim() || busy === 'test'} onClick={runTest}>{busy === 'test' ? <Loader2 size={14} style={spin} /> : null} Test</button>
       </div>
-      {tested !== '' && <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', background: '#FFFDF9', borderRadius: 10, padding: '8px 10px' }}>{tested}</p>}
+      {tested !== '' && <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', background: 'var(--ib-surface, #FFFDF9)', borderRadius: 10, padding: '8px 10px' }}>{tested}</p>}
       <RecordList
         items={rows}
         pageSize={30}

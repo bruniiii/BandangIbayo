@@ -14,7 +14,7 @@ import { confirmDialog } from './ConfirmDialog';
 const btn = (dark) => ({
   display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none',
-  background: dark ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: dark ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)',
+  background: dark ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: dark ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)',
   border: dark ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 
@@ -70,7 +70,7 @@ const DriverLinkPanel = ({ tourId }) => {
   };
 
   return (
-    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
         <Smartphone size={14} /> Driver link (live van location)
       </p>

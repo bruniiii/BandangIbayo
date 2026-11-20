@@ -143,13 +143,13 @@ const Landing = ({ landing, setLanding, canEdit, onSaved }) => {
         {landing.hero_images.map((u) => (
           <div key={u} style={{ position: 'relative', width: 110, height: 72, borderRadius: 10, overflow: 'hidden' }}>
             <img src={u} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', maxWidth: 'none' }} />
-            {canEdit && <button type="button" aria-label="Remove photo" onClick={() => setLanding({ ...landing, hero_images: landing.hero_images.filter((x) => x !== u) })} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>}
+            {canEdit && <button type="button" aria-label="Remove photo" onClick={() => setLanding({ ...landing, hero_images: landing.hero_images.filter((x) => x !== u) })} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>}
           </div>
         ))}
         {files.map((f, i) => (
           <div key={i} style={{ position: 'relative', width: 110, height: 72, borderRadius: 10, overflow: 'hidden', outline: '2px dashed var(--ib-accent, #B4511E)' }}>
             <img src={URL.createObjectURL(f)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', maxWidth: 'none' }} />
-            <button type="button" aria-label="Remove photo" onClick={() => setFiles(files.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
+            <button type="button" aria-label="Remove photo" onClick={() => setFiles(files.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
           </div>
         ))}
         {canEdit && total < 6 && (

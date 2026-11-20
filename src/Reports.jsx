@@ -679,8 +679,8 @@ const Reports = () => {
       {liveNotice && (
         <div style={{
           position: 'fixed', top: 20, right: 20, zIndex: 500,
-          background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', padding: '10px 18px', borderRadius: 12,
-          fontSize: 12, fontWeight: 800, boxShadow: '0 10px 28px rgba(var(--ib-dark-rgb, 26,10,0), 0.3)',
+          background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', padding: '10px 18px', borderRadius: 12,
+          fontSize: 12, fontWeight: 800, boxShadow: '0 10px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.3)',
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <Sparkles size={14} /> {liveNotice}
@@ -748,8 +748,8 @@ const Reports = () => {
           {/* ── Insights Panel ── */}
           {insights.length > 0 && (
             <div style={{
-              background: 'var(--ib-dark, #1A0A00)', borderRadius: 20, padding: '1.5rem 1.75rem',
-              boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)',
+              background: 'var(--ib-ink, #1A0A00)', borderRadius: 20, padding: '1.5rem 1.75rem',
+              boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <Sparkles size={15} color="var(--ib-amber, #E8A265)" />
@@ -769,7 +769,7 @@ const Reports = () => {
           {notifications.length > 0 && (
             <div style={{
               background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem 1.5rem',
-              border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+              border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
             }}>
               <SectionTitle icon={<Bell size={14} />}>Notifications</SectionTitle>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -809,7 +809,7 @@ const Reports = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 20, alignItems: 'stretch' }}>
                 <div style={{
                   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
-                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
                   <MonthComparisonChart comparison={monthlyComparison} />
@@ -817,7 +817,7 @@ const Reports = () => {
 
                 <div style={{
                   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
-                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
                   <ForecastChart forecast={forecast} />
@@ -828,14 +828,14 @@ const Reports = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20 }}>
                 <div style={{
                   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<AlertCircle size={14} />}>Booking Status Breakdown</SectionTitle>
                   <DonutChart segments={statusSegments} />
                 </div>
                 <div style={{
                   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<PieChart size={14} />}>Payment Method Split</SectionTitle>
                   <DonutChart segments={methodSegments} />
@@ -847,7 +847,7 @@ const Reports = () => {
               {/* ── Tour Performance ── */}
               <div style={{
                 background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
               }}>
                 <SectionTitle icon={<Trophy size={14} />}>Tour Performance</SectionTitle>
                 <div style={{ overflowX: 'auto', marginBottom: 20 }}>
@@ -892,7 +892,7 @@ const Reports = () => {
               {cancellationReasons.total > 0 && (
                 <div style={{
                   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<XCircle size={14} />}>Cancellation Analytics</SectionTitle>
                   <ReasonPie segments={cancellationReasons.breakdown} />
@@ -902,7 +902,7 @@ const Reports = () => {
               {/* ── Customer Analytics ── */}
               <div style={{
                 background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
               }}>
                 <SectionTitle icon={<Users size={14} />}>Customer Analytics</SectionTitle>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
@@ -946,7 +946,7 @@ const Reports = () => {
               {/* ── Seasonal Trends ── */}
               <div style={{
                 background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
               }}>
                 <SectionTitle icon={<Calendar size={14} />}>Seasonal Trends (All-Time, by Calendar Month)</SectionTitle>
                 <BarChart data={seasonalTrends.data} color="var(--ib-rust, #7A3A18)" height={170} />
@@ -972,7 +972,7 @@ const Reports = () => {
       {!loading && (
       <div style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
       }}>
         <SectionTitle icon={<Star size={14} />}>Joiner Reviews</SectionTitle>
         {reviewSummary.count === 0 ? <EmptyChartNotice /> : (

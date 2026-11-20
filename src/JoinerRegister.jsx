@@ -502,7 +502,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
       {codeStep && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 190, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)', padding: 20,
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)', padding: 20,
         }}>
           <form
             onSubmit={handleVerifyCode}
@@ -510,14 +510,14 @@ const JoinerRegister = ({ mode = 'register' }) => {
             aria-modal="true"
             aria-labelledby="code-title"
             style={{
-              background: 'var(--ib-cream, #FDF6EE)', padding: '2.5rem 2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)',
+              background: 'var(--ib-cream, #FDF6EE)', padding: '2.5rem 2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.45)',
               borderTop: '8px solid var(--ib-accent, #B4511E)', maxWidth: 420, width: '100%', boxSizing: 'border-box',
               display: 'flex', flexDirection: 'column', gap: 18,
             }}
           >
             <div style={{ textAlign: 'center' }}>
               <div style={{
-                width: 64, height: 64, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                width: 64, height: 64, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px',
               }}>
                 <MailCheck size={30} />
@@ -552,7 +552,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               type="submit"
               disabled={verifying || code.length !== 6}
               style={{
-                background: verifying || code.length !== 6 ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.45)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none',
+                background: verifying || code.length !== 6 ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.45)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
                 borderRadius: 12, padding: '14px 20px', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase',
                 cursor: verifying || code.length !== 6 ? 'default' : 'pointer', fontFamily: 'inherit',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -593,7 +593,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)',
+            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)',
             backdropFilter: 'blur(10px)',
             padding: 20,
           }}
@@ -603,7 +603,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               background: 'var(--ib-cream, #FDF6EE)',
               padding: '3.5rem',
               borderRadius: 40,
-              boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)',
+              boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.45)',
               textAlign: 'center',
               borderTop: '8px solid var(--ib-accent, #B4511E)',
               maxWidth: 420,
@@ -621,7 +621,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 justifyContent: 'center',
                 margin: '0 auto 28px',
                 boxShadow: '0 12px 32px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
-                color: 'var(--ib-cream, #FDF6EE)',
+                color: 'var(--ib-on-ink, #FDF6EE)',
               }}
             >
               <CheckCircle2 size={44} strokeWidth={2.5} />
@@ -662,7 +662,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 onClick={() => navigate(loginPath)}
                 style={{
                   marginTop: 24,
-                  background: 'var(--ib-dark, #1A0A00)',
+                  background: 'var(--ib-ink, #1A0A00)',
                   color: 'var(--ib-amber, #E8A265)',
                   border: 'none',
                   borderRadius: 10,
@@ -719,7 +719,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
           background: 'var(--ib-cream, #FDF6EE)',
           padding: '2.5rem',
           borderRadius: 24,
-          boxShadow: '0 20px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)',
+          boxShadow: '0 20px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)',
           width: '100%',
           minWidth: 0,
           boxSizing: 'border-box',
@@ -833,12 +833,12 @@ const JoinerRegister = ({ mode = 'register' }) => {
                 borderRadius: '50%',
                 overflow: 'hidden',
                 flexShrink: 0,
-                background: 'var(--ib-dark, #1A0A00)',
+                background: 'var(--ib-ink, #1A0A00)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 border: '2px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
-                boxShadow: '0 8px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.12)',
+                boxShadow: '0 8px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12)',
               }}
             >
               {avatarPreview ? (
@@ -874,7 +874,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 7,
-                    background: 'var(--ib-dark, #1A0A00)',
+                    background: 'var(--ib-ink, #1A0A00)',
                     color: 'var(--ib-amber, #E8A265)',
                     padding: '10px 14px',
                     borderRadius: 10,
@@ -1253,7 +1253,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
               background: loading
                 ? 'var(--ib-sienna, #A8481A)'
                 : 'var(--ib-sienna, #A8481A)',
-              color: 'var(--ib-cream, #FDF6EE)',
+              color: 'var(--ib-on-ink, #FDF6EE)',
               fontWeight: 900,
               fontSize: 13,
               letterSpacing: '0.1em',

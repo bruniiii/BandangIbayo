@@ -263,8 +263,8 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
               style={{
                 padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: tab === key ? 'var(--ib-dark, #1A0A00)' : 'transparent',
-                color: tab === key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+                background: tab === key ? 'var(--ib-ink, #1A0A00)' : 'transparent',
+                color: tab === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
                 transition: 'all 0.15s',
               }}
             >
@@ -389,7 +389,7 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
       style={{
         position: 'relative', display: 'flex', alignItems: 'flex-start', gap: 12,
         padding: '14px 16px', borderRadius: 16, cursor: 'pointer',
-        background: notification.is_read ? (hovered ? '#F8F3EA' : 'var(--ib-cream, #FDF6EE)') : (hovered ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)'),
+        background: notification.is_read ? (hovered ? 'var(--ib-surface-2, #F8F3EA)' : 'var(--ib-cream, #FDF6EE)') : (hovered ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)'),
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)',
         transition: 'background 0.15s',
       }}
@@ -434,7 +434,7 @@ const NotificationRow = ({ notification, menuOpen, onToggleMenu, menuRef, onOpen
           style={{
             position: 'absolute', top: 44, right: 12, zIndex: 20,
             background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12,
-            boxShadow: '0 12px 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)', overflow: 'hidden', minWidth: 150,
+            boxShadow: '0 12px 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)', overflow: 'hidden', minWidth: 150,
           }}
         >
           <button

@@ -183,7 +183,7 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
           background: 'var(--ib-cream, #FDF6EE)',
           borderRadius: 20, padding: '14px 18px',
           border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-          boxShadow: '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+          boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
           display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
           marginBottom: 24,
         }}>
@@ -260,7 +260,7 @@ const RequestRow = ({ request, onView }) => {
       style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 18, padding: '1.1rem 1.4rem',
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-        boxShadow: hovered ? '0 8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.1)' : '0 2px 10px rgba(var(--ib-dark-rgb, 26,10,0), 0.04)',
+        boxShadow: hovered ? '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)' : '0 2px 10px rgba(var(--ib-shadow-rgb, 26,10,0), 0.04)',
         cursor: 'pointer', transition: 'all 0.2s',
         display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap',
       }}
@@ -410,7 +410,7 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
 
   return (
     <div style={{
-      background: isPaid ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 18, padding: '1.25rem 1.5rem',
+      background: isPaid ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 18, padding: '1.25rem 1.5rem',
       border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
       display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
     }}>
@@ -423,7 +423,7 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
           {isPaid ? <CheckCircle2 size={14} /> : <Wallet size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}
           {title}
         </p>
-        <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6, margin: 0, color: isPaid ? 'rgba(var(--ib-cream-rgb, 253,246,238), 0.9)' : 'var(--ib-rust, #7A3A18)' }}>{text}</p>
+        <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6, margin: 0, color: isPaid ? 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.9)' : 'var(--ib-rust, #7A3A18)' }}>{text}</p>
       </div>
       {action && (
         <button
@@ -543,11 +543,11 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 680,
-        borderRadius: 24, borderTop: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+        borderRadius: 24, borderTop: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
         overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
@@ -708,7 +708,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 onClick={() => setShowPackageForm(true)}
                 style={{
                   alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '12px 22px', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
+                  padding: '12px 22px', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
                   border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                 }}
@@ -776,7 +776,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '13px 26px',
-                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
                 fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',

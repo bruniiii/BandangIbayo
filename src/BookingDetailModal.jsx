@@ -164,11 +164,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 760,
-        borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+        borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
         overflow: 'hidden',
         borderTop: '6px solid var(--ib-accent, #B4511E)',
         maxHeight: '92dvh',
@@ -374,7 +374,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={decideCancellation} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <button type="button" onClick={decideCancellation} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {deciding === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve Cancellation
                 </button>
               </div>
@@ -452,7 +452,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '13px 26px',
-                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -492,11 +492,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '13px 22px',
-                        background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
+                        background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
                         fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.28)', flexShrink: 0,
+                        boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)', flexShrink: 0,
                       }}
                     >
                       <Printer size={14} /> {text}
@@ -518,7 +518,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '13px 26px',
-                    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                     border: 'none', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900,
                     fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -547,11 +547,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '13px 22px',
-                        background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
+                        background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
                         fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.28)', flexShrink: 0,
+                        boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)', flexShrink: 0,
                       }}
                     >
                       <Printer size={14} /> {text}
@@ -569,12 +569,12 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
         <div style={{
           position: 'fixed', inset: 0, zIndex: 10050,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(4px)', padding: 16,
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(4px)', padding: 16,
         }}>
           <div style={{
             position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
             width: '100%', maxWidth: 420,
-            borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+            borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
             borderTop: '7px solid var(--ib-accent, #B4511E)',
             padding: '2rem',
           }}>
@@ -622,7 +622,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '12px 24px',
-                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                   border: 'none', borderRadius: 999, cursor: balanceReceived ? 'pointer' : 'not-allowed',
                   opacity: balanceReceived ? 1 : 0.45,
                   fontFamily: 'inherit', fontWeight: 900,
@@ -650,7 +650,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           <button className="x-close" style={{
             position: 'absolute', top: 32, right: 32,
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--ib-cream, #FDF6EE)',
+            color: 'var(--ib-on-ink, #FDF6EE)',
           }}>
             <X size={40} />
           </button>
@@ -674,13 +674,13 @@ const ReceiptThumb = ({ src, onClick }) => {
       style={{
         position: 'relative', borderRadius: 16, overflow: 'hidden',
         cursor: 'pointer', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
-        boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.1)',
+        boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)',
       }}
     >
       <img src={src} style={{ width: '100%', height: 160, objectFit: 'cover', objectPosition: 'top', display: 'block', transform: hovered ? 'scale(1.03)' : 'scale(1)', transition: 'transform 0.3s' }} alt="GCash Receipt" />
       <div style={{
         position: 'absolute', inset: 0,
-        background: hovered ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.45)' : 'rgba(var(--ib-dark-rgb, 26,10,0), 0)',
+        background: hovered ? 'rgba(var(--ib-ink-rgb, 26,10,0), 0.45)' : 'rgba(var(--ib-dark-rgb, 26,10,0), 0)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.2s',
       }}>

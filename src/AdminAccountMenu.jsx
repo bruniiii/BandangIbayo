@@ -44,7 +44,7 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
           <span style={{ display: 'block', fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.1, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me.name || 'Administrator'}</span>
           <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginTop: 3, lineHeight: 1 }}>{me.isMain ? 'Main Admin' : 'Admin'} · Bandang IBAYO</span>
         </span>
-        <BrandAvatar size={38} style={{ boxShadow: '0 4px 12px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)' }} />
+        <BrandAvatar size={38} style={{ boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)' }} />
         <ChevronDown size={14} style={{ color: 'var(--ib-sienna, #A8481A)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
 
@@ -52,7 +52,7 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
         <div role="menu" style={{
           position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 400, minWidth: 240,
           background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 16,
-          boxShadow: '0 18px 44px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)', padding: 8,
+          boxShadow: '0 18px 44px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)', padding: 8,
         }}>
           {email && (
             <p style={{ margin: 0, padding: '8px 12px 10px', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', overflowWrap: 'anywhere' }}>
@@ -108,8 +108,8 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
 
       {editingName && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setEditingName(false)} />
-          <div role="dialog" aria-label="Edit my name" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setEditingName(false)} />
+          <div role="dialog" aria-label="Edit my name" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)' }}>
             <button type="button" onClick={() => setEditingName(false)} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={18} /></button>
             <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 8 }}><UserRound size={16} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Your Name</h3>
             <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>Shown at the top right and on the receipts of payments you process.</p>
@@ -120,7 +120,7 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
 
       {changing && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setChanging(false)} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setChanging(false)} />
           <div role="dialog" aria-label="Change password" style={{ position: 'relative', width: '100%', maxWidth: 620, maxHeight: '92dvh', overflowY: 'auto', borderRadius: 22 }}>
             <button className="x-close" type="button" onClick={() => setChanging(false)} aria-label="Close" style={{
               position: 'absolute', top: 14, right: 14, zIndex: 1, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)',

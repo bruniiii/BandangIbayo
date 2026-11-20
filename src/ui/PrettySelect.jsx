@@ -72,7 +72,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
         }}
       >
         {Icon && (
-          <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: selected ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
+          <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: selected ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
             <Icon size={14} />
           </span>
         )}
@@ -88,7 +88,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
           ref={listRef} id={listId} role="listbox" aria-labelledby={btnId}
           style={{
             position: 'absolute', zIndex: 50, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), ...(toLeft ? { right: 0 } : { left: 0 }), minWidth: '100%', width: 'max-content', maxWidth: 'min(300px, calc(100vw - 32px))', boxSizing: 'border-box', margin: 0, padding: 6, listStyle: 'none',
-            background: '#FFFDF9', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', boxShadow: '0 18px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.18)',
+            background: 'var(--ib-surface, #FFFDF9)', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', boxShadow: '0 18px 40px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)',
             maxHeight: 264, overflowY: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable', animation: 'ps-in 0.14s ease-out',
           }}
         >

@@ -44,7 +44,7 @@ const MonthComparisonChart = ({ comparison }) => {
           <button key={m.key} type="button" aria-pressed={metricKey === m.key} onClick={() => setMetricKey(m.key)} style={{
             padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-            background: metricKey === m.key ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: metricKey === m.key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+            background: metricKey === m.key ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: metricKey === m.key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>{m.label}</button>
         ))}
       </div>
@@ -94,7 +94,7 @@ const MonthComparisonChart = ({ comparison }) => {
         {hover && (
           <div style={{
             position: 'absolute', top: 6, left: `${(x(hover.day - 1) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
-            background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
           }}>
             Day {hover.day}: {hover.now != null ? metric.format(hover.now) : '—'} vs {hover.before != null ? metric.format(hover.before) : '—'}
           </div>
@@ -132,7 +132,7 @@ const ForecastChart = ({ forecast }) => {
           <button key={key} type="button" aria-pressed={metric === key} onClick={() => setMetric(key)} style={{
             padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-            background: metric === key ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: metric === key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+            background: metric === key ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: metric === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>{label}</button>
         ))}
       </div>
@@ -170,13 +170,13 @@ const ForecastChart = ({ forecast }) => {
           <path d={line(actual.map((v, i) => [i, v]))} fill="none" stroke="var(--ib-accent, #B4511E)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
           <path d={line([[last, actual[last]], [labels.length - 1, predicted]])} fill="none" stroke="var(--ib-amber, #E8A265)" strokeWidth="3" strokeDasharray="6 5" />
           {actual.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r="3.5" fill="var(--ib-accent, #B4511E)" />)}
-          <circle cx={x(labels.length - 1)} cy={y(predicted)} r="5" fill="var(--ib-cream, #FDF6EE)" stroke="var(--ib-amber, #E8A265)" strokeWidth="3" />
+          <circle cx={x(labels.length - 1)} cy={y(predicted)} r="5" fill="var(--ib-on-ink, #FDF6EE)" stroke="var(--ib-amber, #E8A265)" strokeWidth="3" />
           {hover != null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} stroke="rgba(var(--ib-dark-rgb, 26,10,0), 0.25)" strokeDasharray="3 3" />}
         </svg>
         {hover != null && (
           <div style={{
             position: 'absolute', top: 6, left: `${(x(hover) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
-            background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
           }}>
             {labels[hover]}: {fmt(values[hover])}{hover === labels.length - 1 ? ' (expected)' : hover === last ? ' (so far)' : ''}
           </div>
@@ -343,7 +343,7 @@ const PieChart = ({ segments, size = 180, format = (v) => v }) => {
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img"
           aria-label={`Pie chart: ${slices.map((s) => `${s.label} ${format(s.value)} (${pct(s.value)}%)`).join(', ')}`}>
           {slices.map((s, i) => (
-            <path key={s.label} d={s.d} fill={s.color} stroke="var(--ib-cream, #FDF6EE)" strokeWidth={2} strokeLinejoin="round"
+            <path key={s.label} d={s.d} fill={s.color} stroke="var(--ib-on-ink, #FDF6EE)" strokeWidth={2} strokeLinejoin="round"
               opacity={hover == null || hover === i ? 1 : 0.45}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
               style={{ cursor: 'default', transition: 'opacity 0.15s' }} />
@@ -352,8 +352,8 @@ const PieChart = ({ segments, size = 180, format = (v) => v }) => {
         {active && (
           <div role="tooltip" style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', maxWidth: 260, textAlign: 'center',
-            background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 700,
-            whiteSpace: 'normal', width: 'max-content', lineHeight: 1.35, boxShadow: '0 6px 18px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)', zIndex: 2,
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 700,
+            whiteSpace: 'normal', width: 'max-content', lineHeight: 1.35, boxShadow: '0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)', zIndex: 2,
           }}>
             {active.label}: {format(active.value)} ({pct(active.value)}%)
           </div>
@@ -391,7 +391,7 @@ const FunnelChart = ({ steps }) => {
                 {s.value}{dropOff !== null && dropOff > 0 && <span style={{ color: 'var(--ib-red, #8C2F1C)', fontWeight: 700, marginLeft: 6, fontSize: 11.5 }}>-{dropOff}%</span>}
               </span>
             </div>
-            <div style={{ width: `${widthPct}%`, minWidth: 60, height: 32, background: 'var(--ib-dark, #1A0A00)', borderRadius: 10, opacity: 0.85 - i * 0.12, transition: 'width 0.4s' }} />
+            <div style={{ width: `${widthPct}%`, minWidth: 60, height: 32, background: 'var(--ib-ink, #1A0A00)', borderRadius: 10, opacity: 0.85 - i * 0.12, transition: 'width 0.4s' }} />
           </div>
         );
       })}
@@ -472,10 +472,10 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
     style={{
       opacity: disabled ? 0.55 : 1,
       display: 'flex', alignItems: 'center', gap: 7,
-      background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', borderRadius: 999,
+      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', borderRadius: 999,
       padding: '10px 18px', fontFamily: 'inherit', fontWeight: 900,
       fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: disabled ? 'not-allowed' : 'pointer',
-      boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)',
+      boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
     }}
   >
     {icon} {label}

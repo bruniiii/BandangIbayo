@@ -23,7 +23,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
         background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 22, overflow: 'hidden',
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         // Grows a little when the mouse is over it.
         transform: hovered ? 'translateY(-5px) scale(1.07)' : 'none',
         position: 'relative', zIndex: hovered ? 2 : 'auto',
@@ -34,7 +34,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
-      <div style={{ height: 186, background: '#E8D5BC', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ height: 186, background: 'var(--ib-surface-2, #E8D5BC)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
         {tour.image_urls?.[0]
           ? <img loading="lazy" decoding="async" src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="Primary" />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={44} /></div>
@@ -50,14 +50,14 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
         <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
           {isLive && !tour.is_archived && (
             <span style={{
-              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
               borderRadius: 999, padding: '4px 10px',
               fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
             }}>● Live</span>
           )}
           {tour.is_archived && (
             <span style={{
-              background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', color: 'var(--ib-cream, #FDF6EE)',
+              background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', color: 'var(--ib-on-ink, #FDF6EE)',
               borderRadius: 999, padding: '4px 10px',
               fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
             }}>Archived</span>
@@ -70,7 +70,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
             <h3 style={{ fontSize: 16, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.2, margin: 0, flex: 1 }}>
-              {exclusive && <span title="A private tour: only its joiner sees it" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6, padding: '2px 8px', borderRadius: 999, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontSize: 9.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
+              {exclusive && <span title="A private tour: only its joiner sees it" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6, padding: '2px 8px', borderRadius: 999, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontSize: 9.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
               {tour.title}
             </h3>
             <PriceTag tour={tour} size={15} style={{ marginLeft: 10, flexShrink: 0 }} />
@@ -93,13 +93,13 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 6, rowGap: 4, fontSize: 11, fontWeight: 700, color: full ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)', marginTop: 3, paddingLeft: 18 }}>
                       <span style={{ whiteSpace: 'nowrap' }}>{d.current_booked ?? 0} / {d.group_size || 18} booked</span>
                       {d.sale_starts && d.sale_ends && (
-                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: isOnSale(d) ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-red, #8C2F1C)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: isOnSale(d) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {isOnSale(d) ? 'On sale' : 'Sale soon'}
                         </span>
                       )}
                       {full && <span style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: 'var(--ib-sienna, #A8481A)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>Full</span>}
                       {d.weather_status && (
-                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? 'var(--ib-red, #8C2F1C)' : '#3F5D62', color: 'var(--ib-cream, #FDF6EE)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? 'var(--ib-red, #8C2F1C)' : '#3F5D62', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {d.weather_status === 'cancelled' ? 'Cancelled' : 'Postponed'}
                         </span>
                       )}

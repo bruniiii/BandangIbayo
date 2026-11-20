@@ -333,9 +333,9 @@ const DOT = { sent: 'var(--ib-accent, #B4511E)', paymongo_succeeded: 'var(--ib-a
 const nowOf = (steps) => {
   const last = [...steps].reverse().find((r) => r.action !== 'paymongo_succeeded') || steps[steps.length - 1];
   switch (last?.action) {
-    case 'received': return { t: 'Done · joiner received it', bg: 'var(--ib-dark, #1A0A00)', fg: 'var(--ib-amber, #E8A265)' };
-    case 'not_received': return { t: "Joiner didn't get it", bg: 'var(--ib-red, #8C2F1C)', fg: 'var(--ib-cream, #FDF6EE)' };
-    case 'sent': return { t: 'Sent · waiting for the joiner', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-cream, #FDF6EE)' };
+    case 'received': return { t: 'Done · joiner received it', bg: 'var(--ib-ink, #1A0A00)', fg: 'var(--ib-amber, #E8A265)' };
+    case 'not_received': return { t: "Joiner didn't get it", bg: 'var(--ib-red, #8C2F1C)', fg: 'var(--ib-on-ink, #FDF6EE)' };
+    case 'sent': return { t: 'Sent · waiting for the joiner', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-on-ink, #FDF6EE)' };
     case 'prepared': return { t: 'Waiting for approval', bg: 'transparent', fg: 'var(--ib-accent, #B4511E)', bd: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.5)' };
     default: return { t: 'To send', bg: 'transparent', fg: 'var(--ib-rust, #7A3A18)', bd: '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.4)' };
   }
@@ -379,8 +379,8 @@ export const RefundHistoryButton = () => {
       <button type="button" onClick={() => setOpen(true)} style={smallBtn('var(--ib-dark, #1A0A00)', 'var(--ib-amber, #E8A265)')}><History size={13} /> Refund history</button>
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
-          <div role="dialog" aria-label="Refund history" style={{ position: 'relative', width: '100%', maxWidth: 720, maxHeight: '88vh', display: 'flex', flexDirection: 'column', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 22, boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', overflow: 'hidden' }}>
+          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
+          <div role="dialog" aria-label="Refund history" style={{ position: 'relative', width: '100%', maxWidth: 720, maxHeight: '88vh', display: 'flex', flexDirection: 'column', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 22, boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px', background: 'var(--ib-cream, #FDF6EE)', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)' }}>
               <History size={20} style={{ color: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>

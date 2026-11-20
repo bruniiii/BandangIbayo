@@ -228,9 +228,9 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
                 flex: 1, padding: '10px 16px', borderRadius: 12,
                 fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
                 border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                background: activeTab === tab ? 'var(--ib-dark, #1A0A00)' : 'transparent',
-                color: activeTab === tab ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
-                boxShadow: activeTab === tab ? '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)' : 'none',
+                background: activeTab === tab ? 'var(--ib-ink, #1A0A00)' : 'transparent',
+                color: activeTab === tab ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+                boxShadow: activeTab === tab ? '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)' : 'none',
               }}
             >
               {tab}
@@ -306,7 +306,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
       style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24,
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-dark-rgb, 26,10,0), 0.1)' : '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)' : '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         transform: hovered && !isMobile ? 'translateY(-2px)' : 'translateY(0)',
         transition: 'all 0.25s',
         padding: isMobile ? '1rem' : '1.25rem',
@@ -340,7 +340,7 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
           <StatusBadge booking={booking} />
         </div>
         <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.25, margin: '0 0 10px' }}>
-          {tour.is_exclusive && <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, padding: '2px 9px', borderRadius: 999, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
+          {tour.is_exclusive && <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, padding: '2px 9px', borderRadius: 999, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
           {tour.title}
         </h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 10 : 16 }}>
@@ -373,14 +373,14 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
         <button
           onClick={onView}
           style={{
-            padding: isMobile ? '10px 18px' : '10px 22px', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+            padding: isMobile ? '10px 18px' : '10px 22px', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
             border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
             transition: 'background 0.2s',
           }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-dark, #1A0A00)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'}
         >
           View Details <ChevronRight size={13} />
         </button>
@@ -470,11 +470,11 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 900,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
         borderTop: '8px solid var(--ib-accent, #B4511E)',
         overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
@@ -496,7 +496,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
             }}>
               <div style={{
                 width: '100%', height: 190, borderRadius: 18, overflow: 'hidden',
-                background: '#EDEAE3', marginBottom: 20, boxShadow: '0 8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)',
+                background: 'var(--ib-surface-2, #EDEAE3)', marginBottom: 20, boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)',
               }}>
                 {tour.image_urls?.[0]
                   ? <img loading="lazy" decoding="async" src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
@@ -598,7 +598,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={() => { onClose(); openGroupChat(booking.tour_id); }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
-                      background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 14, padding: '12px 16px',
+                      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 14, padding: '12px 16px',
                       fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
@@ -747,7 +747,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                           fontFamily: 'inherit', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap',
                           transition: 'background 0.2s',
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-surface-2, #EDEAE3)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-parch, #F2E4D0)'}
                       >
                         Keep Booking
@@ -790,7 +790,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={() => handleDownloadReceipt('payment')}
                     disabled={!!downloadingReceipt}
                     style={{
-                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -807,7 +807,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={() => handleDownloadReceipt('balance')}
                     disabled={!!downloadingReceipt}
                     style={{
-                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -888,7 +888,7 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
     flex: 1, minWidth: 160, padding: '12px 0', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
     fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-    background: primary ? 'var(--ib-accent, #B4511E)' : 'var(--ib-cream, #FDF6EE)', color: primary ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
+    background: primary ? 'var(--ib-accent, #B4511E)' : 'var(--ib-cream, #FDF6EE)', color: primary ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
     border: primary ? 'none' : '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)',
   });
 
@@ -1028,10 +1028,10 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       )}
 
       {namesOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }}>
           <div role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
             background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '2rem',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '2rem',
             display: 'flex', flexDirection: 'column', gap: 14,
           }}>
             <div>
@@ -1060,7 +1060,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
               }}>Back</button>
               <button type="button" onClick={() => pay({ namesDone: true })} disabled={!namesFilled} style={{
-                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
               }}>Continue to Payment</button>
             </div>
@@ -1084,7 +1084,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
         <button type="button" disabled={busy !== null || !agreed || needsRoom} onClick={() => pay()} title={needsRoom ? 'Choose your accommodation first' : agreed ? undefined : 'Tick the agreement above first'} style={{
           flex: 2, minWidth: 180, padding: '12px 0', borderRadius: 14, border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', cursor: agreed && !needsRoom ? 'pointer' : 'not-allowed', opacity: agreed && !needsRoom ? 1 : 0.5,
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: agreed && !needsRoom ? 'pointer' : 'not-allowed', opacity: agreed && !needsRoom ? 1 : 0.5,
         }}>
           {busy === 'pay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(amount)} now
         </button>

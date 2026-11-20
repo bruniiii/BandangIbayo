@@ -20,13 +20,13 @@ import { EXPENSE_CATEGORIES, CATEGORY_LABEL, newLineKey } from './tourExpenses';
 
 const BUCKET = 'expense-receipts';
 const box = {
-  width: '100%', boxSizing: 'border-box', background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10,
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10,
   padding: '8px 10px', fontSize: 14, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
 const btn = (main, disabled = false) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 38, padding: '0 14px', borderRadius: 12,
   cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.55 : 1, fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
-  letterSpacing: '0.08em', textTransform: 'uppercase', background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+  letterSpacing: '0.08em', textTransform: 'uppercase', background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
   border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 const money = (v) => String(v ?? '').replace(/[^\d.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');
@@ -174,10 +174,10 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={close} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={close} />
       <div role="dialog" aria-modal="true" aria-label="Actual expenses" style={{
         position: 'relative', width: '100%', maxWidth: 820, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
-        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,
+        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>

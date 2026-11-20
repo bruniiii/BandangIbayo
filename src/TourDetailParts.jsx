@@ -165,7 +165,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
           background: 'var(--ib-parch, #F2E4D0)', marginBottom: hasMultiple ? 12 : 20,
 
-          boxShadow: '0 8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)',
+          boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)',
 
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
 
@@ -227,11 +227,11 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
 
-                background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.65)', border: 'none', borderRadius: '50%',
+                background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.65)', border: 'none', borderRadius: '50%',
 
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
 
-                cursor: 'pointer', color: 'var(--ib-cream, #FDF6EE)',
+                cursor: 'pointer', color: 'var(--ib-on-ink, #FDF6EE)',
 
               }}
 
@@ -245,11 +245,11 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
 
-                background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.65)', border: 'none', borderRadius: '50%',
+                background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.65)', border: 'none', borderRadius: '50%',
 
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
 
-                cursor: 'pointer', color: 'var(--ib-cream, #FDF6EE)',
+                cursor: 'pointer', color: 'var(--ib-on-ink, #FDF6EE)',
 
               }}
 

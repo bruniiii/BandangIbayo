@@ -55,7 +55,7 @@ const FavoritesButton = ({ onOpenTour }) => {
         aria-label={`Favorites (${count})`} title="Favorites"
         style={{
           position: 'relative', width: 40, height: 40, borderRadius: 12, cursor: 'pointer',
-          background: open ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
+          background: open ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: open ? 'var(--ib-amber, #E8A265)' : 'var(--ib-dark, #1A0A00)',
         }}
       >
@@ -63,7 +63,7 @@ const FavoritesButton = ({ onOpenTour }) => {
         {count > 0 && (
           <span style={{
             position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', borderRadius: 999,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontSize: 10, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
             border: '2px solid var(--ib-cream, #FDF6EE)',
           }}>{count}</span>
         )}
@@ -72,7 +72,7 @@ const FavoritesButton = ({ onOpenTour }) => {
       {open && (
         <div role="dialog" aria-label="Your favorite tours" style={{
           position: 'absolute', right: 0, top: 'calc(100% + 10px)', zIndex: 60, width: 'min(360px, calc(100vw - 32px))',
-          background: '#FFFDF9', borderRadius: 18, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', boxShadow: '0 20px 48px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)', overflow: 'hidden',
+          background: 'var(--ib-surface, #FFFDF9)', borderRadius: 18, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', boxShadow: '0 20px 48px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)', overflow: 'hidden',
         }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Star size={16} fill="var(--ib-amber, #E8A265)" color="var(--ib-accent, #B4511E)" />
@@ -108,7 +108,7 @@ const FavoritesButton = ({ onOpenTour }) => {
                     </p>
                   </button>
                   <button type="button" onClick={() => toggleFavorite({ title: t.title, dates: t.starredIds.map((id) => ({ id })) })} aria-label={`Remove ${t.title} from Favorites`} title="Remove from Favorites"
-                    style={{ width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    style={{ width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Star size={15} fill="currentColor" />
                   </button>
                 </div>

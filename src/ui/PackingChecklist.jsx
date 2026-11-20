@@ -43,7 +43,7 @@ const PackingChecklist = ({ bookingId, text }) => {
               <input type="checkbox" checked={on} onChange={() => toggle(item)} style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }} />
               <span aria-hidden="true" style={{
                 width: 16, height: 16, borderRadius: 5, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: on ? 'var(--ib-accent, #B4511E)' : 'var(--ib-cream, #FDF6EE)', border: `1.5px solid ${on ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.45)'}`, color: 'var(--ib-cream, #FDF6EE)',
+                background: on ? 'var(--ib-accent, #B4511E)' : 'var(--ib-cream, #FDF6EE)', border: `1.5px solid ${on ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.45)'}`, color: 'var(--ib-on-ink, #FDF6EE)',
               }}>{on && <Check size={11} strokeWidth={3} />}</span>
               {item}
             </label>

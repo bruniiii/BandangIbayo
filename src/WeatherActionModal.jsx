@@ -99,10 +99,10 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10060, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.85)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.85)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-labelledby="weather-title" style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 520, maxHeight: '92dvh', overflowY: 'auto',
-        borderRadius: 24, borderTop: '6px solid #3F5D62', boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', padding: '1.5rem', boxSizing: 'border-box',
+        borderRadius: 24, borderTop: '6px solid #3F5D62', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem', boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', gap: 16,
       }}>
         <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 38, height: 38, borderRadius: '50%', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-rust, #7A3A18)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} /></button>
@@ -157,7 +157,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         )}
         <button type="button" onClick={submit} disabled={!ready || busy} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 18px', borderRadius: 14, border: 'none',
-          background: action === 'cancel' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
+          background: action === 'cancel' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
           letterSpacing: '0.1em', textTransform: 'uppercase', cursor: !ready || busy ? 'not-allowed' : 'pointer', opacity: ready ? 1 : 0.5,
         }}>
           {busy ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : action === 'cancel' ? <Ban size={16} /> : <CalendarClock size={16} />}

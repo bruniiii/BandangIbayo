@@ -25,7 +25,7 @@ import { EXPENSE_CATEGORIES, newLineKey, lineAmount, linesTotal, formLinesOf, ba
 
 const sub = { fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 6px' };
 const box = {
-  width: '100%', boxSizing: 'border-box', background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10,
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10,
   padding: '8px 10px', fontSize: 14, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
 const smallBtn = {

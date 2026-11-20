@@ -41,8 +41,8 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
         style={{
           position: 'relative', width: '100%', height: 190,
           borderRadius: 18, overflow: 'hidden',
-          background: '#E8D5BC', marginBottom: hasMultiple ? 12 : 20,
-          boxShadow: '0 8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)',
+          background: 'var(--ib-surface-2, #E8D5BC)', marginBottom: hasMultiple ? 12 : 20,
+          boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)',
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
         }}
         onPointerDown={handleDragStart}
@@ -74,18 +74,18 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
               type="button" onClick={prev}
               style={{
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.5)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: 'var(--ib-cream, #FDF6EE)',
+                cursor: 'pointer', color: 'var(--ib-on-ink, #FDF6EE)',
               }}
             ><ChevronLeft size={18} /></button>
             <button
               type="button" onClick={next}
               style={{
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-                background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.5)', border: 'none', borderRadius: '50%',
+                background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.5)', border: 'none', borderRadius: '50%',
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: 'var(--ib-cream, #FDF6EE)',
+                cursor: 'pointer', color: 'var(--ib-on-ink, #FDF6EE)',
               }}
             ><ChevronRight size={18} /></button>
             <div style={{ position: 'absolute', bottom: 10, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 5 }}>
@@ -133,11 +133,11 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 1100,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
         overflow: 'hidden',
         maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
@@ -216,7 +216,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
                 onClick={onEdit}
                 style={{
                   width: '100%', padding: '12px 0',
-                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                   border: 'none', borderRadius: 14, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',

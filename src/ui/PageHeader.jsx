@@ -6,7 +6,7 @@ const PageHeader = ({ icon, title, subtitle }) => {
   return (
   <div className="page-header" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
     <div aria-hidden="true" style={{
-      width: 38, height: 38, borderRadius: 11, background: 'var(--ib-dark, #1A0A00)', flexShrink: 0,
+      width: 38, height: 38, borderRadius: 11, background: 'var(--ib-ink, #1A0A00)', flexShrink: 0,
       display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-amber, #E8A265)',
     }}>
       <Icon size={18} />

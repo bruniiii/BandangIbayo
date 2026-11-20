@@ -54,7 +54,7 @@ const SecurityTab = ({ onNavigate }) => {
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
           {admins.map((a) => (
             <li key={a.id} style={{ ...row, padding: '10px 14px' }}>
-              <span style={{ width: 34, height: 34, borderRadius: '50%', background: a.main ? 'var(--ib-dark, #1A0A00)' : '#E8D2B8', color: a.main ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ width: 34, height: 34, borderRadius: '50%', background: a.main ? 'var(--ib-ink, #1A0A00)' : '#E8D2B8', color: a.main ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {a.main ? <Crown size={15} /> : <ShieldCheck size={15} />}
               </span>
               <span style={{ flex: '1 1 200px', minWidth: 0 }}>

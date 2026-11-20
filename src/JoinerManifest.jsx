@@ -92,7 +92,7 @@ const JoinerListModal = ({ tour, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
       <div style={{ position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 820, maxHeight: '90dvh', borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '8px solid var(--ib-accent, #B4511E)' }}>
         <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)' }}>
           <div style={{ minWidth: 0 }}>
@@ -261,7 +261,7 @@ const cell = { padding: '8px 10px', color: 'var(--ib-rust, #7A3A18)', fontWeight
 
 const actionButton = (bg) => ({
   display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px',
-  background: bg, color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 12, cursor: 'pointer',
+  background: bg, color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 12, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
 });
 

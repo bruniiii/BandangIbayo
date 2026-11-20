@@ -685,22 +685,22 @@ const TourManagement = ({ openTourId = null }) => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)',
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)',
           padding: 16,
         }}>
           <div style={{
             background: 'var(--ib-cream, #FDF6EE)', padding: '3rem',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
             textAlign: 'center', width: '100%', maxWidth: 420,
             borderTop: `8px solid ${confirmAction.isArchived ? 'var(--ib-accent, #B4511E)' : 'var(--ib-amber, #E8A265)'}`,
           }}>
             <div style={{
               width: 88, height: 88, borderRadius: '50%',
-              background: confirmAction.isArchived ? 'var(--ib-accent, #B4511E)' : 'var(--ib-dark, #1A0A00)',
+              background: confirmAction.isArchived ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 28px',
-              color: 'var(--ib-cream, #FDF6EE)',
-              boxShadow: '0 12px 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)',
+              color: 'var(--ib-on-ink, #FDF6EE)',
+              boxShadow: '0 12px 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
             }}>
               {confirmAction.isArchived ? <RefreshCw size={38} /> : <Archive size={38} />}
             </div>
@@ -738,7 +738,7 @@ const TourManagement = ({ openTourId = null }) => {
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: 'var(--ib-cream, #FDF6EE)',
+                  color: 'var(--ib-on-ink, #FDF6EE)',
                   boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
                 }}
               >{confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}</button>
@@ -760,7 +760,7 @@ const TourManagement = ({ openTourId = null }) => {
           <button className="x-close" style={{
             position: 'absolute', top: 32, right: 32,
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--ib-cream, #FDF6EE)',
+            color: 'var(--ib-on-ink, #FDF6EE)',
           }}>
             <X size={40} />
           </button>
@@ -815,7 +815,7 @@ const TourManagement = ({ openTourId = null }) => {
           onClick={() => setPickTemplate(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
             border: 'none', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -837,7 +837,7 @@ const TourManagement = ({ openTourId = null }) => {
         background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 20, padding: '14px 18px',
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-        boxShadow: '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+        boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
       }}>
@@ -938,7 +938,7 @@ const TourManagement = ({ openTourId = null }) => {
           padding: 16,
         }}>
           <div
-            style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }}
             onClick={closeTourModal}
           />
           <form
@@ -948,7 +948,7 @@ const TourManagement = ({ openTourId = null }) => {
             style={{
               position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
               width: '100%', maxWidth: 720,
-              borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+              borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
               overflow: 'hidden',
               borderTop: '8px solid var(--ib-accent, #B4511E)',
               maxHeight: '90dvh',
@@ -962,7 +962,7 @@ const TourManagement = ({ openTourId = null }) => {
                 position: 'absolute', top: 14, right: 14, zIndex: 10,
                 width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', cursor: 'pointer',
-                color: 'var(--ib-rust, #7A3A18)', boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.18)',
+                color: 'var(--ib-rust, #7A3A18)', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)',
               }}
             ><X size={20} /></button>
  
@@ -995,11 +995,11 @@ const TourManagement = ({ openTourId = null }) => {
                   )}
                   <div style={{ position: 'relative', width: 'fit-content' }}>
                     <div style={{
-                      background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+                      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
                       borderRadius: 999, padding: '10px 18px',
                       display: 'flex', alignItems: 'center', gap: 8,
                       fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
-                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)',
+                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
                     }}>
                       <UploadCloud size={14} /> Upload Images
                     </div>
@@ -1241,7 +1241,7 @@ const TourManagement = ({ openTourId = null }) => {
                 background: 'var(--ib-accent, #B4511E)', border: 'none', borderRadius: 999,
                 cursor: tourFilled ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: 'var(--ib-cream, #FDF6EE)',
+                color: 'var(--ib-on-ink, #FDF6EE)',
                 boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: uploading ? 0.7 : tourFilled ? 1 : 0.5,
@@ -1278,7 +1278,7 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
         position: 'relative', aspectRatio: '1',
         borderRadius: 12, overflow: 'hidden',
         border: isNew ? '2px solid var(--ib-accent, #B4511E)' : '2px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
-        boxShadow: '0 2px 8px rgba(var(--ib-dark-rgb, 26,10,0), 0.1)',
+        boxShadow: '0 2px 8px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -1292,7 +1292,7 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
             background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.82)',
             border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--ib-cream, #FDF6EE)',
+            color: 'var(--ib-on-ink, #FDF6EE)',
           }}
         ><Trash2 size={18} /></button>
       )}

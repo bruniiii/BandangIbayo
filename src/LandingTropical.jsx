@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
-  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus, Sun, Moon,
+  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
@@ -15,6 +15,7 @@ import { reportError } from './ui/toast';
 import { AGENCY } from './agencyInfo';
 import AnnouncementBanner from './ui/AnnouncementBanner';
 import { SITE } from './siteContent';
+import ThemeToggle from './ui/ThemeToggle';
 
 // ─────────────────────────────────────────────
 // LANDING PAGE: "Bright & Tropical" (sand, ocean blue, sunset orange).
@@ -61,26 +62,7 @@ const SCRIPT_FONT = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600;70
 // Shown in the moving ribbon under the photo when there are few destinations.
 const KINDS = ['Mountains', 'Beaches', 'Islands', 'Waterfalls', 'Sunrise hikes', 'Food trips'];
 
-// Light or dark: the visitor's choice (saved on this device), else their
-// phone or computer's setting.
-const THEME_KEY = 'ibayo:theme';
-const savedTheme = () => { try { return localStorage.getItem(THEME_KEY); } catch { return null; } };
-const systemDark = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-
 const LandingTropical = () => {
-  const [dark, setDark] = useState(() => { const t = savedTheme(); return t ? t === 'dark' : !!systemDark(); });
-  // Follow the device's setting while the visitor hasn't picked one.
-  useEffect(() => {
-    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
-    if (!mq) return undefined;
-    const onChange = (e) => { if (!savedTheme()) setDark(e.matches); };
-    mq.addEventListener?.('change', onChange);
-    return () => mq.removeEventListener?.('change', onChange);
-  }, []);
-  const toggleTheme = () => setDark((d) => {
-    try { localStorage.setItem(THEME_KEY, d ? 'light' : 'dark'); } catch { /* private mode */ }
-    return !d;
-  });
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [booked, setBooked] = useState(null); // { [tour date id]: slots taken }
@@ -165,7 +147,7 @@ const LandingTropical = () => {
   const [priceColor, priceMuted] = ['var(--text)', 'var(--muted)'];
 
   return (
-    <div className={`lk lk-tropical${dark ? ' is-dark' : ''}`} ref={pageRef}>
+    <div className="lk lk-tropical" ref={pageRef}>
       <nav className={`lk-nav${scrolled ? ' is-scrolled' : ''}`}>
         <Link to="/" className="lk-brand" aria-label="Bandang IBAYO home">
           <img src={logoIcon} alt="BANDANG IBAYO" />
@@ -177,9 +159,7 @@ const LandingTropical = () => {
           ))}
         </div>
         <div className="lk-nav-right">
-          <button type="button" className="lk-theme" onClick={toggleTheme} aria-pressed={dark} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} title={dark ? 'Light mode' : 'Dark mode'}>
-            {dark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <ThemeToggle className="lk-theme" />
           <Link to="/login" className="lk-login">Log in</Link>
           <Link to="/register" className="lk-btn lk-btn-main lk-btn-sm">Join now</Link>
         </div>
@@ -689,11 +669,11 @@ const PAGE_CSS = `
   .lk-ribbon-track, .lk-van { animation: none !important; }
 }
 
-/* ═════════ Dark mode (the moon button in the menu) ═════════
+/* ═════════ Dark mode (theme.js; the moon button in the menu) ═════════
    Night by the sea: deep ocean navy, teal and sunset orange. The --ib-*
    colours (shared parts like the reviews, prices and help button) are
    flipped here too, only inside the landing page. */
-.lk-tropical.is-dark { color-scheme: dark;
+:root[data-theme="dark"] .lk-tropical { color-scheme: dark;
   --bg: #08202B; --bg2: #0C2A37; --panel: #113442; --text: #EAF4F6; --muted: #A9C3CB; --accent: #FF8A52; --accent2: #4CC3DA; --on-accent: #FFFFFF;
   --line: rgba(234,244,246,0.1); --line-strong: rgba(76,195,218,0.4); --btn-shadow: 0 10px 24px rgba(255,122,61,0.25);
   --card-shadow: 0 14px 40px rgba(0,0,0,0.4); --icon-bg: rgba(76,195,218,0.14); --nav-bg: rgba(8,32,43,0.86);
@@ -701,13 +681,13 @@ const PAGE_CSS = `
   --ib-accent: #FF8A52; --ib-amber: #FFC266; --ib-cream: #113442; --ib-parch: #0C2A37; --ib-red: #FF7A66;
   --ib-dark-rgb: 234,244,246; --ib-rust-rgb: 169,195,203; --ib-accent-rgb: 76,195,218; --ib-sienna-rgb: 76,195,218; --ib-cream-rgb: 17,52,66;
   --ib-parch-rgb: 12,42,55; --ib-soft-rgb: 169,195,203; --ib-amber-rgb: 255,194,102; --ib-red-rgb: 255,122,102; }
-.lk-tropical.is-dark .lk-type, .lk-tropical.is-dark .lk-strip figure { background: var(--panel); box-shadow: 0 16px 36px rgba(0,0,0,0.45); }
-.lk-tropical.is-dark .lk-strip figcaption { color: var(--text); }
-.lk-tropical.is-dark .lk-van { background: var(--panel); color: var(--accent2); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
-.lk-tropical.is-dark .lk-alt::before { background: radial-gradient(circle, rgba(255,138,82,0.18), rgba(255,138,82,0) 70%); }
-.lk-tropical.is-dark .lk-alt::after { background: radial-gradient(circle, rgba(76,195,218,0.14), rgba(76,195,218,0) 70%); }
-.lk-tropical.is-dark .lk-card-tear { border-top-color: rgba(234,244,246,0.18); }
-.lk-tropical.is-dark .lk-ribbon { background: #0A6F86; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+:root[data-theme="dark"] .lk-tropical .lk-type, :root[data-theme="dark"] .lk-tropical .lk-strip figure { background: var(--panel); box-shadow: 0 16px 36px rgba(0,0,0,0.45); }
+:root[data-theme="dark"] .lk-tropical .lk-strip figcaption { color: var(--text); }
+:root[data-theme="dark"] .lk-tropical .lk-van { background: var(--panel); color: var(--accent2); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+:root[data-theme="dark"] .lk-tropical .lk-alt::before { background: radial-gradient(circle, rgba(255,138,82,0.18), rgba(255,138,82,0) 70%); }
+:root[data-theme="dark"] .lk-tropical .lk-alt::after { background: radial-gradient(circle, rgba(76,195,218,0.14), rgba(76,195,218,0) 70%); }
+:root[data-theme="dark"] .lk-tropical .lk-card-tear { border-top-color: rgba(234,244,246,0.18); }
+:root[data-theme="dark"] .lk-tropical .lk-ribbon { background: #0A6F86; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
 `;
 
 export default LandingTropical;

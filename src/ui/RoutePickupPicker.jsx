@@ -119,7 +119,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
   const unpicked = along.filter((s) => !isPicked(s.name));
   const smallBtn = {
     display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', flexShrink: 0,
-    background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+    background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
   };
 
   return (
@@ -143,7 +143,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
         <button type="button" onClick={find} disabled={busy || !start || !end} style={{
           alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 999, border: 'none',
           cursor: busy || !start || !end ? 'not-allowed' : 'pointer', opacity: !start || !end ? 0.5 : 1,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Route size={14} />} Show the van's route</button>
       )}
       {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>{error}</span>}

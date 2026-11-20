@@ -69,7 +69,7 @@ const AdminSearch = ({ onOpen, wide = false }) => {
       {open && clean(q).length >= 2 && (
         <div role="listbox" aria-label="Search results" style={{
           position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: wide ? '100%' : 360, maxWidth: 'calc(100vw - 24px)', maxHeight: 420, overflowY: 'auto', zIndex: 70,
-          background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, boxShadow: '0 18px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)', padding: 6,
+          background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, boxShadow: '0 18px 40px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)', padding: 6,
         }}>
           {busy && !results && <p style={{ margin: 10, display: 'flex', gap: 6, alignItems: 'center', fontSize: 12.5, color: 'var(--ib-brown, #5C2A10)' }}><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Searching…</p>}
           {results && results.length === 0 && <p style={{ margin: 10, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>Nothing found for "{clean(q)}".</p>}
@@ -82,7 +82,7 @@ const AdminSearch = ({ onOpen, wide = false }) => {
               }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ib-parch, #F2E4D0)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}>
-                <span style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon size={14} /></span>
+                <span style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon size={14} /></span>
                 <span style={{ minWidth: 0, flex: 1 }}>
                   <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
                   <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.group}{r.sub ? ` · ${r.sub}` : ''}</span>

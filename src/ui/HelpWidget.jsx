@@ -109,16 +109,16 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             position: 'fixed', zIndex, right: 20, bottom: 92,
             width: 380, maxWidth: 'calc(100vw - 24px)', height: 'min(620px, calc(100dvh - 120px))',
             background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
-            boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}
         >
-          <div style={{ background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', padding: '16px 18px 12px' }}>
+          <div style={{ background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', padding: '16px 18px 12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
               <div>
                 <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)', margin: 0 }}>Help for joiners</p>
                 <p style={{ fontSize: 16, fontWeight: 900, margin: '2px 0 0' }}>How can we help?</p>
               </div>
-              <button className="x-close" type="button" onClick={() => setOpen(false)} aria-label="Close help" style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none', color: 'var(--ib-cream, #FDF6EE)', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button className="x-close" type="button" onClick={() => setOpen(false)} aria-label="Close help" style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none', color: 'var(--ib-on-ink, #FDF6EE)', width: 36, height: 36, borderRadius: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} />
               </button>
             </div>
@@ -127,7 +127,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
                 <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} style={{
                   flex: 1, border: 'none', borderRadius: 9, padding: '8px 0', cursor: 'pointer', fontFamily: 'inherit',
                   fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  background: tab === key ? 'var(--ib-accent, #B4511E)' : 'transparent', color: tab === key ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
+                  background: tab === key ? 'var(--ib-accent, #B4511E)' : 'transparent', color: tab === key ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
                 }}>
                   {label}
                 </button>
@@ -139,7 +139,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             {onStartTour && (
               <button type="button" onClick={() => { setOpen(false); onStartTour(); }} style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12, height: 44, borderRadius: 12, cursor: 'pointer',
-                background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
               }}><Compass size={15} /> Take the Quick Tour</button>
             )}
             {tab === 'faq' ? (
@@ -147,7 +147,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
                 {faqs().map((f, i) => {
                   const isOpen = openFaq === i;
                   return (
-                    <div key={f.q} style={{ background: isOpen ? '#FFF' : '#FFFBF6', borderRadius: 14, border: `1px solid ${isOpen ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.15)'}` }}>
+                    <div key={f.q} style={{ background: isOpen ? 'var(--ib-surface, #FFF)' : 'var(--ib-surface, #FFFBF6)', borderRadius: 14, border: `1px solid ${isOpen ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.15)'}` }}>
                       <button type="button" onClick={() => setOpenFaq(isOpen ? null : i)} aria-expanded={isOpen} style={{
                         width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
                         padding: '11px 12px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
@@ -164,8 +164,8 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             ) : (
               <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {guide().map((step, i) => (
-                  <li key={step.title} style={{ display: 'flex', gap: 12, background: '#FFFBF6', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 14, padding: '12px 12px' }}>
-                    <span style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <li key={step.title} style={{ display: 'flex', gap: 12, background: 'var(--ib-surface, #FFFBF6)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 14, padding: '12px 12px' }}>
+                    <span style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <step.Icon size={17} />
                     </span>
                     <div style={{ minWidth: 0 }}>
@@ -209,7 +209,7 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
         style={{
           position: 'fixed', zIndex, right: 20, bottom: 20, width: 56, height: 56, padding: 0,
           borderRadius: '50%', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', boxShadow: '0 12px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', boxShadow: '0 12px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >

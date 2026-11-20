@@ -27,7 +27,7 @@ const StatusBadge = ({ status, large = false, wrap = false }) => {
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
-      color: large ? 'var(--ib-cream, #FDF6EE)' : color,
+      color: large ? 'var(--ib-on-ink, #FDF6EE)' : color,
       fontSize: large ? 12 : 11,
       fontWeight: 900, letterSpacing: wrap ? '0.1em' : '0.16em', textTransform: 'uppercase',
       whiteSpace: wrap ? 'normal' : 'nowrap', lineHeight: wrap ? 1.35 : undefined, maxWidth: '100%',

@@ -255,7 +255,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
 
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
 
             <div style={{
 
@@ -263,7 +263,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                 width: '100%', maxWidth: 1100,
 
-                borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+                borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
 
                 borderTop: '8px solid var(--ib-accent, #B4511E)',
 
@@ -540,9 +540,9 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         width: '100%', padding: '14px 0', opacity: bookChoicesMissing ? 0.5 : 1,
 
-                                        background: isFullyBooked ? '#EDEAE3' : 'var(--ib-accent, #B4511E)',
+                                        background: isFullyBooked ? 'var(--ib-surface-2, #EDEAE3)' : 'var(--ib-accent, #B4511E)',
 
-                                        color: isFullyBooked ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-cream, #FDF6EE)',
+                                        color: isFullyBooked ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-on-ink, #FDF6EE)',
 
                                         border: 'none', borderRadius: 14, cursor: isFullyBooked || bookChoicesMissing ? 'not-allowed' : 'pointer',
 
@@ -558,7 +558,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     }}
 
-                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking && !bookChoicesMissing) e.currentTarget.style.background = 'var(--ib-dark, #1A0A00)'; }}
+                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking && !bookChoicesMissing) e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'; }}
 
                                     onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; }}
 
@@ -765,7 +765,7 @@ const overlayBackdrop = {
 
     alignItems: 'center', justifyContent: 'center', padding: 16,
 
-    background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)',
+    background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)',
 
 };
 
@@ -781,7 +781,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
         background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
 
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
 
       }}>
 
@@ -864,7 +864,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
             style={{
 
-              width: '100%', padding: '15px 0', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+              width: '100%', padding: '15px 0', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
 
               border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
 
@@ -878,7 +878,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
             onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'}
 
-            onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-dark, #1A0A00)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'}
 
           >
 
@@ -910,7 +910,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
             background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 420, maxHeight: '92dvh', overflowY: 'auto',
 
-            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
 
             textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
 
@@ -959,11 +959,11 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                     title={agreed ? undefined : 'Tick the agreement above first'}
                     disabled={busy || !agreed}
 
-                    style={{ width: '100%', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', boxShadow: '0 8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)', transition: 'background 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
+                    style={{ width: '100%', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)', transition: 'background 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
 
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-deep, #2D1B0E)'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-ink-deep, #2D1B0E)'}
 
-                    onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-dark, #1A0A00)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'}
 
                 >
 
@@ -1047,7 +1047,7 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
     <div style={overlayBackdrop}>
         <div role="dialog" aria-modal="true" aria-labelledby="companions-title" style={{
             background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
         }}>
             <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 18 }}>
                 <button onClick={onBack} aria-label="Back to tour details" style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
@@ -1062,7 +1062,7 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
                 </div>
                 <CompanionFields companions={companions} onChange={onChange} error={error} />
                 <button type="button" onClick={onContinue} disabled={!namesFilled} style={{
-                    width: '100%', padding: '14px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 16, cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
+                    width: '100%', padding: '14px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 16, cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
                     fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
                 }}>
                     Continue to Payment
@@ -1154,8 +1154,8 @@ const waitlistButton = (primary) => ({
     width: '100%', padding: '12px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
     fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
     border: primary ? 'none' : '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)',
-    background: primary ? 'var(--ib-dark, #1A0A00)' : 'transparent',
-    color: primary ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
+    background: primary ? 'var(--ib-ink, #1A0A00)' : 'transparent',
+    color: primary ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
 });
 
 export {
