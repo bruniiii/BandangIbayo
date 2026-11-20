@@ -343,12 +343,6 @@ input[type="time"]::-webkit-date-and-time-value { text-align: left; }
   .tour-row-arrow { display: none !important; }
 }
 
-/* Login page: the branding half is shown only on wide screens. */
-@media (max-width: 900px) {
-  .login-brand-side { display: none !important; }
-  .login-split { max-width: 440px !important; }
-}
-
 /* Readable disabled buttons (WCAG contrast): a disabled button is shown
    greyed but its words stay readable, instead of fading to 40-50%. */
 button:disabled:not(.no-touch-size):not(.text-link) {
