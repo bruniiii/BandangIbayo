@@ -4,11 +4,11 @@
 // jsPDF (loaded only when downloading).
 // ─────────────────────────────────────────────
 
-const DARK = [26, 10, 0];
-const ORANGE = [180, 81, 30];
-const MUTED = [122, 58, 24];
-const PANEL = [242, 228, 208];
-const INK = [40, 30, 24];
+const DARK = [11, 59, 79];
+const ORANGE = [255, 122, 61];
+const MUTED = [63, 99, 114];
+const PANEL = [253, 235, 211];
+const INK = [22, 48, 60];
 
 const peso = (n) => `PHP ${Number(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -22,9 +22,9 @@ export const downloadOverviewPDF = async ({ stats, snippets }) => {
   // Header band
   doc.setFillColor(...DARK); doc.rect(0, 0, W, 86, 'F');
   doc.setFillColor(...ORANGE); doc.rect(0, 86, W, 4, 'F');
-  doc.setTextColor(232, 162, 101); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.setTextColor(255, 210, 122); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
   doc.text('BANDANG IBAYO  ·  OPERATIONS OVERVIEW', M, 34);
-  doc.setTextColor(253, 246, 238); doc.setFontSize(18);
+  doc.setTextColor(255, 248, 238); doc.setFontSize(18);
   doc.text(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }), M, 60);
   y = 118;
 
@@ -53,10 +53,10 @@ export const downloadOverviewPDF = async ({ stats, snippets }) => {
     if (y > 760) { doc.addPage(); y = 50; }
     doc.setTextColor(...ORANGE); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
     doc.text(title.toUpperCase(), M, y);
-    doc.setDrawColor(226, 214, 200); doc.line(M, y + 6, W - M, y + 6);
+    doc.setDrawColor(214, 226, 230); doc.line(M, y + 6, W - M, y + 6);
     y += 22;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...INK);
-    if (!rows.length) { doc.setTextColor(118, 108, 100); doc.text('Nothing to show.', M, y); y += 22; return; }
+    if (!rows.length) { doc.setTextColor(100, 116, 124); doc.text('Nothing to show.', M, y); y += 22; return; }
     rows.forEach(([left, right]) => {
       if (y > 790) { doc.addPage(); y = 50; }
       doc.setTextColor(...INK);
@@ -74,7 +74,7 @@ export const downloadOverviewPDF = async ({ stats, snippets }) => {
   section('Reviews', [[`Average rating: ${snippets.avgRating ? snippets.avgRating.toFixed(1) : '—'} of 5`, `${snippets.reviewCount || 0} reviews`],
     ...(snippets.ratingBreakdown || []).map((r) => [`${r.stars} star${r.stars === 1 ? '' : 's'}`, String(r.count)])]);
 
-  doc.setTextColor(118, 108, 100); doc.setFontSize(8);
+  doc.setTextColor(100, 116, 124); doc.setFontSize(8);
   doc.text(`Generated ${new Date().toLocaleString('en-PH')} · Bandang IBAYO admin dashboard`, M, doc.internal.pageSize.getHeight() - 24);
   doc.save(`bandang-ibayo-overview-${new Date().toISOString().slice(0, 10)}.pdf`);
 };
