@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { KeyRound, ChevronDown, X, ShieldCheck, UserRound, Compass } from 'lucide-react';
 import BrandAvatar from './ui/BrandAvatar';
 import ChangePassword from './ChangePassword';
@@ -106,7 +107,8 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
         </div>
       )}
 
-      {editingName && (
+      {/* At the page level (a portal), so the top bar's blur doesn't squeeze it. */}
+      {editingName && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setEditingName(false)} />
           <div role="dialog" aria-label="Edit my name" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)' }}>
@@ -115,10 +117,12 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
             <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>Shown at the top right and on the receipts of payments you process.</p>
             <AdminNameForm compact onSaved={() => setEditingName(false)} />
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
-      {changing && (
+      {/* At the page level (a portal), so the top bar's blur doesn't squeeze it. */}
+      {changing && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setChanging(false)} />
           <div role="dialog" aria-label="Change password" style={{ position: 'relative', width: '100%', maxWidth: 620, maxHeight: '92dvh', overflowY: 'auto', borderRadius: 22 }}>
@@ -127,7 +131,8 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
             }}><X size={18} /></button>
             <ChangePassword startOpen onClose={() => setChanging(false)} />
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
