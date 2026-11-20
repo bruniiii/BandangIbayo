@@ -359,9 +359,9 @@ const JoinerLogin = () => {
         </div>
       )}
  
-      {/* ── CARD: the login form on the left, Bandang IBAYO's branding on the right (desktop) ── */}
+      {/* ── CARD: the login form ── */}
       <div className="login-split" style={{
-        display: 'flex', width: '100%', maxWidth: 1000, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 28,
+        display: 'flex', width: '100%', maxWidth: 480, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 28,
         boxShadow: '0 20px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)', overflow: 'hidden', borderTop: '7px solid var(--ib-accent, #B4511E)',
       }}>
       <div className="login-form-side" style={{
@@ -510,41 +510,9 @@ const JoinerLogin = () => {
         </p>
  
       </div>
-      <LoginBrandPanel />
       </div>
     </div>
   );
 };
 
-// The right half of the login page (hidden on phones and tablets: index.css).
-const LoginBrandPanel = () => (
-  <aside className="login-brand-side" aria-label="About Bandang IBAYO" style={{
-    flex: '1 1 460px', position: 'relative', minHeight: 560, color: 'var(--ib-cream, #FDF6EE)', padding: '3rem',
-    // The hikers-at-sunrise photo (as on the landing page), darkened so the words stay readable.
-    background: "linear-gradient(180deg, rgba(var(--ib-dark-rgb, 26,10,0), 0.82) 0%, rgba(var(--ib-dark-rgb, 26,10,0), 0.45) 45%, rgba(var(--ib-dark-rgb, 26,10,0), 0.85) 100%), url('/hero-hikers.webp') 72% center / cover",
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 28,
-  }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <img src={logoIcon} alt="" style={{ width: 46, height: 46, objectFit: 'contain' }} />
-      <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '-0.01em' }}>Bandang <span className="font-accent" style={{ color: 'var(--ib-amber, #E8A265)' }}>IBAYO</span></span>
-    </div>
-    <div>
-      <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)' }}>Your travel partner</p>
-      <h2 style={{ margin: '0 0 14px', fontSize: 30, lineHeight: 1.15, fontWeight: 900, letterSpacing: '-0.02em' }}>
-        Adventures across the Philippines, by land.
-      </h2>
-      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ib-parch, #F2E4D0)', maxWidth: 400 }}>
-        Book land tours and road trips, pay online, chat with your group and follow the van live on tour day.
-      </p>
-    </div>
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
-      {['Book and pay online (GCash or card)', 'Live van tracking on tour day', 'Private Tours for your group'].map((t) => (
-        <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, fontWeight: 700, color: 'var(--ib-cream, #FDF6EE)' }}>
-          <CheckCircle2 size={17} color="var(--ib-amber, #E8A265)" style={{ flexShrink: 0 }} /> {t}
-        </li>
-      ))}
-    </ul>
-  </aside>
-);
- 
 export default JoinerLogin;
