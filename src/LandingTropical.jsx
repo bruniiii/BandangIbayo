@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
-  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Search, Sparkles, X,
+  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Search, Sparkles, X, Bus,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
@@ -17,30 +17,16 @@ import AnnouncementBanner from './ui/AnnouncementBanner';
 import { SITE } from './siteContent';
 
 // ─────────────────────────────────────────────
-// LANDING PAGE LOOKS (preview): four new designs for the landing page, opened
-// with /?look=tropical | magazine | dark | fiesta. The live page stays
-// LandingPremium until one is picked. Same tours, search, text and links as
-// now; what changes is the look:
-//  • a photo always at the top (Site Content photos, else the open tours'
-//    photos, else the agency's forest photo);
-//  • bigger text, less empty space; reviews right after the tours;
-//  • each section laid out differently (photo cards, a numbered path, a
-//    photo beside the reasons, a strip of trip photos).
-// Styles: LOOK_CSS below, scoped under .lk and .lk-<look>.
-// ─────────────────────────────────────────────
+// LANDING PAGE: "Bright & Tropical" (sand, ocean blue, sunset orange).
+//  • A photo always at the top: the Site Content photos, else the open
+//    tours' photos, else the agency's forest photo. Glass search bar
+//    (Where / When / Who) that filters the tours below.
+//  • Tours, then reviews, then tour types (photo cards), How to Book (a
+//    numbered path), Why Us (a photo beside the reasons), a strip of trip
+//    photos, About & Contact, and a call to action on a photo.
+// The previous dark page is kept in LandingPremium.jsx (and the first one
+// in LandingClassic.jsx). Styles: PAGE_CSS below, scoped under .lk.
 
-// Fonts each look adds (Outfit is already on every page).
-const FONTS = {
-  magazine: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap',
-  fiesta: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap',
-};
-// The price colors (PriceTag takes them as props).
-const PRICE = {
-  tropical: ['#0B3B4F', 'rgba(11,59,79,0.6)'],
-  magazine: ['#1E1B16', 'rgba(30,27,22,0.55)'],
-  dark: ['#F5F1EC', 'rgba(245,241,236,0.6)'],
-  fiesta: ['#1D1340', 'rgba(29,19,64,0.6)'],
-};
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -71,7 +57,12 @@ const REASONS = [
   { icon: Smartphone, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
 ];
 
-const LandingLooks = ({ look = 'tropical' }) => {
+// The handwritten accent font (matches the script in the logo).
+const SCRIPT_FONT = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap';
+// Shown in the moving ribbon under the photo when there are few destinations.
+const KINDS = ['Mountains', 'Beaches', 'Islands', 'Waterfalls', 'Sunrise hikes', 'Food trips'];
+
+const LandingTropical = () => {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [booked, setBooked] = useState(null); // { [tour date id]: slots taken }
@@ -81,15 +72,15 @@ const LandingLooks = ({ look = 'tropical' }) => {
   const [form, setForm] = useState({ where: '', when: '', who: '' });
   const [applied, setApplied] = useState({ where: '', when: '', who: '' });
   const listRef = useRef(null);
+  const pageRef = useRef(null);
 
   useEffect(() => {
-    const href = FONTS[look];
-    if (!href || document.querySelector(`link[href="${href}"]`)) return;
+    if (document.querySelector(`link[href="${SCRIPT_FONT}"]`)) return;
     const l = document.createElement('link');
     l.rel = 'stylesheet';
-    l.href = href;
+    l.href = SCRIPT_FONT;
     document.head.appendChild(l);
-  }, [look]);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -116,6 +107,18 @@ const LandingLooks = ({ look = 'tropical' }) => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Sections float up as they scroll into view (not with "reduce motion").
+  useEffect(() => {
+    const root = pageRef.current;
+    if (!root || lessMotion() || !('IntersectionObserver' in window)) return undefined;
+    const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('is-in'); seen.unobserve(e.target); }
+    }), { rootMargin: '0px 0px -8% 0px' });
+    root.classList.add('lk-anim');
+    root.querySelectorAll('.lk-reveal:not(.is-in)').forEach((el) => seen.observe(el));
+    return () => seen.disconnect();
+  }, [loading, tripPhotos.length]);
 
   const featured = useMemo(() => tours.filter((t) => t.image_urls?.[0]).slice(0, 5), [tours]);
   const landing = SITE.landing || {};
@@ -152,10 +155,10 @@ const LandingLooks = ({ look = 'tropical' }) => {
   const pool = [...tripPhotos.map((p) => p.src), ...heroPhotos].filter((s, i, a) => a.indexOf(s) === i);
   const photo = (i) => pool[i % Math.max(1, pool.length)] || FALLBACK_PHOTO;
   const heroLeft = hero ? slotsLeft(hero) : null;
-  const [priceColor, priceMuted] = PRICE[look] || PRICE.tropical;
+  const [priceColor, priceMuted] = ['#0B3B4F', 'rgba(11,59,79,0.6)'];
 
   return (
-    <div className={`lk lk-${look}`}>
+    <div className="lk lk-tropical" ref={pageRef}>
       <nav className={`lk-nav${scrolled ? ' is-scrolled' : ''}`}>
         <Link to="/" className="lk-brand" aria-label="Bandang IBAYO home">
           <img src={logoIcon} alt="BANDANG IBAYO" />
@@ -220,10 +223,16 @@ const LandingLooks = ({ look = 'tropical' }) => {
             <button type="submit" className="lk-btn lk-btn-main lk-search-go"><Search size={17} /> Search tours</button>
           </form>
         </div>
-        {look === 'fiesta' && (
-          <svg className="lk-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 Q 180 0 360 40 T 720 40 T 1080 40 T 1440 40 V80 H0 Z" /></svg>
-        )}
       </header>
+
+      {/* ── A tilted ribbon of destinations, always moving ── */}
+      <div className="lk-ribbon" aria-hidden="true">
+        <div className="lk-ribbon-track">
+          {[0, 1].map((k) => (
+            <span key={k}>{(places.length >= 3 ? places : KINDS).map((p) => <span key={p}>{p} <i>✦</i> </span>)}</span>
+          ))}
+        </div>
+      </div>
 
       {/* ── TOURS ── */}
       <section id="tours" ref={listRef} className="lk-section">
@@ -252,7 +261,7 @@ const LandingLooks = ({ look = 'tropical' }) => {
               {shown.map((tour) => {
                 const left = slotsLeft(tour);
                 return (
-                  <article key={tour.id} className="lk-card">
+                  <article key={tour.id} className="lk-card lk-reveal">
                     <div className="lk-card-img">
                       <Link to={`/tours/${tour.id}`} aria-label={tour.title} className="lk-cover" />
                       <img src={tour.image_urls?.[0] || FALLBACK_PHOTO} alt={tour.title} loading="lazy" decoding="async" />
@@ -264,6 +273,7 @@ const LandingLooks = ({ look = 'tropical' }) => {
                       <h3 className="lk-h3">{tour.title}</h3>
                       <p className="lk-meta"><Calendar size={15} /> {`${formatDate(tour.start_date)} (${weekdayRange(tour.start_date, tour.duration)})` + (tour.dates?.length > 1 ? `  +${tour.dates.length - 1} more date${tour.dates.length > 2 ? 's' : ''}` : '')}</p>
                       <p className="lk-meta"><Clock size={15} /> {tour.duration} · <Users size={15} /> {tour.group_size} max pax</p>
+                      <div className="lk-card-tear" aria-hidden="true" />
                       <div className="lk-card-foot">
                         <div>
                           <div className="lk-tiny">Starts at</div>
@@ -315,7 +325,7 @@ const LandingLooks = ({ look = 'tropical' }) => {
             {TOUR_TYPES.map((t, i) => {
               const Icon = t.icon;
               return (
-                <div key={t.title} className="lk-type">
+                <div key={t.title} className="lk-type lk-reveal">
                   <div className="lk-type-img"><img src={photo(i + 1)} alt="" loading="lazy" decoding="async" /><span className="lk-tag">{t.tag}</span></div>
                   <div className="lk-type-body">
                     <h3 className="lk-h3"><Icon size={20} /> {t.title}</h3>
@@ -336,7 +346,8 @@ const LandingLooks = ({ look = 'tropical' }) => {
             <h2 className="lk-h2">How to Book</h2>
             <p className="lk-sub">No more chaotic Facebook threads. Confirm your seat in minutes.</p>
           </div>
-          <ol className="lk-steps">
+          <ol className="lk-steps lk-reveal">
+            <li className="lk-van" aria-hidden="true"><Bus size={22} /></li>
             {STEPS.map((s) => {
               const Icon = s.icon;
               return (
@@ -354,7 +365,7 @@ const LandingLooks = ({ look = 'tropical' }) => {
       {/* ── WHY US: a photo beside the reasons ── */}
       <section id="why" className="lk-section lk-alt">
         <div className="lk-wrap lk-why">
-          <div className="lk-why-photo"><img src={photo(4)} alt="" loading="lazy" decoding="async" /></div>
+          <div className="lk-why-photo lk-reveal"><img src={photo(4)} alt="" loading="lazy" decoding="async" /></div>
           <div>
             <span className="lk-eyebrow">Why Us</span>
             <h2 className="lk-h2">Built for Smarter, Safer Journeys</h2>
@@ -386,7 +397,7 @@ const LandingLooks = ({ look = 'tropical' }) => {
           <div className="lk-wrap"><div className="lk-head"><span className="lk-eyebrow">From Our Trips</span><h2 className="lk-h2 lk-h2-sm">Where we've been</h2></div></div>
           <div className="lk-strip">
             {tripPhotos.map((p) => (
-              <figure key={p.src}><img src={p.src} alt={p.label} loading="lazy" decoding="async" /><figcaption>{p.label}</figcaption></figure>
+              <figure key={p.src} className="lk-reveal"><img src={p.src} alt={p.label} loading="lazy" decoding="async" /><figcaption>{p.label}</figcaption></figure>
             ))}
           </div>
         </section>
@@ -434,7 +445,7 @@ const LandingLooks = ({ look = 'tropical' }) => {
       </footer>
 
       <HelpWidget />
-      <style>{LOOK_CSS}</style>
+      <style>{PAGE_CSS}</style>
     </div>
   );
 };
@@ -459,8 +470,8 @@ const Reviews = () => {
   );
 };
 
-const LOOK_CSS = `
-/* ═════════ Shared layout (every look) ═════════ */
+const PAGE_CSS = `
+/* ═════════ Layout ═════════ */
 .lk { position: relative; min-height: 100dvh; background: var(--bg); color: var(--text); font-family: var(--body); overflow-x: hidden; -webkit-font-smoothing: antialiased; font-size: 17px; }
 .lk a { color: inherit; }
 .lk em { font-style: normal; color: var(--accent); }
@@ -637,7 +648,7 @@ const LOOK_CSS = `
   .lk-hero-media > img { transition: none; }
 }
 
-/* ═════════ 1. Bright & Tropical: sand, ocean blue, sunset orange ═════════ */
+/* ═════════ Colors: sand, ocean blue, sunset orange ═════════ */
 .lk-tropical { --bg: #FFF8EE; --bg2: #FDEBD3; --panel: #FFFFFF; --text: #0B3B4F; --muted: #3F6372; --accent: #FF7A3D; --accent2: #0A8BA6; --on-accent: #FFFFFF;
   --hero-accent: #FFD27A; --line: rgba(11,59,79,0.1); --line-strong: rgba(10,139,166,0.35); --radius: 28px; --btn-radius: 999px; --search-radius: 999px;
   --btn-shadow: 0 10px 24px rgba(255,122,61,0.35); --card-border: none; --card-shadow: 0 14px 40px rgba(11,59,79,0.1); --icon-bg: rgba(10,139,166,0.12);
@@ -648,99 +659,82 @@ const LOOK_CSS = `
 .lk-tropical .lk-search .lk-search-go { border-radius: 999px; }
 .lk-tropical .lk-step-num { background: linear-gradient(135deg, #FF7A3D, #FFB23D); }
 
-/* ═════════ 2. Travel Magazine: paper, ink, serif headings, split hero ═════════ */
-.lk-magazine { --bg: #F7F3EC; --bg2: #EFE8DC; --panel: #FFFDF9; --text: #1E1B16; --muted: #5B544A; --accent: #9C3D1E; --accent2: #9C3D1E; --on-accent: #FFFFFF;
-  --hero-accent: #9C3D1E; --line: rgba(30,27,22,0.14); --line-strong: rgba(30,27,22,0.3); --radius: 6px; --btn-radius: 4px; --search-radius: 6px;
-  --btn-shadow: none; --card-border: 1px solid rgba(30,27,22,0.12); --card-shadow: none; --icon-bg: transparent;
-  --nav-bg: rgba(247,243,236,0.94); --head: 'Fraunces', Georgia, serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: none; --cta-shade: rgba(20,16,12,0.55); }
-.lk-magazine .lk-nav { color: var(--text); background: rgba(247,243,236,0.94); box-shadow: 0 1px 0 var(--line); }
-.lk-magazine .lk-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; color: var(--text); padding-top: 110px; padding-bottom: 60px; min-height: 88dvh; }
-.lk-magazine .lk-hero-media { position: relative; inset: auto; order: 2; height: min(72dvh, 640px); border-radius: 6px; overflow: hidden; }
-.lk-magazine .lk-hero-copy { text-align: left; margin: 0; max-width: 620px; }
-.lk-magazine .lk-h1 { font-weight: 600; letter-spacing: -0.03em; text-shadow: none; font-size: clamp(2.6rem, 5.6vw, 5rem); }
-.lk-magazine .lk-h1 em { font-style: italic; }
-.lk-magazine .lk-h2 { font-weight: 600; letter-spacing: -0.02em; }
-.lk-magazine .lk-h3, .lk-magazine .lk-h4 { font-weight: 600; }
-.lk-magazine .lk-lead { margin-left: 0; text-shadow: none; color: var(--muted); }
-.lk-magazine .lk-pill { background: transparent; border: none; border-top: 2px solid var(--text); border-radius: 0; padding: 10px 0 0; color: var(--text); }
-.lk-magazine .lk-search { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; box-sizing: border-box; box-shadow: none; border: 1px solid var(--line-strong); }
-.lk-magazine .lk-field select { max-width: none; width: 100%; }
-.lk-magazine .lk-search-go { grid-column: 1 / -1; margin: 8px 0 0; padding: 14px; }
-.lk-magazine .lk-eyebrow { color: var(--text); border-top: 2px solid var(--text); padding-top: 8px; }
-.lk-magazine .lk-chip { border-radius: 2px; }
-.lk-magazine .lk-tag { border-radius: 2px; }
-.lk-magazine .lk-type { flex-direction: row; background: transparent; border: none; border-top: 1px solid var(--line-strong); border-radius: 0; padding-top: 18px; gap: 18px; }
-.lk-magazine .lk-types { grid-template-columns: 1fr; gap: 18px; }
-.lk-magazine .lk-type-img { width: min(38%, 340px); height: 210px; flex-shrink: 0; border-radius: 4px; }
-.lk-magazine .lk-type-body { padding: 0; justify-content: center; }
-.lk-magazine .lk-type:nth-child(even) { flex-direction: row-reverse; }
-.lk-magazine .lk-step-num { background: transparent; color: var(--accent); border: 2px solid var(--accent); box-shadow: 0 0 0 8px var(--bg); font-family: var(--head); font-style: italic; }
-.lk-magazine .lk-icon { border: 1px solid var(--line-strong); }
-.lk-magazine .lk-about-title em { font-style: italic; }
-.lk-magazine .lk-cta { border-radius: 6px; }
-@media (max-width: 900px) {
-  .lk-magazine .lk-hero { grid-template-columns: 1fr; padding-top: 86px; }
-  .lk-magazine .lk-hero-media { order: 0; height: 42dvh; }
-  .lk-magazine .lk-type, .lk-magazine .lk-type:nth-child(even) { flex-direction: column; }
-  .lk-magazine .lk-type-img { width: 100%; }
-  .lk-magazine .lk-search { grid-template-columns: 1fr; }
-  .lk-magazine .lk-field + .lk-field { border-left: none; border-top: 1px solid rgba(0,0,0,0.1); }
+
+/* ═════════ Creative touches ═════════ */
+/* Handwritten labels and a brush-stroke under the headline's accent */
+.lk-eyebrow { font-family: 'Caveat', cursive; font-size: 27px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--accent); transform: rotate(-2deg); transform-origin: left; }
+.lk-center .lk-eyebrow { transform-origin: center; }
+.lk-hero .lk-h1 em { position: relative; display: inline-block; }
+.lk-hero .lk-h1 em::after { content: ''; position: absolute; left: 2%; right: 2%; bottom: -0.14em; height: 0.22em; z-index: -1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath d='M3 14 C 60 4, 120 4, 170 10 S 260 16, 297 6' fill='none' stroke='%23FF7A3D' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%; }
+.lk-hero .lk-h1 { isolation: isolate; }
+
+/* The moving ribbon of destinations */
+.lk-ribbon { position: relative; z-index: 5; margin: -34px -2% 0; padding: 14px 0; background: #0A8BA6; color: #FFFFFF; transform: rotate(-1.6deg); box-shadow: 0 12px 30px rgba(10,139,166,0.3); overflow: hidden; }
+.lk-ribbon-track { display: flex; width: max-content; animation: lk-marquee 38s linear infinite; }
+.lk-ribbon-track > span { display: flex; white-space: nowrap; }
+.lk-ribbon-track span span { font-family: 'Caveat', cursive; font-size: 30px; font-weight: 700; padding: 0 6px; }
+.lk-ribbon i { font-style: normal; color: #FFD27A; font-family: 'Outfit', sans-serif; font-size: 18px; padding: 0 14px; vertical-align: middle; }
+@keyframes lk-marquee { to { transform: translateX(-50%); } }
+
+/* Soft sun and sea shapes behind the sections */
+.lk-section { position: relative; }
+.lk-alt { overflow: hidden; }
+.lk-alt::before, .lk-alt::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; }
+.lk-alt::before { width: 420px; height: 420px; top: -140px; right: -120px; background: radial-gradient(circle, rgba(255,178,61,0.35), rgba(255,178,61,0) 70%); }
+.lk-alt::after { width: 520px; height: 520px; bottom: -260px; left: -180px; background: radial-gradient(circle, rgba(10,139,166,0.16), rgba(10,139,166,0) 70%); }
+.lk-alt > .lk-wrap { position: relative; z-index: 1; }
+
+/* Tour cards as tickets: a torn line with notches above the price */
+.lk-card { position: relative; }
+.lk-card-tear { position: relative; margin: 18px -22px 0; border-top: 2px dashed rgba(11,59,79,0.18); }
+.lk-card-tear::before, .lk-card-tear::after { content: ''; position: absolute; top: -12px; width: 22px; height: 22px; border-radius: 50%; background: var(--bg); }
+.lk-card-tear::before { left: -11px; }
+.lk-card-tear::after { right: -11px; }
+.lk-card-foot { padding-top: 14px; }
+
+/* Tour types as tilted photo prints with tape */
+.lk-type { background: #FFFFFF; padding: 12px 12px 4px; border-radius: 10px; box-shadow: 0 16px 36px rgba(11,59,79,0.14); transition: transform 0.35s ease, box-shadow 0.35s ease; position: relative; overflow: visible; }
+.lk-type:nth-child(1) { transform: rotate(-2.2deg); }
+.lk-type:nth-child(2) { transform: rotate(1.4deg) translateY(10px); }
+.lk-type:nth-child(3) { transform: rotate(-1deg); }
+.lk-type:hover { transform: rotate(0) translateY(-6px); box-shadow: 0 24px 50px rgba(11,59,79,0.2); }
+.lk-type::before { content: ''; position: absolute; top: -12px; left: 50%; width: 96px; height: 26px; transform: translateX(-50%) rotate(-3deg); background: rgba(255,210,122,0.75); z-index: 2; border-radius: 3px; }
+.lk-type-img { border-radius: 4px; }
+.lk-type-body { padding: 16px 8px 18px; }
+
+/* How to Book: a little bus drives along the road */
+.lk-steps::before { border-top: 4px dashed rgba(10,139,166,0.45); }
+.lk-van { position: absolute; top: 18px; left: calc(16.7% + 46px); z-index: 2; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: #FFFFFF; color: #0A8BA6; box-shadow: 0 6px 16px rgba(11,59,79,0.18); animation: lk-drive 9s ease-in-out infinite; list-style: none; }
+@keyframes lk-drive { 0%, 8% { left: calc(16.7% + 46px); } 46%, 54% { left: calc(83.3% - 82px); } 92%, 100% { left: calc(16.7% + 46px); } }
+.lk-step:nth-child(3) .lk-step-num { background: linear-gradient(135deg, #0A8BA6, #2BB3C9); }
+.lk-step:nth-child(4) .lk-step-num { background: linear-gradient(135deg, #19A974, #5CC98F); }
+
+/* Trip photos as tilted prints with handwritten captions */
+.lk-strip figure { background: #FFFFFF; padding: 10px 10px 46px; border-radius: 6px; box-shadow: 0 14px 30px rgba(11,59,79,0.16); height: auto; overflow: visible; }
+.lk-strip figure img { height: clamp(220px, 26vw, 320px); border-radius: 3px; }
+.lk-strip figure:nth-child(odd) { transform: rotate(-1.8deg); }
+.lk-strip figure:nth-child(even) { transform: rotate(1.6deg); }
+.lk-strip figcaption { top: auto; bottom: 8px; padding: 0 12px; background: none; color: #0B3B4F; font-family: 'Caveat', cursive; font-size: 25px; font-weight: 700; }
+.lk-strip { padding-top: 18px; padding-bottom: 26px; }
+.lk-why-photo { transform: rotate(-1.5deg); border: 10px solid #FFFFFF; }
+
+/* Float up into view */
+.lk-anim .lk-reveal { opacity: 0; translate: 0 28px; transition: opacity 0.7s ease, translate 0.7s ease; }
+.lk-anim .lk-reveal.is-in { opacity: 1; translate: 0 0; }
+
+@media (max-width: 760px) {
+  .lk-ribbon { margin-top: -26px; padding: 10px 0; }
+  .lk-ribbon-track span span { font-size: 24px; }
+  .lk-eyebrow { font-size: 24px; }
+  .lk-type:nth-child(2) { transform: rotate(1.4deg); }
+  .lk-van { display: none; }
+  .lk-steps::before { border-top: none; border-left: 4px dashed rgba(10,139,166,0.45); }
 }
-
-/* ═════════ 3. Dark + Photos: today's colors, led by photos ═════════ */
-.lk-dark { --bg: #0E0C0B; --bg2: #161210; --panel: #1C1815; --text: #F5F1EC; --muted: rgba(245,241,236,0.72); --accent: #E8A265; --accent2: #E8A265; --on-accent: #1A0F08;
-  --hero-accent: #F2B67E; --line: rgba(255,255,255,0.1); --line-strong: rgba(232,162,101,0.4); --radius: 24px; --btn-radius: 16px; --search-radius: 22px;
-  --btn-shadow: 0 10px 30px rgba(217,119,47,0.35); --card-border: 1px solid rgba(255,255,255,0.1); --card-shadow: none; --icon-bg: rgba(232,162,101,0.14);
-  --nav-bg: rgba(14,12,11,0.8); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: linear-gradient(180deg, rgba(14,12,11,0.6) 0%, rgba(14,12,11,0.2) 35%, rgba(14,12,11,0.4) 65%, #0E0C0B 100%);
-  --cta-shade: linear-gradient(180deg, rgba(14,12,11,0.35), rgba(14,12,11,0.8)); }
-.lk-dark .lk-hero { min-height: 100dvh; }
-.lk-dark .lk-search { background: rgba(20,17,15,0.7); color: var(--text); border: 1px solid rgba(255,255,255,0.2); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
-.lk-dark .lk-field small { color: rgba(245,241,236,0.6); }
-.lk-dark .lk-field select { color: var(--text); }
-.lk-dark .lk-field select option { color: #1A0F08; }
-.lk-dark .lk-field + .lk-field { border-color: rgba(255,255,255,0.15); }
-.lk-dark .lk-chip { background: rgba(14,12,11,0.6); color: #F5F1EC; }
-.lk-dark .lk-chip.is-low { background: var(--accent); color: var(--on-accent); }
-.lk-dark .lk-reviews article { background: var(--panel) !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
-.lk-dark .lk-reviews article p, .lk-dark .lk-reviews article strong { color: var(--text) !important; }
-.lk-dark .lk-reviews article span { color: var(--muted) !important; }
-
-/* ═════════ 4. Bold Filipino: fiesta colors, playful shapes ═════════ */
-.lk-fiesta { --bg: #FFFBF0; --bg2: #FFE25C; --panel: #FFFFFF; --text: #1D1340; --muted: #4A3F6B; --accent: #E6266E; --accent2: #1D7BD6; --on-accent: #FFFFFF;
-  --hero-accent: #FFE25C; --line: rgba(29,19,64,0.12); --line-strong: #1D1340; --radius: 22px; --btn-radius: 14px; --search-radius: 20px;
-  --btn-shadow: 4px 4px 0 #1D1340; --card-border: 3px solid #1D1340; --card-shadow: 6px 6px 0 #1D1340; --icon-bg: #FFE25C;
-  --nav-bg: rgba(255,251,240,0.95); --head: 'Bricolage Grotesque', 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: linear-gradient(180deg, rgba(29,19,64,0.5) 0%, rgba(29,19,64,0.15) 40%, rgba(29,19,64,0.55) 100%);
-  --cta-shade: linear-gradient(120deg, rgba(230,38,110,0.85), rgba(29,123,214,0.8)); }
-.lk-fiesta .lk-btn-main { border: 3px solid #1D1340; }
-.lk-fiesta .lk-btn-ghost { border: 3px solid #1D1340; background: #FFFFFF; box-shadow: 4px 4px 0 #1D1340; }
-.lk-fiesta .lk-btn:hover { transform: translate(-2px, -2px); }
-.lk-fiesta .lk-h1 { font-weight: 800; }
-.lk-fiesta .lk-hero .lk-h1 em { background: #E6266E; color: #FFFFFF; padding: 0 0.2em; border-radius: 12px; display: inline-block; transform: rotate(-2deg); }
-.lk-fiesta .lk-pill { background: #FFE25C; color: #1D1340; border: 3px solid #1D1340; transform: rotate(-2deg); }
-.lk-fiesta .lk-search { border: 3px solid #1D1340; box-shadow: 8px 8px 0 #1D1340; }
-.lk-fiesta .lk-wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 60px; z-index: 2; fill: var(--bg); }
-.lk-fiesta .lk-eyebrow { background: #1D7BD6; color: #FFFFFF; padding: 6px 12px; border-radius: 10px; transform: rotate(-1.5deg); }
-.lk-fiesta .lk-alt { background: #FFE25C; }
-.lk-fiesta .lk-alt .lk-sub, .lk-fiesta .lk-alt .lk-body { color: #3A2E5C; }
-.lk-fiesta .lk-chip { border: 2px solid #1D1340; }
-.lk-fiesta .lk-tag { border: 2px solid #1D1340; transform: rotate(-3deg); }
-.lk-fiesta .lk-type:nth-child(2) .lk-tag { background: #1D7BD6; }
-.lk-fiesta .lk-type:nth-child(3) .lk-tag { background: #19A974; }
-.lk-fiesta .lk-type:nth-child(odd) { transform: rotate(-0.6deg); }
-.lk-fiesta .lk-type:nth-child(even) { transform: rotate(0.6deg); }
-.lk-fiesta .lk-step-num { border: 3px solid #1D1340; }
-.lk-fiesta .lk-step:nth-child(2) .lk-step-num { background: #1D7BD6; }
-.lk-fiesta .lk-step:nth-child(3) .lk-step-num { background: #19A974; }
-.lk-fiesta .lk-icon { border: 2px solid #1D1340; }
-.lk-fiesta .lk-why-photo, .lk-fiesta .lk-strip figure, .lk-fiesta .lk-cta { border: 3px solid #1D1340; box-shadow: 6px 6px 0 #1D1340; }
-.lk-fiesta .lk-strip figure:nth-child(odd) { transform: rotate(-1.2deg); }
-.lk-fiesta .lk-strip figure:nth-child(even) { transform: rotate(1.2deg); }
-.lk-fiesta .lk-strip { padding-top: 12px; padding-bottom: 20px; }
-.lk-fiesta .lk-reviews article { border: 3px solid #1D1340 !important; box-shadow: 6px 6px 0 #1D1340 !important; }
-.lk-fiesta .lk-about-title em { color: #E6266E; }
+@media (prefers-reduced-motion: reduce) {
+  .lk-ribbon-track, .lk-van { animation: none !important; }
+}
 `;
 
-export default LandingLooks;
+export default LandingTropical;
