@@ -102,12 +102,12 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.85)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-labelledby="weather-title" style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 520, maxHeight: '92dvh', overflowY: 'auto',
-        borderRadius: 24, borderTop: '6px solid #3F5D62', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem', boxSizing: 'border-box',
+        borderRadius: 24, borderTop: '6px solid var(--ib-slate, #3F5D62)', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem', boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', gap: 16,
       }}>
         <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 38, height: 38, borderRadius: '50%', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-rust, #7A3A18)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} /></button>
         <div style={{ paddingRight: 40 }}>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#3F5D62', display: 'flex', alignItems: 'center', gap: 6 }}><CloudRain size={15} /> Weather &amp; safety</p>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-slate, #3F5D62)', display: 'flex', alignItems: 'center', gap: 6 }}><CloudRain size={15} /> Weather &amp; safety</p>
           <h2 id="weather-title" style={{ margin: '6px 0 2px', fontSize: 19, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{date.title}</h2>
           <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{formatYmdRange(date.start_date, date.end_date)} · {booked} booked</p>
         </div>
@@ -146,7 +146,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
           </div>
         )}
 
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#3F5D62', background: 'rgba(63,93,98,0.08)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-slate, #3F5D62)', background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.08)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
           {action === 'cancel'
             ? `Joiners get a notice, a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have ${hoursText(WEATHER_CHOICE_HOURS)} to move to another date of this tour (and its group chat) or take a weather refund; no choice = weather refund. The chat stays open 7 days for questions. Refunds to send show in Booking Management.`
             : `Joiners get a notice (with the old and new dates), a pinned 📢 message goes into the group chat, and it is posted on the Feed for everyone. They have ${hoursText(WEATHER_CHOICE_HOURS)} to keep their slot on the new date (payment and pickup point carry over), move to another date of this tour or take a weather refund; no choice = weather refund.`}
@@ -157,7 +157,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         )}
         <button type="button" onClick={submit} disabled={!ready || busy} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 18px', borderRadius: 14, border: 'none',
-          background: action === 'cancel' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
+          background: action === 'cancel' ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
           letterSpacing: '0.1em', textTransform: 'uppercase', cursor: !ready || busy ? 'not-allowed' : 'pointer', opacity: ready ? 1 : 0.5,
         }}>
           {busy ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : action === 'cancel' ? <Ban size={16} /> : <CalendarClock size={16} />}

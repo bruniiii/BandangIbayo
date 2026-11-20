@@ -65,7 +65,7 @@ const MyData = () => {
             <li>You can't deactivate while you have an upcoming booking.</li>
           </ul>
           <label htmlFor="confirm-deactivate" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', margin: '4px 0 0' }}>
-            To confirm, type <strong style={{ color: '#C0362C' }}>deactivate</strong> below.
+            To confirm, type <strong style={{ color: 'var(--ib-danger, #C0362C)' }}>deactivate</strong> below.
           </label>
           <input
             id="confirm-deactivate" value={typed} onChange={(e) => setTyped(e.target.value)} disabled={busy}
@@ -73,7 +73,7 @@ const MyData = () => {
             aria-invalid={typed !== '' && !confirmed}
             style={{
               width: '100%', maxWidth: 320, boxSizing: 'border-box', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 12, padding: '10px 12px',
-              border: `1px solid ${confirmed ? '#C0362C' : 'rgba(var(--ib-sienna-rgb, 168,72,26), 0.25)'}`, fontSize: 16, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit',
+              border: `1px solid ${confirmed ? 'var(--ib-danger, #C0362C)' : 'rgba(var(--ib-sienna-rgb, 168,72,26), 0.25)'}`, fontSize: 16, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit',
             }}
           />
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -82,7 +82,7 @@ const MyData = () => {
             </button>
             <button type="button" onClick={handleDeactivate} disabled={busy || !confirmed}
               title={confirmed ? undefined : 'Type "deactivate" first'}
-              style={{ ...button('#C0362C', '#FFFFFF'), opacity: confirmed ? 1 : 0.5, cursor: confirmed ? 'pointer' : 'not-allowed' }}>
+              style={{ ...button('var(--ib-danger, #C0362C)', '#FFFFFF'), opacity: confirmed ? 1 : 0.5, cursor: confirmed ? 'pointer' : 'not-allowed' }}>
               {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <PowerOff size={14} />} Deactivate Account
             </button>
           </div>

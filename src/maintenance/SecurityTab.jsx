@@ -54,7 +54,7 @@ const SecurityTab = ({ onNavigate }) => {
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
           {admins.map((a) => (
             <li key={a.id} style={{ ...row, padding: '10px 14px' }}>
-              <span style={{ width: 34, height: 34, borderRadius: '50%', background: a.main ? 'var(--ib-ink, #1A0A00)' : '#E8D2B8', color: a.main ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ width: 34, height: 34, borderRadius: '50%', background: a.main ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-surface-2, #E8D2B8)', color: a.main ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {a.main ? <Crown size={15} /> : <ShieldCheck size={15} />}
               </span>
               <span style={{ flex: '1 1 200px', minWidth: 0 }}>
@@ -70,7 +70,7 @@ const SecurityTab = ({ onNavigate }) => {
       <section style={card}>
         <h3 style={h3}><Lock size={16} color="var(--ib-sienna, #A8481A)" /> Failed and locked logins</h3>
         <p style={hint}>Accounts with wrong passwords in the last 7 days (joiners and admins). Many failed tries on one email can mean someone is guessing the password.</p>
-        <p style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 900, color: Number(data?.locked_now) ? 'var(--ib-red, #8C2F1C)' : '#1B5E3B', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <p style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 900, color: Number(data?.locked_now) ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #1B5E3B)', display: 'flex', alignItems: 'center', gap: 6 }}>
           {Number(data?.locked_now) ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
           {Number(data?.locked_now) ? `${data.locked_now} account${data.locked_now === 1 ? ' is' : 's are'} locked right now` : 'No account is locked right now'}
         </p>

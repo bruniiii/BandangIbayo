@@ -58,7 +58,7 @@ const MonthComparisonChart = ({ comparison }) => {
           <span style={{ width: 18, height: 0, borderTop: '3px dashed rgba(var(--ib-rust-rgb, 122,58,24), 0.6)' }} />
           {comparison.lastMonthLabel}: {metric.format(lastTotal)}
         </span>
-        <span style={{ fontSize: 12, fontWeight: 900, color: good ? '#2E6B4A' : 'var(--ib-red, #8C2F1C)' }}>
+        <span style={{ fontSize: 12, fontWeight: 900, color: good ? 'var(--ib-green, #2E6B4A)' : 'var(--ib-red, #8C2F1C)' }}>
           {change >= 0 ? '+' : ''}{change}% vs last month
         </span>
       </div>

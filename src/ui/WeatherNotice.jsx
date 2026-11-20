@@ -4,14 +4,14 @@ import { WEATHER_REFUND_PERCENT } from '../bookingRules';
 // Shown on every tour's details: the date can move for safety reasons.
 const WeatherNotice = ({ compact = false }) => (
   <div role="note" style={{
-    background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.22)',
+    background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.08)', border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.22)',
     borderRadius: compact ? 14 : 18, padding: compact ? '10px 12px' : '1.1rem 1.25rem',
     display: 'flex', gap: compact ? 10 : 14, alignItems: 'flex-start',
   }}>
-    <CloudRain size={compact ? 17 : 21} style={{ color: '#3F5D62', flexShrink: 0, marginTop: 1 }} />
+    <CloudRain size={compact ? 17 : 21} style={{ color: 'var(--ib-slate, #3F5D62)', flexShrink: 0, marginTop: 1 }} />
     <div style={{ minWidth: 0 }}>
       {!compact && (
-        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3F5D62', margin: '0 0 6px' }}>
+        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-slate, #3F5D62)', margin: '0 0 6px' }}>
           Weather &amp; safety
         </p>
       )}

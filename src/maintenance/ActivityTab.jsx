@@ -15,7 +15,7 @@ import { paginate } from '../ui/paginate';
 // ─────────────────────────────────────────────
 
 const ACTIONS = [['', 'All actions'], ['added', 'Added'], ['changed', 'Changed'], ['removed', 'Removed']];
-const ACTION_COLOR = { added: '#1B5E3B', changed: '#1E4672', removed: 'var(--ib-red, #8C2F1C)' };
+const ACTION_COLOR = { added: 'var(--ib-green, #1B5E3B)', changed: 'var(--ib-slate, #1E4672)', removed: 'var(--ib-red, #8C2F1C)' };
 // Plain words for common field names.
 const FIELD_NAMES = {
   price: 'Joiner Rate', regular_rate: 'Regular Rate', group_size: 'Slots', start_date: 'Start date', end_date: 'End date', is_archived: 'Archived',
@@ -144,7 +144,7 @@ const ActivityTab = () => {
                           <span style={{ fontWeight: 900, color: 'var(--ib-rust, #7A3A18)', minWidth: 120 }}>{fieldName(k)}</span>
                           <span style={{ color: 'var(--ib-red, #8C2F1C)', textDecoration: 'line-through', overflowWrap: 'anywhere' }}>{show(a.old_values?.[k], k)}</span>
                           <ArrowRight size={13} color="var(--ib-rust, #7A3A18)" />
-                          <span style={{ color: '#1B5E3B', fontWeight: 800, overflowWrap: 'anywhere' }}>{show(a.new_values?.[k], k)}</span>
+                          <span style={{ color: 'var(--ib-green, #1B5E3B)', fontWeight: 800, overflowWrap: 'anywhere' }}>{show(a.new_values?.[k], k)}</span>
                         </div>
                       ))}
                     </div>

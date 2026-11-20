@@ -565,7 +565,7 @@ const AutoArchiveSetting = () => {
             background: enabled ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.25)', transition: 'background 0.2s', opacity: loaded ? 1 : 0.5,
           }}
           aria-label={enabled ? 'Turn off automatic archiving' : 'Turn on automatic archiving'}>
-          <span style={{ position: 'absolute', top: 3, left: enabled ? 25 : 3, width: 24, height: 24, borderRadius: '50%', background: 'var(--ib-cream, #FDF6EE)', transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)' }} />
+          <span style={{ position: 'absolute', top: 3, left: enabled ? 25 : 3, width: 24, height: 24, borderRadius: '50%', background: '#FFF8EE', transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)' }} />
         </button>
       </div>
       {enabled && (

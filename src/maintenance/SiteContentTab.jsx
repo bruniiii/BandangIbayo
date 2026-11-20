@@ -82,7 +82,7 @@ const Announcement = ({ ann, setAnn, onSaved }) => {
   return (
     <section style={card}>
       <h3 style={h3}><Megaphone size={16} color="var(--ib-accent, #B4511E)" /> Announcement banner</h3>
-      <p style={hint}>A short notice joiners see on the homepage and their dashboard, e.g. a typhoon advisory. {ann.live ? <strong style={{ color: '#2E6B4A' }}>Showing now.</strong> : 'Not showing.'}</p>
+      <p style={hint}>A short notice joiners see on the homepage and their dashboard, e.g. a typhoon advisory. {ann.live ? <strong style={{ color: 'var(--ib-green, #2E6B4A)' }}>Showing now.</strong> : 'Not showing.'}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <label style={label}>Message<textarea value={ann.message} rows={2} maxLength={300} onChange={(e) => setAnn({ ...ann, message: e.target.value })} placeholder="e.g. Typhoon advisory: tours this weekend may be moved. Check My Bookings." style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} /></label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 10 }}>

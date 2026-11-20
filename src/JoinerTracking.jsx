@@ -192,7 +192,7 @@ const TrackingTourCard = ({ tour, onTrack, past = false, badge = '' }) => {
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={44} /></div>
         )}
         {badge && (
-          <span style={{ position: 'absolute', top: 12, right: 12, background: past ? 'var(--ib-ink, #1A0A00)' : badge === 'On-going' ? '#1F8A5C' : 'var(--ib-sienna, #A8481A)', color: past ? 'var(--ib-amber, #E8A265)' : 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ position: 'absolute', top: 12, right: 12, background: past ? 'var(--ib-ink, #1A0A00)' : badge === 'On-going' ? '#1F8A5C' : 'var(--ib-sienna-solid, #A8481A)', color: past ? 'var(--ib-amber, #E8A265)' : 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Compass size={10} /> {badge}
           </span>
         )}
@@ -451,7 +451,7 @@ const LiveTimeline = ({ logs }) => {
               <strong style={{ fontSize: 13, color: 'var(--ib-dark, #1A0A00)' }}>{title}</strong>
               <p style={{ fontSize: 12, color: 'var(--ib-rust, #7A3A18)', margin: '3px 0 0', lineHeight: 1.5 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: '#8C5216' }}>
+                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: 'var(--ib-warn, #8C5216)' }}>
                   Note from Driver: {log.note}
                 </div>
               )}

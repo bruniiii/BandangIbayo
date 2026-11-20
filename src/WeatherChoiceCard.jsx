@@ -77,7 +77,7 @@ const RefundConfirm = ({ booking, onChanged }) => {
         {answer === 'not_received' ? "You said you didn't get it. Bandang IBAYO was told and is checking it." : 'Did you receive it?'}
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button type="button" onClick={() => say(true)} disabled={!!busy} style={{ ...btn('var(--ib-accent, #B4511E)', 'var(--ib-cream, #FDF6EE)'), padding: '9px 14px' }}>
+        <button type="button" onClick={() => say(true)} disabled={!!busy} style={{ ...btn('var(--ib-accent, #B4511E)', 'var(--ib-on-ink, #FDF6EE)'), padding: '9px 14px' }}>
           {busy === 'yes' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={13} />} {answer === 'not_received' ? 'I got it now' : 'I received it'}
         </button>
         {answer !== 'not_received' && (
@@ -147,13 +147,13 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
     onChanged?.();
   };
 
-  const shell = (children, tone = '#3F5D62') => (
+  const shell = (children, tone = 'var(--ib-slate, #3F5D62)') => (
     <section aria-label={`${title}: weather update`} style={{
       background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: `2px solid ${tone}`, padding: '1.1rem 1.2rem', boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.08)',
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>{children}</section>
   );
-  const heading = (text, tone = '#3F5D62') => (
+  const heading = (text, tone = 'var(--ib-slate, #3F5D62)') => (
     <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: tone }}>
       <CloudRain size={15} /> {text}
     </p>
@@ -218,7 +218,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
 
   const options = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ background: 'rgba(63,93,98,0.07)', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.07)', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <p style={{ margin: 0, fontSize: 12.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 6 }}><CalendarCheck size={15} /> Move to another date</p>
         {dates === null ? (
           <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', gap: 6 }}><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Looking for other dates…</p>
@@ -236,7 +236,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
                 return <option key={d.id} value={d.id} disabled={!fits}>{formatYmdRange(d.start_date, d.end_date)} · {fits ? `${d.available_slots} slots left` : 'full'}</option>;
               })}
             </NiceSelect>
-            <button type="button" disabled={!pick || !!busy} onClick={() => choose('move')} style={{ ...btn('var(--ib-dark, #1A0A00)', 'var(--ib-cream, #FDF6EE)'), opacity: pick ? 1 : 0.5, cursor: pick ? 'pointer' : 'not-allowed' }}>
+            <button type="button" disabled={!pick || !!busy} onClick={() => choose('move')} style={{ ...btn('var(--ib-ink, #1A0A00)', 'var(--ib-on-ink, #FDF6EE)'), opacity: pick ? 1 : 0.5, cursor: pick ? 'pointer' : 'not-allowed' }}>
               {busy === 'move' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={14} />} Move
             </button>
           </div>
@@ -271,7 +271,7 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
     <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>
       Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the {pct}% refund.
     </p>
-    <button type="button" disabled={!!busy} onClick={() => choose('stay')} style={btn('#1F6B4A', 'var(--ib-cream, #FDF6EE)')}>
+    <button type="button" disabled={!!busy} onClick={() => choose('stay')} style={btn('#1F6B4A', 'var(--ib-on-ink, #FDF6EE)')}>
       {busy === 'stay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={14} />} Keep my slot on the new date
     </button>
     {options}

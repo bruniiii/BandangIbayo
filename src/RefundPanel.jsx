@@ -176,10 +176,10 @@ export const RefundPanel = ({ booking: b, onDone }) => {
   if (b.weather_refund_status === 'Refunding') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <p style={{ ...note, color: '#8C5216', fontWeight: 700 }}>
+        <p style={{ ...note, color: 'var(--ib-warn, #8C5216)', fontWeight: 700 }}>
           Being sent through PayMongo. If it still says this after 10 minutes, the main admin can tap Send again: anything already refunded is counted, so it's never sent twice.
         </p>
-        {isMain && <button type="button" onClick={retryPaymongo} disabled={!!busy} style={{ ...smallBtn('var(--ib-accent, #B4511E)', 'var(--ib-cream, #FDF6EE)'), alignSelf: 'flex-start' }}><Wallet size={13} /> Send again</button>}
+        {isMain && <button type="button" onClick={retryPaymongo} disabled={!!busy} style={{ ...smallBtn('var(--ib-accent, #B4511E)', 'var(--ib-on-ink, #FDF6EE)'), alignSelf: 'flex-start' }}><Wallet size={13} /> Send again</button>}
       </div>
     );
   }
@@ -188,7 +188,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
   if (prepared) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', borderRadius: 12, padding: '10px 12px' }}>
-        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 900, color: '#8C5216' }}>
+        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 900, color: 'var(--ib-warn, #8C5216)' }}>
           Waiting for the main admin's approval · {b.weather_refund_method === 'gcash' ? 'GCash' : 'PayMongo'}
         </p>
         <p style={note}>
@@ -198,7 +198,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         {b.weather_refund_method !== 'gcash' && <p style={{ ...note, fontWeight: 800 }}>Prepared for PayMongo, which isn't used for refunds anymore: send it back and prepare it with GCash.</p>}
         {isMain ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {b.weather_refund_method === 'gcash' && <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', 'var(--ib-cream, #FDF6EE)')}>
+            {b.weather_refund_method === 'gcash' && <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', 'var(--ib-on-ink, #FDF6EE)')}>
               {busy === 'approve' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={13} />} Approve & Send
             </button>}
             <button type="button" onClick={sendBack} disabled={!!busy} style={smallBtn('transparent', 'var(--ib-red, #8C2F1C)', '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.4)')}>
@@ -236,7 +236,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         ]} />
       )}
       <button type="button" onClick={submit} disabled={!!busy || !ready} title={ready ? undefined : 'Add the 13-digit GCash reference no. and the receipt first'}
-        style={{ ...smallBtn(isMain ? 'var(--ib-accent, #B4511E)' : '#3F5D62', 'var(--ib-cream, #FDF6EE)', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
+        style={{ ...smallBtn(isMain ? 'var(--ib-accent, #B4511E)' : '#3F5D62', 'var(--ib-on-ink, #FDF6EE)', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
         {busy === 'submit' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : isMain ? <Wallet size={13} /> : <CheckCircle2 size={13} />}
         {isMain ? 'Send refund' : 'Send for approval'}
       </button>
@@ -259,7 +259,7 @@ const PaymongoState = ({ bookingId }) => {
         : state.status === 'failed' ? 'PayMongo: the refund FAILED. It was moved back to Weather refunds to send.'
           : state.status === 'manual' ? '' : `Couldn't check with PayMongo${state.error ? `: ${state.error}` : ''}.`;
   if (!text) return null;
-  return <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: state?.status === 'failed' ? 'var(--ib-red, #8C2F1C)' : state?.status === 'succeeded' ? '#1F6B4A' : '#8C5216' }}>{text}</p>;
+  return <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: state?.status === 'failed' ? 'var(--ib-red, #8C2F1C)' : state?.status === 'succeeded' ? 'var(--ib-green, #1F6B4A)' : 'var(--ib-warn, #8C5216)' }}>{text}</p>;
 };
 
 // ── A refund already sent: how, the receipt, PayMongo, and the joiner's answer ──
@@ -283,7 +283,7 @@ export const RefundSentInfo = ({ booking: b, onDone }) => {
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1F6B4A' }}>
+      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-green, #1F6B4A)' }}>
         Sent{b.weather_refund_method ? ` by ${b.weather_refund_method === 'gcash' ? 'GCash' : 'PayMongo'}` : ''}{b.weather_refund_at ? ` on ${when(b.weather_refund_at)}` : ''}{b.weather_refund_ref ? ` · ${b.weather_refund_ref}` : ''}.
       </p>
       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -294,7 +294,7 @@ export const RefundSentInfo = ({ booking: b, onDone }) => {
         {b.weather_refund_proof && <RefundProofLink path={b.weather_refund_proof} />}
       </div>
       {b.weather_refund_method !== 'gcash' && /ref_[A-Za-z0-9]+/.test(b.weather_refund_ref || '') && <PaymongoState bookingId={b.id} />}
-      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: received === 'received' ? '#1F6B4A' : received === 'not_received' ? 'var(--ib-red, #8C2F1C)' : '#8C5216' }}>
+      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: received === 'received' ? 'var(--ib-green, #1F6B4A)' : received === 'not_received' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-warn, #8C5216)' }}>
         {received === 'received' ? `✓ The joiner confirmed they received it (${when(b.weather_refund_received_at)}).`
           : received === 'not_received' ? `⚠ The joiner says they didn't get it (${when(b.weather_refund_received_at)}).`
             : 'Waiting for the joiner to confirm they received it.'}
@@ -334,7 +334,7 @@ const nowOf = (steps) => {
   const last = [...steps].reverse().find((r) => r.action !== 'paymongo_succeeded') || steps[steps.length - 1];
   switch (last?.action) {
     case 'received': return { t: 'Done · joiner received it', bg: 'var(--ib-ink, #1A0A00)', fg: 'var(--ib-amber, #E8A265)' };
-    case 'not_received': return { t: "Joiner didn't get it", bg: 'var(--ib-red, #8C2F1C)', fg: 'var(--ib-on-ink, #FDF6EE)' };
+    case 'not_received': return { t: "Joiner didn't get it", bg: 'var(--ib-red-solid, #8C2F1C)', fg: 'var(--ib-on-ink, #FDF6EE)' };
     case 'sent': return { t: 'Sent · waiting for the joiner', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-on-ink, #FDF6EE)' };
     case 'prepared': return { t: 'Waiting for approval', bg: 'transparent', fg: 'var(--ib-accent, #B4511E)', bd: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.5)' };
     default: return { t: 'To send', bg: 'transparent', fg: 'var(--ib-rust, #7A3A18)', bd: '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.4)' };
@@ -376,7 +376,7 @@ export const RefundHistoryButton = () => {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} style={smallBtn('var(--ib-dark, #1A0A00)', 'var(--ib-amber, #E8A265)')}><History size={13} /> Refund history</button>
+      <button type="button" onClick={() => setOpen(true)} style={smallBtn('var(--ib-ink, #1A0A00)', 'var(--ib-amber, #E8A265)')}><History size={13} /> Refund history</button>
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />

@@ -84,7 +84,7 @@ export const DriverForm = ({ driver, onDone, onCancel }) => {
       <span style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--ib-parch, #F2E4D0)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}><Icon size={18} /></span>
       <span style={{ minWidth: 0, flex: 1 }}>
         <span style={{ display: 'block', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{text} <span style={{ color: 'var(--ib-sienna, #A8481A)' }}>*</span></span>
-        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: file || onFile ? '#1B5E3B' : 'var(--ib-red, #8C2F1C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: file || onFile ? 'var(--ib-green, #1B5E3B)' : 'var(--ib-red, #8C2F1C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {file ? file.name : onFile ? 'On file · tap to replace' : 'Tap to upload a photo'}
         </span>
       </span>

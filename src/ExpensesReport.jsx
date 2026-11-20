@@ -249,7 +249,7 @@ const ExpensesReport = ({ onData }) => {
                       <span style={{ fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(m.amount)}</span>
                     </div>
                     <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, height: 10, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${(m.amount / monthMax) * 100}%`, background: 'var(--ib-sienna, #A8481A)', borderRadius: 999 }} />
+                      <div style={{ height: '100%', width: `${(m.amount / monthMax) * 100}%`, background: 'var(--ib-sienna-solid, #A8481A)', borderRadius: 999 }} />
                     </div>
                   </div>
                 ))}
@@ -272,7 +272,7 @@ const ExpensesReport = ({ onData }) => {
                           <td style={td}>{formatYmdRange(r.tour.start_date, r.tour.end_date)}</td>
                           <td style={td}>{formatPeso(r.estimated)}</td>
                           <td style={td}>{formatPeso(r.actual)}</td>
-                          <td style={{ ...td, fontWeight: 900, color: d > 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>{signed(d)}</td>
+                          <td style={{ ...td, fontWeight: 900, color: d > 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>{signed(d)}</td>
                           <td style={td}>{r.final ? <span style={tag}>Final</span> : <span style={{ ...tag, background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)' }}>Not final</span>}</td>
                         </tr>
                       );
@@ -315,9 +315,9 @@ const ExpensesReport = ({ onData }) => {
                           <td style={td}>{formatPeso(r.collected)}</td>
                           <td style={td}>
                             {r.hasLines ? formatPeso(r.cost) : <span style={{ color: 'var(--ib-red, #8C2F1C)', fontWeight: 800 }}>Not set</span>}
-                            {r.hasLines && <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: r.final ? '#2E6B4A' : 'var(--ib-sienna, #A8481A)' }}>{r.basis}</span>}
+                            {r.hasLines && <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: r.final ? 'var(--ib-green, #2E6B4A)' : 'var(--ib-sienna, #A8481A)' }}>{r.basis}</span>}
                           </td>
-                          <td style={{ ...td, fontWeight: 900, color: r.net < 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>{money(r.net)}</td>
+                          <td style={{ ...td, fontWeight: 900, color: r.net < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>{money(r.net)}</td>
                           <td style={td}>{pct(r.margin)}</td>
                           <td style={{ ...td, textAlign: 'right' }}>
                             <button type="button" aria-expanded={isOpen} aria-label={`Breakdown of ${r.tour.title}`} onClick={(e) => { e.stopPropagation(); setOpen(isOpen ? null : r.tour.id); }}
@@ -354,7 +354,7 @@ const ExpensesReport = ({ onData }) => {
                                   </table>
                                 </div>
                               )}
-                              <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 900, color: r.net < 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>
+                              <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 900, color: r.net < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>
                                 Joiner fees {formatPeso(r.fees)} − expenses {formatPeso(r.cost)} = net income {money(r.net)}{r.margin != null ? ` (${pct(r.margin)} margin)` : ''}
                               </p>
                             </td>
@@ -375,9 +375,9 @@ const ExpensesReport = ({ onData }) => {
 };
 
 const Stat = ({ label, value, sub, tone }) => (
-  <div style={{ background: tone === 'good' ? 'rgba(46,107,74,0.1)' : tone === 'bad' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '12px 16px', minWidth: 0 }}>
+  <div style={{ background: tone === 'good' ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)' : tone === 'bad' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '12px 16px', minWidth: 0 }}>
     <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{label}</p>
-    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? '#2E6B4A' : tone === 'bad' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', margin: '4px 0 0', overflowWrap: 'anywhere' }}>{value}</p>
+    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? 'var(--ib-green, #2E6B4A)' : tone === 'bad' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', margin: '4px 0 0', overflowWrap: 'anywhere' }}>{value}</p>
     {sub && <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>{sub}</p>}
   </div>
 );

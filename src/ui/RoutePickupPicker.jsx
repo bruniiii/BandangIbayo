@@ -131,7 +131,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
         <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
           Where the van leaves from and where it's going. Then search the pickup points on the way, or tick your saved spots.
         </p>
-        <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 700, color: '#8C5216', display: 'flex', gap: 6, alignItems: 'flex-start', lineHeight: 1.5 }}>
+        <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)', display: 'flex', gap: 6, alignItems: 'flex-start', lineHeight: 1.5 }}>
           <Info size={13} style={{ flexShrink: 0, marginTop: 2 }} /> Island or boat trip (e.g. Calaguas, Anawangin)? Choose the port or jump-off as the destination, since the van only goes that far.
         </p>
       </div>
@@ -186,7 +186,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
                         <MapPin size={15} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0 }} />
                         <span style={{ flex: 1, minWidth: 0 }}>
                           <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{p.name}</span>
-                          <span style={{ fontSize: 11.5, fontWeight: 600, color: p.offKm <= 3 ? '#1F6B4A' : '#8C5216' }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 600, color: p.offKm <= 3 ? 'var(--ib-green, #1F6B4A)' : 'var(--ib-warn, #8C5216)' }}>
                             {p.offKm <= 3 ? `On the way · ${fromStart(p.alongKm)}` : offRoad(p.offKm)}
                           </span>
                         </span>

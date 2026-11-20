@@ -52,7 +52,7 @@ const CheckInQr = ({ booking, tourTitle, isPaymentConfirmed, tourEnded }) => {
       </div>
       <div style={{ flex: '1 1 180px', minWidth: 0 }}>
         {booking.checked_in_at ? (
-          <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#2E6B4A', margin: '0 0 6px' }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: 'var(--ib-green, #2E6B4A)', margin: '0 0 6px' }}>
             <CheckCircle2 size={15} /> Checked in at {new Date(booking.checked_in_at).toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' })}
           </p>
         ) : (

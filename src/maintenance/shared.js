@@ -10,7 +10,7 @@ export const btn = (main) => ({
 });
 export const input = {
   width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 12, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)',
-  background: '#FFFDF9', fontFamily: 'inherit', fontSize: 14, color: 'var(--ib-dark, #1A0A00)',
+  background: 'var(--ib-surface, #FFFDF9)', fontFamily: 'inherit', fontSize: 14, color: 'var(--ib-dark, #1A0A00)',
 };
 export const label = { display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' };
 export const when = (d) => (d ? new Date(d).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—');

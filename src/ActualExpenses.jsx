@@ -191,7 +191,7 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
         </div>
 
         {finalAt && (
-          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, background: 'rgba(46,107,74,0.1)', color: '#2E6B4A', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800 }}>
+          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, background: 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)', color: 'var(--ib-green, #2E6B4A)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800 }}>
             <Lock size={15} /> Final since {new Date(finalAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}.
             {me.isMain ? ' You can still change them (main admin).' : ' Only the main admin can change them.'}
           </p>
@@ -235,7 +235,7 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
                   <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Actual (₱)</span>
                   <input value={r.actual} inputMode="decimal" disabled={locked} onChange={(e) => update(r.key, { actual: money(e.target.value) })} placeholder="0.00" style={box} />
                   {d != null && !r.is_unplanned && Math.abs(d) >= 0.01 && (
-                    <span style={{ fontSize: 11.5, fontWeight: 800, color: d > 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>{d > 0 ? '+' : '−'}{formatPeso(Math.abs(d))} vs estimate</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: d > 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>{d > 0 ? '+' : '−'}{formatPeso(Math.abs(d))} vs estimate</span>
                   )}
                 </label>
                 {r.is_unplanned && !locked && (
@@ -262,7 +262,7 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
         {rows && rows.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
             {[['Estimated', formatPeso(estTotal), 'var(--ib-dark, #1A0A00)'], ['Actual', formatPeso(actTotal), 'var(--ib-dark, #1A0A00)'],
-              ['Difference', `${diff > 0 ? '+' : diff < 0 ? '−' : ''}${formatPeso(Math.abs(diff))}`, diff > 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A']].map(([k, v, c]) => (
+              ['Difference', `${diff > 0 ? '+' : diff < 0 ? '−' : ''}${formatPeso(Math.abs(diff))}`, diff > 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)']].map(([k, v, c]) => (
               <div key={k} style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
                 <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>{k}</p>
                 <p style={{ margin: '2px 0 0', fontSize: 17, fontWeight: 900, color: c }}>{v}</p>

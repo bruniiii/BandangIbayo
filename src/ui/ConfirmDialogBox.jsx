@@ -47,7 +47,7 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, typ
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <span style={{
             width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: danger ? 'rgba(192,54,44,0.1)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: danger ? COLORS.danger : COLORS.primary,
+            background: danger ? 'rgba(var(--ib-danger-rgb, 192,54,44), 0.1)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: danger ? COLORS.danger : COLORS.primary,
           }}>
             <Icon size={20} />
           </span>

@@ -104,7 +104,7 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
           <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 15, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
             <KeyRound size={17} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Password
           </h3>
-          <p style={{ fontSize: 12, color: message.tone === 'success' && message.text ? '#3F5D62' : 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', fontWeight: message.text ? 700 : 400 }}>
+          <p style={{ fontSize: 12, color: message.tone === 'success' && message.text ? 'var(--ib-slate, #3F5D62)' : 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', fontWeight: message.text ? 700 : 400 }}>
             {message.text && message.tone === 'success' ? message.text : 'Keep your account safe with a strong password.'}
           </p>
         </div>
@@ -156,8 +156,8 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
       {message.text && (
         <p role={message.tone === 'error' ? 'alert' : 'status'} style={{
           fontSize: 12, fontWeight: 700, lineHeight: 1.6, margin: 0, padding: '10px 14px', borderRadius: 10,
-          color: message.tone === 'error' ? 'var(--ib-red, #8C2F1C)' : '#3F5D62',
-          background: message.tone === 'error' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)' : 'rgba(63,93,98,0.1)',
+          color: message.tone === 'error' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-slate, #3F5D62)',
+          background: message.tone === 'error' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)' : 'rgba(var(--ib-slate-rgb, 63,93,98), 0.1)',
         }}>
           {message.text}
         </p>

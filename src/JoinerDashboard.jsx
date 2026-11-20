@@ -52,7 +52,7 @@ import AnnouncementBanner from './ui/AnnouncementBanner';
 // var(--ib-rust, #7A3A18)  rust mid-tone
 // var(--ib-parch, #F2E4D0)  parchment (inset panels / secondary bg)
 // var(--ib-cream, #FDF6EE)  cream (page bg, same as the public Tours page)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
 const NAV_ITEMS = [
@@ -922,7 +922,7 @@ const JoinerDashboard = () => {
                           <div style={{ height: 115, background: 'var(--ib-parch, #F2E4D0)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                             {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={32} /></div>}
                             <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>{tour.difficulty}</span></div>
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
+                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust-solid, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
                           </div>
                           <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                             <div>

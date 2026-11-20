@@ -47,7 +47,7 @@ const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, van = null, m
         </p>
       )}
       {vanLive && (
-        <div role="status" style={{ background: stale ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)' : 'rgba(46,125,50,0.12)', border: `1px solid ${stale ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.6)' : 'rgba(46,125,50,0.35)'}`, borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, color: stale ? '#8C5216' : '#1F5E36', lineHeight: 1.5 }}>
+        <div role="status" style={{ background: stale ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)' : 'rgba(var(--ib-green-rgb, 46,125,50), 0.12)', border: `1px solid ${stale ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.6)' : 'rgba(var(--ib-green-rgb, 46,125,50), 0.35)'}`, borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, color: stale ? 'var(--ib-warn, #8C5216)' : 'var(--ib-green, #1F5E36)', lineHeight: 1.5 }}>
           🚐 {stale ? `The van's location was last updated ${agoText(van.updated_at, now)}.` : `Live: the van's location was updated ${agoText(van.updated_at, now)}.`}
           {mineKm != null && !stale && (
             <span style={{ display: 'block', color: 'var(--ib-dark, #1A0A00)' }}>

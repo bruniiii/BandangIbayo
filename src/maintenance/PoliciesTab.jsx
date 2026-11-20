@@ -120,7 +120,7 @@ const PoliciesTab = () => {
         {(versions || []).length === 0 ? <p style={{ ...hint, margin: 0 }}>No versions yet.</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {visible.map((v) => (
-              <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: v.is_current ? 'rgba(46,107,74,0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
+              <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: v.is_current ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Version {v.version}{v.is_current ? ' · current' : ''}</p>
                   <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{when(v.published_at)}{v.note ? ` · ${v.note}` : ''}</p>

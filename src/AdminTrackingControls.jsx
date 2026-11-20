@@ -34,7 +34,7 @@ const PALETTE = {
 };
 
 const STOP_STATUS_STYLES = {
-  DEPARTURE: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: '#8C5216', label: 'Pending Pickup' },
+  DEPARTURE: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)', label: 'Pending Pickup' },
   'CURRENTLY HERE': { bg: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', label: 'En Route / On The Way' },
   ARRIVED: { bg: '#1F8A5C', color: 'var(--ib-on-ink, #FDF6EE)', label: 'Arrived at Stop' },
   DEPARTED: { bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.1)', color: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)', label: 'Departed' },
@@ -577,7 +577,7 @@ const TrackingTourCard = ({ tour, badge, onTrack, onCheckIn }) => {
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={44} /></div>
         )}
         {badge && (
-          <span style={{ position: 'absolute', top: 12, right: 12, background: badge === 'Archived' ? 'var(--ib-rust, #7A3A18)' : badge === 'On-going' ? '#1F8A5C' : PALETTE.burntSienna, color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ position: 'absolute', top: 12, right: 12, background: badge === 'Archived' ? 'var(--ib-rust-solid, #7A3A18)' : badge === 'On-going' ? '#1F8A5C' : PALETTE.burntSienna, color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Compass size={10} /> {badge}
           </span>
         )}
@@ -855,7 +855,7 @@ const TrackingConsoleModal = ({
                 <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} /> Pickup Stops · Automatic
                 </h4>
-                <p role="status" style={{ fontSize: 11.5, fontWeight: 700, color: vanLive ? '#1F5E36' : 'var(--ib-rust, #7A3A18)', margin: '0 0 12px', lineHeight: 1.5 }}>
+                <p role="status" style={{ fontSize: 11.5, fontWeight: 700, color: vanLive ? 'var(--ib-green, #1F5E36)' : 'var(--ib-rust, #7A3A18)', margin: '0 0 12px', lineHeight: 1.5 }}>
                   {allArrived
                     ? 'Every pickup stop is done.'
                     : vanLive
@@ -1001,7 +1001,7 @@ const TrackingConsoleModal = ({
                                 onUpdateStopDetails(stop);
                               }}
                               style={{
-                                background: 'var(--ib-rust, #7A3A18)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
+                                background: 'var(--ib-rust-solid, #7A3A18)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
                                 borderRadius: 10, padding: '7px 12px', cursor: 'pointer',
                                 fontSize: 11.5, fontWeight: 800, display: 'flex', alignItems: 'center',
                                 justifyContent: 'center', gap: 4, width: isMobile ? '100%' : 'auto',
@@ -1015,7 +1015,7 @@ const TrackingConsoleModal = ({
                     })}
 
                     {allArrived ? (
-                      <div style={{ background: 'rgba(31,138,92,0.1)', padding: 12, borderRadius: 12, color: '#1F8A5C', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
+                      <div style={{ background: 'rgba(31,138,92,0.1)', padding: 12, borderRadius: 12, color: 'var(--ib-green, #1F8A5C)', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
                         All joiner pickup checkpoints completed!
                       </div>
                     ) : currentActiveStop && (
@@ -1123,7 +1123,7 @@ const TrackingTimeline = ({ logs = [] }) => {
               <strong style={{ fontSize: 12, color: 'var(--ib-dark, #1A0A00)' }}>{title}</strong>
               <p style={{ fontSize: 11, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 11.5, fontWeight: 700, color: '#8C5216' }}>
+                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)' }}>
                   Note: {log.note}
                 </div>
               )}

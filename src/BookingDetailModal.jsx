@@ -35,8 +35,8 @@ const WeatherRefundBox = ({ booking, onSent }) => {
   const sent = b.weather_refund_status === 'Sent';
   const gcash = b.gcash_number || '';
   return (
-    <div style={{ marginTop: 12, background: sent ? 'rgba(31,107,74,0.08)' : 'rgba(63,93,98,0.08)', border: `1.5px solid ${sent ? 'rgba(31,107,74,0.35)' : 'rgba(63,93,98,0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? '#1F6B4A' : '#3F5D62' }}>
+    <div style={{ marginTop: 12, background: sent ? 'rgba(var(--ib-green-rgb, 31,107,74), 0.08)' : 'rgba(var(--ib-slate-rgb, 63,93,98), 0.08)', border: `1.5px solid ${sent ? 'rgba(var(--ib-green-rgb, 31,107,74), 0.35)' : 'rgba(var(--ib-slate-rgb, 63,93,98), 0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? 'var(--ib-green, #1F6B4A)' : 'var(--ib-slate, #3F5D62)' }}>
         {weatherRefundPercentOf(b)}% refund {sent ? '· sent' : '· to send'}
       </p>
       <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
@@ -273,7 +273,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                       <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Downpayment ({subtotal ? Math.round((downpaymentAmount / subtotal) * 100) : 50}%)</span>
-                      <span style={{ fontWeight: 700, color: '#8C5216' }}>{formatPeso(downpaymentAmount)}</span>
+                      <span style={{ fontWeight: 700, color: 'var(--ib-warn, #8C5216)' }}>{formatPeso(downpaymentAmount)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                       <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Remaining Balance</span>
@@ -374,7 +374,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={decideCancellation} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <button type="button" onClick={decideCancellation} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-red-solid, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {deciding === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve Cancellation
                 </button>
               </div>

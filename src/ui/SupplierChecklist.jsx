@@ -135,7 +135,7 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
     const r = ratings[id];
     return (
       <span title={r?.count ? `${r.avg.toFixed(1)} average from ${r.count} joiner rating${r.count === 1 ? '' : 's'}` : 'No joiner ratings yet'}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11.5, fontWeight: 800, color: r?.count ? (r.avg < 3 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-brown, #5C2A10)') : '#9A7A60', whiteSpace: 'nowrap' }}>
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11.5, fontWeight: 800, color: r?.count ? (r.avg < 3 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-brown, #5C2A10)') : 'var(--ib-rust, #9A7A60)', whiteSpace: 'nowrap' }}>
         <Star size={12} fill={r?.count ? 'var(--ib-amber, #E8A265)' : 'none'} color="var(--ib-amber, #E8A265)" /> {r?.count ? `${r.avg.toFixed(1)} (${r.count})` : 'no ratings'}
       </span>
     );
@@ -275,9 +275,9 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
           ['Expected revenue', formatPeso(revenue)],
           ['Estimated profit', `${profit < 0 ? '−' : ''}${formatPeso(Math.abs(profit))}`],
         ].map(([k, v], i) => (
-          <div key={k} style={{ background: i === 3 ? (profit < 0 ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'rgba(46,107,74,0.1)') : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
+          <div key={k} style={{ background: i === 3 ? (profit < 0 ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)') : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
             <p style={{ ...sub, margin: 0, fontSize: 10 }}>{k}</p>
-            <p style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 900, color: i === 3 ? (profit < 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A') : 'var(--ib-dark, #1A0A00)' }}>{v}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 900, color: i === 3 ? (profit < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)') : 'var(--ib-dark, #1A0A00)' }}>{v}</p>
           </div>
         ))}
       </div>

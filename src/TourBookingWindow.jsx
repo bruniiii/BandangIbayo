@@ -361,7 +361,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         width: `${filledPct}%`,
 
-                                        background: isFullyBooked ? 'var(--ib-red, #8C2F1C)' : isAlmostFull ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)',
+                                        background: isFullyBooked ? 'var(--ib-red-solid, #8C2F1C)' : isAlmostFull ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust-solid, #7A3A18)',
 
                                         transition: 'width 0.4s',
 

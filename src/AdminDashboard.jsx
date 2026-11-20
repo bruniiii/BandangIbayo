@@ -47,7 +47,7 @@ import { useTabHistory, tabFromUrl } from './useTabHistory';
 // var(--ib-rust, #7A3A18)  rust mid-tone
 // var(--ib-parch, #F2E4D0)  parchment (legacy section bg, still used for some inset panels)
 // var(--ib-cream, #FDF6EE)  cream (page bg, same as the public Tours page)
-// #3F5D62  slate teal (secondary contrast accent, used sparingly)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent, used sparingly)
 // ---------------------------------------------------------
  
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -731,7 +731,7 @@ const AdminDashboard = () => {
                           <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', overflow: 'hidden' }}>
                             <div style={{
                               height: '100%', borderRadius: 999, width: `${t.pct}%`,
-                              background: t.pct >= 100 ? 'var(--ib-accent, #B4511E)' : t.pct >= 80 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)',
+                              background: t.pct >= 100 ? 'var(--ib-accent, #B4511E)' : t.pct >= 80 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust-solid, #7A3A18)',
                             }} />
                           </div>
                           <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, flexShrink: 0 }}>
@@ -1209,7 +1209,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
         <div style={{ padding: '1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
           <span aria-hidden="true" style={{
             width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'linear-gradient(145deg, #F7E3CC, #F2D3B3)', color: 'var(--ib-sienna, #A8481A)',
+            background: 'linear-gradient(145deg, var(--ib-peach-1, #F7E3CC), var(--ib-peach-2, #F2D3B3))', color: 'var(--ib-sienna, #A8481A)',
           }}>
             {icon}
           </span>

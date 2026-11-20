@@ -19,7 +19,7 @@ import NiceSelect from './ui/NiceSelect';
 // var(--ib-cream, #FDF6EE)  cream (light bg)
 // var(--ib-rust, #7A3A18)  rust mid-tone
 // var(--ib-parch, #F2E4D0)  parchment (section bg)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
 const timeAgo = (dateStr) => {
@@ -43,13 +43,13 @@ const dayLabels = () => {
 // Covers every type ever inserted from either the admin or joiner side
 // (see notifications.js, AdminExclusiveTours.jsx, BookingManagement.jsx, etc.)
 const TYPE_META = {
-  booking:            { Icon: CreditCard,     color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Booking' },
+  booking:            { Icon: CreditCard,     color: 'var(--ib-slate, #3F5D62)', bg: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.14)',   label: 'Booking' },
   payment:            { Icon: Wallet,         color: 'var(--ib-sienna, #A8481A)', bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',  label: 'Payment' },
   cancellation:       { Icon: XCircle,        color: 'var(--ib-red, #8C2F1C)', bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)',  label: 'Cancellation' },
   exclusive_request:  { Icon: Globe,          color: 'var(--ib-rust, #7A3A18)', bg: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.12)',  label: 'Private / Request' },
   exclusive_package:  { Icon: Package,        color: 'var(--ib-sienna, #A8481A)', bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',  label: 'Tour Package' },
-  review:             { Icon: Star,           color: '#8C5216', bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)',label: 'Review' },
-  account:            { Icon: Users,          color: '#3F5D62', bg: 'rgba(63,93,98,0.14)',   label: 'Account' },
+  review:             { Icon: Star,           color: 'var(--ib-warn, #8C5216)', bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)',label: 'Review' },
+  account:            { Icon: Users,          color: 'var(--ib-slate, #3F5D62)', bg: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.14)',   label: 'Account' },
   tour:               { Icon: MapIconLucide,  color: 'var(--ib-dark, #1A0A00)', bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)',    label: 'Tour' },
   tracking:           { Icon: Bus,            color: 'var(--ib-accent, #B4511E)', bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',  label: 'Tracking' },
   default:            { Icon: Bell,           color: 'var(--ib-rust, #7A3A18)', bg: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.1)',   label: 'Update' },

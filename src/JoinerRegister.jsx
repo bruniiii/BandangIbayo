@@ -1228,7 +1228,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   gap: 6,
                   fontSize: 11,
                   fontWeight: 700,
-                  color: '#dc2626',
+                  color: 'var(--ib-danger, #dc2626)',
                   margin: '8px 0 0 26px',
                 }}
               >
@@ -1251,8 +1251,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
               width: '100%',
               opacity: agreedToTerms && registerFilled ? 1 : 0.5,
               background: loading
-                ? 'var(--ib-sienna, #A8481A)'
-                : 'var(--ib-sienna, #A8481A)',
+                ? 'var(--ib-sienna-solid, #A8481A)'
+                : 'var(--ib-sienna-solid, #A8481A)',
               color: 'var(--ib-on-ink, #FDF6EE)',
               fontWeight: 900,
               fontSize: 13,

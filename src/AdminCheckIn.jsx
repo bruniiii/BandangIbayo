@@ -26,8 +26,8 @@ import NiceSelect from './ui/NiceSelect';
 // ─────────────────────────────────────────────
 
 const RESULT_STYLES = {
-  ok: { bg: 'rgba(46,107,74,0.1)', border: '#2E6B4A', color: '#2E6B4A', Icon: CheckCircle2 },
-  already: { bg: 'rgba(154,91,30,0.1)', border: '#9A5B1E', color: '#8C5216', Icon: AlertTriangle },
+  ok: { bg: 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)', border: 'var(--ib-green, #2E6B4A)', color: 'var(--ib-green, #2E6B4A)', Icon: CheckCircle2 },
+  already: { bg: 'rgba(154,91,30,0.1)', border: '#9A5B1E', color: 'var(--ib-warn, #8C5216)', Icon: AlertTriangle },
   bad: { bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-red, #8C2F1C)', Icon: XCircle },
 };
 
@@ -395,7 +395,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             )}
 
             {tour && !open(tour) && (
-              <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C5216', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
+              <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
                 {isOut
                   ? `This tour is on ${tourDates(tour)}. Check-out is open from the first day of the tour until the day after it ends.`
                   : `This tour is on ${tourDates(tour)}. Check-in opens on the day of the tour, so joiners can't be checked in yet.`}
@@ -459,7 +459,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                   </p>
                 )}
                 {(result.result === 'ok' || result.result === 'already') && Number(result.balance_due) > 0 && (
-                  <p style={{ fontSize: 13, fontWeight: 800, color: '#8C5216', margin: '8px 0 0' }}>Balance to collect: {peso(result.balance_due)}</p>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--ib-warn, #8C5216)', margin: '8px 0 0' }}>Balance to collect: {peso(result.balance_due)}</p>
                 )}
                 {result.mode === 'out' && (result.result === 'ok' || result.result === 'already_out') && (
                   <button type="button" className="text-link" onClick={() => undoOut(result.booking_id, result.full_name)} style={{ background: 'none', border: 'none', padding: '8px 0 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
@@ -490,7 +490,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                   style={{ height: 10, borderRadius: 999, background: 'var(--ib-parch, #F2E4D0)', overflow: 'hidden', margin: '0 0 10px' }}>
                   <div style={{ width: `${basePeople ? (inPeople / basePeople) * 100 : 0}%`, height: '100%', background: inPeople === basePeople ? '#2E9B5F' : 'var(--ib-accent, #B4511E)', transition: 'width 0.3s' }} />
                 </div>
-                <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? '#8C5216' : '#2E6B4A', margin: '0 0 10px' }}>
+                <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? 'var(--ib-warn, #8C5216)' : 'var(--ib-green, #2E6B4A)', margin: '0 0 10px' }}>
                   {waitingCount
                     ? `${isOut ? 'Not checked out yet' : 'Still waiting for'}: ${waitingCount} booking${waitingCount === 1 ? '' : 's'} (${basePeople - inPeople} ${basePeople - inPeople === 1 ? 'person' : 'people'}).`
                     : isOut ? (base.length ? 'Everyone is checked out! 🏁' : 'No one has checked in yet.') : 'Everyone is checked in! 🎉'}
@@ -513,9 +513,9 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {shownRoster.map((b) => (isOut ? (
-                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_out_at ? 'rgba(46,107,74,0.08)' : 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_out_at ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.08)' : 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
                     {b.checked_out_at
-                      ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked out" />
+                      ? <CheckCircle2 size={18} style={{ color: 'var(--ib-green, #2E6B4A)', flexShrink: 0 }} aria-label="Checked out" />
                       : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.45)', flexShrink: 0 }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
@@ -528,7 +528,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                     )}
                     {b.checked_out_at ? (
                       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: '#2E6B4A', whiteSpace: 'nowrap' }}>out {timeOf(b.checked_out_at)}</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-green, #2E6B4A)', whiteSpace: 'nowrap' }}>out {timeOf(b.checked_out_at)}</span>
                         <button type="button" onClick={() => undoOut(b.id, nameOf(b))} style={rowLinkBtn}><Undo2 size={12} /> Undo</button>
                       </span>
                     ) : (
@@ -538,9 +538,9 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                     )}
                   </li>
                 ) : (
-                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_in_at ? 'rgba(46,107,74,0.08)' : 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_in_at ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.08)' : 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
                     {b.checked_in_at
-                      ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked in" />
+                      ? <CheckCircle2 size={18} style={{ color: 'var(--ib-green, #2E6B4A)', flexShrink: 0 }} aria-label="Checked in" />
                       : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.45)', flexShrink: 0 }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
@@ -553,7 +553,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                     )}
                     {b.checked_in_at ? (
                       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: '#2E6B4A', whiteSpace: 'nowrap' }}>{timeOf(b.checked_in_at)}</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-green, #2E6B4A)', whiteSpace: 'nowrap' }}>{timeOf(b.checked_in_at)}</span>
                         <button type="button" onClick={() => undo(b.id, nameOf(b))} style={rowLinkBtn}><Undo2 size={12} /> Undo</button>
                       </span>
                     ) : (

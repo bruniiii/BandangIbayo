@@ -41,7 +41,7 @@ import NiceSelect from './ui/NiceSelect';
 
 // #EDEAE3  warm stone (page bg)
 
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 
 // ---------------------------------------------------------
 
@@ -468,7 +468,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
           <span style={{
 
-            background: isFull ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+            background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
 
             borderRadius: 999, padding: '4px 10px',
 
@@ -541,7 +541,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
                 height: 6, borderRadius: 999, transition: 'all 0.3s',
 
-                background: isFull ? 'var(--ib-red, #8C2F1C)' : tour.available_slots <= 3 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)',
+                background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : tour.available_slots <= 3 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)',
 
                 width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`,
 

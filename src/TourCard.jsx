@@ -93,13 +93,13 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 6, rowGap: 4, fontSize: 11, fontWeight: 700, color: full ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)', marginTop: 3, paddingLeft: 18 }}>
                       <span style={{ whiteSpace: 'nowrap' }}>{d.current_booked ?? 0} / {d.group_size || 18} booked</span>
                       {d.sale_starts && d.sale_ends && (
-                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: isOnSale(d) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? 'var(--ib-red-solid, #8C2F1C)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: isOnSale(d) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {isOnSale(d) ? 'On sale' : 'Sale soon'}
                         </span>
                       )}
                       {full && <span style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: 'var(--ib-sienna, #A8481A)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>Full</span>}
                       {d.weather_status && (
-                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? 'var(--ib-red, #8C2F1C)' : '#3F5D62', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? 'var(--ib-red-solid, #8C2F1C)' : '#3F5D62', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {d.weather_status === 'cancelled' ? 'Cancelled' : 'Postponed'}
                         </span>
                       )}
@@ -124,8 +124,8 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                       aria-label={`Actual expenses of ${formatDateRange(d.start_date, d.duration)}`}
                       style={{
                         flexShrink: 0, minHeight: 32, padding: '0 9px', borderRadius: 8, cursor: 'pointer',
-                        border: `1px solid ${d.expenses_final_at ? 'rgba(46,107,74,0.45)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.25)'}`, background: 'var(--ib-cream, #FDF6EE)',
-                        color: d.expenses_final_at ? '#2E6B4A' : 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 4,
+                        border: `1px solid ${d.expenses_final_at ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.45)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.25)'}`, background: 'var(--ib-cream, #FDF6EE)',
+                        color: d.expenses_final_at ? 'var(--ib-green, #2E6B4A)' : 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 4,
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
                       }}
                     ><Receipt size={11} /> {d.expenses_final_at ? 'Final' : 'Expenses'}</button>
@@ -138,7 +138,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                       aria-label={`Weather: postpone or cancel ${formatDateRange(d.start_date, d.duration)}`}
                       style={{
                         flexShrink: 0, minHeight: 32, width: 34, padding: 0, borderRadius: 8, cursor: 'pointer',
-                        border: '1px solid rgba(63,93,98,0.35)', background: 'var(--ib-cream, #FDF6EE)', color: '#3F5D62',
+                        border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.35)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-slate, #3F5D62)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     ><CloudRain size={14} /></button>

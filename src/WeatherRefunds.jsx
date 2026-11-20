@@ -51,7 +51,7 @@ const WeatherRefunds = ({ standalone = false }) => {
     return (
       <>
         {history}
-        <p style={{ margin: '0 0 16px', padding: '18px 20px', borderRadius: 16, background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.3)', fontSize: 13, fontWeight: 700, color: '#3F5D62', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <p style={{ margin: '0 0 16px', padding: '18px 20px', borderRadius: 16, background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.08)', border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.3)', fontSize: 13, fontWeight: 700, color: 'var(--ib-slate, #3F5D62)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <CloudRain size={16} /> No refunds to send right now. Refunds appear here after a tour is postponed or cancelled because of the weather.
         </p>
       </>
@@ -64,7 +64,7 @@ const WeatherRefunds = ({ standalone = false }) => {
     const name = b.profiles ? `${b.profiles.first_name || ''} ${b.profiles.last_name || ''}`.trim() || b.full_name : b.full_name;
     const gcash = b.gcash_number || b.profiles?.phone_number || '';
     return (
-      <div key={b.id} style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 14, padding: '12px 14px', border: `1px solid ${sent ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.35)' : 'rgba(63,93,98,0.2)'}` }}>
+      <div key={b.id} style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 14, padding: '12px 14px', border: `1px solid ${sent ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.35)' : 'rgba(var(--ib-slate-rgb, 63,93,98), 0.2)'}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 220px', minWidth: 0 }}>
             <p style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{name} · <span style={{ fontFamily: 'monospace' }}>{b.booking_number}</span></p>
@@ -80,9 +80,9 @@ const WeatherRefunds = ({ standalone = false }) => {
   };
 
   return (
-    <div role="region" aria-label="Weather refunds to send" style={{ background: 'rgba(63,93,98,0.08)', border: '1px solid rgba(63,93,98,0.35)', borderRadius: 18, padding: '14px 16px', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div role="region" aria-label="Weather refunds to send" style={{ background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.08)', border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.35)', borderRadius: 18, padding: '14px 16px', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <p style={{ flex: '1 1 260px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#3F5D62', margin: 0, flexWrap: 'wrap' }}>
+        <p style={{ flex: '1 1 260px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: 'var(--ib-slate, #3F5D62)', margin: 0, flexWrap: 'wrap' }}>
           <CloudRain size={16} style={{ flexShrink: 0 }} />
           {rows.length ? `Weather refunds to send: ${rows.length} · ${formatPeso(total)}` : 'Weather refunds'}
           {waiting > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 11 }}>{waiting} waiting for the main admin</span>}
@@ -90,7 +90,7 @@ const WeatherRefunds = ({ standalone = false }) => {
         {me.isMain && <RefundHistoryButton />}
         <button type="button" onClick={toggle} aria-expanded={!collapsed} aria-label={collapsed ? 'Show weather refunds' : 'Minimize weather refunds'} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 12, cursor: 'pointer',
-          background: 'transparent', border: '1px solid rgba(63,93,98,0.45)', color: '#3F5D62', fontFamily: 'inherit',
+          background: 'transparent', border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.45)', color: 'var(--ib-slate, #3F5D62)', fontFamily: 'inherit',
           fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
         }}>
           {collapsed ? 'Show' : 'Minimize'} <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: collapsed ? 'none' : 'rotate(180deg)' }} />

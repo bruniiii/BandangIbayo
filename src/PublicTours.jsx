@@ -391,7 +391,7 @@ export const PublicTourDetail = () => {
                 <span style={{ color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>{tour.current_booked} / {capacity}</span>
               </div>
               <div style={{ height: 6, borderRadius: 999, background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', overflow: 'hidden' }}>
-                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)' }} />
+                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)' }} />
               </div>
             </div>
 
