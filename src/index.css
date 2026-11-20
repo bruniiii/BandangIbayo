@@ -467,8 +467,7 @@ a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surfa
    The landing page's handwritten, hand-drawn look carried everywhere:
    faint topographic map lines behind pages, page icons as passport stamps,
    brush-stroke underlines, handwritten notes (Caveat), tour cards as
-   tickets with a torn edge, strips of tape on the login/register cards and
-   a little van on the loading screen. */
+   tickets with a torn edge and a little van on the loading screen. */
 :root { --journal-topo: url('/topo-light.svg'); --journal-notch: #F3EADF; --journal-tape: rgba(255,210,122,0.78); }
 :root[data-theme="dark"] { --journal-topo: url('/topo-dark.svg'); --journal-notch: #0B2531; --journal-tape: rgba(255,194,102,0.55); }
 :root[data-theme="dark"] .dashboard-content, :root[data-theme="dark"] .nature-bg { background-image: var(--journal-topo), linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.86), rgba(var(--ib-cream-rgb, 253,246,238), 0.86)), url('/nature-bg.webp') !important; }
@@ -495,13 +494,6 @@ a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surfa
 .ticket-tear::before { left: -24px; }
 .ticket-tear::after { right: -24px; }
 
-/* Login / register / password cards: two strips of tape holding the page down. */
-.journal-card { position: relative; }
-.journal-card::before, .journal-card::after { content: ''; position: absolute; top: 2px; width: 84px; height: 22px; z-index: 3; pointer-events: none;
-  background: var(--journal-tape); box-shadow: 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12);
-  -webkit-mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent calc(100% - 3px)); }
-.journal-card::before { left: 18px; transform: rotate(-5deg); }
-.journal-card::after { right: 64px; transform: rotate(4deg); }
 
 /* Empty states: the doodle's circle bobs gently. */
 @media (prefers-reduced-motion: no-preference) {

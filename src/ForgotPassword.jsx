@@ -72,7 +72,7 @@ const ForgotPassword = () => {
       background: 'var(--ib-cream, #FDF6EE)', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: 'var(--ib-dark, #1A0A00)',
       padding: '3rem 1rem',
     }}>
-      <div className="journal-card" style={{
+      <div style={{
         background: 'var(--ib-cream, #FDF6EE)', padding: '2.5rem', borderRadius: 24,
         boxShadow: '0 20px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)', width: '100%', maxWidth: 420,
         borderTop: '7px solid var(--ib-accent, #B4511E)',
