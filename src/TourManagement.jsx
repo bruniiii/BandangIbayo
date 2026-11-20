@@ -699,7 +699,7 @@ const TourManagement = ({ openTourId = null }) => {
               background: confirmAction.isArchived ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 28px',
-              color: 'var(--ib-on-ink, #FDF6EE)',
+              color: (confirmAction.isArchived) ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-on-ink, #FDF6EE)',
               boxShadow: '0 12px 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
             }}>
               {confirmAction.isArchived ? <RefreshCw size={38} /> : <Archive size={38} />}
@@ -738,7 +738,7 @@ const TourManagement = ({ openTourId = null }) => {
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: 'var(--ib-on-ink, #FDF6EE)',
+                  color: 'var(--ib-on-accent, #FDF6EE)',
                   boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
                 }}
               >{confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}</button>
@@ -815,7 +815,7 @@ const TourManagement = ({ openTourId = null }) => {
           onClick={() => setPickTemplate(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
             border: 'none', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -1241,7 +1241,7 @@ const TourManagement = ({ openTourId = null }) => {
                 background: 'var(--ib-accent, #B4511E)', border: 'none', borderRadius: 999,
                 cursor: tourFilled ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: 'var(--ib-on-ink, #FDF6EE)',
+                color: 'var(--ib-on-accent, #FDF6EE)',
                 boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: uploading ? 0.7 : tourFilled ? 1 : 0.5,

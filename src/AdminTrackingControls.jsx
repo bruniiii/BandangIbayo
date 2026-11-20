@@ -823,7 +823,7 @@ const TrackingConsoleModal = ({
                       ]} />
                     )}
                     <button type="submit" disabled={savingLogistics || !vehicleFilled || !docsReady} style={{
-                      padding: '10px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                      padding: '10px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                       border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.15em', textTransform: 'uppercase', cursor: vehicleFilled ? 'pointer' : 'not-allowed', opacity: vehicleFilled ? 1 : 0.5,
                     }}>

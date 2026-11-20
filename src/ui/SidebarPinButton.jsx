@@ -16,7 +16,7 @@ const SidebarPinButton = ({ pinned, onToggle }) => (
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: pinned ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.08)',
       border: '1px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.35)',
-      color: pinned ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-amber, #E8A265)',
+      color: pinned ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-amber, #E8A265)',
     }}
   >
     {pinned ? <BookOpen size={15} /> : <Book size={15} />}

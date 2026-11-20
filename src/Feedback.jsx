@@ -107,7 +107,7 @@ const Feedback = () => {
 const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)', maxWidth: 720 };
 const primaryBtn = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, height: 48, padding: '0 22px', borderRadius: 14, border: 'none', cursor: 'pointer',
-  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', alignSelf: 'flex-start',
+  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', alignSelf: 'flex-start',
 };
 const secondaryBtn = {
   display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 18px', borderRadius: 12, cursor: 'pointer',

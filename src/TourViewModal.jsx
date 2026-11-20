@@ -219,7 +219,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
                 onClick={onEdit}
                 style={{
                   width: '100%', padding: '12px 0',
-                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                   border: 'none', borderRadius: 14, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',

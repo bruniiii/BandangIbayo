@@ -90,7 +90,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
       <div style={{ position: 'relative', zIndex: 1, padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
         <span style={{
           alignSelf: 'flex-start',
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
           fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
           borderRadius: 999, padding: '5px 12px',
         }}>
@@ -360,7 +360,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
             display: 'inline-block', fontSize: 11, fontWeight: 800,
             padding: '3px 10px', borderRadius: 999,
             background: isActive ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-            color: isActive ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+            color: isActive ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>
             {stop.status}
           </span>

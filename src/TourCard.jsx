@@ -51,7 +51,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
         <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
           {isLive && !tour.is_archived && (
             <span style={{
-              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
               borderRadius: 999, padding: '4px 10px',
               fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
             }}>● Live</span>

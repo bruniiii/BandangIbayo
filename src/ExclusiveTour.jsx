@@ -484,7 +484,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
   const sectionTitle = (n, text) => (
     <h3 style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-      <span style={{ width: 20, height: 20, background: 'var(--ib-accent, #B4511E)', borderRadius: '50%', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>{n}</span>
+      <span style={{ width: 20, height: 20, background: 'var(--ib-accent, #B4511E)', borderRadius: '50%', color: 'var(--ib-on-accent, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>{n}</span>
       {text}
     </h3>
   );
@@ -680,7 +680,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           disabled={!canSubmit}
           title={canSubmit || loading ? undefined : tooSoon ? `One request every ${periodText(REQUEST_GAP_DAYS)}: you can send the next one on ${nextText}` : missing ? 'Fill in all the boxes marked * first' : lowBudget ? `The budget must be at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}` : 'Tick the Terms & Conditions box first'}
           style={{
-            flex: editing ? '2 1 220px' : '0 1 340px', margin: editing ? 0 : '0 auto', padding: '16px 28px', background: isExclusive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+            flex: editing ? '2 1 220px' : '0 1 340px', margin: editing ? 0 : '0 auto', padding: '16px 28px', background: isExclusive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-accent, #B4511E)', color: (isExclusive) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-on-accent, #FDF6EE)',
             borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, fontFamily: 'inherit', lineHeight: 1.4,
             letterSpacing: '0.12em', textTransform: 'uppercase', cursor: canSubmit ? 'pointer' : 'not-allowed',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -925,7 +925,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysO
                   {heldReleased ? (onExplore && (
                     <button type="button" onClick={onExplore} style={{
                       marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
-                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.1em', textTransform: 'uppercase',
                     }}>
                       <CreditCard size={14} /> Book on Explore Tours
@@ -933,7 +933,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysO
                   )) : pkg.held_booking_id && onOpenBooking && (
                     <button type="button" onClick={() => onOpenBooking(pkg.held_booking_id)} style={{
                       marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
-                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.1em', textTransform: 'uppercase',
                     }}>
                       <CreditCard size={14} /> {heldPaid ? 'View my booking' : 'Pay for my slots'}
@@ -1044,7 +1044,7 @@ const PayButton = ({ busy, onClick, disabled = false, children }) => (
   <button type="button" onClick={onClick} disabled={busy || disabled} style={{
     alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
     padding: '12px 20px', borderRadius: 14, border: 'none', cursor: busy || disabled ? 'not-allowed' : 'pointer',
-    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
     letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy ? 0.75 : disabled ? 0.5 : 1,
   }}>
     {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} {children}
@@ -1331,7 +1331,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, onExplore, op
           </div>
           <button type="button" onClick={() => setShowForm(true)} style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, height: 44, padding: '0 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             boxShadow: '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
           }}><Plus size={15} /> {newLabel}</button>
         </div>

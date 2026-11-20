@@ -303,7 +303,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                     <div style={{ fontStyle: 'normal', marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.9)' }}>Want to travel on this day?</p>
                       <button type="button" onClick={() => onPlanTrip('exclusive', format(selectedDate, 'yyyy-MM-dd'))} style={{
-                        padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                        padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                       }}>
                         Private Tour

@@ -59,7 +59,7 @@ const InstallAppCard = () => {
       {canPrompt && (
         <button type="button" onClick={install} style={{
           display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 14,
-          border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900,
+          border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900,
           fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap',
         }}>
           <Download size={14} /> Install

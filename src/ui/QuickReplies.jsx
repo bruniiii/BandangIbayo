@@ -75,7 +75,7 @@ const QuickReplies = ({ onPick }) => {
             style={{ display: 'flex', gap: 6, marginTop: 8, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', paddingTop: 8 }}>
             <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={500} placeholder="Add a saved reply…" aria-label="New saved reply"
               style={{ flex: 1, minWidth: 0, borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', padding: '8px 10px', fontFamily: 'inherit', fontSize: 16, background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-dark, #1A0A00)' }} />
-            <button type="submit" disabled={!draft.trim()} aria-label="Add" style={{ width: 38, borderRadius: 10, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={16} /></button>
+            <button type="submit" disabled={!draft.trim()} aria-label="Add" style={{ width: 38, borderRadius: 10, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={16} /></button>
           </form>
         </div>
       )}

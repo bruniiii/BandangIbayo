@@ -504,7 +504,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     background: (submitting || !selectedTourId || rating === 0) ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'var(--ib-accent, #B4511E)',
-                    color: 'var(--ib-on-ink, #FDF6EE)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                    color: 'var(--ib-on-accent, #FDF6EE)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
                     border: 'none', cursor: (submitting || !selectedTourId || rating === 0) ? 'not-allowed' : 'pointer',
                     fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
@@ -686,7 +686,7 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={save} disabled={saving || !text.trim()} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
+            display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', border: 'none',
             borderRadius: 999, padding: '8px 16px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
             cursor: saving || !text.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
           }}>

@@ -143,7 +143,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
         <button type="button" onClick={find} disabled={busy || !start || !end} style={{
           alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 999, border: 'none',
           cursor: busy || !start || !end ? 'not-allowed' : 'pointer', opacity: !start || !end ? 0.5 : 1,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Route size={14} />} Show the van's route</button>
       )}
       {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>{error}</span>}

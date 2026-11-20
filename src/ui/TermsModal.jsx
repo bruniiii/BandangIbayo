@@ -263,7 +263,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
             fontSize: 11.5,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: 'var(--ib-on-ink, #FDF6EE)',
+            color: 'var(--ib-on-accent, #FDF6EE)',
             boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
           }}
         >

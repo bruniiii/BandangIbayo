@@ -95,7 +95,7 @@ const navLink = {
 };
 const navCta = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  fontSize: 13, fontWeight: 900, color: 'var(--ib-on-ink, #FDF6EE)', textDecoration: 'none',
+  fontSize: 13, fontWeight: 900, color: 'var(--ib-on-accent, #FDF6EE)', textDecoration: 'none',
   background: 'var(--ib-accent, #B4511E)', borderRadius: 10, padding: '9px 16px',
   letterSpacing: '0.04em', whiteSpace: 'nowrap',
 };
@@ -404,7 +404,7 @@ export const PublicTourDetail = () => {
                 fontSize: 14, fontWeight: 900, letterSpacing: '0.04em',
                 cursor: canBook ? 'pointer' : 'not-allowed',
                 background: canBook ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)',
-                color: canBook ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
+                color: canBook ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
               }}
             >
               {hasDeparted ? 'This tour has departed' : isFull ? (session ? 'Join the waitlist' : 'Log in to join the waitlist') : session ? 'Book this tour' : 'Log in to book'}
@@ -452,7 +452,7 @@ export const PublicTourDetail = () => {
             fontSize: 13, fontWeight: 900, flexShrink: 0,
             cursor: canBook ? 'pointer' : 'not-allowed',
             background: canBook ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)',
-            color: canBook ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
+            color: canBook ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
           }}
         >
           {hasDeparted ? 'Departed' : isFull ? 'Join waitlist' : session ? 'Book now' : 'Log in to book'}

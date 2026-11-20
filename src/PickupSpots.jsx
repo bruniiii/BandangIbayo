@@ -85,7 +85,7 @@ const PickupSpots = ({ onClose, onChanged }) => {
         {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: 'transparent', color: 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
         <button type="button" onClick={save} disabled={saving || !name.trim() || !place} title={name.trim() && place ? undefined : 'Type the name and find the place first'} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none', cursor: name.trim() && place ? 'pointer' : 'not-allowed', opacity: name.trim() && place ? 1 : 0.5,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />} {editing ? 'Save Changes' : 'Add Spot'}</button>
       </div>
     </div>

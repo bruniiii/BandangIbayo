@@ -296,7 +296,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
               {/* Live Status Header Banner */}
               <div style={{
                 background: isCompleted ? '#1F8A5C' : activeStop?.status === 'CURRENTLY HERE' ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)',
-                color: 'var(--ib-on-ink, #FDF6EE)', padding: '14px 18px', borderRadius: 16, marginBottom: 16,
+                color: !isCompleted && activeStop?.status === 'CURRENTLY HERE' ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-on-ink, #FDF6EE)', padding: '14px 18px', borderRadius: 16, marginBottom: 16,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <Navigation size={16} />
@@ -441,7 +441,7 @@ const LiveTimeline = ({ logs }) => {
               <div style={{
                 width: 22, height: 22, borderRadius: '50%',
                 background: index === 0 ? 'var(--ib-accent, #B4511E)' : '#1F8A5C',
-                color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: (index === 0) ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 {log.status === 'ARRIVED' ? <CheckCircle2 size={13} /> : <Check size={12} strokeWidth={3} />}
               </div>

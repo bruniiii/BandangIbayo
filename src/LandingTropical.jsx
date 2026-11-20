@@ -24,8 +24,7 @@ import ThemeToggle from './ui/ThemeToggle';
 //  • Tours, then reviews, then tour types (photo cards), How to Book (a
 //    numbered path), Why Us, a strip of trip
 //    photos, About & Contact, and a call to action on a photo.
-// The previous dark page is kept in LandingPremium.jsx (and the first one
-// in LandingClassic.jsx). Styles: PAGE_CSS below, scoped under .lk.
+// Styles: PAGE_CSS below, scoped under .lk.
 
 // The menu's links (each one a section of this page).
 const NAV = [['tours', 'Tours'], ['how', 'How to Book'], ['why', 'Why Us'], ['contact', 'Contact']];
@@ -57,8 +56,6 @@ const REASONS = [
   { icon: Smartphone, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
 ];
 
-// The handwritten accent font (matches the script in the logo).
-const SCRIPT_FONT = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap';
 // Shown in the moving ribbon under the photo when there are few destinations.
 const KINDS = ['Mountains', 'Beaches', 'Islands', 'Waterfalls', 'Sunrise hikes', 'Food trips'];
 
@@ -72,13 +69,6 @@ const LandingTropical = () => {
   const [slide, setSlide] = useState(0);
   const pageRef = useRef(null);
 
-  useEffect(() => {
-    if (document.querySelector(`link[href="${SCRIPT_FONT}"]`)) return;
-    const l = document.createElement('link');
-    l.rel = 'stylesheet';
-    l.href = SCRIPT_FONT;
-    document.head.appendChild(l);
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -592,7 +582,7 @@ const PAGE_CSS = `
 }
 
 /* ═════════ Colors: sand, ocean blue, sunset orange ═════════ */
-.lk-tropical { --bg: #FFF8EE; --bg2: #FDEBD3; --panel: #FFFFFF; --text: #0B3B4F; --muted: #3F6372; --accent: #FF7A3D; --accent2: #0A8BA6; --on-accent: #FFFFFF;
+.lk-tropical { --bg: #FFF8EE; --bg2: #FDEBD3; --panel: #FFFFFF; --text: #0B3B4F; --muted: #3F6372; --accent: #FF7A3D; --accent2: #0A8BA6; --on-accent: #0B3B4F;
   --hero-accent: #FFD27A; --line: rgba(11,59,79,0.1); --line-strong: rgba(10,139,166,0.35); --radius: 28px; --btn-radius: 999px; --search-radius: 999px;
   --btn-shadow: 0 10px 24px rgba(255,122,61,0.35); --card-border: none; --card-shadow: 0 14px 40px rgba(11,59,79,0.1); --icon-bg: rgba(10,139,166,0.12);
   --nav-bg: rgba(255,248,238,0.9); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
@@ -650,8 +640,8 @@ const PAGE_CSS = `
 .lk-van { position: absolute; top: 18px; left: calc(16.7% + 46px); z-index: 2; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   background: #FFFFFF; color: #0A8BA6; box-shadow: 0 6px 16px rgba(11,59,79,0.18); animation: lk-drive 9s ease-in-out infinite; list-style: none; }
 @keyframes lk-drive { 0%, 8% { left: calc(16.7% + 46px); } 46%, 54% { left: calc(83.3% - 82px); } 92%, 100% { left: calc(16.7% + 46px); } }
-.lk-step:nth-child(3) .lk-step-num { background: linear-gradient(135deg, #0A8BA6, #2BB3C9); }
-.lk-step:nth-child(4) .lk-step-num { background: linear-gradient(135deg, #19A974, #5CC98F); }
+.lk-step:nth-child(3) .lk-step-num { background: linear-gradient(135deg, #0A8BA6, #2BB3C9); color: #FFFFFF; }
+.lk-step:nth-child(4) .lk-step-num { background: linear-gradient(135deg, #19A974, #5CC98F); color: #FFFFFF; }
 
 /* Trip photos as tilted prints with handwritten captions */
 .lk-strip figure { background: #FFFFFF; padding: 10px 10px 46px; border-radius: 6px; box-shadow: 0 14px 30px rgba(11,59,79,0.16); height: auto; overflow: visible; }
@@ -682,7 +672,7 @@ const PAGE_CSS = `
    colours (shared parts like the reviews, prices and help button) are
    flipped here too, only inside the landing page. */
 :root[data-theme="dark"] .lk-tropical { color-scheme: dark;
-  --bg: #08202B; --bg2: #0C2A37; --panel: #113442; --text: #EAF4F6; --muted: #A9C3CB; --accent: #FF8A52; --accent2: #4CC3DA; --on-accent: #FFFFFF;
+  --bg: #08202B; --bg2: #0C2A37; --panel: #113442; --text: #EAF4F6; --muted: #A9C3CB; --accent: #FF8A52; --accent2: #4CC3DA; --on-accent: #0B3B4F;
   --line: rgba(234,244,246,0.1); --line-strong: rgba(76,195,218,0.4); --btn-shadow: 0 10px 24px rgba(255,122,61,0.25);
   --card-shadow: 0 14px 40px rgba(0,0,0,0.4); --icon-bg: rgba(76,195,218,0.14); --nav-bg: rgba(8,32,43,0.86);
   --ib-dark: #EAF4F6; --ib-deep: #0C2A37; --ib-brown: #EAF4F6; --ib-rust: #A9C3CB; --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3;

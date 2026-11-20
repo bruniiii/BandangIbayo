@@ -75,7 +75,7 @@ export const MaintenancePage = ({ maintenance }) => {
         )}
         <button type="button" onClick={maintenanceChanged} style={{
           marginTop: 22, display: 'inline-flex', alignItems: 'center', gap: 8, height: 44, padding: '0 20px', borderRadius: 999, border: 'none',
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
         }}>
           <RefreshCw size={15} /> Check Again
         </button>

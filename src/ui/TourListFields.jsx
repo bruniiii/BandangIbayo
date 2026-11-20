@@ -22,7 +22,7 @@ const inputStyle = {
 };
 const addBtnStyle = (off) => ({
   flexShrink: 0, minHeight: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: off ? 'not-allowed' : 'pointer',
-  background: off ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
+  background: off ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
   letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6,
 });
 const iconBtn = {

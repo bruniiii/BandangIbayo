@@ -267,7 +267,7 @@ const JoinerLogin = () => {
   const submitStyle = (disabled) => ({
     width: '100%',
     background: disabled ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.55)' : 'var(--ib-accent, #B4511E)',
-    color: 'var(--ib-on-ink, #FDF6EE)',
+    color: 'var(--ib-on-accent, #FDF6EE)',
     fontWeight: 900,
     fontSize: 13,
     letterSpacing: '0.1em',
@@ -328,7 +328,7 @@ const JoinerLogin = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 24px',
               boxShadow: '0 12px 32px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
-              color: 'var(--ib-on-ink, #FDF6EE)',
+              color: 'var(--ib-on-accent, #FDF6EE)',
             }}>
               <CheckCircle2 size={40} strokeWidth={2.5} />
             </div>

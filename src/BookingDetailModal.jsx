@@ -452,7 +452,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '13px 26px',
-                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -518,7 +518,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '13px 26px',
-                    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                     border: 'none', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900,
                     fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -622,7 +622,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '12px 24px',
-                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                   border: 'none', borderRadius: 999, cursor: balanceReceived ? 'pointer' : 'not-allowed',
                   opacity: balanceReceived ? 1 : 0.45,
                   fontFamily: 'inherit', fontWeight: 900,

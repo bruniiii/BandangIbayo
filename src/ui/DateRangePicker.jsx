@@ -70,7 +70,7 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
         }}
       >
         {/* Same look as the site's other date boxes (NiceDate). */}
-        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: start ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: start ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
+        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: start ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: start ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
           <Calendar size={14} />
         </span>
         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
@@ -112,7 +112,7 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
                     height: 36, border: 'none', borderRadius: 10, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 800,
                     cursor: disabled ? 'default' : 'pointer',
                     background: isEdge ? 'var(--ib-accent, #B4511E)' : inRange || isHoverEnd ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.16)' : 'transparent',
-                    color: isEdge ? 'var(--ib-on-ink, #FDF6EE)' : disabled ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-dark, #1A0A00)',
+                    color: isEdge ? 'var(--ib-on-accent, #FDF6EE)' : disabled ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-dark, #1A0A00)',
                   }}
                 >
                   {Number(day.slice(8))}
