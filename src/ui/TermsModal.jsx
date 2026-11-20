@@ -24,7 +24,6 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)',
-      backdropFilter: 'blur(6px)',
       padding: 16,
     }}
   >

@@ -442,7 +442,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   };
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={close} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', }} onClick={close} />
       <form className="paper-card"
         onSubmit={submit}
         noValidate

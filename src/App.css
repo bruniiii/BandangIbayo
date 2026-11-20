@@ -266,7 +266,6 @@ main {
     position: fixed;
     inset: 0;
     background: rgba(var(--ib-ink-rgb, 26,10,0), 0.55);
-    backdrop-filter: blur(2px);
     z-index: 90;
   }
  

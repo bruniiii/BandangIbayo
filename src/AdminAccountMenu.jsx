@@ -110,7 +110,7 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
       {/* At the page level (a portal), so the top bar's blur doesn't squeeze it. */}
       {editingName && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setEditingName(false)} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', }} onClick={() => setEditingName(false)} />
           <div role="dialog" aria-label="Edit my name" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)' }}>
             <button type="button" onClick={() => setEditingName(false)} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={18} /></button>
             <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 8 }}><UserRound size={16} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Your Name</h3>
@@ -124,7 +124,7 @@ const AdminAccountMenu = ({ onOpenSettings, onStartTour }) => {
       {/* At the page level (a portal), so the top bar's blur doesn't squeeze it. */}
       {changing && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => setChanging(false)} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', }} onClick={() => setChanging(false)} />
           <div role="dialog" aria-label="Change password" style={{ position: 'relative', width: '100%', maxWidth: 620, maxHeight: '92dvh', overflowY: 'auto', borderRadius: 22 }}>
             <button className="x-close" type="button" onClick={() => setChanging(false)} aria-label="Close" style={{
               position: 'absolute', top: 14, right: 14, zIndex: 1, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)',

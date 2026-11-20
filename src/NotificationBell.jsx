@@ -275,7 +275,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
     display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
   }}>
     <div
-      style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(6px)' }}
+      style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', }}
       onClick={onClose}
     />
     <div className="paper-card" style={{

@@ -99,7 +99,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10060, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.85)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.85)', }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-labelledby="weather-title" style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 520, maxHeight: '92dvh', overflowY: 'auto',
         borderRadius: 24, borderTop: '6px solid var(--ib-slate, #3F5D62)', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem', boxSizing: 'border-box',

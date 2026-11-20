@@ -46,7 +46,7 @@ const MyRefunds = ({ bookings, weather, onChanged, focusId = null }) => {
 
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
+          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', }} />
           <div role="dialog" aria-modal="true" aria-label="My refunds" style={{
             position: 'relative', width: '100%', maxWidth: 640, maxHeight: '88vh', display: 'flex', flexDirection: 'column',
             background: 'var(--ib-parch, #F2E4D0)', borderRadius: 22, boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', overflow: 'hidden',

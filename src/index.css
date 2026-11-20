@@ -292,9 +292,7 @@ html { touch-action: manipulation; }
   flex-shrink: 0;
   margin: calc(-1 * var(--dash-pad)) calc(-1 * var(--dash-pad)) 20px !important;
   padding: 14px var(--dash-pad) !important;
-  background: rgba(var(--ib-cream-rgb, 253,246,238), 0.9);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: rgb(var(--ib-cream-rgb, 253,246,238));
   border-bottom: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12);
 }
 .dashboard-content {

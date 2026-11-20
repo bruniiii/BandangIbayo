@@ -958,7 +958,7 @@ const FeedPostCard = ({
           onClick={() => setLightboxIndex(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.92)', backdropFilter: 'blur(6px)',
+            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.92)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '3rem 1.5rem', cursor: 'zoom-out',
           }}

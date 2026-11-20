@@ -502,7 +502,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
       {codeStep && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 190, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)', padding: 20,
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', padding: 20,
         }}>
           <form className="paper-card"
             onSubmit={handleVerifyCode}
@@ -594,7 +594,6 @@ const JoinerRegister = ({ mode = 'register' }) => {
             alignItems: 'center',
             justifyContent: 'center',
             background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)',
-            backdropFilter: 'blur(10px)',
             padding: 20,
           }}
         >

@@ -440,7 +440,7 @@ const PAGE_CSS = `
 
 .lk-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 16px clamp(1rem, 4vw, 3.5rem); transition: background 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease; color: #FFFFFF; }
-.lk-nav.is-scrolled { background: var(--nav-bg); color: var(--text); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 1px 0 var(--line); padding-top: 10px; padding-bottom: 10px; }
+.lk-nav.is-scrolled { background: var(--nav-bg); color: var(--text); box-shadow: 0 1px 0 var(--line); padding-top: 10px; padding-bottom: 10px; }
 .lk-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; min-width: 0; }
 .lk-brand img { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
 .lk-brand span { white-space: nowrap; }
@@ -597,7 +597,7 @@ const PAGE_CSS = `
 .lk-tropical { --bg: #FFF8EE; --bg2: #FDEBD3; --panel: #FFFFFF; --text: #0B3B4F; --muted: #3F6372; --accent: #FF7A3D; --accent2: #0A8BA6; --on-accent: #0B3B4F;
   --hero-accent: #FFD27A; --line: rgba(11,59,79,0.1); --line-strong: rgba(10,139,166,0.35); --radius: 28px; --btn-radius: 999px; --search-radius: 999px;
   --btn-shadow: 0 10px 24px rgba(255,122,61,0.35); --card-border: none; --card-shadow: 0 14px 40px rgba(11,59,79,0.1); --icon-bg: rgba(10,139,166,0.12);
-  --nav-bg: rgba(255,248,238,0.9); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
+  --nav-bg: #FFF8EE; --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
   --hero-shade: linear-gradient(180deg, rgba(5,40,55,0.45) 0%, rgba(5,40,55,0.15) 40%, rgba(5,40,55,0.55) 100%);
   --cta-shade: linear-gradient(120deg, rgba(10,139,166,0.85), rgba(255,122,61,0.75)); }
 .lk-tropical .lk-hero { margin: 12px; border-radius: 36px; min-height: calc(92dvh - 24px); }
@@ -686,7 +686,7 @@ const PAGE_CSS = `
 :root[data-theme="dark"] .lk-tropical { color-scheme: dark;
   --bg: #08202B; --bg2: #0C2A37; --panel: #113442; --text: #EAF4F6; --muted: #A9C3CB; --accent: #FF8A52; --accent2: #4CC3DA; --on-accent: #0B3B4F;
   --line: rgba(234,244,246,0.1); --line-strong: rgba(76,195,218,0.4); --btn-shadow: 0 10px 24px rgba(255,122,61,0.25);
-  --card-shadow: 0 14px 40px rgba(0,0,0,0.4); --icon-bg: rgba(76,195,218,0.14); --nav-bg: rgba(8,32,43,0.86);
+  --card-shadow: 0 14px 40px rgba(0,0,0,0.4); --icon-bg: rgba(76,195,218,0.14); --nav-bg: #08202B;
   --ib-dark: #EAF4F6; --ib-deep: #0C2A37; --ib-brown: #EAF4F6; --ib-rust: #A9C3CB; --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3;
   --ib-accent: #FF8A52; --ib-amber: #FFC266; --ib-cream: #113442; --ib-parch: #0C2A37; --ib-red: #FF7A66;
   --ib-dark-rgb: 234,244,246; --ib-rust-rgb: 169,195,203; --ib-accent-rgb: 76,195,218; --ib-sienna-rgb: 76,195,218; --ib-cream-rgb: 17,52,66;
