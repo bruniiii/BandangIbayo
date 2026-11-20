@@ -145,7 +145,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
           <span style={{
             position: 'absolute', top: -4, right: -4,
             minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
             fontSize: 11, fontWeight: 900,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 2px 8px rgba(var(--ib-accent-rgb, 180,81,30), 0.4)',
@@ -161,7 +161,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
           width: 340, maxHeight: 420,
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20,
           border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',
-          boxShadow: '0 20px 50px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)',
+          boxShadow: '0 20px 50px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
           <div style={{
@@ -271,13 +271,13 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
     display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
   }}>
     <div
-      style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(6px)' }}
+      style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(6px)' }}
       onClick={onClose}
     />
     <div style={{
       position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
       width: '100%', maxWidth: 520,
-      borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+      borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
       borderTop: '7px solid var(--ib-accent, #B4511E)',
       overflow: 'hidden', maxHeight: '85dvh',
       display: 'flex', flexDirection: 'column',
@@ -334,11 +334,11 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '12px 22px',
-            background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
             border: 'none', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-            boxShadow: '0 6px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)',
+            boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
           }}
         >
           Go There <ArrowRight size={13} />

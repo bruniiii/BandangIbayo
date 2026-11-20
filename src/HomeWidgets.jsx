@@ -41,7 +41,7 @@ const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
       <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: '0 0 4px' }}>
         {label}
       </p>
-      <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-cream, #FDF6EE)', margin: '0 0 4px', lineHeight: 1 }}>
+      <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 4px', lineHeight: 1 }}>
         {value}
       </p>
       <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: 0 }}>
@@ -60,7 +60,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
     background: 'var(--ib-cream, #FDF6EE)',
     borderRadius: 22,
     border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-    boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+    boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     overflow: 'hidden',
   };
 
@@ -90,20 +90,20 @@ const NextTripCard = ({ trip, onViewBookings }) => {
       <div style={{ position: 'relative', zIndex: 1, padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
         <span style={{
           alignSelf: 'flex-start',
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
           fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
           borderRadius: 999, padding: '5px 12px',
         }}>
           Next Trip
         </span>
         <div>
-          <p style={{ fontSize: 30, fontWeight: 900, color: 'var(--ib-cream, #FDF6EE)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>
+          <p style={{ fontSize: 30, fontWeight: 900, color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>
             {daysToGo === 0 ? 'Today!' : `${daysToGo} day${daysToGo === 1 ? '' : 's'} to go`}
           </p>
           <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ib-amber, #E8A265)', margin: '0 0 4px' }}>
             {trip.tours.title}
           </p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.85)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
             <MapPin size={13} /> {trip.tours.destination}
           </p>
         </div>
@@ -141,7 +141,7 @@ const TripReadinessCard = ({ trip, onClick }) => {
       onClick={onClick}
       style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         cursor: 'pointer',
       }}
     >
@@ -222,7 +222,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
     <div
       style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1rem 1.1rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         display: 'flex', flexDirection: 'column',
       }}
     >
@@ -286,7 +286,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
                   height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: 8,
                   cursor: 'pointer',
-                  background: isConfirmedTrip ? 'var(--ib-amber, #E8A265)' : isToday ? 'var(--ib-dark, #1A0A00)' : 'transparent',
+                  background: isConfirmedTrip ? 'var(--ib-amber, #E8A265)' : isToday ? 'var(--ib-ink, #1A0A00)' : 'transparent',
                   color: muted ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' : isConfirmedTrip ? 'var(--ib-dark, #1A0A00)' : isToday ? 'var(--ib-amber, #E8A265)' : 'var(--ib-dark, #1A0A00)',
                   fontSize: 11, fontWeight: (isToday || isConfirmedTrip) ? 900 : 600,
                   boxShadow: isConfirmedTrip ? '0 3px 10px rgba(var(--ib-amber-rgb, 232,162,101), 0.5)' : 'none',
@@ -323,19 +323,19 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
     <div
       onClick={onClick}
       style={{
-        background: isActive ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        background: isActive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Clock size={15} style={{ color: isActive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-dark, #1A0A00)' }}>
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)' }}>
             Tracking
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: isActive ? 'rgba(var(--ib-cream-rgb, 253,246,238), 0.85)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }} />
+        <ChevronRight size={15} style={{ color: isActive ? 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }} />
       </div>
 
       {loading ? (
@@ -352,7 +352,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <MapPin size={14} style={{ color: isActive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }} />
-            <span style={{ fontSize: 13, fontWeight: 900, color: isActive ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-dark, #1A0A00)' }}>
+            <span style={{ fontSize: 13, fontWeight: 900, color: isActive ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)' }}>
               {stop.location_name}
             </span>
           </div>
@@ -360,7 +360,7 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
             display: 'inline-block', fontSize: 11, fontWeight: 800,
             padding: '3px 10px', borderRadius: 999,
             background: isActive ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-            color: isActive ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+            color: isActive ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>
             {stop.status}
           </span>
@@ -406,7 +406,7 @@ const MyRequestsCard = ({ onOpen }) => {
   return (
     <div style={{
       background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
-      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
         <Sparkles size={15} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
@@ -487,7 +487,7 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
           className="clickable-card"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', textAlign: 'left',
-            background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 18, padding: '1rem 1.25rem', fontFamily: 'inherit',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 18, padding: '1rem 1.25rem', fontFamily: 'inherit',
           }}
         >
           <span>
@@ -495,7 +495,7 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
               <Star size={15} fill="var(--ib-amber, #E8A265)" style={{ color: 'var(--ib-amber, #E8A265)' }} />
               {toReviewCount} tour{toReviewCount === 1 ? '' : 's'} to review
             </span>
-            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.85)', marginTop: 3 }}>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)', marginTop: 3 }}>
               Tell other joiners how it went — it takes a minute.
             </span>
           </span>

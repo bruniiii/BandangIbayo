@@ -18,8 +18,8 @@ const CSS = `
   display: flex; flex-direction: column; align-items: stretch; gap: 10px; pointer-events: none; }
 .toast { pointer-events: auto; position: relative; overflow: hidden; display: flex; gap: 14px; align-items: flex-start; box-sizing: border-box;
   padding: 16px 14px 16px 18px; border-radius: 18px; font-family: 'Outfit', 'Inter', system-ui, sans-serif;
-  background: #FFFFFF; color: var(--ib-dark, #1A0A00); border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14);
-  box-shadow: 0 18px 50px rgba(var(--ib-dark-rgb, 26,10,0), 0.28), 0 2px 6px rgba(var(--ib-dark-rgb, 26,10,0), 0.08);
+  background: var(--ib-surface, #FFFFFF); color: var(--ib-dark, #1A0A00); border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14);
+  box-shadow: 0 18px 50px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28), 0 2px 6px rgba(var(--ib-dark-rgb, 26,10,0), 0.08);
   animation: toast-in 0.28s cubic-bezier(.2,.9,.3,1.2); }
 .toast::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--toast-accent); }
 .toast-icon { flex-shrink: 0; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;

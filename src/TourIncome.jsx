@@ -195,7 +195,7 @@ const Stat = ({ label, value, tone }) => (
   </div>
 );
 
-const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)' };
+const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)' };
 const selectStyle = { background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12, padding: '9px 12px', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', cursor: 'pointer' };
 const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 6px' };
 const muted = { fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 };

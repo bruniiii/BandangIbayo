@@ -41,7 +41,7 @@ export const MaintenancePage = ({ maintenance }) => {
     <main className="nature-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, boxSizing: 'border-box' }}>
       <div style={{
         width: '100%', maxWidth: 560, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 28, borderTop: '8px solid var(--ib-accent, #B4511E)',
-        boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)', padding: 'clamp(1.5rem, 5vw, 2.5rem)', textAlign: 'center', boxSizing: 'border-box',
+        boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)', padding: 'clamp(1.5rem, 5vw, 2.5rem)', textAlign: 'center', boxSizing: 'border-box',
       }}>
         <img src={logoIcon} alt="Bandang IBAYO" style={{ width: 76, height: 76, objectFit: 'contain' }} />
         <p style={{ margin: '14px 0 0', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
@@ -75,7 +75,7 @@ export const MaintenancePage = ({ maintenance }) => {
         )}
         <button type="button" onClick={maintenanceChanged} style={{
           marginTop: 22, display: 'inline-flex', alignItems: 'center', gap: 8, height: 44, padding: '0 20px', borderRadius: 999, border: 'none',
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
         }}>
           <RefreshCw size={15} /> Check Again
         </button>

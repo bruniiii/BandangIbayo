@@ -85,7 +85,7 @@ const PickupSpots = ({ onClose, onChanged }) => {
         {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: 'transparent', color: 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
         <button type="button" onClick={save} disabled={saving || !name.trim() || !place} title={name.trim() && place ? undefined : 'Type the name and find the place first'} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none', cursor: name.trim() && place ? 'pointer' : 'not-allowed', opacity: name.trim() && place ? 1 : 0.5,
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />} {editing ? 'Save Changes' : 'Add Spot'}</button>
       </div>
     </div>
@@ -93,10 +93,10 @@ const PickupSpots = ({ onClose, onChanged }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label="Pickup spots" style={{
         position: 'relative', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
-        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.75rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 16,
+        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.75rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 16,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
@@ -144,10 +144,10 @@ const PickupSpots = ({ onClose, onChanged }) => {
       {/* Changing a saved spot opens in its own window */}
       {editing && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.55)' }} onClick={reset} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.55)' }} onClick={reset} />
           <div role="dialog" aria-modal="true" aria-label={`Change ${editing.name}`} style={{
             position: 'relative', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
-            borderRadius: 20, borderTop: '6px solid var(--ib-accent, #B4511E)', padding: '1.25rem 1.5rem 1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)',
+            borderRadius: 20, borderTop: '6px solid var(--ib-accent, #B4511E)', padding: '1.25rem 1.5rem 1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)',
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
               <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', minWidth: 0, overflowWrap: 'anywhere' }}>

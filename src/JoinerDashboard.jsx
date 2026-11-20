@@ -25,6 +25,7 @@ import logoIcon from './assets/logo.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import FavoritesButton from './ui/FavoritesButton';
+import ThemeToggle from './ui/ThemeToggle';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
 import AdminInbox from './AdminInbox';
@@ -622,11 +623,11 @@ const JoinerDashboard = () => {
         style={{
           width: sidebarExpanded ? 268 : 84,
           flexShrink: 0,
-          background: 'var(--ib-dark, #1A0A00)',
+          background: 'var(--ib-ink, #1A0A00)',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 20,
-          boxShadow: '4px 0 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.28)',
+          boxShadow: '4px 0 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)',
           position: 'relative',
           transition: 'width 0.25s ease',
           overflow: 'visible',
@@ -645,9 +646,9 @@ const JoinerDashboard = () => {
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
-              color: 'var(--ib-cream, #FDF6EE)',
+              color: 'var(--ib-on-ink, #FDF6EE)',
               zIndex: 30,
-              boxShadow: '0 4px 12px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)',
+              boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)',
               transition: 'background 0.2s, transform 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-amber, #E8A265)'}
@@ -689,7 +690,7 @@ const JoinerDashboard = () => {
               }}
             />
             {sidebarExpanded && (
-              <span className="font-display" style={{ fontSize: 19, color: 'var(--ib-cream, #FDF6EE)', whiteSpace: 'nowrap' }}>
+              <span className="font-display" style={{ fontSize: 19, color: 'var(--ib-on-ink, #FDF6EE)', whiteSpace: 'nowrap' }}>
                 Bandang <span className="font-accent" style={{ color: 'var(--ib-amber, #E8A265)' }}>IBAYO</span>
               </span>
             )}
@@ -767,6 +768,7 @@ const JoinerDashboard = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <ThemeToggle />
               <FavoritesButton onOpenTour={openFavoriteTour} />
               <NotificationBell onNotificationClick={handleNotificationNavigate} clearPaymentNotices />
 
@@ -790,10 +792,10 @@ const JoinerDashboard = () => {
                 </div>
                 <div style={{
                   width: 38, height: 38, borderRadius: '50%',
-                  background: 'var(--ib-dark, #1A0A00)',
+                  background: 'var(--ib-ink, #1A0A00)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 15,
-                  boxShadow: '0 4px 12px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)',
+                  boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)',
                   overflow: 'hidden',
                   flexShrink: 0,
                 }}>
@@ -839,12 +841,12 @@ const JoinerDashboard = () => {
                     {/* TRIP PULSE (top left; the calendar and Tracking sit beside it, so the page fits the screen) */}
                     <div style={{
                       position: 'relative',
-                      background: 'var(--ib-dark, #1A0A00)',
+                      background: 'var(--ib-ink, #1A0A00)',
                       borderRadius: 24,
                       padding: isMobile ? '1.25rem 1.25rem' : '1.5rem 2rem',
                       overflow: 'hidden',
                       borderBottom: '4px solid var(--ib-accent, #B4511E)',
-                      boxShadow: '0 12px 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.18)',
+                      boxShadow: '0 12px 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)',
                     }}>
                       <Sparkles size={160} style={{
                         position: 'absolute', right: -20, top: -30,
@@ -916,11 +918,11 @@ const JoinerDashboard = () => {
                       const dates = tour.dates || [tour];
                       const isFull = dates.every((d) => d.available_slots <= 0);
                       return (
-                        <div key={tour.id} className="grow-card" style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.04)', display: 'flex', flexDirection: 'column' }}>
+                        <div key={tour.id} className="grow-card" style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.04)', display: 'flex', flexDirection: 'column' }}>
                           <div style={{ height: 115, background: 'var(--ib-parch, #F2E4D0)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
                             {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={32} /></div>}
                             <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>{tour.difficulty}</span></div>
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
+                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
                           </div>
                           <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                             <div>
@@ -943,12 +945,12 @@ const JoinerDashboard = () => {
                                 cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 11,
                                 letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex',
                                 alignItems: 'center', justifyContent: 'center', gap: 4,
-                                background: isFull ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-dark, #1A0A00)',
-                                color: isFull ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-cream, #FDF6EE)',
+                                background: isFull ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-ink, #1A0A00)',
+                                color: isFull ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-on-ink, #FDF6EE)',
                                 transition: 'background 0.2s'
                               }}
                               onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; }}
-                              onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-dark, #1A0A00)'; }}
+                              onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'; }}
                             >
                               <Eye size={11} /> {isFull ? 'Closed' : 'View Details'}
                             </button>
@@ -997,9 +999,9 @@ const JoinerDashboard = () => {
                   {!loadingHome && completedCount > 0 && (
                     <button type="button" onClick={() => setActiveTab('Feedback')} style={{
                       display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', cursor: 'pointer', fontFamily: 'inherit',
-                      background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+                      background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
                     }}>
-                      <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><MessageSquareHeart size={18} /></span>
+                      <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><MessageSquareHeart size={18} /></span>
                       <span>
                         <strong style={{ display: 'block', fontSize: 13, color: 'var(--ib-dark, #1A0A00)' }}>How was your experience?</strong>
                         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>Answer a 1-minute survey to help us improve.</span>
@@ -1024,11 +1026,11 @@ const JoinerDashboard = () => {
                   <button key={view} type="button" role="tab" aria-selected={chatView === view} onClick={() => setChatView(view)} style={{
                     display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-                    background: chatView === view ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: chatView === view ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+                    background: chatView === view ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: chatView === view ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
                   }}>
                     {view === 'chats' ? <MessagesSquare size={14} /> : <Inbox size={14} />} {label}
                     {count > 0 && !(view === 'messages' && chatView === 'messages') && (
-                      <span aria-label={`${count} unread`} style={{ background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-dark, #1A0A00)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{count > 99 ? '99+' : count}</span>
+                      <span aria-label={`${count} unread`} style={{ background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{count > 99 ? '99+' : count}</span>
                     )}
                   </button>
                 ))}
@@ -1067,7 +1069,7 @@ const JoinerDashboard = () => {
               height: '100%', minHeight: 400, display: 'flex',
               flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-              boxShadow: '0 4px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)', padding: '3rem', textAlign: 'center'
+              boxShadow: '0 4px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)', padding: '3rem', textAlign: 'center'
             }}>
               <div style={{
                 width: 72, height: 72, borderRadius: 20,
@@ -1116,7 +1118,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
       background: active ? 'var(--ib-accent, #B4511E)' : 'transparent',
-      color: active ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
+      color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
       boxShadow: active ? '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'none',
@@ -1126,10 +1128,10 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-amber-rgb, 232,162,101), 0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
+    <span style={{ color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-amber-rgb, 232,162,101), 0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
       {icon}
       {badge > 0 && collapsed && (
-        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-dark, #1A0A00)', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {badge > 99 ? '99+' : badge}
         </span>
       )}
@@ -1140,7 +1142,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       </span>
     )}
     {!collapsed && badge > 0 && (
-      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-dark, #1A0A00)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {badge > 99 ? '99+' : badge}
       </span>
     )}

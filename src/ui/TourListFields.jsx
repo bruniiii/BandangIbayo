@@ -22,7 +22,7 @@ const inputStyle = {
 };
 const addBtnStyle = (off) => ({
   flexShrink: 0, minHeight: 40, padding: '0 16px', borderRadius: 12, border: 'none', cursor: off ? 'not-allowed' : 'pointer',
-  background: off ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
+  background: off ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
   letterSpacing: '0.12em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6,
 });
 const iconBtn = {
@@ -163,8 +163,8 @@ const DayStops = ({ day, text, onChange }) => {
       {/* Quick stops: hidden until asked for, so the days stay short. */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
         <button type="button" onClick={() => setShowQuick((v) => !v)} aria-expanded={showQuick} className="no-touch-size" style={{
-          padding: '5px 12px', borderRadius: 999, border: 'none', background: showQuick ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-          color: showQuick ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
+          padding: '5px 12px', borderRadius: 999, border: 'none', background: showQuick ? 'var(--ib-ink, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+          color: showQuick ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 900, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
         }}>
           {showQuick ? <X size={12} /> : <Plus size={12} />} Quick stops
         </button>
@@ -198,7 +198,7 @@ export const ItineraryField = ({ start, end, value, onChange, note }) => {
             {days.map(({ day, date }) => (
               <fieldset key={day} style={{ margin: 0, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 16, padding: '12px 14px', background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.04)', minWidth: 0 }}>
                 <legend style={{ padding: '0 6px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '3px 12px', fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Day {day}</span>
+                  <span style={{ background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '3px 12px', fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Day {day}</span>
                   <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)' }}>{shortDate(date)}{day === 0 ? ' · the day before' : ''}</span>
                 </legend>
                 <DayStops day={day} text={value[day] || ''} onChange={(t) => set(day, t)} />

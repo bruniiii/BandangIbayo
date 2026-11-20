@@ -218,7 +218,7 @@ const BookingRulesTab = () => {
           </p>
         )}
         {leftovers.length > 0 && (
-          <p style={{ ...row, margin: '0 0 14px', background: '#FBEDE6', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>
+          <p style={{ ...row, margin: '0 0 14px', background: 'var(--ib-surface-2, #FBEDE6)', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>
             <AlertTriangle size={15} style={{ flexShrink: 0 }} />
             These database functions still use their old fixed values: {leftovers.join(', ')}. Run the 20261222 update again to switch them over.
           </p>
@@ -257,7 +257,7 @@ const BookingRulesTab = () => {
                       <input id={`rule-${f.key}`} name={f.key} type="text" inputMode={f.whole ? 'numeric' : 'decimal'} value={form[f.key] ?? ''}
                         disabled={!canEdit} onChange={(e) => set(f.key, e.target.value.replace(/[^\d.]/g, ''))}
                         aria-invalid={!!err} aria-describedby={err ? `rule-${f.key}-err` : undefined}
-                        style={{ ...input, flex: 1, minWidth: 0, background: canEdit ? '#FFFDF9' : '#EFE3D3', cursor: canEdit ? 'text' : 'not-allowed' }} />
+                        style={{ ...input, flex: 1, minWidth: 0, background: canEdit ? 'var(--ib-surface, #FFFDF9)' : '#EFE3D3', cursor: canEdit ? 'text' : 'not-allowed' }} />
                       {f.unit !== '₱' && <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-brown, #5C2A10)', whiteSpace: 'nowrap' }}>{f.unit}</span>}
                     </div>
                     {err && <span id={`rule-${f.key}-err`} role="alert" style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{err}</span>}

@@ -23,7 +23,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)',
+      background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)',
       backdropFilter: 'blur(6px)',
       padding: 16,
     }}
@@ -36,7 +36,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
         maxWidth: 620,
         maxHeight: '85dvh',
         borderRadius: 24,
-        boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)',
+        boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.45)',
         borderTop: '7px solid var(--ib-accent, #B4511E)',
         overflow: 'hidden',
         display: 'flex',
@@ -45,7 +45,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
     >
       <div
         style={{
-          background: 'var(--ib-dark, #1A0A00)',
+          background: 'var(--ib-ink, #1A0A00)',
           padding: '1.75rem 2rem',
           display: 'flex',
           alignItems: 'center',
@@ -72,7 +72,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
               flexShrink: 0,
             }}
           >
-            <ShieldCheck size={19} color="var(--ib-cream, #FDF6EE)" />
+            <ShieldCheck size={19} color="var(--ib-on-ink, #FDF6EE)" />
           </div>
 
           <div>
@@ -81,7 +81,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
                 fontSize: 15,
                 fontWeight: 900,
                 letterSpacing: '0.02em',
-                color: 'var(--ib-cream, #FDF6EE)',
+                color: 'var(--ib-on-ink, #FDF6EE)',
                 margin: 0,
               }}
             >
@@ -263,7 +263,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
             fontSize: 11.5,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: 'var(--ib-cream, #FDF6EE)',
+            color: 'var(--ib-on-ink, #FDF6EE)',
             boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
           }}
         >

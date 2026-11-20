@@ -17,6 +17,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <meta name="theme-color" content="#0B3B4F" />
     <title>Bandang IBAYO</title>
+    <!-- Light or dark mode, set before the page draws (theme.js keeps it up to date). -->
+    <script>try { var t = localStorage.getItem('ibayo:theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = t; if (t === 'dark') document.querySelector('meta[name="theme-color"]').content = '#071C26'; } catch (e) {}</script>
   </head>
   <body>
     <div id="root"></div>

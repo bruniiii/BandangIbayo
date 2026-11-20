@@ -97,7 +97,7 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
     return (
       <div style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap',
       }}>
         <div>
@@ -109,7 +109,7 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
           </p>
         </div>
         <button type="button" onClick={() => { setMessage({ text: '', tone: 'error' }); setOpen(true); }} style={{
-          display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12,
+          display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12,
           letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', borderRadius: 12, padding: '12px 22px', cursor: 'pointer', fontFamily: 'inherit',
         }}>
           <KeyRound size={15} /> Change Password
@@ -121,7 +121,7 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
   return (
     <form onSubmit={handleSubmit} style={{
       background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.75rem',
-      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
       display: 'flex', flexDirection: 'column', gap: 16,
     }}>
       <div>
@@ -170,7 +170,7 @@ const ChangePassword = ({ startOpen = false, onClose = null }) => {
         }}>Cancel</button>
         <button type="submit" disabled={saving || !current || !next || !confirm} style={{
           display: 'flex', alignItems: 'center', gap: 8,
-          background: saving || !current || !next || !confirm ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.5)' : 'var(--ib-dark, #1A0A00)',
+          background: saving || !current || !next || !confirm ? 'rgba(var(--ib-ink-rgb, 26,10,0), 0.5)' : 'var(--ib-ink, #1A0A00)',
           color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
           textTransform: 'uppercase', border: 'none', borderRadius: 12,
           padding: '13px 26px', cursor: saving || !current || !next || !confirm ? 'not-allowed' : 'pointer', fontFamily: 'inherit',

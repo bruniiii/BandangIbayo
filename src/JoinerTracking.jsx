@@ -112,7 +112,7 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
           <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
             display: 'flex', alignItems: 'center', gap: 8, border: 'none', borderRadius: 10, padding: '9px 16px', cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-            background: view === key ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: view === key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+            background: view === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: view === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>
             {label}
             {!loading && <span style={{ minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, background: view === key ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: view === key ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }}>{count}</span>}
@@ -178,7 +178,7 @@ const TrackingTourCard = ({ tour, onTrack, past = false, badge = '' }) => {
       style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, overflow: 'hidden',
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.25s', display: 'flex', flexDirection: 'column',
       }}
@@ -192,7 +192,7 @@ const TrackingTourCard = ({ tour, onTrack, past = false, badge = '' }) => {
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={44} /></div>
         )}
         {badge && (
-          <span style={{ position: 'absolute', top: 12, right: 12, background: past ? 'var(--ib-dark, #1A0A00)' : badge === 'On-going' ? '#1F8A5C' : 'var(--ib-sienna, #A8481A)', color: past ? 'var(--ib-amber, #E8A265)' : 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ position: 'absolute', top: 12, right: 12, background: past ? 'var(--ib-ink, #1A0A00)' : badge === 'On-going' ? '#1F8A5C' : 'var(--ib-sienna, #A8481A)', color: past ? 'var(--ib-amber, #E8A265)' : 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Compass size={10} /> {badge}
           </span>
         )}
@@ -215,7 +215,7 @@ const TrackingTourCard = ({ tour, onTrack, past = false, badge = '' }) => {
             width: '100%', marginTop: 14, padding: '11px 0',
             border: 'none', borderRadius: 12, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
-            textTransform: 'uppercase', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+            textTransform: 'uppercase', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           }}
         >
@@ -253,10 +253,10 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 1100,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
         overflow: 'hidden', maxHeight: '92dvh', display: 'flex', flexDirection: 'column',
       }}>
         <button
@@ -295,8 +295,8 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
 
               {/* Live Status Header Banner */}
               <div style={{
-                background: isCompleted ? '#1F8A5C' : activeStop?.status === 'CURRENTLY HERE' ? 'var(--ib-accent, #B4511E)' : 'var(--ib-dark, #1A0A00)',
-                color: 'var(--ib-cream, #FDF6EE)', padding: '14px 18px', borderRadius: 16, marginBottom: 16,
+                background: isCompleted ? '#1F8A5C' : activeStop?.status === 'CURRENTLY HERE' ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)',
+                color: 'var(--ib-on-ink, #FDF6EE)', padding: '14px 18px', borderRadius: 16, marginBottom: 16,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <Navigation size={16} />
@@ -319,7 +319,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
               </div>
 
               {/* Fleet & Driver Information */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+              <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1.25rem', borderRadius: 16, marginBottom: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
                 <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Truck size={14} /> Assigned Driver & Vehicle
                 </h4>
@@ -340,7 +340,7 @@ const TrackingDetailModal = ({ tour, logs, meetupStops, vehicleInfo, loadingCons
               </div>
 
               {/* Delivery-Style Pickup Progress */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+              <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
                 <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} /> Pickup Points & ETAs
                 </h4>
@@ -441,7 +441,7 @@ const LiveTimeline = ({ logs }) => {
               <div style={{
                 width: 22, height: 22, borderRadius: '50%',
                 background: index === 0 ? 'var(--ib-accent, #B4511E)' : '#1F8A5C',
-                color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 {log.status === 'ARRIVED' ? <CheckCircle2 size={13} /> : <Check size={12} strokeWidth={3} />}
               </div>

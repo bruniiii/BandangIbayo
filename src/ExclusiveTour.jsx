@@ -484,7 +484,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 
   const sectionTitle = (n, text) => (
     <h3 style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', textTransform: 'uppercase', letterSpacing: '0.2em', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
-      <span style={{ width: 20, height: 20, background: 'var(--ib-accent, #B4511E)', borderRadius: '50%', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>{n}</span>
+      <span style={{ width: 20, height: 20, background: 'var(--ib-accent, #B4511E)', borderRadius: '50%', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>{n}</span>
       {text}
     </h3>
   );
@@ -622,7 +622,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
             ].map(([step, desc], i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <span style={{
-                  width: 20, height: 20, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
+                  width: 20, height: 20, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
                   borderRadius: '50%', fontSize: 11, fontWeight: 900, display: 'flex',
                   alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
                 }}>
@@ -680,11 +680,11 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
           disabled={!canSubmit}
           title={canSubmit || loading ? undefined : tooSoon ? `One request every ${periodText(REQUEST_GAP_DAYS)}: you can send the next one on ${nextText}` : missing ? 'Fill in all the boxes marked * first' : lowBudget ? `The budget must be at least ${formatPeso(MIN_EXCLUSIVE_BUDGET)}` : 'Tick the Terms & Conditions box first'}
           style={{
-            flex: editing ? '2 1 220px' : '0 1 340px', margin: editing ? 0 : '0 auto', padding: '16px 28px', background: isExclusive ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+            flex: editing ? '2 1 220px' : '0 1 340px', margin: editing ? 0 : '0 auto', padding: '16px 28px', background: isExclusive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
             borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, fontFamily: 'inherit', lineHeight: 1.4,
             letterSpacing: '0.12em', textTransform: 'uppercase', cursor: canSubmit ? 'pointer' : 'not-allowed',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            boxShadow: '0 6px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)', opacity: canSubmit || loading ? 1 : 0.5,
+            boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)', opacity: canSubmit || loading ? 1 : 0.5,
           }}
         >
           {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : editing ? <CheckCircle2 size={16} /> : isExclusive ? <Send size={16} /> : <ArrowRight size={16} />}
@@ -698,10 +698,10 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 // Edit a request that's still For Approval.
 const EditRequestModal = ({ request, onClose, onSaved }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
     <div role="dialog" aria-modal="true" aria-labelledby="edit-request-title" style={{
       position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 760, maxHeight: '92dvh', overflowY: 'auto',
-      borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', padding: '2rem',
+      borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '2rem',
     }}>
       <button className="x-close" type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}>
         <X size={20} />
@@ -799,7 +799,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysO
     <div style={{
       background: 'var(--ib-cream, #FDF6EE)', borderRadius: 18,
       border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-      boxShadow: '0 2px 10px rgba(var(--ib-dark-rgb, 26,10,0), 0.04)',
+      boxShadow: '0 2px 10px rgba(var(--ib-shadow-rgb, 26,10,0), 0.04)',
       overflow: 'hidden',
     }}>
       <button
@@ -925,7 +925,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysO
                   {heldReleased ? (onExplore && (
                     <button type="button" onClick={onExplore} style={{
                       marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
-                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.1em', textTransform: 'uppercase',
                     }}>
                       <CreditCard size={14} /> Book on Explore Tours
@@ -933,7 +933,7 @@ const RequestHistoryCard = ({ request, onOpenBooking, onExplore, onEdit, alwaysO
                   )) : pkg.held_booking_id && onOpenBooking && (
                     <button type="button" onClick={() => onOpenBooking(pkg.held_booking_id)} style={{
                       marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, border: 'none',
-                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+                      background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.1em', textTransform: 'uppercase',
                     }}>
                       <CreditCard size={14} /> {heldPaid ? 'View my booking' : 'Pay for my slots'}
@@ -1044,7 +1044,7 @@ const PayButton = ({ busy, onClick, disabled = false, children }) => (
   <button type="button" onClick={onClick} disabled={busy || disabled} style={{
     alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap',
     padding: '12px 20px', borderRadius: 14, border: 'none', cursor: busy || disabled ? 'not-allowed' : 'pointer',
-    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
+    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
     letterSpacing: '0.1em', textTransform: 'uppercase', opacity: busy ? 0.75 : disabled ? 0.5 : 1,
   }}>
     {busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} {children}
@@ -1317,7 +1317,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, onExplore, op
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, padding: '1.4rem 1.75rem',
-          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', borderLeft: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', borderLeft: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         }}>
           <div style={{ minWidth: 0, flex: '1 1 260px' }}>
             <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
@@ -1331,7 +1331,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, onExplore, op
           </div>
           <button type="button" onClick={() => setShowForm(true)} style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, height: 44, padding: '0 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             boxShadow: '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
           }}><Plus size={15} /> {newLabel}</button>
         </div>
@@ -1340,7 +1340,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, onExplore, op
           position: 'relative',
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, padding: '2rem 2.25rem',
           border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', borderTop: '8px solid var(--ib-accent, #B4511E)',
-          boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+          boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18 }}>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{newLabel}</h3>

@@ -94,7 +94,7 @@ const AgencyTab = () => {
         ))}
         <div style={label}>Logo
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 14, background: 'var(--ib-dark, #1A0A00)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-amber, #E8A265)', fontSize: 11, flexShrink: 0 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 14, background: 'var(--ib-ink, #1A0A00)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-amber, #E8A265)', fontSize: 11, flexShrink: 0 }}>
               {preview ? <img src={preview} alt="Agency logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 'Default'}
             </div>
             {canEdit && (

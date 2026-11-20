@@ -264,7 +264,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
               <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
                 padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: view === key ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: view === key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+                background: view === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: view === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
               }}>
                 {label}{key === 'archived' && archived.length ? ` (${archived.length})` : ''}{key === 'removed' && removed.length ? ` (${removed.length})` : ''}
               </button>
@@ -278,10 +278,10 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
           disabled={loading || joiners.length === 0}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', borderRadius: 999,
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', borderRadius: 999,
             padding: '11px 20px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-            boxShadow: '0 6px 18px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)',
+            boxShadow: '0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)',
             opacity: (loading || joiners.length === 0) ? 0.5 : 1,
           }}
         >
@@ -319,7 +319,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
       {/* table */}
       <div style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20,
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         overflow: 'hidden',
       }}>
         {loading ? (
@@ -367,7 +367,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{
                           width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                          background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 13,
                         }}>
                           {p.avatar_url ? (
@@ -454,7 +454,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
           onClick={() => openJoiner(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
+            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '2rem',
           }}
@@ -464,7 +464,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
             className="responsive-modal-padding"
             style={{
               background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, padding: '2rem',
-              width: '100%', maxWidth: 460, boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)',
+              width: '100%', maxWidth: 460, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
               borderTop: '6px solid var(--ib-accent, #B4511E)', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
             }}
           >
@@ -481,7 +481,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
               <div style={{
                 width: 64, height: 64, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 22,
               }}>
                 {selected.avatar_url ? (
@@ -555,7 +555,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                   onClick={() => { setComposing(true); setEmailStatus(null); }}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', borderRadius: 12,
+                    background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', borderRadius: 12,
                     padding: '12px 0', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
                     fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                   }}
@@ -617,7 +617,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                       disabled={sending || !subject.trim() || !body.trim()}
                       style={{
                         flex: 1.6, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none',
+                        padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
                         borderRadius: 999, cursor: sending || !subject.trim() || !body.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                         fontWeight: 900, fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                         boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', opacity: sending ? 0.6 : !subject.trim() || !body.trim() ? 0.5 : 1,
@@ -647,12 +647,12 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
       {/* Every message sent to joiners (emails and tour updates) */}
       {showAllSent && (
         <div onClick={() => setShowAllSent(false)} style={{
-          position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
+          position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
         }}>
           <div onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Sent messages" className="responsive-modal-padding" style={{
             background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, padding: '2rem', width: '100%', maxWidth: 560,
-            boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', borderTop: '6px solid var(--ib-accent, #B4511E)', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
+            boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '6px solid var(--ib-accent, #B4511E)', position: 'relative', maxHeight: '85dvh', overflowY: 'auto',
           }}>
             <button className="x-close" onClick={() => setShowAllSent(false)} aria-label="Close" style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}>
               <X size={20} />
@@ -769,7 +769,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
       onClick={() => { if (!sending) onClose(); }}
       style={{
         position: 'fixed', inset: 0, zIndex: 300,
-        background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
+        background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
       }}
     >
@@ -778,13 +778,13 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
         style={{
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, width: '100%', maxWidth: 560,
           maxHeight: '92dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-          boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', borderTop: '6px solid var(--ib-accent, #B4511E)',
+          boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '6px solid var(--ib-accent, #B4511E)',
         }}
       >
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Mail size={17} />
             </div>
             <div>
@@ -837,7 +837,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
               />
             </div>
 
-            <div style={{ maxHeight: 210, overflowY: 'auto', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', borderRadius: 14, background: '#FFFBF6' }}>
+            <div style={{ maxHeight: 210, overflowY: 'auto', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', borderRadius: 14, background: 'var(--ib-surface, #FFFBF6)' }}>
               {visible.length === 0 ? (
                 <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, textAlign: 'center', padding: '1.25rem 0', margin: 0 }}>
                   No joiners found.
@@ -856,7 +856,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
                     <input type="checkbox" checked={on} onChange={() => toggle(p.id)} disabled={sending} style={{ accentColor: 'var(--ib-accent, #B4511E)', width: 15, height: 15, flexShrink: 0 }} />
                     <div style={{
                       width: 30, height: 30, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                      background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11,
+                      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {p.avatar_url ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
@@ -905,7 +905,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
             disabled={sending || picked.size === 0 || !subject.trim() || !body.trim()}
             style={{
               flex: 1.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 999,
+              padding: '12px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 999,
               cursor: sending || picked.size === 0 || !subject.trim() || !body.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 900,
               fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
               boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', opacity: sending ? 0.7 : picked.size === 0 || !subject.trim() || !body.trim() ? 0.5 : 1,

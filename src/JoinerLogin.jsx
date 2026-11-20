@@ -267,7 +267,7 @@ const JoinerLogin = () => {
   const submitStyle = (disabled) => ({
     width: '100%',
     background: disabled ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.55)' : 'var(--ib-accent, #B4511E)',
-    color: 'var(--ib-cream, #FDF6EE)',
+    color: 'var(--ib-on-ink, #FDF6EE)',
     fontWeight: 900,
     fontSize: 13,
     letterSpacing: '0.1em',
@@ -311,13 +311,13 @@ const JoinerLogin = () => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 200,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)',
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)',
         }}>
           <div style={{
             background: 'var(--ib-cream, #FDF6EE)',
             padding: '3.5rem',
             borderRadius: 40,
-            boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)',
+            boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.45)',
             textAlign: 'center',
             borderTop: '7px solid var(--ib-accent, #B4511E)',
             maxWidth: 380,
@@ -328,7 +328,7 @@ const JoinerLogin = () => {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 24px',
               boxShadow: '0 12px 32px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
-              color: 'var(--ib-cream, #FDF6EE)',
+              color: 'var(--ib-on-ink, #FDF6EE)',
             }}>
               <CheckCircle2 size={40} strokeWidth={2.5} />
             </div>
@@ -362,7 +362,7 @@ const JoinerLogin = () => {
       {/* ── CARD: the login form ── */}
       <div className="login-split" style={{
         display: 'flex', width: '100%', maxWidth: 480, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 28,
-        boxShadow: '0 20px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)', overflow: 'hidden', borderTop: '7px solid var(--ib-accent, #B4511E)',
+        boxShadow: '0 20px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)', overflow: 'hidden', borderTop: '7px solid var(--ib-accent, #B4511E)',
       }}>
       <div className="login-form-side" style={{
         position: 'relative',

@@ -102,7 +102,7 @@ const PoliciesTab = () => {
               {me.isMain && <button type="button" style={{ ...btn(true), opacity: changed ? 1 : 0.55 }} disabled={saving || !changed} onClick={publish}>{saving ? <Loader2 size={14} style={spin} /> : <Send size={14} />} Publish New Version</button>}
             </div>
             {preview && (
-              <div style={{ background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '14px 16px' }}>
                 {policySections(body).map((s, i) => (
                   <div key={i} style={{ marginBottom: 14 }}>
                     {s.title && <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>{s.title}</p>}

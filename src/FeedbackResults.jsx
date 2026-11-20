@@ -28,7 +28,7 @@ const FeedbackResults = () => {
   return (
     <section aria-label="Survey results" style={{
       background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
-      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     }}>
       <h4 style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 14px' }}>
         <MessageSquareHeart size={14} /> Survey Results (joiners' feedback on the website)

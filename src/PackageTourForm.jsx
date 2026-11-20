@@ -442,13 +442,13 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   };
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={close} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={close} />
       <form
         onSubmit={submit}
         noValidate
         style={{
           position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 720, borderRadius: 28,
-          boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', overflow: 'hidden', borderTop: '8px solid var(--ib-accent, #B4511E)',
+          boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', overflow: 'hidden', borderTop: '8px solid var(--ib-accent, #B4511E)',
           maxHeight: '90dvh', display: 'flex', flexDirection: 'column',
         }}
       >
@@ -471,7 +471,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
           <button type="button" onClick={() => setPickTemplate(true)} style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, margin: '-8px 0 20px', padding: '10px 16px', borderRadius: 999,
-            background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
           }}>
             <LayoutTemplate size={15} /> Use a Template
@@ -493,8 +493,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               )}
               <div style={{ position: 'relative', width: 'fit-content' }}>
                 <div style={{
-                  background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8,
-                  fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 4px 14px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)',
+                  background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
                 }}>
                   <UploadCloud size={14} /> Upload Images
                 </div>
@@ -680,7 +680,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
           </button>
           <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in every field first (photo, details, rates, accommodation, expenses, pickup points, lists and itinerary). Only First pickup at is optional.'} style={{
             flex: 2, padding: '13px 0', background: 'var(--ib-accent, #B4511E)', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
-            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-cream, #FDF6EE)',
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-on-ink, #FDF6EE)',
             boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
             {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
@@ -766,7 +766,7 @@ const Thumb = ({ src, onRemove, isNew }) => (
     <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
     <button type="button" onClick={onRemove} aria-label="Remove image" style={{
       position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer',
-      background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.75)', color: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}><X size={13} /></button>
   </div>
 );

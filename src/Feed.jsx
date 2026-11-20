@@ -431,7 +431,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
       {(isAdmin || currentUserId) && (
         <div style={{
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         }}>
           <textarea
             id="feed-composer"
@@ -470,10 +470,10 @@ const Feed = ({ isAdmin = false, focus = null }) => {
                   )}
                   {item.type === 'video' && (
                     <div style={{
-                      position: 'absolute', bottom: 5, left: 5, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)',
+                      position: 'absolute', bottom: 5, left: 5, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)',
                       borderRadius: 6, padding: '2px 5px', display: 'flex', alignItems: 'center',
                     }}>
-                      <Video size={11} color="var(--ib-cream, #FDF6EE)" />
+                      <Video size={11} color="var(--ib-on-ink, #FDF6EE)" />
                     </div>
                   )}
                   <button
@@ -481,7 +481,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
                     style={{
                       position: 'absolute', top: -8, right: -8,
                       width: 26, height: 26, borderRadius: '50%',
-                      background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: '2px solid var(--ib-cream, #FDF6EE)',
+                      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: '2px solid var(--ib-cream, #FDF6EE)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                     }}
                   >
@@ -524,11 +524,11 @@ const Feed = ({ isAdmin = false, focus = null }) => {
               title={postWaitUntil ? `You can post again on ${postWaitUntil.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}` : off && !posting ? 'Write something or add a photo first' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: off && !posting ? '#EADBC8' : 'var(--ib-dark, #1A0A00)',
+                background: off && !posting ? 'var(--ib-surface-2, #EADBC8)' : 'var(--ib-ink, #1A0A00)',
                 color: off && !posting ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                 textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
                 border: off && !posting ? '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : '1px solid var(--ib-dark, #1A0A00)', cursor: off ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit', boxShadow: off ? 'none' : '0 6px 18px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)',
+                fontFamily: 'inherit', boxShadow: off ? 'none' : '0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)',
               }}
             >
               {posting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -547,7 +547,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
           <button type="button" onClick={() => setPendingOpen(o => !o)} aria-expanded={pendingOpen} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%',
             background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, padding: '14px 18px',
-            cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+            cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
           }}>
             <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
               Waiting for approval ({pendingPosts.length})
@@ -559,7 +559,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
               <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>Looked through them all? Approve every waiting post at once.</span>
               <button type="button" onClick={approveAll} disabled={bulkBusy} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
               }}>{bulkBusy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve All ({pendingPosts.length})</button>
             </div>
           )}
@@ -652,7 +652,7 @@ const FeedPostCard = ({
   return (
     <div style={{
       background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden',
-      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     }}>
       <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -661,7 +661,7 @@ const FeedPostCard = ({
           ) : (
             <div style={{
               width: 42, height: 42, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
-              background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 16,
             }}>
               {post.author.avatar_url
@@ -674,7 +674,7 @@ const FeedPostCard = ({
               {displayName(post.author)}
               {isStaffRole(post.author?.role) && (
                 <span style={{
-                  marginLeft: 8, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                  marginLeft: 8, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
                   borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle',
                 }}>Admin</span>
@@ -719,7 +719,7 @@ const FeedPostCard = ({
       )}
 
       {media.length === 1 && (
-        <div style={{ width: '100%', maxHeight: 340, overflow: 'hidden', background: '#E8D5BC' }}>
+        <div style={{ width: '100%', maxHeight: 340, overflow: 'hidden', background: 'var(--ib-surface-2, #E8D5BC)' }}>
           {media[0].type === 'video' ? (
             <video src={media[0].url} controls style={{ width: '100%', maxHeight: 340, display: 'block', background: '#000' }} />
           ) : (
@@ -737,7 +737,7 @@ const FeedPostCard = ({
         <div style={{
           display: 'grid',
           gridTemplateColumns: media.length === 2 ? '1fr 1fr' : 'repeat(3, 1fr)',
-          gap: 3, background: '#E8D5BC',
+          gap: 3, background: 'var(--ib-surface-2, #E8D5BC)',
         }}>
           {media.map((m, idx) => (
             m.type === 'video' ? (
@@ -790,7 +790,7 @@ const FeedPostCard = ({
             </button>
             <button type="button" onClick={onApprove} disabled={reviewing} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 999, border: 'none',
-              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit',
+              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
               {reviewing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve
@@ -855,7 +855,7 @@ const FeedPostCard = ({
             <div style={{
               position: 'absolute', bottom: '110%', left: 0, background: 'var(--ib-cream, #FDF6EE)',
               border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 999, padding: '6px 10px',
-              display: 'flex', gap: 6, boxShadow: '0 8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.18)', zIndex: 5,
+              display: 'flex', gap: 6, boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)', zIndex: 5,
             }}>
               {REACTIONS.map(r => (
                 <button
@@ -892,7 +892,7 @@ const FeedPostCard = ({
                 <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                   {isStaffRole(c.author?.role) ? <BrandAvatar size={28} /> : <div style={{
                     width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                    background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11,
                   }}>
                     {c.author?.avatar_url ? (
@@ -934,7 +934,7 @@ const FeedPostCard = ({
               style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
                 background: (commenting || !commentDraft.trim()) ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-accent, #B4511E)',
-                color: 'var(--ib-cream, #FDF6EE)', border: 'none',
+                color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: (commenting || !commentDraft.trim()) ? 'not-allowed' : 'pointer',
               }}
@@ -958,7 +958,7 @@ const FeedPostCard = ({
           onClick={() => setLightboxIndex(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.92)', backdropFilter: 'blur(6px)',
+            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.92)', backdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '3rem 1.5rem', cursor: 'zoom-out',
           }}
@@ -971,7 +971,7 @@ const FeedPostCard = ({
               width: 40, height: 40, borderRadius: '50%',
               background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--ib-cream, #FDF6EE)', cursor: 'pointer',
+              color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer',
             }}
           >
             <X size={20} />
@@ -984,7 +984,7 @@ const FeedPostCard = ({
                 position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                 width: 44, height: 44, borderRadius: '50%',
                 background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none',
-                color: 'var(--ib-cream, #FDF6EE)', fontSize: 20, cursor: 'pointer',
+                color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 20, cursor: 'pointer',
               }}
             >
               ‹
@@ -997,7 +997,7 @@ const FeedPostCard = ({
                 position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
                 width: 44, height: 44, borderRadius: '50%',
                 background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none',
-                color: 'var(--ib-cream, #FDF6EE)', fontSize: 20, cursor: 'pointer',
+                color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 20, cursor: 'pointer',
               }}
             >
               ›

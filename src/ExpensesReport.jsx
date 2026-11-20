@@ -288,7 +288,7 @@ const ExpensesReport = ({ onData }) => {
             <label style={{ position: 'relative', flex: '0 1 280px', minWidth: 0 }}>
               <Search size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--ib-rust, #7A3A18)' }} />
               <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search tours, expenses, suppliers" aria-label="Search tours, expenses or suppliers"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px 9px 32px', borderRadius: 12, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', background: '#FFFDF9', fontFamily: 'inherit', fontSize: 12.5, color: 'var(--ib-dark, #1A0A00)' }} />
+                style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px 9px 32px', borderRadius: 12, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', background: 'var(--ib-surface, #FFFDF9)', fontFamily: 'inherit', fontSize: 12.5, color: 'var(--ib-dark, #1A0A00)' }} />
             </label>
           </div>
           {visible.length === 0 ? (
@@ -382,7 +382,7 @@ const Stat = ({ label, value, sub, tone }) => (
   </div>
 );
 
-const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)' };
+const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)' };
 const panel = { background: 'rgba(var(--ib-parch-rgb, 242,228,208), 0.35)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', borderRadius: 16, padding: '14px 16px', minWidth: 0 };
 const selectStyle = { background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12, padding: '9px 12px', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', cursor: 'pointer' };
 const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 10px' };

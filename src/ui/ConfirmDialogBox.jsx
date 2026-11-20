@@ -31,7 +31,7 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, typ
   const Icon = danger ? AlertTriangle : HelpCircle;
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={() => onClose(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
+      <div onClick={() => onClose(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
       <div
         role="alertdialog"
         aria-modal="true"
@@ -39,7 +39,7 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, typ
         aria-describedby={message ? 'confirm-message' : undefined}
         style={{
           position: 'relative', width: '100%', maxWidth: 420, background: COLORS.cream, borderRadius: 22,
-          padding: '1.6rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)',
+          padding: '1.6rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)',
           borderTop: `6px solid ${danger ? COLORS.danger : COLORS.primary}`,
           fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
         }}

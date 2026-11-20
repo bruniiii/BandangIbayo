@@ -289,8 +289,8 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           <button key={key} type="button" role="tab" aria-selected={section === key} onClick={() => setSection(key)} style={{
             border: 'none', borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-            background: section === key ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: section === key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
+            background: section === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: section === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
         ))}
       </div>
 
@@ -325,7 +325,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
                   <Clock size={13} /> {timeLeft(b)}
                 </span>
                 <button type="button" onClick={() => setSelectedBooking(b)} style={{
-                  background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 12, padding: '9px 16px',
+                  background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 12, padding: '9px 16px',
                   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                 }}>
                   Review
@@ -351,7 +351,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             type="button"
             onClick={() => setStatusFilter(statusFilter === 'Balance Due' ? 'All Status' : 'Balance Due')}
             style={{
-              background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 12,
+              background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 12,
               padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
               letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
             }}
@@ -360,7 +360,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           </button>
           <button type="button" onClick={remindAll} disabled={reminding} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 12,
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 12,
             padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
             letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
           }}>{reminding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Bell size={13} />} Remind All</button>
@@ -385,12 +385,12 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
               <button type="button" aria-pressed={on} onClick={() => applyView(on ? {} : f)} style={{
                 height: 34, padding: v.saved ? '0 8px 0 13px' : '0 13px', borderRadius: v.saved ? '999px 0 0 999px' : 999, cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 800, fontSize: 12, border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.3)'}`, borderRight: v.saved ? 'none' : undefined,
-                background: on ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+                background: on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
               }}>{v.saved ? '★ ' : ''}{v.name}</button>
               {v.saved && (
                 <button type="button" aria-label={`Remove saved view ${v.name}`} onClick={() => storeFilters(savedFilters.filter((x) => x.name !== v.name))} style={{
                   height: 34, padding: '0 9px', borderRadius: '0 999px 999px 0', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
-                  border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.3)'}`, borderLeft: 'none', background: on ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
+                  border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.3)'}`, borderLeft: 'none', background: on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
                 }}>×</button>
               )}
             </span>
@@ -406,7 +406,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
         background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 20, padding: '14px 18px',
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-        boxShadow: '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+        boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
       }}>
@@ -482,7 +482,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
         background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 22,
         border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-        boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         overflow: 'hidden',
       }}>
         {loading ? (

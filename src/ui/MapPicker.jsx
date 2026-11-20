@@ -16,7 +16,7 @@ const pinIcon = L.divIcon({
   className: '',
   iconSize: [30, 30],
   iconAnchor: [15, 28],
-  html: '<div style="width:30px;height:30px;display:flex;align-items:flex-end;justify-content:center"><div style="width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ib-accent, #B4511E);border:3px solid var(--ib-cream, #FDF6EE);box-shadow:0 3px 8px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)"></div></div>',
+  html: '<div style="width:30px;height:30px;display:flex;align-items:flex-end;justify-content:center"><div style="width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--ib-accent, #B4511E);border:3px solid var(--ib-cream, #FDF6EE);box-shadow:0 3px 8px rgba(var(--ib-shadow-rgb, 26,10,0), 0.45)"></div></div>',
 });
 
 const round5 = (n) => Math.round(n * 1e5) / 1e5;
@@ -83,7 +83,7 @@ const MapPicker = ({ title = 'Pick the place on the map', near = null, askName =
 
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.85)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.85)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label={title} style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 640, maxHeight: '94dvh', borderRadius: 22,
         display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
@@ -98,7 +98,7 @@ const MapPicker = ({ title = 'Pick the place on the map', near = null, askName =
           <div ref={box} style={{ position: 'absolute', inset: 0, background: 'var(--ib-parch, #F2E4D0)' }} />
           <button type="button" onClick={() => locate(false)} disabled={locating} style={{
             position: 'absolute', right: 10, bottom: 26, zIndex: 500, display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '10px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+            padding: '10px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
             fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
           }}>{locating ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <LocateFixed size={15} />} My location</button>
         </div>
@@ -113,7 +113,7 @@ const MapPicker = ({ title = 'Pick the place on the map', near = null, askName =
           {error && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>{error}</p>}
           <button type="button" onClick={confirm} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px 16px', borderRadius: 14, border: 'none', cursor: 'pointer',
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
           }}><Check size={16} /> Use this place</button>
         </div>
       </div>

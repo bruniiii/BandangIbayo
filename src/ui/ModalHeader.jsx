@@ -14,7 +14,7 @@ const ModalHeader = ({ name, photo, label, title, children, onClose }) => (
   }}>
     <div style={{
       width: 60, height: 60, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-      background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 20,
     }}>
       {photo ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(name)}

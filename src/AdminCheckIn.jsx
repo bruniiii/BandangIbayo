@@ -388,7 +388,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                 {[['in', 'Check in (pickup)'], ['out', 'Check out (drop-off)']].map(([m, text]) => (
                   <button key={m} type="button" aria-pressed={mode === m} onClick={() => switchMode(m)} style={{
                     flex: 1, minHeight: 38, border: 'none', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
-                    letterSpacing: '0.08em', textTransform: 'uppercase', background: mode === m ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: mode === m ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+                    letterSpacing: '0.08em', textTransform: 'uppercase', background: mode === m ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: mode === m ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
                   }}>{text}</button>
                 ))}
               </div>
@@ -402,12 +402,12 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
               </p>
             )}
 
-            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: 'var(--ib-dark, #1A0A00)', aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: 'var(--ib-ink, #1A0A00)', aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {cameraOn ? (
                 <>
                   <video ref={videoRef} playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div aria-hidden style={{ position: 'absolute', inset: '18%', border: '3px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.9)', borderRadius: 18, boxShadow: '0 0 0 9999px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)' }} />
-                  {checking && <Loader2 size={28} style={{ position: 'absolute', color: 'var(--ib-cream, #FDF6EE)', animation: 'spin 1s linear infinite' }} />}
+                  <div aria-hidden style={{ position: 'absolute', inset: '18%', border: '3px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.9)', borderRadius: 18, boxShadow: '0 0 0 9999px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)' }} />
+                  {checking && <Loader2 size={28} style={{ position: 'absolute', color: 'var(--ib-on-ink, #FDF6EE)', animation: 'spin 1s linear infinite' }} />}
                 </>
               ) : (
                 <div style={{ textAlign: 'center', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', padding: 20 }}>
@@ -574,19 +574,19 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
 
 const card = {
   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
-  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 };
 const chip = (active) => ({
   border: active ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 999, padding: '6px 12px', cursor: 'pointer',
   fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800,
-  background: active ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: active ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+  background: active ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
 });
 
 const rowCheckBtn = (disabled) => ({
   display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, whiteSpace: 'nowrap',
   border: 'none', borderRadius: 10, padding: '8px 10px', minHeight: 32, fontFamily: 'inherit',
   fontSize: 11.5, fontWeight: 900, cursor: disabled ? 'not-allowed' : 'pointer',
-  background: disabled ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)' : 'var(--ib-dark, #1A0A00)', color: disabled ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.45)' : 'var(--ib-cream, #FDF6EE)',
+  background: disabled ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)' : 'var(--ib-ink, #1A0A00)', color: disabled ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.45)' : 'var(--ib-on-ink, #FDF6EE)',
 });
 const rowLinkBtn = {
   display: 'inline-flex', alignItems: 'center', gap: 3, background: 'none', border: 'none', padding: '2px 0',

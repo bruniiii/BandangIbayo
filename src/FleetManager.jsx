@@ -18,7 +18,7 @@ import { loadFleet } from './fleet';
 const btn = (main) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, padding: '0 18px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
+  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 
 // ── The Drivers & Vans window ──
@@ -52,10 +52,10 @@ const FleetManager = ({ onClose, onChanged }) => {
   const list = fleet ? fleet[tab] : null;
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label="Drivers and vans" style={{
         position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
-        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,
+        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
@@ -74,7 +74,7 @@ const FleetManager = ({ onClose, onChanged }) => {
               <button key={t[0]} type="button" role="tab" aria-selected={tab === t[0]} onClick={() => { setTab(t[0]); setEditing(null); }} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: tab === t[0] ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: tab === t[0] ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+                background: tab === t[0] ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: tab === t[0] ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
               }}><Icon size={14} /> {t[1]} {fleet ? `(${fleet[t[0]].length})` : ''}</button>
             );
           })}

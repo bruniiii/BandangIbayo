@@ -29,6 +29,7 @@ import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/logo.png';
 import AdminAccountMenu from './AdminAccountMenu';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ui/ThemeToggle';
 import Notification from './Notification';
 import { formatPeso, archivePastTours, todayManila } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -457,11 +458,11 @@ const AdminDashboard = () => {
           // Wide enough for the longest menu label ("Tracking Management") in full.
           width: sidebarExpanded ? 296 : 84,
           flexShrink: 0,
-          background: 'var(--ib-dark, #1A0A00)',
+          background: 'var(--ib-ink, #1A0A00)',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 20,
-          boxShadow: '4px 0 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.28)',
+          boxShadow: '4px 0 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)',
           position: 'relative',
           transition: 'width 0.25s ease',
           overflow: 'visible',
@@ -480,9 +481,9 @@ const AdminDashboard = () => {
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
-              color: 'var(--ib-cream, #FDF6EE)',
+              color: 'var(--ib-on-ink, #FDF6EE)',
               zIndex: 30,
-              boxShadow: '0 4px 12px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)',
+              boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)',
               transition: 'background 0.2s, transform 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-amber, #E8A265)'}
@@ -524,7 +525,7 @@ const AdminDashboard = () => {
               }}
             />
             {sidebarExpanded && (
-              <span className="font-display" style={{ fontSize: 19, color: 'var(--ib-cream, #FDF6EE)', whiteSpace: 'nowrap' }}>
+              <span className="font-display" style={{ fontSize: 19, color: 'var(--ib-on-ink, #FDF6EE)', whiteSpace: 'nowrap' }}>
                 Bandang <span className="font-accent" style={{ color: 'var(--ib-amber, #E8A265)' }}>IBAYO</span>
               </span>
             )}
@@ -606,6 +607,7 @@ const AdminDashboard = () => {
                   surfaces joiner-side activity: new bookings, payment
                   submissions, cancellations, reviews, requests, registrations */}
               <AdminSearch onOpen={openFocused} />
+              <ThemeToggle />
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
               {/* admin chip: who's signed in + Change Password */}
@@ -624,10 +626,10 @@ const AdminDashboard = () => {
               <div className="dashboard-hero-padding" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 flexWrap: 'wrap', gap: 16,
-                background: 'var(--ib-dark, #1A0A00)',
+                background: 'var(--ib-ink, #1A0A00)',
                 borderRadius: 20,
                 padding: '1.5rem 2rem',
-                boxShadow: '0 8px 28px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)',
+                boxShadow: '0 8px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
               }}>
                 <div>
                   <p style={{
@@ -638,14 +640,14 @@ const AdminDashboard = () => {
                   </p>
                   <h2 style={{
                     fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em',
-                    color: 'var(--ib-cream, #FDF6EE)', margin: 0,
+                    color: 'var(--ib-on-ink, #FDF6EE)', margin: 0,
                   }}>
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h2>
                 </div>
                 <button type="button" disabled={loadingStats} onClick={() => downloadOverviewPDF({ stats, snippets }).catch((e) => toast.error("Couldn't create the PDF", e.message))} style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 18px', borderRadius: 12, cursor: 'pointer',
-                  background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-dark, #1A0A00)', border: 'none', fontFamily: 'inherit',
+                  background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', border: 'none', fontFamily: 'inherit',
                   fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
                 }}><FileText size={15} /> Download PDF</button>
               </div>
@@ -668,7 +670,7 @@ const AdminDashboard = () => {
                   title="Total Bookings"
                   value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalBookings}
                   icon={<TrendingUp size={18} />}
-                  iconColor="#3F5D62"
+                  iconColor="var(--ib-sienna, #3F5D62)"
                   trend={loadingStats ? '' : (() => {
                     const curr = parseInt(stats.bookingsThisMonth.replace(/,/g, '')) || 0;
                     const last = stats.bookingsLastMonth || 0;
@@ -680,7 +682,7 @@ const AdminDashboard = () => {
                   title="Total Joiners"
                   value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalJoiners}
                   icon={<Users size={18} />}
-                  iconColor="#3F5D62"
+                  iconColor="var(--ib-sienna, #3F5D62)"
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
                 />
               </div>
@@ -779,7 +781,7 @@ const AdminDashboard = () => {
                       <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
                         <div style={{
                           width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                          background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11,
                         }}>
                           {p.avatar_url ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : personInitials(p)}
@@ -994,7 +996,7 @@ const AdminDashboard = () => {
               background: 'var(--ib-cream, #FDF6EE)',
               borderRadius: 24,
               border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-              boxShadow: '0 4px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+              boxShadow: '0 4px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
               padding: '3rem',
               textAlign: 'center',
             }}>
@@ -1064,7 +1066,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
       background: active ? 'var(--ib-accent, #B4511E)' : 'transparent',
-      color: active ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
+      color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(2px)' : 'translateX(0)',
       boxShadow: active ? '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'none',
@@ -1074,10 +1076,10 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-amber-rgb, 232,162,101), 0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
+    <span style={{ color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-amber-rgb, 232,162,101), 0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
       {icon}
       {badge > 0 && collapsed && (
-        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-dark, #1A0A00)', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {badge > 99 ? '99+' : badge}
         </span>
       )}
@@ -1090,7 +1092,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       </span>
     )}
     {!collapsed && badge > 0 && (
-      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-dark, #1A0A00)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {badge > 99 ? '99+' : badge}
       </span>
     )}
@@ -1105,7 +1107,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     borderRadius: 20,
     padding: '1.75rem 2rem',
     border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-    boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+    boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     display: 'flex', flexDirection: 'column', gap: 10,
     transition: 'transform 0.2s',
     cursor: 'default',
@@ -1122,7 +1124,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
       </p>
       <div style={{
         width: 36, height: 36, borderRadius: 10,
-        background: '#F1EEE8',
+        background: 'var(--ib-surface-2, #F1EEE8)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: iconColor || 'var(--ib-sienna, #A8481A)',
         flexShrink: 0,
@@ -1158,7 +1160,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
     background: 'var(--ib-cream, #FDF6EE)',
     borderRadius: 20,
     border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-    boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+    boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
     display: 'flex', flexDirection: 'column',
     overflow: 'hidden',
   }}>
@@ -1169,7 +1171,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         <div style={{
           width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-          background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
+          background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {icon}

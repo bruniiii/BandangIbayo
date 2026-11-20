@@ -64,7 +64,7 @@ const HealthTab = () => {
               {jobs.jobs.map((x) => {
                 const failed = x.last_status === 'failed' || x.failed_24h > 0;
                 return (
-                  <div key={x.name} style={{ background: failed ? '#FBEDE6' : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
+                  <div key={x.name} style={{ background: failed ? 'var(--ib-surface-2, #FBEDE6)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
                     <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{JOB_NAMES[x.name] || x.name}</p>
                     <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{x.name} · {x.schedule}{x.active ? '' : ' · paused'}</p>
                     <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 800, color: failed ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>

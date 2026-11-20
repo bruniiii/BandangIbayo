@@ -390,15 +390,15 @@ const ProfileSettings = () => {
       {/* avatar card */}
       <div style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
       }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
           <div style={{
             width: 84, height: 84, borderRadius: '50%', overflow: 'hidden',
-            background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 28,
-            boxShadow: '0 6px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)',
+            boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
           }}>
             {avatarPreview ? (
               <img src={avatarPreview} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -409,9 +409,9 @@ const ProfileSettings = () => {
           {avatarBusy && (
             <div style={{
               position: 'absolute', inset: 0, borderRadius: '50%',
-              background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Loader2 size={20} color="var(--ib-cream, #FDF6EE)" style={{ animation: 'spin 1s linear infinite' }} />
+              <Loader2 size={20} color="var(--ib-on-ink, #FDF6EE)" style={{ animation: 'spin 1s linear infinite' }} />
             </div>
           )}
         </div>
@@ -426,7 +426,7 @@ const ProfileSettings = () => {
               disabled={saving}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
-                background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none',
+                background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none',
                 borderRadius: 10, padding: '9px 16px', fontSize: 11.5, fontWeight: 800,
                 cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
               }}
@@ -461,7 +461,7 @@ const ProfileSettings = () => {
       {/* personal information card: shown first, editable after Edit Profile */}
       <div style={{
         background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.75rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
           <div>
@@ -472,7 +472,7 @@ const ProfileSettings = () => {
           </div>
           {!editing && (
             <button type="button" onClick={() => setEditing(true)} style={{
-              display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12,
+              display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12,
               letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', borderRadius: 12, padding: '12px 22px', cursor: 'pointer', fontFamily: 'inherit',
             }}>
               <PencilLine size={15} /> Edit Profile
@@ -594,11 +594,11 @@ const ProfileSettings = () => {
             title={profileFilled ? undefined : 'Fill in your first and last name (and the street, if you picked a province) first'}
             style={{
               display: 'flex', alignItems: 'center', gap: 8, opacity: profileFilled ? 1 : 0.5,
-              background: saving ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.5)' : 'var(--ib-dark, #1A0A00)',
+              background: saving ? 'rgba(var(--ib-ink-rgb, 26,10,0), 0.5)' : 'var(--ib-ink, #1A0A00)',
               color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 12, letterSpacing: '0.08em',
               textTransform: 'uppercase', border: 'none', borderRadius: 12,
               padding: '13px 26px', cursor: saving || !profileFilled ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit', boxShadow: saving ? 'none' : '0 8px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)',
+              fontFamily: 'inherit', boxShadow: saving ? 'none' : '0 8px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
             }}
           >
             {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={15} />}

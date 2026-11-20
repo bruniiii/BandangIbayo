@@ -29,7 +29,7 @@ const Toggle = ({ on, onChange, disabled, label: text }) => (
     width: 52, height: 30, borderRadius: 999, border: 'none', padding: 3, cursor: disabled ? 'not-allowed' : 'pointer', flexShrink: 0,
     background: on ? '#2E9B5F' : '#C9B8A6', display: 'flex', justifyContent: on ? 'flex-end' : 'flex-start', transition: 'background 0.15s', opacity: disabled ? 0.6 : 1,
   }}>
-    <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#FFFDF9', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }} />
+    <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--ib-surface, #FFFDF9)', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }} />
   </button>
 );
 
@@ -111,7 +111,7 @@ const SettingsTab = ({ onNavigate }) => {
       )}
 
       {/* Maintenance Mode */}
-      <section style={{ ...card, borderColor: on ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.45)' : card.border, background: on ? '#FBEDE6' : card.background }}>
+      <section style={{ ...card, borderColor: on ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.45)' : card.border, background: on ? 'var(--ib-surface-2, #FBEDE6)' : card.background }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 300px', minWidth: 0 }}>
             <h3 style={h3}><Power size={16} color={on ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-sienna, #A8481A)'} /> Maintenance Mode</h3>

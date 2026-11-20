@@ -93,7 +93,7 @@ const ItineraryTimeline = ({ text, startDate = null }) => {
               }}
             >
               <span style={{
-                display: 'inline-block', background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)',
+                display: 'inline-block', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
                 borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
                 letterSpacing: '0.15em', textTransform: 'uppercase',
               }}>{withDate(day.label, startDate)}</span>

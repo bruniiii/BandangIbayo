@@ -355,7 +355,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
       {!isAdmin && (
         <div {...focusAttr('review-form')} style={{
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         }}>
           {reviewableTours.length === 0 ? (
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
@@ -453,10 +453,10 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                       )}
                       {item.type === 'video' && (
                         <div style={{
-                          position: 'absolute', bottom: 4, left: 4, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)',
+                          position: 'absolute', bottom: 4, left: 4, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)',
                           borderRadius: 6, padding: '2px 5px', display: 'flex', alignItems: 'center',
                         }}>
-                          <Video size={10} color="var(--ib-cream, #FDF6EE)" />
+                          <Video size={10} color="var(--ib-on-ink, #FDF6EE)" />
                         </div>
                       )}
                       <button
@@ -465,7 +465,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                         style={{
                           position: 'absolute', top: -6, right: -6,
                           width: 20, height: 20, borderRadius: '50%',
-                          background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: '2px solid var(--ib-cream, #FDF6EE)',
+                          background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: '2px solid var(--ib-cream, #FDF6EE)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                         }}
                       >
@@ -504,7 +504,7 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     background: (submitting || !selectedTourId || rating === 0) ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'var(--ib-accent, #B4511E)',
-                    color: 'var(--ib-cream, #FDF6EE)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                    color: 'var(--ib-on-ink, #FDF6EE)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                     textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
                     border: 'none', cursor: (submitting || !selectedTourId || rating === 0) ? 'not-allowed' : 'pointer',
                     fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
@@ -559,13 +559,13 @@ const Reviews = ({ isAdmin = false, onExplore, focusTourId = null }) => {
 const ReviewCard = ({ review, canReact, busy, onHelpful, isAdmin, onSaveReply }) => (
   <div style={{
     background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem 1.5rem',
-    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
   }}>
     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-          background: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 15, overflow: 'hidden',
         }}>
           {review.author?.avatar_url ? (
@@ -680,13 +680,13 @@ const ReviewReply = ({ review, isAdmin, onSave }) => {
           placeholder="Thank the joiner or answer their comment…"
           style={{
             width: '100%', boxSizing: 'border-box', marginTop: 6, padding: '10px 12px', borderRadius: 12,
-            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: '#FFF', fontFamily: 'inherit', fontSize: 13,
+            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: 'var(--ib-surface, #FFF)', fontFamily: 'inherit', fontSize: 13,
             color: 'var(--ib-dark, #1A0A00)', resize: 'vertical',
           }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={save} disabled={saving || !text.trim()} style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none',
+            display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
             borderRadius: 999, padding: '8px 16px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
             cursor: saving || !text.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
           }}>

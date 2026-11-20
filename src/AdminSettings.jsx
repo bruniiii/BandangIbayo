@@ -27,17 +27,17 @@ const MAX_OTHER_ADMINS = 2;
 
 const card = {
   background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.4rem 1.5rem',
-  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 };
 const cardTitle = { display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 14.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' };
 const cardHint = { margin: '4px 0 14px', fontSize: 12, lineHeight: 1.5, color: 'var(--ib-rust, #7A3A18)' };
 const label = { display: 'block', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', marginBottom: 5 };
 const input = {
   width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
-  background: '#FFFDF9', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', outline: 'none', fontFamily: 'inherit',
+  background: 'var(--ib-surface, #FFFDF9)', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', outline: 'none', fontFamily: 'inherit',
 };
 const primaryBtn = (busy) => ({
-  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 40, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 40, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
   border: 'none', borderRadius: 10, fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
   cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
 });
@@ -217,8 +217,8 @@ const AdminSettings = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>
       {/* ── Your profile: dark banner like the Overview header ── */}
       <section aria-label="Your profile" className="dashboard-hero-padding" style={{
-        position: 'relative', overflow: 'hidden', background: 'var(--ib-dark, #1A0A00)', borderRadius: 22, padding: '1.75rem 2rem',
-        boxShadow: '0 10px 30px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)', borderBottom: '4px solid var(--ib-accent, #B4511E)',
+        position: 'relative', overflow: 'hidden', background: 'var(--ib-ink, #1A0A00)', borderRadius: 22, padding: '1.75rem 2rem',
+        boxShadow: '0 10px 30px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)', borderBottom: '4px solid var(--ib-accent, #B4511E)',
       }}>
         <div style={{ position: 'absolute', top: 0, right: 0, width: '45%', height: '100%', background: 'radial-gradient(ellipse at top right, rgba(var(--ib-accent-rgb, 180,81,30), 0.22) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
@@ -231,7 +231,7 @@ const AdminSettings = () => {
               </div>
             ) : (
               <>
-                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, letterSpacing: '-0.01em', color: needsName ? 'var(--ib-amber, #E8A265)' : 'var(--ib-cream, #FDF6EE)', overflowWrap: 'anywhere' }}>
+                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, letterSpacing: '-0.01em', color: needsName ? 'var(--ib-amber, #E8A265)' : 'var(--ib-on-ink, #FDF6EE)', overflowWrap: 'anywhere' }}>
                   {needsName ? 'Add your name' : me.name}
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
@@ -251,7 +251,7 @@ const AdminSettings = () => {
           {!editingName && (
             <button type="button" onClick={() => setEditingName(true)} style={{
               display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, cursor: 'pointer',
-              background: 'var(--ib-amber, #E8A265)', border: 'none', color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit',
+              background: 'var(--ib-amber, #E8A265)', border: 'none', color: 'var(--ib-ink, #1A0A00)', fontFamily: 'inherit',
               fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
             }}><Pencil size={14} /> {needsName ? 'Add Name' : 'Edit Name'}</button>
           )}
@@ -271,7 +271,7 @@ const AdminSettings = () => {
           <button type="button" onClick={() => { setAdding(true); setError(''); }} disabled={full}
             title={full ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
             display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 18px', borderRadius: 12, border: 'none', cursor: full ? 'not-allowed' : 'pointer', opacity: full ? 0.5 : 1,
-            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
             boxShadow: '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
           }}><Plus size={15} /> Add Admin</button>
         </div>
@@ -283,7 +283,7 @@ const AdminSettings = () => {
                 <li key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 1.5rem', borderTop: i ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'none', flexWrap: 'wrap' }}>
                   <span aria-hidden="true" style={{
                     width: 42, height: 42, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: a.is_main_admin ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: a.is_main_admin ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)', fontSize: 13, fontWeight: 900,
+                    background: a.is_main_admin ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: a.is_main_admin ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)', fontSize: 13, fontWeight: 900,
                   }}>{initials(a.name)}</span>
                   <div style={{ flex: '1 1 220px', minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -325,7 +325,7 @@ const AdminSettings = () => {
                 }}><MailCheck size={12} /> Pending verification</span>
                 <button type="button" onClick={() => { setRestoreCode(''); setVerifying(a); }} style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: 'pointer',
-                  background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
                 }}>Enter Code</button>
                 <button type="button" disabled={restoreBusy} onClick={() => sendRestoreCode(a, true)} className="text-link" style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 12 }}>
                   Resend code
@@ -344,7 +344,7 @@ const AdminSettings = () => {
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>
               <Archive size={14} /> Archived Admins
               <span style={{ padding: '1px 9px', borderRadius: 999, background: 'var(--ib-parch, #F2E4D0)', fontSize: 11.5, color: 'var(--ib-sienna, #A8481A)' }}>{archivedOnly.length}</span>
-              {requests > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontSize: 10.5, letterSpacing: '0.06em' }}>{requests} asking to be restored</span>}
+              {requests > 0 && <span style={{ padding: '2px 9px', borderRadius: 999, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10.5, letterSpacing: '0.06em' }}>{requests} asking to be restored</span>}
             </span>
             <ChevronDown size={16} style={{ color: 'var(--ib-rust, #7A3A18)', transition: 'transform 0.2s', transform: showArchived ? 'rotate(180deg)' : 'none' }} />
           </button>
@@ -369,7 +369,7 @@ const AdminSettings = () => {
                       <button type="button" disabled={restoreBusy || (full && !a.was_main_admin)} onClick={() => approveRequest(a)} aria-label={`Approve ${a.name}`}
                         title={full && !a.was_main_admin ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: full && !a.was_main_admin ? 'not-allowed' : 'pointer', opacity: full && !a.was_main_admin ? 0.5 : 1,
-                        background: '#1F6B4A', color: 'var(--ib-cream, #FDF6EE)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                        background: '#1F6B4A', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
                       }}><ShieldCheck size={14} /> Approve</button>
                       <button type="button" disabled={restoreBusy} onClick={() => declineRequest(a)} aria-label={`Decline ${a.name}`} style={{
                         display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: 'pointer',
@@ -379,7 +379,7 @@ const AdminSettings = () => {
                   ) : <button type="button" disabled={restoreBusy || (full && !a.was_main_admin)} onClick={() => sendRestoreCode(a)} aria-label={`Restore ${a.name}`}
                     title={full && !a.was_main_admin ? `You can have at most ${MAX_OTHER_ADMINS} other admins. Archive one first.` : undefined} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 14px', borderRadius: 10, cursor: full && !a.was_main_admin ? 'not-allowed' : 'pointer', opacity: full && !a.was_main_admin ? 0.5 : 1,
-                    background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
                   }}><ArchiveRestore size={14} /> Restore</button>}
                 </li>
               ))}
@@ -393,10 +393,10 @@ const AdminSettings = () => {
       {/* ── Restore: enter the code the admin received ── */}
       {verifying && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => !restoreBusy && setVerifying(null)} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => !restoreBusy && setVerifying(null)} />
           <form role="dialog" aria-label="Verify the restored admin" onSubmit={confirmRestoreCode} style={{
             position: 'relative', width: '100%', maxWidth: 420, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, borderTop: '6px solid var(--ib-accent, #B4511E)',
-            boxShadow: '0 30px 70px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', padding: '1.5rem 1.6rem',
+            boxShadow: '0 30px 70px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem 1.6rem',
           }}>
             <button type="button" onClick={() => setVerifying(null)} disabled={restoreBusy} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
             <h3 style={{ ...cardTitle, fontSize: 16 }}><MailCheck size={17} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Verify {verifying.name}</h3>
@@ -418,10 +418,10 @@ const AdminSettings = () => {
       {/* ── Add Admin window: 1 Details → 2 Verify email ── */}
       {adding && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={closeAdding} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={closeAdding} />
           <div role="dialog" aria-label="Add an admin" style={{
             position: 'relative', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
-            borderRadius: 22, borderTop: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 30px 70px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', padding: '1.5rem 1.6rem 1.6rem',
+            borderRadius: 22, borderTop: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 30px 70px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem 1.6rem 1.6rem',
           }}>
             <button type="button" onClick={closeAdding} aria-label="Close" style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', display: 'flex' }}><X size={20} /></button>
             <h3 style={{ ...cardTitle, fontSize: 17 }}><UserPlus size={18} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Add an Admin</h3>
@@ -431,7 +431,7 @@ const AdminSettings = () => {
                 <React.Fragment key={n}>
                   {idx > 0 && <span aria-hidden="true" style={{ flex: 1, height: 2, borderRadius: 2, background: step >= n ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' }} />}
                   <li style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 900, color: step >= n ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.6)' }} aria-current={step === n ? 'step' : undefined}>
-                    <span style={{ width: 24, height: 24, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, background: step >= n ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', color: step >= n ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }}>{n}</span>
+                    <span style={{ width: 24, height: 24, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11.5, background: step >= n ? 'var(--ib-ink, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', color: step >= n ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }}>{n}</span>
                     {text}
                   </li>
                 </React.Fragment>
@@ -565,7 +565,7 @@ const AutoArchiveSetting = () => {
             background: enabled ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.25)', transition: 'background 0.2s', opacity: loaded ? 1 : 0.5,
           }}
           aria-label={enabled ? 'Turn off automatic archiving' : 'Turn on automatic archiving'}>
-          <span style={{ position: 'absolute', top: 3, left: enabled ? 25 : 3, width: 24, height: 24, borderRadius: '50%', background: 'var(--ib-cream, #FDF6EE)', transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(var(--ib-dark-rgb, 26,10,0), 0.25)' }} />
+          <span style={{ position: 'absolute', top: 3, left: enabled ? 25 : 3, width: 24, height: 24, borderRadius: '50%', background: 'var(--ib-cream, #FDF6EE)', transition: 'left 0.2s', boxShadow: '0 2px 6px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)' }} />
         </button>
       </div>
       {enabled && (
@@ -578,7 +578,7 @@ const AutoArchiveSetting = () => {
           </NiceSelect>
           <button type="button" onClick={archiveNow} disabled={!loaded || saving || running} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6, height: 40, padding: '0 16px', borderRadius: 12, cursor: 'pointer',
-            background: 'var(--ib-dark, #1A0A00)', border: 'none', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit',
+            background: 'var(--ib-ink, #1A0A00)', border: 'none', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
           }}>{running ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Archive size={14} />} Archive Now</button>
         </div>

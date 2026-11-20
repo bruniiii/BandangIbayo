@@ -98,7 +98,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
           padding: '2rem',
           borderRadius: 28,
           border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-          boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
+          boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
           textAlign: 'left'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
@@ -180,7 +180,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                           display: 'block', maxWidth: '100%', boxSizing: 'border-box',
                           fontSize: 11, fontWeight: 800, lineHeight: 1.3,
                           padding: '2px 6px', borderRadius: 6,
-                          color: t.is_exclusive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-dark, #1A0A00)', background: t.is_exclusive ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-amber, #E8A265)',
+                          color: t.is_exclusive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-dark, #1A0A00)', background: t.is_exclusive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-amber, #E8A265)',
                           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                         }}>
                           {t.is_exclusive ? '★ ' : ''}{t.title}
@@ -200,18 +200,18 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
         {/* ── Daily Sidebar ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%', textAlign: 'left', minWidth: 0 }}>
           <div style={{
-            background: 'var(--ib-dark, #1A0A00)',
+            background: 'var(--ib-ink, #1A0A00)',
             padding: '2rem',
             borderRadius: 28,
-            color: 'var(--ib-cream, #FDF6EE)',
-            boxShadow: '0 16px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.22)',
+            color: 'var(--ib-on-ink, #FDF6EE)',
+            boxShadow: '0 16px 40px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             textAlign: 'left'
           }}>
             <p style={{ fontSize: 11, fontWeight: 900, color: 'var(--ib-amber, #E8A265)', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
-            <h3 style={{ fontSize: 24, fontWeight: 900, color: 'var(--ib-cream, #FDF6EE)', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
+            <h3 style={{ fontSize: 24, fontWeight: 900, color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {loading ? (
                 <SkeletonRegion label="Loading tours" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -233,17 +233,17 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                     {tour.is_exclusive && (
                       <p style={{ margin: '0 0 6px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)' }}>★ Your private tour</p>
                     )}
-                    <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: 'var(--ib-cream, #FDF6EE)', margin: '0 0 8px' }}>{tour.title}</h4>
+                    <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 8px' }}>{tour.title}</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', marginBottom: 4 }}>
                       <MapPin size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.destination}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, marginBottom: 12 }}>
                       <Users size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
-                      <span style={{ color: tour.available_slots > 0 ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-red, #8C2F1C)' }}>
+                      <span style={{ color: tour.available_slots > 0 ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)' }}>
                         {tour.current_booked}/{tour.group_size} Booked
                       </span>
                       {tour.available_slots <= 0 && (
-                        <span style={{ background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-cream, #FDF6EE)', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
+                        <span style={{ background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
                       )}
                     </div>
                     {/* Slot bar */}
@@ -278,7 +278,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                           gap: 6,
                           transition: 'all 0.2s'
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; e.currentTarget.style.color = 'var(--ib-cream, #FDF6EE)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; e.currentTarget.style.color = 'var(--ib-on-ink, #FDF6EE)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'var(--ib-cream, #FDF6EE)'; e.currentTarget.style.color = 'var(--ib-dark, #1A0A00)'; }}
                       >
                         {tour.is_exclusive ? 'My Bookings' : 'Details'}
@@ -303,7 +303,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                     <div style={{ fontStyle: 'normal', marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.9)' }}>Want to travel on this day?</p>
                       <button type="button" onClick={() => onPlanTrip('exclusive', format(selectedDate, 'yyyy-MM-dd'))} style={{
-                        padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
+                        padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)',
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                       }}>
                         Private Tour

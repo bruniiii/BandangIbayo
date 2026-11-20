@@ -57,7 +57,7 @@ select:-webkit-autofill:focus {
 
 /* Clickable cards lift a little on hover so they read as clickable. */
 .clickable-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(var(--ib-dark-rgb, 26,10,0), 0.12) !important; }
+.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12) !important; }
 
 /* Keyboard users can always see where they are. */
 a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
@@ -107,9 +107,9 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
 .tour-row-arrow {
   position: absolute; top: calc(50% - 6px); transform: translateY(-50%); z-index: 2;
   width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ib-cream, #FDF6EE);
-  background: var(--ib-dark, #1A0A00); color: var(--ib-cream, #FDF6EE); cursor: pointer;
+  background: var(--ib-ink, #1A0A00); color: var(--ib-on-ink, #FDF6EE); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 6px 18px rgba(var(--ib-dark-rgb, 26,10,0), 0.3); transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.3); transition: background 0.15s, transform 0.15s;
 }
 .tour-row-arrow:hover { background: var(--ib-accent, #B4511E); transform: translateY(-50%) scale(1.06); }
 
@@ -188,7 +188,7 @@ input::-ms-clear { display: none; }
 /* Tour cards grow a little when the mouse is over them. */
 .grow-card { transition: transform 0.25s, box-shadow 0.25s; position: relative; }
 @media (hover: hover) {
-  .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(var(--ib-dark-rgb, 26,10,0), 0.14) !important; z-index: 2; }
+  .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14) !important; z-index: 2; }
 }
 
 /* (The 620px minimum width for computers was removed: a narrow window or
@@ -391,7 +391,7 @@ a[aria-label="Close and go to the home page"] {
   background: var(--ib-parch, #F2E4D0) !important;
   border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25) !important;
   color: var(--ib-rust, #7A3A18) !important;
-  box-shadow: 0 2px 8px rgba(var(--ib-dark-rgb, 26,10,0), 0.08) !important;
+  box-shadow: 0 2px 8px rgba(var(--ib-shadow-rgb, 26,10,0), 0.08) !important;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -427,4 +427,28 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
   --ib-sienna-rgb: 10,124,148; --ib-parch-rgb: 253,235,211; --ib-orange-rgb: 255,122,61;
   --ib-primary-btn: #FF7A3D; --ib-primary-btn-text: #FFFFFF;
   --ib-disabled-bg: #DCE7EA; --ib-disabled-text: #3F5A66;
+  /* Navy areas (sidebar, dark cards and buttons, overlays), the light words
+     on them, and shadows: they stay dark/light in both light and dark mode. */
+  --ib-ink: #0B3B4F; --ib-ink-deep: #134B5F; --ib-ink-rgb: 11,59,79; --ib-shadow-rgb: 11,59,79;
+  --ib-on-ink: #FFF8EE; --ib-on-ink-2: #FDEBD3; --ib-on-ink-rgb: 255,248,238;
 }
+
+/* ═════════ Dark mode ═════════
+   Night by the sea: deep ocean navy, teal and sunset orange. Turned on by
+   data-theme="dark" on <html> (theme.js: the visitor's choice, else their
+   device's setting). The --ib-surface colours (white cards) are only set
+   here; in light mode each keeps its own fallback. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ib-dark: #E8F2F5; --ib-brown: #E8F2F5; --ib-deep: #0B2D3A; --ib-rust: #A3BEC7;
+  --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3; --ib-accent: #FF8A52; --ib-amber: #FFC266;
+  --ib-cream: #10303D; --ib-parch: #0B2633; --ib-red: #FF7A66;
+  --ib-dark-rgb: 232,242,245; --ib-rust-rgb: 163,190,199; --ib-accent-rgb: 76,195,218; --ib-sienna-rgb: 76,195,218;
+  --ib-cream-rgb: 16,48,61; --ib-parch-rgb: 11,38,51; --ib-soft-rgb: 163,190,199; --ib-amber-rgb: 255,194,102;
+  --ib-red-rgb: 255,122,102; --ib-orange-rgb: 255,138,82;
+  --ib-ink: #0E4256; --ib-ink-deep: #0B3647; --ib-ink-rgb: 3,16,22; --ib-shadow-rgb: 0,0,0;
+  --ib-on-ink: #F2F8FA; --ib-on-ink-2: #D6E6EB; --ib-on-ink-rgb: 242,248,250;
+  --ib-surface: #12384A; --ib-surface-2: #0E2F3D; --ib-peach-1: #164556; --ib-peach-2: #12394A;
+  --ib-disabled-bg: #1B3E4C; --ib-disabled-text: #9FB8C1;
+}
+:root[data-theme="dark"], :root[data-theme="dark"] body { background: #071C26; }
