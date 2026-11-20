@@ -3,7 +3,6 @@ import AdminSearch from './AdminSearch';
 import AdminToday from './AdminToday';
 import Walkthrough from './ui/Walkthrough';
 import { ADMIN_STEPS, walkthroughKey } from './walkthroughSteps';
-import { downloadOverviewPDF } from './overviewPdf';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
@@ -645,11 +644,6 @@ const AdminDashboard = () => {
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h2>
                 </div>
-                <button type="button" disabled={loadingStats} onClick={() => downloadOverviewPDF({ stats, snippets }).catch((e) => toast.error("Couldn't create the PDF", e.message))} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 18px', borderRadius: 12, cursor: 'pointer',
-                  background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', border: 'none', fontFamily: 'inherit',
-                  fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                }}><FileText size={15} /> Download PDF</button>
               </div>
 
               {/* KPI row */}

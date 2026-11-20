@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Wallet, ChevronDown, AlertCircle, Search, Download, Star } from 'lucide-react';
+import { Wallet, ChevronDown, AlertCircle, Search, Star } from 'lucide-react';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { toast } from './ui/toast';
@@ -7,7 +7,6 @@ import NiceSelect from './ui/NiceSelect';
 import StatusFilter from './ui/StatusFilter';
 import Pager from './ui/Pager';
 import { paginate } from './ui/paginate';
-import { downloadCsv } from './csvExport';
 import { PieChart } from './ReportCharts';
 import { CATEGORY_LABEL } from './tourExpenses';
 import { loadTourFinance, tourMoney, inPeriod, TOUR_TYPES, TOUR_TYPE_LABEL } from './tourFinance';
@@ -146,12 +145,6 @@ const ExpensesReport = ({ onData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, period, type, rows, categories, suppliers, onData]);
 
-  const download = () => downloadCsv(`expenses-${period.replace(':', '-')}.csv`, [
-    [(x) => x.r.tour.title, 'Tour'], [(x) => TOUR_TYPE_LABEL[x.r.type], 'Type'], [(x) => x.r.tour.start_date, 'Start date'],
-    [(x) => x.r.basis, 'Amounts'], [(x) => x.l?.label || '', 'Expense'], [(x) => (x.l ? CATEGORY_LABEL[x.l.category] : ''), 'Category'],
-    [(x) => x.l?.supplierName || '', 'Supplier'], [(x) => (x.l ? x.l.estimated : ''), 'Estimated'], [(x) => (x.l?.actual ?? ''), 'Actual'],
-    [(x) => (x.l ? x.l.cost : ''), 'Counted'], [(x) => x.r.fees, 'Joiner fees (tour)'], [(x) => x.r.cost, 'Total expenses (tour)'], [(x) => x.r.net, 'Net income (tour)'],
-  ], listed.flatMap((r) => (r.lines.length ? r.lines.map((l) => ({ r, l })) : [{ r, l: null }])));
 
   return (
     <section aria-labelledby="expenses-title" style={card}>
@@ -166,9 +159,6 @@ const ExpensesReport = ({ onData }) => {
           <NiceSelect aria-label="Expenses period" value={period} onChange={(e) => { setPeriod(e.target.value); setOpen(null); setPage(1); }} style={selectStyle}>
             {periodOptions().map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </NiceSelect>
-          <button type="button" onClick={download} disabled={!listed.length} style={{ ...selectStyle, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: listed.length ? 1 : 0.5, cursor: listed.length ? 'pointer' : 'not-allowed' }}>
-            <Download size={14} /> CSV
-          </button>
         </div>
       </div>
 

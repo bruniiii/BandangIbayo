@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase, currentUser } from './supabaseClient';
 import { notificationsChanged, onNotificationsChanged, onNotificationsRefresh, clearOldPaymentNotices, nextPaymentNoticeExpiry, fetchNotificationsSeenAt, markNotificationsSeen, unseenCount } from './notifications';
 import EmptyState from './ui/EmptyState';
@@ -242,7 +243,9 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
       )}
     </div>
 
-    {viewingNotification && (
+    {/* Drawn at the page level (a portal): inside the top bar, whose blur
+        effect makes fixed windows sit inside the bar, it was squeezed and cut off. */}
+    {viewingNotification && createPortal(
       <NotificationDetailModal
         notification={viewingNotification}
         onClose={() => setViewingNotification(null)}
@@ -251,7 +254,8 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
           setViewingNotification(null);
           onNotificationClick?.(target);
         }}
-      />
+      />,
+      document.body,
     )}
     </>
   );
