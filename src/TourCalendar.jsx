@@ -180,7 +180,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                           display: 'block', maxWidth: '100%', boxSizing: 'border-box',
                           fontSize: 11, fontWeight: 800, lineHeight: 1.3,
                           padding: '2px 6px', borderRadius: 6,
-                          color: t.is_exclusive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-dark, #1A0A00)', background: t.is_exclusive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-amber, #E8A265)',
+                          color: t.is_exclusive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-ink, #1A0A00)', background: t.is_exclusive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-amber, #E8A265)',
                           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                         }}>
                           {t.is_exclusive ? '★ ' : ''}{t.title}
