@@ -12,7 +12,7 @@ import ItineraryTimeline from './ui/ItineraryTimeline';
 /* ─────────────────────────────────────────────
    TOUR IMAGE CAROUSEL (slideable gallery)
 ───────────────────────────────────────────── */
-const TourImageCarousel = ({ images = [], onExpand }) => {
+const TourImageCarousel = ({ images = [], onExpand, caption = '' }) => {
   const [index, setIndex] = useState(0);
   const dragStartX = useRef(null);
   const hasImages = images.length > 0;
@@ -37,12 +37,13 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
  
   return (
     <div>
+      {/* The photos as a taped polaroid (index.css: .polaroid). */}
+      <div className="polaroid">
       <div
         style={{
           position: 'relative', width: '100%', height: 190,
-          borderRadius: 18, overflow: 'hidden',
-          background: 'var(--ib-surface-2, #E8D5BC)', marginBottom: hasMultiple ? 12 : 20,
-          boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)',
+          borderRadius: 3, overflow: 'hidden',
+          background: 'var(--ib-surface-2, #E8D5BC)',
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
         }}
         onPointerDown={handleDragStart}
@@ -104,6 +105,8 @@ const TourImageCarousel = ({ images = [], onExpand }) => {
           </>
         )}
       </div>
+        {caption && <p className="polaroid-caption journal-hand">{caption}{hasMultiple ? ` · ${index + 1}/${images.length}` : ''}</p>}
+      </div>
  
       {hasMultiple && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 20 }}>
@@ -159,7 +162,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
               display: 'flex', flexDirection: 'column',
             }}>
               {/* Photo Gallery (slideable) */}
-              <TourImageCarousel images={tour.image_urls || []} onExpand={setSelectedImage} />
+              <TourImageCarousel images={tour.image_urls || []} onExpand={setSelectedImage} caption={tour.destination || tour.title} />
  
               <h2 style={{
                 fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em',

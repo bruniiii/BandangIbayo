@@ -519,3 +519,24 @@ a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surfa
 .journal-van { position: absolute; bottom: -1px; left: 0; font-size: 22px; line-height: 1; transform: scaleX(-1); animation: journal-drive 2.2s ease-in-out infinite alternate; }
 @keyframes journal-drive { from { left: 0; } to { left: calc(100% - 26px); } }
 @media (prefers-reduced-motion: reduce) { .journal-van { animation: none; left: 40%; } }
+
+/* Statuses as inked rubber stamps: a squared outline in the ink colour,
+   slightly tilted, with a worn, uneven print (a noise mask). Stamps that
+   have a tinted background keep it, as the stamp's paper. */
+.rubber-stamp { display: inline-flex !important; align-items: center; border: 2px solid currentColor !important; border-radius: 5px !important;
+  padding: 2px 8px !important; line-height: 1.25; font-weight: 900 !important; letter-spacing: 0.12em !important; text-transform: uppercase;
+  transform: rotate(-3deg); transform-origin: center;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3.2 2.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3.2 2.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); -webkit-mask-size: 160px 80px; mask-size: 160px 80px; }
+td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rotate(2deg); }
+
+/* Tour photos as a taped polaroid: a white frame with a deeper bottom edge,
+   a strip of tape and the place handwritten underneath. */
+.polaroid { position: relative; background: #FFFDF7; padding: 10px 10px 6px; border-radius: 4px; margin: 14px 4px 18px;
+  box-shadow: 0 12px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18), 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12); transform: rotate(-1.2deg); }
+.polaroid::before { content: ''; position: absolute; top: -11px; left: 50%; width: 96px; height: 24px; z-index: 2; pointer-events: none;
+  transform: translateX(-50%) rotate(-3deg); background: var(--journal-tape); box-shadow: 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12);
+  -webkit-mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent calc(100% - 3px)); }
+.polaroid-caption { margin: 6px 4px 2px; font-size: 22px; line-height: 1.1; color: #0B3B4F; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.polaroid:not(:has(.polaroid-caption)) { padding-bottom: 26px; }
+:root[data-theme="dark"] .polaroid { background: #F4EEE2; box-shadow: 0 14px 32px rgba(0,0,0,0.5); }
+@media (prefers-reduced-motion: no-preference) { .polaroid { transition: transform 0.3s ease; } .polaroid:hover { transform: rotate(0deg); } }

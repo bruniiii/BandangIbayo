@@ -2,8 +2,9 @@ import React from 'react';
 import { CreditCard, Wallet } from 'lucide-react';
 
 // ─────────────────────────────────────────────
-// BOOKING BADGES: booking status, balance status and payment method, as
-// plain coloured text (Booking Management list and the booking window).
+// BOOKING BADGES: booking status, balance status and payment method. The
+// statuses look like inked rubber stamps (index.css: .rubber-stamp)
+// (Booking Management list and the booking window).
 // ─────────────────────────────────────────────
 
 const STATUS_STYLES = {
@@ -25,7 +26,7 @@ const STATUS_STYLES = {
 const StatusBadge = ({ status, large = false, wrap = false }) => {
   const { color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
-    <span style={{
+    <span className={large ? undefined : 'rubber-stamp'} style={{
       display: 'inline-flex', alignItems: 'center',
       color: large ? 'var(--ib-on-ink, #FDF6EE)' : color,
       fontSize: large ? 12 : 11,
@@ -45,7 +46,7 @@ const BALANCE_STATUS_STYLES = {
 const BalanceStatusBadge = ({ status }) => {
   const { color } = BALANCE_STATUS_STYLES[status] || BALANCE_STATUS_STYLES['Balance Due'];
   return (
-    <span style={{
+    <span className="rubber-stamp" style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       color, fontSize: 11,
       fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',

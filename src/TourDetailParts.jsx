@@ -97,7 +97,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
 
 
-const TourImageCarousel = ({ images = [] }) => {
+const TourImageCarousel = ({ images = [], caption = '' }) => {
 
   const [index, setIndex] = useState(0);
 
@@ -155,17 +155,19 @@ const TourImageCarousel = ({ images = [] }) => {
 
     <div>
 
+      {/* The photos as a taped polaroid, with the place handwritten underneath (index.css: .polaroid). */}
+
+      <div className="polaroid">
+
       <div
 
         style={{
 
           position: 'relative', width: '100%', height: 190,
 
-          borderRadius: 18, overflow: 'hidden',
+          borderRadius: 3, overflow: 'hidden',
 
-          background: 'var(--ib-parch, #F2E4D0)', marginBottom: hasMultiple ? 12 : 20,
-
-          boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)',
+          background: 'var(--ib-parch, #F2E4D0)',
 
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
 
@@ -285,6 +287,8 @@ const TourImageCarousel = ({ images = [] }) => {
 
         )}
 
+      </div>
+        {caption && <p className="polaroid-caption journal-hand">{caption}{hasMultiple ? ` · ${index + 1}/${images.length}` : ''}</p>}
       </div>
 
 

@@ -445,7 +445,7 @@ const MyRequestsCard = ({ onOpen }) => {
                   <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
                     {r.request_type === 'request' ? 'Requested Tour' : 'Private Tour'}
                   </span>
-                  <span style={{ fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, background: tone.bg, color: tone.color, whiteSpace: 'nowrap' }}>{label}</span>
+                  <span className="rubber-stamp" style={{ fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, background: tone.bg, color: tone.color, whiteSpace: 'nowrap' }}>{label}</span>
                 </span>
                 <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.destination || 'Tour request'}</span>
                 {r.preferred_date && (

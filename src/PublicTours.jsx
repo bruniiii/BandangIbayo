@@ -312,7 +312,7 @@ export const PublicTourDetail = () => {
               </p>
             </div>
 
-            <TourImageCarousel images={tour.image_urls || []} />
+            <TourImageCarousel images={tour.image_urls || []} caption={tour.destination || tour.title} />
 
             <ViewSection title="About the Tour">
               <p style={{ fontSize: 15, lineHeight: 1.8, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', whiteSpace: 'pre-wrap', margin: 0 }}>
