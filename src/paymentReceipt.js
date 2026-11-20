@@ -32,7 +32,7 @@ export const balanceRemaining = (booking) =>
 // A QR code image (PNG data URL) for the receipt.
 const qrImage = async (text) => {
   const { default: QRCode } = await import('qrcode');
-  return QRCode.toDataURL(String(text), { width: 360, margin: 1, errorCorrectionLevel: 'M', color: { dark: '#464646', light: '#FFFFFF' } });
+  return QRCode.toDataURL(String(text), { width: 360, margin: 1, errorCorrectionLevel: 'M', color: { dark: '#0B3B4F', light: '#FFFFFF' } });
 };
 // The same check-in QR as in My Bookings (CheckInQr.jsx). Bookings without a
 // check-in code get their booking number, which Check-in also accepts.
@@ -56,9 +56,14 @@ const buildReceipt = async ({ draw, filename }) => {
 const makePen = (doc, W) => {
   const L = 16;
   const R = W - 16;
-  const grey = [70, 70, 70];
+  // The site's Bright & Tropical colours.
+  const NAVY = [11, 59, 79];      // text
+  const SLATE = [63, 99, 114];    // small print, column labels
+  const TEAL = [10, 124, 148];    // dashed rules, the amount paid
+  const ORANGE = [255, 122, 61];  // the strip across the top
   let y = 30;
-  const font = (size, bold = true) => doc.setFont('helvetica', bold ? 'bold' : 'normal').setFontSize(size).setTextColor(...grey);
+  doc.setFillColor(...ORANGE).rect(0, 0, W, 6, 'F');
+  const font = (size, bold = true, color = NAVY) => doc.setFont('helvetica', bold ? 'bold' : 'normal').setFontSize(size).setTextColor(...color);
   const wrap = (text, width) => doc.splitTextToSize(String(text ?? ''), width);
   return {
     get y() { return y; },
@@ -80,11 +85,11 @@ const makePen = (doc, W) => {
       y += size + 6;
     },
     dashes() {
-      doc.setDrawColor(...grey).setLineDashPattern([2, 2], 0).setLineWidth(0.8).line(L, y - 4, R, y - 4).setLineDashPattern([], 0);
+      doc.setDrawColor(...TEAL).setLineDashPattern([2, 2], 0).setLineWidth(0.8).line(L, y - 4, R, y - 4).setLineDashPattern([], 0);
       y += 8;
     },
     columns() {
-      font(8);
+      font(8, true, SLATE);
       doc.text('QTY', L, y); doc.text('DESC', L + 30, y); doc.text('AMOUNT', R, y, { align: 'right' });
       y += 6;
       this.dashes();
@@ -108,6 +113,7 @@ const makePen = (doc, W) => {
     big(label, value) {
       font(13);
       doc.text(String(label), L, y);
+      font(13, true, TEAL);
       doc.text(String(value), R, y, { align: 'right' });
       y += 22;
     },
@@ -115,12 +121,12 @@ const makePen = (doc, W) => {
       const size = 120;
       doc.addImage(dataUrl, 'PNG', (W - size) / 2, y, size, size);
       y += size + 12;
-      font(7, false);
+      font(7, false, SLATE);
       doc.text(String(caption), W / 2, y - 2, { align: 'center' });
       y += 8;
     },
     note(text) {
-      font(6.5, false);
+      font(6.5, false, SLATE);
       for (const line of wrap(text, R - L)) { doc.text(line, W / 2, y, { align: 'center' }); y += 9; }
     },
   };
