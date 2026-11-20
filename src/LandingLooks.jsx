@@ -39,7 +39,7 @@ const PRICE = {
   tropical: ['#0B3B4F', 'rgba(11,59,79,0.6)'],
   magazine: ['#1E1B16', 'rgba(30,27,22,0.55)'],
   dark: ['#F5F1EC', 'rgba(245,241,236,0.6)'],
-  light: ['#2A1A10', 'rgba(42,26,16,0.6)'],
+  light: ['#F7F2EC', 'rgba(247,242,236,0.65)'],
   fiesta: ['#1D1340', 'rgba(29,19,64,0.6)'],
 };
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
@@ -708,15 +708,24 @@ const LOOK_CSS = `
 .lk-dark .lk-reviews article p, .lk-dark .lk-reviews article strong { color: var(--text) !important; }
 .lk-dark .lk-reviews article span { color: var(--muted) !important; }
 
-/* ═════════ 3b. Look 3, lighter: same layout and amber, on warm cream ═════════ */
-.lk-light { --bg: #FBF6EF; --bg2: #F4EADD; --panel: #FFFFFF; --text: #2A1A10; --muted: #6B5446; --accent: #E39552; --accent2: #B85F1F; --on-accent: #1A0F08;
-  --hero-accent: #FFC98F; --line: rgba(42,26,16,0.1); --line-strong: rgba(184,95,31,0.4); --radius: 24px; --btn-radius: 16px; --search-radius: 22px;
-  --btn-shadow: 0 10px 26px rgba(217,119,47,0.3); --card-border: 1px solid rgba(42,26,16,0.08); --card-shadow: 0 10px 30px rgba(42,26,16,0.07); --icon-bg: rgba(227,149,82,0.16);
-  --nav-bg: rgba(251,246,239,0.9); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: linear-gradient(180deg, rgba(20,12,6,0.45) 0%, rgba(20,12,6,0.12) 35%, rgba(20,12,6,0.25) 70%, rgba(20,12,6,0.5) 100%);
-  --cta-shade: linear-gradient(180deg, rgba(20,12,6,0.25), rgba(20,12,6,0.6)); }
+/* ═════════ 3b. Look 3, a bit lighter: warm charcoal instead of near-black ═════════ */
+.lk-light { --bg: #2B2521; --bg2: #342D28; --panel: #3B332D; --text: #F7F2EC; --muted: rgba(247,242,236,0.78); --accent: #EDA86C; --accent2: #F0B07A; --on-accent: #1A0F08;
+  --hero-accent: #F6C08E; --line: rgba(255,255,255,0.13); --line-strong: rgba(237,168,108,0.45); --radius: 24px; --btn-radius: 16px; --search-radius: 22px;
+  --btn-shadow: 0 10px 28px rgba(217,119,47,0.3); --card-border: 1px solid rgba(255,255,255,0.12); --card-shadow: 0 10px 30px rgba(0,0,0,0.18); --icon-bg: rgba(237,168,108,0.16);
+  --nav-bg: rgba(43,37,33,0.85); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
+  --hero-shade: linear-gradient(180deg, rgba(43,37,33,0.45) 0%, rgba(43,37,33,0.1) 35%, rgba(43,37,33,0.25) 65%, #2B2521 100%);
+  --cta-shade: linear-gradient(180deg, rgba(43,37,33,0.2), rgba(43,37,33,0.7)); }
 .lk-light .lk-hero { min-height: 100dvh; }
+.lk-light .lk-search { background: rgba(43,37,33,0.72); color: var(--text); border: 1px solid rgba(255,255,255,0.22); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.lk-light .lk-field small { color: rgba(247,242,236,0.65); }
+.lk-light .lk-field select { color: var(--text); }
+.lk-light .lk-field select option { color: #1A0F08; }
+.lk-light .lk-field + .lk-field { border-color: rgba(255,255,255,0.16); }
+.lk-light .lk-chip { background: rgba(43,37,33,0.65); color: #F7F2EC; }
 .lk-light .lk-chip.is-low { background: var(--accent); color: var(--on-accent); }
+.lk-light .lk-reviews article { background: var(--panel) !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
+.lk-light .lk-reviews article p, .lk-light .lk-reviews article strong { color: var(--text) !important; }
+.lk-light .lk-reviews article span { color: var(--muted) !important; }
 
 /* ═════════ 4. Bold Filipino: fiesta colors, playful shapes ═════════ */
 .lk-fiesta { --bg: #FFFBF0; --bg2: #FFE25C; --panel: #FFFFFF; --text: #1D1340; --muted: #4A3F6B; --accent: #E6266E; --accent2: #1D7BD6; --on-accent: #FFFFFF;

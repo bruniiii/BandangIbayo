@@ -6,13 +6,13 @@ import LandingPremium from './LandingPremium';
 // The landing page, and the new looks to try (preview only).
 //   /                 → the current page (LandingPremium)
 //   /?look=tropical   → Bright & Tropical    /?look=magazine → Travel Magazine
-//   /?look=dark       → Dark + Photos        /?look=light    → Dark + Photos, lighter
+//   /?look=dark       → Dark + Photos        /?look=light    → Dark + Photos, a bit lighter
 //   /?look=fiesta     → Bold Filipino
 // A bar at the bottom switches between them while previewing.
 // ─────────────────────────────────────────────
 
 const LandingLooks = lazy(() => import('./LandingLooks'));
-const NAMES = [['', 'Current'], ['tropical', '1 · Bright & Tropical'], ['magazine', '2 · Travel Magazine'], ['dark', '3 · Dark + Photos'], ['light', '3b · Lighter'], ['fiesta', '4 · Bold Filipino']];
+const NAMES = [['', 'Current'], ['tropical', '1 · Bright & Tropical'], ['magazine', '2 · Travel Magazine'], ['dark', '3 · Dark + Photos'], ['light', '3b · A bit lighter'], ['fiesta', '4 · Bold Filipino']];
 
 const LandingSwitch = () => {
   const look = new URLSearchParams(useLocation().search).get('look') || '';
