@@ -307,7 +307,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                         }}>
 
-                            <TourImageCarousel images={images} />
+                            <TourImageCarousel images={images} caption={tour.destination || tour.title} />
 
 
 

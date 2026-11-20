@@ -72,7 +72,7 @@ const reviewDeadline = (request) => {
 const StatusBadge = ({ status, large = false }) => {
   const { bg, color, dot } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
-    <span style={{
+    <span className={large ? undefined : 'rubber-stamp'} style={{
       display: 'inline-flex', alignItems: 'center',
       background: large ? (status === 'Fully Paid' ? bg : color) : bg,
       color: large ? '#FFFFFF' : color,

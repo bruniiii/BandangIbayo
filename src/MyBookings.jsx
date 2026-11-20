@@ -1295,7 +1295,7 @@ const StatusBadge = ({ booking }) => {
   }
 
   return (
-    <span style={{
+    <span className="rubber-stamp" style={{
       display: 'inline-block', padding: '4px 14px', borderRadius: 999,
       fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em',
       background: bg, color,

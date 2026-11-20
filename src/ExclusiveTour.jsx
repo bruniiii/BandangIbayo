@@ -723,7 +723,7 @@ const STATUS_STYLES = STATUS_COLORS;
 const RequestStatusBadge = ({ status }) => {
   const { bg, color } = STATUS_STYLES[status] || STATUS_STYLES['For Approval'];
   return (
-    <span style={{
+    <span className="rubber-stamp" style={{
       display: 'inline-flex', alignItems: 'center',
       background: bg, color, borderRadius: 999,
       padding: '4px 12px', fontSize: 11, fontWeight: 900,
