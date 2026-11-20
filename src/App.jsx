@@ -34,11 +34,13 @@ const PublicTourDetail = lazy(() => import('./PublicTours').then((m) => ({ defau
 // ---------------------------------------------------------
  
 
-// Shown for a moment while a page's code loads.
+// Shown for a moment while a page's code loads: the logo, and a little van
+// driving along a dashed road (index.css: .journal-loading).
 const PageLoading = () => (
-  <div role="status" aria-label="Loading" style={{ minHeight: '100dvh', background: 'var(--ib-cream, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <img src={logoIcon} alt="" width={56} height={56} style={{ opacity: 0.85, animation: 'ibayo-pulse 1.2s ease-in-out infinite' }} />
-    <style>{'@keyframes ibayo-pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}'}</style>
+  <div role="status" aria-label="Loading" className="journal-loading">
+    <img src={logoIcon} alt="" width={56} height={56} />
+    <div className="journal-road" aria-hidden="true"><span className="journal-van">🚐</span></div>
+    <p className="journal-hand">Packing your bags…</p>
   </div>
 );
 

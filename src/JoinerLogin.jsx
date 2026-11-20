@@ -293,7 +293,7 @@ const JoinerLogin = () => {
   const spinner = <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /><style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style></>;
 
   return (
-    <div style={{
+    <div className="journal-paper" style={{
       minHeight: '100dvh',
       display: 'flex',
       alignItems: 'center',
@@ -360,7 +360,7 @@ const JoinerLogin = () => {
       )}
  
       {/* ── CARD: the login form ── */}
-      <div className="login-split" style={{
+      <div className="journal-card login-split" style={{
         display: 'flex', width: '100%', maxWidth: 480, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 28,
         boxShadow: '0 20px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)', overflow: 'hidden', borderTop: '7px solid var(--ib-accent, #B4511E)',
       }}>

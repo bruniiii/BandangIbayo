@@ -19,6 +19,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
  
   return (
     <div
+      className="journal-ticket"
       style={{
         background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 22, overflow: 'hidden',
@@ -65,6 +66,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
         </div>
       </div>
  
+      <div className="ticket-tear" aria-hidden="true" />
       {/* Body */}
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
