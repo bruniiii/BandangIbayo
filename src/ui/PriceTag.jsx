@@ -13,7 +13,7 @@ const PriceTag = ({ tour, size = 15, color = 'var(--ib-sienna, #A8481A)', mutedC
     <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: align, gap: 2, ...style }}>
       {showBadge && (
         <span style={{
-          background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '2px 8px',
+          background: 'var(--ib-red-solid, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '2px 8px',
           fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', whiteSpace: 'nowrap',
         }}>
           Sale {Math.round(SALE_DISCOUNT * 100)}% off{some ? ' · select dates' : ''}

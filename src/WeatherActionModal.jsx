@@ -157,7 +157,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         )}
         <button type="button" onClick={submit} disabled={!ready || busy} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 18px', borderRadius: 14, border: 'none',
-          background: action === 'cancel' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
+          background: action === 'cancel' ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
           letterSpacing: '0.1em', textTransform: 'uppercase', cursor: !ready || busy ? 'not-allowed' : 'pointer', opacity: ready ? 1 : 0.5,
         }}>
           {busy ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : action === 'cancel' ? <Ban size={16} /> : <CalendarClock size={16} />}

@@ -122,7 +122,7 @@ const SettingsTab = ({ onNavigate }) => {
             </p>
           </div>
           {mode === null ? <Loader2 size={18} style={spin} /> : (
-            <button type="button" onClick={() => switchMaintenance(!on)} disabled={!canEdit || saving === 'mode'} style={{ ...btn(true), background: on ? '#1B5E3B' : 'var(--ib-red, #8C2F1C)', height: 42 }}>
+            <button type="button" onClick={() => switchMaintenance(!on)} disabled={!canEdit || saving === 'mode'} style={{ ...btn(true), background: on ? '#1B5E3B' : 'var(--ib-red-solid, #8C2F1C)', height: 42 }}>
               {saving === 'mode' ? <Loader2 size={14} style={spin} /> : <Power size={14} />} {on ? 'Turn Off' : 'Turn On'}
             </button>
           )}

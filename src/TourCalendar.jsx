@@ -243,7 +243,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                         {tour.current_booked}/{tour.group_size} Booked
                       </span>
                       {tour.available_slots <= 0 && (
-                        <span style={{ background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
+                        <span style={{ background: 'var(--ib-red-solid, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
                       )}
                     </div>
                     {/* Slot bar */}
@@ -253,7 +253,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                           height: '100%',
                           borderRadius: 999,
                           transition: 'all 0.3s',
-                          background: tour.available_slots <= 0 ? 'var(--ib-red, #8C2F1C)' : tour.available_slots <= 3 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)',
+                          background: tour.available_slots <= 0 ? 'var(--ib-red-solid, #8C2F1C)' : tour.available_slots <= 3 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)',
                           width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`
                         }}
                       />

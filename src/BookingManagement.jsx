@@ -325,7 +325,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
                   <Clock size={13} /> {timeLeft(b)}
                 </span>
                 <button type="button" onClick={() => setSelectedBooking(b)} style={{
-                  background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 12, padding: '9px 16px',
+                  background: 'var(--ib-red-solid, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 12, padding: '9px 16px',
                   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                 }}>
                   Review

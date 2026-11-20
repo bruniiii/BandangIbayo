@@ -135,7 +135,7 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
     const r = ratings[id];
     return (
       <span title={r?.count ? `${r.avg.toFixed(1)} average from ${r.count} joiner rating${r.count === 1 ? '' : 's'}` : 'No joiner ratings yet'}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11.5, fontWeight: 800, color: r?.count ? (r.avg < 3 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-brown, #5C2A10)') : '#9A7A60', whiteSpace: 'nowrap' }}>
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11.5, fontWeight: 800, color: r?.count ? (r.avg < 3 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-brown, #5C2A10)') : 'var(--ib-rust, #9A7A60)', whiteSpace: 'nowrap' }}>
         <Star size={12} fill={r?.count ? 'var(--ib-amber, #E8A265)' : 'none'} color="var(--ib-amber, #E8A265)" /> {r?.count ? `${r.avg.toFixed(1)} (${r.count})` : 'no ratings'}
       </span>
     );

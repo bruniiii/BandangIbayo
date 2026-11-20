@@ -1251,8 +1251,8 @@ const JoinerRegister = ({ mode = 'register' }) => {
               width: '100%',
               opacity: agreedToTerms && registerFilled ? 1 : 0.5,
               background: loading
-                ? 'var(--ib-sienna, #A8481A)'
-                : 'var(--ib-sienna, #A8481A)',
+                ? 'var(--ib-sienna-solid, #A8481A)'
+                : 'var(--ib-sienna-solid, #A8481A)',
               color: 'var(--ib-on-ink, #FDF6EE)',
               fontWeight: 900,
               fontSize: 13,

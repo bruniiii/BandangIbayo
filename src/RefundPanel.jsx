@@ -179,7 +179,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         <p style={{ ...note, color: 'var(--ib-warn, #8C5216)', fontWeight: 700 }}>
           Being sent through PayMongo. If it still says this after 10 minutes, the main admin can tap Send again: anything already refunded is counted, so it's never sent twice.
         </p>
-        {isMain && <button type="button" onClick={retryPaymongo} disabled={!!busy} style={{ ...smallBtn('var(--ib-accent, #B4511E)', 'var(--ib-cream, #FDF6EE)'), alignSelf: 'flex-start' }}><Wallet size={13} /> Send again</button>}
+        {isMain && <button type="button" onClick={retryPaymongo} disabled={!!busy} style={{ ...smallBtn('var(--ib-accent, #B4511E)', 'var(--ib-on-ink, #FDF6EE)'), alignSelf: 'flex-start' }}><Wallet size={13} /> Send again</button>}
       </div>
     );
   }
@@ -198,7 +198,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         {b.weather_refund_method !== 'gcash' && <p style={{ ...note, fontWeight: 800 }}>Prepared for PayMongo, which isn't used for refunds anymore: send it back and prepare it with GCash.</p>}
         {isMain ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {b.weather_refund_method === 'gcash' && <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', 'var(--ib-cream, #FDF6EE)')}>
+            {b.weather_refund_method === 'gcash' && <button type="button" onClick={approve} disabled={!!busy} style={smallBtn('#1F6B4A', 'var(--ib-on-ink, #FDF6EE)')}>
               {busy === 'approve' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <ShieldCheck size={13} />} Approve & Send
             </button>}
             <button type="button" onClick={sendBack} disabled={!!busy} style={smallBtn('transparent', 'var(--ib-red, #8C2F1C)', '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.4)')}>
@@ -236,7 +236,7 @@ export const RefundPanel = ({ booking: b, onDone }) => {
         ]} />
       )}
       <button type="button" onClick={submit} disabled={!!busy || !ready} title={ready ? undefined : 'Add the 13-digit GCash reference no. and the receipt first'}
-        style={{ ...smallBtn(isMain ? 'var(--ib-accent, #B4511E)' : '#3F5D62', 'var(--ib-cream, #FDF6EE)', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
+        style={{ ...smallBtn(isMain ? 'var(--ib-accent, #B4511E)' : '#3F5D62', 'var(--ib-on-ink, #FDF6EE)', 'none', !!busy || !ready), alignSelf: 'flex-start' }}>
         {busy === 'submit' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : isMain ? <Wallet size={13} /> : <CheckCircle2 size={13} />}
         {isMain ? 'Send refund' : 'Send for approval'}
       </button>
@@ -334,7 +334,7 @@ const nowOf = (steps) => {
   const last = [...steps].reverse().find((r) => r.action !== 'paymongo_succeeded') || steps[steps.length - 1];
   switch (last?.action) {
     case 'received': return { t: 'Done · joiner received it', bg: 'var(--ib-ink, #1A0A00)', fg: 'var(--ib-amber, #E8A265)' };
-    case 'not_received': return { t: "Joiner didn't get it", bg: 'var(--ib-red, #8C2F1C)', fg: 'var(--ib-on-ink, #FDF6EE)' };
+    case 'not_received': return { t: "Joiner didn't get it", bg: 'var(--ib-red-solid, #8C2F1C)', fg: 'var(--ib-on-ink, #FDF6EE)' };
     case 'sent': return { t: 'Sent · waiting for the joiner', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-on-ink, #FDF6EE)' };
     case 'prepared': return { t: 'Waiting for approval', bg: 'transparent', fg: 'var(--ib-accent, #B4511E)', bd: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.5)' };
     default: return { t: 'To send', bg: 'transparent', fg: 'var(--ib-rust, #7A3A18)', bd: '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.4)' };
@@ -376,7 +376,7 @@ export const RefundHistoryButton = () => {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} style={smallBtn('var(--ib-dark, #1A0A00)', 'var(--ib-amber, #E8A265)')}><History size={13} /> Refund history</button>
+      <button type="button" onClick={() => setOpen(true)} style={smallBtn('var(--ib-ink, #1A0A00)', 'var(--ib-amber, #E8A265)')}><History size={13} /> Refund history</button>
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />

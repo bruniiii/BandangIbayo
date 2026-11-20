@@ -188,7 +188,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
                   <div style={{
                     height: '100%', borderRadius: 999,
                     width: `${filledPct}%`,
-                    background: isFull ? 'var(--ib-accent, #B4511E)' : isAlmost ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)',
+                    background: isFull ? 'var(--ib-accent, #B4511E)' : isAlmost ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust-solid, #7A3A18)',
                     transition: 'width 0.4s',
                   }} />
                 </div>

@@ -404,7 +404,7 @@ a[aria-label="Close and go to the home page"] svg { width: 18px !important; heig
 button[aria-label="Close"]:hover,
 button[aria-label="Close help"]:hover,
 button[aria-label="Close notification"]:hover,
-a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !important; }
+a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surface-2, #EAD3B8) !important; }
 /* Smaller inside a toast message. */
 .x-close-sm, button[aria-label="Close notification"] {
   width: 26px !important; height: 26px !important; min-width: 26px !important; min-height: 26px !important;
@@ -431,6 +431,9 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
      on them, and shadows: they stay dark/light in both light and dark mode. */
   --ib-ink: #0B3B4F; --ib-ink-deep: #134B5F; --ib-ink-rgb: 11,59,79; --ib-shadow-rgb: 11,59,79;
   --ib-on-ink: #FFF8EE; --ib-on-ink-2: #FDEBD3; --ib-on-ink-rgb: 255,248,238;
+  /* Solid red / teal / slate fills (white words on them): the same deep
+     colours in light and dark mode. */
+  --ib-red-solid: #C4361F; --ib-sienna-solid: #0A7C94; --ib-rust-solid: #3F6372;
 }
 
 /* ═════════ Dark mode ═════════
@@ -454,4 +457,7 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
   --ib-warn: #FFC266; --ib-warn-rgb: 255,194,102; --ib-slate: #9CC9D2; --ib-slate-rgb: 156,201,210;
   --ib-green: #6FD3A0; --ib-green-rgb: 111,211,160; --ib-danger: #FF7A66; --ib-danger-rgb: 255,122,102;
 }
-:root[data-theme="dark"], :root[data-theme="dark"] body { background: #071C26; }
+:root[data-theme="dark"], :root[data-theme="dark"] body, :root[data-theme="dark"] main { background: #071C26; }
+/* Browser-filled fields (saved logins) in dark mode: dark box, light words. */
+:root[data-theme="dark"] input:-webkit-autofill, :root[data-theme="dark"] textarea:-webkit-autofill, :root[data-theme="dark"] select:-webkit-autofill {
+  -webkit-text-fill-color: #E8F2F5 !important; -webkit-box-shadow: 0 0 0 1000px #12384A inset !important; }

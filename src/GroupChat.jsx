@@ -235,7 +235,7 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => {
             borderLeft: active ? '3px solid var(--ib-accent, #B4511E)' : '3px solid transparent',
           }}
         >
-          <span style={{ width: 42, height: 42, borderRadius: 14, background: c.is_open ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-rust, #7A3A18)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ width: 42, height: 42, borderRadius: 14, background: c.is_open ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-rust-solid, #7A3A18)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users size={18} />
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>

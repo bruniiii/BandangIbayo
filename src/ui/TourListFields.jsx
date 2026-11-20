@@ -128,7 +128,7 @@ const DayStops = ({ day, text, onChange }) => {
               display: 'flex', alignItems: 'center', gap: 8, background: editing === i ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)' : 'var(--ib-cream, #FDF6EE)', borderRadius: 12,
               border: `1px solid ${editing === i ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.16)'}`, padding: '6px 6px 6px 10px', flexWrap: 'wrap',
             }}>
-              <span style={{ flexShrink: 0, minWidth: 74, fontSize: 12, fontWeight: 900, color: st.start ? 'var(--ib-accent, #B4511E)' : '#9C7A62', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ flexShrink: 0, minWidth: 74, fontSize: 12, fontWeight: 900, color: st.start ? 'var(--ib-accent, #B4511E)' : 'var(--ib-rust, #9C7A62)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <Clock size={12} /> {st.start ? (st.end ? `${formatStopTime(st.start)} – ${formatStopTime(st.end)}` : formatStopTime(st.start)) : 'No time'}
               </span>
               <span style={{ flex: '1 1 160px', minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{st.text}</span>

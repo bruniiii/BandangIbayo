@@ -129,7 +129,7 @@ const TemplateForm = ({ kind, saved, onClose, onSaved }) => {
         {unknown.length > 0 && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{[...new Set(unknown)].map((w) => `{${w}}`).join(', ')} can't be filled in for this email.</p>}
         <div style={{ background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '14px 16px' }}>
           <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Preview · {fillIn(f.subject, SAMPLE_VARS)}</p>
-          <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 900, color: '#C45C26' }}>{fillIn(f.heading, SAMPLE_VARS)}</p>
+          <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 900, color: 'var(--ib-accent, #C45C26)' }}>{fillIn(f.heading, SAMPLE_VARS)}</p>
           {paragraphs.map((p, i) => (
             <p key={i} style={{ margin: '0 0 8px', fontSize: 13.5, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
               {p.split(/(\*\*.+?\*\*)/g).map((part, j) => (part.startsWith('**') && part.endsWith('**') ? <strong key={j}>{part.slice(2, -2)}</strong> : part))}

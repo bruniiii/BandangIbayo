@@ -249,7 +249,7 @@ const ExpensesReport = ({ onData }) => {
                       <span style={{ fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(m.amount)}</span>
                     </div>
                     <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, height: 10, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${(m.amount / monthMax) * 100}%`, background: 'var(--ib-sienna, #A8481A)', borderRadius: 999 }} />
+                      <div style={{ height: '100%', width: `${(m.amount / monthMax) * 100}%`, background: 'var(--ib-sienna-solid, #A8481A)', borderRadius: 999 }} />
                     </div>
                   </div>
                 ))}

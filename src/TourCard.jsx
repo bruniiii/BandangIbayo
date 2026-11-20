@@ -93,13 +93,13 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                     <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 6, rowGap: 4, fontSize: 11, fontWeight: 700, color: full ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)', marginTop: 3, paddingLeft: 18 }}>
                       <span style={{ whiteSpace: 'nowrap' }}>{d.current_booked ?? 0} / {d.group_size || 18} booked</span>
                       {d.sale_starts && d.sale_ends && (
-                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: isOnSale(d) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                        <span title={`Sale ${d.sale_starts} to ${d.sale_ends}`} style={{ background: isOnSale(d) ? 'var(--ib-red-solid, #8C2F1C)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: isOnSale(d) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {isOnSale(d) ? 'On sale' : 'Sale soon'}
                         </span>
                       )}
                       {full && <span style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: 'var(--ib-sienna, #A8481A)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>Full</span>}
                       {d.weather_status && (
-                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? 'var(--ib-red, #8C2F1C)' : '#3F5D62', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
+                        <span title={d.weather_reason || ''} style={{ background: d.weather_status === 'cancelled' ? 'var(--ib-red-solid, #8C2F1C)' : '#3F5D62', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                           {d.weather_status === 'cancelled' ? 'Cancelled' : 'Postponed'}
                         </span>
                       )}

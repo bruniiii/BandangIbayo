@@ -85,7 +85,7 @@ const NextTripCard = ({ trip, onViewBookings }) => {
       )}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(var(--ib-dark-rgb, 26,10,0), 0.92) 0%, rgba(var(--ib-dark-rgb, 26,10,0), 0.35) 60%, rgba(var(--ib-dark-rgb, 26,10,0), 0.15) 100%)',
+        background: 'linear-gradient(to top, rgba(var(--ib-ink-rgb, 26,10,0), 0.92) 0%, rgba(var(--ib-ink-rgb, 26,10,0), 0.35) 60%, rgba(var(--ib-ink-rgb, 26,10,0), 0.15) 100%)',
       }} />
       <div style={{ position: 'relative', zIndex: 1, padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
         <span style={{

@@ -15,7 +15,7 @@ import { paginate } from '../ui/paginate';
 // ─────────────────────────────────────────────
 
 const ACTIONS = [['', 'All actions'], ['added', 'Added'], ['changed', 'Changed'], ['removed', 'Removed']];
-const ACTION_COLOR = { added: 'var(--ib-green, #1B5E3B)', changed: '#1E4672', removed: 'var(--ib-red, #8C2F1C)' };
+const ACTION_COLOR = { added: 'var(--ib-green, #1B5E3B)', changed: 'var(--ib-slate, #1E4672)', removed: 'var(--ib-red, #8C2F1C)' };
 // Plain words for common field names.
 const FIELD_NAMES = {
   price: 'Joiner Rate', regular_rate: 'Regular Rate', group_size: 'Slots', start_date: 'Start date', end_date: 'End date', is_archived: 'Archived',
