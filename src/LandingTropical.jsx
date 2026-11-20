@@ -7,7 +7,7 @@ import {
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
 import HelpWidget from './ui/HelpWidget';
-import { todayManila, groupTripDates, weekdayRange, formatPeso } from './tourUtils';
+import { todayManila, groupTripDates, weekdayRange } from './tourUtils';
 import { ReviewCard } from './ui/ReviewCards';
 import PriceTag from './ui/PriceTag';
 import { usePublicReviews } from './publicReviews';
@@ -22,7 +22,7 @@ import { SITE } from './siteContent';
 //    tours' photos, else the agency's forest photo. Glass search bar
 //    (Where / When / Who) that filters the tours below.
 //  • Tours, then reviews, then tour types (photo cards), How to Book (a
-//    numbered path), Why Us (a photo beside the reasons), a strip of trip
+//    numbered path), Why Us, a strip of trip
 //    photos, About & Contact, and a call to action on a photo.
 // The previous dark page is kept in LandingPremium.jsx (and the first one
 // in LandingClassic.jsx). Styles: PAGE_CSS below, scoped under .lk.
@@ -31,7 +31,6 @@ const FALLBACK_PHOTO = '/tour-placeholder.webp';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthLabel = (ym) => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
-const shortDay = (d) => (d ? `${MONTHS[Number(d.slice(5, 7)) - 1].slice(0, 3)} ${Number(d.slice(8, 10))}` : '');
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const [year, month, day] = dateString.split('-');
@@ -131,7 +130,6 @@ const LandingTropical = () => {
     const t = setInterval(() => setSlide((i) => (i + 1) % slideCount), 7000);
     return () => clearInterval(t);
   }, [slideCount]);
-  const hero = !customPhotos.length && featured.length ? featured[slide % featured.length] : null;
 
   const slotsLeft = (d) => (booked ? Math.max(0, (Number(d.group_size) || 0) - (booked[d.id] || 0)) : null);
   const places = useMemo(() => [...new Set(tours.map((t) => String(t.destination || '').trim()).filter(Boolean))].sort(), [tours]);
@@ -154,7 +152,6 @@ const LandingTropical = () => {
   // Photos for the tour-type cards and the "why us" photo: trip photos, else the agency's.
   const pool = [...tripPhotos.map((p) => p.src), ...heroPhotos].filter((s, i, a) => a.indexOf(s) === i);
   const photo = (i) => pool[i % Math.max(1, pool.length)] || FALLBACK_PHOTO;
-  const heroLeft = hero ? slotsLeft(hero) : null;
   const [priceColor, priceMuted] = ['#0B3B4F', 'rgba(11,59,79,0.6)'];
 
   return (
@@ -183,13 +180,6 @@ const LandingTropical = () => {
             <img key={src} src={src} alt="" className={i === slide % heroPhotos.length ? 'is-on' : ''} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
           ))}
           <div className="lk-hero-shade" />
-          {hero && (
-            <Link to={`/tours/${hero.id}`} className="lk-now" key={hero.id}>
-              <span className="lk-tiny">In the photo</span>
-              <b>{hero.title}</b>
-              <span>Leaves {shortDay(hero.start_date)}{heroLeft != null ? ` · ${heroLeft === 0 ? 'fully booked' : `${heroLeft} slot${heroLeft === 1 ? '' : 's'} left`}` : ''} · from {formatPeso(hero.price)}</span>
-            </Link>
-          )}
         </div>
         <div className="lk-hero-copy">
           <AnnouncementBanner style={{ marginBottom: 14, maxWidth: 640, textAlign: 'left' }} />
@@ -362,10 +352,9 @@ const LandingTropical = () => {
         </div>
       </section>
 
-      {/* ── WHY US: a photo beside the reasons ── */}
+      {/* ── WHY US: the reasons, then safety ── */}
       <section id="why" className="lk-section lk-alt">
         <div className="lk-wrap lk-why">
-          <div className="lk-why-photo lk-reveal"><img src={photo(4)} alt="" loading="lazy" decoding="async" /></div>
           <div>
             <span className="lk-eyebrow">Why Us</span>
             <h2 className="lk-h2">Built for Smarter, Safer Journeys</h2>
@@ -520,12 +509,8 @@ const PAGE_CSS = `
   padding: 2px 20px 2px 0; cursor: pointer; max-width: 200px; text-overflow: ellipsis;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right center; }
 .lk-search-go { margin-left: 8px; padding: 0 26px; }
-.lk .lk-now { position: absolute; z-index: 3; left: clamp(1rem, 4vw, 3.5rem); bottom: 28px; display: flex; flex-direction: column; gap: 3px; padding: 12px 18px; border-radius: 18px; text-decoration: none;
   max-width: 360px; color: #FFFFFF; background: rgba(0,0,0,0.38); border: 1px solid rgba(255,255,255,0.3); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-.lk-now b { font-size: 16px; }
-.lk-now span:last-child { font-size: 13.5px; opacity: 0.85; }
 .lk-tiny { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0; }
-.lk-now .lk-tiny { color: #FFFFFF; opacity: 0.75; }
 
 .lk-section { padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 4vw, 3.5rem); scroll-margin-top: 60px; }
 .lk-alt { background: var(--bg2); }
@@ -584,9 +569,7 @@ const PAGE_CSS = `
 .lk-step-num { width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--head); font-size: 24px; font-weight: 800; background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 8px var(--bg); }
 .lk-step .lk-h3 { justify-content: center; }
 
-.lk-why { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
-.lk-why-photo { border-radius: var(--radius); overflow: hidden; height: 100%; min-height: 380px; box-shadow: var(--card-shadow); }
-.lk-why-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lk-why .lk-reasons { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
 .lk-reasons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; margin: 22px 0; }
 .lk-reason { display: flex; gap: 14px; align-items: flex-start; }
 .lk-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--icon-bg); color: var(--accent2); }
@@ -618,8 +601,7 @@ const PAGE_CSS = `
 
 @media (max-width: 1000px) {
   .lk-links { display: none; }
-  .lk-intro, .lk-why, .lk-about { grid-template-columns: 1fr; }
-  .lk-why-photo { min-height: 260px; }
+  .lk-intro, .lk-about { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .lk { font-size: 16px; }
@@ -630,8 +612,7 @@ const PAGE_CSS = `
   .lk-field + .lk-field { border-left: none; border-top: 1px solid rgba(0,0,0,0.1); }
   .lk-field select { max-width: none; width: 100%; }
   .lk-search-go { margin: 8px 0 0; padding: 15px; }
-  .lk-now { right: 1rem; max-width: none; bottom: 18px; }
-  .lk-brand span { font-size: 16px; }
+    .lk-brand span { font-size: 16px; }
   .lk-brand img { width: 34px; height: 34px; }
   .lk-steps { grid-template-columns: 1fr; gap: 28px; }
   .lk-steps::before { top: 0; bottom: 0; left: 34px; right: auto; border-top: none; border-left: 3px dashed var(--line-strong); }
@@ -718,7 +699,6 @@ const PAGE_CSS = `
 .lk-strip figure:nth-child(even) { transform: rotate(1.6deg); }
 .lk-strip figcaption { top: auto; bottom: 8px; padding: 0 12px; background: none; color: #0B3B4F; font-family: 'Caveat', cursive; font-size: 25px; font-weight: 700; }
 .lk-strip { padding-top: 18px; padding-bottom: 26px; }
-.lk-why-photo { transform: rotate(-1.5deg); border: 10px solid #FFFFFF; }
 
 /* Float up into view */
 .lk-anim .lk-reveal { opacity: 0; translate: 0 28px; transition: opacity 0.7s ease, translate 0.7s ease; }
