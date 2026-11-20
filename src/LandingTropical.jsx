@@ -22,7 +22,7 @@ import { SITE } from './siteContent';
 //    tours' photos, else the agency's forest photo. Glass search bar
 //    (Where / When / Who) that filters the tours below.
 //  • Tours, then reviews, then tour types (photo cards), How to Book (a
-//    numbered path), Why Us (a photo beside the reasons), a strip of trip
+//    numbered path), Why Us, a strip of trip
 //    photos, About & Contact, and a call to action on a photo.
 // The previous dark page is kept in LandingPremium.jsx (and the first one
 // in LandingClassic.jsx). Styles: PAGE_CSS below, scoped under .lk.
@@ -362,10 +362,9 @@ const LandingTropical = () => {
         </div>
       </section>
 
-      {/* ── WHY US: a photo beside the reasons ── */}
+      {/* ── WHY US: the reasons, then safety ── */}
       <section id="why" className="lk-section lk-alt">
         <div className="lk-wrap lk-why">
-          <div className="lk-why-photo lk-reveal"><img src={photo(4)} alt="" loading="lazy" decoding="async" /></div>
           <div>
             <span className="lk-eyebrow">Why Us</span>
             <h2 className="lk-h2">Built for Smarter, Safer Journeys</h2>
@@ -584,9 +583,7 @@ const PAGE_CSS = `
 .lk-step-num { width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--head); font-size: 24px; font-weight: 800; background: var(--accent); color: var(--on-accent); box-shadow: 0 0 0 8px var(--bg); }
 .lk-step .lk-h3 { justify-content: center; }
 
-.lk-why { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
-.lk-why-photo { border-radius: var(--radius); overflow: hidden; height: 100%; min-height: 380px; box-shadow: var(--card-shadow); }
-.lk-why-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lk-why .lk-reasons { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
 .lk-reasons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; margin: 22px 0; }
 .lk-reason { display: flex; gap: 14px; align-items: flex-start; }
 .lk-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--icon-bg); color: var(--accent2); }
@@ -618,8 +615,7 @@ const PAGE_CSS = `
 
 @media (max-width: 1000px) {
   .lk-links { display: none; }
-  .lk-intro, .lk-why, .lk-about { grid-template-columns: 1fr; }
-  .lk-why-photo { min-height: 260px; }
+  .lk-intro, .lk-about { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   .lk { font-size: 16px; }
@@ -718,7 +714,6 @@ const PAGE_CSS = `
 .lk-strip figure:nth-child(even) { transform: rotate(1.6deg); }
 .lk-strip figcaption { top: auto; bottom: 8px; padding: 0 12px; background: none; color: #0B3B4F; font-family: 'Caveat', cursive; font-size: 25px; font-weight: 700; }
 .lk-strip { padding-top: 18px; padding-bottom: 26px; }
-.lk-why-photo { transform: rotate(-1.5deg); border: 10px solid #FFFFFF; }
 
 /* Float up into view */
 .lk-anim .lk-reveal { opacity: 0; translate: 0 28px; transition: opacity 0.7s ease, translate 0.7s ease; }
