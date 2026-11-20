@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
   MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus,
@@ -68,6 +68,18 @@ const LandingTropical = () => {
   const [here, setHere] = useState(''); // the section on screen now (underlined in the menu)
   const [slide, setSlide] = useState(0);
   const pageRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Opening the home-screen app (manifest start_url "/?app=1"): a signed-in
+  // joiner goes straight to their dashboard; everyone else sees this page.
+  // Only on launch, so tapping the logo later still shows the landing page.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('app') !== '1') return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session) navigate('/dashboard', { replace: true });
+      else window.history.replaceState(null, '', '/');
+    });
+  }, [navigate]);
 
 
   useEffect(() => {
