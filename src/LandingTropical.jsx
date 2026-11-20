@@ -29,6 +29,8 @@ import { SITE } from './siteContent';
 // The menu's links (each one a section of this page).
 const NAV = [['tours', 'Tours'], ['how', 'How to Book'], ['why', 'Why Us'], ['contact', 'Contact']];
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
+// The default hero photo: hikers watching the sunrise above the clouds.
+const HERO_PHOTO = '/hero-hikers.webp';
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -123,11 +125,10 @@ const LandingTropical = () => {
     return () => seen.disconnect();
   }, [loading, tripPhotos.length]);
 
-  const featured = useMemo(() => tours.filter((t) => t.image_urls?.[0]).slice(0, 5), [tours]);
   const landing = SITE.landing || {};
   const customPhotos = Array.isArray(landing.hero_images) ? landing.hero_images.filter(Boolean) : [];
-  // Always a photo: Site Content photos, else the open tours', else the agency's.
-  const heroPhotos = customPhotos.length ? customPhotos : featured.length ? featured.map((t) => t.image_urls[0]) : [FALLBACK_PHOTO];
+  // Always a photo: Site Content photos, else the default hero photo.
+  const heroPhotos = customPhotos.length ? customPhotos : [HERO_PHOTO];
   const slideCount = heroPhotos.length;
   useEffect(() => {
     if (slideCount < 2 || lessMotion()) return undefined;
@@ -166,7 +167,7 @@ const LandingTropical = () => {
       <header className="lk-hero">
         <div className="lk-hero-media" aria-hidden="true">
           {heroPhotos.map((src, i) => (
-            <img key={src} src={src} alt="" className={i === slide % heroPhotos.length ? 'is-on' : ''} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
+            <img key={src} src={src} alt="" className={i === slide % heroPhotos.length ? 'is-on' : ''} style={src === HERO_PHOTO ? { objectPosition: '70% center' } : undefined} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
           ))}
           <div className="lk-hero-shade" />
         </div>
