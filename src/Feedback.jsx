@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Star, Send, Loader2, CheckCircle2, MessageSquareHeart } from 'lucide-react';
+import { Star, Send, Loader2, MessageSquareHeart } from 'lucide-react';
+import HandNote from './ui/HandNote';
 import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
 import { FEEDBACK_QUESTIONS } from './feedbackQuestions';
@@ -59,13 +60,9 @@ const Feedback = () => {
   if (done) {
     return (
       <div style={card}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <CheckCircle2 size={28} color="var(--ib-green, #1B5E3B)" />
-          <div>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Thank you for your feedback!</h2>
-            <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>We read every answer to make the website better.</p>
-          </div>
-        </div>
+        <HandNote title="Thank you for your feedback!">
+          We read every answer to make the website better.
+        </HandNote>
         <button type="button" onClick={() => { setDone(false); setAnswers({}); setComment(''); }} style={{ ...secondaryBtn, marginTop: 16 }}>Answer Again</button>
       </div>
     );

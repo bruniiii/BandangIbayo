@@ -26,6 +26,7 @@ import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import FavoritesButton from './ui/FavoritesButton';
 import ThemeToggle from './ui/ThemeToggle';
+import HandNote from './ui/HandNote';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
 import AdminInbox from './AdminInbox';
@@ -810,7 +811,12 @@ const JoinerDashboard = () => {
           </div>
 
 
-          {paymentNotice && (
+          {paymentNotice?.type === 'success' && (
+            <HandNote title={/downpayment/i.test(paymentNotice.text) ? 'Yay, see you on the trip!' : "You're going!"} onClose={() => setPaymentNotice(null)} style={{ marginBottom: 20 }}>
+              {paymentNotice.text}
+            </HandNote>
+          )}
+          {paymentNotice && paymentNotice.type !== 'success' && (
             <div role="status" style={{
               display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
               marginBottom: 20, padding: '14px 18px', borderRadius: 16, fontSize: 13, fontWeight: 700,
