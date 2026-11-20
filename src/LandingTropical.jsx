@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
-  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Search, Sparkles, X, Bus,
+  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Sparkles, Bus,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
@@ -19,8 +19,7 @@ import { SITE } from './siteContent';
 // ─────────────────────────────────────────────
 // LANDING PAGE: "Bright & Tropical" (sand, ocean blue, sunset orange).
 //  • A photo always at the top: the Site Content photos, else the open
-//    tours' photos, else the agency's forest photo. Glass search bar
-//    (Where / When / Who) that filters the tours below.
+//    tours' photos, else the agency's forest photo.
 //  • Tours, then reviews, then tour types (photo cards), How to Book (a
 //    numbered path), Why Us, a strip of trip
 //    photos, About & Contact, and a call to action on a photo.
@@ -29,14 +28,11 @@ import { SITE } from './siteContent';
 
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const monthLabel = (ym) => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const [year, month, day] = dateString.split('-');
   return `${month}-${day}-${year}`;
 };
-const datesOf = (t) => (t.dates?.length ? t.dates : [t]);
 const lessMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const TOUR_TYPES = [
@@ -68,9 +64,6 @@ const LandingTropical = () => {
   const [tripPhotos, setTripPhotos] = useState([]); // photos from tours, past ones too
   const [scrolled, setScrolled] = useState(false);
   const [slide, setSlide] = useState(0);
-  const [form, setForm] = useState({ where: '', when: '', who: '' });
-  const [applied, setApplied] = useState({ where: '', when: '', who: '' });
-  const listRef = useRef(null);
   const pageRef = useRef(null);
 
   useEffect(() => {
@@ -133,21 +126,7 @@ const LandingTropical = () => {
 
   const slotsLeft = (d) => (booked ? Math.max(0, (Number(d.group_size) || 0) - (booked[d.id] || 0)) : null);
   const places = useMemo(() => [...new Set(tours.map((t) => String(t.destination || '').trim()).filter(Boolean))].sort(), [tours]);
-  const months = useMemo(() => [...new Set(tours.flatMap((t) => datesOf(t).map((d) => String(d.start_date).slice(0, 7))))].sort(), [tours]);
-  const shown = tours.filter((t) => {
-    if (applied.where && String(t.destination || '').trim() !== applied.where) return false;
-    const dates = datesOf(t).filter((d) => !applied.when || String(d.start_date).startsWith(applied.when));
-    if (!dates.length) return false;
-    if (applied.who && booked) return dates.some((d) => slotsLeft(d) >= Number(applied.who));
-    return true;
-  });
-  const searching = !!(applied.where || applied.when || applied.who);
-  const search = (e) => {
-    e.preventDefault();
-    setApplied(form);
-    listRef.current?.scrollIntoView({ behavior: lessMotion() ? 'auto' : 'smooth', block: 'start' });
-  };
-  const clearSearch = () => { const none = { where: '', when: '', who: '' }; setForm(none); setApplied(none); };
+  const shown = tours;
 
   // Photos for the tour-type cards and the "why us" photo: trip photos, else the agency's.
   const pool = [...tripPhotos.map((p) => p.src), ...heroPhotos].filter((s, i, a) => a.indexOf(s) === i);
@@ -188,30 +167,6 @@ const LandingTropical = () => {
             ? <h1 className="lk-h1">{landing.headline}{landing.headline && landing.headline_accent ? <br /> : null}{landing.headline_accent && <em>{landing.headline_accent}</em>}</h1>
             : <h1 className="lk-h1">Your next adventure <br />is <em>one seat away.</em></h1>}
           <p className="lk-lead">{landing.lead || 'Join group tours across the Philippines. Share the ride, split the cost, and discover more places.'}</p>
-          <form className="lk-search" onSubmit={search} role="search" aria-label="Search tours">
-            <label className="lk-field">
-              <small>Where</small>
-              <select value={form.where} onChange={(e) => setForm((f) => ({ ...f, where: e.target.value }))} aria-label="Destination">
-                <option value="">Any destination</option>
-                {places.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </label>
-            <label className="lk-field">
-              <small>When</small>
-              <select value={form.when} onChange={(e) => setForm((f) => ({ ...f, when: e.target.value }))} aria-label="Month">
-                <option value="">Any month</option>
-                {months.map((m) => <option key={m} value={m}>{monthLabel(m)}</option>)}
-              </select>
-            </label>
-            <label className="lk-field">
-              <small>Who</small>
-              <select value={form.who} onChange={(e) => setForm((f) => ({ ...f, who: e.target.value }))} aria-label="Number of joiners">
-                <option value="">Any group size</option>
-                {Array.from({ length: 14 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n} joiner{n === 1 ? '' : 's'}</option>)}
-              </select>
-            </label>
-            <button type="submit" className="lk-btn lk-btn-main lk-search-go"><Search size={17} /> Search tours</button>
-          </form>
         </div>
       </header>
 
@@ -225,20 +180,15 @@ const LandingTropical = () => {
       </div>
 
       {/* ── TOURS ── */}
-      <section id="tours" ref={listRef} className="lk-section">
+      <section id="tours" className="lk-section">
         <div className="lk-wrap">
           <div className="lk-head lk-head-row">
             <div>
               <span className="lk-eyebrow">Live Now</span>
-              <h2 className="lk-h2">{searching ? 'Tours that match' : 'Upcoming Adventures'}</h2>
-              <p className="lk-sub">
-                {searching
-                  ? `${shown.length} tour${shown.length === 1 ? '' : 's'}${applied.where ? ` in ${applied.where}` : ''}${applied.when ? ` in ${monthLabel(applied.when)}` : ''}${applied.who ? ` with room for ${applied.who}` : ''}.`
-                  : 'Verified joiner packages, updated in real time.'}
-              </p>
+              <h2 className="lk-h2">Upcoming Adventures</h2>
+              <p className="lk-sub">Verified joiner packages, updated in real time.</p>
             </div>
             <div className="lk-head-actions">
-              {searching && <button type="button" onClick={clearSearch} className="lk-btn lk-btn-ghost lk-btn-sm"><X size={14} /> Clear search</button>}
               <Link to="/tours" className="lk-btn lk-btn-ghost lk-btn-sm">Explore all <ArrowRight size={15} /></Link>
             </div>
           </div>
@@ -280,12 +230,10 @@ const LandingTropical = () => {
             <div className="lk-empty">
               <img src={photo(0)} alt="" />
               <div>
-                <p className="lk-empty-title">{searching ? 'No tours match that search yet.' : 'New dates are coming soon!'}</p>
-                <p className="lk-sub">{searching ? 'Try another month or destination.' : 'Follow us on Facebook to be the first to know, or request a tour of your own.'}</p>
+                <p className="lk-empty-title">New dates are coming soon!</p>
+                <p className="lk-sub">Follow us on Facebook to be the first to know, or request a tour of your own.</p>
                 <div className="lk-head-actions" style={{ marginTop: 14 }}>
-                  {searching
-                    ? <button type="button" onClick={clearSearch} className="lk-btn lk-btn-main lk-btn-sm">Show all tours</button>
-                    : <a href={AGENCY.facebook} target="_blank" rel="noreferrer" className="lk-btn lk-btn-main lk-btn-sm"><FaFacebook size={16} /> Follow on Facebook</a>}
+                  <a href={AGENCY.facebook} target="_blank" rel="noreferrer" className="lk-btn lk-btn-main lk-btn-sm"><FaFacebook size={16} /> Follow on Facebook</a>
                 </div>
               </div>
             </div>
@@ -501,14 +449,8 @@ const PAGE_CSS = `
 .lk-h1 { margin: 20px 0 16px; font-size: clamp(2.7rem, 7vw, 5.8rem); line-height: 1.02; font-weight: 800; letter-spacing: -0.04em; text-shadow: 0 4px 30px rgba(0,0,0,0.35); }
 .lk-hero .lk-h1 em { color: var(--hero-accent); }
 .lk-lead { margin: 0 auto 30px; max-width: 620px; font-size: clamp(17px, 1.7vw, 21px); line-height: 1.55; font-weight: 500; text-shadow: 0 2px 16px rgba(0,0,0,0.35); }
-.lk-search { display: inline-flex; align-items: stretch; text-align: left; border-radius: var(--search-radius); padding: 8px; max-width: 100%; background: #FFFFFF; color: #1A1410; box-shadow: 0 24px 60px rgba(0,0,0,0.3); }
-.lk-field { display: flex; flex-direction: column; gap: 2px; padding: 8px 20px; min-width: 0; cursor: pointer; }
-.lk-field + .lk-field { border-left: 1px solid rgba(0,0,0,0.1); }
-.lk-field small { font-size: 11.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(26,20,16,0.55); }
-.lk-field select { appearance: none; -webkit-appearance: none; background: transparent; border: none; outline: none; color: #1A1410; font-family: inherit; font-size: 16.5px; font-weight: 700;
   padding: 2px 20px 2px 0; cursor: pointer; max-width: 200px; text-overflow: ellipsis;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right center; }
-.lk-search-go { margin-left: 8px; padding: 0 26px; }
   max-width: 360px; color: #FFFFFF; background: rgba(0,0,0,0.38); border: 1px solid rgba(255,255,255,0.3); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 .lk-tiny { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0; }
 
@@ -606,13 +548,7 @@ const PAGE_CSS = `
 @media (max-width: 760px) {
   .lk { font-size: 16px; }
   .lk-hero { padding: 96px 1rem 130px; min-height: 88dvh; justify-content: flex-start; }
-  .lk-search { display: flex; flex-direction: column; width: 100%; border-radius: 24px; }
-  .lk-search .lk-search-go { border-radius: 16px; }
-  .lk-field { padding: 10px 14px; }
-  .lk-field + .lk-field { border-left: none; border-top: 1px solid rgba(0,0,0,0.1); }
-  .lk-field select { max-width: none; width: 100%; }
-  .lk-search-go { margin: 8px 0 0; padding: 15px; }
-    .lk-brand span { font-size: 16px; }
+                .lk-brand span { font-size: 16px; }
   .lk-brand img { width: 34px; height: 34px; }
   .lk-steps { grid-template-columns: 1fr; gap: 28px; }
   .lk-steps::before { top: 0; bottom: 0; left: 34px; right: auto; border-top: none; border-left: 3px dashed var(--line-strong); }
@@ -637,8 +573,7 @@ const PAGE_CSS = `
   --hero-shade: linear-gradient(180deg, rgba(5,40,55,0.45) 0%, rgba(5,40,55,0.15) 40%, rgba(5,40,55,0.55) 100%);
   --cta-shade: linear-gradient(120deg, rgba(10,139,166,0.85), rgba(255,122,61,0.75)); }
 .lk-tropical .lk-hero { margin: 12px; border-radius: 36px; min-height: calc(92dvh - 24px); }
-.lk-tropical .lk-search .lk-search-go { border-radius: 999px; }
-.lk-tropical .lk-step-num { background: linear-gradient(135deg, #FF7A3D, #FFB23D); }
+.lk-tropical .lk-tropical .lk-step-num { background: linear-gradient(135deg, #FF7A3D, #FFB23D); }
 
 
 /* ═════════ Creative touches ═════════ */
