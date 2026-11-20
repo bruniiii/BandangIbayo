@@ -46,7 +46,7 @@ const DestinationsTab = () => {
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-          <h3 style={h3}><MapIcon size={16} color="#B4511E" /> Destinations</h3>
+          <h3 style={h3}><MapIcon size={16} color="var(--ib-accent, #B4511E)" /> Destinations</h3>
           <p style={hint}>Suggested when making tours, packages and suppliers (and to joiners requesting a tour), so the same place always has the same name. Suppliers are matched to tours by these names.</p>
         </div>
         <button type="button" style={btn(true)} onClick={() => setEditing({})}><Plus size={14} /> Add Destination</button>
@@ -67,8 +67,8 @@ const DestinationsTab = () => {
         onRestore={(x) => setActive(x, true)}
         render={(x) => (
           <>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{x.name}</p>
-            <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{x.region || 'No region yet'}</p>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{x.name}</p>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{x.region || 'No region yet'}</p>
           </>
         )}
       />
@@ -95,11 +95,11 @@ const DestinationForm = ({ item, all, onClose, onSaved }) => {
   };
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label="Destination" style={{ position: 'relative', width: '100%', maxWidth: 460, background: '#FDF6EE', borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div role="dialog" aria-modal="true" aria-label="Destination" style={{ position: 'relative', width: '100%', maxWidth: 460, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>{item.id ? 'Edit Destination' : 'Add Destination'}</h3>
-          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{item.id ? 'Edit Destination' : 'Add Destination'}</h3>
+          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
         {item.id && <p style={{ ...hint, margin: 0 }}>Renaming changes the suggestion only; tours already made keep the name they were saved with.</p>}
         <label style={label}>Name *<input value={name} maxLength={120} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sagada, Mountain Province" style={inp} /></label>

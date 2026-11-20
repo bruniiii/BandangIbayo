@@ -86,8 +86,8 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingBottom: 40 }}>
       {maintenance.on && (
         <button type="button" onClick={() => setTab('settings')} style={{
-          display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(140,47,28,0.4)',
-          background: '#FBEDE6', color: '#8C2F1C', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer', textAlign: 'left',
+          display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.4)',
+          background: '#FBEDE6', color: 'var(--ib-red, #8C2F1C)', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer', textAlign: 'left',
         }}>
           <Power size={16} style={{ flexShrink: 0 }} />
           <span>Maintenance Mode is on: joiners see the "We'll be back soon" page. Open System Status → Maintenance Mode to turn it off.</span>
@@ -107,10 +107,10 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
             <button key={key} type="button" role="tab" aria-selected={on} onClick={() => setTab(key)} style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, height: 40, padding: '0 14px', borderRadius: 999, cursor: 'pointer', whiteSpace: 'nowrap',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#FDF6EE' : '#5C2A10',
-              border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.25)'}`, boxShadow: on ? '0 6px 16px rgba(26,10,0,0.15)' : 'none',
+              background: on ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+              border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`, boxShadow: on ? '0 6px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)' : 'none',
             }}>
-              <span style={{ width: 20, height: 20, borderRadius: '50%', background: on ? '#E8A265' : 'rgba(180,81,30,0.12)', color: '#1A0A00', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', letterSpacing: 0 }}>{i + 1}</span>
+              <span style={{ width: 20, height: 20, borderRadius: '50%', background: on ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: 'var(--ib-dark, #1A0A00)', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', letterSpacing: 0 }}>{i + 1}</span>
               <Icon size={14} /> {label}
             </button>
           );

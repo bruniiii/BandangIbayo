@@ -70,7 +70,7 @@ const DriverDocs = ({ tourId, onReady, readOnly = false, refreshKey = 0 }) => {
     }
   };
 
-  if (!doc) return <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#7A3A18' }}>Loading driver ID…</p>;
+  if (!doc) return <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>Loading driver ID…</p>;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 10 }}>
@@ -78,19 +78,19 @@ const DriverDocs = ({ tourId, onReady, readOnly = false, refreshKey = 0 }) => {
         const [key, label] = kind;
         const Icon = kind[2];
         return (
-        <div key={key} style={{ border: `1px ${doc[key] ? 'solid' : 'dashed'} rgba(180,81,30,0.35)`, borderRadius: 12, padding: 10, display: 'flex', gap: 10, alignItems: 'center', background: '#FDF6EE' }}>
+        <div key={key} style={{ border: `1px ${doc[key] ? 'solid' : 'dashed'} rgba(var(--ib-accent-rgb, 180,81,30), 0.35)`, borderRadius: 12, padding: 10, display: 'flex', gap: 10, alignItems: 'center', background: 'var(--ib-cream, #FDF6EE)' }}>
           {urls[key]
             ? <a href={urls[key]} target="_blank" rel="noreferrer"><img src={urls[key]} alt={label} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, display: 'block' }} /></a>
-            : <span style={{ width: 56, height: 56, borderRadius: 10, background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A8481A', flexShrink: 0 }}><Icon size={22} /></span>}
+            : <span style={{ width: 56, height: 56, borderRadius: 10, background: 'var(--ib-parch, #F2E4D0)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}><Icon size={22} /></span>}
           <div style={{ minWidth: 0, flex: 1 }}>
-            <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>{label}{!readOnly && <span style={{ color: '#A8481A' }}> *</span>}</p>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{label}{!readOnly && <span style={{ color: 'var(--ib-sienna, #A8481A)' }}> *</span>}</p>
             {doc[key] ? (
               <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: '#1B5E3B', display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={12} /> On file (admins only)</p>
             ) : (
-              <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: '#8C2F1C' }}>Not uploaded yet</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>Not uploaded yet</p>
             )}
             {!readOnly && (
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#B4511E', cursor: busy ? 'wait' : 'pointer' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ib-accent, #B4511E)', cursor: busy ? 'wait' : 'pointer' }}>
                 {busy === key ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Icon size={12} />}
                 {doc[key] ? 'Replace' : 'Upload'}
                 <input type="file" accept="image/*" capture={key === 'photo_path' ? 'user' : undefined} disabled={!!busy} onChange={(e) => { upload(key, e.target.files?.[0]); e.target.value = ''; }} style={{ display: 'none' }} />

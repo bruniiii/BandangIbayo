@@ -111,18 +111,18 @@ const SettingsTab = ({ onNavigate }) => {
       )}
 
       {/* Maintenance Mode */}
-      <section style={{ ...card, borderColor: on ? 'rgba(140,47,28,0.45)' : card.border, background: on ? '#FBEDE6' : card.background }}>
+      <section style={{ ...card, borderColor: on ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.45)' : card.border, background: on ? '#FBEDE6' : card.background }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 300px', minWidth: 0 }}>
-            <h3 style={h3}><Power size={16} color={on ? '#8C2F1C' : '#A8481A'} /> Maintenance Mode</h3>
+            <h3 style={h3}><Power size={16} color={on ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-sienna, #A8481A)'} /> Maintenance Mode</h3>
             <p style={{ ...hint, margin: 0 }}>
               {on
-                ? <><strong style={{ color: '#8C2F1C' }}>On{mode?.started_at ? ` since ${when(mode.started_at)}` : ''}.</strong> Joiners see the "We'll be back soon" page. Admins and drivers' tracking links keep working.</>
+                ? <><strong style={{ color: 'var(--ib-red, #8C2F1C)' }}>On{mode?.started_at ? ` since ${when(mode.started_at)}` : ''}.</strong> Joiners see the "We'll be back soon" page. Admins and drivers' tracking links keep working.</>
                 : 'Off. Turn it on while you fix or update the website: the whole joiner side shows a "We\'ll be back soon" page (no booking, paying, posting or chatting). Admins keep working.'}
             </p>
           </div>
           {mode === null ? <Loader2 size={18} style={spin} /> : (
-            <button type="button" onClick={() => switchMaintenance(!on)} disabled={!canEdit || saving === 'mode'} style={{ ...btn(true), background: on ? '#1B5E3B' : '#8C2F1C', height: 42 }}>
+            <button type="button" onClick={() => switchMaintenance(!on)} disabled={!canEdit || saving === 'mode'} style={{ ...btn(true), background: on ? '#1B5E3B' : 'var(--ib-red, #8C2F1C)', height: 42 }}>
               {saving === 'mode' ? <Loader2 size={14} style={spin} /> : <Power size={14} />} {on ? 'Turn Off' : 'Turn On'}
             </button>
           )}
@@ -151,14 +151,14 @@ const SettingsTab = ({ onNavigate }) => {
 
       {/* Email reminders */}
       <section style={card}>
-        <h3 style={h3}><Mail size={16} color="#A8481A" /> Email reminders</h3>
+        <h3 style={h3}><Mail size={16} color="var(--ib-sienna, #A8481A)" /> Email reminders</h3>
         <p style={hint}>Automatic emails. Switch one off to stop it (it's saved right away). Booking confirmations, receipts and cancellations are always sent.</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {EMAILS.map(([k, t, d]) => (
             <div key={k} style={row}>
               <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{t} <span style={{ marginLeft: 6, color: emails[k] !== false ? '#1B5E3B' : '#8C2F1C' }}>{emails[k] !== false ? 'On' : 'Off'}</span></p>
-                <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{d}</p>
+                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{t} <span style={{ marginLeft: 6, color: emails[k] !== false ? '#1B5E3B' : 'var(--ib-red, #8C2F1C)' }}>{emails[k] !== false ? 'On' : 'Off'}</span></p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{d}</p>
               </div>
               <Toggle on={emails[k] !== false} onChange={(v) => setEmail(k, v)} disabled={!canEdit || saving === 'email_settings'} label={t} />
             </div>
@@ -168,26 +168,26 @@ const SettingsTab = ({ onNavigate }) => {
 
       {/* Where the rest is */}
       <section style={card}>
-        <h3 style={h3}><Settings size={16} color="#A8481A" /> Other settings</h3>
+        <h3 style={h3}><Settings size={16} color="var(--ib-sienna, #A8481A)" /> Other settings</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 8, marginTop: 10 }}>
           <div style={row}>
-            <KeyRound size={18} color="#B4511E" />
-            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: '#5C2A10' }}>
-              <strong style={{ display: 'block', color: '#1A0A00', fontSize: 13.5 }}>Your name and password</strong>
+            <KeyRound size={18} color="var(--ib-accent, #B4511E)" />
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>
+              <strong style={{ display: 'block', color: 'var(--ib-dark, #1A0A00)', fontSize: 13.5 }}>Your name and password</strong>
               Click your name at the top right → edit your name or Change Password.
             </span>
           </div>
           <button type="button" onClick={() => onNavigate('Admin Settings')} disabled={!canEdit} style={{ ...row, border: 'none', cursor: canEdit ? 'pointer' : 'default', fontFamily: 'inherit', textAlign: 'left' }}>
-            <UserCog size={18} color="#B4511E" />
-            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: '#5C2A10' }}>
-              <strong style={{ display: 'block', color: '#1A0A00', fontSize: 13.5 }}>Admins and inactive joiners</strong>
+            <UserCog size={18} color="var(--ib-accent, #B4511E)" />
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>
+              <strong style={{ display: 'block', color: 'var(--ib-dark, #1A0A00)', fontSize: 13.5 }}>Admins and inactive joiners</strong>
               Admin Settings: add or archive admins, and how long before inactive joiners are archived{canEdit ? '' : ' (main admin only)'}.
             </span>
           </button>
           <div style={row}>
-            <AlertTriangle size={18} color="#B4511E" />
-            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: '#5C2A10' }}>
-              <strong style={{ display: 'block', color: '#1A0A00', fontSize: 13.5 }}>Notifications</strong>
+            <AlertTriangle size={18} color="var(--ib-accent, #B4511E)" />
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>
+              <strong style={{ display: 'block', color: 'var(--ib-dark, #1A0A00)', fontSize: 13.5 }}>Notifications</strong>
               The bell at the top shows new bookings, payments and requests; each admin marks them read.
             </span>
           </div>

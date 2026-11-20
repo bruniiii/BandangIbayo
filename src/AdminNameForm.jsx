@@ -11,10 +11,10 @@ import { usePopupError } from './ui/usePopupError';
 // payments they process. (Admin Settings and the menu under their name.)
 // ─────────────────────────────────────────────
 
-const label = { display: 'block', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', marginBottom: 5 };
+const label = { display: 'block', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', marginBottom: 5 };
 const input = {
-  width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(180,81,30,0.2)',
-  background: '#FFFDF9', fontSize: 13, fontWeight: 600, color: '#1A0A00', outline: 'none', fontFamily: 'inherit',
+  width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+  background: '#FFFDF9', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', outline: 'none', fontFamily: 'inherit',
 };
 
 const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
@@ -65,18 +65,18 @@ const AdminNameForm = ({ onSaved, onCancel, compact = false }) => {
       </div>
       <button type="submit" disabled={saving || !first.trim() || !last.trim()} style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 38, padding: '0 18px', borderRadius: 10, border: 'none',
-        background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+        background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
         cursor: saving || !first.trim() || !last.trim() ? 'not-allowed' : 'pointer', opacity: saving || !first.trim() || !last.trim() ? 0.5 : 1, flex: compact ? '1 1 100%' : '0 0 auto',
       }}>
         {saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={14} />} Save Name
       </button>
       {onCancel && (
         <button type="button" onClick={onCancel} disabled={saving} style={{
-          height: 38, padding: '0 16px', borderRadius: 10, border: '1px solid rgba(180,81,30,0.3)', background: 'transparent', color: '#7A3A18',
+          height: 38, padding: '0 16px', borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', background: 'transparent', color: 'var(--ib-rust, #7A3A18)',
           fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', flex: compact ? '1 1 100%' : '0 0 auto',
         }}>Cancel</button>
       )}
-      {error && <p role="alert" style={{ flexBasis: '100%', margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{error}</p>}
+      {error && <p role="alert" style={{ flexBasis: '100%', margin: 0, fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{error}</p>}
     </form>
   );
 };

@@ -32,7 +32,7 @@ const RecordList = ({
     <div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
         <label style={{ position: 'relative', flex: '1 1 220px', minWidth: 0 }}>
-          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#7A3A18' }} />
+          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--ib-rust, #7A3A18)' }} />
           <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder={placeholder} aria-label={placeholder} style={{ ...input, paddingLeft: 34 }} />
         </label>
         {toolbar}
@@ -47,9 +47,9 @@ const RecordList = ({
           {visible.map((x) => {
             const active = isActive(x);
             return (
-              <div key={x.id} style={{ background: active ? '#F2E4D0' : 'rgba(242,228,208,0.5)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div key={x.id} style={{ background: active ? 'var(--ib-parch, #F2E4D0)' : 'rgba(var(--ib-parch-rgb, 242,228,208), 0.5)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {render(x)}
-                {!active && <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', color: '#8C2F1C' }}>ARCHIVED</p>}
+                {!active && <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', color: 'var(--ib-red, #8C2F1C)' }}>ARCHIVED</p>}
                 {canEdit && (onEdit || onArchive || onRestore) && (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                     {onEdit && active && <button type="button" style={btn(false)} onClick={() => onEdit(x)}><Pencil size={13} /> Edit</button>}

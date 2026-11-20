@@ -69,8 +69,8 @@ const TourIncome = ({ onData }) => {
     <section aria-labelledby="tour-income-title" style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
         <div>
-          <h2 id="tour-income-title" style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Income per Tour</h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>Joiner fees minus the tour's expenses, by tour date.</p>
+          <h2 id="tour-income-title" style={{ fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Income per Tour</h2>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>Joiner fees minus the tour's expenses, by tour date.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <NiceSelect aria-label="Tour month" value={month} onChange={(e) => { setMonth(e.target.value); setOpen(null); }} style={selectStyle}>
@@ -105,17 +105,17 @@ const TourIncome = ({ onData }) => {
                         <td style={td}>{formatYmdRange(r.tour.start_date, r.tour.end_date)}</td>
                         <td style={td}>{r.pax}</td>
                         <td style={td}>{formatPeso(r.fees)}</td>
-                        <td style={td}>{r.expenses ? formatPeso(r.expTotal) : <span style={{ color: '#8C2F1C', fontWeight: 800 }}>Not set</span>}</td>
-                        <td style={{ ...td, fontWeight: 900, color: r.income < 0 ? '#8C2F1C' : '#2E6B4A' }}>{money(r.income)}</td>
+                        <td style={td}>{r.expenses ? formatPeso(r.expTotal) : <span style={{ color: 'var(--ib-red, #8C2F1C)', fontWeight: 800 }}>Not set</span>}</td>
+                        <td style={{ ...td, fontWeight: 900, color: r.income < 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>{money(r.income)}</td>
                         <td style={{ ...td, textAlign: 'right' }}>
-                          <button type="button" aria-expanded={isOpen} aria-label={`Breakdown for ${r.tour.title}`} onClick={(e) => { e.stopPropagation(); setOpen(isOpen ? null : r.tour.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A8481A', display: 'inline-flex' }}>
+                          <button type="button" aria-expanded={isOpen} aria-label={`Breakdown for ${r.tour.title}`} onClick={(e) => { e.stopPropagation(); setOpen(isOpen ? null : r.tour.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-sienna, #A8481A)', display: 'inline-flex' }}>
                             <ChevronDown size={16} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                           </button>
                         </td>
                       </tr>
                       {isOpen && (
                         <tr>
-                          <td colSpan={7} style={{ padding: '4px 10px 16px', background: 'rgba(242,228,208,0.45)' }}>
+                          <td colSpan={7} style={{ padding: '4px 10px 16px', background: 'rgba(var(--ib-parch-rgb, 242,228,208), 0.45)' }}>
                             <Breakdown row={r} />
                           </td>
                         </tr>
@@ -152,7 +152,7 @@ const Breakdown = ({ row }) => (
           {row.cancelled.map((b) => (
             <tr key={b.id}>
               <td style={td}>—</td>
-              <td style={{ ...td, color: '#8C2F1C' }}>{b.full_name} (cancelled, non-refundable)</td>
+              <td style={{ ...td, color: 'var(--ib-red, #8C2F1C)' }}>{b.full_name} (cancelled, non-refundable)</td>
               <td style={td}>{formatPeso(paidOf(b))}</td>
               <td style={td}>{formatPeso(paidOf(b))}</td>
               <td style={td}>—</td>
@@ -181,7 +181,7 @@ const Breakdown = ({ row }) => (
       ) : (
         <p style={{ ...muted, display: 'flex', gap: 6, alignItems: 'center' }}><AlertCircle size={14} /> No expenses yet. Edit this tour in Tour Management to add them.</p>
       )}
-      <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 900, color: row.income < 0 ? '#8C2F1C' : '#2E6B4A', margin: '14px 0 0' }}>
+      <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 900, color: row.income < 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A', margin: '14px 0 0' }}>
         <TrendingUp size={17} /> Income: {money(row.income)}
       </p>
     </div>
@@ -189,18 +189,18 @@ const Breakdown = ({ row }) => (
 );
 
 const Stat = ({ label, value, tone }) => (
-  <div style={{ background: tone === 'good' ? 'rgba(46,107,74,0.1)' : tone === 'bad' ? 'rgba(140,47,28,0.1)' : '#F2E4D0', borderRadius: 16, padding: '12px 16px' }}>
-    <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>{label}</p>
-    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? '#2E6B4A' : tone === 'bad' ? '#8C2F1C' : '#1A0A00', margin: '4px 0 0' }}>{value}</p>
+  <div style={{ background: tone === 'good' ? 'rgba(46,107,74,0.1)' : tone === 'bad' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '12px 16px' }}>
+    <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{label}</p>
+    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? '#2E6B4A' : tone === 'bad' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', margin: '4px 0 0' }}>{value}</p>
   </div>
 );
 
-const card = { background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.05)' };
-const selectStyle = { background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '9px 12px', fontSize: 12.5, fontWeight: 800, color: '#1A0A00', fontFamily: 'inherit', cursor: 'pointer' };
-const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 6px' };
-const muted = { fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 };
+const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)' };
+const selectStyle = { background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12, padding: '9px 12px', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', cursor: 'pointer' };
+const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 6px' };
+const muted = { fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 };
 const table = { width: '100%', borderCollapse: 'collapse', fontSize: 12.5, minWidth: 560 };
-const th = { textAlign: 'left', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', padding: '8px 10px', borderBottom: '1px solid rgba(180,81,30,0.18)' };
-const td = { padding: '8px 10px', color: '#1A0A00', fontWeight: 600, borderBottom: '1px solid rgba(180,81,30,0.08)', verticalAlign: 'top' };
+const th = { textAlign: 'left', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', padding: '8px 10px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)' };
+const td = { padding: '8px 10px', color: 'var(--ib-dark, #1A0A00)', fontWeight: 600, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', verticalAlign: 'top' };
 
 export default TourIncome;

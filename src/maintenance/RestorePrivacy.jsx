@@ -21,9 +21,9 @@ const OPTIONS = [['off', 'Off (keep them)'], ['365', 'After 1 year archived'], [
 
 export const RestoreHelp = () => (
   <section style={card}>
-    <h3 style={h3}><LifeBuoy size={16} color="#A8481A" /> Restoring the database</h3>
+    <h3 style={h3}><LifeBuoy size={16} color="var(--ib-sienna, #A8481A)" /> Restoring the database</h3>
     <p style={hint}>A restore replaces the whole database, so it's done in Supabase, not on this page.</p>
-    <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12.5, fontWeight: 600, color: '#1A0A00', lineHeight: 1.6 }}>
+    <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12.5, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6 }}>
       {STEPS.map((s) => <li key={s}>{s}</li>)}
     </ol>
   </section>
@@ -48,11 +48,11 @@ export const PrivacySetting = () => {
   };
   return (
     <section style={card}>
-      <h3 style={h3}><ShieldOff size={16} color="#A8481A" /> Data privacy</h3>
+      <h3 style={h3}><ShieldOff size={16} color="var(--ib-sienna, #A8481A)" /> Data privacy</h3>
       <p style={hint}>
         Remove the personal details of joiners who have been archived for a long time, automatically (their bookings and payments stay, under "Removed joiner").
       </p>
-      {!me.isMain && <p style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 10px' }}><Lock size={15} /> Only the main admin can change this.</p>}
+      {!me.isMain && <p style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', margin: '0 0 10px' }}><Lock size={15} /> Only the main admin can change this.</p>}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ flex: '0 1 300px', minWidth: 0 }}>
           {value == null ? <Loader2 size={15} /> : (

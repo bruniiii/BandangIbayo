@@ -61,14 +61,6 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // The joiner side uses the Bright & Tropical colours (index.css); the admin
-  // and driver pages keep the espresso ones for now.
-  const tropical = !/^\/(admin|driver)(\/|$)/.test(pathname);
-  useEffect(() => {
-    if (tropical) document.documentElement.dataset.skin = 'tropical';
-    else delete document.documentElement.dataset.skin;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', tropical ? '#0B3B4F' : '#1A0A00');
-  }, [tropical]);
 
   return (
     <Suspense fallback={<PageLoading />}>
