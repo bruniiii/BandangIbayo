@@ -699,7 +699,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 const EditRequestModal = ({ request, onClose, onSaved }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
-    <div role="dialog" aria-modal="true" aria-labelledby="edit-request-title" style={{
+    <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="edit-request-title" style={{
       position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 760, maxHeight: '92dvh', overflowY: 'auto',
       borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '2rem',
     }}>
@@ -1336,7 +1336,7 @@ const ExclusiveTour = ({ type = 'exclusive', start, onOpenBooking, onExplore, op
           }}><Plus size={15} /> {newLabel}</button>
         </div>
       ) : (
-        <div style={{
+        <div className="paper-card" style={{
           position: 'relative',
           background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, padding: '2rem 2.25rem',
           border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', borderTop: '8px solid var(--ib-accent, #B4511E)',

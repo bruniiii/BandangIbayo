@@ -72,7 +72,7 @@ const CHAT_RULES = [
 const ChatGuidelines = ({ onClose }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 200000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
     <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
-    <div role="dialog" aria-modal="true" aria-labelledby="chat-rules-title" style={{
+    <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="chat-rules-title" style={{
       position: 'relative', width: '100%', maxWidth: 440, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.6rem',
       boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', borderTop: '6px solid var(--ib-accent, #B4511E)',
     }}>
@@ -517,6 +517,8 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                       aria-label="Message. Tap to react or reply"
                       onClick={(e) => { e.stopPropagation(); if (canSend) setPickerFor(pickerFor === m.id ? null : m.id); }}
                       onKeyDown={(e) => { if (e.key === 'Enter' && canSend) setPickerFor(pickerFor === m.id ? null : m.id); }}
+                      // A note passed around the group: a folded corner and a slight tilt (index.css: .chat-note).
+                      className={`chat-note${mine ? ' is-mine' : ''}${i % 2 ? ' tilt-right' : ''}`}
                       style={{
                         background: mine ? 'var(--ib-accent, #B4511E)' : fromAdmin ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : 'var(--ib-parch, #F2E4D0)',
                         color: mine ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)',

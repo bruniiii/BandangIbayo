@@ -257,7 +257,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
 
-            <div style={{
+            <div className="paper-card" style={{
 
                 position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
 
@@ -777,7 +777,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
     <div style={overlayBackdrop}>
 
-      <div style={{
+      <div className="paper-card" style={{
 
         background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
 
@@ -906,7 +906,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
     <div style={overlayBackdrop}>
 
-        <div style={{
+        <div className="paper-card" style={{
 
             background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 420, maxHeight: '92dvh', overflowY: 'auto',
 
@@ -1045,7 +1045,7 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
     const namesFilled = companions.every((c) => String(c.full_name || '').trim() && String(c.contact_number || '').trim());
     return (
     <div style={overlayBackdrop}>
-        <div role="dialog" aria-modal="true" aria-labelledby="companions-title" style={{
+        <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="companions-title" style={{
             background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
             borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
         }}>

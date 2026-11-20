@@ -394,7 +394,7 @@ const AdminSettings = () => {
       {verifying && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={() => !restoreBusy && setVerifying(null)} />
-          <form role="dialog" aria-label="Verify the restored admin" onSubmit={confirmRestoreCode} style={{
+          <form className="paper-card" role="dialog" aria-label="Verify the restored admin" onSubmit={confirmRestoreCode} style={{
             position: 'relative', width: '100%', maxWidth: 420, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, borderTop: '6px solid var(--ib-accent, #B4511E)',
             boxShadow: '0 30px 70px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem 1.6rem',
           }}>
@@ -419,7 +419,7 @@ const AdminSettings = () => {
       {adding && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={closeAdding} />
-          <div role="dialog" aria-label="Add an admin" style={{
+          <div className="paper-card" role="dialog" aria-label="Add an admin" style={{
             position: 'relative', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
             borderRadius: 22, borderTop: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 30px 70px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '1.5rem 1.6rem 1.6rem',
           }}>

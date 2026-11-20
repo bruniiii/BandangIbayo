@@ -688,7 +688,7 @@ const TourManagement = ({ openTourId = null }) => {
           background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)',
           padding: 16,
         }}>
-          <div style={{
+          <div className="paper-card" style={{
             background: 'var(--ib-cream, #FDF6EE)', padding: '3rem',
             borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
             textAlign: 'center', width: '100%', maxWidth: 420,
@@ -941,7 +941,7 @@ const TourManagement = ({ openTourId = null }) => {
             style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }}
             onClick={closeTourModal}
           />
-          <form
+          <form className="paper-card"
             ref={tourFormRef}
             onSubmit={handleFormSubmit}
             onInput={() => setFormDirty(true)}

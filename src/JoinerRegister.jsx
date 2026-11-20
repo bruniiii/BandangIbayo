@@ -504,7 +504,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
           position: 'fixed', inset: 0, zIndex: 190, display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)', padding: 20,
         }}>
-          <form
+          <form className="paper-card"
             onSubmit={handleVerifyCode}
             role="dialog"
             aria-modal="true"
@@ -598,7 +598,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
             padding: 20,
           }}
         >
-          <div
+          <div className="paper-card"
             style={{
               background: 'var(--ib-cream, #FDF6EE)',
               padding: '3.5rem',
