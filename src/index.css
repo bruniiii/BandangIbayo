@@ -251,13 +251,16 @@ html { touch-action: manipulation; }
   table.stack-table > tbody > tr > td[data-label=""]:last-child { margin-top: -6px; }
 }
 
-/* Small phones: the bell/account buttons keep their size and a long page
-   title is shortened with "…" instead of running under them. */
-@media (max-width: 480px) {
+/* Phones and small tablets: the top bar's buttons keep their size and a
+   long page title is shortened with "…" instead of running under them. */
+@media (max-width: 768px) {
   .dashboard-topbar { gap: 8px !important; }
   .dashboard-topbar > div:first-child { flex: 1 1 auto; min-width: 0; gap: 8px !important; }
   .dashboard-topbar > div:last-child { flex-shrink: 0; gap: 8px !important; }
-  .page-header h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px !important; }
+  .page-header > div:last-child { flex: 1 1 auto; min-width: 0; }
+  /* The brush-underlined title is a block here, so the "…" can shorten it. */
+  .page-header h1, .page-header h1.journal-title { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px !important; }
+  .page-header h1.journal-title::after { left: 0; right: auto; width: min(100%, 7em); bottom: 0; }
   .page-header > div[aria-hidden] { display: none !important; }
 }
 
