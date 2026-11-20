@@ -40,7 +40,7 @@ const Toaster = () => {
         const s = STYLES[t.type] || STYLES.info;
         const Icon = s.icon;
         return (
-          <div key={t.id} role={t.type === 'error' ? 'alert' : 'status'} className="toast" style={{ '--toast-accent': s.accent }}>
+          <div key={t.id} role={t.type === 'error' ? 'alert' : 'status'} className={`toast toast-${t.type}`} style={{ '--toast-accent': s.accent }}>
             <span className="toast-icon">
               <Icon size={20} style={{ animation: t.type === 'loading' ? 'toast-spin 1s linear infinite' : 'none' }} />
             </span>

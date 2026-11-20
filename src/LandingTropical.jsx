@@ -577,7 +577,15 @@ const PAGE_CSS = `
   .lk-empty { grid-template-columns: 1fr; }
   .lk-empty > div { padding: 0 1.25rem 1.5rem; }
 }
-@media (max-width: 420px) { .lk-login { display: none; } }
+/* Small phones: keep Log in visible. The name next to the logo hides (the
+   logo stays) and the menu buttons get a little smaller to make room. */
+@media (max-width: 440px) {
+  .lk-brand span { display: none; }
+  .lk-nav-right { gap: 10px; }
+  .lk-theme { width: 36px; height: 36px; }
+  .lk-login { font-size: 14.5px; }
+  .lk-nav .lk-btn-sm { padding: 10px 16px; font-size: 14px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .lk-hero-media > img, .lk-hero-copy, .lk-skeleton { animation: none !important; }
   .lk-hero-media > img { transition: none; }

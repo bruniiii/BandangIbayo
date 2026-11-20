@@ -540,3 +540,28 @@ td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rot
 .polaroid:not(:has(.polaroid-caption)) { padding-bottom: 26px; }
 :root[data-theme="dark"] .polaroid { background: #F4EEE2; box-shadow: 0 14px 32px rgba(0,0,0,0.5); }
 @media (prefers-reduced-motion: no-preference) { .polaroid { transition: transform 0.3s ease; } .polaroid:hover { transform: rotate(0deg); } }
+
+/* Handwritten note (ui/HandNote.jsx) for happy moments: lined paper held by
+   tape, the words handwritten, signed with a doodled heart. */
+.hand-note { position: relative; max-width: 560px; box-sizing: border-box; padding: 18px 22px 14px; border-radius: 6px; color: #0B3B4F; transform: rotate(-0.8deg);
+  background-color: #FFFBF0;
+  background-image: linear-gradient(90deg, transparent 34px, rgba(255,122,61,0.35) 34px 35px, transparent 35px),
+    repeating-linear-gradient(transparent 0 27px, rgba(10,124,148,0.16) 27px 28px);
+  background-position: 0 0, 0 14px;
+  box-shadow: 0 12px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14), 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1); }
+.hand-note::before { content: ''; position: absolute; top: -10px; left: 50%; width: 92px; height: 22px; transform: translateX(-50%) rotate(-3deg);
+  background: var(--journal-tape); box-shadow: 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12);
+  -webkit-mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent calc(100% - 3px)); }
+.hand-note-title, .hand-note-text, .hand-note-sign { font-family: 'Caveat', 'Outfit', cursive; font-weight: 700; margin: 0; padding-left: 26px; }
+.hand-note-title { font-size: 30px; line-height: 1.1; color: #E8622A; }
+.hand-note-text { font-size: 22px; line-height: 28px; }
+.hand-note-sign { font-size: 19px; margin-top: 6px; text-align: right; color: #0A7C94; }
+.hand-note-close { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
+  background: transparent; color: #0B3B4F; display: flex; align-items: center; justify-content: center; }
+.hand-note-close:hover { background: rgba(11,59,79,0.08); }
+:root[data-theme="dark"] .hand-note { background-color: #F6EFDF; box-shadow: 0 14px 32px rgba(0,0,0,0.5); }
+@media (prefers-reduced-motion: no-preference) { .hand-note { animation: hand-note-in 0.5s cubic-bezier(.2,.9,.3,1.2); } }
+@keyframes hand-note-in { from { opacity: 0; transform: rotate(-4deg) translateY(10px); } to { opacity: 1; transform: rotate(-0.8deg); } }
+
+/* Success toasts: the title handwritten. */
+.toast-success .toast-title { font-family: 'Caveat', 'Outfit', cursive; font-size: 23px; font-weight: 700; line-height: 1.05; letter-spacing: 0; }
