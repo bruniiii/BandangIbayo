@@ -12,9 +12,9 @@ const AdminDashboard = lazy(() => import('./AdminDashboard'));
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import MaintenanceGate from './MaintenanceGate';
-// The landing page: the dark premium design (the original is in LandingClassic.jsx),
-// or a new look being previewed with /?look=… (LandingSwitch.jsx).
-import LandingPage from './LandingSwitch';
+// The landing page: Bright & Tropical (the earlier ones are in LandingPremium.jsx
+// and LandingClassic.jsx).
+import LandingPage from './LandingTropical';
 const JoinerDashboard = lazy(() => import('./JoinerDashboard'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
 const ResetPassword = lazy(() => import('./ResetPassword'));

@@ -17,31 +17,16 @@ import AnnouncementBanner from './ui/AnnouncementBanner';
 import { SITE } from './siteContent';
 
 // ─────────────────────────────────────────────
-// LANDING PAGE LOOKS (preview): four new designs for the landing page, opened
-// with /?look=tropical | magazine | dark | fiesta. The live page stays
-// LandingPremium until one is picked. Same tours, search, text and links as
-// now; what changes is the look:
-//  • a photo always at the top (Site Content photos, else the open tours'
-//    photos, else the agency's forest photo);
-//  • bigger text, less empty space; reviews right after the tours;
-//  • each section laid out differently (photo cards, a numbered path, a
-//    photo beside the reasons, a strip of trip photos).
-// Styles: LOOK_CSS below, scoped under .lk and .lk-<look>.
-// ─────────────────────────────────────────────
+// LANDING PAGE: "Bright & Tropical" (sand, ocean blue, sunset orange).
+//  • A photo always at the top: the Site Content photos, else the open
+//    tours' photos, else the agency's forest photo. Glass search bar
+//    (Where / When / Who) that filters the tours below.
+//  • Tours, then reviews, then tour types (photo cards), How to Book (a
+//    numbered path), Why Us (a photo beside the reasons), a strip of trip
+//    photos, About & Contact, and a call to action on a photo.
+// The previous dark page is kept in LandingPremium.jsx (and the first one
+// in LandingClassic.jsx). Styles: PAGE_CSS below, scoped under .lk.
 
-// Fonts each look adds (Outfit is already on every page).
-const FONTS = {
-  magazine: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap',
-  fiesta: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap',
-};
-// The price colors (PriceTag takes them as props).
-const PRICE = {
-  tropical: ['#0B3B4F', 'rgba(11,59,79,0.6)'],
-  magazine: ['#1E1B16', 'rgba(30,27,22,0.55)'],
-  dark: ['#F5F1EC', 'rgba(245,241,236,0.6)'],
-  light: ['#F7F2EC', 'rgba(247,242,236,0.65)'],
-  fiesta: ['#1D1340', 'rgba(29,19,64,0.6)'],
-};
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -72,7 +57,7 @@ const REASONS = [
   { icon: Smartphone, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
 ];
 
-const LandingLooks = ({ look = 'tropical' }) => {
+const LandingTropical = () => {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [booked, setBooked] = useState(null); // { [tour date id]: slots taken }
@@ -82,15 +67,6 @@ const LandingLooks = ({ look = 'tropical' }) => {
   const [form, setForm] = useState({ where: '', when: '', who: '' });
   const [applied, setApplied] = useState({ where: '', when: '', who: '' });
   const listRef = useRef(null);
-
-  useEffect(() => {
-    const href = FONTS[look];
-    if (!href || document.querySelector(`link[href="${href}"]`)) return;
-    const l = document.createElement('link');
-    l.rel = 'stylesheet';
-    l.href = href;
-    document.head.appendChild(l);
-  }, [look]);
 
   useEffect(() => {
     (async () => {
@@ -153,10 +129,10 @@ const LandingLooks = ({ look = 'tropical' }) => {
   const pool = [...tripPhotos.map((p) => p.src), ...heroPhotos].filter((s, i, a) => a.indexOf(s) === i);
   const photo = (i) => pool[i % Math.max(1, pool.length)] || FALLBACK_PHOTO;
   const heroLeft = hero ? slotsLeft(hero) : null;
-  const [priceColor, priceMuted] = PRICE[look] || PRICE.tropical;
+  const [priceColor, priceMuted] = ['#0B3B4F', 'rgba(11,59,79,0.6)'];
 
   return (
-    <div className={`lk lk-${look}`}>
+    <div className="lk lk-tropical">
       <nav className={`lk-nav${scrolled ? ' is-scrolled' : ''}`}>
         <Link to="/" className="lk-brand" aria-label="Bandang IBAYO home">
           <img src={logoIcon} alt="BANDANG IBAYO" />
@@ -221,9 +197,6 @@ const LandingLooks = ({ look = 'tropical' }) => {
             <button type="submit" className="lk-btn lk-btn-main lk-search-go"><Search size={17} /> Search tours</button>
           </form>
         </div>
-        {look === 'fiesta' && (
-          <svg className="lk-wave" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 Q 180 0 360 40 T 720 40 T 1080 40 T 1440 40 V80 H0 Z" /></svg>
-        )}
       </header>
 
       {/* ── TOURS ── */}
@@ -435,7 +408,7 @@ const LandingLooks = ({ look = 'tropical' }) => {
       </footer>
 
       <HelpWidget />
-      <style>{LOOK_CSS}</style>
+      <style>{PAGE_CSS}</style>
     </div>
   );
 };
@@ -460,8 +433,8 @@ const Reviews = () => {
   );
 };
 
-const LOOK_CSS = `
-/* ═════════ Shared layout (every look) ═════════ */
+const PAGE_CSS = `
+/* ═════════ Layout ═════════ */
 .lk { position: relative; min-height: 100dvh; background: var(--bg); color: var(--text); font-family: var(--body); overflow-x: hidden; -webkit-font-smoothing: antialiased; font-size: 17px; }
 .lk a { color: inherit; }
 .lk em { font-style: normal; color: var(--accent); }
@@ -638,7 +611,7 @@ const LOOK_CSS = `
   .lk-hero-media > img { transition: none; }
 }
 
-/* ═════════ 1. Bright & Tropical: sand, ocean blue, sunset orange ═════════ */
+/* ═════════ Colors: sand, ocean blue, sunset orange ═════════ */
 .lk-tropical { --bg: #FFF8EE; --bg2: #FDEBD3; --panel: #FFFFFF; --text: #0B3B4F; --muted: #3F6372; --accent: #FF7A3D; --accent2: #0A8BA6; --on-accent: #FFFFFF;
   --hero-accent: #FFD27A; --line: rgba(11,59,79,0.1); --line-strong: rgba(10,139,166,0.35); --radius: 28px; --btn-radius: 999px; --search-radius: 999px;
   --btn-shadow: 0 10px 24px rgba(255,122,61,0.35); --card-border: none; --card-shadow: 0 14px 40px rgba(11,59,79,0.1); --icon-bg: rgba(10,139,166,0.12);
@@ -649,118 +622,6 @@ const LOOK_CSS = `
 .lk-tropical .lk-search .lk-search-go { border-radius: 999px; }
 .lk-tropical .lk-step-num { background: linear-gradient(135deg, #FF7A3D, #FFB23D); }
 
-/* ═════════ 2. Travel Magazine: paper, ink, serif headings, split hero ═════════ */
-.lk-magazine { --bg: #F7F3EC; --bg2: #EFE8DC; --panel: #FFFDF9; --text: #1E1B16; --muted: #5B544A; --accent: #9C3D1E; --accent2: #9C3D1E; --on-accent: #FFFFFF;
-  --hero-accent: #9C3D1E; --line: rgba(30,27,22,0.14); --line-strong: rgba(30,27,22,0.3); --radius: 6px; --btn-radius: 4px; --search-radius: 6px;
-  --btn-shadow: none; --card-border: 1px solid rgba(30,27,22,0.12); --card-shadow: none; --icon-bg: transparent;
-  --nav-bg: rgba(247,243,236,0.94); --head: 'Fraunces', Georgia, serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: none; --cta-shade: rgba(20,16,12,0.55); }
-.lk-magazine .lk-nav { color: var(--text); background: rgba(247,243,236,0.94); box-shadow: 0 1px 0 var(--line); }
-.lk-magazine .lk-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; color: var(--text); padding-top: 110px; padding-bottom: 60px; min-height: 88dvh; }
-.lk-magazine .lk-hero-media { position: relative; inset: auto; order: 2; height: min(72dvh, 640px); border-radius: 6px; overflow: hidden; }
-.lk-magazine .lk-hero-copy { text-align: left; margin: 0; max-width: 620px; }
-.lk-magazine .lk-h1 { font-weight: 600; letter-spacing: -0.03em; text-shadow: none; font-size: clamp(2.6rem, 5.6vw, 5rem); }
-.lk-magazine .lk-h1 em { font-style: italic; }
-.lk-magazine .lk-h2 { font-weight: 600; letter-spacing: -0.02em; }
-.lk-magazine .lk-h3, .lk-magazine .lk-h4 { font-weight: 600; }
-.lk-magazine .lk-lead { margin-left: 0; text-shadow: none; color: var(--muted); }
-.lk-magazine .lk-pill { background: transparent; border: none; border-top: 2px solid var(--text); border-radius: 0; padding: 10px 0 0; color: var(--text); }
-.lk-magazine .lk-search { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; box-sizing: border-box; box-shadow: none; border: 1px solid var(--line-strong); }
-.lk-magazine .lk-field select { max-width: none; width: 100%; }
-.lk-magazine .lk-search-go { grid-column: 1 / -1; margin: 8px 0 0; padding: 14px; }
-.lk-magazine .lk-eyebrow { color: var(--text); border-top: 2px solid var(--text); padding-top: 8px; }
-.lk-magazine .lk-chip { border-radius: 2px; }
-.lk-magazine .lk-tag { border-radius: 2px; }
-.lk-magazine .lk-type { flex-direction: row; background: transparent; border: none; border-top: 1px solid var(--line-strong); border-radius: 0; padding-top: 18px; gap: 18px; }
-.lk-magazine .lk-types { grid-template-columns: 1fr; gap: 18px; }
-.lk-magazine .lk-type-img { width: min(38%, 340px); height: 210px; flex-shrink: 0; border-radius: 4px; }
-.lk-magazine .lk-type-body { padding: 0; justify-content: center; }
-.lk-magazine .lk-type:nth-child(even) { flex-direction: row-reverse; }
-.lk-magazine .lk-step-num { background: transparent; color: var(--accent); border: 2px solid var(--accent); box-shadow: 0 0 0 8px var(--bg); font-family: var(--head); font-style: italic; }
-.lk-magazine .lk-icon { border: 1px solid var(--line-strong); }
-.lk-magazine .lk-about-title em { font-style: italic; }
-.lk-magazine .lk-cta { border-radius: 6px; }
-@media (max-width: 900px) {
-  .lk-magazine .lk-hero { grid-template-columns: 1fr; padding-top: 86px; }
-  .lk-magazine .lk-hero-media { order: 0; height: 42dvh; }
-  .lk-magazine .lk-type, .lk-magazine .lk-type:nth-child(even) { flex-direction: column; }
-  .lk-magazine .lk-type-img { width: 100%; }
-  .lk-magazine .lk-search { grid-template-columns: 1fr; }
-  .lk-magazine .lk-field + .lk-field { border-left: none; border-top: 1px solid rgba(0,0,0,0.1); }
-}
-
-/* ═════════ 3. Dark + Photos: today's colors, led by photos ═════════ */
-.lk-dark { --bg: #0E0C0B; --bg2: #161210; --panel: #1C1815; --text: #F5F1EC; --muted: rgba(245,241,236,0.72); --accent: #E8A265; --accent2: #E8A265; --on-accent: #1A0F08;
-  --hero-accent: #F2B67E; --line: rgba(255,255,255,0.1); --line-strong: rgba(232,162,101,0.4); --radius: 24px; --btn-radius: 16px; --search-radius: 22px;
-  --btn-shadow: 0 10px 30px rgba(217,119,47,0.35); --card-border: 1px solid rgba(255,255,255,0.1); --card-shadow: none; --icon-bg: rgba(232,162,101,0.14);
-  --nav-bg: rgba(14,12,11,0.8); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: linear-gradient(180deg, rgba(14,12,11,0.6) 0%, rgba(14,12,11,0.2) 35%, rgba(14,12,11,0.4) 65%, #0E0C0B 100%);
-  --cta-shade: linear-gradient(180deg, rgba(14,12,11,0.35), rgba(14,12,11,0.8)); }
-.lk-dark .lk-hero { min-height: 100dvh; }
-.lk-dark .lk-search { background: rgba(20,17,15,0.7); color: var(--text); border: 1px solid rgba(255,255,255,0.2); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
-.lk-dark .lk-field small { color: rgba(245,241,236,0.6); }
-.lk-dark .lk-field select { color: var(--text); }
-.lk-dark .lk-field select option { color: #1A0F08; }
-.lk-dark .lk-field + .lk-field { border-color: rgba(255,255,255,0.15); }
-.lk-dark .lk-chip { background: rgba(14,12,11,0.6); color: #F5F1EC; }
-.lk-dark .lk-chip.is-low { background: var(--accent); color: var(--on-accent); }
-.lk-dark .lk-reviews article { background: var(--panel) !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
-.lk-dark .lk-reviews article p, .lk-dark .lk-reviews article strong { color: var(--text) !important; }
-.lk-dark .lk-reviews article span { color: var(--muted) !important; }
-
-/* ═════════ 3b. Look 3, a bit lighter: warm charcoal instead of near-black ═════════ */
-.lk-light { --bg: #2B2521; --bg2: #342D28; --panel: #3B332D; --text: #F7F2EC; --muted: rgba(247,242,236,0.78); --accent: #EDA86C; --accent2: #F0B07A; --on-accent: #1A0F08;
-  --hero-accent: #F6C08E; --line: rgba(255,255,255,0.13); --line-strong: rgba(237,168,108,0.45); --radius: 24px; --btn-radius: 16px; --search-radius: 22px;
-  --btn-shadow: 0 10px 28px rgba(217,119,47,0.3); --card-border: 1px solid rgba(255,255,255,0.12); --card-shadow: 0 10px 30px rgba(0,0,0,0.18); --icon-bg: rgba(237,168,108,0.16);
-  --nav-bg: rgba(43,37,33,0.85); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: linear-gradient(180deg, rgba(43,37,33,0.45) 0%, rgba(43,37,33,0.1) 35%, rgba(43,37,33,0.25) 65%, #2B2521 100%);
-  --cta-shade: linear-gradient(180deg, rgba(43,37,33,0.2), rgba(43,37,33,0.7)); }
-.lk-light .lk-hero { min-height: 100dvh; }
-.lk-light .lk-search { background: rgba(43,37,33,0.72); color: var(--text); border: 1px solid rgba(255,255,255,0.22); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
-.lk-light .lk-field small { color: rgba(247,242,236,0.65); }
-.lk-light .lk-field select { color: var(--text); }
-.lk-light .lk-field select option { color: #1A0F08; }
-.lk-light .lk-field + .lk-field { border-color: rgba(255,255,255,0.16); }
-.lk-light .lk-chip { background: rgba(43,37,33,0.65); color: #F7F2EC; }
-.lk-light .lk-chip.is-low { background: var(--accent); color: var(--on-accent); }
-.lk-light .lk-reviews article { background: var(--panel) !important; border: 1px solid var(--line) !important; box-shadow: none !important; }
-.lk-light .lk-reviews article p, .lk-light .lk-reviews article strong { color: var(--text) !important; }
-.lk-light .lk-reviews article span { color: var(--muted) !important; }
-
-/* ═════════ 4. Bold Filipino: fiesta colors, playful shapes ═════════ */
-.lk-fiesta { --bg: #FFFBF0; --bg2: #FFE25C; --panel: #FFFFFF; --text: #1D1340; --muted: #4A3F6B; --accent: #E6266E; --accent2: #1D7BD6; --on-accent: #FFFFFF;
-  --hero-accent: #FFE25C; --line: rgba(29,19,64,0.12); --line-strong: #1D1340; --radius: 22px; --btn-radius: 14px; --search-radius: 20px;
-  --btn-shadow: 4px 4px 0 #1D1340; --card-border: 3px solid #1D1340; --card-shadow: 6px 6px 0 #1D1340; --icon-bg: #FFE25C;
-  --nav-bg: rgba(255,251,240,0.95); --head: 'Bricolage Grotesque', 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
-  --hero-shade: linear-gradient(180deg, rgba(29,19,64,0.5) 0%, rgba(29,19,64,0.15) 40%, rgba(29,19,64,0.55) 100%);
-  --cta-shade: linear-gradient(120deg, rgba(230,38,110,0.85), rgba(29,123,214,0.8)); }
-.lk-fiesta .lk-btn-main { border: 3px solid #1D1340; }
-.lk-fiesta .lk-btn-ghost { border: 3px solid #1D1340; background: #FFFFFF; box-shadow: 4px 4px 0 #1D1340; }
-.lk-fiesta .lk-btn:hover { transform: translate(-2px, -2px); }
-.lk-fiesta .lk-h1 { font-weight: 800; }
-.lk-fiesta .lk-hero .lk-h1 em { background: #E6266E; color: #FFFFFF; padding: 0 0.2em; border-radius: 12px; display: inline-block; transform: rotate(-2deg); }
-.lk-fiesta .lk-pill { background: #FFE25C; color: #1D1340; border: 3px solid #1D1340; transform: rotate(-2deg); }
-.lk-fiesta .lk-search { border: 3px solid #1D1340; box-shadow: 8px 8px 0 #1D1340; }
-.lk-fiesta .lk-wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 60px; z-index: 2; fill: var(--bg); }
-.lk-fiesta .lk-eyebrow { background: #1D7BD6; color: #FFFFFF; padding: 6px 12px; border-radius: 10px; transform: rotate(-1.5deg); }
-.lk-fiesta .lk-alt { background: #FFE25C; }
-.lk-fiesta .lk-alt .lk-sub, .lk-fiesta .lk-alt .lk-body { color: #3A2E5C; }
-.lk-fiesta .lk-chip { border: 2px solid #1D1340; }
-.lk-fiesta .lk-tag { border: 2px solid #1D1340; transform: rotate(-3deg); }
-.lk-fiesta .lk-type:nth-child(2) .lk-tag { background: #1D7BD6; }
-.lk-fiesta .lk-type:nth-child(3) .lk-tag { background: #19A974; }
-.lk-fiesta .lk-type:nth-child(odd) { transform: rotate(-0.6deg); }
-.lk-fiesta .lk-type:nth-child(even) { transform: rotate(0.6deg); }
-.lk-fiesta .lk-step-num { border: 3px solid #1D1340; }
-.lk-fiesta .lk-step:nth-child(2) .lk-step-num { background: #1D7BD6; }
-.lk-fiesta .lk-step:nth-child(3) .lk-step-num { background: #19A974; }
-.lk-fiesta .lk-icon { border: 2px solid #1D1340; }
-.lk-fiesta .lk-why-photo, .lk-fiesta .lk-strip figure, .lk-fiesta .lk-cta { border: 3px solid #1D1340; box-shadow: 6px 6px 0 #1D1340; }
-.lk-fiesta .lk-strip figure:nth-child(odd) { transform: rotate(-1.2deg); }
-.lk-fiesta .lk-strip figure:nth-child(even) { transform: rotate(1.2deg); }
-.lk-fiesta .lk-strip { padding-top: 12px; padding-bottom: 20px; }
-.lk-fiesta .lk-reviews article { border: 3px solid #1D1340 !important; box-shadow: 6px 6px 0 #1D1340 !important; }
-.lk-fiesta .lk-about-title em { color: #E6266E; }
 `;
 
-export default LandingLooks;
+export default LandingTropical;
