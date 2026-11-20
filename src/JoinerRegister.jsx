@@ -713,7 +713,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
 
       {/* MAIN CARD */}
       <div
-        className="journal-card register-card"
+        className="register-card"
         style={{
           position: 'relative',
           background: 'var(--ib-cream, #FDF6EE)',
