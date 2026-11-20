@@ -15,15 +15,15 @@ const signed = (n) => `${n > 0 ? '+' : ''}${n}%`;
 // The built-in PDF fonts only cover basic Latin characters.
 const pdfText = (s) => String(s ?? '').replace(/[ñÑ]/g, (c) => (c === 'ñ' ? 'n' : 'N')).replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—·]/g, '-').replace(/₱/g, 'PHP ').replace(/[^\x20-\x7E]/g, '');
 
-const BRAND = [26, 10, 0];       // espresso (headings, cover)
-const ACCENT = [180, 81, 30];    // burnt sienna (markers only)
-const MUTED = [122, 58, 24];     // rust (secondary text)
-const PANEL = [242, 228, 208];   // parchment
-const STRIPE = [253, 249, 244];  // very light cream (zebra rows)
-const INK = [40, 30, 24];        // body text
-const GREY = [118, 108, 100];    // notes, captions
-const RULE = [226, 214, 200];    // hairlines
-const AMBER = [232, 162, 101];
+const BRAND = [11, 59, 79];       // navy (headings, cover)
+const ACCENT = [255, 122, 61];    // sunset orange (markers only)
+const MUTED = [63, 99, 114];     // slate blue (secondary text)
+const PANEL = [253, 235, 211];   // sand
+const STRIPE = [255, 250, 242];  // very light cream (zebra rows)
+const INK = [22, 48, 60];        // body text
+const GREY = [100, 116, 124];    // notes, captions
+const RULE = [214, 226, 230];    // hairlines
+const AMBER = [255, 210, 122];
 
 // The logo as a data URL for jsPDF (null if it can't be loaded).
 const loadLogo = async () => {
@@ -113,7 +113,7 @@ export const downloadReportPDF = async (report, { print = false } = {}) => {
     y += 18;
     sectionNo += 1;
     doc.setFillColor(...ACCENT).roundedRect(left, y - 12, 18, 16, 2, 2, 'F');
-    font(8.5, 'bold', [253, 246, 238]);
+    font(8.5, 'bold', [255, 248, 238]);
     doc.text(String(sectionNo).padStart(2, '0'), left + 9, y - 1, { align: 'center' });
     font(13, 'bold', BRAND);
     doc.text(pdfText(title), left + 26, y);
@@ -236,19 +236,19 @@ export const downloadReportPDF = async (report, { print = false } = {}) => {
   doc.setFillColor(...ACCENT).rect(0, 168, pageW, 4, 'F');
   if (logo) doc.addImage(logo, 'PNG', left, 40, 46, 46);
   const tx = left + (logo ? 60 : 0);
-  font(22, 'bold', [253, 246, 238]);
+  font(22, 'bold', [255, 248, 238]);
   doc.text('Bandang IBAYO', tx, 62);
   font(9, 'bold', AMBER);
   doc.setCharSpace(2);
   doc.text('BUSINESS REPORT', tx, 80);
   doc.setCharSpace(0);
-  font(8.5, 'normal', [232, 210, 190]);
+  font(8.5, 'normal', [214, 234, 240]);
   doc.text('Your travel partner', tx, 96);
   // Headline figures on the right of the band.
   if (fig['Total revenue']) {
-    font(7, 'bold', [232, 210, 190]);
+    font(7, 'bold', [214, 234, 240]);
     doc.text('TOTAL REVENUE', right, 56, { align: 'right' });
-    font(18, 'bold', [253, 246, 238]);
+    font(18, 'bold', [255, 248, 238]);
     doc.text(pdfText(fig['Total revenue']), right, 76, { align: 'right' });
     font(8.5, 'normal', AMBER);
     const n = Number(fig['Total bookings']) || 0;
@@ -259,9 +259,9 @@ export const downloadReportPDF = async (report, { print = false } = {}) => {
   const colW = width / meta.length;
   meta.forEach(([label, value], i) => {
     const x = left + i * colW;
-    font(6.8, 'bold', [200, 160, 125]);
+    font(6.8, 'bold', [150, 190, 200]);
     doc.text(label.toUpperCase(), x, 132);
-    font(9, 'bold', [253, 246, 238]);
+    font(9, 'bold', [255, 248, 238]);
     doc.text(doc.splitTextToSize(pdfText(value), colW - 14)[0] || '', x, 146);
   });
   y = 204;
@@ -428,7 +428,7 @@ export const downloadReportPDF = async (report, { print = false } = {}) => {
 
   if (report.cancellations?.total) {
     heading('Cancellations', `${report.cancellations.total} cancelled`);
-    bars(report.cancellations.breakdown.map((r) => [r.label, r.value]), { color: [140, 47, 28] });
+    bars(report.cancellations.breakdown.map((r) => [r.label, r.value]), { color: [196, 54, 31] });
   }
 
   if (report.customers) {
