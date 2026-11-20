@@ -7,15 +7,15 @@ import { CreditCard, Wallet } from 'lucide-react';
 // ─────────────────────────────────────────────
 
 const STATUS_STYLES = {
-  Pending: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: '#8C5216' },
-  'Verification Pending': { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: '#8C5216' },
+  Pending: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
+  'Verification Pending': { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
   Complete: { bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', color: 'var(--ib-sienna, #A8481A)' },
   Verified: { bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', color: 'var(--ib-sienna, #A8481A)' },
   Rejected: { bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.14)', color: 'var(--ib-red, #8C2F1C)' },
   Cancelled: { bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)', color: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)' },
   'Cancellation Requested': { bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: 'var(--ib-red, #8C2F1C)' },
-  'Downpayment Paid': { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: '#8C5216' },
-  'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
+  'Downpayment Paid': { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
+  'Awaiting Payment': { bg: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.14)', color: 'var(--ib-slate, #3F5D62)' },
   Expired: { bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)', color: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)' },
 };
  
@@ -58,7 +58,7 @@ const BalanceStatusBadge = ({ status }) => {
  
 const PAYMENT_METHOD_STYLES = {
   'Full Payment': { bg: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.12)', color: 'var(--ib-rust, #7A3A18)' },
-  Downpayment: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: '#8C5216' },
+  Downpayment: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
 };
  
 const PaymentMethodBadge = ({ method }) => {

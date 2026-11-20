@@ -133,7 +133,7 @@ const DataTab = ({ onNavigate }) => {
                 <Icon size={18} color={n ? 'var(--ib-accent, #B4511E)' : 'var(--ib-brown, #5C2A10)'} style={{ flexShrink: 0 }} />
                 <div style={{ flex: '1 1 240px', minWidth: 0 }}>
                   <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
-                    {t.title}{n != null && <span style={{ marginLeft: 8, color: n ? 'var(--ib-red, #8C2F1C)' : '#1B5E3B' }}>{n ? n : '✓ none'}</span>}
+                    {t.title}{n != null && <span style={{ marginLeft: 8, color: n ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #1B5E3B)' }}>{n ? n : '✓ none'}</span>}
                   </p>
                   <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{t.what}</p>
                 </div>
@@ -144,7 +144,7 @@ const DataTab = ({ onNavigate }) => {
             );
           })}
           {health && (Number(health.stale_requests) > 0 || Number(health.errors_7_days) > 0) && (
-            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 700, color: '#7A4410' }}>
+            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #7A4410)' }}>
               {Number(health.stale_requests) > 0 && `${health.stale_requests} request${health.stale_requests === 1 ? ' has' : 's have'} waited over 30 days for an answer (see Private Tours / Requested Tours). `}
               {Number(health.errors_7_days) > 0 && `${health.errors_7_days} website error${health.errors_7_days === 1 ? '' : 's'} in the last 7 days.`}
             </p>

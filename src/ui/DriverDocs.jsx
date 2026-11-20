@@ -85,7 +85,7 @@ const DriverDocs = ({ tourId, onReady, readOnly = false, refreshKey = 0 }) => {
           <div style={{ minWidth: 0, flex: 1 }}>
             <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{label}{!readOnly && <span style={{ color: 'var(--ib-sienna, #A8481A)' }}> *</span>}</p>
             {doc[key] ? (
-              <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: '#1B5E3B', display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={12} /> On file (admins only)</p>
+              <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-green, #1B5E3B)', display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle2 size={12} /> On file (admins only)</p>
             ) : (
               <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>Not uploaded yet</p>
             )}

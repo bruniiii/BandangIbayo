@@ -24,7 +24,7 @@ import { periodText } from './bookingRules';
 // var(--ib-red, #8C2F1C)  deep rust red (error / full / alert)
 // var(--ib-parch, #F2E4D0)  parchment (inset panel bg)
 // #EDEAE3  warm stone (page bg)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
  
 /* ─────────────────────────────────────────────

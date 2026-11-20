@@ -85,7 +85,7 @@ const TripDayCard = ({ booking }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
           <Section icon={<MapPin size={13} />} title="Pickup points">
             {booking.pickup_point && (
-              <p style={{ fontSize: 13, fontWeight: 800, color: '#2E6B4A', background: 'rgba(46,107,74,0.1)', borderRadius: 12, padding: '9px 12px', margin: '0 0 8px' }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--ib-green, #2E6B4A)', background: 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)', borderRadius: 12, padding: '9px 12px', margin: '0 0 8px' }}>
                 Your pickup point: {booking.pickup_point}
               </p>
             )}

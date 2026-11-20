@@ -15,8 +15,8 @@ export const COLORS = {
   cream: 'var(--ib-cream, #FDF6EE)',
   parchment: 'var(--ib-parch, #F2E4D0)',
   rust: 'var(--ib-rust, #7A3A18)',
-  danger: '#C0362C',
-  dangerDark: '#9E2B23',
+  danger: 'var(--ib-danger, #C0362C)',
+  dangerDark: 'var(--ib-danger, #9E2B23)',
 };
 
 const base = {
@@ -41,13 +41,13 @@ export const secondaryBtn = (disabled = false) => ({
 
 export const dangerBtn = (disabled = false) => ({
   ...base, background: COLORS.danger, color: '#FFFFFF',
-  boxShadow: '0 6px 18px rgba(192,54,44,0.3)', ...disabledStyle(disabled),
+  boxShadow: '0 6px 18px rgba(var(--ib-danger-rgb, 192,54,44), 0.3)', ...disabledStyle(disabled),
 });
 
 // A quieter red outline, for a destructive action that only opens a confirmation.
 export const dangerOutlineBtn = (disabled = false) => ({
-  ...base, background: 'rgba(192,54,44,0.06)', color: COLORS.danger,
-  border: `1px solid rgba(192,54,44,0.35)`, ...disabledStyle(disabled),
+  ...base, background: 'rgba(var(--ib-danger-rgb, 192,54,44), 0.06)', color: COLORS.danger,
+  border: `1px solid rgba(var(--ib-danger-rgb, 192,54,44), 0.35)`, ...disabledStyle(disabled),
 });
 
 export const linkBtn = {

@@ -454,7 +454,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
             </p>
           )}
           {!isAdmin && postWaitUntil && (
-            <p role="status" style={{ fontSize: 12, fontWeight: 800, color: '#8C5216', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.22)', borderRadius: 10, padding: '8px 12px', margin: '8px 0 0' }}>
+            <p role="status" style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-warn, #8C5216)', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.22)', borderRadius: 10, padding: '8px 12px', margin: '8px 0 0' }}>
               You can post again on {formatWhen(postWaitUntil)}.
             </p>
           )}
@@ -688,7 +688,7 @@ const FeedPostCard = ({
                 display: 'inline-block', marginTop: 5, borderRadius: 999, padding: '2px 9px',
                 fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
                 background: status === 'Pending' ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)',
-                color: status === 'Pending' ? '#8C5216' : 'var(--ib-red, #8C2F1C)',
+                color: status === 'Pending' ? 'var(--ib-warn, #8C5216)' : 'var(--ib-red, #8C2F1C)',
               }}>
                 {status === 'Pending' ? 'Waiting for approval' : 'Not approved'}
               </span>
@@ -704,7 +704,7 @@ const FeedPostCard = ({
             aria-label="Delete post"
             style={{
               background: 'none', border: 'none', cursor: deleting ? 'not-allowed' : 'pointer',
-              color: '#C0362C', padding: 8, flexShrink: 0, borderRadius: 8,
+              color: 'var(--ib-danger, #C0362C)', padding: 8, flexShrink: 0, borderRadius: 8,
             }}
           >
             {deleting ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={15} />}

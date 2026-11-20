@@ -441,7 +441,7 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
 :root[data-theme="dark"] {
   color-scheme: dark;
   --ib-dark: #E8F2F5; --ib-brown: #E8F2F5; --ib-deep: #0B2D3A; --ib-rust: #A3BEC7;
-  --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3; --ib-accent: #FF8A52; --ib-amber: #FFC266;
+  --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3; --ib-accent: #FF7A3D; --ib-amber: #FFC266;
   --ib-cream: #10303D; --ib-parch: #0B2633; --ib-red: #FF7A66;
   --ib-dark-rgb: 232,242,245; --ib-rust-rgb: 163,190,199; --ib-accent-rgb: 76,195,218; --ib-sienna-rgb: 76,195,218;
   --ib-cream-rgb: 16,48,61; --ib-parch-rgb: 11,38,51; --ib-soft-rgb: 163,190,199; --ib-amber-rgb: 255,194,102;
@@ -449,6 +449,9 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
   --ib-ink: #0E4256; --ib-ink-deep: #0B3647; --ib-ink-rgb: 3,16,22; --ib-shadow-rgb: 0,0,0;
   --ib-on-ink: #F2F8FA; --ib-on-ink-2: #D6E6EB; --ib-on-ink-rgb: 242,248,250;
   --ib-surface: #12384A; --ib-surface-2: #0E2F3D; --ib-peach-1: #164556; --ib-peach-2: #12394A;
-  --ib-disabled-bg: #1B3E4C; --ib-disabled-text: #9FB8C1;
+  --ib-disabled-bg: #2A5566; --ib-disabled-text: #C3D6DC;
+  /* Status words (warning, info, success, problem): brighter so they read on dark. */
+  --ib-warn: #FFC266; --ib-warn-rgb: 255,194,102; --ib-slate: #9CC9D2; --ib-slate-rgb: 156,201,210;
+  --ib-green: #6FD3A0; --ib-green-rgb: 111,211,160; --ib-danger: #FF7A66; --ib-danger-rgb: 255,122,102;
 }
 :root[data-theme="dark"], :root[data-theme="dark"] body { background: #071C26; }

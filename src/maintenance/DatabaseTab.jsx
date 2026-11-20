@@ -139,7 +139,7 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
         {checkError && <p role="alert" style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>Couldn't run the check ({checkError}). Run the latest database update (install_updates.sql).</p>}
         {checks === null ? <p style={{ margin: 0, color: 'var(--ib-brown, #5C2A10)' }}>Checking…</p> : (
           <>
-            <p style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 900, color: problems ? 'var(--ib-red, #8C2F1C)' : '#1B5E3B', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <p style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 900, color: problems ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #1B5E3B)', display: 'flex', alignItems: 'center', gap: 6 }}>
               {problems ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />} {problems ? `${problems} record${problems === 1 ? '' : 's'} to look at` : 'No problems found'}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -150,7 +150,7 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
                   <div key={c.key} style={{ ...row, alignItems: 'flex-start', background: n ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)' : 'var(--ib-parch, #F2E4D0)' }}>
                     <div style={{ flex: '1 1 260px', minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
-                        {info.title} <span style={{ marginLeft: 6, color: c.count == null ? '#7A4410' : n ? 'var(--ib-red, #8C2F1C)' : '#1B5E3B' }}>{c.count == null ? "couldn't check" : n ? n : '✓ none'}</span>
+                        {info.title} <span style={{ marginLeft: 6, color: c.count == null ? 'var(--ib-warn, #7A4410)' : n ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #1B5E3B)' }}>{c.count == null ? "couldn't check" : n ? n : '✓ none'}</span>
                       </p>
                       {n > 0 && <p style={{ margin: '2px 0 6px', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{info.fix}</p>}
                       {n > 0 && (

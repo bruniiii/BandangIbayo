@@ -391,7 +391,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
                     {(view === 'archived' || view === 'removed') ? (
                       <>
                         <td style={{ padding: '14px 20px' }}>
-                          <p style={{ fontSize: 12, fontWeight: 800, color: p.archiveReason === 'inactive' ? '#8C5216' : 'var(--ib-red, #8C2F1C)', margin: 0 }}>
+                          <p style={{ fontSize: 12, fontWeight: 800, color: p.archiveReason === 'inactive' ? 'var(--ib-warn, #8C5216)' : 'var(--ib-red, #8C2F1C)', margin: 0 }}>
                             {p.archiveReason === 'removed' ? `Removed by an admin: ${p.removed_reason || '—'}` : (ARCHIVE_REASONS[p.archiveReason] || 'Archived')}{p.archived_at ? ` (${formatDate(p.archived_at)})` : ''}
                           </p>
                         </td>

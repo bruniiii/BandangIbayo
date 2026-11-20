@@ -60,7 +60,7 @@ const Feedback = () => {
     return (
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <CheckCircle2 size={28} color="#1B5E3B" />
+          <CheckCircle2 size={28} color="var(--ib-green, #1B5E3B)" />
           <div>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Thank you for your feedback!</h2>
             <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>We read every answer to make the website better.</p>

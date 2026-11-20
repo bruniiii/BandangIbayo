@@ -451,7 +451,7 @@ const LiveTimeline = ({ logs }) => {
               <strong style={{ fontSize: 13, color: 'var(--ib-dark, #1A0A00)' }}>{title}</strong>
               <p style={{ fontSize: 12, color: 'var(--ib-rust, #7A3A18)', margin: '3px 0 0', lineHeight: 1.5 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: '#8C5216' }}>
+                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', padding: '6px 10px', borderRadius: 8, marginTop: 6, fontSize: 11, fontWeight: 700, color: 'var(--ib-warn, #8C5216)' }}>
                   Note from Driver: {log.note}
                 </div>
               )}

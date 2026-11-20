@@ -47,7 +47,7 @@ import { useTabHistory, tabFromUrl } from './useTabHistory';
 // var(--ib-rust, #7A3A18)  rust mid-tone
 // var(--ib-parch, #F2E4D0)  parchment (legacy section bg, still used for some inset panels)
 // var(--ib-cream, #FDF6EE)  cream (page bg, same as the public Tours page)
-// #3F5D62  slate teal (secondary contrast accent, used sparingly)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent, used sparingly)
 // ---------------------------------------------------------
  
 // ─── Helpers ────────────────────────────────────────────────────────────────

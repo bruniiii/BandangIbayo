@@ -216,7 +216,7 @@ const DriverTrip = () => {
         </div>
 
         {stops.some((s) => s.lat == null || s.lng == null) && (
-          <div role="note" style={{ background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 14, padding: '10px 14px', fontSize: 12.5, fontWeight: 700, color: '#8C5216', lineHeight: 1.5 }}>
+          <div role="note" style={{ background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 14, padding: '10px 14px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)', lineHeight: 1.5 }}>
             Some pickup stops aren't pinned on the map yet, so they can't be marked Arrived by themselves. The admin can pin them in Tour Management → Edit → The Van's Route (search, Choose on map, or "Pickup point not in the list? Pin it on the map"). The van's location is still shared.
           </div>
         )}
@@ -226,10 +226,10 @@ const DriverTrip = () => {
           <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Pickup stops</p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {stops.map((s, i) => (
-              <li key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.status === 'ARRIVED' ? 'rgba(31,107,74,0.1)' : 'var(--ib-surface, #FFF)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 12, padding: '10px 12px' }}>
-                {s.status === 'ARRIVED' ? <CheckCircle2 size={18} color="#1F6B4A" /> : <MapPin size={18} color="var(--ib-accent, #B4511E)" />}
+              <li key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.status === 'ARRIVED' ? 'rgba(var(--ib-green-rgb, 31,107,74), 0.1)' : 'var(--ib-surface, #FFF)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 12, padding: '10px 12px' }}>
+                {s.status === 'ARRIVED' ? <CheckCircle2 size={18} color="var(--ib-green, #1F6B4A)" /> : <MapPin size={18} color="var(--ib-accent, #B4511E)" />}
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{i + 1}. {s.name}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: liveTimes[i] ? '#1F6B4A' : 'var(--ib-rust, #7A3A18)', textAlign: 'right' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: liveTimes[i] ? 'var(--ib-green, #1F6B4A)' : 'var(--ib-rust, #7A3A18)', textAlign: 'right' }}>
                   {s.status === 'ARRIVED' ? 'Arrived' : liveTimes[i] ? <>≈ {liveTimes[i]}<span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>live</span></> : s.scheduled_time || ''}
                 </span>
               </li>

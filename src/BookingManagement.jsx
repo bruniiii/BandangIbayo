@@ -321,7 +321,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
                     {b.tours?.title || 'Tour'} · “{b.cancellation_reason || '—'}”
                   </p>
                 </div>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#8C5216', whiteSpace: 'nowrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: 'var(--ib-warn, #8C5216)', whiteSpace: 'nowrap' }}>
                   <Clock size={13} /> {timeLeft(b)}
                 </span>
                 <button type="button" onClick={() => setSelectedBooking(b)} style={{
@@ -661,7 +661,7 @@ const BookingRow = ({ booking, onView }) => {
           {formatPeso(booking.total_price)}
         </p>
         {booking.payment_method === 'Downpayment' && (
-          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? 'var(--ib-sienna, #A8481A)' : '#8C5216', margin: '3px 0 0', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-warn, #8C5216)', margin: '3px 0 0', letterSpacing: '0.04em' }}>
             Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}
@@ -712,7 +712,7 @@ const BookingCard = ({ booking, onView }) => (
       <div style={{ textAlign: 'right', minWidth: 0, maxWidth: '100%' }}>
         <p style={{ fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', fontSize: 15, margin: 0, overflowWrap: 'anywhere' }}>{formatPeso(booking.total_price)}</p>
         {booking.payment_method === 'Downpayment' && (
-          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? 'var(--ib-sienna, #A8481A)' : '#8C5216', margin: '2px 0 0', overflowWrap: 'anywhere' }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-warn, #8C5216)', margin: '2px 0 0', overflowWrap: 'anywhere' }}>
             Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}

@@ -124,8 +124,8 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                       aria-label={`Actual expenses of ${formatDateRange(d.start_date, d.duration)}`}
                       style={{
                         flexShrink: 0, minHeight: 32, padding: '0 9px', borderRadius: 8, cursor: 'pointer',
-                        border: `1px solid ${d.expenses_final_at ? 'rgba(46,107,74,0.45)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.25)'}`, background: 'var(--ib-cream, #FDF6EE)',
-                        color: d.expenses_final_at ? '#2E6B4A' : 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 4,
+                        border: `1px solid ${d.expenses_final_at ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.45)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.25)'}`, background: 'var(--ib-cream, #FDF6EE)',
+                        color: d.expenses_final_at ? 'var(--ib-green, #2E6B4A)' : 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 4,
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
                       }}
                     ><Receipt size={11} /> {d.expenses_final_at ? 'Final' : 'Expenses'}</button>
@@ -138,7 +138,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                       aria-label={`Weather: postpone or cancel ${formatDateRange(d.start_date, d.duration)}`}
                       style={{
                         flexShrink: 0, minHeight: 32, width: 34, padding: 0, borderRadius: 8, cursor: 'pointer',
-                        border: '1px solid rgba(63,93,98,0.35)', background: 'var(--ib-cream, #FDF6EE)', color: '#3F5D62',
+                        border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.35)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-slate, #3F5D62)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     ><CloudRain size={14} /></button>

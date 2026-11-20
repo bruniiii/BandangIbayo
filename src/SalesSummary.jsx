@@ -214,7 +214,7 @@ const SalesSummary = ({ onData }) => {
                       <td style={td}>{t.pax}</td>
                       <td style={{ ...td, fontWeight: 800 }}>{formatPeso(t.collected)}</td>
                       <td style={{ ...td, fontWeight: t.hasRate ? 800 : 600, color: t.hasRate ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-red, #8C2F1C)' }}>{t.hasRate ? formatPeso(t.regular) : 'Not set'}</td>
-                      <td style={{ ...td, color: t.balance ? '#8C5216' : 'var(--ib-rust, #7A3A18)', fontWeight: t.balance ? 800 : 600 }}>{t.balance ? formatPeso(t.balance) : '—'}</td>
+                      <td style={{ ...td, color: t.balance ? 'var(--ib-warn, #8C5216)' : 'var(--ib-rust, #7A3A18)', fontWeight: t.balance ? 800 : 600 }}>{t.balance ? formatPeso(t.balance) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -241,7 +241,7 @@ const SalesSummary = ({ onData }) => {
                       <td style={{ ...td, fontFamily: 'monospace' }}>{r.ref}</td>
                       <td style={td}>{r.what}</td>
                       <td style={td}>{r.date ? formatYmdRange(r.date, '') : '—'}</td>
-                      <td style={{ ...td, fontWeight: 900, color: '#8C5216' }}>{formatPeso(r.amount)}</td>
+                      <td style={{ ...td, fontWeight: 900, color: 'var(--ib-warn, #8C5216)' }}>{formatPeso(r.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -256,7 +256,7 @@ const SalesSummary = ({ onData }) => {
 
 const Stat = ({ icon, label, value, sub, tone }) => (
   <div style={{ background: tone === 'warn' ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.18)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '14px 16px' }}>
-    <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: tone === 'warn' ? '#8C5216' : 'var(--ib-rust, #7A3A18)', margin: 0 }}>
+    <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: tone === 'warn' ? 'var(--ib-warn, #8C5216)' : 'var(--ib-rust, #7A3A18)', margin: 0 }}>
       {icon} {label}
     </p>
     <p style={{ fontSize: 'clamp(18px, 6.5vw, 24px)', fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: '6px 0 0', letterSpacing: '-0.02em', overflowWrap: 'anywhere' }}>{value}</p>

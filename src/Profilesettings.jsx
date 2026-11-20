@@ -439,7 +439,7 @@ const ProfileSettings = () => {
                 disabled={saving}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'rgba(192,54,44,0.06)', color: '#C0362C', border: '1px solid rgba(192,54,44,0.35)',
+                  background: 'rgba(var(--ib-danger-rgb, 192,54,44), 0.06)', color: 'var(--ib-danger, #C0362C)', border: '1px solid rgba(var(--ib-danger-rgb, 192,54,44), 0.35)',
                   borderRadius: 10, padding: '9px 16px', fontSize: 11.5, fontWeight: 800,
                   cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                 }}

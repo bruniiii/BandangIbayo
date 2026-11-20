@@ -106,7 +106,7 @@ const TourIncome = ({ onData }) => {
                         <td style={td}>{r.pax}</td>
                         <td style={td}>{formatPeso(r.fees)}</td>
                         <td style={td}>{r.expenses ? formatPeso(r.expTotal) : <span style={{ color: 'var(--ib-red, #8C2F1C)', fontWeight: 800 }}>Not set</span>}</td>
-                        <td style={{ ...td, fontWeight: 900, color: r.income < 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>{money(r.income)}</td>
+                        <td style={{ ...td, fontWeight: 900, color: r.income < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>{money(r.income)}</td>
                         <td style={{ ...td, textAlign: 'right' }}>
                           <button type="button" aria-expanded={isOpen} aria-label={`Breakdown for ${r.tour.title}`} onClick={(e) => { e.stopPropagation(); setOpen(isOpen ? null : r.tour.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-sienna, #A8481A)', display: 'inline-flex' }}>
                             <ChevronDown size={16} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
@@ -181,7 +181,7 @@ const Breakdown = ({ row }) => (
       ) : (
         <p style={{ ...muted, display: 'flex', gap: 6, alignItems: 'center' }}><AlertCircle size={14} /> No expenses yet. Edit this tour in Tour Management to add them.</p>
       )}
-      <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 900, color: row.income < 0 ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A', margin: '14px 0 0' }}>
+      <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 900, color: row.income < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)', margin: '14px 0 0' }}>
         <TrendingUp size={17} /> Income: {money(row.income)}
       </p>
     </div>
@@ -189,9 +189,9 @@ const Breakdown = ({ row }) => (
 );
 
 const Stat = ({ label, value, tone }) => (
-  <div style={{ background: tone === 'good' ? 'rgba(46,107,74,0.1)' : tone === 'bad' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '12px 16px' }}>
+  <div style={{ background: tone === 'good' ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)' : tone === 'bad' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '12px 16px' }}>
     <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{label}</p>
-    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? '#2E6B4A' : tone === 'bad' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', margin: '4px 0 0' }}>{value}</p>
+    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? 'var(--ib-green, #2E6B4A)' : tone === 'bad' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', margin: '4px 0 0' }}>{value}</p>
   </div>
 );
 

@@ -472,12 +472,12 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
             return (
               <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.28)' : 'transparent' }}>
                 {dayLabel}
-                <div role="note" style={{ margin: '8px 0', background: 'rgba(63,93,98,0.1)', border: '1px solid rgba(63,93,98,0.35)', borderRadius: 16, padding: '12px 14px' }}>
-                  <p style={{ margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3F5D62' }}>
+                <div role="note" style={{ margin: '8px 0', background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.1)', border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.35)', borderRadius: 16, padding: '12px 14px' }}>
+                  <p style={{ margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-slate, #3F5D62)' }}>
                     <Megaphone size={13} /> Announcement · Bandang IBAYO
                   </p>
                   <p style={{ margin: 0, fontSize: narrow ? 14.5 : 13.5, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.55, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.body}</p>
-                  <p style={{ margin: '6px 0 0', fontSize: 10.5, fontWeight: 600, color: '#3F5D62', textAlign: 'right' }}>{timeOf(m.created_at)}</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 10.5, fontWeight: 600, color: 'var(--ib-slate, #3F5D62)', textAlign: 'right' }}>{timeOf(m.created_at)}</p>
                 </div>
               </div>
             );

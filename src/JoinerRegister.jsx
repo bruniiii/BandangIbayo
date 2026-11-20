@@ -1228,7 +1228,7 @@ const JoinerRegister = ({ mode = 'register' }) => {
                   gap: 6,
                   fontSize: 11,
                   fontWeight: 700,
-                  color: '#dc2626',
+                  color: 'var(--ib-danger, #dc2626)',
                   margin: '8px 0 0 26px',
                 }}
               >

@@ -56,7 +56,7 @@ const HealthTab = () => {
           <p style={{ ...hint, margin: 0 }}>The job schedule can't be read here{jobs.error ? ` (${jobs.error})` : ''}. Check Supabase → Integrations → Cron.</p>
         ) : (
           <>
-            <p style={{ margin: '0 0 10px', display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, fontWeight: 800, color: bad.length ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>
+            <p style={{ margin: '0 0 10px', display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, fontWeight: 800, color: bad.length ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>
               {bad.length ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
               {bad.length ? `${bad.length} job${bad.length === 1 ? '' : 's'} failed recently.` : 'All jobs ran fine.'}
             </p>
@@ -67,7 +67,7 @@ const HealthTab = () => {
                   <div key={x.name} style={{ background: failed ? 'var(--ib-surface-2, #FBEDE6)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
                     <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{JOB_NAMES[x.name] || x.name}</p>
                     <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{x.name} · {x.schedule}{x.active ? '' : ' · paused'}</p>
-                    <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 800, color: failed ? 'var(--ib-red, #8C2F1C)' : '#2E6B4A' }}>
+                    <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 800, color: failed ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>
                       {x.last_run ? `Last run ${when(x.last_run)}: ${x.last_status}` : 'Not run yet'}{x.failed_24h ? ` · ${x.failed_24h} failed in 24 hours` : ''}
                     </p>
                     {failed && x.last_message && <p style={{ margin: '4px 0 0', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-red, #8C2F1C)', overflowWrap: 'anywhere' }}>{x.last_message}</p>}

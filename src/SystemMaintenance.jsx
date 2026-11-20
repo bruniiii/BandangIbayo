@@ -110,7 +110,7 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
               background: on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
               border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`, boxShadow: on ? '0 6px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)' : 'none',
             }}>
-              <span style={{ width: 20, height: 20, borderRadius: '50%', background: on ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: 'var(--ib-dark, #1A0A00)', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', letterSpacing: 0 }}>{i + 1}</span>
+              <span style={{ width: 20, height: 20, borderRadius: '50%', background: on ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-dark, #1A0A00)', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', letterSpacing: 0 }}>{i + 1}</span>
               <Icon size={14} /> {label}
             </button>
           );

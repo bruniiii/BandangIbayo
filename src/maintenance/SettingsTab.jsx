@@ -29,7 +29,7 @@ const Toggle = ({ on, onChange, disabled, label: text }) => (
     width: 52, height: 30, borderRadius: 999, border: 'none', padding: 3, cursor: disabled ? 'not-allowed' : 'pointer', flexShrink: 0,
     background: on ? '#2E9B5F' : '#C9B8A6', display: 'flex', justifyContent: on ? 'flex-end' : 'flex-start', transition: 'background 0.15s', opacity: disabled ? 0.6 : 1,
   }}>
-    <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--ib-surface, #FFFDF9)', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }} />
+    <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#FFFDF9', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }} />
   </button>
 );
 
@@ -105,7 +105,7 @@ const SettingsTab = ({ onNavigate }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {!canEdit && (
-        <p role="note" style={{ ...row, margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A4410' }}>
+        <p role="note" style={{ ...row, margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #7A4410)' }}>
           <Lock size={15} /> Only the main admin can change these settings. You can see them here.
         </p>
       )}
@@ -157,7 +157,7 @@ const SettingsTab = ({ onNavigate }) => {
           {EMAILS.map(([k, t, d]) => (
             <div key={k} style={row}>
               <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{t} <span style={{ marginLeft: 6, color: emails[k] !== false ? '#1B5E3B' : 'var(--ib-red, #8C2F1C)' }}>{emails[k] !== false ? 'On' : 'Off'}</span></p>
+                <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{t} <span style={{ marginLeft: 6, color: emails[k] !== false ? 'var(--ib-green, #1B5E3B)' : 'var(--ib-red, #8C2F1C)' }}>{emails[k] !== false ? 'On' : 'Off'}</span></p>
                 <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{d}</p>
               </div>
               <Toggle on={emails[k] !== false} onChange={(v) => setEmail(k, v)} disabled={!canEdit || saving === 'email_settings'} label={t} />

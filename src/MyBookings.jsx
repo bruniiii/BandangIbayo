@@ -41,7 +41,7 @@ import NiceSelect from './ui/NiceSelect';
 // var(--ib-red, #8C2F1C)  deep rust red (error / cancelled)
 // var(--ib-parch, #F2E4D0)  parchment (inset panel bg)
 // #EDEAE3  warm stone (page bg)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
  
 /* Tracks viewport width so the booking card can switch from a
@@ -1115,7 +1115,7 @@ const TourExpensesSection = ({ tourId }) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {expenses.map((label, i) => (
           <div key={`${label}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)' }}>
-            <CheckCircle2 size={14} style={{ color: '#1F8A5C', flexShrink: 0 }} /><span>{label}</span>
+            <CheckCircle2 size={14} style={{ color: 'var(--ib-green, #1F8A5C)', flexShrink: 0 }} /><span>{label}</span>
           </div>
         ))}
       </div>
@@ -1289,7 +1289,7 @@ const StatusBadge = ({ booking }) => {
   } else if (booking.payment_status === 'Awaiting Payment') {
     bg = 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)'; color = 'var(--ib-sienna, #A8481A)'; label = 'Awaiting Payment';
   } else if (booking.payment_status === 'Complete' || booking.payment_status === 'Verified') {
-    bg = 'rgba(63,93,98,0.15)'; color = '#3F5D62'; label = 'Confirmed Trip';
+    bg = 'rgba(var(--ib-slate-rgb, 63,93,98), 0.15)'; color = 'var(--ib-slate, #3F5D62)'; label = 'Confirmed Trip';
   } else if (booking.payment_status === 'Pending' || booking.payment_status === 'Verification Pending') {
     bg = 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)'; color = 'var(--ib-sienna, #A8481A)'; label = 'Verification Pending';
   }

@@ -186,7 +186,7 @@ export const ItineraryField = ({ start, end, value, onChange, note }) => {
     <div>
       <label style={labelStyle}>Itinerary</label>
       {days.length === 0 ? (
-        <p style={{ fontSize: 12.5, fontWeight: 700, color: '#8C5216', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 12, padding: '10px 12px', margin: 0 }}>
+        <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 12, padding: '10px 12px', margin: 0 }}>
           Pick the tour's start and end date first. A list for each day will appear here.
         </p>
       ) : (

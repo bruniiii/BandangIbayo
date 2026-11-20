@@ -41,7 +41,7 @@ import NiceSelect from './ui/NiceSelect';
 
 // #EDEAE3  warm stone (page bg)
 
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 
 // ---------------------------------------------------------
 

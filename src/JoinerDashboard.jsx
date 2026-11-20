@@ -52,7 +52,7 @@ import AnnouncementBanner from './ui/AnnouncementBanner';
 // var(--ib-rust, #7A3A18)  rust mid-tone
 // var(--ib-parch, #F2E4D0)  parchment (inset panels / secondary bg)
 // var(--ib-cream, #FDF6EE)  cream (page bg, same as the public Tours page)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
 const NAV_ITEMS = [

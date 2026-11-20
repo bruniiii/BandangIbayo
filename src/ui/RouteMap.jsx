@@ -25,7 +25,7 @@ const dot = (color, size = 14, label = '') => L.divIcon({
   html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:3px solid var(--ib-cream, #FDF6EE);box-shadow:0 2px 6px rgba(var(--ib-shadow-rgb, 26,10,0), 0.45);display:flex;align-items:center;justify-content:center;color:var(--ib-on-ink, #FDF6EE);font:900 9px Outfit,sans-serif">${label}</div>`,
 });
 
-const STOP_COLORS = { ARRIVED: '#3F5D62', 'CURRENTLY HERE': 'var(--ib-amber, #E8A265)' };
+const STOP_COLORS = { ARRIVED: 'var(--ib-slate, #3F5D62)', 'CURRENTLY HERE': 'var(--ib-amber, #E8A265)' };
 
 const RouteMap = ({ route, stops = [], others = [], van = null, height = 300 }) => {
   const box = useRef(null);
