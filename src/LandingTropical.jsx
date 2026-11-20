@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
-  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Search, Sparkles, X,
+  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Search, Sparkles, X, Bus,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
@@ -57,6 +57,11 @@ const REASONS = [
   { icon: Smartphone, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
 ];
 
+// The handwritten accent font (matches the script in the logo).
+const SCRIPT_FONT = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap';
+// Shown in the moving ribbon under the photo when there are few destinations.
+const KINDS = ['Mountains', 'Beaches', 'Islands', 'Waterfalls', 'Sunrise hikes', 'Food trips'];
+
 const LandingTropical = () => {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +72,15 @@ const LandingTropical = () => {
   const [form, setForm] = useState({ where: '', when: '', who: '' });
   const [applied, setApplied] = useState({ where: '', when: '', who: '' });
   const listRef = useRef(null);
+  const pageRef = useRef(null);
+
+  useEffect(() => {
+    if (document.querySelector(`link[href="${SCRIPT_FONT}"]`)) return;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = SCRIPT_FONT;
+    document.head.appendChild(l);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -93,6 +107,18 @@ const LandingTropical = () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Sections float up as they scroll into view (not with "reduce motion").
+  useEffect(() => {
+    const root = pageRef.current;
+    if (!root || lessMotion() || !('IntersectionObserver' in window)) return undefined;
+    const seen = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('is-in'); seen.unobserve(e.target); }
+    }), { rootMargin: '0px 0px -8% 0px' });
+    root.classList.add('lk-anim');
+    root.querySelectorAll('.lk-reveal:not(.is-in)').forEach((el) => seen.observe(el));
+    return () => seen.disconnect();
+  }, [loading, tripPhotos.length]);
 
   const featured = useMemo(() => tours.filter((t) => t.image_urls?.[0]).slice(0, 5), [tours]);
   const landing = SITE.landing || {};
@@ -132,7 +158,7 @@ const LandingTropical = () => {
   const [priceColor, priceMuted] = ['#0B3B4F', 'rgba(11,59,79,0.6)'];
 
   return (
-    <div className="lk lk-tropical">
+    <div className="lk lk-tropical" ref={pageRef}>
       <nav className={`lk-nav${scrolled ? ' is-scrolled' : ''}`}>
         <Link to="/" className="lk-brand" aria-label="Bandang IBAYO home">
           <img src={logoIcon} alt="BANDANG IBAYO" />
@@ -199,6 +225,15 @@ const LandingTropical = () => {
         </div>
       </header>
 
+      {/* ── A tilted ribbon of destinations, always moving ── */}
+      <div className="lk-ribbon" aria-hidden="true">
+        <div className="lk-ribbon-track">
+          {[0, 1].map((k) => (
+            <span key={k}>{(places.length >= 3 ? places : KINDS).map((p) => <span key={p}>{p} <i>✦</i> </span>)}</span>
+          ))}
+        </div>
+      </div>
+
       {/* ── TOURS ── */}
       <section id="tours" ref={listRef} className="lk-section">
         <div className="lk-wrap">
@@ -226,7 +261,7 @@ const LandingTropical = () => {
               {shown.map((tour) => {
                 const left = slotsLeft(tour);
                 return (
-                  <article key={tour.id} className="lk-card">
+                  <article key={tour.id} className="lk-card lk-reveal">
                     <div className="lk-card-img">
                       <Link to={`/tours/${tour.id}`} aria-label={tour.title} className="lk-cover" />
                       <img src={tour.image_urls?.[0] || FALLBACK_PHOTO} alt={tour.title} loading="lazy" decoding="async" />
@@ -238,6 +273,7 @@ const LandingTropical = () => {
                       <h3 className="lk-h3">{tour.title}</h3>
                       <p className="lk-meta"><Calendar size={15} /> {`${formatDate(tour.start_date)} (${weekdayRange(tour.start_date, tour.duration)})` + (tour.dates?.length > 1 ? `  +${tour.dates.length - 1} more date${tour.dates.length > 2 ? 's' : ''}` : '')}</p>
                       <p className="lk-meta"><Clock size={15} /> {tour.duration} · <Users size={15} /> {tour.group_size} max pax</p>
+                      <div className="lk-card-tear" aria-hidden="true" />
                       <div className="lk-card-foot">
                         <div>
                           <div className="lk-tiny">Starts at</div>
@@ -289,7 +325,7 @@ const LandingTropical = () => {
             {TOUR_TYPES.map((t, i) => {
               const Icon = t.icon;
               return (
-                <div key={t.title} className="lk-type">
+                <div key={t.title} className="lk-type lk-reveal">
                   <div className="lk-type-img"><img src={photo(i + 1)} alt="" loading="lazy" decoding="async" /><span className="lk-tag">{t.tag}</span></div>
                   <div className="lk-type-body">
                     <h3 className="lk-h3"><Icon size={20} /> {t.title}</h3>
@@ -310,7 +346,8 @@ const LandingTropical = () => {
             <h2 className="lk-h2">How to Book</h2>
             <p className="lk-sub">No more chaotic Facebook threads. Confirm your seat in minutes.</p>
           </div>
-          <ol className="lk-steps">
+          <ol className="lk-steps lk-reveal">
+            <li className="lk-van" aria-hidden="true"><Bus size={22} /></li>
             {STEPS.map((s) => {
               const Icon = s.icon;
               return (
@@ -328,7 +365,7 @@ const LandingTropical = () => {
       {/* ── WHY US: a photo beside the reasons ── */}
       <section id="why" className="lk-section lk-alt">
         <div className="lk-wrap lk-why">
-          <div className="lk-why-photo"><img src={photo(4)} alt="" loading="lazy" decoding="async" /></div>
+          <div className="lk-why-photo lk-reveal"><img src={photo(4)} alt="" loading="lazy" decoding="async" /></div>
           <div>
             <span className="lk-eyebrow">Why Us</span>
             <h2 className="lk-h2">Built for Smarter, Safer Journeys</h2>
@@ -360,7 +397,7 @@ const LandingTropical = () => {
           <div className="lk-wrap"><div className="lk-head"><span className="lk-eyebrow">From Our Trips</span><h2 className="lk-h2 lk-h2-sm">Where we've been</h2></div></div>
           <div className="lk-strip">
             {tripPhotos.map((p) => (
-              <figure key={p.src}><img src={p.src} alt={p.label} loading="lazy" decoding="async" /><figcaption>{p.label}</figcaption></figure>
+              <figure key={p.src} className="lk-reveal"><img src={p.src} alt={p.label} loading="lazy" decoding="async" /><figcaption>{p.label}</figcaption></figure>
             ))}
           </div>
         </section>
@@ -622,6 +659,82 @@ const PAGE_CSS = `
 .lk-tropical .lk-search .lk-search-go { border-radius: 999px; }
 .lk-tropical .lk-step-num { background: linear-gradient(135deg, #FF7A3D, #FFB23D); }
 
+
+/* ═════════ Creative touches ═════════ */
+/* Handwritten labels and a brush-stroke under the headline's accent */
+.lk-eyebrow { font-family: 'Caveat', cursive; font-size: 27px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--accent); transform: rotate(-2deg); transform-origin: left; }
+.lk-center .lk-eyebrow { transform-origin: center; }
+.lk-hero .lk-h1 em { position: relative; display: inline-block; }
+.lk-hero .lk-h1 em::after { content: ''; position: absolute; left: 2%; right: 2%; bottom: -0.14em; height: 0.22em; z-index: -1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 20' preserveAspectRatio='none'%3E%3Cpath d='M3 14 C 60 4, 120 4, 170 10 S 260 16, 297 6' fill='none' stroke='%23FF7A3D' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%; }
+.lk-hero .lk-h1 { isolation: isolate; }
+
+/* The moving ribbon of destinations */
+.lk-ribbon { position: relative; z-index: 5; margin: -34px -2% 0; padding: 14px 0; background: #0A8BA6; color: #FFFFFF; transform: rotate(-1.6deg); box-shadow: 0 12px 30px rgba(10,139,166,0.3); overflow: hidden; }
+.lk-ribbon-track { display: flex; width: max-content; animation: lk-marquee 38s linear infinite; }
+.lk-ribbon-track > span { display: flex; white-space: nowrap; }
+.lk-ribbon-track span span { font-family: 'Caveat', cursive; font-size: 30px; font-weight: 700; padding: 0 6px; }
+.lk-ribbon i { font-style: normal; color: #FFD27A; font-family: 'Outfit', sans-serif; font-size: 18px; padding: 0 14px; vertical-align: middle; }
+@keyframes lk-marquee { to { transform: translateX(-50%); } }
+
+/* Soft sun and sea shapes behind the sections */
+.lk-section { position: relative; }
+.lk-alt { overflow: hidden; }
+.lk-alt::before, .lk-alt::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; }
+.lk-alt::before { width: 420px; height: 420px; top: -140px; right: -120px; background: radial-gradient(circle, rgba(255,178,61,0.35), rgba(255,178,61,0) 70%); }
+.lk-alt::after { width: 520px; height: 520px; bottom: -260px; left: -180px; background: radial-gradient(circle, rgba(10,139,166,0.16), rgba(10,139,166,0) 70%); }
+.lk-alt > .lk-wrap { position: relative; z-index: 1; }
+
+/* Tour cards as tickets: a torn line with notches above the price */
+.lk-card { position: relative; }
+.lk-card-tear { position: relative; margin: 18px -22px 0; border-top: 2px dashed rgba(11,59,79,0.18); }
+.lk-card-tear::before, .lk-card-tear::after { content: ''; position: absolute; top: -12px; width: 22px; height: 22px; border-radius: 50%; background: var(--bg); }
+.lk-card-tear::before { left: -11px; }
+.lk-card-tear::after { right: -11px; }
+.lk-card-foot { padding-top: 14px; }
+
+/* Tour types as tilted photo prints with tape */
+.lk-type { background: #FFFFFF; padding: 12px 12px 4px; border-radius: 10px; box-shadow: 0 16px 36px rgba(11,59,79,0.14); transition: transform 0.35s ease, box-shadow 0.35s ease; position: relative; overflow: visible; }
+.lk-type:nth-child(1) { transform: rotate(-2.2deg); }
+.lk-type:nth-child(2) { transform: rotate(1.4deg) translateY(10px); }
+.lk-type:nth-child(3) { transform: rotate(-1deg); }
+.lk-type:hover { transform: rotate(0) translateY(-6px); box-shadow: 0 24px 50px rgba(11,59,79,0.2); }
+.lk-type::before { content: ''; position: absolute; top: -12px; left: 50%; width: 96px; height: 26px; transform: translateX(-50%) rotate(-3deg); background: rgba(255,210,122,0.75); z-index: 2; border-radius: 3px; }
+.lk-type-img { border-radius: 4px; }
+.lk-type-body { padding: 16px 8px 18px; }
+
+/* How to Book: a little bus drives along the road */
+.lk-steps::before { border-top: 4px dashed rgba(10,139,166,0.45); }
+.lk-van { position: absolute; top: 18px; left: calc(16.7% + 46px); z-index: 2; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: #FFFFFF; color: #0A8BA6; box-shadow: 0 6px 16px rgba(11,59,79,0.18); animation: lk-drive 9s ease-in-out infinite; list-style: none; }
+@keyframes lk-drive { 0%, 8% { left: calc(16.7% + 46px); } 46%, 54% { left: calc(83.3% - 82px); } 92%, 100% { left: calc(16.7% + 46px); } }
+.lk-step:nth-child(3) .lk-step-num { background: linear-gradient(135deg, #0A8BA6, #2BB3C9); }
+.lk-step:nth-child(4) .lk-step-num { background: linear-gradient(135deg, #19A974, #5CC98F); }
+
+/* Trip photos as tilted prints with handwritten captions */
+.lk-strip figure { background: #FFFFFF; padding: 10px 10px 46px; border-radius: 6px; box-shadow: 0 14px 30px rgba(11,59,79,0.16); height: auto; overflow: visible; }
+.lk-strip figure img { height: clamp(220px, 26vw, 320px); border-radius: 3px; }
+.lk-strip figure:nth-child(odd) { transform: rotate(-1.8deg); }
+.lk-strip figure:nth-child(even) { transform: rotate(1.6deg); }
+.lk-strip figcaption { top: auto; bottom: 8px; padding: 0 12px; background: none; color: #0B3B4F; font-family: 'Caveat', cursive; font-size: 25px; font-weight: 700; }
+.lk-strip { padding-top: 18px; padding-bottom: 26px; }
+.lk-why-photo { transform: rotate(-1.5deg); border: 10px solid #FFFFFF; }
+
+/* Float up into view */
+.lk-anim .lk-reveal { opacity: 0; translate: 0 28px; transition: opacity 0.7s ease, translate 0.7s ease; }
+.lk-anim .lk-reveal.is-in { opacity: 1; translate: 0 0; }
+
+@media (max-width: 760px) {
+  .lk-ribbon { margin-top: -26px; padding: 10px 0; }
+  .lk-ribbon-track span span { font-size: 24px; }
+  .lk-eyebrow { font-size: 24px; }
+  .lk-type:nth-child(2) { transform: rotate(1.4deg); }
+  .lk-van { display: none; }
+  .lk-steps::before { border-top: none; border-left: 4px dashed rgba(10,139,166,0.45); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lk-ribbon-track, .lk-van { animation: none !important; }
+}
 `;
 
 export default LandingTropical;
