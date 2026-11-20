@@ -10,7 +10,7 @@ const Select = ({ label, value, onChange, options, anyLabel, style, minWidth }) 
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      style={{ ...style, appearance: 'none', paddingRight: 32, cursor: 'pointer', ...(value ? { borderColor: '#B4511E', color: '#A8481A', fontWeight: 800 } : null) }}
+      style={{ ...style, appearance: 'none', paddingRight: 32, cursor: 'pointer', ...(value ? { borderColor: 'var(--ib-accent, #B4511E)', color: 'var(--ib-sienna, #A8481A)', fontWeight: 800 } : null) }}
     >
       <option value="">{anyLabel}</option>
       {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}

@@ -8,18 +8,18 @@ import { emailError, emailSuggestion } from './validation';
 import { usePopupError } from './ui/usePopupError';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00 espresso dark · #A8481A burnt sienna · #FDF6EE cream
-// #7A3A18 rust mid-tone · #F2E4D0 parchment · #8C2F1C error
+// var(--ib-dark, #1A0A00) espresso dark · var(--ib-sienna, #A8481A) burnt sienna · var(--ib-cream, #FDF6EE) cream
+// var(--ib-rust, #7A3A18) rust mid-tone · var(--ib-parch, #F2E4D0) parchment · var(--ib-red, #8C2F1C) error
 // ---------------------------------------------------------
 
 const inputStyle = {
   width: '100%',
   padding: '12px 16px',
   borderRadius: 10,
-  border: '1.5px solid rgba(180,81,30,0.2)',
-  background: '#FDF6EE',
+  border: '1.5px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+  background: 'var(--ib-cream, #FDF6EE)',
   fontSize: 14,
-  color: '#1A0A00',
+  color: 'var(--ib-dark, #1A0A00)',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -31,7 +31,7 @@ const labelStyle = {
   fontWeight: 800,
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
-  color: '#7A3A18',
+  color: 'var(--ib-rust, #7A3A18)',
   marginBottom: 6,
   opacity: 0.9,
 };
@@ -69,20 +69,20 @@ const ForgotPassword = () => {
   return (
     <div style={{
       minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00',
+      background: 'var(--ib-cream, #FDF6EE)', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: 'var(--ib-dark, #1A0A00)',
       padding: '3rem 1rem',
     }}>
       <div style={{
-        background: '#FDF6EE', padding: '2.5rem', borderRadius: 24,
-        boxShadow: '0 20px 60px rgba(26,10,0,0.14)', width: '100%', maxWidth: 420,
-        borderTop: '7px solid #B4511E',
+        background: 'var(--ib-cream, #FDF6EE)', padding: '2.5rem', borderRadius: 24,
+        boxShadow: '0 20px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.14)', width: '100%', maxWidth: 420,
+        borderTop: '7px solid var(--ib-accent, #B4511E)',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 56, height: 56, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
-          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
+          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 8px' }}>
             Reset Your Password
           </h1>
-          <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 13, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {sent ? 'Check your inbox for a reset link.' : "Enter your email and we'll send you a reset link."}
           </p>
         </div>
@@ -90,15 +90,15 @@ const ForgotPassword = () => {
         {sent ? (
           <div style={{ textAlign: 'center', padding: '1rem 0' }}>
             <div style={{
-              width: 64, height: 64, borderRadius: '50%', background: 'rgba(180,81,30,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#A8481A',
+              width: 64, height: 64, borderRadius: '50%', background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--ib-sienna, #A8481A)',
             }}>
               <CheckCircle2 size={30} />
             </div>
-            <p style={{ fontSize: 13, color: '#7A3A18', margin: '0 0 20px', lineHeight: 1.6 }}>
-              If an account exists for <strong style={{ color: '#1A0A00' }}>{email}</strong>, a password reset link is on its way. It may take a few minutes to arrive.
+            <p style={{ fontSize: 13, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 20px', lineHeight: 1.6 }}>
+              If an account exists for <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{email}</strong>, a password reset link is on its way. It may take a few minutes to arrive.
             </p>
-            <Link className="text-link" to="/login" style={{ color: '#A8481A', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
+            <Link className="text-link" to="/login" style={{ color: 'var(--ib-sienna, #A8481A)', fontWeight: 800, textDecoration: 'none', fontSize: 13 }}>
               ← Back to Login
             </Link>
           </div>
@@ -117,15 +117,15 @@ const ForgotPassword = () => {
             </div>
 
             {error && (
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{error}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>{error}</p>
             )}
 
             <button
               disabled={loading || !email.trim()}
               style={{
                 width: '100%',
-                background: loading || !email.trim() ? 'rgba(180,81,30,0.55)' : '#B4511E',
-                color: '#FDF6EE',
+                background: loading || !email.trim() ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.55)' : 'var(--ib-accent, #B4511E)',
+                color: 'var(--ib-cream, #FDF6EE)',
                 fontWeight: 900,
                 fontSize: 13,
                 letterSpacing: '0.1em',
@@ -151,9 +151,9 @@ const ForgotPassword = () => {
         )}
 
         {!sent && (
-          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.9 }}>
+          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>
             Remembered it?{' '}
-            <Link className="text-link" to="/login" style={{ color: '#A8481A', fontWeight: 800, textDecoration: 'none' }}>
+            <Link className="text-link" to="/login" style={{ color: 'var(--ib-sienna, #A8481A)', fontWeight: 800, textDecoration: 'none' }}>
               Log in
             </Link>
           </p>

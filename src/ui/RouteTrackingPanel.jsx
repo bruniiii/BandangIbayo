@@ -15,7 +15,7 @@ import { agoText } from '../useVanLocation';
 //   myStop: the joiner's pickup point name (shows how far the van is from it)
 // ─────────────────────────────────────────────
 
-const label = { fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6 };
+const label = { fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 };
 
 // "21:00" (time input) → "9:00 PM"
 const to12h = (hhmm) => addMinutesToTime(hhmm, 0);
@@ -38,19 +38,19 @@ const RouteTrackingPanel = ({ tour, stops = [], onAutoFill = null, van = null, m
   const mineMin = mineLive ? mineLive.minutes : mineKm != null ? Math.max(1, Math.round((mineKm / speed) * 60)) : null;
 
   return (
-    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <p style={label}><Route size={14} /> The van's route</p>
       {route?.start && route?.end && (
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
-          From <strong style={{ color: '#1A0A00' }}>{route.start.name}</strong> to <strong style={{ color: '#1A0A00' }}>{route.end.name}</strong>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
+          From <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{route.start.name}</strong> to <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{route.end.name}</strong>
           {route.distance_km ? ` · ${route.distance_km} km` : ''}
         </p>
       )}
       {vanLive && (
-        <div role="status" style={{ background: stale ? 'rgba(232,162,101,0.2)' : 'rgba(46,125,50,0.12)', border: `1px solid ${stale ? 'rgba(232,162,101,0.6)' : 'rgba(46,125,50,0.35)'}`, borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, color: stale ? '#8C5216' : '#1F5E36', lineHeight: 1.5 }}>
+        <div role="status" style={{ background: stale ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)' : 'rgba(46,125,50,0.12)', border: `1px solid ${stale ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.6)' : 'rgba(46,125,50,0.35)'}`, borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800, color: stale ? '#8C5216' : '#1F5E36', lineHeight: 1.5 }}>
           🚐 {stale ? `The van's location was last updated ${agoText(van.updated_at, now)}.` : `Live: the van's location was updated ${agoText(van.updated_at, now)}.`}
           {mineKm != null && !stale && (
-            <span style={{ display: 'block', color: '#1A0A00' }}>
+            <span style={{ display: 'block', color: 'var(--ib-dark, #1A0A00)' }}>
               About {mineKm < 1 ? `${Math.round(mineKm * 1000)} m` : `${mineKm.toFixed(1)} km`} from your stop ({mine.location_name}) · about {mineMin} min{mineLive ? ` (around ${mineLive.time})` : ''}
             </span>
           )}
@@ -77,23 +77,23 @@ export const EtaAutoFill = ({ stops = [], onAutoFill }) => {
     setBusy(false);
   };
   return (
-    <div style={{ background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '0.9rem', display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12, padding: '0.9rem', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <p style={{ ...label, letterSpacing: '0.14em' }}><Clock size={14} /> Change the first pickup time</p>
-      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
         What time is the first pickup? The first stop gets this time, and every other stop's ETA is worked out again from the driving time after it.
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <input type="time" name="departure_time" value={departure} onChange={(e) => setDeparture(e.target.value)} aria-label="First pickup time" style={{
-          background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 10, padding: '9px 12px', fontSize: 16, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit',
+          background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 10, padding: '9px 12px', fontSize: 16, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit',
         }} />
         <button type="button" onClick={fill} disabled={!departure || busy} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', borderRadius: 999, border: 'none',
           cursor: !departure || busy ? 'not-allowed' : 'pointer', opacity: departure ? 1 : 0.5,
-          background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Clock size={14} />} Fill In ETAs</button>
       </div>
       {preview.length > 0 && (
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#1A0A00', lineHeight: 1.6 }}>{preview.join(' · ')}</p>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6 }}>{preview.join(' · ')}</p>
       )}
     </div>
   );

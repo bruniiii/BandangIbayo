@@ -231,7 +231,7 @@ main {
   border: none;
   cursor: pointer;
   padding: 6px;
-  color: #1A0A00;
+  color: var(--ib-dark, #1A0A00);
   align-items: center;
   justify-content: center;
 }
@@ -250,7 +250,7 @@ main {
     z-index: 100 !important;
     padding-bottom: env(safe-area-inset-bottom);
     transform: translateX(-100%);
-    box-shadow: 8px 0 40px rgba(26,10,0,0.35) !important;
+    box-shadow: 8px 0 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.35) !important;
   }
  
   .dashboard-sidebar.is-open {
@@ -265,7 +265,7 @@ main {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(26,10,0,0.55);
+    background: rgba(var(--ib-dark-rgb, 26,10,0), 0.55);
     backdrop-filter: blur(2px);
     z-index: 90;
   }

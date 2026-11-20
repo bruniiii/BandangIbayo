@@ -31,14 +31,14 @@ const mapLink = (place) => `https://www.google.com/maps/search/?api=1&query=${en
 
 const Section = ({ icon, title, children }) => (
   <div>
-    <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 8px' }}>
+    <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 8px' }}>
       {icon} {title}
     </p>
     {children}
   </div>
 );
 
-const muted = { fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.6 };
+const muted = { fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0, lineHeight: 1.6 };
 
 const TripDayCard = ({ booking }) => {
   const tour = booking.tours;
@@ -64,19 +64,19 @@ const TripDayCard = ({ booking }) => {
 
   return (
     <section aria-label={`Day trip: ${tour.title}`} style={{
-      background: '#FDF6EE', borderRadius: 24, overflow: 'hidden',
-      border: '1px solid rgba(180,81,30,0.18)', boxShadow: '0 10px 32px rgba(26,10,0,0.10)',
+      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, overflow: 'hidden',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', boxShadow: '0 10px 32px rgba(var(--ib-dark-rgb, 26,10,0), 0.10)',
     }}>
       {/* header */}
-      <div style={{ background: '#1A0A00', color: '#FDF6EE', padding: '1.1rem 1.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', padding: '1.1rem 1.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265', margin: 0 }}>Day trip</p>
-          <h3 style={{ fontSize: 20, color: '#FDF6EE', margin: '4px 0 2px', lineHeight: 1.2 }}>{tour.title}</h3>
-          <p style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(253,246,238,0.85)', margin: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)', margin: 0 }}>Day trip</p>
+          <h3 style={{ fontSize: 20, color: 'var(--ib-cream, #FDF6EE)', margin: '4px 0 2px', lineHeight: 1.2 }}>{tour.title}</h3>
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.85)', margin: 0 }}>
             {formatDateRange(tour.start_date, tour.duration)} · {booking.slots_booked || 1} {booking.slots_booked === 1 ? 'person' : 'persons'} · {booking.booking_number}
           </p>
         </div>
-        <span style={{ background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>
+        <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '6px 14px', fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap' }}>
           {whenLabel(tour)}
         </span>
       </div>
@@ -94,9 +94,9 @@ const TripDayCard = ({ booking }) => {
             ) : details.stops.length ? (
               <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {details.stops.map((s) => (
-                  <li key={s.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(180,81,30,0.06)', borderRadius: 12, padding: '9px 12px' }}>
+                  <li key={s.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 12, padding: '9px 12px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13.5, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{s.location_name}</p>
+                      <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{s.location_name}</p>
                       <p style={{ ...muted, display: 'flex', alignItems: 'center', gap: 5 }}>
                         <Clock size={12} /> {s.scheduled_time || 'Time to follow'}{s.note ? ` · ${s.note}` : ''}
                       </p>
@@ -115,7 +115,7 @@ const TripDayCard = ({ booking }) => {
           <Section icon={<Bus size={13} />} title="Driver & vehicle">
             {!details ? <Skel w="70%" h={12} /> : vehicle ? (
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 16px' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#1A0A00', margin: 0 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
                   {[vehicle.vehicle_color ? `${vehicle.vehicle_color} ${vehicle.car_type || 'vehicle'}` : vehicle.car_type, vehicle.plate_number && `Plate ${vehicle.plate_number}`, vehicle.driver_name].filter(Boolean).join(' · ') || 'Assigned soon'}
                 </p>
                 {vehicle.vehicle_notes && (
@@ -139,9 +139,9 @@ const TripDayCard = ({ booking }) => {
           )}
 
           {balance > 0 && (
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(140,47,28,0.08)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 14, padding: '10px 12px' }}>
-              <Wallet size={16} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 2 }} />
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#8C2F1C', margin: 0, lineHeight: 1.5 }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.2)', borderRadius: 14, padding: '10px 12px' }}>
+              <Wallet size={16} style={{ color: 'var(--ib-red, #8C2F1C)', flexShrink: 0, marginTop: 2 }} />
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0, lineHeight: 1.5 }}>
                 Balance of {formatPeso(balance)} is due on the day. You can pay it online from your booking below, or in cash/GCash on the day.
               </p>
             </div>
@@ -149,8 +149,8 @@ const TripDayCard = ({ booking }) => {
 
           {tour.important_note && (
             <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-              <AlertCircle size={16} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
-              <p style={{ fontSize: 12.5, fontWeight: 700, color: '#1A0A00', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{tour.important_note}</p>
+              <AlertCircle size={16} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 2 }} />
+              <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{tour.important_note}</p>
             </div>
           )}
         </div>

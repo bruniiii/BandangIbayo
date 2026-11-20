@@ -21,7 +21,7 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 
       fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
 
-      textTransform: 'uppercase', color: titleColor || '#1A0A00',
+      textTransform: 'uppercase', color: titleColor || 'var(--ib-dark, #1A0A00)',
 
       margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6,
 
@@ -47,15 +47,15 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
   if (items.length === 0) {
 
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>N/A</p>;
 
   }
 
 
 
-  const iconColor = variant === 'exclude' ? '#8C2F1C' : '#A8481A';
+  const iconColor = variant === 'exclude' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-sienna, #A8481A)';
 
-  const itemBg = variant === 'exclude' ? 'rgba(140,47,28,0.06)' : variant === 'include' ? 'rgba(168,72,26,0.07)' : 'rgba(180,81,30,0.06)';
+  const itemBg = variant === 'exclude' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.06)' : variant === 'include' ? 'rgba(var(--ib-sienna-rgb, 168,72,26), 0.07)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)';
 
   const Icon = variant === 'exclude' ? X : CheckCircle2;
 
@@ -79,7 +79,7 @@ const ChecklistGrid = ({ text, variant = 'neutral' }) => {
 
           <span style={{ color: iconColor, flexShrink: 0, marginTop: 1 }}><Icon size={13} /></span>
 
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.4 }}>{item}</span>
 
         </div>
 
@@ -163,9 +163,9 @@ const TourImageCarousel = ({ images = [] }) => {
 
           borderRadius: 18, overflow: 'hidden',
 
-          background: '#F2E4D0', marginBottom: hasMultiple ? 12 : 20,
+          background: 'var(--ib-parch, #F2E4D0)', marginBottom: hasMultiple ? 12 : 20,
 
-          boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
+          boxShadow: '0 8px 24px rgba(var(--ib-dark-rgb, 26,10,0), 0.15)',
 
           flexShrink: 0, touchAction: 'pan-y', userSelect: 'none',
 
@@ -205,7 +205,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
         ) : (
 
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}>
 
             <ImageIcon size={40} />
 
@@ -227,11 +227,11 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
 
-                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
+                background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.65)', border: 'none', borderRadius: '50%',
 
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
 
-                cursor: 'pointer', color: '#FDF6EE',
+                cursor: 'pointer', color: 'var(--ib-cream, #FDF6EE)',
 
               }}
 
@@ -245,11 +245,11 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
 
-                background: 'rgba(26,10,0,0.65)', border: 'none', borderRadius: '50%',
+                background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.65)', border: 'none', borderRadius: '50%',
 
                 width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
 
-                cursor: 'pointer', color: '#FDF6EE',
+                cursor: 'pointer', color: 'var(--ib-cream, #FDF6EE)',
 
               }}
 
@@ -269,7 +269,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
                     width: i === index ? 16 : 6, height: 6, borderRadius: 999,
 
-                    background: i === index ? '#FDF6EE' : 'rgba(253,246,238,0.5)',
+                    background: i === index ? 'var(--ib-cream, #FDF6EE)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.5)',
 
                     cursor: 'pointer', transition: 'width 0.2s',
 
@@ -309,7 +309,7 @@ const TourImageCarousel = ({ images = [] }) => {
 
                 aspectRatio: '1', borderRadius: 10, overflow: 'hidden', cursor: 'zoom-in',
 
-                border: i === index ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.15)',
+                border: i === index ? '2px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
 
                 opacity: i === index ? 1 : 0.65, transition: 'opacity 0.2s, border-color 0.2s',
 

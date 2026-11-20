@@ -39,15 +39,15 @@ const PaymentPhoneBox = ({ initial, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={() => onClose(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} />
+      <div onClick={() => onClose(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
       <form role="dialog" aria-modal="true" aria-labelledby="pay-phone-title" onSubmit={submit} noValidate style={{
         position: 'relative', width: '100%', maxWidth: 420, background: COLORS.cream, borderRadius: 22, padding: '1.6rem',
-        boxShadow: '0 24px 60px rgba(26,10,0,0.35)', borderTop: `6px solid ${COLORS.primary}`,
+        boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', borderTop: `6px solid ${COLORS.primary}`,
       }}>
-        <h2 id="pay-phone-title" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 17, color: '#1A0A00' }}>
-          <Phone size={18} style={{ color: '#A8481A' }} /> Your contact number
+        <h2 id="pay-phone-title" style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 17, color: 'var(--ib-dark, #1A0A00)' }}>
+          <Phone size={18} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Your contact number
         </h2>
-        <p style={{ margin: '6px 0 14px', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+        <p style={{ margin: '6px 0 14px', fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
           PayMongo uses this number for your payment. It must be a Philippine mobile number (+63 9XX XXX XXXX).
         </p>
         <input
@@ -57,10 +57,10 @@ const PaymentPhoneBox = ({ initial, onClose }) => {
           aria-invalid={!!problem}
           style={{
             width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: 12, fontFamily: 'inherit', fontSize: 16, fontWeight: 700,
-            color: '#1A0A00', background: '#FFFDF9', outline: 'none', border: `1px solid ${problem ? '#8C2F1C' : 'rgba(180,81,30,0.25)'}`,
+            color: 'var(--ib-dark, #1A0A00)', background: '#FFFDF9', outline: 'none', border: `1px solid ${problem ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
           }}
         />
-        {problem && <p role="alert" style={{ margin: '6px 2px 0', fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{problem}</p>}
+        {problem && <p role="alert" style={{ margin: '6px 2px 0', fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{problem}</p>}
         <div style={{ display: 'flex', gap: 10, marginTop: 18, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => onClose(null)} style={{ ...secondaryBtn(), flex: '1 1 120px' }}>Cancel</button>
           <button type="submit" disabled={!complete} title={complete ? undefined : 'Type the whole number first (10 digits after +63)'} style={{ ...primaryBtn(!complete), flex: '2 1 160px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>

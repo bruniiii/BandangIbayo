@@ -33,25 +33,25 @@ const InstallAppCard = () => {
     if (accepted) toast.success('Added to your home screen', 'Open Bandang IBAYO from its icon anytime.');
   };
 
-  const step = { display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 800, color: '#1A0A00' };
+  const step = { display: 'inline-flex', alignItems: 'center', gap: 5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' };
 
   return (
     <section aria-label="Add to home screen" style={{
       position: 'relative', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
-      background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 20,
+      background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 20,
       padding: '1rem 1.25rem',
     }}>
-      <div style={{ width: 46, height: 46, borderRadius: 14, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ width: 46, height: 46, borderRadius: 14, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <Smartphone size={22} />
       </div>
       <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Add Bandang IBAYO to your home screen</p>
+        <p style={{ fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Add Bandang IBAYO to your home screen</p>
         {ios && !canPrompt ? (
-          <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.7 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '3px 0 0', lineHeight: 1.7 }}>
             In Safari, tap <span style={step}><Share size={13} /> Share</span>, then <span style={step}><SquarePlus size={13} /> Add to Home Screen</span>.
           </p>
         ) : (
-          <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '3px 0 0', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '3px 0 0', lineHeight: 1.6 }}>
             Open your trips in one tap, like an app. No app store needed.
           </p>
         )}
@@ -59,7 +59,7 @@ const InstallAppCard = () => {
       {canPrompt && (
         <button type="button" onClick={install} style={{
           display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 14,
-          border: 'none', background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900,
+          border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900,
           fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', whiteSpace: 'nowrap',
         }}>
           <Download size={14} /> Install

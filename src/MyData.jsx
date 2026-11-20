@@ -37,34 +37,34 @@ const MyData = () => {
   };
 
   return (
-    <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
-        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 16, color: '#1A0A00', margin: 0 }}>
-          <ShieldCheck size={18} style={{ color: '#A8481A' }} /> Your Account
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 900, fontSize: 16, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
+          <ShieldCheck size={18} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Your Account
         </h3>
-        <p style={{ fontSize: 12, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
+        <p style={{ fontSize: 12, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.6 }}>
           Taking a break? You can deactivate your account. When you want to come back, just log in again and choose to restore it.
         </p>
       </div>
 
       {!showConfirm && (
         <div>
-          <button type="button" onClick={() => setShowConfirm(true)} style={button('rgba(140,47,28,0.08)', '#8C2F1C', '1px solid rgba(140,47,28,0.25)')}>
+          <button type="button" onClick={() => setShowConfirm(true)} style={button('rgba(var(--ib-red-rgb, 140,47,28), 0.08)', 'var(--ib-red, #8C2F1C)', '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)')}>
             <PowerOff size={14} /> Deactivate Account
           </button>
         </div>
       )}
 
       {showConfirm && (
-        <div style={{ background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0 }}>Deactivate your account?</p>
-          <ul style={{ fontSize: 12, fontWeight: 600, color: '#1A0A00', margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
+        <div style={{ background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.06)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.2)', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Deactivate your account?</p>
+          <ul style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
             <li>You'll be logged out and can't use your account while it's deactivated.</li>
             <li>Nothing is deleted. Your profile, bookings and reviews stay as they are.</li>
             <li>To come back, just log in again: you'll be asked if you want to restore your account.</li>
             <li>You can't deactivate while you have an upcoming booking.</li>
           </ul>
-          <label htmlFor="confirm-deactivate" style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: '4px 0 0' }}>
+          <label htmlFor="confirm-deactivate" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', margin: '4px 0 0' }}>
             To confirm, type <strong style={{ color: '#C0362C' }}>deactivate</strong> below.
           </label>
           <input
@@ -72,12 +72,12 @@ const MyData = () => {
             placeholder="deactivate" autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={20}
             aria-invalid={typed !== '' && !confirmed}
             style={{
-              width: '100%', maxWidth: 320, boxSizing: 'border-box', background: '#FDF6EE', borderRadius: 12, padding: '10px 12px',
-              border: `1px solid ${confirmed ? '#C0362C' : 'rgba(168,72,26,0.25)'}`, fontSize: 16, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit',
+              width: '100%', maxWidth: 320, boxSizing: 'border-box', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 12, padding: '10px 12px',
+              border: `1px solid ${confirmed ? '#C0362C' : 'rgba(var(--ib-sienna-rgb, 168,72,26), 0.25)'}`, fontSize: 16, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit',
             }}
           />
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => { setShowConfirm(false); setTyped(''); }} disabled={busy} style={button('#FDF6EE', '#1A0A00', '1px solid rgba(168,72,26,0.25)')}>
+            <button type="button" onClick={() => { setShowConfirm(false); setTyped(''); }} disabled={busy} style={button('var(--ib-cream, #FDF6EE)', 'var(--ib-dark, #1A0A00)', '1px solid rgba(var(--ib-sienna-rgb, 168,72,26), 0.25)')}>
               Keep my account
             </button>
             <button type="button" onClick={handleDeactivate} disabled={busy || !confirmed}
@@ -89,7 +89,7 @@ const MyData = () => {
         </div>
       )}
 
-      {error && <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{error}</p>}
+      {error && <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>{error}</p>}
     </div>
   );
 };

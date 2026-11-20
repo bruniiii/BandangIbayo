@@ -23,7 +23,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'rgba(26,10,0,0.88)',
+      background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.88)',
       backdropFilter: 'blur(6px)',
       padding: 16,
     }}
@@ -31,13 +31,13 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
     <div
       style={{
         position: 'relative',
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
         width: '100%',
         maxWidth: 620,
         maxHeight: '85dvh',
         borderRadius: 24,
-        boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
-        borderTop: '7px solid #B4511E',
+        boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.45)',
+        borderTop: '7px solid var(--ib-accent, #B4511E)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -45,7 +45,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
     >
       <div
         style={{
-          background: '#1A0A00',
+          background: 'var(--ib-dark, #1A0A00)',
           padding: '1.75rem 2rem',
           display: 'flex',
           alignItems: 'center',
@@ -65,14 +65,14 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
               width: 38,
               height: 38,
               borderRadius: 11,
-              background: '#B4511E',
+              background: 'var(--ib-accent, #B4511E)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            <ShieldCheck size={19} color="#FDF6EE" />
+            <ShieldCheck size={19} color="var(--ib-cream, #FDF6EE)" />
           </div>
 
           <div>
@@ -81,7 +81,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
                 fontSize: 15,
                 fontWeight: 900,
                 letterSpacing: '0.02em',
-                color: '#FDF6EE',
+                color: 'var(--ib-cream, #FDF6EE)',
                 margin: 0,
               }}
             >
@@ -94,7 +94,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
                 fontWeight: 800,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: 'rgba(232,162,101,0.7)',
+                color: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.7)',
                 margin: '3px 0 0',
               }}
             >
@@ -109,7 +109,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: 'rgba(232,210,190,0.85)',
+            color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
           }}
         >
           <X size={22} />
@@ -124,7 +124,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
         }}
       >
         {updated && (
-          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.08)', borderRadius: 12, padding: '10px 12px', margin: '0 0 18px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', borderRadius: 12, padding: '10px 12px', margin: '0 0 18px', lineHeight: 1.5 }}>
             We updated our Terms & Conditions{policy?.version ? ` (version ${policy.version})` : ''}. Please read them and agree to keep booking with us.
           </p>
         )}
@@ -200,8 +200,8 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
 
         <div
           style={{
-            background: 'rgba(180,81,30,0.08)',
-            border: '1px solid rgba(180,81,30,0.18)',
+            background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)',
+            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
             borderRadius: 16,
             padding: '1rem 1.25rem',
             marginTop: 8,
@@ -213,7 +213,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
           <AlertTriangle
             size={16}
             style={{
-              color: '#A8481A',
+              color: 'var(--ib-sienna, #A8481A)',
               flexShrink: 0,
               marginTop: 1,
             }}
@@ -223,7 +223,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
             style={{
               fontSize: 11.5,
               fontWeight: 600,
-              color: '#7A3A18',
+              color: 'var(--ib-rust, #7A3A18)',
               lineHeight: 1.6,
               margin: 0,
             }}
@@ -240,7 +240,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
       <div
         style={{
           padding: '1.25rem 2rem',
-          borderTop: '1px solid rgba(180,81,30,0.15)',
+          borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
           display: 'flex',
           gap: 12,
           flexShrink: 0,
@@ -254,7 +254,7 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
           style={{
             flex: 1.4,
             padding: '13px 0',
-            background: '#B4511E',
+            background: 'var(--ib-accent, #B4511E)',
             border: 'none',
             borderRadius: 999,
             cursor: 'pointer',
@@ -263,8 +263,8 @@ const TermsModal = ({ onClose, onAgree, updated = false }) => {
             fontSize: 11.5,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: '#FDF6EE',
-            boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
+            color: 'var(--ib-cream, #FDF6EE)',
+            boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
           }}
         >
           I Agree to the Terms
@@ -285,7 +285,7 @@ const TermsSection = ({ title, children }) => (
         fontWeight: 900,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
-        color: '#A8481A',
+        color: 'var(--ib-sienna, #A8481A)',
         margin: '0 0 8px',
       }}
     >
@@ -296,7 +296,7 @@ const TermsSection = ({ title, children }) => (
       style={{
         fontSize: 12.5,
         fontWeight: 500,
-        color: '#7A3A18',
+        color: 'var(--ib-rust, #7A3A18)',
         lineHeight: 1.7,
         margin: 0,
         whiteSpace: 'pre-line',

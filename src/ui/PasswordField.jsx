@@ -18,7 +18,7 @@ const PasswordField = ({ style, ...props }) => {
         style={{
           position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
           width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: '#7A3A18',
+          background: 'none', border: 'none', borderRadius: 8, cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)',
         }}
       >
         {visible ? <EyeOff size={17} /> : <Eye size={17} />}

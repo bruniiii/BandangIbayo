@@ -66,21 +66,21 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
         aria-haspopup="listbox" aria-expanded={open} aria-controls={listId} aria-invalid={invalid || undefined} aria-label={ariaLabel}
         style={{
           width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
-          background: '#FDF6EE', padding: pad, borderRadius: 14, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: disabled ? 0.6 : 1,
-          border: `1px solid ${invalid ? '#8C2F1C' : open ? '#B4511E' : 'rgba(180,81,30,0.18)'}`,
-          boxShadow: open ? '0 0 0 3px rgba(180,81,30,0.14)' : 'none', transition: 'border-color 0.15s, box-shadow 0.15s',
+          background: 'var(--ib-cream, #FDF6EE)', padding: pad, borderRadius: 14, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: disabled ? 0.6 : 1,
+          border: `1px solid ${invalid ? 'var(--ib-red, #8C2F1C)' : open ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}`,
+          boxShadow: open ? '0 0 0 3px rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' : 'none', transition: 'border-color 0.15s, box-shadow 0.15s',
         }}
       >
         {Icon && (
-          <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? '#B4511E' : 'rgba(180,81,30,0.1)', color: selected ? '#FDF6EE' : '#A8481A' }}>
+          <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: selected ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: selected ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
             <Icon size={14} />
           </span>
         )}
-        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 800, color: selected ? '#1A0A00' : '#7A3A18' }}>
+        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, fontWeight: 800, color: selected ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-rust, #7A3A18)' }}>
           {selected ? selected.label : placeholder}
         </span>
-        {selected?.hint && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#A8481A', background: 'rgba(180,81,30,0.1)', borderRadius: 999, padding: '3px 9px' }}>{selected.hint}</span>}
-        <ChevronDown size={16} style={{ flexShrink: 0, color: '#A8481A', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }} />
+        {selected?.hint && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', borderRadius: 999, padding: '3px 9px' }}>{selected.hint}</span>}
+        <ChevronDown size={16} style={{ flexShrink: 0, color: 'var(--ib-sienna, #A8481A)', transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
 
       {open && (
@@ -88,7 +88,7 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
           ref={listRef} id={listId} role="listbox" aria-labelledby={btnId}
           style={{
             position: 'absolute', zIndex: 50, ...(upward ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }), ...(toLeft ? { right: 0 } : { left: 0 }), minWidth: '100%', width: 'max-content', maxWidth: 'min(300px, calc(100vw - 32px))', boxSizing: 'border-box', margin: 0, padding: 6, listStyle: 'none',
-            background: '#FFFDF9', borderRadius: 16, border: '1px solid rgba(180,81,30,0.2)', boxShadow: '0 18px 40px rgba(26,10,0,0.18)',
+            background: '#FFFDF9', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', boxShadow: '0 18px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.18)',
             maxHeight: 264, overflowY: 'auto', overscrollBehavior: 'contain', scrollbarGutter: 'stable', animation: 'ps-in 0.14s ease-out',
           }}
         >
@@ -103,13 +103,13 @@ const PrettySelect = ({ id, value, options, onChange, placeholder = 'Choose…',
                 onMouseEnter={() => setActive(i)} onClick={() => pick(o)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 11, cursor: o.disabled ? 'not-allowed' : 'pointer', opacity: o.disabled ? 0.45 : 1,
-                  background: isSel ? 'rgba(180,81,30,0.12)' : isActive ? 'rgba(242,228,208,0.8)' : 'transparent',
+                  background: isSel ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : isActive ? 'rgba(var(--ib-parch-rgb, 242,228,208), 0.8)' : 'transparent',
                 }}
               >
-                {Icon && <Icon size={14} style={{ flexShrink: 0, color: isSel ? '#B4511E' : 'rgba(122,58,24,0.6)' }} />}
-                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: isSel ? 900 : 700, color: isSel ? '#A8481A' : '#1A0A00', overflowWrap: 'break-word' }}>{o.label}</span>
-                {o.hint && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: '#7A3A18', background: '#F2E4D0', borderRadius: 999, padding: '3px 9px' }}>{o.hint}</span>}
-                <Check size={15} style={{ flexShrink: 0, color: '#B4511E', opacity: isSel ? 1 : 0 }} />
+                {Icon && <Icon size={14} style={{ flexShrink: 0, color: isSel ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.6)' }} />}
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: isSel ? 900 : 700, color: isSel ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-dark, #1A0A00)', overflowWrap: 'break-word' }}>{o.label}</span>
+                {o.hint && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, padding: '3px 9px' }}>{o.hint}</span>}
+                <Check size={15} style={{ flexShrink: 0, color: 'var(--ib-accent, #B4511E)', opacity: isSel ? 1 : 0 }} />
               </li>
             );
           })}

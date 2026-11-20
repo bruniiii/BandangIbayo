@@ -47,35 +47,35 @@ const QuickReplies = ({ onPick }) => {
   return (
     <div ref={wrapRef} style={{ position: 'relative', flexShrink: 0 }}>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-label="Saved replies" title="Saved replies" aria-expanded={open} style={{
-        width: 42, height: 42, borderRadius: 14, border: '1px solid rgba(180,81,30,0.25)', background: open ? '#F2E4D0' : '#FDF6EE',
-        color: '#A8481A', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: 42, height: 42, borderRadius: 14, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: open ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-cream, #FDF6EE)',
+        color: 'var(--ib-sienna, #A8481A)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}><MessageSquareText size={18} /></button>
       {open && (
         <div role="dialog" aria-label="Saved replies" style={{
           position: 'absolute', bottom: 'calc(100% + 8px)', left: 0, width: 320, maxWidth: 'calc(100vw - 40px)', maxHeight: 360, overflowY: 'auto',
-          background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, boxShadow: '0 18px 40px rgba(26,10,0,0.2)', padding: 10, zIndex: 30,
+          background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, boxShadow: '0 18px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)', padding: 10, zIndex: 30,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '2px 4px 8px' }}>
-            <strong style={{ fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A' }}>Saved replies</strong>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="no-touch-size" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={15} /></button>
+            <strong style={{ fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Saved replies</strong>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="no-touch-size" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={15} /></button>
           </div>
-          {replies === null ? <p style={{ margin: 6, fontSize: 12.5, color: '#7A3A18' }}>Loading…</p> : replies.map((r, i) => (
+          {replies === null ? <p style={{ margin: 6, fontSize: 12.5, color: 'var(--ib-rust, #7A3A18)' }}>Loading…</p> : replies.map((r, i) => (
             <div key={`${i}-${r}`} style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
               <button type="button" onClick={() => { onPick(r); setOpen(false); }} style={{
                 flex: 1, textAlign: 'left', background: 'none', border: 'none', borderRadius: 10, padding: '8px 8px', cursor: 'pointer',
-                fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4,
+                fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.4,
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#F2E4D0'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ib-parch, #F2E4D0)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
               >{r}</button>
-              <button type="button" onClick={() => save(replies.filter((_, j) => j !== i))} aria-label="Remove this reply" className="no-touch-size" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 8 }}><Trash2 size={13} /></button>
+              <button type="button" onClick={() => save(replies.filter((_, j) => j !== i))} aria-label="Remove this reply" className="no-touch-size" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-red, #8C2F1C)', padding: 8 }}><Trash2 size={13} /></button>
             </div>
           ))}
           <form onSubmit={(e) => { e.preventDefault(); const t = draft.trim(); if (t) { save([...(replies || []), t.slice(0, 500)]); setDraft(''); } }}
-            style={{ display: 'flex', gap: 6, marginTop: 8, borderTop: '1px solid rgba(180,81,30,0.12)', paddingTop: 8 }}>
+            style={{ display: 'flex', gap: 6, marginTop: 8, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', paddingTop: 8 }}>
             <input value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={500} placeholder="Add a saved reply…" aria-label="New saved reply"
-              style={{ flex: 1, minWidth: 0, borderRadius: 10, border: '1px solid rgba(180,81,30,0.25)', padding: '8px 10px', fontFamily: 'inherit', fontSize: 16, background: '#FDF6EE', color: '#1A0A00' }} />
-            <button type="submit" disabled={!draft.trim()} aria-label="Add" style={{ width: 38, borderRadius: 10, border: 'none', background: '#B4511E', color: '#FDF6EE', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={16} /></button>
+              style={{ flex: 1, minWidth: 0, borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', padding: '8px 10px', fontFamily: 'inherit', fontSize: 16, background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-dark, #1A0A00)' }} />
+            <button type="submit" disabled={!draft.trim()} aria-label="Add" style={{ width: 38, borderRadius: 10, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Plus size={16} /></button>
           </form>
         </div>
       )}
