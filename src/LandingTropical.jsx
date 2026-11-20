@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
-  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Sparkles, Bus,
+  MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus,
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import logoIcon from './assets/logo.png';
@@ -26,6 +26,8 @@ import { SITE } from './siteContent';
 // The previous dark page is kept in LandingPremium.jsx (and the first one
 // in LandingClassic.jsx). Styles: PAGE_CSS below, scoped under .lk.
 
+// The menu's links (each one a section of this page).
+const NAV = [['tours', 'Tours'], ['how', 'How to Book'], ['why', 'Why Us'], ['contact', 'Contact']];
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
 
 const formatDate = (dateString) => {
@@ -63,6 +65,7 @@ const LandingTropical = () => {
   const [booked, setBooked] = useState(null); // { [tour date id]: slots taken }
   const [tripPhotos, setTripPhotos] = useState([]); // photos from tours, past ones too
   const [scrolled, setScrolled] = useState(false);
+  const [here, setHere] = useState(''); // the section on screen now (underlined in the menu)
   const [slide, setSlide] = useState(0);
   const pageRef = useRef(null);
 
@@ -94,7 +97,15 @@ const LandingTropical = () => {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 30);
+      // The last section whose top has passed the menu bar; Contact at the very bottom.
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      const line = window.innerHeight * 0.35;
+      let id = '';
+      NAV.forEach(([k]) => { const el = document.getElementById(k); if (el && el.getBoundingClientRect().top <= line) id = k; });
+      setHere(atBottom ? 'contact' : id);
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -141,10 +152,9 @@ const LandingTropical = () => {
           <span>Bandang IBAYO</span>
         </Link>
         <div className="lk-links">
-          <a href="#tours">Tours</a>
-          <a href="#how">How to Book</a>
-          <a href="#why">Why Us</a>
-          <a href="#contact">Contact</a>
+          {NAV.map(([k, label]) => (
+            <a key={k} href={`#${k}`} className={here === k ? 'is-here' : ''} aria-current={here === k ? 'location' : undefined}>{label}</a>
+          ))}
         </div>
         <div className="lk-nav-right">
           <Link to="/login" className="lk-login">Log in</Link>
@@ -162,7 +172,6 @@ const LandingTropical = () => {
         </div>
         <div className="lk-hero-copy">
           <AnnouncementBanner style={{ marginBottom: 14, maxWidth: 640, textAlign: 'left' }} />
-          <span className="lk-pill"><Sparkles size={14} /> {tours.length ? `${tours.length} tour${tours.length === 1 ? '' : 's'} open for booking` : 'Group tours across the Philippines'}</span>
           {landing.headline || landing.headline_accent
             ? <h1 className="lk-h1">{landing.headline}{landing.headline && landing.headline_accent ? <br /> : null}{landing.headline_accent && <em>{landing.headline_accent}</em>}</h1>
             : <h1 className="lk-h1">Your next adventure <br />is <em>one seat away.</em></h1>}
@@ -432,7 +441,14 @@ const PAGE_CSS = `
 .lk-brand span { white-space: nowrap; }
 .lk-links { display: flex; gap: clamp(16px, 2.4vw, 34px); font-size: 15.5px; font-weight: 600; }
 .lk-links a { text-decoration: none; opacity: 0.9; }
-.lk-links a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
+.lk-links a { position: relative; padding: 4px 0; }
+.lk-links a::after { content: ''; position: absolute; left: -4px; right: -4px; bottom: -6px; height: 7px; border-radius: 6px; transform: scaleX(0) rotate(-1.5deg); transform-origin: left;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M2 6 C 25 2, 55 3, 98 5' fill='none' stroke='%23FF7A3D' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+  transition: transform 0.3s ease; }
+.lk-links a:hover { opacity: 1; }
+.lk-links a:hover::after { transform: scaleX(0.6) rotate(-1.5deg); opacity: 0.6; }
+.lk-links a.is-here { opacity: 1; font-weight: 800; }
+.lk-links a.is-here::after { transform: scaleX(1) rotate(-1.5deg); opacity: 1; }
 .lk-nav-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 .lk-login { font-size: 15.5px; font-weight: 700; text-decoration: none; }
 
@@ -444,7 +460,6 @@ const PAGE_CSS = `
 .lk-hero-shade { position: absolute; inset: 0; background: var(--hero-shade); }
 .lk-hero-copy { position: relative; z-index: 2; width: 100%; max-width: 1000px; margin: 0 auto; text-align: center; animation: lk-rise 0.8s ease both; }
 @keyframes lk-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-.lk-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 999px; font-size: 13px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
   background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .lk-h1 { margin: 20px 0 16px; font-size: clamp(2.7rem, 7vw, 5.8rem); line-height: 1.02; font-weight: 800; letter-spacing: -0.04em; text-shadow: 0 4px 30px rgba(0,0,0,0.35); }
 .lk-hero .lk-h1 em { color: var(--hero-accent); }
