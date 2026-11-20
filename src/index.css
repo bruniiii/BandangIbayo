@@ -263,6 +263,13 @@ html { touch-action: manipulation; }
   .page-header h1.journal-title::after { left: 0; right: auto; width: min(100%, 7em); bottom: 0; }
   .page-header > div[aria-hidden] { display: none !important; }
 }
+/* Phones: the page's icon (the stamp) instead of its name, which doesn't
+   fit next to the buttons. The name stays for screen readers. */
+@media (max-width: 480px) {
+  .page-header > div[aria-hidden] { display: flex !important; }
+  .page-header h1, .page-header h1.journal-title { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .page-header-subtitle { display: none !important; }
+}
 
 /* A footer with no buttons in it isn't shown. */
 .hide-when-empty:empty { display: none !important; }
