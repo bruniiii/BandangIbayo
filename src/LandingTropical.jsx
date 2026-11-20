@@ -30,7 +30,7 @@ import ThemeToggle from './ui/ThemeToggle';
 const NAV = [['tours', 'Tours'], ['how', 'How to Book'], ['why', 'Why Us'], ['contact', 'Contact']];
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
 // The default hero photo: hikers watching the sunrise above the clouds.
-const HERO_PHOTO = '/hero-hikers.webp';
+const HERO_PHOTO = '/hero-elnido.webp';
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -159,7 +159,7 @@ const LandingTropical = () => {
       <header className="lk-hero">
         <div className="lk-hero-media" aria-hidden="true">
           {heroPhotos.map((src, i) => (
-            <img key={src} src={src} alt="" className={i === slide % heroPhotos.length ? 'is-on' : ''} style={src === HERO_PHOTO ? { objectPosition: '70% center' } : undefined} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
+            <img key={src} src={src} alt="" className={i === slide % heroPhotos.length ? 'is-on' : ''} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />
           ))}
           <div className="lk-hero-shade" />
         </div>
