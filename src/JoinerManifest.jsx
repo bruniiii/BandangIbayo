@@ -92,7 +92,7 @@ const JoinerListModal = ({ tour, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
       <div className="paper-card" style={{ position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 820, maxHeight: '90dvh', borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column', borderTop: '8px solid var(--ib-accent, #B4511E)' }}>
         <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)' }}>
           <div style={{ minWidth: 0 }}>

@@ -515,7 +515,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
       {/* ── Check-in for one tour (scan QR codes, joiner list) ── */}
       {checkInTourId != null && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', }} onClick={() => setCheckInTourId(null)} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={() => setCheckInTourId(null)} />
           <div style={{
             position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 1150, borderRadius: 28,
             boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', maxHeight: '92dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -750,7 +750,7 @@ const TrackingConsoleModal = ({
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 1150, borderRadius: 28,

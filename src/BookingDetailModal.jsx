@@ -164,7 +164,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div className="paper-card" style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 760,
@@ -569,7 +569,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
         <div style={{
           position: 'fixed', inset: 0, zIndex: 10050,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', padding: 16,
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(4px)', padding: 16,
         }}>
           <div className="paper-card" style={{
             position: 'relative', background: 'var(--ib-cream, #FDF6EE)',

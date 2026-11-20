@@ -54,7 +54,7 @@ const PublicNav = ({ session }) => {
   return (
   <nav className="site-nav" style={{
     position: 'sticky', top: 0, zIndex: 50,
-    background: 'rgb(var(--ib-cream-rgb, 253,246,238))',
+    background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.92)', backdropFilter: 'blur(12px)',
     borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '0 clamp(1rem,5vw,4rem)', height: 64, gap: 12,

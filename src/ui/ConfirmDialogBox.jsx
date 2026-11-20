@@ -31,7 +31,7 @@ const ConfirmDialogBox = ({ title, message, confirmLabel, cancelLabel, tone, typ
   const Icon = danger ? AlertTriangle : HelpCircle;
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={() => onClose(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', }} />
+      <div onClick={() => onClose(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
       <div className="paper-card"
         role="alertdialog"
         aria-modal="true"

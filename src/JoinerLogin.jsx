@@ -311,7 +311,7 @@ const JoinerLogin = () => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 200,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)',
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)',
         }}>
           <div className="paper-card" style={{
             background: 'var(--ib-cream, #FDF6EE)',

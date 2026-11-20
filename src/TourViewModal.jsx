@@ -136,7 +136,7 @@ const TourViewModal = ({ tour, onClose, onEdit, setSelectedImage, formatDateRang
  
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 1100,

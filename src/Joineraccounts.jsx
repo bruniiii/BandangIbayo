@@ -454,7 +454,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
           onClick={() => openJoiner(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)',
+            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '2rem',
           }}
@@ -647,7 +647,7 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
       {/* Every message sent to joiners (emails and tour updates) */}
       {showAllSent && (
         <div onClick={() => setShowAllSent(false)} style={{
-          position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)',
+          position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
         }}>
           <div onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Sent messages" className="paper-card responsive-modal-padding" style={{
@@ -769,7 +769,7 @@ const EmailJoinerModal = ({ joiners, onClose }) => {
       onClick={() => { if (!sending) onClose(); }}
       style={{
         position: 'fixed', inset: 0, zIndex: 300,
-        background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)',
+        background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
       }}
     >

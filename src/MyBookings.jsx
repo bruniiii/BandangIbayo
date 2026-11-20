@@ -478,7 +478,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div className="paper-card" style={{
         position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 900,
@@ -1036,7 +1036,7 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       )}
 
       {namesOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }}>
           <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
             background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
             borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '2rem',

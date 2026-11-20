@@ -39,7 +39,7 @@ const PaymentPhoneBox = ({ initial, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={() => onClose(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', }} />
+      <div onClick={() => onClose(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
       <form className="paper-card" role="dialog" aria-modal="true" aria-labelledby="pay-phone-title" onSubmit={submit} noValidate style={{
         position: 'relative', width: '100%', maxWidth: 420, background: COLORS.cream, borderRadius: 22, padding: '1.6rem',
         boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', borderTop: `6px solid ${COLORS.primary}`,

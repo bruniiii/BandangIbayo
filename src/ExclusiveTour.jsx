@@ -698,7 +698,7 @@ const RequestForm = ({ type, startDate, editing = null, onSaved, onCancel }) => 
 // Edit a request that's still For Approval.
 const EditRequestModal = ({ request, onClose, onSaved }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-    <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', }} onClick={onClose} />
+    <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
     <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="edit-request-title" style={{
       position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 760, maxHeight: '92dvh', overflowY: 'auto',
       borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', padding: '2rem',

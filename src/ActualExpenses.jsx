@@ -174,7 +174,7 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', }} onClick={close} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={close} />
       <div className="paper-card" role="dialog" aria-modal="true" aria-label="Actual expenses" style={{
         position: 'relative', width: '100%', maxWidth: 820, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,

@@ -71,7 +71,7 @@ const CHAT_RULES = [
 ];
 const ChatGuidelines = ({ onClose }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 200000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-    <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', }} />
+    <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
     <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="chat-rules-title" style={{
       position: 'relative', width: '100%', maxWidth: 440, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.6rem',
       boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', borderTop: '6px solid var(--ib-accent, #B4511E)',

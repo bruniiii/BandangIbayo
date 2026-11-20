@@ -685,7 +685,7 @@ const TourManagement = ({ openTourId = null }) => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)',
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)',
           padding: 16,
         }}>
           <div className="paper-card" style={{
@@ -938,7 +938,7 @@ const TourManagement = ({ openTourId = null }) => {
           padding: 16,
         }}>
           <div
-            style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }}
             onClick={closeTourModal}
           />
           <form className="paper-card"

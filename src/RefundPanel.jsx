@@ -379,7 +379,7 @@ export const RefundHistoryButton = () => {
       <button type="button" onClick={() => setOpen(true)} style={smallBtn('var(--ib-ink, #1A0A00)', 'var(--ib-amber, #E8A265)')}><History size={13} /> Refund history</button>
       {open && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', }} />
+          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
           <div role="dialog" aria-label="Refund history" style={{ position: 'relative', width: '100%', maxWidth: 720, maxHeight: '88vh', display: 'flex', flexDirection: 'column', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 22, boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px', background: 'var(--ib-cream, #FDF6EE)', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)' }}>
               <History size={20} style={{ color: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />

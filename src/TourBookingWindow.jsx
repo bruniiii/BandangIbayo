@@ -255,7 +255,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
 
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', }} onClick={paymentStep ? undefined : onClose} />
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
 
             <div className="paper-card" style={{
 
@@ -765,7 +765,7 @@ const overlayBackdrop = {
 
     alignItems: 'center', justifyContent: 'center', padding: 16,
 
-    background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)',
+    background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)',
 
 };
 

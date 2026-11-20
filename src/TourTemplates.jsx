@@ -111,7 +111,7 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label={onBlank ? 'Create a tour' : 'Use a template'} style={{ ...card, position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto' }}>
         <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
 
