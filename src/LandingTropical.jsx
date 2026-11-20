@@ -460,13 +460,9 @@ const PAGE_CSS = `
 .lk-hero-shade { position: absolute; inset: 0; background: var(--hero-shade); }
 .lk-hero-copy { position: relative; z-index: 2; width: 100%; max-width: 1000px; margin: 0 auto; text-align: center; animation: lk-rise 0.8s ease both; }
 @keyframes lk-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-  background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.4); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .lk-h1 { margin: 20px 0 16px; font-size: clamp(2.7rem, 7vw, 5.8rem); line-height: 1.02; font-weight: 800; letter-spacing: -0.04em; text-shadow: 0 4px 30px rgba(0,0,0,0.35); }
 .lk-hero .lk-h1 em { color: var(--hero-accent); }
 .lk-lead { margin: 0 auto 30px; max-width: 620px; font-size: clamp(17px, 1.7vw, 21px); line-height: 1.55; font-weight: 500; text-shadow: 0 2px 16px rgba(0,0,0,0.35); }
-  padding: 2px 20px 2px 0; cursor: pointer; max-width: 200px; text-overflow: ellipsis;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right center; }
-  max-width: 360px; color: #FFFFFF; background: rgba(0,0,0,0.38); border: 1px solid rgba(255,255,255,0.3); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 .lk-tiny { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0; }
 
 .lk-section { padding: clamp(3rem, 6vw, 5rem) clamp(1rem, 4vw, 3.5rem); scroll-margin-top: 60px; }
@@ -562,7 +558,7 @@ const PAGE_CSS = `
 }
 @media (max-width: 760px) {
   .lk { font-size: 16px; }
-  .lk-hero { padding: 96px 1rem 130px; min-height: 88dvh; justify-content: flex-start; }
+  .lk-hero { padding: 96px 1rem 90px; min-height: 80dvh; }
                 .lk-brand span { font-size: 16px; }
   .lk-brand img { width: 34px; height: 34px; }
   .lk-steps { grid-template-columns: 1fr; gap: 28px; }
