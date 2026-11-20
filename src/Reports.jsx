@@ -16,25 +16,25 @@ import { CANCEL_REASONS } from './cancelReasons';
 import { MonthComparisonChart, ForecastChart, BarChart, HorizontalBarChart, DonutChart, PieChart as ReasonPie, EmptyChartNotice, SectionTitle, MiniMetric, HighlightCard, ExportButton } from './ReportCharts';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
-// #8C2F1C  oxblood (reject / danger)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
+// var(--ib-red, #8C2F1C)  oxblood (reject / danger)
 // ---------------------------------------------------------
 
 const CHART_COLORS = {
-  complete: '#A8481A',
-  pending: '#E8A265',
-  rejected: '#8C2F1C',
-  cancelled: 'rgba(26,10,0,0.35)',
-  full: '#1A0A00',
-  down: '#A8481A',
-  none: 'rgba(122,58,24,0.25)',
-  new: '#A8481A',
-  returning: '#1A0A00',
+  complete: 'var(--ib-sienna, #A8481A)',
+  pending: 'var(--ib-amber, #E8A265)',
+  rejected: 'var(--ib-red, #8C2F1C)',
+  cancelled: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.35)',
+  full: 'var(--ib-dark, #1A0A00)',
+  down: 'var(--ib-sienna, #A8481A)',
+  none: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.25)',
+  new: 'var(--ib-sienna, #A8481A)',
+  returning: 'var(--ib-dark, #1A0A00)',
 };
 
 // Pie slices (checked for color-blind readers on the cream background); gray = Other.
@@ -679,8 +679,8 @@ const Reports = () => {
       {liveNotice && (
         <div style={{
           position: 'fixed', top: 20, right: 20, zIndex: 500,
-          background: '#1A0A00', color: '#E8A265', padding: '10px 18px', borderRadius: 12,
-          fontSize: 12, fontWeight: 800, boxShadow: '0 10px 28px rgba(26,10,0,0.3)',
+          background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', padding: '10px 18px', borderRadius: 12,
+          fontSize: 12, fontWeight: 800, boxShadow: '0 10px 28px rgba(var(--ib-dark-rgb, 26,10,0), 0.3)',
           display: 'flex', alignItems: 'center', gap: 8,
         }}>
           <Sparkles size={14} /> {liveNotice}
@@ -690,7 +690,7 @@ const Reports = () => {
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <p style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>
             All bookings · {loading ? <Skel w={110} h={10} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> : `${stats.total} booking${stats.total !== 1 ? 's' : ''}`}
             {lastUpdated && !loading && (
               <span style={{ opacity: 0.95 }}> · Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -708,18 +708,18 @@ const Reports = () => {
       {/* ── Fetch Error Banner (surfaces silent Supabase query failures instead of just showing 0 data) ── */}
       {fetchErrors.length > 0 && (
         <div style={{
-          background: 'rgba(140,47,28,0.08)', border: '1px solid rgba(140,47,28,0.25)',
+          background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)',
           borderRadius: 16, padding: '1rem 1.25rem', display: 'flex', gap: 12, alignItems: 'flex-start',
         }}>
-          <AlertCircle size={18} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />
+          <AlertCircle size={18} style={{ color: 'var(--ib-red, #8C2F1C)', flexShrink: 0, marginTop: 1 }} />
           <div>
-            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8C2F1C', margin: '0 0 6px' }}>
+            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-red, #8C2F1C)', margin: '0 0 6px' }}>
               Some data couldn't load
             </p>
             {fetchErrors.map((e, i) => (
-              <p key={i} style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0', fontFamily: 'monospace' }}>{e}</p>
+              <p key={i} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0', fontFamily: 'monospace' }}>{e}</p>
             ))}
-            <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '6px 0 0' }}>
               The numbers below may be incomplete or zero until this is fixed.
             </p>
           </div>
@@ -730,14 +730,14 @@ const Reports = () => {
         <SkeletonRegion label="Loading reports" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} style={{ background: '#FDF6EE', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div key={i} style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <Skel w="50%" h={10} /><Skel w="70%" h={26} /><Skel w="40%" h={10} />
               </div>
             ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 16 }}>
             {[0, 1].map((i) => (
-              <div key={i} style={{ background: '#FDF6EE', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div key={i} style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Skel w="35%" h={12} /><Skel h={200} r={14} />
               </div>
             ))}
@@ -748,18 +748,18 @@ const Reports = () => {
           {/* ── Insights Panel ── */}
           {insights.length > 0 && (
             <div style={{
-              background: '#1A0A00', borderRadius: 20, padding: '1.5rem 1.75rem',
-              boxShadow: '0 4px 20px rgba(26,10,0,0.2)',
+              background: 'var(--ib-dark, #1A0A00)', borderRadius: 20, padding: '1.5rem 1.75rem',
+              boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Sparkles size={15} color="#E8A265" />
-                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#E8A265', margin: 0 }}>
+                <Sparkles size={15} color="var(--ib-amber, #E8A265)" />
+                <h4 style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)', margin: 0 }}>
                   Business Insights
                 </h4>
               </div>
               <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {insights.map((line, i) => (
-                  <li key={i} style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.85)', lineHeight: 1.6 }}>{line}</li>
+                  <li key={i} style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', lineHeight: 1.6 }}>{line}</li>
                 ))}
               </ul>
             </div>
@@ -768,19 +768,19 @@ const Reports = () => {
           {/* ── Notifications Panel ── */}
           {notifications.length > 0 && (
             <div style={{
-              background: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem',
-              border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+              background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.25rem 1.5rem',
+              border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
             }}>
               <SectionTitle icon={<Bell size={14} />}>Notifications</SectionTitle>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {notifications.map((n, i) => (
                   <div key={i} style={{
                     display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-                    background: n.tone === 'warn' ? 'rgba(140,47,28,0.07)' : n.tone === 'action' ? 'rgba(232,162,101,0.18)' : '#F2E4D0',
+                    background: n.tone === 'warn' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.07)' : n.tone === 'action' ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.18)' : 'var(--ib-parch, #F2E4D0)',
                     borderRadius: 12,
                   }}>
-                    <span style={{ color: n.tone === 'warn' ? '#8C2F1C' : '#A8481A', flexShrink: 0 }}>{n.icon}</span>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#1A0A00' }}>{n.text}</span>
+                    <span style={{ color: n.tone === 'warn' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}>{n.icon}</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{n.text}</span>
                   </div>
                 ))}
               </div>
@@ -808,16 +808,16 @@ const Reports = () => {
               {/* ── Monthly Comparison and Forecast, side by side ── */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 20, alignItems: 'stretch' }}>
                 <div style={{
-                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
-                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<TrendingUp size={14} />}>Monthly Comparison (This Month vs. Last Month)</SectionTitle>
                   <MonthComparisonChart comparison={monthlyComparison} />
                 </div>
 
                 <div style={{
-                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
-                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem', minWidth: 0,
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<Sparkles size={14} />}>Forecast — Next Month</SectionTitle>
                   <ForecastChart forecast={forecast} />
@@ -827,15 +827,15 @@ const Reports = () => {
               {/* ── Donut charts row ── */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20 }}>
                 <div style={{
-                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<AlertCircle size={14} />}>Booking Status Breakdown</SectionTitle>
                   <DonutChart segments={statusSegments} />
                 </div>
                 <div style={{
-                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<PieChart size={14} />}>Payment Method Split</SectionTitle>
                   <DonutChart segments={methodSegments} />
@@ -846,32 +846,32 @@ const Reports = () => {
 
               {/* ── Tour Performance ── */}
               <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
               }}>
                 <SectionTitle icon={<Trophy size={14} />}>Tour Performance</SectionTitle>
                 <div style={{ overflowX: 'auto', marginBottom: 20 }}>
                   <table className="stack-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(180,81,30,0.14)' }}>
+                      <tr style={{ borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
                         {['Tour', 'Bookings', 'Revenue', 'Pax', 'Completion', 'Rating'].map((h) => (
-                          <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>{h}</th>
+                          <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {tourPerformance.map((t) => (
-                        <tr key={t.tourId || t.title} style={{ borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
-                          <td style={{ padding: '10px 16px', fontWeight: 800, color: '#1A0A00', fontSize: 12.5 }}>
+                        <tr key={t.tourId || t.title} style={{ borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
+                          <td style={{ padding: '10px 16px', fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', fontSize: 12.5 }}>
                             {t.title}
-                            {t.start && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', marginTop: 2 }}>{formatYmdRange(t.start, t.end)}</span>}
+                            {t.start && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', marginTop: 2 }}>{formatYmdRange(t.start, t.end)}</span>}
                           </td>
-                          <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.bookingsCount}</td>
-                          <td style={{ padding: '10px 16px', fontWeight: 900, color: '#A8481A', fontSize: 12.5 }}>{peso(t.revenue)}</td>
-                          <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.pax}</td>
-                          <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>{t.completionPct}%</td>
-                          <td style={{ padding: '10px 16px', fontWeight: 700, color: '#7A3A18', fontSize: 12.5 }}>
-                            {t.rating ? <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Star size={12} fill="#E8A265" color="#E8A265" /> {t.rating.toFixed(1)}</span> : '—'}
+                          <td style={{ padding: '10px 16px', fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', fontSize: 12.5 }}>{t.bookingsCount}</td>
+                          <td style={{ padding: '10px 16px', fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', fontSize: 12.5 }}>{peso(t.revenue)}</td>
+                          <td style={{ padding: '10px 16px', fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', fontSize: 12.5 }}>{t.pax}</td>
+                          <td style={{ padding: '10px 16px', fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', fontSize: 12.5 }}>{t.completionPct}%</td>
+                          <td style={{ padding: '10px 16px', fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', fontSize: 12.5 }}>
+                            {t.rating ? <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Star size={12} fill="var(--ib-amber, #E8A265)" color="var(--ib-amber, #E8A265)" /> {t.rating.toFixed(1)}</span> : '—'}
                           </td>
                         </tr>
                       ))}
@@ -891,8 +891,8 @@ const Reports = () => {
               {/* ── Cancellation Analytics ── */}
               {cancellationReasons.total > 0 && (
                 <div style={{
-                  background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
                 }}>
                   <SectionTitle icon={<XCircle size={14} />}>Cancellation Analytics</SectionTitle>
                   <ReasonPie segments={cancellationReasons.breakdown} />
@@ -901,40 +901,40 @@ const Reports = () => {
 
               {/* ── Customer Analytics ── */}
               <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
               }}>
                 <SectionTitle icon={<Users size={14} />}>Customer Analytics</SectionTitle>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
                   <div>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>New vs. Returning Joiners</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 10px' }}>New vs. Returning Joiners</p>
                     <DonutChart segments={[
                       { label: 'New', value: customerAnalytics.newCount, color: CHART_COLORS.new },
                       { label: 'Returning', value: customerAnalytics.returningCount, color: CHART_COLORS.returning },
                     ].filter((s) => s.value > 0)} size={120} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Top Customers</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 10px' }}>Top Customers</p>
                     {customerAnalytics.topCustomers.length === 0 ? <EmptyChartNotice /> : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {customerAnalytics.topCustomers.map((c, i) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '8px 14px' }}>
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '8px 14px' }}>
                             <div>
-                              <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{c.name}</p>
-                              <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>{c.tours} tour{c.tours !== 1 ? 's' : ''}</p>
+                              <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{c.name}</p>
+                              <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '2px 0 0' }}>{c.tours} tour{c.tours !== 1 ? 's' : ''}</p>
                             </div>
-                            <span style={{ fontSize: 13, fontWeight: 900, color: '#A8481A' }}>{peso(c.spend)}</span>
+                            <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{peso(c.spend)}</span>
                           </div>
                         ))}
                       </div>
                     )}
                   </div>
                   <div>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 10px' }}>Top Locations (from profile address)</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 10px' }}>Top Locations (from profile address)</p>
                     {customerAnalytics.topLocations.length === 0 ? <EmptyChartNotice /> : (
-                      <HorizontalBarChart data={customerAnalytics.topLocations.map((l) => ({ label: l.label, value: l.value }))} color="#7A3A18" />
+                      <HorizontalBarChart data={customerAnalytics.topLocations.map((l) => ({ label: l.label, value: l.value }))} color="var(--ib-rust, #7A3A18)" />
                     )}
-                    <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '10px 0 0' }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '10px 0 0' }}>
                       Age and gender aren't collected during registration, so those breakdowns aren't available yet.
                     </p>
                   </div>
@@ -945,11 +945,11 @@ const Reports = () => {
 
               {/* ── Seasonal Trends ── */}
               <div style={{
-                background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-                border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+                background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
               }}>
                 <SectionTitle icon={<Calendar size={14} />}>Seasonal Trends (All-Time, by Calendar Month)</SectionTitle>
-                <BarChart data={seasonalTrends.data} color="#7A3A18" height={170} />
+                <BarChart data={seasonalTrends.data} color="var(--ib-rust, #7A3A18)" height={170} />
                 <div style={{ display: 'flex', gap: 16, marginTop: 14, flexWrap: 'wrap' }}>
                   <MiniMetric label="Peak Season" value={seasonalTrends.peak.join(', ') || '—'} compact />
                   <MiniMetric label="Low Season" value={seasonalTrends.low.join(', ') || '—'} compact />
@@ -971,33 +971,33 @@ const Reports = () => {
       {/* ── Joiner Reviews: at the bottom ── */}
       {!loading && (
       <div style={{
-        background: '#FDF6EE', borderRadius: 20, padding: '1.5rem 1.75rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem 1.75rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
       }}>
         <SectionTitle icon={<Star size={14} />}>Joiner Reviews</SectionTitle>
         {reviewSummary.count === 0 ? <EmptyChartNotice /> : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: 20 }}>
             <div>
-              <p style={{ fontSize: 'clamp(22px, 8vw, 34px)', fontWeight: 900, color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere' }}>
-                {reviewSummary.average.toFixed(1)} <Star size={24} fill="#E8A265" color="#E8A265" />
+              <p style={{ fontSize: 'clamp(22px, 8vw, 34px)', fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere' }}>
+                {reviewSummary.average.toFixed(1)} <Star size={24} fill="var(--ib-amber, #E8A265)" color="var(--ib-amber, #E8A265)" />
               </p>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: '2px 0 14px' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 14px' }}>
                 Average of {reviewSummary.count} review{reviewSummary.count === 1 ? '' : 's'}
               </p>
-              <HorizontalBarChart data={reviewSummary.stars} color="#E8A265" />
+              <HorizontalBarChart data={reviewSummary.stars} color="var(--ib-amber, #E8A265)" />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>Latest reviews</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>Latest reviews</p>
               {reviewSummary.latest.map((r, i) => (
-                <div key={i} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 14px' }}>
+                <div key={i} style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 14px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-                    <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name} · {r.tour}</p>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>
-                      <Star size={12} fill="#E8A265" color="#E8A265" /> {r.rating}
+                    <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name} · {r.tour}</p>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}>
+                      <Star size={12} fill="var(--ib-amber, #E8A265)" color="var(--ib-amber, #E8A265)" /> {r.rating}
                     </span>
                   </div>
-                  {r.comment && <p style={{ fontSize: 12, fontWeight: 500, color: '#1A0A00', margin: '4px 0 0', lineHeight: 1.5 }}>“{r.comment}”</p>}
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0' }}>{r.date}</p>
+                  {r.comment && <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)', margin: '4px 0 0', lineHeight: 1.5 }}>“{r.comment}”</p>}
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '4px 0 0' }}>{r.date}</p>
                 </div>
               ))}
             </div>

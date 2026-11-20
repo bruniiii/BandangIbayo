@@ -20,7 +20,7 @@ const PinPickupButton = ({ near = null, picked = [], onPickedChange, onAddPlace 
     <>
       <button type="button" className="no-touch-size" onClick={() => setOpen(true)} style={{
         alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, padding: 0, border: 'none', background: 'none', cursor: 'pointer',
-        color: '#A8481A', fontFamily: 'inherit', fontWeight: 800, fontSize: 12.5, textDecoration: 'underline', textUnderlineOffset: 3,
+        color: 'var(--ib-sienna, #A8481A)', fontFamily: 'inherit', fontWeight: 800, fontSize: 12.5, textDecoration: 'underline', textUnderlineOffset: 3,
       }}><MapPin size={14} /> Pickup point not in the list? Pin it on the map</button>
       {open && (
         <Suspense fallback={null}>

@@ -25,15 +25,15 @@ export default class ErrorBoundary extends React.Component {
     return (
       <div role="alert" style={{
         minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, boxSizing: 'border-box',
-        background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", textAlign: 'center',
+        background: 'var(--ib-cream, #FDF6EE)', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", textAlign: 'center',
       }}>
         <div style={{ maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: '#1A0A00' }}>Something went wrong</h1>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#7A3A18', lineHeight: 1.6 }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Something went wrong</h1>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.6 }}>
             This page couldn't load. Reloading usually fixes it. The problem was reported to Bandang IBAYO.
           </p>
           <button type="button" onClick={() => window.location.reload()} style={{
-            marginTop: 6, padding: '14px 28px', borderRadius: 999, border: 'none', cursor: 'pointer', background: '#B4511E', color: '#FDF6EE',
+            marginTop: 6, padding: '14px 28px', borderRadius: 999, border: 'none', cursor: 'pointer', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)',
             fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase',
           }}>Reload</button>
         </div>

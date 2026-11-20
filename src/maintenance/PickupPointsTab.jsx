@@ -37,7 +37,7 @@ const PickupPointsTab = () => {
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-          <h3 style={h3}><MapPin size={16} color="#B4511E" /> Pickup Points</h3>
+          <h3 style={h3}><MapPin size={16} color="var(--ib-accent, #B4511E)" /> Pickup Points</h3>
           <p style={hint}>The places the van can pick joiners up at. Tick them when building a tour; joiners pick one when booking.</p>
         </div>
         <button type="button" style={btn(true)} onClick={() => setManage(true)}><Plus size={14} /> Add or Edit</button>
@@ -52,9 +52,9 @@ const PickupPointsTab = () => {
         onRestore={(x) => setActive(x, true)}
         render={(x) => (
           <>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{x.name}</p>
-            {x.address && <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{x.address}</p>}
-            <a href={`https://www.google.com/maps/search/?api=1&query=${x.lat},${x.lng}`} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 800, color: '#A8481A' }}>Open in Maps</a>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{x.name}</p>
+            {x.address && <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{x.address}</p>}
+            <a href={`https://www.google.com/maps/search/?api=1&query=${x.lat},${x.lng}`} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)' }}>Open in Maps</a>
           </>
         )}
       />

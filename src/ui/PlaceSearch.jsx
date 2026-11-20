@@ -12,8 +12,8 @@ const MapPicker = lazy(() => import('./MapPicker'));
 // ─────────────────────────────────────────────
 
 const box = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)',
-  borderRadius: 12, padding: '11px 14px', fontSize: 16, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+  borderRadius: 12, padding: '11px 14px', fontSize: 16, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
 
 const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of Asia, Pasay', name, allowCurrent = false, near = null }) => {
@@ -37,7 +37,7 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
   };
   const small = {
     display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-    border: '1px solid rgba(180,81,30,0.3)', background: '#FDF6EE', color: '#7A3A18', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-rust, #7A3A18)', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase',
   };
 
   const search = async () => {
@@ -52,12 +52,12 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
-      {label && <label htmlFor={name && !value ? `place-${name}` : undefined} style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>{label}</label>}
+      {label && <label htmlFor={name && !value ? `place-${name}` : undefined} style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>{label}</label>}
       {value ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, padding: '10px 12px' }}>
-          <MapPin size={15} color="#B4511E" style={{ flexShrink: 0 }} />
-          <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: '#1A0A00', overflowWrap: 'anywhere' }}>{value.name}</span>
-          <button type="button" onClick={() => { onChange(null); setResults(null); }} aria-label={`Change ${label || 'place'}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', display: 'flex', padding: 2 }}><X size={15} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 12, padding: '10px 12px' }}>
+          <MapPin size={15} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{value.name}</span>
+          <button type="button" onClick={() => { onChange(null); setResults(null); }} aria-label={`Change ${label || 'place'}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', display: 'flex', padding: 2 }}><X size={15} /></button>
         </div>
       ) : (
         <>
@@ -69,7 +69,7 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
             />
             <button type="button" onClick={search} disabled={busy} style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', flexShrink: 0,
-              background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+              background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
             }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />} Search</button>
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -80,15 +80,15 @@ const PlaceSearch = ({ label, value, onChange, placeholder = 'e.g. SM Mall of As
             )}
             <button type="button" className="no-touch-size" onClick={() => setPicking(true)} style={small}><MapIcon size={12} /> Choose on map</button>
           </div>
-          {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>{error}</span>}
+          {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>{error}</span>}
           {results?.length > 0 && (
-            <ul style={{ listStyle: 'none', margin: 0, padding: 4, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, maxHeight: 220, overflowY: 'auto' }}>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 4, background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 12, maxHeight: 220, overflowY: 'auto' }}>
               {results.map((p, i) => (
                 <li key={`${p.lat},${p.lng},${i}`}>
                   <button type="button" onClick={() => { onChange({ name: p.label || p.name, lat: p.lat, lng: p.lng }); setResults(null); setText(''); }} style={{
                     width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: 8, padding: '9px 10px', cursor: 'pointer',
-                    fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: '#1A0A00', display: 'flex', gap: 8, alignItems: 'flex-start',
-                  }}><MapPin size={14} color="#B4511E" style={{ flexShrink: 0, marginTop: 2 }} /> {p.label || p.name}</button>
+                    fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', display: 'flex', gap: 8, alignItems: 'flex-start',
+                  }}><MapPin size={14} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0, marginTop: 2 }} /> {p.label || p.name}</button>
                 </li>
               ))}
             </ul>

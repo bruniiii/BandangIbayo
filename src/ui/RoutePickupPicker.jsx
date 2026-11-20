@@ -119,16 +119,16 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
   const unpicked = along.filter((s) => !isPicked(s.name));
   const smallBtn = {
     display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 16px', borderRadius: 12, border: 'none', cursor: 'pointer', flexShrink: 0,
-    background: '#1A0A00', color: '#E8A265', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+    background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div>
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', display: 'flex', alignItems: 'center', gap: 6 }}>
           <Route size={14} /> The van's route
         </p>
-        <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+        <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
           Where the van leaves from and where it's going. Then search the pickup points on the way, or tick your saved spots.
         </p>
         <p style={{ margin: '6px 0 0', fontSize: 11.5, fontWeight: 700, color: '#8C5216', display: 'flex', gap: 6, alignItems: 'flex-start', lineHeight: 1.5 }}>
@@ -143,38 +143,38 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
         <button type="button" onClick={find} disabled={busy || !start || !end} style={{
           alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 999, border: 'none',
           cursor: busy || !start || !end ? 'not-allowed' : 'pointer', opacity: !start || !end ? 0.5 : 1,
-          background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{busy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Route size={14} />} Show the van's route</button>
       )}
-      {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>{error}</span>}
+      {error && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>{error}</span>}
 
       {route && (
         <>
-          <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#1A0A00' }}>
+          <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>
             {route.distance_km} km · about {hours(route.duration_min)} of driving
           </p>
-          <Suspense fallback={<div style={{ height: 300, borderRadius: 16, background: '#F2E4D0' }} />}>
+          <Suspense fallback={<div style={{ height: 300, borderRadius: 16, background: 'var(--ib-parch, #F2E4D0)' }} />}>
             <RouteMap route={route} stops={pickedAlong} others={unpicked} height={300} />
           </Suspense>
 
           {/* Search a pickup point by name, around the route. */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label htmlFor="pickup-search" style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Search a pickup point</label>
+            <label htmlFor="pickup-search" style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Search a pickup point</label>
             <div style={{ display: 'flex', gap: 8 }}>
               <input id="pickup-search" value={query} maxLength={120} placeholder="e.g. Petron Bocaue, SM Marilao, Jollibee San Fernando"
                 onChange={(e) => { setQuery(e.target.value); setSearchError(''); }}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); search(); } }}
-                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, padding: '11px 12px', fontSize: 16, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit' }} />
+                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 12, padding: '11px 12px', fontSize: 16, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit' }} />
               <button type="button" onClick={search} disabled={searching} style={smallBtn}>
                 {searching ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />} Search
               </button>
             </div>
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
               Gas stations, malls, terminals, fast food… Places on the van's road are listed first, in the order the van passes them.
             </span>
-            {searchError && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C' }}>{searchError}</span>}
+            {searchError && <span role="alert" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>{searchError}</span>}
             {results?.length > 0 && (
-              <ul style={{ listStyle: 'none', margin: 0, padding: 4, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, maxHeight: 280, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 4, background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 12, maxHeight: 280, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {results.map((p, i) => {
                   const there = isPicked(p.name);
                   return (
@@ -183,14 +183,14 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
                         width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: 8, padding: '9px 10px', cursor: there ? 'default' : 'pointer',
                         fontFamily: 'inherit', display: 'flex', gap: 10, alignItems: 'center', opacity: there ? 0.55 : 1,
                       }}>
-                        <MapPin size={15} color="#B4511E" style={{ flexShrink: 0 }} />
+                        <MapPin size={15} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0 }} />
                         <span style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#1A0A00' }}>{p.name}</span>
+                          <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{p.name}</span>
                           <span style={{ fontSize: 11.5, fontWeight: 600, color: p.offKm <= 3 ? '#1F6B4A' : '#8C5216' }}>
                             {p.offKm <= 3 ? `On the way · ${fromStart(p.alongKm)}` : offRoad(p.offKm)}
                           </span>
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: there ? '#7A3A18' : '#B4511E', flexShrink: 0 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: there ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-accent, #B4511E)', flexShrink: 0 }}>
                           {there ? 'Added' : <><Plus size={13} /> Add</>}
                         </span>
                       </button>
@@ -204,7 +204,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
           {/* Saved spots near the road (and places added above), in driving order. */}
           {along.length > 0 ? (
             <div>
-              <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>
+              <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>
                 On the van's way, from {route.start?.name?.split(/[,(]/)[0].trim() || 'the start'} to {route.end?.name?.split(/[,(]/)[0].trim() || 'the destination'}: tick the pickup points ({pickedAlong.length} ticked)
               </p>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 380, overflowY: 'auto' }}>
@@ -214,13 +214,13 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
                     <li key={`${s.kind}-${s.name}-${s.lat}`}>
                       <button type="button" role="checkbox" aria-checked={on} onClick={() => toggle(s)} style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
-                        background: on ? 'rgba(180,81,30,0.1)' : '#FDF6EE', border: `1px solid ${on ? '#B4511E' : 'rgba(180,81,30,0.18)'}`,
+                        background: on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'var(--ib-cream, #FDF6EE)', border: `1px solid ${on ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}`,
                         borderRadius: 12, padding: '9px 12px',
                       }}>
-                        {on ? <CheckSquare size={18} color="#B4511E" /> : <Square size={18} color="#7A3A18" />}
+                        {on ? <CheckSquare size={18} color="var(--ib-accent, #B4511E)" /> : <Square size={18} color="var(--ib-rust, #7A3A18)" />}
                         <span style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ display: 'block', fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{s.name}</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>
+                          <span style={{ display: 'block', fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{s.name}</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>
                             {s.kind === 'saved' ? <Star size={12} /> : <MapPin size={12} />} {s.kind === 'saved' ? 'Saved spot' : 'Found by search'} · {fromStart(s.alongKm)}
                           </span>
                         </span>
@@ -231,7 +231,7 @@ const RoutePickupPicker = ({ spots, route, onRouteChange, picked, onPickedChange
               </ul>
             </div>
           ) : (
-            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18', background: 'rgba(232,162,101,0.15)', borderRadius: 10, padding: '10px 12px' }}>
+            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.15)', borderRadius: 10, padding: '10px 12px' }}>
               No saved pickup spots near this road yet. Search a pickup point above, or pin one on the map below.
             </p>
           )}

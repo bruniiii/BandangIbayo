@@ -14,8 +14,8 @@ const RouteMap = lazy(() => import('./ui/RouteMap'));
 // ─────────────────────────────────────────────
 
 const input = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)',
-  borderRadius: 12, padding: '11px 14px', fontSize: 16, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+  borderRadius: 12, padding: '11px 14px', fontSize: 16, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
 
 const PickupSpots = ({ onClose, onChanged }) => {
@@ -72,20 +72,20 @@ const PickupSpots = ({ onClose, onChanged }) => {
     // (In the Change window the fields sit straight on the window, under its own title and X.)
     <div style={editing
       ? { display: 'flex', flexDirection: 'column', gap: 12 }
-      : { background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 16, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      : { background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 16, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
       {!editing && (
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>Add a pickup spot</p>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Add a pickup spot</p>
       )}
       <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Name joiners see</span>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Name joiners see</span>
         <input name="spot_name" value={name} maxLength={120} placeholder="e.g. Petron NLEX Bocaue" style={input} onChange={(e) => setName(e.target.value)} />
       </label>
       <PlaceSearch label="Where it is" name="spot_place" value={place} onChange={setPlace} placeholder="Search the place, e.g. Petron Bocaue NLEX" allowCurrent />
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-        {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(180,81,30,0.25)', background: 'transparent', color: '#7A3A18', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
+        {editing && <button type="button" onClick={reset} style={{ padding: '10px 16px', borderRadius: 999, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: 'transparent', color: 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Cancel</button>}
         <button type="button" onClick={save} disabled={saving || !name.trim() || !place} title={name.trim() && place ? undefined : 'Type the name and find the place first'} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none', cursor: name.trim() && place ? 'pointer' : 'not-allowed', opacity: name.trim() && place ? 1 : 0.5,
-          background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
         }}>{saving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={14} />} {editing ? 'Save Changes' : 'Add Spot'}</button>
       </div>
     </div>
@@ -93,22 +93,22 @@ const PickupSpots = ({ onClose, onChanged }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label="Pickup spots" style={{
-        position: 'relative', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', background: '#FDF6EE',
-        borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.75rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 16,
+        position: 'relative', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
+        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.75rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 16,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>Pickup Spots</h3>
-            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Pickup Spots</h3>
+            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
               The places the van can pick joiners up at. When you make a tour, the ones along its route are listed for you to tick.
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
 
-        <Suspense fallback={<div style={{ height: 260, borderRadius: 16, background: '#F2E4D0' }} />}>
+        <Suspense fallback={<div style={{ height: 260, borderRadius: 16, background: 'var(--ib-parch, #F2E4D0)' }} />}>
           <RouteMap route={null} others={(spots || []).map((s) => ({ name: s.name, lat: s.lat, lng: s.lng }))} stops={place ? [{ name: name || 'New spot', lat: place.lat, lng: place.lng }] : []} height={260} />
         </Suspense>
 
@@ -116,24 +116,24 @@ const PickupSpots = ({ onClose, onChanged }) => {
         {!editing && spotForm}
 
         <div>
-          <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+          <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
             Saved spots ({spots?.length ?? '…'})
           </p>
           {spots === null ? (
-            <p style={{ margin: 0, fontSize: 13, color: '#7A3A18' }}>Loading…</p>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--ib-rust, #7A3A18)' }}>Loading…</p>
           ) : spots.length === 0 ? (
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>No pickup spots yet. Add the first one above.</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>No pickup spots yet. Add the first one above.</p>
           ) : (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {spots.map((s) => (
-                <li key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
-                  <MapPin size={16} color="#B4511E" style={{ flexShrink: 0 }} />
+                <li key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
+                  <MapPin size={16} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{s.name}</p>
-                    {s.address && <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7A3A18', overflowWrap: 'anywhere' }}>{s.address}</p>}
+                    <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{s.name}</p>
+                    {s.address && <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', overflowWrap: 'anywhere' }}>{s.address}</p>}
                   </div>
-                  <button type="button" onClick={() => { setEditing(s); setName(s.name); setPlace({ name: s.address || s.name, lat: s.lat, lng: s.lng }); }} aria-label={`Change ${s.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4 }}><Pencil size={15} /></button>
-                  <button type="button" onClick={() => remove(s)} aria-label={`Archive ${s.name}`} title="Archive" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 4 }}><Archive size={15} /></button>
+                  <button type="button" onClick={() => { setEditing(s); setName(s.name); setPlace({ name: s.address || s.name, lat: s.lat, lng: s.lng }); }} aria-label={`Change ${s.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', padding: 4 }}><Pencil size={15} /></button>
+                  <button type="button" onClick={() => remove(s)} aria-label={`Archive ${s.name}`} title="Archive" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-red, #8C2F1C)', padding: 4 }}><Archive size={15} /></button>
                 </li>
               ))}
             </ul>
@@ -144,18 +144,18 @@ const PickupSpots = ({ onClose, onChanged }) => {
       {/* Changing a saved spot opens in its own window */}
       {editing && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.55)' }} onClick={reset} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.55)' }} onClick={reset} />
           <div role="dialog" aria-modal="true" aria-label={`Change ${editing.name}`} style={{
-            position: 'relative', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', background: '#FDF6EE',
-            borderRadius: 20, borderTop: '6px solid #B4511E', padding: '1.25rem 1.5rem 1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)',
+            position: 'relative', width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
+            borderRadius: 20, borderTop: '6px solid var(--ib-accent, #B4511E)', padding: '1.25rem 1.5rem 1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)',
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
-              <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A', minWidth: 0, overflowWrap: 'anywhere' }}>
+              <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', minWidth: 0, overflowWrap: 'anywhere' }}>
                 Change {editing.name}
               </p>
               <button className="x-close" type="button" onClick={reset} aria-label="Close" style={{
                 flexShrink: 0, width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', cursor: 'pointer', color: '#7A3A18',
+                background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)',
               }}><X size={18} /></button>
             </div>
             {spotForm}

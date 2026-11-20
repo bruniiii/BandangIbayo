@@ -14,8 +14,8 @@ import { confirmDialog } from './ConfirmDialog';
 const btn = (dark) => ({
   display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none',
-  background: dark ? '#1A0A00' : 'transparent', color: dark ? '#E8A265' : '#7A3A18',
-  border: dark ? 'none' : '1px solid rgba(180,81,30,0.3)',
+  background: dark ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: dark ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust, #7A3A18)',
+  border: dark ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 
 const DriverLinkPanel = ({ tourId }) => {
@@ -70,16 +70,16 @@ const DriverLinkPanel = ({ tourId }) => {
   };
 
   return (
-    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
         <Smartphone size={14} /> Driver link (live van location)
       </p>
-      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5 }}>
+      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
         Send this link to the driver. On the trip, they open it on their phone and tap <strong>Start Trip</strong>: the van shows live on the map, each stop is marked Arrived when the van gets there, and the joiners there are notified. It works from the day before the tour until its last day.
       </p>
       {token ? (
         <>
-          <code style={{ display: 'block', background: '#F2E4D0', borderRadius: 10, padding: '9px 11px', fontSize: 12, color: '#1A0A00', overflowWrap: 'anywhere' }}>{link}</code>
+          <code style={{ display: 'block', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 10, padding: '9px 11px', fontSize: 12, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{link}</code>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button type="button" onClick={copy} style={btn(true)}><Copy size={13} /> Copy Link</button>
             {/* Send it straight to the driver: a text message to their number, or any app (Messenger…) */}

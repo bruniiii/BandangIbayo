@@ -20,13 +20,13 @@ import NiceDate from './ui/NiceDate';
 
  
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent / confirm)
-// #E8A265  warm amber (highlight / pending)
-// #FDF6EE  cream (light bg)
-// #F2E4D0  parchment (section bg)
-// #7A3A18  rust mid-tone (secondary text)
-// #8C2F1C  oxblood (reject / danger — extends palette for booking actions)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent / confirm)
+// var(--ib-amber, #E8A265)  warm amber (highlight / pending)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
+// var(--ib-rust, #7A3A18)  rust mid-tone (secondary text)
+// var(--ib-red, #8C2F1C)  oxblood (reject / danger — extends palette for booking actions)
 // ---------------------------------------------------------
  
 /* ─────────────────────────────────────────────
@@ -236,12 +236,12 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
   // ── shared input style ──
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
-    background: '#F2E4D0',
-    border: '1px solid rgba(180,81,30,0.18)',
+    background: 'var(--ib-parch, #F2E4D0)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
     borderRadius: 14,
     padding: '10px 14px',
     fontSize: 13, fontWeight: 600,
-    color: '#1A0A00',
+    color: 'var(--ib-dark, #1A0A00)',
     fontFamily: 'inherit',
     outline: 'none',
   };
@@ -249,9 +249,9 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
   const thStyle = {
     padding: '14px 20px',
     fontSize: 11, fontWeight: 900, letterSpacing: '0.18em',
-    textTransform: 'uppercase', color: 'rgba(122,58,24,0.85)',
+    textTransform: 'uppercase', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
     textAlign: 'left', whiteSpace: 'nowrap',
-    background: '#F2E4D0',
+    background: 'var(--ib-parch, #F2E4D0)',
     display: 'flex', alignItems: 'center',
   };
  
@@ -284,13 +284,13 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Two parts: Bookings, and Refunds (sent manually through GCash) ── */}
-      <div role="tablist" aria-label="Booking Management" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%', marginBottom: 16 }}>
+      <div role="tablist" aria-label="Booking Management" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%', marginBottom: 16 }}>
         {[['bookings', 'Bookings'], ['refunds', 'Refunds']].map(([key, label]) => (
           <button key={key} type="button" role="tab" aria-selected={section === key} onClick={() => setSection(key)} style={{
             border: 'none', borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-            background: section === key ? '#1A0A00' : 'transparent', color: section === key ? '#FDF6EE' : '#5C2A10',
-          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
+            background: section === key ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: section === key ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
         ))}
       </div>
 
@@ -302,22 +302,22 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       {/* ── Cancellation requests waiting for an answer ── */}
       {pendingCancels.length > 0 && (
         <div role="region" aria-label="Cancellation requests" style={{
-          background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.3)',
+          background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.07)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.3)',
           borderRadius: 18, padding: '14px 16px', marginBottom: 16,
         }}>
-          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#8C2F1C', margin: '0 0 10px' }}>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', margin: '0 0 10px' }}>
             <AlertCircle size={16} style={{ flexShrink: 0 }} />
             {pendingCancels.length} cancellation request{pendingCancels.length === 1 ? '' : 's'} waiting for you.
-            <span style={{ fontWeight: 600, color: '#7A3A18' }}>Approve them, or they're approved automatically within {CANCELLATION_APPROVAL_HOURS} hours.</span>
+            <span style={{ fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>Approve them, or they're approved automatically within {CANCELLATION_APPROVAL_HOURS} hours.</span>
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {pendingCancels.map((b) => (
-              <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(140,47,28,0.15)' }}>
+              <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.15)' }}>
                 <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-                  <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
                     {b.profiles ? `${b.profiles.first_name || ''} ${b.profiles.last_name || ''}`.trim() || b.full_name : b.full_name} · <span style={{ fontFamily: 'monospace' }}>{b.booking_number}</span>
                   </p>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {b.tours?.title || 'Tour'} · “{b.cancellation_reason || '—'}”
                   </p>
                 </div>
@@ -325,7 +325,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
                   <Clock size={13} /> {timeLeft(b)}
                 </span>
                 <button type="button" onClick={() => setSelectedBooking(b)} style={{
-                  background: '#8C2F1C', color: '#FDF6EE', border: 'none', borderRadius: 12, padding: '9px 16px',
+                  background: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 12, padding: '9px 16px',
                   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                 }}>
                   Review
@@ -339,19 +339,19 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       {/* ── Balances still owed (downpayment bookings) ── */}
       {balancesDue.length > 0 && (
         <div style={{
-          background: 'rgba(232,162,101,0.16)', border: '1px solid rgba(232,162,101,0.45)',
+          background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.16)', border: '1px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.45)',
           borderRadius: 18, padding: '12px 16px', marginBottom: 16,
           display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
-          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
-            <Wallet size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
-            <span><strong style={{ color: '#1A0A00' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: '#1A0A00' }}>{formatPeso(totalBalanceDue)}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
+          <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>
+            <Wallet size={16} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} />
+            <span><strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{formatPeso(totalBalanceDue)}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
           </p>
           <button
             type="button"
             onClick={() => setStatusFilter(statusFilter === 'Balance Due' ? 'All Status' : 'Balance Due')}
             style={{
-              background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 12,
+              background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 12,
               padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
               letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
             }}
@@ -360,7 +360,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           </button>
           <button type="button" onClick={remindAll} disabled={reminding} style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 12,
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', border: 'none', borderRadius: 12,
             padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
             letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
           }}>{reminding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Bell size={13} />} Remind All</button>
@@ -369,7 +369,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
 
       {/* ── Quick views (built in + saved) ── */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
-        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#5C2A10' }}>Quick views:</span>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-brown, #5C2A10)' }}>Quick views:</span>
         {[
           { name: 'Unpaid balances', f: { statusFilter: 'Balance Due' } },
           { name: 'Payments to check', f: { statusFilter: 'Verification Pending' } },
@@ -384,13 +384,13 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             <span key={`${v.saved ? 's' : 'b'}-${v.name}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
               <button type="button" aria-pressed={on} onClick={() => applyView(on ? {} : f)} style={{
                 height: 34, padding: v.saved ? '0 8px 0 13px' : '0 13px', borderRadius: v.saved ? '999px 0 0 999px' : 999, cursor: 'pointer', fontFamily: 'inherit',
-                fontWeight: 800, fontSize: 12, border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.3)'}`, borderRight: v.saved ? 'none' : undefined,
-                background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#FDF6EE' : '#5C2A10',
+                fontWeight: 800, fontSize: 12, border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.3)'}`, borderRight: v.saved ? 'none' : undefined,
+                background: on ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
               }}>{v.saved ? '★ ' : ''}{v.name}</button>
               {v.saved && (
                 <button type="button" aria-label={`Remove saved view ${v.name}`} onClick={() => storeFilters(savedFilters.filter((x) => x.name !== v.name))} style={{
                   height: 34, padding: '0 9px', borderRadius: '0 999px 999px 0', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
-                  border: `1px solid ${on ? '#1A0A00' : 'rgba(180,81,30,0.3)'}`, borderLeft: 'none', background: on ? '#1A0A00' : '#FDF6EE', color: on ? '#FDF6EE' : '#8C2F1C',
+                  border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.3)'}`, borderLeft: 'none', background: on ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: on ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
                 }}>×</button>
               )}
             </span>
@@ -403,10 +403,10 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
 
       {/* ── Filters ── */}
       <div style={{
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 20, padding: '14px 18px',
-        border: '1px solid rgba(180,81,30,0.12)',
-        boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        boxShadow: '0 4px 16px rgba(var(--ib-dark-rgb, 26,10,0), 0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
       }}>
@@ -415,7 +415,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
           <Search size={15} style={{
             position: 'absolute', left: 13, top: '50%',
             transform: 'translateY(-50%)',
-            color: 'rgba(122,58,24,0.85)', pointerEvents: 'none',
+            color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', pointerEvents: 'none',
           }} />
           <input
             type="text" placeholder="Search joiner, tour, or booking no…"
@@ -479,10 +479,10 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       <div style={{
         display: 'flex', flexDirection: 'column',
         flexShrink: 0,
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 22,
-        border: '1px solid rgba(180,81,30,0.12)',
-        boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)',
         overflow: 'hidden',
       }}>
         {loading ? (
@@ -623,8 +623,8 @@ const BookingRow = ({ booking, onView }) => {
   const [hovered, setHovered] = useState(false);
   const cellStyle = {
     padding: '16px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    background: hovered ? 'rgba(180,81,30,0.04)' : 'transparent',
-    borderBottom: '1px solid rgba(180,81,30,0.08)',
+    background: hovered ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.04)' : 'transparent',
+    borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)',
     transition: 'background 0.15s',
   };
   const rowHandlers = {
@@ -635,33 +635,33 @@ const BookingRow = ({ booking, onView }) => {
   return (
     <>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12, margin: 0 }}>
+        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--ib-sienna, #A8481A)', fontSize: 12, margin: 0 }}>
           {booking.booking_number || '—'}
         </p>
       </div>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontWeight: 900, color: '#1A0A00', fontSize: 13, margin: 0 }}>
+        <p style={{ fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', fontSize: 13, margin: 0 }}>
           {booking.profiles ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim() : booking.full_name || '—'}
         </p>
-        <p style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
+        <p style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, fontSize: 11, fontWeight: 600, margin: '3px 0 0' }}>
           {booking.profiles?.phone_number || booking.contact_number || '—'}
         </p>
       </div>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontWeight: 800, color: '#1A0A00', fontSize: 13, margin: 0 }}>{booking.tours?.title || '—'}</p>
-        <p style={{ color: '#7A3A18', opacity: 0.9, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
-          <MapPin size={11} style={{ color: '#A8481A' }} /> {booking.tours?.destination}
+        <p style={{ fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', fontSize: 13, margin: 0 }}>{booking.tours?.title || '—'}</p>
+        <p style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
+          <MapPin size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {booking.tours?.destination}
         </p>
       </div>
-      <div style={{ ...cellStyle, alignItems: 'center', textAlign: 'center', fontWeight: 900, color: '#1A0A00', fontSize: 13 }} {...rowHandlers}>
+      <div style={{ ...cellStyle, alignItems: 'center', textAlign: 'center', fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', fontSize: 13 }} {...rowHandlers}>
         {booking.slots_booked}
       </div>
       <div style={cellStyle} {...rowHandlers}>
-        <p style={{ fontWeight: 900, color: '#A8481A', fontSize: 13, margin: 0 }}>
+        <p style={{ fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', fontSize: 13, margin: 0 }}>
           {formatPeso(booking.total_price)}
         </p>
         {booking.payment_method === 'Downpayment' && (
-          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? '#A8481A' : '#8C5216', margin: '3px 0 0', letterSpacing: '0.04em' }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? 'var(--ib-sienna, #A8481A)' : '#8C5216', margin: '3px 0 0', letterSpacing: '0.04em' }}>
             Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}
@@ -680,7 +680,7 @@ const BookingRow = ({ booking, onView }) => {
           onClick={onView}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
-            background: '#F2E4D0', color: '#1A0A00',
+            background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-dark, #1A0A00)',
             border: 'none', borderRadius: 10, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -698,21 +698,21 @@ const BookingRow = ({ booking, onView }) => {
    BOOKING CARD (phones)
 ───────────────────────────────────────────── */
 const BookingCard = ({ booking, onView }) => (
-  <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(180,81,30,0.1)', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+  <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
       <div style={{ minWidth: 0, flex: '1 1 160px' }}>
-        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: '#A8481A', fontSize: 12, margin: 0 }}>{booking.booking_number || '—'}</p>
-        <p style={{ fontWeight: 900, color: '#1A0A00', fontSize: 14, margin: '3px 0 0', overflowWrap: 'anywhere' }}>
+        <p style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--ib-sienna, #A8481A)', fontSize: 12, margin: 0 }}>{booking.booking_number || '—'}</p>
+        <p style={{ fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', fontSize: 14, margin: '3px 0 0', overflowWrap: 'anywhere' }}>
           {booking.profiles ? `${booking.profiles.first_name || ''} ${booking.profiles.last_name || ''}`.trim() : booking.full_name || '—'}
         </p>
-        <p style={{ fontWeight: 700, color: '#7A3A18', fontSize: 12, margin: '2px 0 0', overflowWrap: 'anywhere' }}>
+        <p style={{ fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', fontSize: 12, margin: '2px 0 0', overflowWrap: 'anywhere' }}>
           {booking.tours?.title || '—'} · {booking.slots_booked} pax
         </p>
       </div>
       <div style={{ textAlign: 'right', minWidth: 0, maxWidth: '100%' }}>
-        <p style={{ fontWeight: 900, color: '#A8481A', fontSize: 15, margin: 0, overflowWrap: 'anywhere' }}>{formatPeso(booking.total_price)}</p>
+        <p style={{ fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', fontSize: 15, margin: 0, overflowWrap: 'anywhere' }}>{formatPeso(booking.total_price)}</p>
         {booking.payment_method === 'Downpayment' && (
-          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? '#A8481A' : '#8C5216', margin: '2px 0 0', overflowWrap: 'anywhere' }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: booking.balance_settled ? 'var(--ib-sienna, #A8481A)' : '#8C5216', margin: '2px 0 0', overflowWrap: 'anywhere' }}>
             Paid: {formatPeso(booking.amount_paid)}{booking.balance_settled ? ' (Full)' : ''}
           </p>
         )}
@@ -723,7 +723,7 @@ const BookingCard = ({ booking, onView }) => (
       <StatusBadge status={getShownStatus(booking)} wrap />
       {getBalanceStatus(booking) && <BalanceStatusBadge status={getBalanceStatus(booking)} />}
       <button onClick={onView} style={{
-        marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F2E4D0', color: '#1A0A00',
+        marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-dark, #1A0A00)',
         border: 'none', borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
         fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', padding: '9px 14px',
       }}><Eye size={12} /> View</button>

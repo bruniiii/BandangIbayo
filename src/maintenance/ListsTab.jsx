@@ -76,7 +76,7 @@ const ListsTab = () => {
   if (problem) {
     return (
       <div style={card}>
-        <h3 style={h3}><ListChecks size={16} color="#8C2F1C" /> Lists aren't installed yet</h3>
+        <h3 style={h3}><ListChecks size={16} color="var(--ib-red, #8C2F1C)" /> Lists aren't installed yet</h3>
         <p style={{ ...hint, margin: 0 }}>Run the database update <strong>20261231000000_option_lists_faq.sql</strong>. ({problem})</p>
       </div>
     );
@@ -84,13 +84,13 @@ const ListsTab = () => {
 
   return (
     <div style={card}>
-      <h3 style={h3}><ListChecks size={16} color="#B4511E" /> Lists & FAQ</h3>
+      <h3 style={h3}><ListChecks size={16} color="var(--ib-accent, #B4511E)" /> Lists & FAQ</h3>
       <p style={hint}>The choices the website offers in its forms, and the Help FAQ. Changes show the next time a page is opened.</p>
       <div role="tablist" aria-label="Which list" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {SECTIONS.map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={section === k} onClick={() => { if (k !== section) { setRows(null); setSection(k); setAdding(''); } }} style={{
             minHeight: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
-            background: section === k ? '#1A0A00' : '#FDF6EE', color: section === k ? '#FDF6EE' : '#5C2A10', border: `1px solid ${section === k ? '#1A0A00' : 'rgba(180,81,30,0.25)'}`,
+            background: section === k ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: section === k ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: `1px solid ${section === k ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
           }}>{l}</button>
         ))}
       </div>
@@ -116,8 +116,8 @@ const ListsTab = () => {
         render={(x) => (
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00', overflowWrap: 'anywhere' }}>{nameOf(x)}</p>
-              {isFaq && <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>{String(x.answer || '').length > 160 ? `${String(x.answer).slice(0, 160)}…` : x.answer || ''}</p>}
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{nameOf(x)}</p>
+              {isFaq && <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.5 }}>{String(x.answer || '').length > 160 ? `${String(x.answer).slice(0, 160)}…` : x.answer || ''}</p>}
             </div>
           </div>
         )}
@@ -148,11 +148,11 @@ const EditItem = ({ isFaq, item, rows, section, onClose, onSaved }) => {
   };
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label="Edit" style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: '#FDF6EE', borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div role="dialog" aria-modal="true" aria-label="Edit" style={{ position: 'relative', width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-dark-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>{item.id ? 'Edit' : 'Add'} {isFaq ? 'Question' : 'Item'}</h3>
-          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{item.id ? 'Edit' : 'Add'} {isFaq ? 'Question' : 'Item'}</h3>
+          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
         {!isFaq && item.id && <p style={{ ...hint, margin: 0 }}>Renaming changes what the forms show from now on. Records saved before keep the old name.</p>}
         <label style={label}>{isFaq ? 'Question' : 'Name'}<input value={a} maxLength={isFaq ? 200 : 80} onChange={(e) => setA(e.target.value)} style={inp} /></label>

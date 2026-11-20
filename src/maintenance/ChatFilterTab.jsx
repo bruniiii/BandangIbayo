@@ -65,7 +65,7 @@ const ChatFilterTab = () => {
   if (problem) {
     return (
       <div style={card}>
-        <h3 style={h3}><ShieldBan size={16} color="#8C2F1C" /> Chat filter isn't installed yet</h3>
+        <h3 style={h3}><ShieldBan size={16} color="var(--ib-red, #8C2F1C)" /> Chat filter isn't installed yet</h3>
         <p style={{ ...hint, margin: 0 }}>Run the database update <strong>20261228000000_maintenance_tabs.sql</strong>. ({problem})</p>
       </div>
     );
@@ -73,7 +73,7 @@ const ChatFilterTab = () => {
 
   return (
     <div style={card}>
-      <h3 style={h3}><ShieldBan size={16} color="#B4511E" /> Chat Filter</h3>
+      <h3 style={h3}><ShieldBan size={16} color="var(--ib-accent, #B4511E)" /> Chat Filter</h3>
       <p style={hint}>Words hidden as **** in group chat messages and reviews (English, Filipino, Bisaya, Ilocano, Spanish). Whole words only, so "class" isn't caught by "ass".</p>
       {me.isMain ? (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
@@ -81,7 +81,7 @@ const ChatFilterTab = () => {
           <button type="button" style={btn(true)} disabled={busy === 'add'} onClick={add}>{busy === 'add' ? <Loader2 size={14} style={spin} /> : <Plus size={14} />} Block Word</button>
         </div>
       ) : (
-        <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 12px' }}>
+        <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', margin: '0 0 12px' }}>
           <Lock size={15} /> Only the main admin can change the blocked words.
         </p>
       )}
@@ -89,7 +89,7 @@ const ChatFilterTab = () => {
         <input value={test} maxLength={500} onChange={(e) => setTest(e.target.value)} placeholder="Try a sentence to see what gets hidden" aria-label="Test sentence" style={{ ...inp, flex: '1 1 240px' }} />
         <button type="button" style={btn(false)} disabled={!test.trim() || busy === 'test'} onClick={runTest}>{busy === 'test' ? <Loader2 size={14} style={spin} /> : null} Test</button>
       </div>
-      {tested !== '' && <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: '#1A0A00', background: '#FFFDF9', borderRadius: 10, padding: '8px 10px' }}>{tested}</p>}
+      {tested !== '' && <p style={{ margin: '0 0 12px', fontSize: 13, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', background: '#FFFDF9', borderRadius: 10, padding: '8px 10px' }}>{tested}</p>}
       <RecordList
         items={rows}
         pageSize={30}
@@ -99,7 +99,7 @@ const ChatFilterTab = () => {
         textOf={(x) => x.word}
         onArchive={(x) => setActive(x, false)}
         onRestore={(x) => setActive(x, true)}
-        render={(x) => <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00', overflowWrap: 'anywhere' }}>{x.word}</p>}
+        render={(x) => <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{x.word}</p>}
       />
     </div>
   );

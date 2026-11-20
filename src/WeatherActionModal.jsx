@@ -24,10 +24,10 @@ import { WEATHER_REASONS } from './optionLists';
 // ─────────────────────────────────────────────
 
 
-const label = { display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', marginBottom: 6 };
+const label = { display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', marginBottom: 6 };
 const input = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12,
-  padding: '11px 12px', fontSize: 16, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 12,
+  padding: '11px 12px', fontSize: 16, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
 
 const WeatherActionModal = ({ date, onClose, onDone }) => {
@@ -89,27 +89,27 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
   const choice = (key, Icon, title, sub) => (
     <button type="button" onClick={() => setAction(key)} aria-pressed={action === key} style={{
       flex: '1 1 180px', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', borderRadius: 14, padding: '12px 14px',
-      background: action === key ? (key === 'cancel' ? 'rgba(140,47,28,0.1)' : 'rgba(180,81,30,0.1)') : '#FDF6EE',
-      border: `2px solid ${action === key ? (key === 'cancel' ? '#8C2F1C' : '#B4511E') : 'rgba(180,81,30,0.18)'}`,
+      background: action === key ? (key === 'cancel' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)') : 'var(--ib-cream, #FDF6EE)',
+      border: `2px solid ${action === key ? (key === 'cancel' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)') : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}`,
     }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}><Icon size={16} /> {title}</span>
-      <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#7A3A18', marginTop: 3, lineHeight: 1.45 }}>{sub}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}><Icon size={16} /> {title}</span>
+      <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', marginTop: 3, lineHeight: 1.45 }}>{sub}</span>
     </button>
   );
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10060, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.85)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.85)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-labelledby="weather-title" style={{
-        position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 520, maxHeight: '92dvh', overflowY: 'auto',
-        borderRadius: 24, borderTop: '6px solid #3F5D62', boxShadow: '0 32px 80px rgba(26,10,0,0.4)', padding: '1.5rem', boxSizing: 'border-box',
+        position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 520, maxHeight: '92dvh', overflowY: 'auto',
+        borderRadius: 24, borderTop: '6px solid #3F5D62', boxShadow: '0 32px 80px rgba(var(--ib-dark-rgb, 26,10,0), 0.4)', padding: '1.5rem', boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', gap: 16,
       }}>
-        <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 38, height: 38, borderRadius: '50%', border: '1px solid rgba(180,81,30,0.2)', background: '#FDF6EE', color: '#7A3A18', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} /></button>
+        <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 38, height: 38, borderRadius: '50%', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-rust, #7A3A18)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={18} /></button>
         <div style={{ paddingRight: 40 }}>
           <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#3F5D62', display: 'flex', alignItems: 'center', gap: 6 }}><CloudRain size={15} /> Weather &amp; safety</p>
-          <h2 id="weather-title" style={{ margin: '6px 0 2px', fontSize: 19, fontWeight: 900, color: '#1A0A00' }}>{date.title}</h2>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>{formatYmdRange(date.start_date, date.end_date)} · {booked} booked</p>
+          <h2 id="weather-title" style={{ margin: '6px 0 2px', fontSize: 19, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{date.title}</h2>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{formatYmdRange(date.start_date, date.end_date)} · {booked} booked</p>
         </div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -140,7 +140,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
               <NiceDate id="weather-end" min={start || earliest} max={start ? addDaysYmd(start, 6) : undefined} value={end} style={input}
                 onChange={(e) => setEnd(e.target.value)} />
             </div>
-            <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>
+            <p style={{ gridColumn: '1 / -1', margin: 0, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
               Only later days: the new date must start after {formatYmdRange(date.start_date, date.end_date)} (from {formatYmdRange(afterTour, afterTour)}).
             </p>
           </div>
@@ -157,7 +157,7 @@ const WeatherActionModal = ({ date, onClose, onDone }) => {
         )}
         <button type="button" onClick={submit} disabled={!ready || busy} style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 18px', borderRadius: 14, border: 'none',
-          background: action === 'cancel' ? '#8C2F1C' : '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
+          background: action === 'cancel' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 12,
           letterSpacing: '0.1em', textTransform: 'uppercase', cursor: !ready || busy ? 'not-allowed' : 'pointer', opacity: ready ? 1 : 0.5,
         }}>
           {busy ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : action === 'cancel' ? <Ban size={16} /> : <CalendarClock size={16} />}

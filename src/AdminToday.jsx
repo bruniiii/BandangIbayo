@@ -71,17 +71,17 @@ const AdminToday = ({ onOpen }) => {
   }, []); // (go() reads the latest onOpen)
 
   const tones = {
-    warn: { bg: 'rgba(232,162,101,0.18)', color: '#7A4410', Icon: AlertTriangle },
-    bad: { bg: 'rgba(192,69,43,0.12)', color: '#8C2F1C', Icon: AlertTriangle },
+    warn: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.18)', color: '#7A4410', Icon: AlertTriangle },
+    bad: { bg: 'rgba(192,69,43,0.12)', color: 'var(--ib-red, #8C2F1C)', Icon: AlertTriangle },
     good: { bg: 'rgba(46,155,95,0.12)', color: '#1B5E3B', Icon: CheckCircle2 },
   };
   const todo = (items || []).filter((i) => i.tone !== 'good').length;
 
   return (
-    <section aria-label="Today" style={{ background: '#FDF6EE', borderRadius: 20, border: '1px solid rgba(180,81,30,0.14)', padding: '1.25rem 1.5rem', boxShadow: '0 4px 20px rgba(26,10,0,0.06)' }}>
+    <section aria-label="Today" style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', padding: '1.25rem 1.5rem', boxShadow: '0 4px 20px rgba(var(--ib-dark-rgb, 26,10,0), 0.06)' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-        <h3 style={{ margin: 0, fontWeight: 900, fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00' }}>Today: to do</h3>
-        <span style={{ fontSize: 12, fontWeight: 800, color: todo ? '#8C2F1C' : '#1B5E3B' }}>
+        <h3 style={{ margin: 0, fontWeight: 900, fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>Today: to do</h3>
+        <span style={{ fontSize: 12, fontWeight: 800, color: todo ? 'var(--ib-red, #8C2F1C)' : '#1B5E3B' }}>
           {items === null ? 'Checking…' : todo ? `${todo} thing${todo === 1 ? '' : 's'} need you` : 'All caught up'}
         </span>
       </div>

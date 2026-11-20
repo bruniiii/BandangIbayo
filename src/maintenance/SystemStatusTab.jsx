@@ -26,7 +26,7 @@ const SystemStatusTab = ({ onNavigate, onTab, start = 'overview' }) => {
   const go = (k) => (PARTS.some(([p]) => p === k) ? setPart(k) : onTab?.(k === 'database' ? 'backup' : k));
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div role="tablist" aria-label="System Status sections" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 14, padding: 4, flexWrap: 'wrap' }}>
+      <div role="tablist" aria-label="System Status sections" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: 4, flexWrap: 'wrap' }}>
         {PARTS.map((p) => {
           const Icon = p[2];
           const on = part === p[0];
@@ -34,7 +34,7 @@ const SystemStatusTab = ({ onNavigate, onTab, start = 'overview' }) => {
             <button key={p[0]} type="button" role="tab" aria-selected={on} onClick={() => setPart(p[0])} style={{
               flex: '1 1 150px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 38, border: 'none', borderRadius: 10,
               cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: on ? '#1A0A00' : 'transparent', color: on ? '#FDF6EE' : '#5C2A10',
+              background: on ? 'var(--ib-dark, #1A0A00)' : 'transparent', color: on ? 'var(--ib-cream, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
             }}><Icon size={14} /> {p[1]}</button>
           );
         })}

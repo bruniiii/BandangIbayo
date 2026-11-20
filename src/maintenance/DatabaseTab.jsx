@@ -131,15 +131,15 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
       <section style={card}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div>
-            <h3 style={h3}><ShieldCheck size={16} color="#A8481A" /> Data check</h3>
+            <h3 style={h3}><ShieldCheck size={16} color="var(--ib-sienna, #A8481A)" /> Data check</h3>
             <p style={hint}>Looks for incomplete or inconsistent records. Click a record to open it and fix it.</p>
           </div>
           <button type="button" onClick={load} style={btn(false)}><RefreshCw size={14} /> Check Again</button>
         </div>
-        {checkError && <p role="alert" style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color: '#8C2F1C' }}>Couldn't run the check ({checkError}). Run the latest database update (install_updates.sql).</p>}
-        {checks === null ? <p style={{ margin: 0, color: '#5C2A10' }}>Checking…</p> : (
+        {checkError && <p role="alert" style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>Couldn't run the check ({checkError}). Run the latest database update (install_updates.sql).</p>}
+        {checks === null ? <p style={{ margin: 0, color: 'var(--ib-brown, #5C2A10)' }}>Checking…</p> : (
           <>
-            <p style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 900, color: problems ? '#8C2F1C' : '#1B5E3B', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <p style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 900, color: problems ? 'var(--ib-red, #8C2F1C)' : '#1B5E3B', display: 'flex', alignItems: 'center', gap: 6 }}>
               {problems ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />} {problems ? `${problems} record${problems === 1 ? '' : 's'} to look at` : 'No problems found'}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -147,12 +147,12 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
                 const info = CHECKS[c.key] || { title: c.key };
                 const n = Number(c.count) || 0;
                 return (
-                  <div key={c.key} style={{ ...row, alignItems: 'flex-start', background: n ? 'rgba(232,162,101,0.14)' : '#F2E4D0' }}>
+                  <div key={c.key} style={{ ...row, alignItems: 'flex-start', background: n ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)' : 'var(--ib-parch, #F2E4D0)' }}>
                     <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-                      <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>
-                        {info.title} <span style={{ marginLeft: 6, color: c.count == null ? '#7A4410' : n ? '#8C2F1C' : '#1B5E3B' }}>{c.count == null ? "couldn't check" : n ? n : '✓ none'}</span>
+                      <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
+                        {info.title} <span style={{ marginLeft: 6, color: c.count == null ? '#7A4410' : n ? 'var(--ib-red, #8C2F1C)' : '#1B5E3B' }}>{c.count == null ? "couldn't check" : n ? n : '✓ none'}</span>
                       </p>
-                      {n > 0 && <p style={{ margin: '2px 0 6px', fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{info.fix}</p>}
+                      {n > 0 && <p style={{ margin: '2px 0 6px', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{info.fix}</p>}
                       {n > 0 && (
                         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 4 }}>
                           {(c.items || []).map((it) => (
@@ -162,10 +162,10 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
                                   style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, textAlign: 'left' }}>
                                   {it.label} <ChevronRight size={13} />
                                 </button>
-                              ) : <span style={{ fontSize: 12.5, fontWeight: 700, color: '#1A0A00' }}>{it.label}</span>}
+                              ) : <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{it.label}</span>}
                             </li>
                           ))}
-                          {n > (c.items || []).length && <li style={{ fontSize: 12, color: '#5C2A10' }}>and {n - c.items.length} more</li>}
+                          {n > (c.items || []).length && <li style={{ fontSize: 12, color: 'var(--ib-brown, #5C2A10)' }}>and {n - c.items.length} more</li>}
                         </ul>
                       )}
                     </div>
@@ -179,13 +179,13 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
       </section>
 
       <section style={card}>
-        <h3 style={h3}><Download size={16} color="#A8481A" /> Backups (Excel / CSV)</h3>
+        <h3 style={h3}><Download size={16} color="var(--ib-sienna, #A8481A)" /> Backups (Excel / CSV)</h3>
         <p style={hint}>
           Download a copy of the records. The files open in Excel or Google Sheets.
           {counts ? ` Stored now: ${counts.bookings ?? '—'} bookings, ${(Number(counts.active_tours) || 0) + (Number(counts.archived_tours) || 0)} tours, ${(Number(counts.joiners) || 0) + (Number(counts.archived_joiners) || 0)} joiner accounts.` : ''}
         </p>
         {!me.isMain && (
-          <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 12px' }}>
+          <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', margin: '0 0 12px' }}>
             <Lock size={15} /> Only the main admin can download backups. You can see the backup history below.
           </p>
         )}
@@ -199,14 +199,14 @@ const DatabaseTab = ({ onNavigate, onTab }) => {
       </section>
 
       <section style={card}>
-        <h3 style={h3}><History size={16} color="#A8481A" /> Backup history</h3>
+        <h3 style={h3}><History size={16} color="var(--ib-sienna, #A8481A)" /> Backup history</h3>
         <p style={hint}>Every backup downloaded from this page: what, how many records, who and when.</p>
-        {backups.length === 0 ? <p style={{ margin: 0, fontSize: 12.5, color: '#5C2A10' }}>No backups downloaded yet.</p> : (
+        {backups.length === 0 ? <p style={{ margin: 0, fontSize: 12.5, color: 'var(--ib-brown, #5C2A10)' }}>No backups downloaded yet.</p> : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
             {backups.map((b) => (
-              <li key={b.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontSize: 12.5, background: '#F2E4D0', borderRadius: 10, padding: '8px 12px' }}>
-                <span style={{ fontWeight: 800, color: '#1A0A00' }}>{b.what}: {b.rows} record{b.rows === 1 ? '' : 's'}</span>
-                <span style={{ color: '#5C2A10', fontWeight: 600 }}>{b.admin_name || 'Admin'} · {when(b.at)}</span>
+              <li key={b.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontSize: 12.5, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 10, padding: '8px 12px' }}>
+                <span style={{ fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{b.what}: {b.rows} record{b.rows === 1 ? '' : 's'}</span>
+                <span style={{ color: 'var(--ib-brown, #5C2A10)', fontWeight: 600 }}>{b.admin_name || 'Admin'} · {when(b.at)}</span>
               </li>
             ))}
           </ul>

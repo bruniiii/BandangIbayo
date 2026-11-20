@@ -9,8 +9,8 @@ import { subscribe, getToasts, dismiss } from './toast';
 const STYLES = {
   success: { icon: CheckCircle2, accent: '#2E9B5F' },
   error: { icon: XCircle, accent: '#D9443A' },
-  info: { icon: Info, accent: '#D9772F' },
-  loading: { icon: Loader2, accent: '#D9772F' },
+  info: { icon: Info, accent: '#0A8BA6' },
+  loading: { icon: Loader2, accent: '#0A8BA6' },
 };
 
 const CSS = `
@@ -18,14 +18,14 @@ const CSS = `
   display: flex; flex-direction: column; align-items: stretch; gap: 10px; pointer-events: none; }
 .toast { pointer-events: auto; position: relative; overflow: hidden; display: flex; gap: 14px; align-items: flex-start; box-sizing: border-box;
   padding: 16px 14px 16px 18px; border-radius: 18px; font-family: 'Outfit', 'Inter', system-ui, sans-serif;
-  background: #FFFFFF; color: #1A0A00; border: 1px solid rgba(180,81,30,0.14);
-  box-shadow: 0 18px 50px rgba(26,10,0,0.28), 0 2px 6px rgba(26,10,0,0.08);
+  background: #FFFFFF; color: var(--ib-dark, #1A0A00); border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14);
+  box-shadow: 0 18px 50px rgba(var(--ib-dark-rgb, 26,10,0), 0.28), 0 2px 6px rgba(var(--ib-dark-rgb, 26,10,0), 0.08);
   animation: toast-in 0.28s cubic-bezier(.2,.9,.3,1.2); }
 .toast::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--toast-accent); }
 .toast-icon { flex-shrink: 0; width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
   color: #FFFFFF; background: var(--toast-accent); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
-.toast-title { margin: 0; font-size: 15px; font-weight: 900; line-height: 1.35; color: #1A0A00; }
-.toast-msg { margin: 3px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: #5C2A10; white-space: pre-line; overflow-wrap: anywhere; }
+.toast-title { margin: 0; font-size: 15px; font-weight: 900; line-height: 1.35; color: var(--ib-dark, #1A0A00); }
+.toast-msg { margin: 3px 0 0; font-size: 13.5px; font-weight: 600; line-height: 1.5; color: var(--ib-brown, #5C2A10); white-space: pre-line; overflow-wrap: anywhere; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(-18px) scale(0.98); } to { opacity: 1; transform: none; } }
 @keyframes toast-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }

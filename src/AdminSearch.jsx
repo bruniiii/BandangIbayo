@@ -59,20 +59,20 @@ const AdminSearch = ({ onOpen, wide = false }) => {
   return (
     <div ref={wrapRef} className={wide ? 'admin-search-wide' : 'admin-search'} style={{ position: 'relative' }}>
       <div className="admin-search-box" style={{ position: 'relative' }}>
-        <Search size={15} color="#7A3A18" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+        <Search size={15} color="var(--ib-rust, #7A3A18)" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
         <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
           onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); if (e.key === 'Enter' && results?.[0]) pick(results[0]); }}
           placeholder="Search bookings, joiners, tours…" aria-label="Search everything"
-          style={{ width: wide ? '100%' : 260, maxWidth: '100%', boxSizing: 'border-box', height: 42, padding: '0 34px 0 34px', borderRadius: 14, border: '1px solid rgba(180,81,30,0.22)', background: '#F2E4D0', fontFamily: 'inherit', fontSize: 13, color: '#1A0A00' }} />
-        {q && <button type="button" onClick={() => { setQ(''); setResults(null); }} aria-label="Clear search" className="no-touch-size" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4 }}><X size={14} /></button>}
+          style={{ width: wide ? '100%' : 260, maxWidth: '100%', boxSizing: 'border-box', height: 42, padding: '0 34px 0 34px', borderRadius: 14, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.22)', background: 'var(--ib-parch, #F2E4D0)', fontFamily: 'inherit', fontSize: 13, color: 'var(--ib-dark, #1A0A00)' }} />
+        {q && <button type="button" onClick={() => { setQ(''); setResults(null); }} aria-label="Clear search" className="no-touch-size" style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', padding: 4 }}><X size={14} /></button>}
       </div>
       {open && clean(q).length >= 2 && (
         <div role="listbox" aria-label="Search results" style={{
           position: 'absolute', top: 'calc(100% + 6px)', right: 0, width: wide ? '100%' : 360, maxWidth: 'calc(100vw - 24px)', maxHeight: 420, overflowY: 'auto', zIndex: 70,
-          background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, boxShadow: '0 18px 40px rgba(26,10,0,0.2)', padding: 6,
+          background: '#FFFDF9', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, boxShadow: '0 18px 40px rgba(var(--ib-dark-rgb, 26,10,0), 0.2)', padding: 6,
         }}>
-          {busy && !results && <p style={{ margin: 10, display: 'flex', gap: 6, alignItems: 'center', fontSize: 12.5, color: '#5C2A10' }}><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Searching…</p>}
-          {results && results.length === 0 && <p style={{ margin: 10, fontSize: 12.5, fontWeight: 700, color: '#5C2A10' }}>Nothing found for "{clean(q)}".</p>}
+          {busy && !results && <p style={{ margin: 10, display: 'flex', gap: 6, alignItems: 'center', fontSize: 12.5, color: 'var(--ib-brown, #5C2A10)' }}><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Searching…</p>}
+          {results && results.length === 0 && <p style={{ margin: 10, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>Nothing found for "{clean(q)}".</p>}
           {(results || []).map((r) => {
             const Icon = r.icon;
             return (
@@ -80,12 +80,12 @@ const AdminSearch = ({ onOpen, wide = false }) => {
                 display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', background: 'none', border: 'none', borderRadius: 10,
                 padding: '8px 10px', cursor: 'pointer', fontFamily: 'inherit',
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#F2E4D0'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--ib-parch, #F2E4D0)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}>
-                <span style={{ width: 30, height: 30, borderRadius: 9, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon size={14} /></span>
+                <span style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--ib-dark, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon size={14} /></span>
                 <span style={{ minWidth: 0, flex: 1 }}>
-                  <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#1A0A00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
-                  <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#5C2A10', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.group}{r.sub ? ` · ${r.sub}` : ''}</span>
+                  <span style={{ display: 'block', fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
+                  <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.group}{r.sub ? ` · ${r.sub}` : ''}</span>
                 </span>
               </button>
             );

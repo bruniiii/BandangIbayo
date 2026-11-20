@@ -415,9 +415,9 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
 .activity-filters > div > button { min-height: 50px !important; }
 
 /* ═════════ Bright & Tropical skin ═════════
-   Matches the landing page (sand, ocean blue, sunset orange). App.jsx turns
-   it on for the joiner side (landing, login, register, tours, dashboard);
-   the admin pages keep the espresso colours (the fallbacks in each var()). */
+   Matches the landing page (sand, ocean blue, sunset orange). It's on for
+   the whole site (data-skin on <html> in index.html); each var() keeps the
+   old espresso colour as its fallback. */
 :root[data-skin="tropical"] {
   --ib-dark: #0B3B4F; --ib-deep: #134B5F; --ib-brown: #0B3B4F; --ib-rust: #3F6372;
   --ib-sienna: #0A7C94; --ib-sienna-hover: #086A7F; --ib-accent: #FF7A3D; --ib-amber: #FFB547;
