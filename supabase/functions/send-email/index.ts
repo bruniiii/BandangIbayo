@@ -97,13 +97,13 @@ const prettyDate = (ymd: string) => {
 const listHtml = (text?: string | null) => {
   const items = (text || "").split("\n").map((s) => s.trim()).filter(Boolean);
   if (!items.length) return "";
-  return `<ul style="margin:6px 0 0;padding-left:18px;color:#1A0A00;">${items.map((i) => `<li style="margin:2px 0;">${esc(i)}</li>`).join("")}</ul>`;
+  return `<ul style="margin:6px 0 0;padding-left:18px;color:#0B3B4F;">${items.map((i) => `<li style="margin:2px 0;">${esc(i)}</li>`).join("")}</ul>`;
 };
 
 const section = (title: string, inner: string) =>
   inner
-    ? `<div style="background:#F2E4D0;border-radius:12px;padding:14px 16px;margin:14px 0;">
-         <p style="margin:0 0 4px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#7A3A18;">${title}</p>
+    ? `<div style="background:#FDEBD3;border-radius:12px;padding:14px 16px;margin:14px 0;">
+         <p style="margin:0 0 4px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#3F6372;">${title}</p>
          ${inner}
        </div>`
     : "";
@@ -119,7 +119,7 @@ function buildEmail(opts: {
       : 0;
 
   const vehicleHtml = vehicle
-    ? `<p style="margin:0;color:#1A0A00;font-size:14px;line-height:1.7;">
+    ? `<p style="margin:0;color:#0B3B4F;font-size:14px;line-height:1.7;">
          <strong>Vehicle:</strong> ${esc(vehicle.car_type)}<br/>
          <strong>Plate No.:</strong> ${esc(vehicle.plate_number)}<br/>
          ${vehicle.vehicle_color ? `<strong>Color:</strong> ${esc(vehicle.vehicle_color)}<br/>` : ""}
@@ -129,33 +129,31 @@ function buildEmail(opts: {
     : "";
 
   const stopsHtml = stops.length
-    ? `<ul style="margin:0;padding-left:18px;color:#1A0A00;font-size:14px;line-height:1.7;">${stops
-        .map((s) => `<li><strong>${esc(s.location_name)}</strong> — ETA ${esc(s.scheduled_time)}${s.note ? ` <em>(${esc(s.note)})</em>` : ""} · <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.location_name ?? "")}" style="color:#A8481A;">Map</a></li>`)
+    ? `<ul style="margin:0;padding-left:18px;color:#0B3B4F;font-size:14px;line-height:1.7;">${stops
+        .map((s) => `<li><strong>${esc(s.location_name)}</strong> — ETA ${esc(s.scheduled_time)}${s.note ? ` <em>(${esc(s.note)})</em>` : ""} · <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.location_name ?? "")}" style="color:#0A7C94;">Map</a></li>`)
         .join("")}</ul>`
     : "";
 
   const balanceHtml = balance
-    ? `<p style="margin:0;color:#8C2F1C;font-size:14px;font-weight:700;">
+    ? `<p style="margin:0;color:#C4361F;font-size:14px;font-weight:700;">
          Remaining balance of ${peso(balance)} is due on the day of the tour. Please prepare it in cash or GCash.
        </p>`
     : "";
 
   const noteHtml = tour.important_note
-    ? `<p style="margin:0;color:#1A0A00;font-size:14px;white-space:pre-wrap;line-height:1.6;">${esc(tour.important_note)}</p>`
+    ? `<p style="margin:0;color:#0B3B4F;font-size:14px;white-space:pre-wrap;line-height:1.6;">${esc(tour.important_note)}</p>`
     : "";
 
   const t = tpl("reminder", { name, tour: tour.title, when: reminderWhen(), see_you: REMINDER_LEAD_DAYS === 1 ? "tomorrow" : "soon", booking: booking.booking_number, date: prettyDate(tour.start_date) });
-  const html = `
-  <div style="font-family:'Inter',Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#1A0A00;background:#FDF6EE;">
-    <h2 style="color:#C45C26;margin:0 0 6px;">${t.heading}</h2>
-    <div style="margin:0 0 16px;font-size:14px;color:#7A3A18;">${t.body}</div>
+  const html = wrapper(t.heading, "#E8622A", `
+    <div style="margin:0 0 16px;font-size:14px;color:#3F6372;">${t.body}</div>
 
-    <div style="background:#1A0A00;border-radius:14px;padding:16px 18px;color:#FDF6EE;">
+    <div style="background:#0B3B4F;border-radius:14px;padding:16px 18px;color:#FFF8EE;">
       <p style="margin:0;font-size:17px;font-weight:800;">${esc(tour.title)}</p>
-      <p style="margin:6px 0 0;font-size:13px;color:#E8A265;">📍 ${esc(tour.destination)}</p>
+      <p style="margin:6px 0 0;font-size:13px;color:#FFB547;">📍 ${esc(tour.destination)}</p>
       <p style="margin:4px 0 0;font-size:13px;">📅 ${prettyDate(tour.start_date)}${tour.duration ? ` · ${esc(tour.duration)}` : ""}</p>
       <p style="margin:4px 0 0;font-size:13px;">👤 ${booking.slots_booked} ${booking.slots_booked === 1 ? "person" : "persons"} · Ref: ${esc(booking.booking_number)}</p>
-      ${stops[0] ? `<p style="margin:10px 0 0;font-size:14px;font-weight:800;color:#E8A265;">⏰ Meeting time: ${esc(stops[0].scheduled_time || "see pickup points")} at ${esc(stops[0].location_name)}</p>` : ""}
+      ${stops[0] ? `<p style="margin:10px 0 0;font-size:14px;font-weight:800;color:#FFB547;">⏰ Meeting time: ${esc(stops[0].scheduled_time || "see pickup points")} at ${esc(stops[0].location_name)}</p>` : ""}
     </div>
 
     ${section("Pickup Points &amp; ETA", stopsHtml)}
@@ -164,12 +162,11 @@ function buildEmail(opts: {
     ${section("Balance Reminder", balanceHtml)}
     ${section("Important Note", noteHtml)}
 
-    <p style="font-size:13px;color:#7A3A18;margin:18px 0 0;line-height:1.6;">
+    <p style="font-size:13px;color:#3F6372;margin:18px 0 0;line-height:1.6;">
       Your pickup points, driver and check-in QR are on the <strong>Day trip</strong> card in My Bookings, and live van updates are under <strong>Tracking</strong>.
       Questions? Just reply to this email or write us at ${GMAIL_USER}.
     </p>
-    <p style="color:#7A3A18;font-size:13px;margin-top:20px;">— The Bandang IBAYO Team</p>
-  </div>`;
+  `);
 
   return html;
 }
@@ -268,14 +265,26 @@ async function runReminders(date: string, dryRun: boolean) {
 }
 
 // ───────────── Transactional templates (normal mode) ─────────────
+// Every email: a white card on sand, a navy band with the name, a sunset
+// stripe, the heading, the message, and the team's sign-off
+// (Bright & Tropical, the same colours as the website).
 const wrapper = (title: string, titleColor: string, bodyHtml: string) => `
-  <div style="font-family: 'Inter', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1A0A00;">
-    <h2 style="color:${titleColor}; margin: 0 0 16px;">${title}</h2>
-    ${bodyHtml}
-    <p style="color:#7A3A18; font-size: 13px; margin-top: 24px;">— The Bandang IBAYO Team</p>
+  <div style="background:#FFF8EE;padding:24px 12px;font-family:'Outfit','Inter',Arial,sans-serif;">
+    <div style="max-width:520px;margin:0 auto;background:#FFFFFF;border-radius:18px;overflow:hidden;border:1px solid #E3ECEF;">
+      <div style="background:#0B3B4F;padding:14px 22px;">
+        <span style="color:#FFB547;font-size:17px;font-weight:900;letter-spacing:.01em;">Bandang IBAYO</span>
+        <span style="color:#D6EAF0;font-size:12px;font-weight:600;">&nbsp;·&nbsp;Group tours across the Philippines</span>
+      </div>
+      <div style="height:4px;background:#FF7A3D;background-image:linear-gradient(90deg,#FF7A3D,#FFB547,#0A7C94);"></div>
+      <div style="padding:22px 24px 20px;color:#0B3B4F;font-size:14px;line-height:1.6;">
+        <h2 style="color:${titleColor};margin:0 0 14px;font-size:22px;line-height:1.25;">${title}</h2>
+        ${bodyHtml}
+        <p style="color:#0A7C94;font-size:15px;font-weight:800;font-style:italic;margin:22px 0 0;">— The Bandang IBAYO Team ♡</p>
+      </div>
+    </div>
+    <p style="max-width:520px;margin:12px auto 0;text-align:center;color:#3F6372;font-size:11.5px;">Bandang IBAYO · ${SITE_URL ? SITE_URL.replace(/^https?:\/\//, "") : "bandangibayo.website"}</p>
   </div>
 `;
-
 // What the joiner says they paid: the amount they submitted, else what their
 // payment option requires (the downpayment their booking was made under).
 const amountSubmitted = (b: any) =>
@@ -326,7 +335,7 @@ const bookingSubmittedEmail = (name: string, b: any, tour: any) => {
   const t = tpl("booking_received", bookingVars(name, b, tour));
   return {
     subject: t.subject,
-    html: wrapper(t.heading, "#1A0A00", `
+    html: wrapper(t.heading, "#0B3B4F", `
     ${t.body}
     <p><strong>Booking Reference:</strong> ${esc(b.booking_number)}<br/>
     <strong>Amount Paid Now:</strong> ${peso(amountSubmitted(b))}</p>
@@ -338,7 +347,7 @@ const bookingConfirmedEmail = (name: string, b: any, tour: any) => {
   const t = tpl("booking_confirmed", bookingVars(name, b, tour));
   return {
     subject: t.subject,
-    html: wrapper(t.heading, "#C45C26", `
+    html: wrapper(t.heading, "#E8622A", `
     ${t.body}
     <p><strong>Booking Reference:</strong> ${esc(b.booking_number)}<br/>
     ${tour?.start_date ? `<strong>Tour Date:</strong> ${prettyDate(tour.start_date)}<br/>` : ""}</p>
@@ -348,15 +357,15 @@ const bookingConfirmedEmail = (name: string, b: any, tour: any) => {
 
 const bookingRejectedEmail = (name: string, b: any, tour: any) => {
   const t = tpl("booking_rejected", bookingVars(name, b, tour));
-  return { subject: t.subject, html: wrapper(t.heading, "#8C2F1C", t.body) };
+  return { subject: t.subject, html: wrapper(t.heading, "#C4361F", t.body) };
 };
 
 const customEmail = (name: string, subject: string, message: string) => ({
   subject,
-  html: wrapper(esc(subject), "#C45C26", `
+  html: wrapper(esc(subject), "#E8622A", `
     <p>Hi ${esc(name)},</p>
     <p style="line-height:1.7; white-space:pre-wrap;">${esc(message)}</p>
-    <p style="color:#7A3A18; font-size: 12px;">You can reply directly to this email.</p>
+    <p style="color:#3F6372; font-size: 12px;">You can reply directly to this email.</p>
   `),
 });
 
@@ -383,11 +392,11 @@ const loginCodeEmail = (name: string, code: string, minutes: number, purpose = "
   }[purpose === "signup" || purpose === "admin" ? purpose : "login"];
   return {
     subject: words.subject,
-    html: wrapper(words.title, "#C45C26", `
+    html: wrapper(words.title, "#E8622A", `
     <p>Hi ${esc(name || "Traveler")},</p>
     <p>${words.intro}</p>
-    <p style="font-size: 32px; font-weight: 900; letter-spacing: 0.3em; color:#1A0A00; text-align:center; margin: 24px 0;">${esc(code)}</p>
-    <p style="color:#7A3A18;">It's valid for ${minutes} minutes. ${words.outro}</p>
+    <p style="font-size: 32px; font-weight: 900; letter-spacing: 0.3em; color:#0B3B4F; text-align:center; margin: 24px 0;">${esc(code)}</p>
+    <p style="color:#3F6372;">It's valid for ${minutes} minutes. ${words.outro}</p>
   `),
   };
 };
@@ -519,7 +528,7 @@ async function runBalanceReminders(dryRun: boolean) {
           to,
           replyTo: GMAIL_USER,
           subject: balanceTpl.subject,
-          html: wrapper(balanceTpl.heading, "#C45C26", `
+          html: wrapper(balanceTpl.heading, "#E8622A", `
             ${balanceTpl.body}
             <p><strong>${esc(tour.title)}</strong><br/>
             📍 ${esc(tour.destination)}<br/>
@@ -552,7 +561,7 @@ const manilaHour = () => new Date(Date.now() + 8 * 3600 * 1000).getUTCHours();
 
 const button = (label: string) =>
   SITE_URL
-    ? `<p style="margin:18px 0 0;"><a href="${SITE_URL}/login" style="display:inline-block;background:#B4511E;color:#FDF6EE;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px;">${esc(label)}</a></p>`
+    ? `<p style="margin:18px 0 0;"><a href="${SITE_URL}/login" style="display:inline-block;background:#FF7A3D;color:#0B3B4F;text-decoration:none;font-weight:800;padding:12px 22px;border-radius:10px;">${esc(label)}</a></p>`
     : "";
 
 // Claims an email in email_log before sending, so it goes out once even if two
@@ -601,7 +610,7 @@ async function nameOf(userId: string | null, fallback?: string | null) {
 
 const cancellationApprovedEmail = (name: string, b: any, tour: any) => {
   const t = tpl("cancellation_approved", bookingVars(name, b, tour));
-  return { subject: t.subject, html: wrapper(t.heading, "#8C2F1C", `${t.body}${button("Browse other tours")}`) };
+  return { subject: t.subject, html: wrapper(t.heading, "#C4361F", `${t.body}${button("Browse other tours")}`) };
 };
 
 async function sendCancellationEmail(b: any) {
@@ -643,7 +652,7 @@ async function runTripEmails() {
       const pt = tpl("pickup_day", { name: await nameOf(n.user_id), tour: tour.title, date: prettyDate(tour.start_date) });
       results.push(await sendOnce("pickup-day", `${n.tour_id}:${n.user_id}`, await recipientFor(n.user_id),
         pt.subject,
-        wrapper(pt.heading, "#C45C26", `
+        wrapper(pt.heading, "#E8622A", `
           ${pt.body}
           ${list[0] ? `<p style="font-size:16px;font-weight:800;">First pickup: ${esc(list[0].location_name)}${list[0].scheduled_time ? ` at ${esc(list[0].scheduled_time)}` : ""}</p>` : ""}
           ${stopsHtml}
@@ -683,7 +692,7 @@ async function runTripEmails() {
       const rt = tpl("review_invite", { name: await nameOf(i.user_id), tour: tour?.title ?? "", date: tour?.start_date ? prettyDate(tour.start_date) : "" });
       results.push(await sendOnce("review-invite", `${i.tour_id}:${i.user_id}`, await recipientFor(i.user_id),
         rt.subject,
-        wrapper(rt.heading, "#C45C26", `${rt.body}${button("Rate your trip")}`)));
+        wrapper(rt.heading, "#E8622A", `${rt.body}${button("Rate your trip")}`)));
     }
     return results;
   });
@@ -737,8 +746,8 @@ async function runMonthlySummary() {
     byTour[t] = (byTour[t] || 0) + collectedOf(b);
   });
   const top = Object.entries(byTour).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const row = (k: string, v: string) => `<tr><td style="padding:6px 0;color:#7A3A18;">${esc(k)}</td><td style="padding:6px 0;text-align:right;font-weight:800;">${esc(v)}</td></tr>`;
-  const html = wrapper(`Your ${label} summary`, "#B4511E", `
+  const row = (k: string, v: string) => `<tr><td style="padding:6px 0;color:#3F6372;">${esc(k)}</td><td style="padding:6px 0;text-align:right;font-weight:800;">${esc(v)}</td></tr>`;
+  const html = wrapper(`Your ${label} summary`, "#E8622A", `
     <p>Here's how Bandang IBAYO did in <strong>${esc(label)}</strong>:</p>
     <table style="width:100%;border-collapse:collapse;font-size:15px;">
       ${row("Collected (tours)", peso(tourTotal))}
@@ -749,7 +758,7 @@ async function runMonthlySummary() {
       ${row("Balances still owed (all months)", `${peso(owed)} · ${(owing ?? []).length} bookings`)}
     </table>
     ${top.length ? `<p style="margin:18px 0 6px;font-weight:800;">Top tours</p><ol style="padding-left:18px;line-height:1.7;">${top.map(([t, v]) => `<li>${esc(t)}: ${peso(v)}</li>`).join("")}</ol>` : ""}
-    <p style="color:#7A3A18;">See the full numbers, graphs and PDF in <strong>Reports</strong>.</p>
+    <p style="color:#3F6372;">See the full numbers, graphs and PDF in <strong>Reports</strong>.</p>
     ${button("Open the dashboard")}
   `);
   const results: string[] = [];
@@ -783,9 +792,9 @@ async function runDepartureEmails() {
     });
     results.push(await sendOnce("departure-15-email", String(b.id), await recipientFor(b.user_id, b.email),
       dt.subject,
-      wrapper(dt.heading, "#C45C26", `
+      wrapper(dt.heading, "#E8622A", `
         ${dt.body}
-        <p style="color:#7A3A18;">Booking ${esc(b.booking_number)}</p>
+        <p style="color:#3F6372;">Booking ${esc(b.booking_number)}</p>
         ${button("Open Tracking")}
       `)));
   }
@@ -866,7 +875,7 @@ async function sendWaitlistEmails(tourId: unknown) {
         to,
         replyTo: GMAIL_USER,
         subject: wt.subject,
-        html: wrapper(wt.heading, "#C45C26", `
+        html: wrapper(wt.heading, "#E8622A", `
           ${wt.body}
           <p><strong>${esc(tour.title)}</strong><br/>
           📍 ${esc(tour.destination)}<br/>
