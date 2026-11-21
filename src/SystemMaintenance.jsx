@@ -176,21 +176,21 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
           options={SECTIONS.map((s) => ({ value: s.key, label: `${s.group} · ${s.label}` }))} />
       ) : (
         <div className="maint-nav" style={{
-          borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
-          background: 'var(--ib-surface, #FFFDF9)', boxShadow: '0 4px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
+          borderRadius: 20, overflow: 'hidden', border: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28)',
+          background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.05)',
         }}>
           {/* The 4 groups, side by side; the chosen one's sections underneath. */}
-          <div role="tablist" aria-label="System Maintenance groups" style={{ display: 'grid', gridTemplateColumns: `repeat(${GROUPS.length}, minmax(0, 1fr))`, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
+          <div role="tablist" aria-label="System Maintenance groups" style={{ display: 'grid', gridTemplateColumns: `repeat(${GROUPS.length}, minmax(0, 1fr))`, borderBottom: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28)' }}>
             {GROUPS.map(([group, list]) => {
               const on = group === SECTION[tab].group;
               return (
                 <button key={group} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) setTab(lastIn.current[group] || list[0][0]); }} style={{
                   position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '12px 8px 10px', border: 'none', cursor: on ? 'default' : 'pointer',
-                  fontFamily: 'inherit', background: on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'transparent',
+                  fontFamily: 'inherit', background: on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)' : 'transparent',
                 }}>
-                  <span className="journal-hand" style={{ fontSize: 23, lineHeight: 1.05, color: on ? 'var(--ib-accent, #B4511E)' : 'var(--ib-brown, #5C2A10)' }}>{group}</span>
+                  <span className="journal-hand" style={{ fontSize: 23, lineHeight: 1.05, color: 'var(--ib-sienna, #A8481A)', opacity: on ? 1 : 0.7, transform: 'rotate(-1.5deg)' }}>{group}</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{list.length} section{list.length === 1 ? '' : 's'}</span>
-                  {on && <span aria-hidden="true" style={{ position: 'absolute', left: '22%', right: '22%', bottom: -1, height: 3, borderRadius: 3, background: 'var(--ib-accent, #B4511E)' }} />}
+                  {on && <span aria-hidden="true" style={{ position: 'absolute', left: '22%', right: '22%', bottom: -1, height: 3, borderRadius: 3, background: 'var(--ib-sienna, #A8481A)' }} />}
                 </button>
               );
             })}
