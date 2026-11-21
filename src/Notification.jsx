@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import { supabase, currentUser } from './supabaseClient';
 import { notificationsChanged, onNotificationsChanged, onNotificationsRefresh, clearOldPaymentNotices, nextPaymentNoticeExpiry, markNotificationsSeen } from './notifications';
 import EmptyState from './ui/EmptyState';
@@ -256,23 +257,8 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
 
       {/* filters */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', background: 'var(--ib-parch, #F2E4D0)', padding: 5, borderRadius: 14, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
-          {[['all', 'All'], ['unread', 'Unread']].map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              style={{
-                padding: '8px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: tab === key ? 'var(--ib-ink, #1A0A00)' : 'transparent',
-                color: tab === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
-                transition: 'all 0.15s',
-              }}
-            >
-              {label}{key === 'unread' && unreadCount > 0 ? ` (${unreadCount})` : ''}
-            </button>
-          ))}
-        </div>
+        <ChipTabs ariaLabel="All or unread" value={tab} onChange={setTab}
+          items={[{ value: 'all', label: 'All', icon: BellRing }, { value: 'unread', label: 'Unread', icon: Bell, count: unreadCount, alert: true }]} />
 
         <div style={{ position: 'relative' }}>
           <NiceSelect value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={selectStyle}>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import { supabase, currentUser } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
 import {
   MapPin, X, Calendar, Armchair, Compass, ChevronLeft,
-  ChevronRight, ImageIcon, Loader2, Check, CheckCircle2, Truck, Phone, Navigation, Clock
+  ChevronRight, ImageIcon, Loader2, Check, CheckCircle2, Truck, Phone, Navigation, Clock, History
 } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 import { reportError } from './ui/toast';
@@ -107,18 +108,8 @@ export const JoinerTracking = ({ onExplore, openTourId = null }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div role="tablist" aria-label="Current or past trips" style={{ display: 'flex', gap: 6, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%', flexWrap: 'wrap' }}>
-        {[['current', 'Current Trips', currentTrips.length], ['past', 'Past Tracking', pastTrips.length]].map(([key, label, count]) => (
-          <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
-            display: 'flex', alignItems: 'center', gap: 8, border: 'none', borderRadius: 10, padding: '9px 16px', cursor: 'pointer',
-            fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-            background: view === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: view === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
-          }}>
-            {label}
-            {!loading && <span style={{ minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, background: view === key ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: view === key ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }}>{count}</span>}
-          </button>
-        ))}
-      </div>
+      <ChipTabs ariaLabel="Current or past trips" value={view} onChange={setView}
+        items={[{ value: 'current', label: 'Current Trips', icon: Navigation, count: loading ? 0 : currentTrips.length }, { value: 'past', label: 'Past Tracking', icon: History, count: loading ? 0 : pastTrips.length }]} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
         {loading ? (
           <SkeletonTourCards count={3} label="Loading trips" />

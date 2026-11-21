@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import MissingHint from './ui/MissingHint';
 import { CANCEL_REASONS, OTHER_REASON } from './cancelReasons';
 import { supabase, currentUser } from './supabaseClient';
@@ -219,24 +220,8 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
         display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
         gap: 20, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', paddingBottom: 24,
       }}>
-        <div style={{ display: 'flex', background: 'var(--ib-parch, #F2E4D0)', padding: 6, borderRadius: 16, width: '100%', maxWidth: 380, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
-          {['Upcoming', 'Completed', 'Cancelled'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                flex: 1, padding: '10px 16px', borderRadius: 12,
-                fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
-                border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                background: activeTab === tab ? 'var(--ib-ink, #1A0A00)' : 'transparent',
-                color: activeTab === tab ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
-                boxShadow: activeTab === tab ? '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)' : 'none',
-              }}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        <ChipTabs ariaLabel="My bookings" value={activeTab} onChange={setActiveTab}
+          items={[{ value: 'Upcoming', label: 'Upcoming', icon: Compass }, { value: 'Completed', label: 'Completed', icon: Mountain }, { value: 'Cancelled', label: 'Cancelled', icon: CalendarX2 }]} />
         {/* All bad-weather refunds, in one window */}
         {!loading && <MyRefunds bookings={bookings} weather={weather} onChanged={fetchMyBookings} focusId={focusRefund} />}
       </div>
