@@ -1,6 +1,7 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase, openedFromResetLink } from './supabaseClient';
+import { pageEnter } from './motion';
 import logoIcon from './assets/logo.png';
  
 // Pages other than the landing page load only when they're opened, so the
@@ -47,6 +48,14 @@ const PageLoading = () => (
 export default function App() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  // Public pages (log in, sign up, tours…) fade and slide in when opened. The
+  // dashboards animate their own pages (motion.js pageEnter).
+  useEffect(() => {
+    if (/^\/(dashboard|admin)(\/|$)/.test(pathname)) return undefined;
+    const raf = requestAnimationFrame(() => pageEnter(document.getElementById('root')));
+    return () => cancelAnimationFrame(raf);
+  }, [pathname]);
 
   // A password reset link always opens the "set a new password" page, even if
   // Supabase sent it to the homepage.

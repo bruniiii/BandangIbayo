@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import CountUp from './ui/CountUp';
 import { STATUS_COLORS } from './ui/statusColors';
 import { Calendar as CalendarIcon, Clock, Star, ChevronLeft, ChevronRight, MapPin, CheckCircle2, Wallet, Sparkles } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
@@ -42,7 +43,7 @@ const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
         {label}
       </p>
       <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 4px', lineHeight: 1 }}>
-        {value}
+        {typeof value === 'string' || typeof value === 'number' ? <CountUp value={value} /> : value}
       </p>
       <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: 0 }}>
         {subcopy}

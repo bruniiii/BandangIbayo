@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import ConfirmDialogBox from './ConfirmDialogBox';
+import { lessMotion } from '../motion';
 
 // ─────────────────────────────────────────────
 // CONFIRMATION DIALOG, used instead of the browser's plain OK/Cancel box.
@@ -24,11 +25,20 @@ export const confirmDialog = ({ title, message = '', confirmLabel = 'Continue', 
     document.body.appendChild(host);
     const root = createRoot(host);
     const previousFocus = document.activeElement;
+    let closing = false;
     const close = (result) => {
-      root.unmount();
-      host.remove();
+      if (closing) return;
+      closing = true;
       previousFocus?.focus?.();
       resolve(result);
+      // The box shrinks away and the backdrop fades out, then it's removed.
+      const card = host.querySelector('.paper-card');
+      const shade = card?.previousElementSibling;
+      const remove = () => { root.unmount(); host.remove(); };
+      if (lessMotion() || !card?.animate) { remove(); return; }
+      host.style.pointerEvents = 'none';
+      shade?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' });
+      card.animate([{ opacity: 1, scale: 1 }, { opacity: 0, scale: 0.95 }], { duration: 160, easing: 'ease-in', fill: 'forwards' }).finished.then(remove, remove);
     };
     root.render(<ConfirmDialogBox title={title} message={message} confirmLabel={confirmLabel} cancelLabel={cancelLabel} tone={tone} typeToConfirm={typeToConfirm} imageUrl={imageUrl} checkLabel={checkLabel} reasonLabel={reasonLabel} passwordLabel={passwordLabel} onClose={close} />);
   });

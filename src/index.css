@@ -635,3 +635,51 @@ td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rot
 :root[data-lite] .dashboard-topbar, :root[data-lite] .site-nav { background: rgb(var(--ib-cream-rgb, 253,246,238)) !important; }
 :root[data-lite] .lk-tropical { --nav-bg: #FFF8EE; }
 :root[data-lite][data-theme="dark"] .lk-tropical { --nav-bg: #08202B; }
+
+/* ═════════ Motion (motion.js does the JS side) ═════════
+   Short and light; nothing moves with "reduce motion". */
+@media (prefers-reduced-motion: no-preference) {
+  /* Buttons press in a little when tapped; links and cards that are buttons too. */
+  button:not(:disabled), [role="button"], a.btn, a[class*="btn"] { transition-property: scale, translate, transform, background, background-color, color, border-color, box-shadow, opacity, filter; transition-duration: 0.18s; }
+  button:not(:disabled):active, [role="button"]:active, a[class*="btn"]:active { scale: 0.96; }
+
+  /* Cards lift a little when pointed at. */
+  @media (hover: hover) {
+    .boarding-pass, .journal-ticket { transition: translate 0.2s ease, box-shadow 0.2s ease; }
+    .boarding-pass:hover, .journal-ticket:hover { translate: 0 -3px; }
+  }
+
+  /* Pop-up windows grow in; their dark backdrop fades in. */
+  [role="dialog"], [role="alertdialog"], .paper-card { animation: fx-pop 0.24s cubic-bezier(.2,.8,.3,1.15) both; }
+  div:has(> [role="dialog"], > [role="alertdialog"]) > div:first-child:not([role]):not(.paper-card) { animation: fx-fade 0.2s ease both; }
+  /* Drop-down lists and menus slide down from their button. */
+  .notif-panel, .fav-panel, [role="menu"], [role="listbox"] { animation: fx-drop 0.18s ease-out both; transform-origin: top; }
+  /* (Pop-ups inside a drop-down don't grow twice.) */
+  .notif-panel[role="dialog"], .fav-panel[role="dialog"] { animation-name: fx-drop; }
+
+  /* Rising into view while scrolling (motion.js adds the classes). */
+  .fx-reveal { opacity: 0; translate: 0 22px; }
+  .fx-reveal.fx-in { opacity: 1; translate: 0 0; transition: opacity 0.55s ease, translate 0.55s cubic-bezier(.2,.7,.3,1); }
+
+  /* Success toasts: the check mark bounces in. */
+  .toast-success .toast-icon svg { animation: fx-check 0.6s cubic-bezier(.2,.9,.3,1.4) 0.1s both; }
+
+  /* The bell wiggles when something new arrives; a star pops when added to Favorites. */
+  .fx-wiggle svg { animation: fx-wiggle 0.9s ease both; transform-origin: 50% 10%; }
+  .fx-pop-once { animation: fx-star 0.45s cubic-bezier(.2,.9,.3,1.6); }
+}
+@keyframes fx-pop { from { opacity: 0; scale: 0.96; translate: 0 10px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+@keyframes fx-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fx-drop { from { opacity: 0; translate: 0 -6px; scale: 1 0.97; } to { opacity: 1; translate: 0 0; scale: 1 1; } }
+@keyframes fx-check { 0% { scale: 0.2; opacity: 0; } 60% { scale: 1.25; opacity: 1; } 100% { scale: 1; } }
+@keyframes fx-wiggle { 0%, 100% { rotate: 0deg; } 15% { rotate: 16deg; } 30% { rotate: -14deg; } 45% { rotate: 10deg; } 60% { rotate: -6deg; } 75% { rotate: 3deg; } }
+@keyframes fx-star { 0% { scale: 1; } 40% { scale: 1.35; } 70% { scale: 0.92; } 100% { scale: 1; } }
+
+/* Confetti (motion.js celebrate()) */
+.fx-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 100000; overflow: hidden; }
+.fx-confetti i { position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px; animation-name: fx-fall; animation-timing-function: cubic-bezier(.25,.6,.4,1); animation-fill-mode: both; }
+@keyframes fx-fall { from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; } 85% { opacity: 1; } to { transform: translate3d(var(--dx), 105vh, 0) rotate(var(--spin)); opacity: 0; } }
+
+/* Low-power phones: no lifting cards or rising sections (fades and presses stay). */
+:root[data-lite] .fx-reveal { opacity: 1 !important; translate: none !important; }
+:root[data-lite] .boarding-pass:hover, :root[data-lite] .journal-ticket:hover { translate: none; }

@@ -1,14 +1,20 @@
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { celebrate } from '../motion';
 
 // ─────────────────────────────────────────────
 // HANDWRITTEN NOTE: a little note card for happy moments (a payment went
 // through, thanks for your feedback): lined paper held by a strip of tape,
 // the message handwritten, signed by the team with a doodled heart.
 //   <HandNote title="You're going!" onClose={…}>Your booking is confirmed.</HandNote>
+// A short burst of confetti comes with it (confetti={false} to skip).
 // Styles: index.css (.hand-note).
 // ─────────────────────────────────────────────
 
-const HandNote = ({ title, children, signature = '— the Bandang IBAYO team', onClose, style }) => (
+const HandNote = ({ title, children, signature = '— the Bandang IBAYO team', onClose, style, confetti = true }) => {
+  // A short burst of confetti when the note appears (motion.js).
+  useEffect(() => { if (confetti) celebrate(); }, [confetti]);
+  return (
   <div role="status" className="hand-note" style={style}>
     {onClose && (
       <button type="button" aria-label="Dismiss" className="hand-note-close" onClick={onClose}><X size={16} /></button>
@@ -22,6 +28,7 @@ const HandNote = ({ title, children, signature = '— the Bandang IBAYO team', o
       </svg>
     </p>
   </div>
-);
+  );
+};
 
 export default HandNote;

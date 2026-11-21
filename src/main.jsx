@@ -6,6 +6,7 @@ import Toaster from './ui/Toaster';
 import ErrorBoundary from './ui/ErrorBoundary';
 import { installInputFilter } from './ui/inputFilter';
 import { setupInstallApp } from './installApp';
+import { startReveal } from './motion';
 import { reportError } from './ui/toast';
 import { logClientError } from './errorLog';
 import { installStaleVersionReload } from './staleVersion';
@@ -24,6 +25,9 @@ installInputFilter();
 
 // Add to home screen (see installApp.js).
 setupInstallApp();
+
+// Cards and sections rise into view as you scroll (see motion.js).
+startReveal();
 
 // No pinch zoom on iPhones/iPads (Safari ignores user-scalable=no).
 ['gesturestart', 'gesturechange'].forEach((type) => document.addEventListener(type, (e) => e.preventDefault(), { passive: false }));

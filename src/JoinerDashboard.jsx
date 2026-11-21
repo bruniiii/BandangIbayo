@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { pageEnter } from './motion';
 import Walkthrough from './ui/Walkthrough';
 import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
 import TermsUpdateCheck from './ui/TermsUpdateCheck';
@@ -127,6 +128,9 @@ const JoinerDashboard = () => {
   const [myBookingsKey, setMyBookingsKey] = useState(0);
   const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Private Tours' : bookTourId ? 'Explore Tours'
     : tabFromUrl(JOINER_BASE, JOINER_TABS) || readTab(TAB_KEY, JOINER_TABS, 'HomePage')));
+  // A new page fades and slides in (motion.js).
+  const contentRef = useRef(null);
+  useEffect(() => { pageEnter(contentRef.current); }, [activeTab]);
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   // Browser Back goes to the previous dashboard page.
@@ -754,7 +758,7 @@ const JoinerDashboard = () => {
         {/* header */}
 
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)' }}>
+        <div className="dashboard-content" ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)' }}>
           {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
