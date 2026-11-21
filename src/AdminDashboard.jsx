@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { GreetingBar, RevenueChart, SlotsPanel } from './OverviewParts';
 import CountUp from './ui/CountUp';
 import { pageEnter } from './motion';
 import AdminSearch from './AdminSearch';
@@ -57,13 +58,6 @@ import { useTabHistory, tabFromUrl } from './useTabHistory';
 // Loaded only when opened (keeps the dashboard quick to start).
 const Reports = lazy(() => import('./Reports'));
 const SystemMaintenance = lazy(() => import('./SystemMaintenance'));
-const timeAgo = (dateStr) => {
-  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)} minute${Math.floor(diff / 60) !== 1 ? 's' : ''} ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) !== 1 ? 's' : ''} ago`;
-  return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) !== 1 ? 's' : ''} ago`;
-};
  
  
 const peso = formatPeso;
@@ -73,11 +67,6 @@ const truncate = (text, max = 74) => {
   return text.length > max ? `${text.slice(0, max).trim()}…` : text;
 };
 
-const shortDate = (dateStr) => {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
 
 const personName = (p, fallback = 'Unknown') => {
   if (!p) return fallback;
@@ -85,13 +74,6 @@ const personName = (p, fallback = 'Unknown') => {
   return combo || p.username || fallback;
 };
 
-const personInitials = (p, fallback = '?') => {
-  const first = (p?.first_name || '').trim();
-  const last = (p?.last_name || '').trim();
-  if (first || last) return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase() || first.charAt(0).toUpperCase();
-  if (p?.username) return p.username.charAt(0).toUpperCase();
-  return fallback;
-};
 
 const NAV_ITEMS = [
   { icon: <LayoutDashboard size={18} strokeWidth={2} />, label: 'Overview' },
@@ -239,6 +221,13 @@ const AdminDashboard = () => {
     joinersThisWeek: 0,
     revenueThisMonth: 0,
     revenueLastMonth: 0,
+    madeThisMonth: 0,       // bookings made this month / last month (not by tour date)
+    madeLastMonth: 0,
+    joinersThisMonth: 0,    // new joiner accounts this month / last month
+    joinersLastMonth: 0,
+    toursToday: 0,          // tours leaving today
+    revenueByMonth: [],     // the last 6 months: [{ key: '2026-06', label: 'Jun', total }]
+    slots: [],              // tours leaving in the next 30 days: booked / slots / van seats
   });
   const [loadingStats, setLoadingStats] = useState(true);
 
@@ -345,6 +334,50 @@ const AdminDashboard = () => {
       supabase.from('exclusive_requests').select('id, request_type, full_name, destination, created_at').eq('status', 'Pending').order('created_at', { ascending: false }).limit(4),
     ]);
 
+    // ── More for the Overview: the greeting line, this month vs last month,
+    // the revenue chart and the slots-filled panel ──
+    const today = todayManila();
+    const sixStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    const in30 = new Date(Date.parse(`${today}T00:00:00Z`) + 30 * 86400000).toISOString().slice(0, 10);
+    const notJoiner = '(admin,archived_admin)';
+    const [toursTodayRes, madeThis, madeLast, joinThis, joinLast, revenueSix, soonTours] = await Promise.all([
+      supabase.from('tours').select('*', { count: 'exact', head: true }).eq('is_archived', false).eq('start_date', today),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('created_at', monthStart).lt('created_at', monthEnd),
+      supabase.from('bookings').select('*', { count: 'exact', head: true }).not('payment_status', 'in', '("Awaiting Payment","Expired")').gte('created_at', lastMonthStart).lt('created_at', monthStart),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).not('role', 'in', notJoiner).gte('created_at', monthStart).lt('created_at', monthEnd),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).not('role', 'in', notJoiner).gte('created_at', lastMonthStart).lt('created_at', monthStart),
+      supabase.from('bookings').select('total_price, created_at').eq('payment_status', 'Complete').gte('created_at', sixStart.toISOString()).lt('created_at', monthEnd),
+      supabase.from('tours').select('id, title, start_date, end_date, group_size').eq('is_archived', false).gte('start_date', today).lte('start_date', in30).order('start_date', { ascending: true }).limit(8),
+    ]);
+    const revenueByMonth = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(sixStart.getFullYear(), sixStart.getMonth() + i, 1);
+      return { key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: d.toLocaleDateString('en-US', { month: 'short' }), year: d.getFullYear(), total: 0 };
+    });
+    (revenueSix.data || []).forEach((b) => {
+      const d = new Date(b.created_at);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const row = revenueByMonth.find((r) => r.key === k);
+      if (row) row.total += Number(b.total_price) || 0;
+    });
+    // Slots filled for the tours leaving soon, and the seats of the van picked for each.
+    let slots = [];
+    const soon = soonTours.data || [];
+    if (soon.length) {
+      const ids = soon.map((t) => t.id);
+      const [bk, veh] = await Promise.all([
+        supabase.from('bookings').select('tour_id, slots_booked').in('tour_id', ids).not('booking_status', 'in', '("Cancelled","Rejected")').not('payment_status', 'in', '("Awaiting Payment","Expired")'),
+        supabase.from('tour_vehicles').select('tour_id, van_id').in('tour_id', ids),
+      ]);
+      const vanIds = [...new Set((veh.data || []).map((v) => v.van_id).filter(Boolean))];
+      const { data: vans } = vanIds.length ? await supabase.from('fleet_vans').select('id, seats, plate_number').in('id', vanIds) : { data: [] };
+      slots = soon.map((t) => {
+        const booked = (bk.data || []).filter((b) => String(b.tour_id) === String(t.id)).reduce((n, b) => n + (Number(b.slots_booked) || 0), 0);
+        const vanId = (veh.data || []).find((v) => String(v.tour_id) === String(t.id))?.van_id;
+        const van = (vans || []).find((v) => v.id === vanId) || null;
+        return { ...t, booked, capacity: Number(t.group_size) || 0, seats: van ? Number(van.seats ?? 14) : null, plate: van?.plate_number || '' };
+      });
+    }
+
     const revenueThisMonth = (revenueThisMonthRaw || []).reduce((sum, b) => sum + (b.total_price || 0), 0);
     const revenueLastMonth = (revenueLastMonthRaw || []).reduce((sum, b) => sum + (b.total_price || 0), 0);
 
@@ -358,6 +391,13 @@ const AdminDashboard = () => {
       joinersThisWeek: joinersThisWeek ?? 0,
       revenueThisMonth,
       revenueLastMonth,
+      madeThisMonth: madeThis.count ?? 0,
+      madeLastMonth: madeLast.count ?? 0,
+      joinersThisMonth: joinThis.count ?? 0,
+      joinersLastMonth: joinLast.count ?? 0,
+      toursToday: toursTodayRes.count ?? 0,
+      revenueByMonth,
+      slots,
     });
 
     // ── Tour Management snippet: live booked/capacity for the next 3 tours ──
@@ -626,120 +666,68 @@ const AdminDashboard = () => {
           {activeTab === 'Overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32, paddingBottom: 40 }}>
  
-              {/* dashboard header bar — status line + date, not a marketing hero */}
-              <div className="dashboard-hero-padding" style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                flexWrap: 'wrap', gap: 16,
-                background: 'var(--ib-ink, #1A0A00)',
-                borderRadius: 20,
-                padding: '1.5rem 2rem',
-                boxShadow: '0 8px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
-              }}>
-                <div>
-                  <p style={{
-                    fontSize: 11, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase',
-                    color: 'var(--ib-amber, #E8A265)', margin: '0 0 6px',
-                  }}>
-                    Operations Overview
-                  </p>
-                  <h2 style={{
-                    fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em',
-                    color: 'var(--ib-on-ink, #FDF6EE)', margin: 0,
-                  }}>
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                  </h2>
-                </div>
-              </div>
+              {/* Greeting, today's date and what today holds (each a shortcut) */}
+              <GreetingBar
+                name={me.name}
+                toursToday={stats.toursToday}
+                payments={Number(String(stats.pendingVerification).replace(/,/g, '')) || 0}
+                requests={snippets.pendingExclusiveCount}
+                loading={loadingStats}
+                onOpen={(page) => handleNavClick(page)}
+              />
 
-              {/* KPI row */}
+              {/* Phones: the search box (it's in the top bar on wider screens) */}
+              <AdminSearch onOpen={openFocused} wide />
+
+              {/* Everything waiting on an admin today, and the tours leaving soon: first, since it's what admins act on */}
+              <AdminToday onOpen={openFocused} />
+
+              {/* This month vs last month: all three counted the same way (made this month) */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(210px, 100%), 1fr))', gap: 20 }}>
                 <StatCard
                   title="Revenue This Month"
                   value={loadingStats ? <Skel w={140} h={34} style={{ display: 'inline-block' }} /> : peso(stats.revenueThisMonth)}
                   icon={<Wallet size={18} />}
                   iconColor="var(--ib-sienna, #A8481A)"
-                  trend={loadingStats ? '' : (() => {
-                    const last = stats.revenueLastMonth || 0;
-                    if (last === 0) return 'No data for last month';
-                    const change = Math.round(((stats.revenueThisMonth - last) / last) * 100);
-                    return `${change >= 0 ? '+' : ''}${change}% vs last month`;
-                  })()}
+                  trend={loadingStats ? '' : vsLastMonth(stats.revenueThisMonth, stats.revenueLastMonth, peso(stats.revenueLastMonth))}
                 />
                 <StatCard
-                  title="Total Bookings"
-                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalBookings}
+                  title="Bookings This Month"
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.madeThisMonth.toLocaleString()}
                   icon={<TrendingUp size={18} />}
                   iconColor="var(--ib-sienna, #3F5D62)"
-                  trend={loadingStats ? '' : (() => {
-                    const curr = parseInt(stats.bookingsThisMonth.replace(/,/g, '')) || 0;
-                    const last = stats.bookingsLastMonth || 0;
-                    const change = last === 0 ? 0 : Math.round(((curr - last) / last) * 100);
-                    return `${change >= 0 ? '+' : ''}${change}% vs last month`;
-                  })()}
+                  trend={loadingStats ? '' : vsLastMonth(stats.madeThisMonth, stats.madeLastMonth, stats.madeLastMonth.toLocaleString())}
                 />
                 <StatCard
-                  title="Total Joiners"
-                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalJoiners}
+                  title="New Joiners This Month"
+                  value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.joinersThisMonth.toLocaleString()}
                   icon={<Users size={18} />}
                   iconColor="var(--ib-sienna, #3F5D62)"
-                  trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
+                  trend={loadingStats ? '' : vsLastMonth(stats.joinersThisMonth, stats.joinersLastMonth, stats.joinersLastMonth.toLocaleString())}
                 />
               </div>
 
-              {/* Phones: the search box (it's in the top bar on wider screens) */}
-              <AdminSearch onOpen={openFocused} wide />
+              {/* Revenue over 6 months, and how full the next tours are */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))', gap: 20 }}>
+                <RevenueChart months={stats.revenueByMonth} loading={loadingStats} onViewAll={() => handleNavClick('Reports')} />
+                <SlotsPanel tours={stats.slots} loading={loadingStats} onOpenTour={(id) => openFocused('Tour Management', id)} onViewAll={() => handleNavClick('Tour Management')} />
+              </div>
 
-              {/* Everything waiting on an admin today, and the tours leaving soon */}
-              <AdminToday onOpen={openFocused} />
-
-              {/* module snapshots */}
+              {/* Quick looks: the pages that most often need an admin */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
                   <h3 style={{
                     fontWeight: 900, fontSize: 13, letterSpacing: '0.18em',
                     textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: 0,
                   }}>
-                    Module Snapshots
+                    Quick Looks
                   </h3>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
-                    Live from Tours, Bookings, Joiners, Reviews &amp; Feed
+                    Live from Bookings, Requests &amp; Reviews
                   </p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))', gap: 20 }}>
-
-                  {/* Tour Management */}
-                  <ModuleCard
-                    icon={<Map size={16} />}
-                    title="Tour Management"
-                    metaLabel={`${snippets.activeTourCount} active`}
-                    onViewAll={() => handleNavClick('Tour Management')}
-                    loading={loadingStats}
-                    empty={snippets.tours.length === 0}
-                    emptyText="No active tours yet."
-                  >
-                    {snippets.tours.map(t => (
-                      <div key={t.id} style={{ padding: '10px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {t.title}
-                          </p>
-                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, flexShrink: 0 }}>{shortDate(t.start_date)}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                          <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', overflow: 'hidden' }}>
-                            <div style={{
-                              height: '100%', borderRadius: 999, width: `${t.pct}%`,
-                              background: t.pct >= 100 ? 'var(--ib-accent, #B4511E)' : t.pct >= 80 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust-solid, #7A3A18)',
-                            }} />
-                          </div>
-                          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, flexShrink: 0 }}>
-                            {t.booked}/{t.capacity}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </ModuleCard>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: 20 }}>
 
                   {/* Booking Management */}
                   <ModuleCard
@@ -762,33 +750,6 @@ const AdminDashboard = () => {
                           </p>
                         </div>
                         <span style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}>{peso(b.total_price)}</span>
-                      </div>
-                    ))}
-                  </ModuleCard>
-
-                  {/* Joiner Accounts */}
-                  <ModuleCard
-                    icon={<Users size={16} />}
-                    title="Joiner Accounts"
-                    metaLabel={`${stats.totalJoiners} total`}
-                    onViewAll={() => handleNavClick('Joiner Accounts')}
-                    loading={loadingStats}
-                    empty={snippets.recentJoiners.length === 0}
-                    emptyText="No joiners registered yet."
-                  >
-                    {snippets.recentJoiners.map(p => (
-                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
-                        <div style={{
-                          width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                          background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11,
-                        }}>
-                          {p.avatar_url ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : personInitials(p)}
-                        </div>
-                        <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {personName(p, 'Unnamed Joiner')}
-                        </p>
-                        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, flexShrink: 0 }}>{shortDate(p.created_at)}</span>
                       </div>
                     ))}
                   </ModuleCard>
@@ -861,94 +822,6 @@ const AdminDashboard = () => {
                     )}
                   </ModuleCard>
 
-                  {/* Feed */}
-                  <ModuleCard
-                    icon={<Rss size={16} />}
-                    title="Community Feed"
-                    metaLabel={snippets.latestPost ? timeAgo(snippets.latestPost.created_at) : ''}
-                    onViewAll={() => handleNavClick('Feed')}
-                    loading={loadingStats}
-                    empty={!snippets.latestPost}
-                    emptyText="No posts yet — share an update."
-                  >
-                    {snippets.latestPost && (
-                      <div style={{ display: 'flex', gap: 10, padding: '4px 0' }}>
-                        {(() => {
-                          const cover = snippets.latestPost.image_url
-                            || (Array.isArray(snippets.latestPost.media) && snippets.latestPost.media[0]?.url);
-                          return cover ? (
-                            <img src={cover} alt="" style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
-                          ) : (
-                            <div style={{
-                              width: 52, height: 52, borderRadius: 12, flexShrink: 0,
-                              background: 'var(--ib-parch, #F2E4D0)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: 'var(--ib-sienna, #A8481A)',
-                            }}>
-                              <ImageIcon size={20} />
-                            </div>
-                          );
-                        })()}
-                        <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 3px' }}>
-                            {personName(snippets.latestPost.author, 'Bandang IBAYO')}
-                          </p>
-                          <p style={{
-                            fontSize: 12, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, lineHeight: 1.5, margin: 0,
-                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                          }}>
-                            {snippets.latestPost.content || (snippets.latestPost.post_type === 'tour' ? 'New tour posted.' : 'Shared an update.')}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </ModuleCard>
-
-                  {/* This month at a glance */}
-                  <ModuleCard
-                    icon={<TrendingUp size={16} />}
-                    title="This Month at a Glance"
-                    metaLabel={new Date().toLocaleDateString('en-US', { month: 'long' })}
-                    onViewAll={() => handleNavClick('Reports')}
-                    loading={loadingStats}
-                    empty={false}
-                  >
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      {[
-                        ['Bookings', stats.bookingsThisMonth],
-                        ['Waiting for verification', stats.pendingVerification],
-                        ['Tours next month', stats.toursNextMonth],
-                        ['New joiners (7 days)', stats.joinersThisWeek],
-                      ].map(([label, value]) => (
-                        <div key={label} style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
-                          <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{value}</p>
-                          <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.3 }}>{label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </ModuleCard>
-
-                  {/* Ratings breakdown */}
-                  <ModuleCard
-                    icon={<Star size={16} />}
-                    title="Ratings Breakdown"
-                    metaLabel={`${snippets.reviewCount} review${snippets.reviewCount === 1 ? '' : 's'}`}
-                    onViewAll={() => handleNavClick('Reviews')}
-                    loading={loadingStats}
-                    empty={!snippets.reviewCount}
-                    emptyText="No reviews yet."
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                      {snippets.ratingBreakdown.map(({ stars, count }) => (
-                        <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ width: 28, fontSize: 12, fontWeight: 800, color: 'var(--ib-brown, #5C2A10)', whiteSpace: 'nowrap' }}>{stars} ★</span>
-                          <div style={{ flex: 1, height: 8, borderRadius: 999, background: 'var(--ib-parch, #F2E4D0)', overflow: 'hidden' }}>
-                            <div style={{ width: `${snippets.reviewCount ? (count / snippets.reviewCount) * 100 : 0}%`, height: '100%', background: 'var(--ib-amber, #E8A265)' }} />
-                          </div>
-                          <span style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{count}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </ModuleCard>
 
                 </div>
               </div>
@@ -1100,6 +973,13 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
  
 // ─── Stat Card ───────────────────────────────────────────────────────────────
  
+// "+12% vs last month (₱40,000)" — or a plain note when last month had none.
+const vsLastMonth = (now, last, lastText) => {
+  if (!last) return now ? 'Nothing last month to compare' : 'None last month either';
+  const change = Math.round(((now - last) / last) * 100);
+  return `${change >= 0 ? '+' : ''}${change}% vs last month (${lastText})`;
+};
+
 const StatCard = ({ title, value, icon, iconColor, trend }) => (
   <div style={{
     background: 'var(--ib-cream, #FDF6EE)',
