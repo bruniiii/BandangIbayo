@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import QuickReplies from './ui/QuickReplies';
 import BrandAvatar from './ui/BrandAvatar';
 import { MessagesSquare, Send, ArrowLeft, Users, Loader2, Lock, ShieldCheck, SmilePlus, Reply, X, Archive, Megaphone } from 'lucide-react';
@@ -202,18 +203,8 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => {
       <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 4px 10px' }}>
         Tour group chats
       </p>
-      <div role="tablist" aria-label="Chats or archived" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4 }}>
-        {[['open', 'Chats', openCount, unreadOpen], ['archived', 'Archived', archivedCount, 0]].map(([key, label, count, unread]) => (
-          <button key={key} type="button" role="tab" aria-selected={folder === key} onClick={() => setFolder(key)} style={{
-            flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '7px 8px', cursor: 'pointer',
-            fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
-            background: folder === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: folder === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-          }}>
-            {key === 'archived' && <Archive size={13} />} {label} ({count})
-            {unread > 0 && <span aria-label={`${unread} unread`} style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 99 ? '99+' : unread}</span>}
-          </button>
-        ))}
-      </div>
+      <ChipTabs ariaLabel="Chats or archived" value={folder} onChange={setFolder} size="sm"
+        items={[{ value: 'open', label: `Chats (${openCount})`, icon: MessagesSquare, count: unreadOpen, alert: true }, { value: 'archived', label: `Archived (${archivedCount})`, icon: Archive }]} />
     </div>
     {shown.length === 0 && (
       <p style={{ margin: 0, padding: '18px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>

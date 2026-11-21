@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import { pageEnter } from './motion';
 import Walkthrough from './ui/Walkthrough';
 import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
@@ -1031,20 +1032,8 @@ const JoinerDashboard = () => {
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} openBookingId={openBookingId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Messages' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div role="tablist" aria-label="Group chat or messages" style={{ display: 'flex', gap: 6, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%' }}>
-                {[['chats', 'Group Chats', chatUnread], ['messages', 'Messages from Bandang IBAYO', inboxUnread]].map(([view, label, count]) => (
-                  <button key={view} type="button" role="tab" aria-selected={chatView === view} onClick={() => setChatView(view)} style={{
-                    display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
-                    fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-                    background: chatView === view ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: chatView === view ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
-                  }}>
-                    {view === 'chats' ? <MessagesSquare size={14} /> : <Inbox size={14} />} {label}
-                    {count > 0 && !(view === 'messages' && chatView === 'messages') && (
-                      <span aria-label={`${count} unread`} style={{ background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{count > 99 ? '99+' : count}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+              <ChipTabs ariaLabel="Group chat or messages" value={chatView} onChange={setChatView}
+                items={[{ value: 'chats', label: 'Group Chats', icon: MessagesSquare, count: chatUnread, alert: true }, { value: 'messages', label: 'Messages from Bandang IBAYO', icon: Inbox, count: chatView === 'messages' ? 0 : inboxUnread, alert: true }]} />
               {chatView === 'messages'
                 ? <AdminInbox key={focusKey} onRead={clearInboxUnread} focus={focusId} />
                 : <GroupChat key={chatTourId || 'chats'} initialTourId={chatTourId} onExplore={() => handleNavClick('Explore Tours')} />}
