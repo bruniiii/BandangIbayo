@@ -240,15 +240,16 @@ const Notifications = ({ onNavigate, clearPaymentNotices = false, isAdmin = fals
             onClick={clearAll}
             disabled={clearing || notifications.length === 0}
             title="Clear all notifications"
+            aria-label="Clear all notifications"
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(140,47,28,0.08)', border: 'none', borderRadius: 999,
-              padding: '9px 12px', cursor: notifications.length ? 'pointer' : 'default',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
+              width: 44, height: 44, background: 'rgba(140,47,28,0.08)', border: 'none', borderRadius: 999,
+              padding: 0, cursor: notifications.length ? 'pointer' : 'default',
               color: '#8C2F1C', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
               letterSpacing: '0.08em', textTransform: 'uppercase', opacity: notifications.length ? 1 : 0.4,
             }}
           >
-            {clearing ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={13} />}
+            {clearing ? <Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={17} />}
           </button>
         </div>
       </div>
