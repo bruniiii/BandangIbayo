@@ -260,16 +260,16 @@ const LandingTropical = () => {
       {/* ── WHAT IS A JOINER TOUR + TOUR TYPES (photo cards) ── */}
       <section className="lk-section lk-alt">
         <div className="lk-wrap">
-          <div className="lk-intro">
+          <div className="lk-head lk-center">
             <div>
               <span className="lk-eyebrow">New to this?</span>
               <h2 className="lk-h2">What is a Joiner Tour?</h2>
             </div>
-            <p className="lk-body-lg">
+            <p className="lk-body-lg" style={{ maxWidth: 760, margin: '10px auto 0' }}>
               A Joiner is a solo traveler or small group who shares a tour package with others — splitting transport and accommodation costs. Check live seat availability, full pricing, and itinerary details all in one place.
             </p>
           </div>
-          <div className="lk-head lk-gap-top">
+          <div className="lk-head lk-center lk-gap-top">
             <h2 className="lk-h2 lk-h2-sm">Choose Your Tour Type</h2>
             <p className="lk-sub">Solo, barkada, or custom — there's a fit for every kind of traveler.</p>
           </div>
