@@ -148,6 +148,14 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
     width: auto !important;
     max-height: calc(100dvh - 100px) !important;
   }
+  /* The Favorites list too, just under its star (it sits mid-row). */
+  .fav-panel {
+    position: fixed !important;
+    top: var(--fav-top, 76px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+  }
 }
 
 /* Edge adds its own eye (and clear ×) inside password boxes; PasswordField has its own eye. */
