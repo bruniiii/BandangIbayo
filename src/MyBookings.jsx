@@ -32,16 +32,16 @@ import { Skel, SkeletonRegion } from './ui/Skeleton';
 import NiceSelect from './ui/NiceSelect';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light card bg)
-// #2D1B0E  deep brown (dark card)
-// #7A3A18  rust mid-tone
-// #8C2F1C  deep rust red (error / cancelled)
-// #F2E4D0  parchment (inset panel bg)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light card bg)
+// var(--ib-deep, #2D1B0E)  deep brown (dark card)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-red, #8C2F1C)  deep rust red (error / cancelled)
+// var(--ib-parch, #F2E4D0)  parchment (inset panel bg)
 // #EDEAE3  warm stone (page bg)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
  
 /* Tracks viewport width so the booking card can switch from a
@@ -206,7 +206,7 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
       {/* ── Bad weather: postponed or cancelled dates to decide on (refunds are under My Refunds) ── */}
       {!loading && bookings.filter((b) => b.showWeather && b.weather_choice !== 'refund').map((b) => (
         <div key={`wx-${b.id}`} id={`weather-card-${b.id}`}
-          style={focusWeather === String(b.id) ? { borderRadius: 22, boxShadow: '0 0 0 3px #B4511E, 0 12px 30px rgba(180,81,30,0.25)', transition: 'box-shadow 0.3s' } : undefined}>
+          style={focusWeather === String(b.id) ? { borderRadius: 22, boxShadow: '0 0 0 3px var(--ib-accent, #B4511E), 0 12px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', transition: 'box-shadow 0.3s' } : undefined}>
           <WeatherChoiceCard booking={b} weather={weather[String(b.tour_id)]} onChanged={fetchMyBookings} />
         </div>
       ))}
@@ -217,9 +217,9 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
       {/* ── Header / Tabs ── */}
       <div style={{
         display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
-        gap: 20, borderBottom: '1px solid rgba(180,81,30,0.12)', paddingBottom: 24,
+        gap: 20, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', paddingBottom: 24,
       }}>
-        <div style={{ display: 'flex', background: '#F2E4D0', padding: 6, borderRadius: 16, width: '100%', maxWidth: 380, border: '1px solid rgba(180,81,30,0.14)' }}>
+        <div style={{ display: 'flex', background: 'var(--ib-parch, #F2E4D0)', padding: 6, borderRadius: 16, width: '100%', maxWidth: 380, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
           {['Upcoming', 'Completed', 'Cancelled'].map((tab) => (
             <button
               key={tab}
@@ -228,9 +228,9 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
                 flex: 1, padding: '10px 16px', borderRadius: 12,
                 fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase',
                 border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                background: activeTab === tab ? '#1A0A00' : 'transparent',
-                color: activeTab === tab ? '#FDF6EE' : '#7A3A18',
-                boxShadow: activeTab === tab ? '0 4px 14px rgba(26,10,0,0.15)' : 'none',
+                background: activeTab === tab ? 'var(--ib-ink, #1A0A00)' : 'transparent',
+                color: activeTab === tab ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
+                boxShadow: activeTab === tab ? '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)' : 'none',
               }}
             >
               {tab}
@@ -246,7 +246,7 @@ const MyBookings = ({ onExplore, openBookingId = null, initialFilter = null }) =
         {loading ? (
           <SkeletonRegion label="Loading your trips" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {[0, 1, 2].map((i) => (
-              <div key={i} style={{ display: 'flex', gap: 18, background: '#FDF6EE', borderRadius: 22, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.12)', flexWrap: 'wrap' }}>
+              <div key={i} style={{ display: 'flex', gap: 18, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.25rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', flexWrap: 'wrap' }}>
                 <Skel w={160} h={120} r={16} />
                 <div style={{ flex: '1 1 220px', display: 'flex', flexDirection: 'column', gap: 10, justifyContent: 'center' }}>
                   <Skel w="25%" h={10} /><Skel w="55%" h={16} /><Skel w="40%" h={11} /><Skel w="30%" h={11} />
@@ -302,11 +302,13 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
   const isMobile = useIsMobile();
   const tour = booking.tours || {};
   return (
+    // Looks like a boarding pass: the price and button are its tear-off stub (index.css: .boarding-pass).
     <div
+      className={`boarding-pass${isMobile ? ' is-mobile' : ''}`}
       style={{
-        background: '#FDF6EE', borderRadius: 24,
-        border: '1px solid rgba(180,81,30,0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.1)' : '0 4px 16px rgba(26,10,0,0.05)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24,
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)' : '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         transform: hovered && !isMobile ? 'translateY(-2px)' : 'translateY(0)',
         transition: 'all 0.25s',
         padding: isMobile ? '1rem' : '1.25rem',
@@ -322,65 +324,71 @@ const BookingListItem = ({ booking, onView, formatDateRange }) => {
       <div style={{
         width: isMobile ? '100%' : 168,
         height: isMobile ? 160 : 112,
-        borderRadius: 18, overflow: 'hidden', flexShrink: 0, background: '#F2E4D0',
+        borderRadius: 18, overflow: 'hidden', flexShrink: 0, background: 'var(--ib-parch, #F2E4D0)',
       }}>
         {tour.image_urls?.[0]
           ? <img loading="lazy" decoding="async" src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ShoppingBag size={28} /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ShoppingBag size={28} /></div>
         }
       </div>
 
       <div style={{ flex: 1, minWidth: isMobile ? 'auto' : 220 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <span style={{
-            background: '#F2E4D0', borderRadius: 999, padding: '3px 12px',
-            fontSize: 11, fontWeight: 900, color: '#1A0A00', letterSpacing: '0.1em', fontFamily: 'monospace',
-            border: '1px solid rgba(180,81,30,0.15)',
+            background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, padding: '3px 12px',
+            fontSize: 11, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', letterSpacing: '0.1em', fontFamily: 'monospace',
+            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
           }}>{booking.booking_number}</span>
           <StatusBadge booking={booking} />
         </div>
-        <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: '#1A0A00', lineHeight: 1.25, margin: '0 0 10px' }}>
-          {tour.is_exclusive && <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, padding: '2px 9px', borderRadius: 999, background: '#1A0A00', color: '#E8A265', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
+        <h3 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.25, margin: '0 0 10px' }}>
+          {tour.is_exclusive && <span style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8, padding: '2px 9px', borderRadius: 999, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', fontSize: 10, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Private</span>}
           {tour.title}
         </h3>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? 10 : 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            <MapPin size={13} style={{ color: '#A8481A' }} /> {tour.destination}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <MapPin size={13} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.destination}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            <Calendar size={13} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration)}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <Calendar size={13} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {formatDateRange(tour.start_date, tour.duration)}
           </div>
         </div>
       </div>
 
-      <div style={{
+      <div className="bp-stub" style={{
         display: 'flex',
         flexDirection: isMobile ? 'row' : 'column',
         alignItems: 'center',
         justifyContent: isMobile ? 'space-between' : 'center',
         gap: isMobile ? 0 : 12,
         width: isMobile ? '100%' : 'auto',
-        borderLeft: isMobile ? 'none' : '1px solid rgba(180,81,30,0.12)',
-        borderTop: isMobile ? '1px solid rgba(180,81,30,0.12)' : 'none',
+        borderLeft: isMobile ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        borderTop: isMobile ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : 'none',
         paddingLeft: isMobile ? 0 : 24,
         paddingTop: isMobile ? 14 : 0,
         flexShrink: 0,
       }}>
+        {!isMobile && (
+          <div aria-hidden="true" className="bp-pass">
+            <span className="journal-hand">Boarding pass</span>
+            <span className="bp-barcode" />
+          </div>
+        )}
         <div style={{ textAlign: isMobile ? 'left' : 'center' }}>
-          <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 2px' }}>Total price</p>
-          <p style={{ fontSize: isMobile ? 20 : 22, fontWeight: 900, color: '#1A0A00', margin: 0, lineHeight: 1.1 }}>{formatPeso(booking.total_price)}</p>
+          <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 2px' }}>Total price</p>
+          <p style={{ fontSize: isMobile ? 20 : 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.1 }}>{formatPeso(booking.total_price)}</p>
         </div>
         <button
           onClick={onView}
           style={{
-            padding: isMobile ? '10px 18px' : '10px 22px', background: '#1A0A00', color: '#FDF6EE',
+            padding: isMobile ? '10px 18px' : '10px 22px', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
             border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
             transition: 'background 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = '#B4511E'}
-          onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'}
         >
           View Details <ChevronRight size={13} />
         </button>
@@ -470,19 +478,19 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
-      <div style={{
-        position: 'relative', background: '#FDF6EE',
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div className="paper-card" style={{
+        position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 900,
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-        borderTop: '8px solid #B4511E',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
+        borderTop: '8px solid var(--ib-accent, #B4511E)',
         overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
         <button className="x-close" onClick={onClose} style={{
           position: 'absolute', top: 24, right: 24, zIndex: 50,
           background: 'none', border: 'none', cursor: 'pointer',
-          color: 'rgba(122,58,24,0.85)',
+          color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
         }}><X size={28} /></button>
 
         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -490,33 +498,33 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
             {/* Left panel: photo, status, price */}
             <div className="responsive-modal-padding" style={{
-              background: '#F2E4D0', padding: '2.5rem 2rem',
-              borderRight: '1px solid rgba(180,81,30,0.12)',
+              background: 'var(--ib-parch, #F2E4D0)', padding: '2.5rem 2rem',
+              borderRight: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
               display: 'flex', flexDirection: 'column',
             }}>
               <div style={{
                 width: '100%', height: 190, borderRadius: 18, overflow: 'hidden',
-                background: '#EDEAE3', marginBottom: 20, boxShadow: '0 8px 24px rgba(26,10,0,0.15)',
+                background: 'var(--ib-surface-2, #EDEAE3)', marginBottom: 20, boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)',
               }}>
                 {tour.image_urls?.[0]
                   ? <img loading="lazy" decoding="async" src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ShoppingBag size={40} /></div>
+                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ShoppingBag size={40} /></div>
                 }
               </div>
 
               <p style={{
                 fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
-                color: '#A8481A', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6,
+                color: 'var(--ib-sienna, #A8481A)', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6,
               }}>
-                <span style={{ display: 'inline-block', width: 16, height: 1, background: '#B4511E' }} /> Booking Confirmation
+                <span style={{ display: 'inline-block', width: 16, height: 1, background: 'var(--ib-accent, #B4511E)' }} /> Booking Confirmation
               </p>
-              <h2 style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 4px', lineHeight: 1.2 }}>{tour.title}</h2>
+              <h2 style={{ fontSize: 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 4px', lineHeight: 1.2 }}>{tour.title}</h2>
               {tour.is_exclusive && (
-                <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#1A0A00' }}>Private tour</strong> · just your group. Message Bandang IBAYO in the group chat; your package and payments are in Private Tours.
+                <p style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
+                  <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>Private tour</strong> · just your group. Message Bandang IBAYO in the group chat; your package and payments are in Private Tours.
                 </p>
               )}
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', fontFamily: 'monospace', letterSpacing: '0.08em' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 16px', fontFamily: 'monospace', letterSpacing: '0.08em' }}>
                 {booking.booking_number}
               </p>
 
@@ -525,19 +533,19 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
-                  <MapPin size={16} style={{ color: '#A8481A' }} /> {tour.destination}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>
+                  <MapPin size={16} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.destination}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
-                  <Calendar size={16} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>
+                  <Calendar size={16} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {formatDateRange(tour.start_date, tour.duration)}
                 </div>
               </div>
 
               <div style={{ marginTop: 'auto' }}>
-                <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: '#A8481A', margin: '0 0 2px', lineHeight: 1 }}>
+                <p style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 2px', lineHeight: 1 }}>
                   {formatPeso((isAwaitingPayment ? 0 : (booking.amount_paid ?? booking.total_price) ?? 0))}
                 </p>
-                <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAwaitingPayment ? 'not paid yet' : isPaymentConfirmed ? 'amount paid' : 'amount sent'}</p>
+                <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAwaitingPayment ? 'not paid yet' : isPaymentConfirmed ? 'amount paid' : 'amount sent'}</p>
               </div>
             </div>
 
@@ -545,7 +553,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div className="responsive-modal-padding" style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-                <ViewSection title="Trip Information" icon={<History size={14} style={{ color: '#A8481A' }} />}>
+                <ViewSection title="Trip Information" icon={<History size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginTop: 4 }}>
                     <DetailItem label="Destination" value={tour.destination} />
                     <DetailItem label="Tour Date" value={formatDateRange(tour.start_date, tour.duration)} />
@@ -555,24 +563,24 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                 </ViewSection>
 
                 {!booking.isActuallyCompleted && booking.booking_status !== 'Cancelled' && booking.booking_status !== 'Rejected' && (
-                  <ViewSection title="Check-in QR" icon={<QrCode size={14} style={{ color: '#A8481A' }} />}>
+                  <ViewSection title="Check-in QR" icon={<QrCode size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
                     <CheckInQr booking={booking} tourTitle={tour.title} isPaymentConfirmed={isPaymentConfirmed} tourEnded={booking.isActuallyCompleted} />
                   </ViewSection>
                 )}
 
                 {isPaymentConfirmed && !booking.isActuallyCompleted && tour.things_to_bring?.trim() && (
-                  <ViewSection title="Things to Bring" icon={<Backpack size={14} style={{ color: '#A8481A' }} />}>
+                  <ViewSection title="Things to Bring" icon={<Backpack size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
                     <PackingChecklist bookingId={booking.id} text={tour.things_to_bring} />
                   </ViewSection>
                 )}
 
                 {booking.companions?.length > 0 && (
-                  <ViewSection title="Joining You" icon={<Users size={14} style={{ color: '#A8481A' }} />}>
+                  <ViewSection title="Joining You" icon={<Users size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {booking.companions.map((c, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13, fontWeight: 700, color: '#1A0A00' }}>
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>
                           <span>{c.full_name}</span>
-                          <span style={{ color: '#7A3A18', fontWeight: 600 }}>{c.contact_number}</span>
+                          <span style={{ color: 'var(--ib-rust, #7A3A18)', fontWeight: 600 }}>{c.contact_number}</span>
                         </div>
                       ))}
                     </div>
@@ -585,8 +593,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   <PickupPointSection booking={booking} tour={tour} />
                 )}
                 {booking.accommodation && (
-                  <ViewSection title="Accommodation" icon={<BedDouble size={14} style={{ color: '#A8481A' }} />}>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{booking.accommodation}</p>
+                  <ViewSection title="Accommodation" icon={<BedDouble size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{booking.accommodation}</p>
                   </ViewSection>
                 )}
 
@@ -598,7 +606,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={() => { onClose(); openGroupChat(booking.tour_id); }}
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%',
-                      background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 14, padding: '12px 16px',
+                      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 14, padding: '12px 16px',
                       fontSize: 12, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                   >
@@ -613,27 +621,27 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
                 {canCancel && !showCancelConfirm && (
                   <div style={{
-                    background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)',
+                    background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.18)', border: '1px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.4)',
                     borderRadius: 18, padding: '1.25rem', display: 'flex', gap: 12,
                   }}>
-                    <ShieldAlert size={18} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
-                    <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
+                    <ShieldAlert size={18} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 2 }} />
+                    <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.6, margin: 0 }}>
                       Need to change your plans? You can cancel until <strong>{deadlineLabel}</strong>. Per our agency policy, all payments are{' '}
-                      <span style={{ textDecoration: 'underline', fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase' }}>non-refundable</span>.
+                      <span style={{ textDecoration: 'underline', fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', textTransform: 'uppercase' }}>non-refundable</span>.
                     </p>
                   </div>
                 )}
 
                 {cancelRequested && (
                   <div style={{
-                    background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)',
+                    background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.18)', border: '1px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.4)',
                     borderRadius: 18, padding: '1.25rem', display: 'flex', gap: 12,
                   }}>
-                    <Clock size={18} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
-                    <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
-                      <strong style={{ color: '#1A0A00' }}>Cancellation requested</strong> on {new Date(booking.cancellation_requested_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.
+                    <Clock size={18} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 2 }} />
+                    <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.6, margin: 0 }}>
+                      <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>Cancellation requested</strong> on {new Date(booking.cancellation_requested_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}.
                       {' '}Bandang IBAYO will review it within {CANCELLATION_APPROVAL_HOURS} hours. If there's no answer by{' '}
-                      <strong style={{ color: '#1A0A00' }}>{new Date(new Date(booking.cancellation_requested_at).getTime() + CANCELLATION_APPROVAL_HOURS * 3600e3).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</strong>,
+                      <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{new Date(new Date(booking.cancellation_requested_at).getTime() + CANCELLATION_APPROVAL_HOURS * 3600e3).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</strong>,
                       {' '}it's approved automatically. You've left this tour's group chat; you'll get a notification once it's approved.
                     </p>
                   </div>
@@ -641,11 +649,11 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
                 {cancellationClosed && (
                   <div style={{
-                    background: 'rgba(140,47,28,0.08)', border: '1px solid rgba(140,47,28,0.2)',
+                    background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.2)',
                     borderRadius: 18, padding: '1.25rem', display: 'flex', gap: 12,
                   }}>
-                    <ShieldAlert size={18} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 2 }} />
-                    <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', lineHeight: 1.6, margin: 0 }}>
+                    <ShieldAlert size={18} style={{ color: 'var(--ib-red, #8C2F1C)', flexShrink: 0, marginTop: 2 }} />
+                    <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.6, margin: 0 }}>
                       Cancellations for this tour closed on <strong>{deadlineLabel}</strong>. Per our Terms, bookings can't be cancelled within {cancelDaysOf(booking)} days of the tour date.
                     </p>
                   </div>
@@ -653,28 +661,28 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
                 {showCancelConfirm && (
                   <div style={{
-                    background: 'rgba(140,47,28,0.06)', border: '2px solid rgba(140,47,28,0.18)',
+                    background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.06)', border: '2px solid rgba(var(--ib-red-rgb, 140,47,28), 0.18)',
                     borderRadius: 20, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 18,
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{
-                        width: 40, height: 40, background: 'rgba(140,47,28,0.12)', color: '#8C2F1C',
+                        width: 40, height: 40, background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: 'var(--ib-red, #8C2F1C)',
                         borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                       }}>
                         <Trash2 size={18} />
                       </div>
                       <div>
-                        <h4 style={{ fontSize: 13, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
-                        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>Your booking is cancelled right away. The amount you paid won't be refunded.</p>
+                        <h4 style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-red, #8C2F1C)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Confirm Cancellation</h4>
+                        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '2px 0 0' }}>Your booking is cancelled right away. The amount you paid won't be refunded.</p>
                       </div>
                     </div>
 
                     <div>
                       <label style={{
                         display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900,
-                        color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8,
+                        color: 'var(--ib-red, #8C2F1C)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8,
                       }}>
-                        <MessageSquare size={12} /> Reason for Cancellation <span style={{ color: '#8C2F1C' }}>*</span>
+                        <MessageSquare size={12} /> Reason for Cancellation <span style={{ color: 'var(--ib-red, #8C2F1C)' }}>*</span>
                       </label>
                       <NiceSelect
                         value={cancelReason}
@@ -682,8 +690,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                         onChange={(e) => { setCancelReason(e.target.value); setReasonError(false); }}
                         style={{
                           width: '100%', boxSizing: 'border-box', padding: '12px 14px',
-                          background: '#FDF6EE', border: `2px solid ${reasonError && !cancelReason ? '#8C2F1C' : 'rgba(180,81,30,0.2)'}`,
-                          borderRadius: 16, fontSize: 13, color: '#1A0A00', cursor: 'pointer',
+                          background: 'var(--ib-cream, #FDF6EE)', border: `2px solid ${reasonError && !cancelReason ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)'}`,
+                          borderRadius: 16, fontSize: 13, color: 'var(--ib-dark, #1A0A00)', cursor: 'pointer',
                           outline: 'none', fontFamily: 'inherit', fontWeight: 600,
                         }}
                       >
@@ -702,32 +710,32 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                           rows={3}
                           style={{
                             width: '100%', boxSizing: 'border-box', padding: '12px 14px', marginTop: 10,
-                            background: '#FDF6EE', border: `2px solid ${reasonError ? '#8C2F1C' : 'rgba(180,81,30,0.2)'}`,
-                            borderRadius: 16, fontSize: 13, color: '#1A0A00', resize: 'none',
+                            background: 'var(--ib-cream, #FDF6EE)', border: `2px solid ${reasonError ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)'}`,
+                            borderRadius: 16, fontSize: 13, color: 'var(--ib-dark, #1A0A00)', resize: 'none',
                             outline: 'none', fontFamily: 'inherit', fontWeight: 500,
                           }}
                         />
                       )}
                       {reasonError && (
-                        <p style={{ fontSize: 11.5, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 0' }}>
+                        <p style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-red, #8C2F1C)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 0' }}>
                           ⚠ {cancelReason === OTHER_REASON ? 'Please specify your reason (at least 5 characters).' : 'Please choose a reason for cancelling.'}
                         </p>
                       )}
                     </div>
 
-                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55 }}>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.55 }}>
                       <input
                         type="checkbox"
                         checked={agreedNoRefund}
                         onChange={(e) => { setAgreedNoRefund(e.target.checked); setAgreeError(false); }}
-                        style={{ width: 18, height: 18, marginTop: 1, accentColor: '#8C2F1C', flexShrink: 0 }}
+                        style={{ width: 18, height: 18, marginTop: 1, accentColor: 'var(--ib-red, #8C2F1C)', flexShrink: 0 }}
                       />
                       <span>
                         I understand that all payments are <strong>non-refundable</strong>, and that my cancellation is final.
                       </span>
                     </label>
                     {agreeError && (
-                      <p style={{ fontSize: 11.5, fontWeight: 900, color: '#8C2F1C', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '-8px 0 0' }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-red, #8C2F1C)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '-8px 0 0' }}>
                         ⚠ Please tick the box to confirm you understand.
                       </p>
                     )}
@@ -742,13 +750,13 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       <button
                         onClick={() => { setShowCancelConfirm(false); setCancelReason(''); setOtherReason(''); setReasonError(false); setAgreedNoRefund(false); setAgreeError(false); }}
                         style={{
-                          flex: '1 1 170px', minHeight: 48, padding: '12px 14px', background: '#F2E4D0', color: '#7A3A18',
-                          border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, cursor: 'pointer',
+                          flex: '1 1 170px', minHeight: 48, padding: '12px 14px', background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-rust, #7A3A18)',
+                          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 14, cursor: 'pointer',
                           fontFamily: 'inherit', fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap',
                           transition: 'background 0.2s',
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#EDEAE3'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#F2E4D0'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-surface-2, #EDEAE3)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-parch, #F2E4D0)'}
                       >
                         Keep Booking
                       </button>
@@ -779,8 +787,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
 
               {/* Footer actions (hidden when there's nothing to do) */}
               <div className="hide-when-empty" style={{
-                marginTop: 'auto', padding: '1.25rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
-                background: '#F2E4D0', display: 'flex', flexWrap: 'wrap', gap: 12,
+                marginTop: 'auto', padding: '1.25rem 2.5rem', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+                background: 'var(--ib-parch, #F2E4D0)', display: 'flex', flexWrap: 'wrap', gap: 12,
               }}>
                 {/* Labels stay on one line; when there's no room the buttons wrap to a new row. (The X closes it.) */}
                 {/* Receipt once the payment has been verified */}
@@ -790,7 +798,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={() => handleDownloadReceipt('payment')}
                     disabled={!!downloadingReceipt}
                     style={{
-                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#1A0A00', color: '#FDF6EE',
+                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -807,7 +815,7 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                     onClick={() => handleDownloadReceipt('balance')}
                     disabled={!!downloadingReceipt}
                     style={{
-                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: '#B4511E', color: '#FDF6EE',
+                      flex: '1 1 190px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                       border: 'none', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -820,8 +828,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                   <button
                     onClick={() => setShowCancelConfirm(true)}
                     style={{
-                      flex: '1 1 180px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'rgba(140,47,28,0.08)', color: '#8C2F1C',
-                      border: '1px solid rgba(140,47,28,0.2)', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                      flex: '1 1 180px', padding: '14px 16px', whiteSpace: 'nowrap', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', color: 'var(--ib-red, #8C2F1C)',
+                      border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.2)', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
                       fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                       transition: 'all 0.2s',
@@ -831,8 +839,8 @@ const BookingDetailModal = ({ booking, onClose, formatDateRange, onCancelSuccess
                       e.currentTarget.style.color = '#FFFFFF';
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.background = 'rgba(140,47,28,0.08)';
-                      e.currentTarget.style.color = '#8C2F1C';
+                      e.currentTarget.style.background = 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)';
+                      e.currentTarget.style.color = 'var(--ib-red, #8C2F1C)';
                     }}
                   >
                     <Trash2 size={14} /> Cancel Booking
@@ -888,19 +896,19 @@ const OnlinePaymentActions = ({ booking, isAwaitingPayment, isPaymentConfirmed, 
     flex: 1, minWidth: 160, padding: '12px 0', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
     fontWeight: 900, fontSize: 11.5, textTransform: 'uppercase', letterSpacing: '0.1em',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-    background: primary ? '#B4511E' : '#FDF6EE', color: primary ? '#FDF6EE' : '#8C2F1C',
-    border: primary ? 'none' : '1px solid rgba(140,47,28,0.25)',
+    background: primary ? 'var(--ib-accent, #B4511E)' : 'var(--ib-cream, #FDF6EE)', color: primary ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
+    border: primary ? 'none' : '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)',
   });
 
   return (
-    <ViewSection title={isAwaitingPayment ? 'Payment Not Finished' : 'Remaining Balance'} icon={<CreditCard size={14} style={{ color: '#A8481A' }} />}>
+    <ViewSection title={isAwaitingPayment ? 'Payment Not Finished' : 'Remaining Balance'} icon={<CreditCard size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
       {!isAwaitingPayment && (
         <div style={{ margin: '0 0 8px' }}>
-          <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 2px' }}>Balance due</p>
-          <p style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: 0, lineHeight: 1.1 }}>{formatPeso(balance)}</p>
+          <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 2px' }}>Balance due</p>
+          <p style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.1 }}>{formatPeso(balance)}</p>
         </div>
       )}
-      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.6 }}>
+      <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 12px', lineHeight: 1.6 }}>
         {isAwaitingPayment
           ? `Your slots are held${holdUntil ? ` until ${holdUntil}` : ''}. Finish paying on PayMongo to confirm your booking.`
           : 'Pay it online now, or in person on the day of the tour.'}
@@ -996,15 +1004,15 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
     onChanged();
   };
 
-  const field = { width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 12, padding: '10px 12px', minHeight: 44, fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none' };
+  const field = { width: '100%', boxSizing: 'border-box', background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 12, padding: '10px 12px', minHeight: 44, fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none' };
   const choice = (active) => ({
     flex: 1, minWidth: 140, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', borderRadius: 14, padding: '10px 12px',
-    border: active ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.25)', background: active ? 'rgba(180,81,30,0.08)' : '#FDF6EE', color: '#1A0A00',
+    border: active ? '2px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: active ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-dark, #1A0A00)',
   });
 
   return (
-    <ViewSection title="Your Held Slots" icon={<CreditCard size={14} style={{ color: '#A8481A' }} />}>
-      <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: '0 0 12px', lineHeight: 1.6 }}>
+    <ViewSection title="Your Held Slots" icon={<CreditCard size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
+      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 12px', lineHeight: 1.6 }}>
         You requested this tour, so we're holding <strong>{booking.slots_booked} slot{booking.slots_booked === 1 ? '' : 's'}</strong> for you
         {until ? <> until <strong>{until}</strong></> : null}. Pay before then to keep them, or they'll be released to other joiners.
       </p>
@@ -1012,42 +1020,42 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
       <div role="radiogroup" aria-label="Payment" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
         {[['full', 'Full payment', total], ...(onSale ? [] : [['down', `${percent}% downpayment`, downpaymentFor(total, percent)]])].map(([key, label, value]) => (
           <button key={key} type="button" role="radio" aria-checked={paymentType === key} onClick={() => setPaymentType(key)} style={choice(paymentType === key)}>
-            <span style={{ display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A8481A' }}>{label}</span>
+            <span style={{ display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>{label}</span>
             <span style={{ display: 'block', fontSize: 16, fontWeight: 900 }}>{formatPeso(value)}</span>
           </button>
         ))}
       </div>
       {onSale && (
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: '-4px 0 12px' }}>This date is on sale, so it must be paid in full.</p>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: '-4px 0 12px' }}>This date is on sale, so it must be paid in full.</p>
       )}
 
       {companions.length > 0 && (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 12px', lineHeight: 1.5 }}>
           When you pay, you'll enter the name and contact number of the {companions.length} {companions.length === 1 ? 'person' : 'people'} joining you.
         </p>
       )}
 
       {namesOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)' }}>
-          <div role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
-            background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E', padding: '2rem',
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)' }}>
+          <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="held-names-title" style={{
+            background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '2rem',
             display: 'flex', flexDirection: 'column', gap: 14,
           }}>
             <div>
-              <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>Your group</p>
-              <h3 id="held-names-title" style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Who's joining you?</h3>
-              <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>Enter each person's full name and contact number, then continue to payment.</p>
+              <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 4px' }}>Your group</p>
+              <h3 id="held-names-title" style={{ fontSize: 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Who's joining you?</h3>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0' }}>Enter each person's full name and contact number, then continue to payment.</p>
             </div>
             {companions.map((c, i) => (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)' }}>Person {i + 2}</span>
                 <input aria-label={`Person ${i + 2}'s full name`} data-allow="name" placeholder="Full name" value={c.full_name} maxLength={120}
                   onChange={(e) => { setCompanion(i, 'full_name', e.target.value); setNamesProblem(''); }} style={field} />
                 <input {...phoneFieldProps(c.contact_number, (v) => { setCompanion(i, 'contact_number', v); setNamesProblem(''); })} aria-label={`Person ${i + 2}'s contact number`} style={field} />
               </div>
             ))}
-            {namesProblem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{namesProblem}</p>}
+            {namesProblem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>{namesProblem}</p>}
             {!namesFilled && (
               <MissingHint items={companions.flatMap((c, i) => [
                 !String(c.full_name || '').trim() && `Person ${i + 2} name`,
@@ -1056,11 +1064,11 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
             )}
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setNamesOpen(false)} style={{
-                flex: 1, minWidth: 120, padding: '13px 0', borderRadius: 14, border: '1px solid rgba(180,81,30,0.25)', background: '#F2E4D0', color: '#1A0A00',
+                flex: 1, minWidth: 120, padding: '13px 0', borderRadius: 14, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-dark, #1A0A00)',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
               }}>Back</button>
               <button type="button" onClick={() => pay({ namesDone: true })} disabled={!namesFilled} style={{
-                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE',
+                flex: 2, minWidth: 180, padding: '13px 0', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                 fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
               }}>Continue to Payment</button>
             </div>
@@ -1070,12 +1078,12 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
 
       <AccommodationSelect id={`held-accommodation-${booking.id}`} options={accommodationChoices} value={accommodation} onChange={(v) => { setAccommodation(v); setProblem(''); }} />
 
-      <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 12px', cursor: 'pointer' }}>
-        <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
+      <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5, margin: '0 0 12px', cursor: 'pointer' }}>
+        <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
         <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close {cancelDaysOf(booking)} days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
       </label>
 
-      {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '0 0 10px' }}>{problem}</p>}
+      {problem && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: '0 0 10px' }}>{problem}</p>}
       {busy === null && (!agreed || needsRoom) && (
         <MissingHint style={{ marginBottom: 10 }} items={[needsRoom && 'Accommodation', !agreed && 'Tick the agreement box']} />
       )}
@@ -1084,14 +1092,14 @@ const HeldSlotsPayment = ({ booking, onChanged }) => {
         <button type="button" disabled={busy !== null || !agreed || needsRoom} onClick={() => pay()} title={needsRoom ? 'Choose your accommodation first' : agreed ? undefined : 'Tick the agreement above first'} style={{
           flex: 2, minWidth: 180, padding: '12px 0', borderRadius: 14, border: 'none', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: '#B4511E', color: '#FDF6EE', cursor: agreed && !needsRoom ? 'pointer' : 'not-allowed', opacity: agreed && !needsRoom ? 1 : 0.5,
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: agreed && !needsRoom ? 'pointer' : 'not-allowed', opacity: agreed && !needsRoom ? 1 : 0.5,
         }}>
           {busy === 'pay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} Pay {formatPeso(amount)} now
         </button>
         <button type="button" disabled={busy !== null} onClick={release} style={{
           flex: 1, minWidth: 140, padding: '12px 0', borderRadius: 14, fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
           letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          background: '#FDF6EE', color: '#8C2F1C', border: '1px solid rgba(140,47,28,0.25)', cursor: 'pointer',
+          background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-red, #8C2F1C)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)', cursor: 'pointer',
         }}>
           {busy === 'cancel' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <X size={14} />} Release slots
         </button>
@@ -1111,11 +1119,11 @@ const TourExpensesSection = ({ tourId }) => {
   }, [tourId]);
   if (!expenses?.length) return null;
   return (
-    <ViewSection title="Tour Expenses" icon={<Wallet size={14} style={{ color: '#A8481A' }} />}>
+    <ViewSection title="Tour Expenses" icon={<Wallet size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {expenses.map((label, i) => (
-          <div key={`${label}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#1A0A00' }}>
-            <CheckCircle2 size={14} style={{ color: '#1F8A5C', flexShrink: 0 }} /><span>{label}</span>
+          <div key={`${label}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)' }}>
+            <CheckCircle2 size={14} style={{ color: 'var(--ib-green, #1F8A5C)', flexShrink: 0 }} /><span>{label}</span>
           </div>
         ))}
       </div>
@@ -1150,13 +1158,13 @@ const PickupPointSection = ({ booking, tour }) => {
   const timeOf = (name) => points?.find((p) => p.location_name === name)?.scheduled_time;
 
   return (
-    <ViewSection title="Pickup Point" icon={<MapPin size={14} style={{ color: '#A8481A' }} />}>
+    <ViewSection title="Pickup Point" icon={<MapPin size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
       {current ? (
-        <p style={{ fontSize: 14, fontWeight: 800, color: '#1A0A00', margin: '0 0 8px' }}>
-          {current}{timeOf(current) ? <span style={{ fontWeight: 600, color: '#7A3A18' }}> · {formatPickupTime(timeOf(current))}</span> : null}
+        <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 8px' }}>
+          {current}{timeOf(current) ? <span style={{ fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}> · {formatPickupTime(timeOf(current))}</span> : null}
         </p>
       ) : (
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 8px' }}>
+        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 8px' }}>
           {points?.length ? "You haven't chosen a pickup point yet." : 'Pickup points will be posted before the trip.'}
         </p>
       )}
@@ -1168,8 +1176,8 @@ const PickupPointSection = ({ booking, tour }) => {
           disabled={saving}
           onChange={(e) => change(e.target.value)}
           style={{
-            width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.22)',
-            borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, color: '#7A3A18', fontFamily: 'inherit', cursor: 'pointer',
+            width: '100%', boxSizing: 'border-box', background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.22)',
+            borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit', cursor: 'pointer',
           }}
         >
           <option value="" disabled>{saving ? 'Saving…' : current ? 'Change pickup point…' : 'Choose your pickup point…'}</option>
@@ -1225,8 +1233,8 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
   if (!options || options.length === 0) return null;
 
   return (
-    <ViewSection title="Move to Another Date" icon={<CalendarClock size={14} style={{ color: '#A8481A' }} />}>
-      <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 10px' }}>
+    <ViewSection title="Move to Another Date" icon={<CalendarClock size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}>
+      <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 10px' }}>
         This trip also runs on {options.length === 1 ? 'this date' : 'these dates'}. Tap one to move your booking.
       </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1238,18 +1246,18 @@ const RescheduleSection = ({ booking, tour, formatDateRange, onMoved }) => {
               disabled={moving !== null}
               style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
-                width: '100%', padding: '12px 14px', background: '#FDF6EE', textAlign: 'left',
-                border: '1px solid rgba(180,81,30,0.2)', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
+                width: '100%', padding: '12px 14px', background: 'var(--ib-cream, #FDF6EE)', textAlign: 'left',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00' }}>{formatDateRange(t.start_date, t.duration)}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{formatDateRange(t.start_date, t.duration)}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
                 {moving === t.id ? 'Moving…' : `${t.available_slots} slot${t.available_slots === 1 ? '' : 's'} left`}
               </span>
             </button>
           ))}
         </div>
-      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '10px 0 0' }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '10px 0 0' }}>
         Same trip and price, so your payment carries over. Possible until the cancellation deadline.
       </p>
     </ViewSection>
@@ -1260,9 +1268,9 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
   <section>
     <h4 style={{
       fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
-      textTransform: 'uppercase', color: titleColor || '#7A3A18', opacity: titleColor ? 1 : 0.9,
+      textTransform: 'uppercase', color: titleColor || 'var(--ib-rust, #7A3A18)', opacity: titleColor ? 1 : 0.9,
       margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6,
-      borderBottom: '1px solid rgba(180,81,30,0.12)', paddingBottom: 12,
+      borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', paddingBottom: 12,
     }}>
       {icon} {title}
     </h4>
@@ -1272,30 +1280,30 @@ const ViewSection = ({ title, titleColor, icon, children }) => (
 
 const DetailItem = ({ label, value }) => (
   <div>
-    <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{label}</p>
-    <p style={{ fontSize: 16, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{value || '—'}</p>
+    <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{label}</p>
+    <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{value || '—'}</p>
   </div>
 );
 
 const StatusBadge = ({ booking }) => {
-  let bg = 'rgba(122,58,24,0.1)', color = '#7A3A18', label = 'Pending Action';
+  let bg = 'rgba(var(--ib-rust-rgb, 122,58,24), 0.1)', color = 'var(--ib-rust, #7A3A18)', label = 'Pending Action';
 
   if (booking.isActuallyCompleted) {
-    bg = 'rgba(180,81,30,0.15)'; color = '#A8481A'; label = 'Completed';
+    bg = 'rgba(var(--ib-accent-rgb, 180,81,30), 0.15)'; color = 'var(--ib-sienna, #A8481A)'; label = 'Completed';
   } else if (booking.booking_status === 'Cancelled' || booking.booking_status === 'Rejected') {
-    bg = 'rgba(140,47,28,0.1)'; color = '#8C2F1C'; label = 'Cancelled';
+    bg = 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)'; color = 'var(--ib-red, #8C2F1C)'; label = 'Cancelled';
   } else if (booking.cancellation_requested_at) {
-    bg = 'rgba(140,47,28,0.08)'; color = '#8C2F1C'; label = 'Cancellation Requested';
+    bg = 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)'; color = 'var(--ib-red, #8C2F1C)'; label = 'Cancellation Requested';
   } else if (booking.payment_status === 'Awaiting Payment') {
-    bg = 'rgba(232,162,101,0.25)'; color = '#A8481A'; label = 'Awaiting Payment';
+    bg = 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)'; color = 'var(--ib-sienna, #A8481A)'; label = 'Awaiting Payment';
   } else if (booking.payment_status === 'Complete' || booking.payment_status === 'Verified') {
-    bg = 'rgba(63,93,98,0.15)'; color = '#3F5D62'; label = 'Confirmed Trip';
+    bg = 'rgba(var(--ib-slate-rgb, 63,93,98), 0.15)'; color = 'var(--ib-slate, #3F5D62)'; label = 'Confirmed Trip';
   } else if (booking.payment_status === 'Pending' || booking.payment_status === 'Verification Pending') {
-    bg = 'rgba(232,162,101,0.25)'; color = '#A8481A'; label = 'Verification Pending';
+    bg = 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)'; color = 'var(--ib-sienna, #A8481A)'; label = 'Verification Pending';
   }
 
   return (
-    <span style={{
+    <span className="rubber-stamp" style={{
       display: 'inline-block', padding: '4px 14px', borderRadius: 999,
       fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em',
       background: bg, color,

@@ -25,7 +25,7 @@ const MissingHint = ({ items = [], style, title = 'Still missing' }) => {
   return (
     <div role="status" style={{
       display: 'flex', gap: 8, alignItems: 'flex-start', padding: '10px 12px', borderRadius: 12,
-      background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', color: '#8C2F1C',
+      background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.07)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)', color: 'var(--ib-red, #8C2F1C)',
       fontSize: 12, fontWeight: 700, lineHeight: 1.5, textAlign: 'left', boxSizing: 'border-box', width: '100%', ...style,
     }}>
       <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 2 }} />
@@ -37,7 +37,7 @@ const MissingHint = ({ items = [], style, title = 'Still missing' }) => {
             {m.el || m.name ? (
               <button type="button" className="no-touch-size" onClick={() => jumpTo(m.el || m.name)} style={{
                 background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', fontWeight: 800,
-                color: '#8C2F1C', textDecoration: 'underline', textUnderlineOffset: 2, cursor: 'pointer',
+                color: 'var(--ib-red, #8C2F1C)', textDecoration: 'underline', textUnderlineOffset: 2, cursor: 'pointer',
               }}>{m.label}</button>
             ) : <span>{m.label}</span>}
           </React.Fragment>

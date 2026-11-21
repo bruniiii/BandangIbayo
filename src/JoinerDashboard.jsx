@@ -25,6 +25,8 @@ import logoIcon from './assets/logo.png';
 import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import FavoritesButton from './ui/FavoritesButton';
+import ThemeToggle from './ui/ThemeToggle';
+import HandNote from './ui/HandNote';
 import Notification from './Notification';
 import GroupChat from './GroupChat';
 import AdminInbox from './AdminInbox';
@@ -43,15 +45,15 @@ import { reportError } from './ui/toast';
 import AnnouncementBanner from './ui/AnnouncementBanner';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg / card bg)
-// #2D1B0E  deep brown (dark card)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (inset panels / secondary bg)
-// #FDF6EE  cream (page bg, same as the public Tours page)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg / card bg)
+// var(--ib-deep, #2D1B0E)  deep brown (dark card)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (inset panels / secondary bg)
+// var(--ib-cream, #FDF6EE)  cream (page bg, same as the public Tours page)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
 
 const NAV_ITEMS = [
@@ -589,8 +591,8 @@ const JoinerDashboard = () => {
     <div className="joiner-dashboard-container" style={{
       display: 'flex', height: '100dvh',
       fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-      background: '#FDF6EE',
-      color: '#1A0A00',
+      background: 'var(--ib-cream, #FDF6EE)',
+      color: 'var(--ib-dark, #1A0A00)',
       overflow: 'hidden',
     }}>
       <style>{`
@@ -622,11 +624,11 @@ const JoinerDashboard = () => {
         style={{
           width: sidebarExpanded ? 268 : 84,
           flexShrink: 0,
-          background: '#1A0A00',
+          background: 'var(--ib-ink, #1A0A00)',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 20,
-          boxShadow: '4px 0 32px rgba(26,10,0,0.28)',
+          boxShadow: '4px 0 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)',
           position: 'relative',
           transition: 'width 0.25s ease',
           overflow: 'visible',
@@ -641,17 +643,17 @@ const JoinerDashboard = () => {
               top: 26, right: -14,
               width: 28, height: 28,
               borderRadius: '50%',
-              background: '#B4511E',
+              background: 'var(--ib-accent, #B4511E)',
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
-              color: '#FDF6EE',
+              color: 'var(--ib-on-accent, #FDF6EE)',
               zIndex: 30,
-              boxShadow: '0 4px 12px rgba(26,10,0,0.35)',
+              boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)',
               transition: 'background 0.2s, transform 0.2s',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.background = '#B4511E'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-amber, #E8A265)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'}
           >
             <X size={16} strokeWidth={3} />
           </button>
@@ -689,15 +691,15 @@ const JoinerDashboard = () => {
               }}
             />
             {sidebarExpanded && (
-              <span className="font-display" style={{ fontSize: 19, color: '#FDF6EE', whiteSpace: 'nowrap' }}>
-                Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span>
+              <span className="font-display" style={{ fontSize: 19, color: 'var(--ib-on-ink, #FDF6EE)', whiteSpace: 'nowrap' }}>
+                Bandang <span className="font-accent" style={{ color: 'var(--ib-amber, #E8A265)' }}>IBAYO</span>
               </span>
             )}
           </button>
           {sidebarExpanded && (
             <p style={{
               fontSize: 11, fontWeight: 800, letterSpacing: '0.22em',
-              textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: 0,
+              textTransform: 'uppercase', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: 0,
               whiteSpace: 'nowrap',
             }}>
               Joiners Portal
@@ -728,13 +730,13 @@ const JoinerDashboard = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(232,210,190,0.85)',
+              color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
               fontFamily: 'inherit',
               padding: 0,
               transition: 'color 0.2s',
             }}
-            onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.85)'}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--ib-amber, #E8A265)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)'}
           >
             <LogOut size={16} style={{ flexShrink: 0 }} />
             {sidebarExpanded && (
@@ -752,7 +754,7 @@ const JoinerDashboard = () => {
         {/* header */}
 
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)' }}>
           {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
@@ -767,6 +769,7 @@ const JoinerDashboard = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <ThemeToggle />
               <FavoritesButton onOpenTour={openFavoriteTour} />
               <NotificationBell onNotificationClick={handleNotificationNavigate} clearPaymentNotices />
 
@@ -775,25 +778,25 @@ const JoinerDashboard = () => {
                 onClick={() => handleNavClick('Profile Settings')}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
-                  background: '#F2E4D0',
-                  border: '1px solid rgba(180,81,30,0.18)',
+                  background: 'var(--ib-parch, #F2E4D0)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
                   borderRadius: 14, padding: '8px 14px',
                   cursor: 'pointer'
                 }}>
                 <div className="dashboard-user-chip-text" style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, lineHeight: 1 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1 }}>
                     {userProfile.name}
                   </p>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '3px 0 0', lineHeight: 1 }}>
                     Ready for Adventure
                   </p>
                 </div>
                 <div style={{
                   width: 38, height: 38, borderRadius: '50%',
-                  background: '#1A0A00',
+                  background: 'var(--ib-ink, #1A0A00)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#E8A265', fontWeight: 900, fontSize: 15,
-                  boxShadow: '0 4px 12px rgba(26,10,0,0.22)',
+                  color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 15,
+                  boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)',
                   overflow: 'hidden',
                   flexShrink: 0,
                 }}>
@@ -808,13 +811,18 @@ const JoinerDashboard = () => {
           </div>
 
 
-          {paymentNotice && (
+          {paymentNotice?.type === 'success' && (
+            <HandNote title={/downpayment/i.test(paymentNotice.text) ? 'Yay, see you on the trip!' : "You're going!"} onClose={() => setPaymentNotice(null)} style={{ marginBottom: 20 }}>
+              {paymentNotice.text}
+            </HandNote>
+          )}
+          {paymentNotice && paymentNotice.type !== 'success' && (
             <div role="status" style={{
               display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
               marginBottom: 20, padding: '14px 18px', borderRadius: 16, fontSize: 13, fontWeight: 700,
-              background: paymentNotice.type === 'success' ? 'rgba(180,81,30,0.12)' : paymentNotice.type === 'error' ? 'rgba(140,47,28,0.12)' : '#FDF6EE',
-              border: `1px solid ${paymentNotice.type === 'error' ? 'rgba(140,47,28,0.3)' : 'rgba(180,81,30,0.25)'}`,
-              color: paymentNotice.type === 'error' ? '#8C2F1C' : '#1A0A00',
+              background: paymentNotice.type === 'success' ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : paymentNotice.type === 'error' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)' : 'var(--ib-cream, #FDF6EE)',
+              border: `1px solid ${paymentNotice.type === 'error' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.3)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
+              color: paymentNotice.type === 'error' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)',
             }}>
               <span>{paymentNotice.text}</span>
               <button type="button" aria-label="Dismiss" onClick={() => setPaymentNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', flexShrink: 0 }}>
@@ -839,12 +847,12 @@ const JoinerDashboard = () => {
                     {/* TRIP PULSE (top left; the calendar and Tracking sit beside it, so the page fits the screen) */}
                     <div style={{
                       position: 'relative',
-                      background: '#1A0A00',
+                      background: 'var(--ib-ink, #1A0A00)',
                       borderRadius: 24,
                       padding: isMobile ? '1.25rem 1.25rem' : '1.5rem 2rem',
                       overflow: 'hidden',
-                      borderBottom: '4px solid #B4511E',
-                      boxShadow: '0 12px 32px rgba(26,10,0,0.18)',
+                      borderBottom: '4px solid var(--ib-accent, #B4511E)',
+                      boxShadow: '0 12px 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)',
                     }}>
                       <Sparkles size={160} style={{
                         position: 'absolute', right: -20, top: -30,
@@ -885,7 +893,7 @@ const JoinerDashboard = () => {
                   )}
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>Latest Tour Packages</h3>
+                    <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Latest Tour Packages</h3>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <button
                         type="button"
@@ -905,7 +913,7 @@ const JoinerDashboard = () => {
                     style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', padding: '14px 12px 18px', margin: '-14px -12px 0' }}
                   >
                     {loadingHome && featuredTours.length === 0 && [0, 1, 2, 3].map((i) => (
-                      <div key={`skel-${i}`} aria-hidden="true" style={{ flex: '0 0 220px', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)' }}>
+                      <div key={`skel-${i}`} aria-hidden="true" style={{ flex: '0 0 220px', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
                         <Skel h={115} r={0} />
                         <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                           <Skel w="75%" h={13} /><Skel w="50%" h={10} /><Skel w="60%" h={10} /><Skel h={30} r={8} style={{ marginTop: 4 }} />
@@ -916,23 +924,23 @@ const JoinerDashboard = () => {
                       const dates = tour.dates || [tour];
                       const isFull = dates.every((d) => d.available_slots <= 0);
                       return (
-                        <div key={tour.id} className="grow-card" style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: '#FDF6EE', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 14px rgba(26,10,0,0.04)', display: 'flex', flexDirection: 'column' }}>
-                          <div style={{ height: 115, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
-                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={32} /></div>}
-                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(253,246,238,0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: '#1A0A00' }}>{tour.difficulty}</span></div>
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? '#7A3A18' : '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
+                        <div key={tour.id} className="grow-card" style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.04)', display: 'flex', flexDirection: 'column' }}>
+                          <div style={{ height: 115, background: 'var(--ib-parch, #F2E4D0)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={32} /></div>}
+                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>{tour.difficulty}</span></div>
+                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust-solid, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: (isFull) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
                           </div>
                           <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                             <div>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
-                                <h4 style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
+                                <h4 style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
                                 <PriceTag tour={tour} size={12} style={{ flexShrink: 0 }} showBadge={false} />
                               </div>
-                              <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: '#A8481A' }} /> {tour.destination}</p>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '11px', fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
-                                {dates.length > 1 && <div style={{ color: '#A8481A', fontWeight: 800, paddingLeft: 16 }}>+{dates.length - 1} more date{dates.length > 2 ? 's' : ''}</div>}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: '#A8481A' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
+                              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.destination}</p>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '11px', fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', textTransform: 'uppercase' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
+                                {dates.length > 1 && <div style={{ color: 'var(--ib-sienna, #A8481A)', fontWeight: 800, paddingLeft: 16 }}>+{dates.length - 1} more date{dates.length > 2 ? 's' : ''}</div>}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
                               </div>
                             </div>
                             <button
@@ -943,12 +951,12 @@ const JoinerDashboard = () => {
                                 cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 11,
                                 letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex',
                                 alignItems: 'center', justifyContent: 'center', gap: 4,
-                                background: isFull ? '#F2E4D0' : '#1A0A00',
-                                color: isFull ? '#7A3A18' : '#FDF6EE',
+                                background: isFull ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-ink, #1A0A00)',
+                                color: isFull ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-on-ink, #FDF6EE)',
                                 transition: 'background 0.2s'
                               }}
-                              onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#B4511E'; }}
-                              onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = '#1A0A00'; }}
+                              onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; }}
+                              onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'; }}
                             >
                               <Eye size={11} /> {isFull ? 'Closed' : 'View Details'}
                             </button>
@@ -997,12 +1005,12 @@ const JoinerDashboard = () => {
                   {!loadingHome && completedCount > 0 && (
                     <button type="button" onClick={() => setActiveTab('Feedback')} style={{
                       display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', cursor: 'pointer', fontFamily: 'inherit',
-                      background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 14px rgba(26,10,0,0.05)',
+                      background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
                     }}>
-                      <span style={{ width: 40, height: 40, borderRadius: 12, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><MessageSquareHeart size={18} /></span>
+                      <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><MessageSquareHeart size={18} /></span>
                       <span>
-                        <strong style={{ display: 'block', fontSize: 13, color: '#1A0A00' }}>How was your experience?</strong>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>Answer a 1-minute survey to help us improve.</span>
+                        <strong style={{ display: 'block', fontSize: 13, color: 'var(--ib-dark, #1A0A00)' }}>How was your experience?</strong>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>Answer a 1-minute survey to help us improve.</span>
                       </span>
                     </button>
                   )}
@@ -1019,16 +1027,16 @@ const JoinerDashboard = () => {
             <MyBookings key={myBookingsKey} initialFilter={bookingsFilter} openBookingId={openBookingId} onExplore={() => handleNavClick('Explore Tours')} />
           ) : activeTab === 'Messages' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div role="tablist" aria-label="Group chat or messages" style={{ display: 'flex', gap: 6, background: '#F2E4D0', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%' }}>
+              <div role="tablist" aria-label="Group chat or messages" style={{ display: 'flex', gap: 6, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%' }}>
                 {[['chats', 'Group Chats', chatUnread], ['messages', 'Messages from Bandang IBAYO', inboxUnread]].map(([view, label, count]) => (
                   <button key={view} type="button" role="tab" aria-selected={chatView === view} onClick={() => setChatView(view)} style={{
                     display: 'flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 10, padding: '8px 14px', cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-                    background: chatView === view ? '#1A0A00' : 'transparent', color: chatView === view ? '#FDF6EE' : '#7A3A18',
+                    background: chatView === view ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: chatView === view ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
                   }}>
                     {view === 'chats' ? <MessagesSquare size={14} /> : <Inbox size={14} />} {label}
                     {count > 0 && !(view === 'messages' && chatView === 'messages') && (
-                      <span aria-label={`${count} unread`} style={{ background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{count > 99 ? '99+' : count}</span>
+                      <span aria-label={`${count} unread`} style={{ background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{count > 99 ? '99+' : count}</span>
                     )}
                   </button>
                 ))}
@@ -1066,20 +1074,20 @@ const JoinerDashboard = () => {
             <div style={{
               height: '100%', minHeight: 400, display: 'flex',
               flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              background: '#FDF6EE', borderRadius: 24, border: '1px solid rgba(180,81,30,0.12)',
-              boxShadow: '0 4px 24px rgba(26,10,0,0.06)', padding: '3rem', textAlign: 'center'
+              background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+              boxShadow: '0 4px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)', padding: '3rem', textAlign: 'center'
             }}>
               <div style={{
                 width: 72, height: 72, borderRadius: 20,
-                background: '#F2E4D0', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', color: '#A8481A', marginBottom: 20
+                background: 'var(--ib-parch, #F2E4D0)', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', color: 'var(--ib-sienna, #A8481A)', marginBottom: 20
               }}>
                 <Compass size={36} />
               </div>
-              <h3 style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 8px' }}>
+              <h3 style={{ fontWeight: 900, fontSize: 14, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 8px' }}>
                 {activeTab} Section
               </h3>
-              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+              <p style={{ fontSize: 13, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
                 Coming soon — check back later.
               </p>
             </div>
@@ -1115,21 +1123,21 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       borderRadius: 12,
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
-      background: active ? '#B4511E' : 'transparent',
-      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.85)',
+      background: active ? 'var(--ib-accent, #B4511E)' : 'transparent',
+      color: active ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(4px)' : 'translateX(0)',
-      boxShadow: active ? '0 6px 20px rgba(180,81,30,0.35)' : 'none',
+      boxShadow: active ? '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'none',
       transition: 'all 0.2s',
       textAlign: 'left',
     }}
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
+    <span style={{ color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-amber-rgb, 232,162,101), 0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
       {icon}
       {badge > 0 && collapsed && (
-        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {badge > 99 ? '99+' : badge}
         </span>
       )}
@@ -1140,7 +1148,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       </span>
     )}
     {!collapsed && badge > 0 && (
-      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {badge > 99 ? '99+' : badge}
       </span>
     )}

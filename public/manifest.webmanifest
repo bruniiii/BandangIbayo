@@ -4,11 +4,11 @@
   "short_name": "IBAYO",
   "description": "Book group tours and exclusive trips with Bandang IBAYO.",
   "lang": "en",
-  "start_url": "/dashboard",
+  "start_url": "/?app=1",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#FDF6EE",
-  "theme_color": "#1A0A00",
+  "background_color": "#FFF8EE",
+  "theme_color": "#0B3B4F",
   "icons": [
     {
       "src": "/icon-192.png",

@@ -442,28 +442,28 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
   };
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.82)', backdropFilter: 'blur(4px)' }} onClick={close} />
-      <form
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }} onClick={close} />
+      <form className="paper-card"
         onSubmit={submit}
         noValidate
         style={{
-          position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 720, borderRadius: 28,
-          boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden', borderTop: '8px solid #B4511E',
+          position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 720, borderRadius: 28,
+          boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', overflow: 'hidden', borderTop: '8px solid var(--ib-accent, #B4511E)',
           maxHeight: '90dvh', display: 'flex', flexDirection: 'column',
         }}
       >
-        <button className="x-close" type="button" onClick={close} aria-label="Close" style={{ position: 'absolute', top: 20, right: 20, zIndex: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(122,58,24,0.85)' }}>
+        <button className="x-close" type="button" onClick={close} aria-label="Close" style={{ position: 'absolute', top: 20, right: 20, zIndex: 10, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}>
           <X size={22} />
         </button>
 
         <div className="responsive-modal-padding" style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
-          <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 4px' }}>
             {isOpenRequest ? 'Requested Tour' : 'Private Tour'}
           </p>
-          <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 6px' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 6px' }}>
             {isOpenRequest ? (tourId ? 'Edit the Tour' : 'Create & Post the Tour') : (packageSent() ? 'Edit the Tour Package' : 'Create the Tour Package')}
           </h2>
-          <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 24px', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 24px', lineHeight: 1.6 }}>
             {isOpenRequest
               ? <>Requested by <strong>{request.full_name || 'a joiner'}</strong> for {request.group_size || 1} {Number(request.group_size) === 1 ? 'person' : 'people'}. It's posted on Explore Tours for other joiners, and their {Number(request.group_size) === 1 ? 'slot is' : 'slots are'} held for 2 days so they can pay first.</>
               : <>A private tour for <strong>{request.full_name || 'the joiner'}</strong>'s group of {request.group_size || '—'}. Only they see this package, and they confirm it with a {PRIVATE_DOWNPAYMENT_PERCENT}% downpayment.</>}
@@ -471,7 +471,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
           <button type="button" onClick={() => setPickTemplate(true)} style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, margin: '-8px 0 20px', padding: '10px 16px', borderRadius: 999,
-            background: '#1A0A00', color: '#FDF6EE', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
             fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
           }}>
             <LayoutTemplate size={15} /> Use a Template
@@ -479,7 +479,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Gallery */}
-            <div style={{ background: '#F2E4D0', borderRadius: 18, padding: '1.25rem', border: '2px dashed rgba(180,81,30,0.25)' }}>
+            <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 18, padding: '1.25rem', border: '2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.25)' }}>
               <label style={{ ...labelStyle, opacity: 1 }}>Tour Gallery</label>
               {(gallery.length > 0 || newFiles.length > 0) && (
                 <div className="responsive-form-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
@@ -493,8 +493,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               )}
               <div style={{ position: 'relative', width: 'fit-content' }}>
                 <div style={{
-                  background: '#1A0A00', color: '#FDF6EE', borderRadius: 999, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8,
-                  fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 4px 14px rgba(26,10,0,0.2)',
+                  background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
                 }}>
                   <UploadCloud size={14} /> Upload Images
                 </div>
@@ -514,12 +514,12 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             {isOpenRequest ? (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
                 <Field label="Joiner Rate (₱)" name="price" {...money('price')} placeholder={rangeText(JOINER_RATE_MIN, JOINER_RATE_MAX)} />
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>{RATE_HINT}</p>
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5, margin: '0 0 6px' }}>{RATE_HINT}</p>
               </div>
             ) : (
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
                 <Field label="Package Price (₱, whole group)" name="price" {...money('price')} placeholder={rangeText(EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX)} />
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5, margin: '0 0 6px' }}>
                   The Package Price is what the joiner pays ({PRIVATE_DOWNPAYMENT_PERCENT}% downpayment first). The Regular Rate is for admins only. Both ₱{rangeText(EXCLUSIVE_RATE_MIN, EXCLUSIVE_RATE_MAX).replace(' – ', ' – ₱')}.
                 </p>
               </div>
@@ -548,15 +548,15 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             {/* Dates */}
             <div style={sectionBox}>
               <label style={{ ...labelStyle, opacity: 1 }}>Tour Dates</label>
-              <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 12px', lineHeight: 1.5 }}>
                 {isOpenRequest ? `Filled in from the request. It must start at least ${periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} from today and last at most ${MAX_TOUR_DAYS} days.` : "The joiner's requested dates."}
               </p>
               {!isOpenRequest ? (
-                <p style={{ ...inputStyle, margin: 0, background: '#FDF6EE' }}>
+                <p style={{ ...inputStyle, margin: 0, background: 'var(--ib-cream, #FDF6EE)' }}>
                   {form.start_date ? `${formatYmdRange(form.start_date, form.end_date || form.start_date)} · ${daysLabel(countDays(form.start_date, form.end_date || form.start_date))}` : 'No dates in the request'}
                 </p>
               ) : (
-              <div className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'end', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(180,81,30,0.14)' }}>
+              <div className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'end', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
                 <div>
                   <label style={labelStyle}>Start Date</label>
                   <NiceDate name="start_date" min={minStart} value={form.start_date} onChange={set('start_date')} style={inputStyle} />
@@ -566,7 +566,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                   <NiceDate name="end_date" min={form.start_date || minStart} max={form.start_date ? addDays(form.start_date, MAX_TOUR_DAYS - 1) : undefined} value={form.end_date} onChange={set('end_date')} style={inputStyle} />
                 </div>
                 {durationOf(form.start_date, form.end_date) && (
-                  <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>{durationOf(form.start_date, form.end_date)}</p>
+                  <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{durationOf(form.start_date, form.end_date)}</p>
                 )}
               </div>
               )}
@@ -590,7 +590,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
                   <input id="package_departure_time" type="time" name="departure_time" value={departure}
                     onChange={(e) => { setDeparture(e.target.value); setDirty(true); }}
                     style={{ ...inputStyle, maxWidth: 220 }} />
-                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0', lineHeight: 1.5 }}>
                     The time at the first pickup point. The other pickup times are worked out from this and the driving time. Left empty, the first time in the itinerary is used.
                   </p>
                 </div>
@@ -599,7 +599,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               {spotsInfo.available ? (
                 <div>
                   <input type="hidden" name="pickup_new" value={pickedPlaces.length ? String(pickedPlaces.length) : ''} data-required="true" />
-                  <p style={{ fontSize: 11.5, fontWeight: 700, color: pickedPlaces.length ? '#7A3A18' : '#8C2F1C', margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 700, color: pickedPlaces.length ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-red, #8C2F1C)', margin: 0, lineHeight: 1.5 }}>
                     {pickedPlaces.length
                       ? `Pickup points (${pickedPlaces.length}): ${pickedPlaces.join(' · ')}. Joiners choose one of these.`
                       : 'Tick at least one pickup spot above. Joiners choose one of these.'}
@@ -629,8 +629,8 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             ) : (
               <div>
                 <label style={labelStyle}>Group Size</label>
-                <p style={{ ...inputStyle, margin: 0, background: 'rgba(242,228,208,0.6)' }}>
-                  {request.group_size || '—'} {Number(request.group_size) === 1 ? 'person' : 'people'} <span style={{ fontWeight: 600, color: '#7A3A18' }}>(from the request)</span>
+                <p style={{ ...inputStyle, margin: 0, background: 'rgba(var(--ib-parch-rgb, 242,228,208), 0.6)' }}>
+                  {request.group_size || '—'} {Number(request.group_size) === 1 ? 'person' : 'people'} <span style={{ fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>(from the request)</span>
                 </p>
               </div>
             )}
@@ -651,37 +651,37 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
             />
 
             <div>
-              <label style={{ ...labelStyle, color: '#A8481A', opacity: 1 }}>Important Notes</label>
+              <label style={{ ...labelStyle, color: 'var(--ib-sienna, #A8481A)', opacity: 1 }}>Important Notes</label>
               <textarea name="important_note" value={form.important_note} onChange={set('important_note')}
-                style={{ ...inputStyle, minHeight: 100, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
+                style={{ ...inputStyle, minHeight: 100, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)', color: 'var(--ib-sienna, #A8481A)', fontWeight: 700, resize: 'vertical' }} />
             </div>
             </fieldset>
           </div>
         </div>
 
         {!filled && !saving && (
-          <div style={{ padding: '12px 2.5rem 0', background: '#FDF6EE', borderTop: '1px solid rgba(180,81,30,0.12)', flexShrink: 0 }}>
+          <div style={{ padding: '12px 2.5rem 0', background: 'var(--ib-cream, #FDF6EE)', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', flexShrink: 0 }}>
             <MissingHint items={missingList} />
           </div>
         )}
-        <div style={{ padding: '1.5rem 2.5rem', background: '#FDF6EE', borderTop: '1px solid rgba(180,81,30,0.12)', display: 'flex', gap: 12, flexShrink: 0 }}>
+        <div style={{ padding: '1.5rem 2.5rem', background: 'var(--ib-cream, #FDF6EE)', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', display: 'flex', gap: 12, flexShrink: 0 }}>
           <button type="button" onClick={close} style={{
-            flex: 1, padding: '13px 0', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#1A0A00',
+            flex: 1, padding: '13px 0', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)',
           }}>Cancel</button>
           <button type="button" onClick={saveAsTemplate} disabled={saving || savingTemplate}
             title="Keep these details (not the dates) as a pre-made tour, to pick from next time."
             style={{
-              flex: 1.4, padding: '13px 8px', background: 'transparent', border: '1px solid rgba(180,81,30,0.45)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
-              fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18',
+              flex: 1.4, padding: '13px 8px', background: 'transparent', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.45)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
+              fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
             {savingTemplate ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Save as Template'}
           </button>
           <button type="submit" disabled={saving || !filled} title={filled ? undefined : 'Fill in every field first (photo, details, rates, accommodation, expenses, pickup points, lists and itinerary). Only First pickup at is optional.'} style={{
-            flex: 2, padding: '13px 0', background: '#B4511E', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
-            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#FDF6EE',
-            boxShadow: '0 6px 20px rgba(180,81,30,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            flex: 2, padding: '13px 0', background: 'var(--ib-accent, #B4511E)', border: 'none', borderRadius: 999, cursor: saving || !filled ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: filled ? 1 : 0.5,
+            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-on-accent, #FDF6EE)',
+            boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
             {saving ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
               : isOpenRequest ? (tourId ? 'Save Tour' : 'Post Tour') : (packageSent() ? 'Send Updated Package' : 'Send Package')}
@@ -762,11 +762,11 @@ const packageMessage = ({ details, covered }) => {
 };
 
 const Thumb = ({ src, onRemove, isNew }) => (
-  <div style={{ position: 'relative', aspectRatio: '1', borderRadius: 12, overflow: 'hidden', border: isNew ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.2)' }}>
+  <div style={{ position: 'relative', aspectRatio: '1', borderRadius: 12, overflow: 'hidden', border: isNew ? '2px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' }}>
     <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
     <button type="button" onClick={onRemove} aria-label="Remove image" style={{
       position: 'absolute', top: 6, right: 6, width: 26, height: 26, borderRadius: '50%', border: 'none', cursor: 'pointer',
-      background: 'rgba(26,10,0,0.75)', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center',
     }}><X size={13} /></button>
   </div>
 );
@@ -780,12 +780,12 @@ const Field = ({ label, ...props }) => (
 
 const labelStyle = {
   display: 'block', fontSize: 11, fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase',
-  color: '#7A3A18', opacity: 0.9, marginBottom: 5,
+  color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginBottom: 5,
 };
 const inputStyle = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
-  borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
+  borderRadius: 14, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
-const sectionBox = { background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)' };
+const sectionBox = { background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)' };
 
 export default PackageTourForm;

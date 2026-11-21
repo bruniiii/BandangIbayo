@@ -2,21 +2,22 @@ import React from 'react';
 import { CreditCard, Wallet } from 'lucide-react';
 
 // ─────────────────────────────────────────────
-// BOOKING BADGES: booking status, balance status and payment method, as
-// plain coloured text (Booking Management list and the booking window).
+// BOOKING BADGES: booking status, balance status and payment method. The
+// statuses look like inked rubber stamps (index.css: .rubber-stamp)
+// (Booking Management list and the booking window).
 // ─────────────────────────────────────────────
 
 const STATUS_STYLES = {
-  Pending: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  'Verification Pending': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  Complete: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  Verified: { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  Rejected: { bg: 'rgba(140,47,28,0.14)', color: '#8C2F1C' },
-  Cancelled: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
-  'Cancellation Requested': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
-  'Downpayment Paid': { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
-  'Awaiting Payment': { bg: 'rgba(63,93,98,0.14)', color: '#3F5D62' },
-  Expired: { bg: 'rgba(26,10,0,0.08)', color: 'rgba(26,10,0,0.8)' },
+  Pending: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
+  'Verification Pending': { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
+  Complete: { bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', color: 'var(--ib-sienna, #A8481A)' },
+  Verified: { bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', color: 'var(--ib-sienna, #A8481A)' },
+  Rejected: { bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.14)', color: 'var(--ib-red, #8C2F1C)' },
+  Cancelled: { bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)', color: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)' },
+  'Cancellation Requested': { bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: 'var(--ib-red, #8C2F1C)' },
+  'Downpayment Paid': { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
+  'Awaiting Payment': { bg: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.14)', color: 'var(--ib-slate, #3F5D62)' },
+  Expired: { bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)', color: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)' },
 };
  
 // Plain colored text (no pill), so it doesn't look like a button.
@@ -25,9 +26,9 @@ const STATUS_STYLES = {
 const StatusBadge = ({ status, large = false, wrap = false }) => {
   const { color } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
-    <span style={{
+    <span className={large ? undefined : 'rubber-stamp'} style={{
       display: 'inline-flex', alignItems: 'center',
-      color: large ? '#FDF6EE' : color,
+      color: large ? 'var(--ib-on-ink, #FDF6EE)' : color,
       fontSize: large ? 12 : 11,
       fontWeight: 900, letterSpacing: wrap ? '0.1em' : '0.16em', textTransform: 'uppercase',
       whiteSpace: wrap ? 'normal' : 'nowrap', lineHeight: wrap ? 1.35 : undefined, maxWidth: '100%',
@@ -38,14 +39,14 @@ const StatusBadge = ({ status, large = false, wrap = false }) => {
 };
  
 const BALANCE_STATUS_STYLES = {
-  'Fully Paid': { bg: 'rgba(180,81,30,0.14)', color: '#A8481A' },
-  'Balance Due': { bg: 'rgba(140,47,28,0.12)', color: '#8C2F1C' },
+  'Fully Paid': { bg: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', color: 'var(--ib-sienna, #A8481A)' },
+  'Balance Due': { bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: 'var(--ib-red, #8C2F1C)' },
 };
  
 const BalanceStatusBadge = ({ status }) => {
   const { color } = BALANCE_STATUS_STYLES[status] || BALANCE_STATUS_STYLES['Balance Due'];
   return (
-    <span style={{
+    <span className="rubber-stamp" style={{
       display: 'inline-flex', alignItems: 'center', gap: 4,
       color, fontSize: 11,
       fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -57,13 +58,13 @@ const BalanceStatusBadge = ({ status }) => {
 };
  
 const PAYMENT_METHOD_STYLES = {
-  'Full Payment': { bg: 'rgba(122,58,24,0.12)', color: '#7A3A18' },
-  Downpayment: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216' },
+  'Full Payment': { bg: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.12)', color: 'var(--ib-rust, #7A3A18)' },
+  Downpayment: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)' },
 };
  
 const PaymentMethodBadge = ({ method }) => {
-  if (!method) return <span style={{ color: '#7A3A18', fontSize: 11, fontWeight: 700 }}>—</span>;
-  const { color } = PAYMENT_METHOD_STYLES[method] || { color: '#7A3A18' };
+  if (!method) return <span style={{ color: 'var(--ib-rust, #7A3A18)', fontSize: 11, fontWeight: 700 }}>—</span>;
+  const { color } = PAYMENT_METHOD_STYLES[method] || { color: 'var(--ib-rust, #7A3A18)' };
   const Icon = method === 'Downpayment' ? Wallet : CreditCard;
   return (
     // Plain text with an icon (no pill), sized to its text.

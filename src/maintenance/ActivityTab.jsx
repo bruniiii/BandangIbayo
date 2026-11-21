@@ -15,7 +15,7 @@ import { paginate } from '../ui/paginate';
 // ─────────────────────────────────────────────
 
 const ACTIONS = [['', 'All actions'], ['added', 'Added'], ['changed', 'Changed'], ['removed', 'Removed']];
-const ACTION_COLOR = { added: '#1B5E3B', changed: '#1E4672', removed: '#8C2F1C' };
+const ACTION_COLOR = { added: 'var(--ib-green, #1B5E3B)', changed: 'var(--ib-slate, #1E4672)', removed: 'var(--ib-red, #8C2F1C)' };
 // Plain words for common field names.
 const FIELD_NAMES = {
   price: 'Joiner Rate', regular_rate: 'Regular Rate', group_size: 'Slots', start_date: 'Start date', end_date: 'End date', is_archived: 'Archived',
@@ -84,13 +84,13 @@ const ActivityTab = () => {
 
   return (
     <section style={card}>
-      <h3 style={h3}><History size={16} color="#A8481A" /> Audit Trail</h3>
+      <h3 style={h3}><History size={16} color="var(--ib-sienna, #A8481A)" /> Audit Trail</h3>
       <p style={hint}>Every change an admin made: tours and prices, bookings and payments, requests, accounts, suppliers, expenses, drivers and settings. Click a change to see the values before and after. Entries can't be edited or deleted by anyone.</p>
 
       {/* Search, then Refresh and Download, on one row. */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
         <div style={{ position: 'relative', flex: '1 1 260px', minWidth: 0 }}>
-          <Search size={16} color="#7A3A18" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={16} color="var(--ib-rust, #7A3A18)" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by admin, tour, booking, field…" aria-label="Search activity"
             style={{ ...input, height: 46, paddingLeft: 40, fontSize: 13.5, borderRadius: 14 }} />
         </div>
@@ -107,11 +107,11 @@ const ActivityTab = () => {
         <NiceDate value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} placeholder="To date" clearable aria-label="To date" />
       </div>
 
-      {rows === null ? <p style={{ margin: 0, color: '#5C2A10' }}>Loading…</p> : shown.length === 0 ? (
-        <p style={{ margin: 0, fontSize: 12.5, color: '#5C2A10' }}>{list.length ? 'Nothing matches these filters.' : 'No admin changes recorded yet.'}</p>
+      {rows === null ? <p style={{ margin: 0, color: 'var(--ib-brown, #5C2A10)' }}>Loading…</p> : shown.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 12.5, color: 'var(--ib-brown, #5C2A10)' }}>{list.length ? 'Nothing matches these filters.' : 'No admin changes recorded yet.'}</p>
       ) : (
         <>
-          <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: '#5C2A10' }}>
+          <p style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>
             {shown.length} change{shown.length === 1 ? '' : 's'}{list.length >= PAGE ? ` (latest ${PAGE}; pick dates to see older ones)` : ''}
           </p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
@@ -119,20 +119,20 @@ const ActivityTab = () => {
               const hasValues = !!(a.action === 'changed' && a.changed?.length && (a.old_values || a.new_values));
               const isOpen = open === a.id;
               return (
-                <li key={a.id} style={{ fontSize: 12.5, background: '#F2E4D0', borderRadius: 10, lineHeight: 1.5 }}>
+                <li key={a.id} style={{ fontSize: 12.5, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 10, lineHeight: 1.5 }}>
                   {(() => {
                     const content = (
                       <>
                         <strong>{a.admin_name || 'An admin'}</strong>{' '}
-                        <span style={{ color: ACTION_COLOR[a.action] || '#1A0A00', fontWeight: 800 }}>{a.action}</span>{' '}
+                        <span style={{ color: ACTION_COLOR[a.action] || 'var(--ib-dark, #1A0A00)', fontWeight: 800 }}>{a.action}</span>{' '}
                         {(TABLE_NAMES[a.table_name] || a.table_name).toLowerCase()} <strong>{recordName(a)}</strong>
-                        {a.changed?.length ? <span style={{ color: '#5C2A10' }}> ({a.changed.slice(0, 6).map(fieldName).join(', ')}{a.changed.length > 6 ? '…' : ''})</span> : null}
-                        <span style={{ display: 'block', color: '#5C2A10', fontSize: 11.5, fontWeight: 600 }}>
+                        {a.changed?.length ? <span style={{ color: 'var(--ib-brown, #5C2A10)' }}> ({a.changed.slice(0, 6).map(fieldName).join(', ')}{a.changed.length > 6 ? '…' : ''})</span> : null}
+                        <span style={{ display: 'block', color: 'var(--ib-brown, #5C2A10)', fontSize: 11.5, fontWeight: 600 }}>
                           {when(a.at)}{hasValues ? (isOpen ? ' · hide before and after' : ' · see before and after') : ''}
                         </span>
                       </>
                     );
-                    const box = { width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '8px 12px', fontFamily: 'inherit', fontSize: 12.5, color: '#1A0A00' };
+                    const box = { width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '8px 12px', fontFamily: 'inherit', fontSize: 12.5, color: 'var(--ib-dark, #1A0A00)' };
                     return hasValues
                       ? <button type="button" onClick={() => setOpen(isOpen ? null : a.id)} aria-expanded={isOpen} style={{ ...box, background: 'none', border: 'none', cursor: 'pointer' }}>{content}</button>
                       : <div style={box}>{content}</div>;
@@ -140,11 +140,11 @@ const ActivityTab = () => {
                   {isOpen && hasValues && (
                     <div style={{ padding: '0 12px 10px', display: 'grid', gap: 4 }}>
                       {a.changed.map((k) => (
-                        <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: '#FDF6EE', borderRadius: 8, padding: '6px 10px' }}>
-                          <span style={{ fontWeight: 900, color: '#7A3A18', minWidth: 120 }}>{fieldName(k)}</span>
-                          <span style={{ color: '#8C2F1C', textDecoration: 'line-through', overflowWrap: 'anywhere' }}>{show(a.old_values?.[k], k)}</span>
-                          <ArrowRight size={13} color="#7A3A18" />
-                          <span style={{ color: '#1B5E3B', fontWeight: 800, overflowWrap: 'anywhere' }}>{show(a.new_values?.[k], k)}</span>
+                        <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 8, padding: '6px 10px' }}>
+                          <span style={{ fontWeight: 900, color: 'var(--ib-rust, #7A3A18)', minWidth: 120 }}>{fieldName(k)}</span>
+                          <span style={{ color: 'var(--ib-red, #8C2F1C)', textDecoration: 'line-through', overflowWrap: 'anywhere' }}>{show(a.old_values?.[k], k)}</span>
+                          <ArrowRight size={13} color="var(--ib-rust, #7A3A18)" />
+                          <span style={{ color: 'var(--ib-green, #1B5E3B)', fontWeight: 800, overflowWrap: 'anywhere' }}>{show(a.new_values?.[k], k)}</span>
                         </div>
                       ))}
                     </div>

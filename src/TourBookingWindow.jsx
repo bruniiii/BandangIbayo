@@ -255,17 +255,17 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
 
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
 
-            <div style={{
+            <div className="paper-card" style={{
 
-                position: 'relative', background: '#FDF6EE',
+                position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
 
                 width: '100%', maxWidth: 1100,
 
-                borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+                borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
 
-                borderTop: '8px solid #B4511E',
+                borderTop: '8px solid var(--ib-accent, #B4511E)',
 
                 overflow: 'hidden',
 
@@ -281,7 +281,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                     background: 'none', border: 'none', cursor: 'pointer',
 
-                    color: 'rgba(122,58,24,0.85)',
+                    color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
 
                 }}><X size={28} /></button>
 
@@ -297,17 +297,17 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                         <div className="responsive-modal-padding" style={{
 
-                            background: '#F2E4D0',
+                            background: 'var(--ib-parch, #F2E4D0)',
 
                             padding: '2.5rem 2rem',
 
-                            borderRight: '1px solid rgba(180,81,30,0.12)',
+                            borderRight: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
 
                             display: 'flex', flexDirection: 'column',
 
                         }}>
 
-                            <TourImageCarousel images={images} />
+                            <TourImageCarousel images={images} caption={tour.destination || tour.title} />
 
 
 
@@ -315,7 +315,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                 fontSize: 24, fontWeight: 900, letterSpacing: '-0.02em',
 
-                                color: '#1A0A00', margin: '0 0 18px', lineHeight: 1.15,
+                                color: 'var(--ib-dark, #1A0A00)', margin: '0 0 18px', lineHeight: 1.15,
 
                             }}>{tour.title}</h2>
 
@@ -337,23 +337,23 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                 ].map((row, i) => (
 
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: '#7A3A18' }}>
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>
 
-                                        <span style={{ color: '#A8481A' }}>{row.icon}</span> {row.text}
+                                        <span style={{ color: 'var(--ib-sienna, #A8481A)' }}>{row.icon}</span> {row.text}
 
                                     </div>
 
                                 ))}
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? '#8C2F1C' : '#7A3A18' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: isFullyBooked ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-rust, #7A3A18)' }}>
 
-                                    <span style={{ color: '#A8481A' }}><Users size={16} /></span>
+                                    <span style={{ color: 'var(--ib-sienna, #A8481A)' }}><Users size={16} /></span>
 
                                     {tour.current_booked} / {tour.group_size} Slots Booked
 
                                 </div>
 
-                                <div style={{ background: 'rgba(180,81,30,0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
+                                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 999, height: 6, overflow: 'hidden' }}>
 
                                     <div style={{
 
@@ -361,7 +361,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         width: `${filledPct}%`,
 
-                                        background: isFullyBooked ? '#8C2F1C' : isAlmostFull ? '#E8A265' : '#7A3A18',
+                                        background: isFullyBooked ? 'var(--ib-red-solid, #8C2F1C)' : isAlmostFull ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust-solid, #7A3A18)',
 
                                         transition: 'width 0.4s',
 
@@ -373,15 +373,15 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     display: 'inline-block',
 
-                                    background: '#FDF6EE',
+                                    background: 'var(--ib-cream, #FDF6EE)',
 
-                                    border: '1px solid rgba(180,81,30,0.2)',
+                                    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
 
                                     borderRadius: 999, padding: '4px 14px',
 
                                     fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
 
-                                    color: '#1A0A00', width: 'fit-content',
+                                    color: 'var(--ib-dark, #1A0A00)', width: 'fit-content',
 
                                 }}>{tour.difficulty}</span>
 
@@ -389,21 +389,21 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                 {isFullyBooked ? (
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(140,47,28,0.1)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '10px 14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)', borderRadius: 14, padding: '10px 14px' }}>
 
-                                        <AlertCircle size={16} style={{ color: '#8C2F1C', flexShrink: 0 }} />
+                                        <AlertCircle size={16} style={{ color: 'var(--ib-red, #8C2F1C)', flexShrink: 0 }} />
 
-                                        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8C2F1C', margin: 0 }}>Fully Booked</p>
+                                        <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>Fully Booked</p>
 
                                     </div>
 
                                 ) : isAlmostFull ? (
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(232,162,101,0.18)', border: '1px solid rgba(232,162,101,0.4)', borderRadius: 14, padding: '10px 14px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.18)', border: '1px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.4)', borderRadius: 14, padding: '10px 14px' }}>
 
-                                        <AlertCircle size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
+                                        <AlertCircle size={16} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} />
 
-                                        <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: 0 }}>Only {liveSlots} slot{liveSlots > 1 ? 's' : ''} left!</p>
+                                        <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>Only {liveSlots} slot{liveSlots > 1 ? 's' : ''} left!</p>
 
                                     </div>
 
@@ -418,12 +418,12 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                     <label htmlFor="pickup-point" style={{
                                         display: 'block', fontSize: 11, fontWeight: 800,
                                         letterSpacing: '0.2em', textTransform: 'uppercase',
-                                        color: '#7A3A18', opacity: 0.9, marginBottom: 6,
+                                        color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginBottom: 6,
                                     }}>Pickup Point</label>
                                     {pickupPoints === null ? (
-                                        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>Loading pickup points…</p>
+                                        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>Loading pickup points…</p>
                                     ) : pickupPoints.length === 0 ? (
-                                        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+                                        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0, lineHeight: 1.5 }}>
                                             Pickup points will be posted soon. You can choose yours later in My Bookings.
                                         </p>
                                     ) : (
@@ -437,7 +437,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                                 onChange={(v) => { setPickupPoint(v); setPickupError(''); }}
                                                 options={pickupPoints.map((p) => ({ value: p.location_name, label: p.location_name, hint: p.scheduled_time ? formatPickupTime(p.scheduled_time) : '' }))}
                                             />
-                                            {pickupError && <p role="alert" style={{ fontSize: 12, fontWeight: 800, color: '#8C2F1C', margin: '6px 2px 0' }}>{pickupError}</p>}
+                                            {pickupError && <p role="alert" style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', margin: '6px 2px 0' }}>{pickupError}</p>}
                                         </>
                                     )}
                                 </div>
@@ -462,7 +462,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         letterSpacing: '0.2em', textTransform: 'uppercase',
 
-                                        color: '#7A3A18', opacity: 0.9, marginBottom: 6,
+                                        color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginBottom: 6,
 
                                     }}>Number of Persons</label>
 
@@ -476,7 +476,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     {slotError && (
 
-                                        <p style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: '#8C2F1C', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <p style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', display: 'flex', alignItems: 'center', gap: 6 }}>
 
                                             <AlertCircle size={13} /> {slotError}
 
@@ -485,7 +485,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                     )}
 
                                     {companions.length > 0 && (
-                                        <p style={{ marginTop: 8, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', lineHeight: 1.5 }}>
+                                        <p style={{ marginTop: 8, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5 }}>
                                             Next, you'll enter the name and contact number of the {companions.length} {companions.length === 1 ? 'person' : 'people'} joining you.
                                         </p>
                                     )}
@@ -502,9 +502,9 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
 
-                                        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9 }}>Total</span>
+                                        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Total</span>
 
-                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: '#A8481A' }}>{formatPeso(subtotal)}</span>
+                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(subtotal)}</span>
 
                                     </div>
 
@@ -512,7 +512,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                 {isFullyBooked && (
 
-                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(effectivePrice(tour))} per person</p>
+                                    <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 16px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{formatPeso(effectivePrice(tour))} per person</p>
 
                                 )}
 
@@ -540,9 +540,9 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         width: '100%', padding: '14px 0', opacity: bookChoicesMissing ? 0.5 : 1,
 
-                                        background: isFullyBooked ? '#EDEAE3' : '#B4511E',
+                                        background: isFullyBooked ? 'var(--ib-surface-2, #EDEAE3)' : 'var(--ib-accent, #B4511E)',
 
-                                        color: isFullyBooked ? '#7A3A18' : '#FDF6EE',
+                                        color: isFullyBooked ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-on-accent, #FDF6EE)',
 
                                         border: 'none', borderRadius: 14, cursor: isFullyBooked || bookChoicesMissing ? 'not-allowed' : 'pointer',
 
@@ -552,15 +552,15 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
 
-                                        boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(180,81,30,0.32)',
+                                        boxShadow: isFullyBooked ? 'none' : '0 6px 18px rgba(var(--ib-accent-rgb, 180,81,30), 0.32)',
 
                                         transition: 'background 0.2s',
 
                                     }}
 
-                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking && !bookChoicesMissing) e.currentTarget.style.background = '#1A0A00'; }}
+                                    onMouseEnter={e => { if (!isFullyBooked && !isBooking && !bookChoicesMissing) e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'; }}
 
-                                    onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = '#B4511E'; }}
+                                    onMouseLeave={e => { if (!isFullyBooked && !isBooking) e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; }}
 
                                 >
 
@@ -584,7 +584,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                 <ViewSection title="About the Tour">
 
-                                    <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                    <p style={{ fontSize: 14, lineHeight: 1.8, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', whiteSpace: 'pre-wrap', margin: 0 }}>
 
                                         {tour.description || 'No description provided.'}
 
@@ -594,15 +594,15 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
 
 
-                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
+                                <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', paddingTop: 24 }}>
 
-                                    <ViewSection title="Inclusions" titleColor="#A8481A" icon={<CheckCircle2 size={14} />}>
+                                    <ViewSection title="Inclusions" titleColor="var(--ib-sienna, #A8481A)" icon={<CheckCircle2 size={14} />}>
 
                                         <ChecklistGrid text={tour.inclusions} variant="include" />
 
                                     </ViewSection>
 
-                                    <ViewSection title="Exclusions" titleColor="#8C2F1C" icon={<X size={14} />}>
+                                    <ViewSection title="Exclusions" titleColor="var(--ib-red, #8C2F1C)" icon={<X size={14} />}>
 
                                         <ChecklistGrid text={tour.exclusions} variant="exclude" />
 
@@ -612,9 +612,9 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
 
 
-                                <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
+                                <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', paddingTop: 24 }}>
 
-                                    <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
+                                    <ViewSection title="Itinerary" titleColor="var(--ib-sienna, #A8481A)" icon={<Clock size={14} />}>
 
                                         <ItineraryTimeline text={tour.itinerary} startDate={tour.start_date} />
 
@@ -624,7 +624,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
 
 
-                                <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
+                                <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', paddingTop: 24 }}>
 
                                     <ViewSection title="Things to Bring">
 
@@ -640,27 +640,27 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     <div style={{
 
-                                        background: 'rgba(180,81,30,0.07)',
+                                        background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)',
 
                                         borderRadius: 18, padding: '1.5rem',
 
-                                        border: '1px solid rgba(180,81,30,0.2)',
+                                        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
 
                                         display: 'flex', gap: 16,
 
                                     }}>
 
-                                        <AlertCircle size={22} style={{ color: '#A8481A', flexShrink: 0 }} />
+                                        <AlertCircle size={22} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} />
 
                                         <div>
 
-                                            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 8px' }}>
+                                            <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 8px' }}>
 
                                                 Important Note
 
                                             </p>
 
-                                            <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0 }}>
+                                            <pre style={{ fontSize: 13, fontWeight: 700, fontFamily: 'inherit', lineHeight: 1.7, color: 'var(--ib-dark, #1A0A00)', whiteSpace: 'pre-wrap', margin: 0 }}>
 
                                                 {tour.important_note}
 
@@ -765,7 +765,7 @@ const overlayBackdrop = {
 
     alignItems: 'center', justifyContent: 'center', padding: 16,
 
-    background: 'rgba(26,10,0,0.8)', backdropFilter: 'blur(4px)',
+    background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.8)', backdropFilter: 'blur(4px)',
 
 };
 
@@ -777,11 +777,11 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
     <div style={overlayBackdrop}>
 
-      <div style={{
+      <div className="paper-card" style={{
 
-        background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
+        background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
 
-        borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E',
+        borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
 
       }}>
 
@@ -789,62 +789,62 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+            <button onClick={onCancel} aria-label="Back to tour details" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
               <ArrowLeft size={14} /> Back
             </button>
 
-            <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 1 of 2</span>
+            <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Step 1 of 2</span>
 
           </div>
 
           <div>
 
-            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>Booking Preview</p>
+            <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 4px' }}>Booking Preview</p>
 
-            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
+            <h3 style={{ fontSize: 24, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.2, margin: 0 }}>{tour.title}</h3>
 
           </div>
 
-          <div style={{ background: '#F2E4D0', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 20, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
 
-              <MapPin size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> {tour.destination}
-
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
-
-              <Calendar size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
+              <MapPin size={15} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} /> {tour.destination}
 
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
 
-              <Users size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
+              <Calendar size={15} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} /> {formatDateRange(tour.start_date, tour.duration)}
+
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
+
+              <Users size={15} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} /> {numPersons} {numPersons === 1 ? 'Person' : 'Persons'}
 
             </div>
             {pickupPoint && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
-                <MapPin size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> Pickup: {pickupPoint}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
+                <MapPin size={15} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} /> Pickup: {pickupPoint}
               </div>
             )}
             {accommodation && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: '#7A3A18' }}>
-                <BedDouble size={15} style={{ color: '#A8481A', flexShrink: 0 }} /> Accommodation: {accommodation}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
+                <BedDouble size={15} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} /> Accommodation: {accommodation}
               </div>
             )}
 
           </div>
 
-          <div style={{ borderTop: '2px solid rgba(180,81,30,0.12)', paddingTop: 18 }}>
+          <div style={{ borderTop: '2px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', paddingTop: 18 }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
 
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Price per person</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Price per person</span>
 
-              <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>
-                {isOnSale(tour) && <span style={{ textDecoration: 'line-through', fontWeight: 700, color: 'rgba(122,58,24,0.9)', marginRight: 6 }}>{formatPeso(tour.price)}</span>}
+              <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
+                {isOnSale(tour) && <span style={{ textDecoration: 'line-through', fontWeight: 700, color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.9)', marginRight: 6 }}>{formatPeso(tour.price)}</span>}
                 {formatPeso(effectivePrice(tour))}
               </span>
 
@@ -852,9 +852,9 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 
-              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A0A00' }}>Subtotal</span>
+              <span style={{ fontSize: 14, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--ib-dark, #1A0A00)' }}>Subtotal</span>
 
-              <span style={{ fontSize: 28, fontWeight: 900, color: '#A8481A' }}>{formatPeso(subtotal)}</span>
+              <span style={{ fontSize: 28, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(subtotal)}</span>
 
             </div>
 
@@ -864,7 +864,7 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
             style={{
 
-              width: '100%', padding: '15px 0', background: '#1A0A00', color: '#FDF6EE',
+              width: '100%', padding: '15px 0', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
 
               border: 'none', borderRadius: 16, cursor: 'pointer', fontFamily: 'inherit',
 
@@ -876,9 +876,9 @@ const ProceedToPaymentModal = ({ tour, numPersons, pickupPoint, accommodation, s
 
             }}
 
-            onMouseEnter={e => e.currentTarget.style.background = '#B4511E'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'}
 
-            onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'}
 
           >
 
@@ -906,43 +906,43 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
     <div style={overlayBackdrop}>
 
-        <div style={{
+        <div className="paper-card" style={{
 
-            background: '#FDF6EE', width: '100%', maxWidth: 420, maxHeight: '92dvh', overflowY: 'auto',
+            background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 420, maxHeight: '92dvh', overflowY: 'auto',
 
-            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+            padding: '2rem', borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
 
             textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 20,
 
-            borderTop: '8px solid #B4511E',
+            borderTop: '8px solid var(--ib-accent, #B4511E)',
 
         }}>
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
 
                     <ArrowLeft size={14} /> Back
 
                 </button>
 
-                <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A3A18' }}>Step 2 of 2</span>
+                <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Step 2 of 2</span>
 
             </div>
 
             <div>
 
-                <h3 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
+                <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>Choose Payment Type</h3>
 
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
-                <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '8px 0 0' }}>How would you like to pay for your booking?</p>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '6px 0 0' }}>
                     You'll pay on PayMongo's secure page with GCash, Maya, card or GrabPay. Your slots are held for {minutesText(PAYMENT_HOLD_MINUTES)}.
                 </p>
-                <p style={{ fontSize: 11, fontWeight: 800, color: '#8C2F1C', margin: '8px 0 0' }}>
+                <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', margin: '8px 0 0' }}>
                     Payments are non-refundable. You can cancel up to {CANCELLATION_CUTOFF_DAYS} days before the tour, but the amount paid won't be returned.
                 </p>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', marginTop: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.55, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.18)', borderRadius: 14, padding: '10px 12px' }}>
-                    <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left', marginTop: 12, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.55, background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.06)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.18)', borderRadius: 14, padding: '10px 12px' }}>
+                    <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ width: 18, height: 18, marginTop: 1, accentColor: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
                     <span>I agree that my payment is <strong>non-refundable</strong>, that cancellations close {CANCELLATION_CUTOFF_DAYS} days before the tour, and that the tour date <strong>may be moved because of bad weather</strong> or other safety concerns.</span>
                 </label>
                 {!agreed && !busy && <MissingHint style={{ marginTop: 10 }} items={['Tick the agreement box to choose how to pay']} />}
@@ -959,19 +959,19 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                     title={agreed ? undefined : 'Tick the agreement above first'}
                     disabled={busy || !agreed}
 
-                    style={{ width: '100%', background: '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', boxShadow: '0 8px 24px rgba(26,10,0,0.25)', transition: 'background 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
+                    style={{ width: '100%', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', border: 'none', boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)', transition: 'background 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
 
-                    onMouseEnter={e => e.currentTarget.style.background = '#2D1B0E'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-ink-deep, #2D1B0E)'}
 
-                    onMouseLeave={e => e.currentTarget.style.background = '#1A0A00'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'}
 
                 >
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Full Payment</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)' }}>Full Payment</span>
 
-                        <Check size={16} style={{ color: '#E8A265' }} />
+                        <Check size={16} style={{ color: 'var(--ib-amber, #E8A265)' }} />
 
                     </div>
 
@@ -984,7 +984,7 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
 
 
                 {fullOnly ? (
-                    <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', background: 'rgba(140,47,28,0.08)', borderRadius: 14, padding: '10px 14px', margin: 0, textAlign: 'left', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', borderRadius: 14, padding: '10px 14px', margin: 0, textAlign: 'left', lineHeight: 1.5 }}>
                         This date is on sale, so it must be paid in full. Downpayment isn't available.
                     </p>
                 ) : (
@@ -994,32 +994,32 @@ const ChoosePaymentTypeModal = ({ subtotal, downpaymentAmount, onChoose, onBack,
                     title={agreed ? undefined : 'Tick the agreement above first'}
                     disabled={busy || !agreed}
 
-                    style={{ width: '100%', background: '#F2E4D0', border: '2px solid rgba(180,81,30,0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', transition: 'border-color 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
+                    style={{ width: '100%', background: 'var(--ib-parch, #F2E4D0)', border: '2px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 20, padding: '1.25rem 1.5rem', textAlign: 'left', transition: 'border-color 0.2s', opacity: agreed ? 1 : 0.45, cursor: agreed ? 'pointer' : 'not-allowed' }}
 
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#B4511E'}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--ib-accent, #B4511E)'}
 
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(180,81,30,0.18)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}
 
                 >
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Downpayment ({DOWNPAYMENT_PERCENT}%)</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Downpayment ({DOWNPAYMENT_PERCENT}%)</span>
 
-                        <span style={{ fontSize: 11, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, textTransform: 'uppercase', flexShrink: 0 }}>Balance Later</span>
 
                     </div>
 
-                    <p style={{ fontSize: 24, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
+                    <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{formatPeso(downpaymentAmount)}</p>
 
-                    <p style={{ fontSize: 11, color: '#7A3A18', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay {DOWNPAYMENT_PERCENT}% now; pay the rest online later or in person on the tour day</p>
+                    <p style={{ fontSize: 11, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, fontWeight: 500, margin: '4px 0 0' }}>Pay {DOWNPAYMENT_PERCENT}% now; pay the rest online later or in person on the tour day</p>
 
                 </button>
                 )}
 
             </div>
             {busy && (
-                <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#A8481A', margin: 0 }}>
+                <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)', margin: 0 }}>
                     <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Opening secure checkout…
                 </p>
             )}
@@ -1045,24 +1045,24 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
     const namesFilled = companions.every((c) => String(c.full_name || '').trim() && String(c.contact_number || '').trim());
     return (
     <div style={overlayBackdrop}>
-        <div role="dialog" aria-modal="true" aria-labelledby="companions-title" style={{
-            background: '#FDF6EE', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)', borderTop: '8px solid #B4511E',
+        <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="companions-title" style={{
+            background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 480, maxHeight: '92dvh', overflowY: 'auto',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', borderTop: '8px solid var(--ib-accent, #B4511E)',
         }}>
             <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: 18 }}>
-                <button onClick={onBack} aria-label="Back to tour details" style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
+                <button onClick={onBack} aria-label="Back to tour details" style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', fontSize: 11.5, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', fontFamily: 'inherit', padding: 0 }}>
                     <ArrowLeft size={14} /> Back
                 </button>
                 <div>
-                    <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 4px' }}>Your group</p>
-                    <h3 id="companions-title" style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0 }}>Who's joining you?</h3>
-                    <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 4px' }}>Your group</p>
+                    <h3 id="companions-title" style={{ fontSize: 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.2, margin: 0 }}>Who's joining you?</h3>
+                    <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0', lineHeight: 1.5 }}>
                         Enter the full name and contact number of each person, then continue to payment.
                     </p>
                 </div>
                 <CompanionFields companions={companions} onChange={onChange} error={error} />
                 <button type="button" onClick={onContinue} disabled={!namesFilled} style={{
-                    width: '100%', padding: '14px 0', background: '#B4511E', color: '#FDF6EE', border: 'none', borderRadius: 16, cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
+                    width: '100%', padding: '14px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', border: 'none', borderRadius: 16, cursor: namesFilled ? 'pointer' : 'not-allowed', opacity: namesFilled ? 1 : 0.5,
                     fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.15em', textTransform: 'uppercase',
                 }}>
                     Continue to Payment
@@ -1075,16 +1075,16 @@ const CompanionsModal = ({ companions, onChange, error, onBack, onContinue }) =>
 
 const CompanionFields = ({ companions, onChange, error }) => {
     const inputStyle = {
-        width: '100%', boxSizing: 'border-box', background: '#FDF6EE',
-        border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12,
-        padding: '10px 12px', fontSize: 12, fontWeight: 600, color: '#1A0A00',
+        width: '100%', boxSizing: 'border-box', background: 'var(--ib-cream, #FDF6EE)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12,
+        padding: '10px 12px', fontSize: 12, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)',
         fontFamily: 'inherit', outline: 'none',
     };
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {companions.map((c, i) => (
                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={{ fontSize: 11.5, fontWeight: 800, color: '#A8481A' }}>Person {i + 2}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)' }}>Person {i + 2}</span>
                     <input
                         aria-label={`Person ${i + 2} full name`}
                         data-allow="name"
@@ -1101,7 +1101,7 @@ const CompanionFields = ({ companions, onChange, error }) => {
                 </div>
             ))}
             {error && (
-                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: '#8C2F1C', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <AlertCircle size={13} /> {error}
                 </p>
             )}
@@ -1113,14 +1113,14 @@ const CompanionFields = ({ companions, onChange, error }) => {
    WAITLIST (fully booked tours)
 ───────────────────────────────────────────── */
 const WaitlistPanel = ({ entry, bookingNumber, slots, onSlotsChange, busy, onJoin, onLeave }) => (
-    <div style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {bookingNumber ? (
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.5 }}>
                 You're already booked on this tour ({bookingNumber}), so you don't need the waitlist. You can see your booking in My Bookings.
             </p>
         ) : entry ? (
             <>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.5 }}>
                     {entry.notified_at
                         ? `A slot opened up! Slots go to whoever books first, so book soon if it's still open.`
                         : `You're on the waitlist for ${entry.slots_wanted} slot${entry.slots_wanted > 1 ? 's' : ''}. We'll notify you and email you if a slot opens.`}
@@ -1131,7 +1131,7 @@ const WaitlistPanel = ({ entry, bookingNumber, slots, onSlotsChange, busy, onJoi
             </>
         ) : (
             <>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0, lineHeight: 1.5 }}>
                     This tour is full. Join the waitlist and we'll let you know if a slot opens.
                 </p>
                 <PrettySelect
@@ -1153,9 +1153,9 @@ const WaitlistPanel = ({ entry, bookingNumber, slots, onSlotsChange, busy, onJoi
 const waitlistButton = (primary) => ({
     width: '100%', padding: '12px 0', borderRadius: 12, cursor: 'pointer', fontFamily: 'inherit',
     fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase',
-    border: primary ? 'none' : '1px solid rgba(140,47,28,0.25)',
-    background: primary ? '#1A0A00' : 'transparent',
-    color: primary ? '#FDF6EE' : '#8C2F1C',
+    border: primary ? 'none' : '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)',
+    background: primary ? 'var(--ib-ink, #1A0A00)' : 'transparent',
+    color: primary ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)',
 });
 
 export {

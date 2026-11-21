@@ -63,7 +63,7 @@ const PoliciesTab = () => {
   if (problem) {
     return (
       <div style={card}>
-        <h3 style={h3}><FileText size={16} color="#8C2F1C" /> Policies aren't installed yet</h3>
+        <h3 style={h3}><FileText size={16} color="var(--ib-red, #8C2F1C)" /> Policies aren't installed yet</h3>
         <p style={{ ...hint, margin: 0 }}>Run the database update <strong>20261228000000_maintenance_tabs.sql</strong>, then open this tab again. ({problem})</p>
       </div>
     );
@@ -74,13 +74,13 @@ const PoliciesTab = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={card}>
-        <h3 style={h3}><FileText size={16} color="#B4511E" /> Terms & Conditions</h3>
+        <h3 style={h3}><FileText size={16} color="var(--ib-accent, #B4511E)" /> Terms & Conditions</h3>
         <p style={hint}>
           What joiners agree to when they register and send a private tour request. {current ? `Now showing version ${current.version} (published ${when(current.published_at)}).` : ''}
           {' '}Start a section with <strong>## </strong>. These words are filled in from Booking Rules: {POLICY_WORDS.map(([k, d]) => `{${k}} (${d})`).join(', ')}.
         </p>
         {!me.isMain && (
-          <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 12px' }}>
+          <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', margin: '0 0 12px' }}>
             <Lock size={15} /> Only the main admin can publish a new version. You can read every version here.
           </p>
         )}
@@ -102,11 +102,11 @@ const PoliciesTab = () => {
               {me.isMain && <button type="button" style={{ ...btn(true), opacity: changed ? 1 : 0.55 }} disabled={saving || !changed} onClick={publish}>{saving ? <Loader2 size={14} style={spin} /> : <Send size={14} />} Publish New Version</button>}
             </div>
             {preview && (
-              <div style={{ background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 14, padding: '14px 16px' }}>
+              <div style={{ background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '14px 16px' }}>
                 {policySections(body).map((s, i) => (
                   <div key={i} style={{ marginBottom: 14 }}>
-                    {s.title && <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>{s.title}</p>}
-                    <p style={{ margin: 0, fontSize: 12.5, fontWeight: 500, color: '#7A3A18', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{s.text}</p>
+                    {s.title && <p style={{ margin: '0 0 6px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>{s.title}</p>}
+                    <p style={{ margin: 0, fontSize: 12.5, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{s.text}</p>
                   </div>
                 ))}
               </div>
@@ -116,14 +116,14 @@ const PoliciesTab = () => {
       </div>
 
       <div style={card}>
-        <h3 style={h3}><History size={16} color="#B4511E" /> Version history</h3>
+        <h3 style={h3}><History size={16} color="var(--ib-accent, #B4511E)" /> Version history</h3>
         {(versions || []).length === 0 ? <p style={{ ...hint, margin: 0 }}>No versions yet.</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {visible.map((v) => (
-              <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: v.is_current ? 'rgba(46,107,74,0.1)' : '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
+              <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: v.is_current ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>Version {v.version}{v.is_current ? ' · current' : ''}</p>
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{when(v.published_at)}{v.note ? ` · ${v.note}` : ''}</p>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Version {v.version}{v.is_current ? ' · current' : ''}</p>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{when(v.published_at)}{v.note ? ` · ${v.note}` : ''}</p>
                 </div>
                 {!v.is_current && me.isMain && (
                   <button type="button" style={btn(false)} onClick={() => { setTitle(v.title); setBody(v.body); setNote(`Brought back version ${v.version}`); toast.info(`Version ${v.version} loaded`, 'Check it, then Publish New Version.'); }}><RotateCcw size={13} /> Use this text</button>

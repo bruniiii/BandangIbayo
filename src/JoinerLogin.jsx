@@ -16,20 +16,20 @@ const SHOW_GOOGLE_LOGIN = false;
  import logoIcon from './assets/logo.png';
  
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #2D1B0E  deep brown (dark card)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-deep, #2D1B0E)  deep brown (dark card)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
 // ---------------------------------------------------------
  
-const errorBorder = { borderColor: '#8C2F1C', background: 'rgba(140,47,28,0.04)' };
+const errorBorder = { borderColor: 'var(--ib-red, #8C2F1C)', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.04)' };
 
 // Red message right under a field, e.g. "Invalid code." + "4 tries left."
 const FieldError = ({ id, error }) => (
-  <p id={id} role="alert" style={{ margin: '6px 2px 0', fontSize: 12, fontWeight: 800, color: '#8C2F1C', lineHeight: 1.5 }}>
+  <p id={id} role="alert" style={{ margin: '6px 2px 0', fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', lineHeight: 1.5 }}>
     {error.text}
     {error.hint && <span style={{ display: 'block', fontWeight: 600, opacity: 0.85 }}>{error.hint}</span>}
   </p>
@@ -243,10 +243,10 @@ const JoinerLogin = () => {
     width: '100%',
     padding: '12px 16px',
     borderRadius: 10,
-    border: '1.5px solid rgba(180,81,30,0.2)',
-    background: '#FDF6EE',
+    border: '1.5px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+    background: 'var(--ib-cream, #FDF6EE)',
     fontSize: 14,
-    color: '#1A0A00',
+    color: 'var(--ib-dark, #1A0A00)',
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
@@ -259,15 +259,15 @@ const JoinerLogin = () => {
     fontWeight: 800,
     letterSpacing: '0.18em',
     textTransform: 'uppercase',
-    color: '#7A3A18',
+    color: 'var(--ib-rust, #7A3A18)',
     marginBottom: 6,
     opacity: 0.9,
   };
  
   const submitStyle = (disabled) => ({
     width: '100%',
-    background: disabled ? 'rgba(180,81,30,0.55)' : '#B4511E',
-    color: '#FDF6EE',
+    background: disabled ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.55)' : 'var(--ib-accent, #B4511E)',
+    color: 'var(--ib-on-accent, #FDF6EE)',
     fontWeight: 900,
     fontSize: 13,
     letterSpacing: '0.1em',
@@ -276,7 +276,7 @@ const JoinerLogin = () => {
     borderRadius: 12,
     border: 'none',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    boxShadow: disabled ? 'none' : '0 8px 24px rgba(180,81,30,0.38)',
+    boxShadow: disabled ? 'none' : '0 8px 24px rgba(var(--ib-accent-rgb, 180,81,30), 0.38)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -287,20 +287,20 @@ const JoinerLogin = () => {
 
   const linkButton = {
     display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0,
-    fontSize: 12, fontWeight: 800, color: '#A8481A', cursor: 'pointer', fontFamily: 'inherit',
+    fontSize: 12, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)', cursor: 'pointer', fontFamily: 'inherit',
   };
 
   const spinner = <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /><style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style></>;
 
   return (
-    <div style={{
+    <div className="journal-paper" style={{
       minHeight: '100dvh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#FDF6EE',
+      background: 'var(--ib-cream, #FDF6EE)',
       fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-      color: '#1A0A00',
+      color: 'var(--ib-dark, #1A0A00)',
       padding: '3rem 1rem',
       position: 'relative',
       overflowX: 'hidden',
@@ -311,36 +311,36 @@ const JoinerLogin = () => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 200,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(10px)',
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(10px)',
         }}>
-          <div style={{
-            background: '#FDF6EE',
+          <div className="paper-card" style={{
+            background: 'var(--ib-cream, #FDF6EE)',
             padding: '3.5rem',
             borderRadius: 40,
-            boxShadow: '0 32px 80px rgba(26,10,0,0.45)',
+            boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.45)',
             textAlign: 'center',
-            borderTop: '7px solid #B4511E',
+            borderTop: '7px solid var(--ib-accent, #B4511E)',
             maxWidth: 380,
           }}>
             <div style={{
               width: 80, height: 80, borderRadius: '50%',
-              background: '#B4511E',
+              background: 'var(--ib-accent, #B4511E)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 24px',
-              boxShadow: '0 12px 32px rgba(180,81,30,0.45)',
-              color: '#FDF6EE',
+              boxShadow: '0 12px 32px rgba(var(--ib-accent-rgb, 180,81,30), 0.45)',
+              color: 'var(--ib-on-accent, #FDF6EE)',
             }}>
               <CheckCircle2 size={40} strokeWidth={2.5} />
             </div>
             <h3 style={{
               fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em',
-              color: '#1A0A00', textTransform: 'uppercase', margin: '0 0 10px',
+              color: 'var(--ib-dark, #1A0A00)', textTransform: 'uppercase', margin: '0 0 10px',
             }}>
               Login Successful
             </h3>
             <p style={{
               fontSize: 11, fontWeight: 800, letterSpacing: '0.2em',
-              textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: 0,
+              textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0,
             }}>
               {successRole === 'admin'
                 ? 'Redirecting to Administrator Portal...'
@@ -349,7 +349,7 @@ const JoinerLogin = () => {
             <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 8 }}>
               {[0, 0.15, 0.3].map((delay, i) => (
                 <div key={i} style={{
-                  width: 8, height: 8, borderRadius: '50%', background: '#B4511E',
+                  width: 8, height: 8, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)',
                   animation: `bounce 0.9s ${delay}s infinite`,
                 }} />
               ))}
@@ -359,14 +359,14 @@ const JoinerLogin = () => {
         </div>
       )}
  
-      {/* ── CARD: the login form on the left, Bandang IBAYO's branding on the right (desktop) ── */}
+      {/* ── CARD: the login form ── */}
       <div className="login-split" style={{
-        display: 'flex', width: '100%', maxWidth: 1000, background: '#FDF6EE', borderRadius: 28,
-        boxShadow: '0 20px 60px rgba(26,10,0,0.14)', overflow: 'hidden', borderTop: '7px solid #B4511E',
+        display: 'flex', width: '100%', maxWidth: 480, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 28,
+        boxShadow: '0 20px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)', overflow: 'hidden', borderTop: '7px solid var(--ib-accent, #B4511E)',
       }}>
       <div className="login-form-side" style={{
         position: 'relative',
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
         padding: '2.5rem',
         width: '100%',
         flex: '1 1 440px',
@@ -379,7 +379,7 @@ const JoinerLogin = () => {
         {/* close button */}
         <Link to="/" aria-label="Close and go to the home page" style={{
           position: 'absolute', top: 8, right: 8, width: 44, height: 44, justifyContent: 'center', borderRadius: 12,
-          color: 'rgba(122,58,24,0.85)',
+          color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
           display: 'flex', alignItems: 'center',
           transition: 'color 0.2s',
         }}>
@@ -397,10 +397,10 @@ const JoinerLogin = () => {
                 style={{ width: 64, height: 64, objectFit: 'contain' }} 
               />
           </div>
-          <h1 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
-            Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span>
+          <h1 style={{ fontWeight: 900, fontSize: 26, letterSpacing: '-0.03em', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 8px' }}>
+            Bandang <span className="font-accent" style={{ color: 'var(--ib-sienna, #A8481A)' }}>IBAYO</span>
           </h1>
-          <p style={{ fontSize: 14, color: '#7A3A18', opacity: 0.9, margin: 0, fontWeight: 500 }}>
+          <p style={{ fontSize: 14, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0, fontWeight: 500 }}>
             {challenge ? 'Check your email for your verification code.' : 'Welcome back! Login to continue.'}
           </p>
         </div>
@@ -408,8 +408,8 @@ const JoinerLogin = () => {
         {message.text && (
           <p role={message.tone === 'error' ? 'alert' : 'status'} style={{
             fontSize: 12, fontWeight: 700, lineHeight: 1.6, margin: '0 0 16px', padding: '10px 14px', borderRadius: 10,
-            color: message.tone === 'error' ? '#8C2F1C' : '#2D1B0E',
-            background: message.tone === 'error' ? 'rgba(140,47,28,0.08)' : 'rgba(232,162,101,0.2)',
+            color: message.tone === 'error' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-deep, #2D1B0E)',
+            background: message.tone === 'error' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)' : 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)',
           }}>
             {message.text}
           </p>
@@ -460,7 +460,7 @@ const JoinerLogin = () => {
             </Link>
           </div>
           
-          <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', marginTop: 4 }} />
+          <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', marginTop: 4 }} />
  
           <button disabled={loading || isSuccess || !loginFilled} style={submitStyle(loading || isSuccess || !loginFilled)}>
             {loading ? spinner : 'Login'}
@@ -470,8 +470,8 @@ const JoinerLogin = () => {
  
         {challenge && (
           <form style={{ display: 'flex', flexDirection: 'column', gap: 18 }} onSubmit={handleVerify}>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: '#7A3A18', lineHeight: 1.6 }}>
-              <MailCheck size={20} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.6 }}>
+              <MailCheck size={20} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 2 }} />
               <span>
                 We sent a 6-digit code to <strong>{challenge.sentTo}</strong>. It's valid for {challenge.expiresInMinutes} minutes.
               </span>
@@ -502,48 +502,17 @@ const JoinerLogin = () => {
         )}
 
         {/* register link */}
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: '#7A3A18', opacity: 0.9 }}>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: 13, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>
           Don't have an account?{' '}
-          <Link className="text-link" to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: '#A8481A', fontWeight: 800, textDecoration: 'none' }}>
+          <Link className="text-link" to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} style={{ color: 'var(--ib-sienna, #A8481A)', fontWeight: 800, textDecoration: 'none' }}>
             Register here
           </Link>
         </p>
  
       </div>
-      <LoginBrandPanel />
       </div>
     </div>
   );
 };
 
-// The right half of the login page (hidden on phones and tablets: index.css).
-const LoginBrandPanel = () => (
-  <aside className="login-brand-side" aria-label="About Bandang IBAYO" style={{
-    flex: '1 1 460px', position: 'relative', minHeight: 560, color: '#FDF6EE', padding: '3rem',
-    background: "linear-gradient(160deg, rgba(26,10,0,0.92) 0%, rgba(26,10,0,0.78) 55%, rgba(140,47,28,0.85) 100%), url('/nature-bg.webp') center / cover",
-    display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 28,
-  }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <img src={logoIcon} alt="" style={{ width: 46, height: 46, objectFit: 'contain' }} />
-      <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '-0.01em' }}>Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span></span>
-    </div>
-    <div>
-      <p style={{ margin: '0 0 10px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E8A265' }}>Your travel partner</p>
-      <h2 style={{ margin: '0 0 14px', fontSize: 30, lineHeight: 1.15, fontWeight: 900, letterSpacing: '-0.02em' }}>
-        Adventures across the Philippines, by land.
-      </h2>
-      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#F2E4D0', maxWidth: 400 }}>
-        Book land tours and road trips, pay online, chat with your group and follow the van live on tour day.
-      </p>
-    </div>
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 10 }}>
-      {['Book and pay online (GCash or card)', 'Live van tracking on tour day', 'Private Tours for your group'].map((t) => (
-        <li key={t} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, fontWeight: 700, color: '#FDF6EE' }}>
-          <CheckCircle2 size={17} color="#E8A265" style={{ flexShrink: 0 }} /> {t}
-        </li>
-      ))}
-    </ul>
-  </aside>
-);
- 
 export default JoinerLogin;

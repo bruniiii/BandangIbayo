@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Wallet, ChevronDown, AlertCircle, Search, Download, Star } from 'lucide-react';
+import { Wallet, ChevronDown, AlertCircle, Search, Star } from 'lucide-react';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
 import { toast } from './ui/toast';
@@ -7,7 +7,6 @@ import NiceSelect from './ui/NiceSelect';
 import StatusFilter from './ui/StatusFilter';
 import Pager from './ui/Pager';
 import { paginate } from './ui/paginate';
-import { downloadCsv } from './csvExport';
 import { PieChart } from './ReportCharts';
 import { CATEGORY_LABEL } from './tourExpenses';
 import { loadTourFinance, tourMoney, inPeriod, TOUR_TYPES, TOUR_TYPE_LABEL } from './tourFinance';
@@ -146,29 +145,20 @@ const ExpensesReport = ({ onData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, period, type, rows, categories, suppliers, onData]);
 
-  const download = () => downloadCsv(`expenses-${period.replace(':', '-')}.csv`, [
-    [(x) => x.r.tour.title, 'Tour'], [(x) => TOUR_TYPE_LABEL[x.r.type], 'Type'], [(x) => x.r.tour.start_date, 'Start date'],
-    [(x) => x.r.basis, 'Amounts'], [(x) => x.l?.label || '', 'Expense'], [(x) => (x.l ? CATEGORY_LABEL[x.l.category] : ''), 'Category'],
-    [(x) => x.l?.supplierName || '', 'Supplier'], [(x) => (x.l ? x.l.estimated : ''), 'Estimated'], [(x) => (x.l?.actual ?? ''), 'Actual'],
-    [(x) => (x.l ? x.l.cost : ''), 'Counted'], [(x) => x.r.fees, 'Joiner fees (tour)'], [(x) => x.r.cost, 'Total expenses (tour)'], [(x) => x.r.net, 'Net income (tour)'],
-  ], listed.flatMap((r) => (r.lines.length ? r.lines.map((l) => ({ r, l })) : [{ r, l: null }])));
 
   return (
     <section aria-labelledby="expenses-title" style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
         <div>
-          <h2 id="expenses-title" style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Wallet size={18} color="#A8481A" /> Expenses & Profit
+          <h2 id="expenses-title" style={{ fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Wallet size={18} color="var(--ib-sienna, #A8481A)" /> Expenses & Profit
           </h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>Where each tour's money went. Actual amounts once a tour's expenses are final, otherwise estimates.</p>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>Where each tour's money went. Actual amounts once a tour's expenses are final, otherwise estimates.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <NiceSelect aria-label="Expenses period" value={period} onChange={(e) => { setPeriod(e.target.value); setOpen(null); setPage(1); }} style={selectStyle}>
             {periodOptions().map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </NiceSelect>
-          <button type="button" onClick={download} disabled={!listed.length} style={{ ...selectStyle, display: 'inline-flex', alignItems: 'center', gap: 6, opacity: listed.length ? 1 : 0.5, cursor: listed.length ? 'pointer' : 'not-allowed' }}>
-            <Download size={14} /> CSV
-          </button>
         </div>
       </div>
 
@@ -189,7 +179,7 @@ const ExpensesReport = ({ onData }) => {
           </div>
 
           {missing.length > 0 && (
-            <p style={{ ...muted, display: 'flex', gap: 8, alignItems: 'flex-start', background: 'rgba(140,47,28,0.07)', borderRadius: 12, padding: '10px 12px', marginBottom: 16, color: '#8C2F1C', fontWeight: 700 }}>
+            <p style={{ ...muted, display: 'flex', gap: 8, alignItems: 'flex-start', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.07)', borderRadius: 12, padding: '10px 12px', marginBottom: 16, color: 'var(--ib-red, #8C2F1C)', fontWeight: 700 }}>
               <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
               <span>{missing.length} tour date{missing.length === 1 ? ' has' : 's have'} no expenses yet: {missing.slice(0, 4).map((r) => `${r.tour.title} (${formatYmdRange(r.tour.start_date, r.tour.end_date)})`).join(', ')}{missing.length > 4 ? ` and ${missing.length - 4} more` : ''}. Add them in Tour Management.</span>
             </p>
@@ -229,7 +219,7 @@ const ExpensesReport = ({ onData }) => {
                         <td style={td}>{CATEGORY_LABEL[x.category] || x.category}</td>
                         <td style={td}>{x.tours}</td>
                         <td style={td}>{formatPeso(x.amount)}</td>
-                        <td style={td}>{x.rating?.count ? <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center', color: x.rating.avg < 3 ? '#8C2F1C' : '#1A0A00', fontWeight: 800 }}><Star size={12} fill="#E8A265" color="#E8A265" /> {x.rating.avg.toFixed(1)} ({x.rating.count})</span> : '—'}</td>
+                        <td style={td}>{x.rating?.count ? <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center', color: x.rating.avg < 3 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', fontWeight: 800 }}><Star size={12} fill="var(--ib-amber, #E8A265)" color="var(--ib-amber, #E8A265)" /> {x.rating.avg.toFixed(1)} ({x.rating.count})</span> : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -244,12 +234,12 @@ const ExpensesReport = ({ onData }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {byMonth.map((m) => (
                   <div key={m.key}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4, fontSize: 12, fontWeight: 700, color: '#1A0A00' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4, fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>
                       <span>{shortMonth(m.key)} · {m.tours} tour{m.tours === 1 ? '' : 's'}</span>
-                      <span style={{ fontWeight: 900, color: '#A8481A' }}>{formatPeso(m.amount)}</span>
+                      <span style={{ fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(m.amount)}</span>
                     </div>
-                    <div style={{ background: '#F2E4D0', borderRadius: 999, height: 10, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${(m.amount / monthMax) * 100}%`, background: '#A8481A', borderRadius: 999 }} />
+                    <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, height: 10, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${(m.amount / monthMax) * 100}%`, background: 'var(--ib-sienna-solid, #A8481A)', borderRadius: 999 }} />
                     </div>
                   </div>
                 ))}
@@ -272,8 +262,8 @@ const ExpensesReport = ({ onData }) => {
                           <td style={td}>{formatYmdRange(r.tour.start_date, r.tour.end_date)}</td>
                           <td style={td}>{formatPeso(r.estimated)}</td>
                           <td style={td}>{formatPeso(r.actual)}</td>
-                          <td style={{ ...td, fontWeight: 900, color: d > 0 ? '#8C2F1C' : '#2E6B4A' }}>{signed(d)}</td>
-                          <td style={td}>{r.final ? <span style={tag}>Final</span> : <span style={{ ...tag, background: 'rgba(232,162,101,0.25)' }}>Not final</span>}</td>
+                          <td style={{ ...td, fontWeight: 900, color: d > 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>{signed(d)}</td>
+                          <td style={td}>{r.final ? <span style={tag}>Final</span> : <span style={{ ...tag, background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)' }}>Not final</span>}</td>
                         </tr>
                       );
                     })}
@@ -286,9 +276,9 @@ const ExpensesReport = ({ onData }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
             <p style={{ ...subTitle, margin: 0 }}>By tour date</p>
             <label style={{ position: 'relative', flex: '0 1 280px', minWidth: 0 }}>
-              <Search size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#7A3A18' }} />
+              <Search size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--ib-rust, #7A3A18)' }} />
               <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search tours, expenses, suppliers" aria-label="Search tours, expenses or suppliers"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px 9px 32px', borderRadius: 12, border: '1px solid rgba(180,81,30,0.2)', background: '#FFFDF9', fontFamily: 'inherit', fontSize: 12.5, color: '#1A0A00' }} />
+                style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px 9px 32px', borderRadius: 12, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', background: 'var(--ib-surface, #FFFDF9)', fontFamily: 'inherit', fontSize: 12.5, color: 'var(--ib-dark, #1A0A00)' }} />
             </label>
           </div>
           {visible.length === 0 ? (
@@ -308,27 +298,27 @@ const ExpensesReport = ({ onData }) => {
                           <td style={{ ...td, fontWeight: 800 }}>
                             {r.tour.title}
                             <span style={tag}>{TOUR_TYPE_LABEL[r.type].replace(' tour', '')}</span>
-                            {r.tour.weather_status === 'cancelled' && <span style={{ ...tag, background: 'rgba(140,47,28,0.12)', color: '#8C2F1C' }}>Cancelled</span>}
+                            {r.tour.weather_status === 'cancelled' && <span style={{ ...tag, background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)', color: 'var(--ib-red, #8C2F1C)' }}>Cancelled</span>}
                           </td>
                           <td style={td}>{formatYmdRange(r.tour.start_date, r.tour.end_date)}</td>
                           <td style={td}>{formatPeso(r.fees)}</td>
                           <td style={td}>{formatPeso(r.collected)}</td>
                           <td style={td}>
-                            {r.hasLines ? formatPeso(r.cost) : <span style={{ color: '#8C2F1C', fontWeight: 800 }}>Not set</span>}
-                            {r.hasLines && <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: r.final ? '#2E6B4A' : '#A8481A' }}>{r.basis}</span>}
+                            {r.hasLines ? formatPeso(r.cost) : <span style={{ color: 'var(--ib-red, #8C2F1C)', fontWeight: 800 }}>Not set</span>}
+                            {r.hasLines && <span style={{ display: 'block', fontSize: 10.5, fontWeight: 800, color: r.final ? 'var(--ib-green, #2E6B4A)' : 'var(--ib-sienna, #A8481A)' }}>{r.basis}</span>}
                           </td>
-                          <td style={{ ...td, fontWeight: 900, color: r.net < 0 ? '#8C2F1C' : '#2E6B4A' }}>{money(r.net)}</td>
+                          <td style={{ ...td, fontWeight: 900, color: r.net < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>{money(r.net)}</td>
                           <td style={td}>{pct(r.margin)}</td>
                           <td style={{ ...td, textAlign: 'right' }}>
                             <button type="button" aria-expanded={isOpen} aria-label={`Breakdown of ${r.tour.title}`} onClick={(e) => { e.stopPropagation(); setOpen(isOpen ? null : r.tour.id); }}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4 }}>
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', padding: 4 }}>
                               <ChevronDown size={16} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                             </button>
                           </td>
                         </tr>
                         {isOpen && (
                           <tr>
-                            <td colSpan={8} style={{ padding: '4px 10px 16px', background: 'rgba(242,228,208,0.45)' }}>
+                            <td colSpan={8} style={{ padding: '4px 10px 16px', background: 'rgba(var(--ib-parch-rgb, 242,228,208), 0.45)' }}>
                               {r.lines.length === 0 ? <p style={{ ...muted, paddingTop: 10 }}>No expense lines yet. Add them in Tour Management.</p> : (
                                 <div style={{ overflowX: 'auto' }}>
                                   <table style={{ ...table, minWidth: 560 }}>
@@ -354,7 +344,7 @@ const ExpensesReport = ({ onData }) => {
                                   </table>
                                 </div>
                               )}
-                              <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 900, color: r.net < 0 ? '#8C2F1C' : '#2E6B4A' }}>
+                              <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 900, color: r.net < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>
                                 Joiner fees {formatPeso(r.fees)} − expenses {formatPeso(r.cost)} = net income {money(r.net)}{r.margin != null ? ` (${pct(r.margin)} margin)` : ''}
                               </p>
                             </td>
@@ -375,21 +365,21 @@ const ExpensesReport = ({ onData }) => {
 };
 
 const Stat = ({ label, value, sub, tone }) => (
-  <div style={{ background: tone === 'good' ? 'rgba(46,107,74,0.1)' : tone === 'bad' ? 'rgba(140,47,28,0.1)' : '#F2E4D0', borderRadius: 16, padding: '12px 16px', minWidth: 0 }}>
-    <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>{label}</p>
-    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? '#2E6B4A' : tone === 'bad' ? '#8C2F1C' : '#1A0A00', margin: '4px 0 0', overflowWrap: 'anywhere' }}>{value}</p>
-    {sub && <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: '2px 0 0' }}>{sub}</p>}
+  <div style={{ background: tone === 'good' ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)' : tone === 'bad' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '12px 16px', minWidth: 0 }}>
+    <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{label}</p>
+    <p style={{ fontSize: 22, fontWeight: 900, color: tone === 'good' ? 'var(--ib-green, #2E6B4A)' : tone === 'bad' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', margin: '4px 0 0', overflowWrap: 'anywhere' }}>{value}</p>
+    {sub && <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>{sub}</p>}
   </div>
 );
 
-const card = { background: '#FDF6EE', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.05)' };
-const panel = { background: 'rgba(242,228,208,0.35)', border: '1px solid rgba(180,81,30,0.1)', borderRadius: 16, padding: '14px 16px', minWidth: 0 };
-const selectStyle = { background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '9px 12px', fontSize: 12.5, fontWeight: 800, color: '#1A0A00', fontFamily: 'inherit', cursor: 'pointer' };
-const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 10px' };
-const muted = { fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 };
+const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)' };
+const panel = { background: 'rgba(var(--ib-parch-rgb, 242,228,208), 0.35)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', borderRadius: 16, padding: '14px 16px', minWidth: 0 };
+const selectStyle = { background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12, padding: '9px 12px', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', cursor: 'pointer' };
+const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 10px' };
+const muted = { fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 };
 const table = { width: '100%', borderCollapse: 'collapse', fontSize: 12.5, minWidth: 700 };
-const th = { textAlign: 'left', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', padding: '8px 10px', borderBottom: '1px solid rgba(180,81,30,0.18)' };
-const td = { padding: '8px 10px', color: '#1A0A00', fontWeight: 600, borderBottom: '1px solid rgba(180,81,30,0.08)', verticalAlign: 'top' };
-const tag = { display: 'inline-block', marginLeft: 6, fontSize: 9.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'rgba(168,72,26,0.12)', color: '#A8481A', borderRadius: 999, padding: '2px 7px', verticalAlign: 'middle' };
+const th = { textAlign: 'left', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', padding: '8px 10px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)' };
+const td = { padding: '8px 10px', color: 'var(--ib-dark, #1A0A00)', fontWeight: 600, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', verticalAlign: 'top' };
+const tag = { display: 'inline-block', marginLeft: 6, fontSize: 9.5, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'rgba(var(--ib-sienna-rgb, 168,72,26), 0.12)', color: 'var(--ib-sienna, #A8481A)', borderRadius: 999, padding: '2px 7px', verticalAlign: 'middle' };
 
 export default ExpensesReport;

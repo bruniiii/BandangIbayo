@@ -25,31 +25,31 @@ import { SkeletonTourCards, SkeletonRows } from './ui/Skeleton';
 import { useOpenOnce } from './focusTarget';
 
 const PALETTE = {
-  espresso: '#1A0A00',
-  burntSienna: '#A8481A',
-  warmAmber: '#E8A265',
-  cream: '#FDF6EE',
-  rust: '#7A3A18',
-  parchment: '#F2E4D0',
+  espresso: 'var(--ib-dark, #1A0A00)',
+  burntSienna: 'var(--ib-sienna, #A8481A)',
+  warmAmber: 'var(--ib-amber, #E8A265)',
+  cream: 'var(--ib-cream, #FDF6EE)',
+  rust: 'var(--ib-rust, #7A3A18)',
+  parchment: 'var(--ib-parch, #F2E4D0)',
 };
 
 const STOP_STATUS_STYLES = {
-  DEPARTURE: { bg: 'rgba(232,162,101,0.25)', color: '#8C5216', label: 'Pending Pickup' },
-  'CURRENTLY HERE': { bg: '#B4511E', color: '#FDF6EE', label: 'En Route / On The Way' },
-  ARRIVED: { bg: '#1F8A5C', color: '#FDF6EE', label: 'Arrived at Stop' },
-  DEPARTED: { bg: 'rgba(26,10,0,0.1)', color: 'rgba(26,10,0,0.8)', label: 'Departed' },
+  DEPARTURE: { bg: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)', color: 'var(--ib-warn, #8C5216)', label: 'Pending Pickup' },
+  'CURRENTLY HERE': { bg: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-ink, #FDF6EE)', label: 'En Route / On The Way' },
+  ARRIVED: { bg: '#1F8A5C', color: 'var(--ib-on-ink, #FDF6EE)', label: 'Arrived at Stop' },
+  DEPARTED: { bg: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.1)', color: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.8)', label: 'Departed' },
 };
 
 const inputStyle = {
   width: '100%',
   boxSizing: 'border-box',
-  background: '#F2E4D0',
-  border: '1px solid rgba(180,81,30,0.18)',
+  background: 'var(--ib-parch, #F2E4D0)',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
   borderRadius: 14,
   padding: '10px 14px',
   fontSize: 13,
   fontWeight: 600,
-  color: '#1A0A00',
+  color: 'var(--ib-dark, #1A0A00)',
   fontFamily: 'inherit',
   outline: 'none',
 };
@@ -411,7 +411,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
       {/* ── Top Header Tabs ── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderBottom: '1px solid rgba(180,81,30,0.15)',
+        borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
         paddingBottom: 16, marginBottom: 20,
       }}>
         <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -421,12 +421,12 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'active' ? '#1A0A00' : 'rgba(122,58,24,0.85)',
+              color: currentTab === 'active' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
             }}
           >
             Active Trips
           </button>
-          <span style={{ color: '#A8481A', fontSize: 18 }}>|</span>
+          <span style={{ color: 'var(--ib-sienna, #A8481A)', fontSize: 18 }}>|</span>
           <button
             onClick={() => setCurrentTab('archive')}
             style={{
@@ -434,7 +434,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'archive' ? '#1A0A00' : 'rgba(122,58,24,0.85)',
+              color: currentTab === 'archive' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
             }}
           >
             <History size={18} /> Tracking Archive
@@ -442,7 +442,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
         </div>
         <button type="button" onClick={() => setFleetOpen(true)} style={{
           display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 16px', borderRadius: 12, cursor: 'pointer',
-          background: '#1A0A00', color: '#E8A265', border: 'none', fontFamily: 'inherit',
+          background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit',
           fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
         }}><Truck size={15} /> Drivers & Vans</button>
       </div>
@@ -451,7 +451,7 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
       {/* Archive: pick a month to see only that month's tours */}
       {currentTab === 'archive' && !loading && archiveMonths.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-          <label htmlFor="archive-month" style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5C2A10' }}>Month</label>
+          <label htmlFor="archive-month" style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-brown, #5C2A10)' }}>Month</label>
           <div style={{ minWidth: 220 }}>
             <PrettySelect id="archive-month" ariaLabel="Month" value={archiveMonth} onChange={setArchiveMonth}
               options={[{ value: 'all', label: `All months (${toursList.length})` }, ...archiveMonths.map(([k, n]) => ({ value: k, label: `${monthName(k)} (${n})` }))]} />
@@ -464,8 +464,8 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
         {loading ? (
           <SkeletonTourCards count={3} />
         ) : shownTours.length === 0 ? (
-          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: '#FDF6EE', borderRadius: 20, border: '2px dashed rgba(180,81,30,0.2)' }}>
-            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#7A3A18' }}>
+          <div style={{ gridColumn: '1 / -1', padding: '5rem 0', textAlign: 'center', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: '2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>
               No {currentTab === 'archive' ? 'archived' : 'active'} tours found.
             </p>
           </div>
@@ -515,18 +515,18 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
       {/* ── Check-in for one tour (scan QR codes, joiner list) ── */}
       {checkInTourId != null && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={() => setCheckInTourId(null)} />
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={() => setCheckInTourId(null)} />
           <div style={{
-            position: 'relative', background: '#FDF6EE', width: '100%', maxWidth: 1150, borderRadius: 28,
-            boxShadow: '0 32px 80px rgba(26,10,0,0.4)', maxHeight: '92dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            position: 'relative', background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 1150, borderRadius: 28,
+            boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', maxHeight: '92dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
-              <p style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#1A0A00' }}>
-                <ScanLine size={16} style={{ color: '#A8481A' }} /> Check-in / Check-out
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 13, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>
+                <ScanLine size={16} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Check-in / Check-out
               </p>
               <button className="x-close" type="button" onClick={() => setCheckInTourId(null)} aria-label="Close" style={{
-                background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: '50%', width: 34, height: 34,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#1A0A00',
+                background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: '50%', width: 34, height: 34,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--ib-dark, #1A0A00)',
               }}><X size={18} /></button>
             </div>
             <div style={{ overflowY: 'auto', padding: '1.5rem' }}>
@@ -559,10 +559,10 @@ const TrackingTourCard = ({ tour, badge, onTrack, onCheckIn }) => {
   return (
     <div
       style={{
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 22, overflow: 'hidden',
-        border: '1px solid rgba(180,81,30,0.12)',
-        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         transition: 'all 0.25s',
         display: 'flex', flexDirection: 'column',
@@ -570,14 +570,14 @@ const TrackingTourCard = ({ tour, badge, onTrack, onCheckIn }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div style={{ height: 186, background: '#E8D5BC', position: 'relative' }}>
+      <div style={{ height: 186, background: 'var(--ib-surface-2, #E8D5BC)', position: 'relative' }}>
         {displayImage ? (
           <img src={displayImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
         ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={44} /></div>
         )}
         {badge && (
-          <span style={{ position: 'absolute', top: 12, right: 12, background: badge === 'Archived' ? '#7A3A18' : badge === 'On-going' ? '#1F8A5C' : PALETTE.burntSienna, color: '#FDF6EE', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ position: 'absolute', top: 12, right: 12, background: badge === 'Archived' ? 'var(--ib-rust-solid, #7A3A18)' : badge === 'On-going' ? '#1F8A5C' : 'var(--ib-sienna-solid, #A8481A)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 999, padding: '4px 10px', fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 4 }}>
             <Compass size={10} /> {badge}
           </span>
         )}
@@ -585,12 +585,12 @@ const TrackingTourCard = ({ tour, badge, onTrack, onCheckIn }) => {
 
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
-          <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', margin: '0 0 8px' }}>{tour?.title || 'Untitled Tour'}</h3>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
-            <MapPin size={12} style={{ color: '#A8481A' }} /> {tour?.destination || 'Destination'}
+          <h3 style={{ fontSize: 16, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 8px' }}>{tour?.title || 'Untitled Tour'}</h3>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 6px' }}>
+            <MapPin size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour?.destination || 'Destination'}
           </p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
-            <Calendar size={11} style={{ color: '#A8481A' }} /> {tour?.start_date || tour?.date || 'Scheduled'}
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+            <Calendar size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour?.start_date || tour?.date || 'Scheduled'}
           </p>
         </div>
 
@@ -600,7 +600,7 @@ const TrackingTourCard = ({ tour, badge, onTrack, onCheckIn }) => {
             style={{
               padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em',
-              textTransform: 'uppercase', background: '#1A0A00', color: '#FDF6EE',
+              textTransform: 'uppercase', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >
@@ -611,7 +611,7 @@ const TrackingTourCard = ({ tour, badge, onTrack, onCheckIn }) => {
             style={{
               padding: '10px 0', border: 'none', borderRadius: 12, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
-              textTransform: 'uppercase', background: '#F2E4D0', color: '#7A3A18',
+              textTransform: 'uppercase', background: 'var(--ib-parch, #F2E4D0)', color: 'var(--ib-rust, #7A3A18)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
             }}
           >
@@ -664,26 +664,26 @@ const PickupRoster = ({ tourId, stops }) => {
   const people = (list) => list.reduce((n, r) => n + (r.slots_booked || 1), 0);
 
   return (
-    <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(180,81,30,0.1)' }}>
-      <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+      <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
         <MapPin size={14} /> Joiners per pickup point ({people(rows)} {people(rows) === 1 ? 'person' : 'people'})
       </h4>
       {rows.length === 0 ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>No confirmed joiners yet.</p>
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>No confirmed joiners yet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[...groups, ...(none.length ? [{ name: null, list: none }] : [])].map((g) => (
             <div key={g.name || 'none'}>
-              <p style={{ fontSize: 12.5, fontWeight: 900, color: g.name ? '#1A0A00' : '#8C2F1C', margin: '0 0 4px' }}>
-                {g.name || 'No pickup point chosen yet'} <span style={{ fontWeight: 700, color: '#7A3A18' }}>· {people(g.list)} {people(g.list) === 1 ? 'person' : 'people'}</span>
+              <p style={{ fontSize: 12.5, fontWeight: 900, color: g.name ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-red, #8C2F1C)', margin: '0 0 4px' }}>
+                {g.name || 'No pickup point chosen yet'} <span style={{ fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>· {people(g.list)} {people(g.list) === 1 ? 'person' : 'people'}</span>
               </p>
               {g.list.length === 0 ? (
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0, opacity: 0.85 }}>Nobody yet.</p>
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0, opacity: 0.85 }}>Nobody yet.</p>
               ) : (
                 <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {g.list.map((r) => (
-                    <li key={r.id} style={{ fontSize: 12, fontWeight: 600, color: '#1A0A00', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                      <span>{r.full_name} <span style={{ color: '#7A3A18' }}>· {r.slots_booked || 1} pax · {r.booking_number}</span></span>
+                    <li key={r.id} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                      <span>{r.full_name} <span style={{ color: 'var(--ib-rust, #7A3A18)' }}>· {r.slots_booked || 1} pax · {r.booking_number}</span></span>
                       {r.contact_number && <a className="text-link" href={`tel:${String(r.contact_number).replace(/[^\d+]/g, '')}`} style={{ fontSize: 11.5, whiteSpace: 'nowrap' }}>{r.contact_number}</a>}
                     </li>
                   ))}
@@ -750,11 +750,11 @@ const TrackingConsoleModal = ({
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div style={{
-        position: 'relative', background: '#FDF6EE',
+        position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 1150, borderRadius: 28,
-        boxShadow: '0 32px 80px rgba(26,10,0,0.4)', overflow: 'hidden',
+        boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)', overflow: 'hidden',
         maxHeight: '92dvh', display: 'flex', flexDirection: 'column',
       }}>
         {/* Top Controls */}
@@ -763,9 +763,9 @@ const TrackingConsoleModal = ({
             type="button"
             onClick={onClose}
             style={{
-              background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: '50%',
+              background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: '50%',
               width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#1A0A00', flexShrink: 0,
+              cursor: 'pointer', color: 'var(--ib-dark, #1A0A00)', flexShrink: 0,
             }}
           >
             <X size={18} />
@@ -776,21 +776,21 @@ const TrackingConsoleModal = ({
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', minHeight: 0 }}>
             {/* Left Console */}
             <div style={{
-              background: '#F2E4D0',
+              background: 'var(--ib-parch, #F2E4D0)',
               padding: isMobile ? '4rem 1.25rem 1.5rem' : '2.2rem 2rem',
-              borderRight: isMobile ? 'none' : '1px solid rgba(180,81,30,0.12)',
-              borderBottom: isMobile ? '1px solid rgba(180,81,30,0.12)' : 'none',
+              borderRight: isMobile ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+              borderBottom: isMobile ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : 'none',
             }}>
-              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: '#1A0A00', margin: '0 0 6px' }}>{tour?.title}</h2>
-              <p style={{ margin: '0 0 18px', fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MapPin size={14} style={{ color: '#A8481A' }} /> {tour?.destination}
+              <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 6px' }}>{tour?.title}</h2>
+              <p style={{ margin: '0 0 18px', fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <MapPin size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour?.destination}
               </p>
 
               <TourDayChecklist tourId={tour?.id} logisticsSaved={isLogisticsSaved} docsReady={docsReady} />
 
               {/* Fleet & Driver */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(180,81,30,0.1)' }}>
-                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1.25rem', borderRadius: 16, marginBottom: 18, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Truck size={14} /> Assigned Fleet & Driver Info
                 </h4>
 
@@ -813,7 +813,7 @@ const TrackingConsoleModal = ({
                       <input {...phoneFieldProps(driverContact, setDriverContact)} required aria-label="Driver contact number" style={inputStyle} />
                     </div>
                     <DriverDocs tourId={tour?.id} onReady={setDocsReady} refreshKey={docsKey} />
-                    <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>All fields are required. The driver's ID and photo are kept private (admins only), for liability.</p>
+                    <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>All fields are required. The driver's ID and photo are kept private (admins only), for liability.</p>
                     {!savingLogistics && (!vehicleFilled || !docsReady) && (
                       <MissingHint items={[
                         !docsReady && "Driver's license / ID and photo",
@@ -823,7 +823,7 @@ const TrackingConsoleModal = ({
                       ]} />
                     )}
                     <button type="submit" disabled={savingLogistics || !vehicleFilled || !docsReady} style={{
-                      padding: '10px 0', background: '#B4511E', color: '#FDF6EE',
+                      padding: '10px 0', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                       border: 'none', borderRadius: 999, fontWeight: 900, fontSize: 11.5,
                       letterSpacing: '0.15em', textTransform: 'uppercase', cursor: vehicleFilled ? 'pointer' : 'not-allowed', opacity: vehicleFilled ? 1 : 0.5,
                     }}>
@@ -831,7 +831,7 @@ const TrackingConsoleModal = ({
                     </button>
                   </form>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: '#1A0A00' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, fontSize: 12, color: 'var(--ib-dark, #1A0A00)' }}>
                     <div><strong>Vehicle:</strong> {carType}</div>
                     <div><strong>Plate:</strong> {plateNumber}</div>
                     {vehicleColor && <div><strong>Color:</strong> {vehicleColor}</div>}
@@ -839,7 +839,7 @@ const TrackingConsoleModal = ({
                     <div><strong>Driver:</strong> {driverName}</div>
                     <div><strong>Contact:</strong> {driverContact}</div>
                     <div style={{ gridColumn: isMobile ? 'auto' : 'span 2' }}><DriverDocs tourId={tour?.id} readOnly onReady={setDocsReady} refreshKey={docsKey} /></div>
-                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed #B4511E', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: '#7A3A18', cursor: 'pointer', textTransform: 'uppercase' }}>
+                    <button type="button" onClick={() => setIsLogisticsSaved(false)} style={{ gridColumn: isMobile ? 'auto' : 'span 2', background: 'none', border: '1px dashed var(--ib-accent, #B4511E)', borderRadius: 999, padding: '6px', fontSize: 11, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', cursor: 'pointer', textTransform: 'uppercase' }}>
                       Edit Driver & Vehicle
                     </button>
                   </div>
@@ -851,11 +851,11 @@ const TrackingConsoleModal = ({
               <DriverLinkPanel tourId={tour?.id} />
 
               {/* Pickup stops: everything here updates by itself from the driver's phone */}
-              <div style={{ background: '#FFF', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
-                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={14} /> Pickup Stops · Automatic
                 </h4>
-                <p role="status" style={{ fontSize: 11.5, fontWeight: 700, color: vanLive ? '#1F5E36' : '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+                <p role="status" style={{ fontSize: 11.5, fontWeight: 700, color: vanLive ? 'var(--ib-green, #1F5E36)' : 'var(--ib-rust, #7A3A18)', margin: '0 0 12px', lineHeight: 1.5 }}>
                   {allArrived
                     ? 'Every pickup stop is done.'
                     : vanLive
@@ -863,7 +863,7 @@ const TrackingConsoleModal = ({
                       : 'Waiting for the driver: send them the Driver Link above. When they tap Start Trip, the van is dispatched, each stop is marked Arrived when it gets there, ETAs update live and joiners are alerted — all by itself.'}
                 </p>
                 {safeStops.length === 0 ? (
-                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', textAlign: 'center', margin: '14px 0' }}>
+                  <p style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--ib-rust, #7A3A18)', textAlign: 'center', margin: '14px 0' }}>
                     No pickup points yet. Add them in Tour Management (Edit Tour).
                   </p>
                 ) : (
@@ -876,17 +876,17 @@ const TrackingConsoleModal = ({
                       return (
                         <li key={stop.id || i} style={{
                           display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 12px', borderRadius: 12,
-                          background: isCurrent ? 'rgba(180,81,30,0.06)' : '#FDF6EE',
-                          border: isCurrent ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.14)',
+                          background: isCurrent ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)' : 'var(--ib-cream, #FDF6EE)',
+                          border: isCurrent ? '2px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',
                         }}>
                           <span style={{
                             width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                            background: isArrived ? '#1F8A5C' : isCurrent ? '#B4511E' : 'rgba(26,10,0,0.1)',
+                            background: isArrived ? '#1F8A5C' : isCurrent ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-dark-rgb, 26,10,0), 0.1)',
                             color: '#FFF', fontSize: 11.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
                           }}>{isArrived ? <Check size={12} /> : i + 1}</span>
                           <span style={{ flex: 1, minWidth: 140 }}>
-                            <strong style={{ display: 'block', fontSize: 13, color: '#1A0A00' }}>{stop.location_name}</strong>
-                            <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>
+                            <strong style={{ display: 'block', fontSize: 13, color: 'var(--ib-dark, #1A0A00)' }}>{stop.location_name}</strong>
+                            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
                               {isArrived
                                 ? `Arrived${stop.arrived_at ? ` ${new Date(stop.arrived_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' })}` : ''}`
                                 : eta
@@ -907,12 +907,12 @@ const TrackingConsoleModal = ({
               <PickupRoster tourId={tour?.id} stops={safeStops} />
 
               {/* Manual override: only when the driver's phone can't share its location */}
-              <details style={{ background: '#FFF', padding: '1rem 1.25rem', borderRadius: 16, border: '1px solid rgba(180,81,30,0.1)' }}>
-                <summary style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', display: 'flex', alignItems: 'center', gap: 6, listStyle: 'none' }}>
+              <details style={{ background: 'var(--ib-surface, #FFF)', padding: '1rem 1.25rem', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+                <summary style={{ cursor: 'pointer', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', display: 'flex', alignItems: 'center', gap: 6, listStyle: 'none' }}>
                   <MapPin size={14} /> Manual Override <ChevronDown size={14} style={{ marginLeft: 'auto' }} />
                 </summary>
 
-                <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '12px 0', lineHeight: 1.5 }}>
+                <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '12px 0', lineHeight: 1.5 }}>
                   Only needed if the driver's phone can't share its location (dead battery, no signal). Change a stop's ETA or note, change the departure time, or move the van along by hand.
                 </p>
 
@@ -921,7 +921,7 @@ const TrackingConsoleModal = ({
                 </div>
 
                 {safeStops.length === 0 ? (
-                  <p style={{ fontSize: 11, fontStyle: 'italic', color: '#7A3A18', opacity: 0.9, textAlign: 'center', margin: '14px 0' }}>
+                  <p style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, textAlign: 'center', margin: '14px 0' }}>
                     No pickup points yet. Add them in Tour Management (Edit Tour).
                   </p>
                 ) : (
@@ -937,21 +937,21 @@ const TrackingConsoleModal = ({
                           key={stop.id || i}
                           style={{
                             padding: '12px', borderRadius: 14,
-                            background: isCurrent ? 'rgba(180,81,30,0.06)' : '#FDF6EE',
-                            border: isCurrent ? '2px solid #B4511E' : '1px solid rgba(180,81,30,0.14)',
+                            background: isCurrent ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)' : 'var(--ib-cream, #FDF6EE)',
+                            border: isCurrent ? '2px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 0 }}>
                               <span style={{
                                 width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                                background: isArrived ? '#1F8A5C' : isCurrent ? '#B4511E' : 'rgba(26,10,0,0.1)',
+                                background: isArrived ? '#1F8A5C' : isCurrent ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-dark-rgb, 26,10,0), 0.1)',
                                 color: '#FFF', fontSize: 11.5, fontWeight: 900,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                               }}>
                                 {isArrived ? <Check size={12} /> : i + 1}
                               </span>
-                              <strong style={{ fontSize: 13, color: '#1A0A00' }}>{stop.location_name}</strong>
+                              <strong style={{ fontSize: 13, color: 'var(--ib-dark, #1A0A00)' }}>{stop.location_name}</strong>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
                               <span style={{ background: badge.bg, color: badge.color, fontSize: 10.5, fontWeight: 900, padding: '4px 9px', borderRadius: 999, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
@@ -966,8 +966,8 @@ const TrackingConsoleModal = ({
                                   onDeleteStop(stop.id);
                                 }}
                                 style={{
-                                  background: 'rgba(140,47,28,0.1)', border: 'none',
-                                  borderRadius: 6, padding: '4px 6px', cursor: 'pointer', color: '#8C2F1C',
+                                  background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)', border: 'none',
+                                  borderRadius: 6, padding: '4px 6px', cursor: 'pointer', color: 'var(--ib-red, #8C2F1C)',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}
                                 title="Delete stop"
@@ -1001,7 +1001,7 @@ const TrackingConsoleModal = ({
                                 onUpdateStopDetails(stop);
                               }}
                               style={{
-                                background: '#7A3A18', color: '#FDF6EE', border: 'none',
+                                background: 'var(--ib-rust-solid, #7A3A18)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none',
                                 borderRadius: 10, padding: '7px 12px', cursor: 'pointer',
                                 fontSize: 11.5, fontWeight: 800, display: 'flex', alignItems: 'center',
                                 justifyContent: 'center', gap: 4, width: isMobile ? '100%' : 'auto',
@@ -1015,7 +1015,7 @@ const TrackingConsoleModal = ({
                     })}
 
                     {allArrived ? (
-                      <div style={{ background: 'rgba(31,138,92,0.1)', padding: 12, borderRadius: 12, color: '#1F8A5C', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
+                      <div style={{ background: 'rgba(31,138,92,0.1)', padding: 12, borderRadius: 12, color: 'var(--ib-green, #1F8A5C)', fontSize: 11, fontWeight: 800, textAlign: 'center' }}>
                         All joiner pickup checkpoints completed!
                       </div>
                     ) : currentActiveStop && (
@@ -1025,8 +1025,8 @@ const TrackingConsoleModal = ({
                         disabled={advancing}
                         style={{
                           marginTop: 6, width: '100%', padding: '13px 18px', boxSizing: 'border-box',
-                          background: currentActiveStop.status === 'CURRENTLY HERE' ? '#1F8A5C' : '#1A0A00',
-                          color: '#FDF6EE', border: 'none', borderRadius: 16,
+                          background: currentActiveStop.status === 'CURRENTLY HERE' ? '#1F8A5C' : 'var(--ib-ink, #1A0A00)',
+                          color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 16,
                           fontWeight: 900, fontSize: 11, letterSpacing: '0.06em',
                           textTransform: 'uppercase', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1048,7 +1048,7 @@ const TrackingConsoleModal = ({
             {/* Live Feed */}
             <div style={{ padding: isMobile ? '1.5rem 1.25rem' : '4.5rem 2rem 2.2rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <h4 style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Compass size={14} /> Live Tracking Activity Feed
                 </h4>
                 {safeLogs.length > 0 && (
@@ -1058,9 +1058,9 @@ const TrackingConsoleModal = ({
                     disabled={clearingFeed}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 5,
-                      background: 'rgba(140,47,28,0.08)', border: 'none',
+                      background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: 'none',
                       borderRadius: 999, padding: '6px 12px', cursor: clearingFeed ? 'default' : 'pointer',
-                      color: '#8C2F1C', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                      color: 'var(--ib-red, #8C2F1C)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                       textTransform: 'uppercase', opacity: clearingFeed ? 0.6 : 1,
                     }}
                     title="Clear all tracking activity logs"
@@ -1096,8 +1096,8 @@ const TrackingTimeline = ({ logs = [] }) => {
   const safeLogs = Array.isArray(logs) ? logs : [];
   if (safeLogs.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: '#FDF6EE', borderRadius: 16, border: '2px dashed rgba(180,81,30,0.2)' }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>No status updates dispatched yet.</p>
+      <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 16, border: '2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>No status updates dispatched yet.</p>
       </div>
     );
   }
@@ -1112,18 +1112,18 @@ const TrackingTimeline = ({ logs = [] }) => {
 
         return (
           <div key={log.id || index} style={{ display: 'flex', gap: 12, position: 'relative' }}>
-            <div style={{ width: 60, fontSize: 11.5, fontWeight: 800, color: '#7A3A18', opacity: 0.9, paddingTop: 2 }}>
+            <div style={{ width: 60, fontSize: 11.5, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, paddingTop: 2 }}>
               {timeFormatted}
             </div>
             <div style={{ width: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: index === 0 ? '#B4511E' : 'rgba(26,10,0,0.3)', zIndex: 2 }} />
-              {index !== safeLogs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(180,81,30,0.2)', margin: '4px 0' }} />}
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: index === 0 ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-ink-rgb, 26,10,0), 0.3)', zIndex: 2 }} />
+              {index !== safeLogs.length - 1 && <div style={{ width: 2, flex: 1, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', margin: '4px 0' }} />}
             </div>
             <div style={{ flex: 1 }}>
-              <strong style={{ fontSize: 12, color: '#1A0A00' }}>{title}</strong>
-              <p style={{ fontSize: 11, color: '#7A3A18', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>
+              <strong style={{ fontSize: 12, color: 'var(--ib-dark, #1A0A00)' }}>{title}</strong>
+              <p style={{ fontSize: 11, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0', lineHeight: 1.4 }}>{description}</p>
               {log.note && (
-                <div style={{ background: 'rgba(180,81,30,0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 11.5, fontWeight: 700, color: '#8C5216' }}>
+                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', padding: '4px 8px', borderRadius: 6, marginTop: 4, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)' }}>
                   Note: {log.note}
                 </div>
               )}

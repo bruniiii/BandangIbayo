@@ -71,22 +71,22 @@ const CHAT_RULES = [
 ];
 const ChatGuidelines = ({ onClose }) => (
   <div style={{ position: 'fixed', inset: 0, zIndex: 200000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-    <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} />
-    <div role="dialog" aria-modal="true" aria-labelledby="chat-rules-title" style={{
-      position: 'relative', width: '100%', maxWidth: 440, background: '#FDF6EE', borderRadius: 22, padding: '1.6rem',
-      boxShadow: '0 24px 60px rgba(26,10,0,0.35)', borderTop: '6px solid #B4511E',
+    <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} />
+    <div className="paper-card" role="dialog" aria-modal="true" aria-labelledby="chat-rules-title" style={{
+      position: 'relative', width: '100%', maxWidth: 440, background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.6rem',
+      boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', borderTop: '6px solid var(--ib-accent, #B4511E)',
     }}>
-      <h2 id="chat-rules-title" style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 900, color: '#1A0A00', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ShieldCheck size={20} color="#B4511E" /> Chat guidelines
+      <h2 id="chat-rules-title" style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ShieldCheck size={20} color="var(--ib-accent, #B4511E)" /> Chat guidelines
       </h2>
-      <p style={{ margin: '0 0 12px', fontSize: 13, color: '#5C2A10', lineHeight: 1.6 }}>
+      <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.6 }}>
         For everyone's safety and privacy, please follow these rules in the group chats:
       </p>
       <ul style={{ margin: '0 0 18px', paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {CHAT_RULES.map((r) => <li key={r} style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.5 }}>{r}</li>)}
+        {CHAT_RULES.map((r) => <li key={r} style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.5 }}>{r}</li>)}
       </ul>
       <button type="button" autoFocus onClick={onClose} style={{
-        width: '100%', height: 46, borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE', cursor: 'pointer',
+        width: '100%', height: 46, borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: 'pointer',
         fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase',
       }}>I understand</button>
     </div>
@@ -143,7 +143,7 @@ const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
     return (
       <>
         {rules}
-        <div style={{ background: '#FDF6EE', borderRadius: 20, border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)', overflow: 'hidden' }}>
           <ChatList chats={chats} activeId={null} onPick={(id) => setOpenId(String(id))} narrow />
         </div>
         {openChat && (
@@ -158,8 +158,8 @@ const GroupChat = ({ isAdmin = false, initialTourId = null, onExplore }) => {
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: 'minmax(240px, 320px) minmax(0, 1fr)',
-      background: '#FDF6EE', borderRadius: 22, border: '1px solid rgba(180,81,30,0.14)',
-      boxShadow: '0 4px 20px rgba(26,10,0,0.06)', overflow: 'hidden',
+      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',
+      boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)', overflow: 'hidden',
       height: 'calc(100dvh - 190px)', minHeight: 420,
     }}>
       {rules}
@@ -178,7 +178,7 @@ const FullScreen = ({ children }) => {
   }, []);
   return (
     <div role="dialog" aria-modal="true" style={{
-      position: 'fixed', inset: 0, zIndex: 400, background: '#FDF6EE',
+      position: 'fixed', inset: 0, zIndex: 400, background: 'var(--ib-cream, #FDF6EE)',
       height: '100dvh', display: 'flex', flexDirection: 'column',
       paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)', boxSizing: 'border-box',
     }}>
@@ -197,26 +197,26 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => {
   const shown = chats.filter((c) => (folder === 'open' ? c.is_open : !c.is_open));
   const unreadOpen = chats.filter((c) => c.is_open).reduce((n, c) => n + (c.unread || 0), 0);
   return (
-  <div style={{ borderRight: narrow ? 'none' : '1px solid rgba(180,81,30,0.12)', overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-    <div style={{ position: 'sticky', top: 0, zIndex: 2, background: '#FDF6EE', padding: '14px 14px 10px', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
-      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#A8481A', margin: '0 4px 10px' }}>
+  <div style={{ borderRight: narrow ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'var(--ib-cream, #FDF6EE)', padding: '14px 14px 10px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
+      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 4px 10px' }}>
         Tour group chats
       </p>
-      <div role="tablist" aria-label="Chats or archived" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4 }}>
+      <div role="tablist" aria-label="Chats or archived" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4 }}>
         {[['open', 'Chats', openCount, unreadOpen], ['archived', 'Archived', archivedCount, 0]].map(([key, label, count, unread]) => (
           <button key={key} type="button" role="tab" aria-selected={folder === key} onClick={() => setFolder(key)} style={{
             flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '7px 8px', cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
-            background: folder === key ? '#1A0A00' : 'transparent', color: folder === key ? '#FDF6EE' : '#5C2A10',
+            background: folder === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: folder === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
           }}>
             {key === 'archived' && <Archive size={13} />} {label} ({count})
-            {unread > 0 && <span aria-label={`${unread} unread`} style={{ background: '#B4511E', color: '#FDF6EE', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 99 ? '99+' : unread}</span>}
+            {unread > 0 && <span aria-label={`${unread} unread`} style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, minWidth: 18, height: 18, padding: '0 5px', boxSizing: 'border-box', fontSize: 10.5, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 99 ? '99+' : unread}</span>}
           </button>
         ))}
       </div>
     </div>
     {shown.length === 0 && (
-      <p style={{ margin: 0, padding: '18px', fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>
+      <p style={{ margin: 0, padding: '18px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
         {folder === 'open' ? 'No open chats right now.' : 'No archived chats yet. A chat moves here when its tour ends.'}
       </p>
     )}
@@ -231,27 +231,27 @@ const ChatList = ({ chats, activeId, onPick, narrow }) => {
           style={{
             width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
             display: 'flex', gap: 12, alignItems: 'center', padding: '12px 18px',
-            background: active ? 'rgba(180,81,30,0.1)' : 'transparent',
-            borderLeft: active ? '3px solid #B4511E' : '3px solid transparent',
+            background: active ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'transparent',
+            borderLeft: active ? '3px solid var(--ib-accent, #B4511E)' : '3px solid transparent',
           }}
         >
-          <span style={{ width: 42, height: 42, borderRadius: 14, background: c.is_open ? '#1A0A00' : '#7A3A18', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ width: 42, height: 42, borderRadius: 14, background: c.is_open ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-rust-solid, #7A3A18)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users size={18} />
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: c.unread ? 900 : 800, color: '#1A0A00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
-              <span style={{ fontSize: 10.5, fontWeight: 700, color: '#7A3A18', flexShrink: 0 }}>{shortTime(c.last_message_at)}</span>
+              <span style={{ fontSize: 13, fontWeight: c.unread ? 900 : 800, color: 'var(--ib-dark, #1A0A00)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', flexShrink: 0 }}>{shortTime(c.last_message_at)}</span>
             </span>
-            <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '1px 0' }}>
+            <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ib-sienna, #A8481A)', margin: '1px 0' }}>
               {formatYmdRange(c.start_date, c.end_date)} · {c.members} joiner{c.members === 1 ? '' : 's'}
             </span>
             <span style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 12, fontWeight: c.unread ? 800 : 500, color: c.unread ? '#1A0A00' : '#7A3A18', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 12, fontWeight: c.unread ? 800 : 500, color: c.unread ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-rust, #7A3A18)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {c.last_message || 'No messages yet. Say hi!'}
               </span>
               {c.unread > 0 && (
-                <span style={{ background: '#B4511E', color: '#FDF6EE', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {c.unread > 99 ? '99+' : c.unread}
                 </span>
               )}
@@ -414,18 +414,18 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, flex: 1 }}>
       {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: narrow ? '10px 12px' : '12px 16px', borderBottom: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: narrow ? '10px 12px' : '12px 16px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', background: 'var(--ib-parch, #F2E4D0)', flexShrink: 0 }}>
         {narrow && (
-          <button type="button" onClick={onBack} aria-label="Back to chats" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <button type="button" onClick={onBack} aria-label="Back to chats" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <ArrowLeft size={22} />
           </button>
         )}
-        <span aria-hidden="true" style={{ width: narrow ? 36 : 40, height: narrow ? 36 : 40, borderRadius: 12, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span aria-hidden="true" style={{ width: narrow ? 36 : 40, height: narrow ? 36 : 40, borderRadius: 12, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Users size={17} />
         </span>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: narrow ? 15 : 14, fontWeight: 900, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chat.title}</p>
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ fontSize: narrow ? 15 : 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chat.title}</p>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {formatYmdRange(chat.start_date, chat.end_date)} · {chat.members} joiner{chat.members === 1 ? '' : 's'} + Bandang IBAYO
           </p>
         </div>
@@ -438,7 +438,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
         return (
           <button type="button" onClick={() => jumpTo(pin.id)} aria-label="Pinned announcement. Tap to see it in the chat" style={{
             display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-            background: '#3F5D62', color: '#FDF6EE', padding: narrow ? '10px 12px' : '10px 16px', flexShrink: 0,
+            background: '#3F5D62', color: 'var(--ib-on-ink, #FDF6EE)', padding: narrow ? '10px 12px' : '10px 16px', flexShrink: 0,
           }}>
             <Megaphone size={16} style={{ flexShrink: 0, marginTop: 1 }} />
             <span style={{ minWidth: 0, fontSize: 12.5, fontWeight: 700, lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', whiteSpace: 'pre-line' }}>
@@ -450,13 +450,13 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
 
       {/* messages */}
       <div onClick={() => setPickerFor(null)} style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', padding: narrow ? '12px 10px' : '14px 16px', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0 }}>
-        <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#7A3A18', textAlign: 'center', margin: '0 0 8px' }}>
+        <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', textAlign: 'center', margin: '0 0 8px' }}>
           <ShieldCheck size={13} /> Only people booked on this tour and the Bandang IBAYO team can see this chat.
         </p>
         {messages === null ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: 30 }}><Loader2 size={22} style={{ color: '#B4511E', animation: 'spin 1s linear infinite' }} /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 30 }}><Loader2 size={22} style={{ color: 'var(--ib-accent, #B4511E)', animation: 'spin 1s linear infinite' }} /></div>
         ) : messages.length === 0 ? (
-          <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', textAlign: 'center', margin: '30px 0' }}>No messages yet. Say hi to your travel buddies! 👋</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', textAlign: 'center', margin: '30px 0' }}>No messages yet. Say hi to your travel buddies! 👋</p>
         ) : messages.map((m, i) => {
           const prev = messages[i - 1];
           const newDay = !prev || dayOf(prev.created_at) !== dayOf(m.created_at);
@@ -465,19 +465,19 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
           const fromAdmin = isStaffRole(author?.role);
           const sameAuthor = prev && !newDay && prev.user_id === m.user_id && !prev.kind && !m.kind;
           const dayLabel = newDay && (
-            <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A', margin: '12px 0 6px' }}>{dayOf(m.created_at)}</p>
+            <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '12px 0 6px' }}>{dayOf(m.created_at)}</p>
           );
           // 📢 Announcements (weather postponements/cancellations): a full-width card.
           if (m.kind === 'announcement') {
             return (
-              <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(232,162,101,0.28)' : 'transparent' }}>
+              <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.28)' : 'transparent' }}>
                 {dayLabel}
-                <div role="note" style={{ margin: '8px 0', background: 'rgba(63,93,98,0.1)', border: '1px solid rgba(63,93,98,0.35)', borderRadius: 16, padding: '12px 14px' }}>
-                  <p style={{ margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#3F5D62' }}>
+                <div role="note" style={{ margin: '8px 0', background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.1)', border: '1px solid rgba(var(--ib-slate-rgb, 63,93,98), 0.35)', borderRadius: 16, padding: '12px 14px' }}>
+                  <p style={{ margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-slate, #3F5D62)' }}>
                     <Megaphone size={13} /> Announcement · Bandang IBAYO
                   </p>
-                  <p style={{ margin: 0, fontSize: narrow ? 14.5 : 13.5, fontWeight: 600, color: '#1A0A00', lineHeight: 1.55, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.body}</p>
-                  <p style={{ margin: '6px 0 0', fontSize: 10.5, fontWeight: 600, color: '#3F5D62', textAlign: 'right' }}>{timeOf(m.created_at)}</p>
+                  <p style={{ margin: 0, fontSize: narrow ? 14.5 : 13.5, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.55, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.body}</p>
+                  <p style={{ margin: '6px 0 0', fontSize: 10.5, fontWeight: 600, color: 'var(--ib-slate, #3F5D62)', textAlign: 'right' }}>{timeOf(m.created_at)}</p>
                 </div>
               </div>
             );
@@ -487,27 +487,27 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
             return (
               <div key={m.id} id={`chat-msg-${m.id}`}>
                 {dayLabel}
-                <p style={{ textAlign: 'center', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: '8px 12px', lineHeight: 1.45 }}>{m.body}</p>
+                <p style={{ textAlign: 'center', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '8px 12px', lineHeight: 1.45 }}>{m.body}</p>
               </div>
             );
           }
           return (
-            <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(232,162,101,0.28)' : 'transparent' }}>
+            <div key={m.id} id={`chat-msg-${m.id}`} style={{ borderRadius: 14, transition: 'background 0.4s', background: flashId === m.id ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.28)' : 'transparent' }}>
               {newDay && (
-                <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A', margin: '12px 0 6px' }}>{dayOf(m.created_at)}</p>
+                <p style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '12px 0 6px' }}>{dayOf(m.created_at)}</p>
               )}
               <div style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', gap: 8, marginTop: sameAuthor ? 0 : 6 }}>
                 {!mine && fromAdmin && <BrandAvatar size={30} style={{ visibility: sameAuthor ? 'hidden' : 'visible' }} />}
                 {!mine && !fromAdmin && (
-                  <span aria-hidden="true" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, visibility: sameAuthor ? 'hidden' : 'visible', background: fromAdmin ? '#B4511E' : '#1A0A00', color: fromAdmin ? '#FDF6EE' : '#E8A265', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  <span aria-hidden="true" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, visibility: sameAuthor ? 'hidden' : 'visible', background: fromAdmin ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)', color: fromAdmin ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-amber, #E8A265)', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {author?.avatar_url && !fromAdmin ? <img src={author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(author)}
                   </span>
                 )}
                 <div style={{ maxWidth: narrow ? '82%' : '70%', minWidth: 0, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: mine ? 'flex-end' : 'flex-start' }}>
                   {!mine && !sameAuthor && (
-                    <p style={{ fontSize: 11, fontWeight: 800, color: fromAdmin ? '#B4511E' : '#7A3A18', margin: '0 0 2px 4px', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <p style={{ fontSize: 11, fontWeight: 800, color: fromAdmin ? 'var(--ib-accent, #B4511E)' : 'var(--ib-rust, #7A3A18)', margin: '0 0 2px 4px', display: 'flex', alignItems: 'center', gap: 5 }}>
                       {nameFor(author, isAdmin)}
-                      {fromAdmin && <span style={{ background: '#B4511E', color: '#FDF6EE', borderRadius: 999, padding: '1px 7px', fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin</span>}
+                      {fromAdmin && <span style={{ background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin</span>}
                     </p>
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexDirection: mine ? 'row-reverse' : 'row', maxWidth: '100%' }}>
@@ -517,10 +517,12 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                       aria-label="Message. Tap to react or reply"
                       onClick={(e) => { e.stopPropagation(); if (canSend) setPickerFor(pickerFor === m.id ? null : m.id); }}
                       onKeyDown={(e) => { if (e.key === 'Enter' && canSend) setPickerFor(pickerFor === m.id ? null : m.id); }}
+                      // A note passed around the group: a folded corner and a slight tilt (index.css: .chat-note).
+                      className={`chat-note${mine ? ' is-mine' : ''}${i % 2 ? ' tilt-right' : ''}`}
                       style={{
-                        background: mine ? '#B4511E' : fromAdmin ? 'rgba(180,81,30,0.12)' : '#F2E4D0',
-                        color: mine ? '#FDF6EE' : '#1A0A00',
-                        border: fromAdmin && !mine ? '1px solid rgba(180,81,30,0.3)' : 'none',
+                        background: mine ? 'var(--ib-accent, #B4511E)' : fromAdmin ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : 'var(--ib-parch, #F2E4D0)',
+                        color: mine ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-dark, #1A0A00)',
+                        border: fromAdmin && !mine ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)' : 'none',
                         borderRadius: 16, padding: '8px 12px', fontSize: narrow ? 15 : 13.5, fontWeight: 500, lineHeight: 1.45,
                         whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', cursor: 'pointer', minWidth: 0,
                         WebkitTapHighlightColor: 'transparent',
@@ -535,8 +537,8 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                             onClick={(e) => { e.stopPropagation(); jumpTo(m.reply_to); }}
                             onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); jumpTo(m.reply_to); } }}
                             style={{
-                              display: 'block', borderLeft: `3px solid ${mine ? '#E8A265' : '#B4511E'}`, borderRadius: 8,
-                              background: mine ? 'rgba(253,246,238,0.18)' : 'rgba(180,81,30,0.08)',
+                              display: 'block', borderLeft: `3px solid ${mine ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)'}`, borderRadius: 8,
+                              background: mine ? 'rgba(var(--ib-cream-rgb, 253,246,238), 0.18)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)',
                               padding: '4px 8px', margin: '0 0 6px', fontSize: 12, lineHeight: 1.4, cursor: 'pointer',
                             }}
                           >
@@ -558,7 +560,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                         className="chat-react-btn"
                         aria-label="React"
                         onClick={(e) => { e.stopPropagation(); setPickerFor(pickerFor === m.id ? null : m.id); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A8481A', padding: 4, borderRadius: 8, display: 'flex', flexShrink: 0 }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-sienna, #A8481A)', padding: 4, borderRadius: 8, display: 'flex', flexShrink: 0 }}
                       >
                         <SmilePlus size={16} />
                       </button>
@@ -570,7 +572,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                         aria-label="Reply"
                         title="Reply"
                         onClick={(e) => { e.stopPropagation(); startReply(m); }}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A8481A', padding: 4, borderRadius: 8, display: 'flex', flexShrink: 0 }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-sienna, #A8481A)', padding: 4, borderRadius: 8, display: 'flex', flexShrink: 0 }}
                       >
                         <Reply size={16} />
                       </button>
@@ -579,15 +581,15 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
 
                   {pickerFor === m.id && (
                     <div role="menu" aria-label="Pick a reaction" onClick={(e) => e.stopPropagation()} style={{
-                      display: 'flex', gap: 2, background: '#FFF', borderRadius: 999, padding: '4px 6px', marginTop: 4,
-                      boxShadow: '0 8px 24px rgba(26,10,0,0.18)', border: '1px solid rgba(180,81,30,0.15)', zIndex: 2,
+                      display: 'flex', gap: 2, background: 'var(--ib-surface, #FFF)', borderRadius: 999, padding: '4px 6px', marginTop: 4,
+                      boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', zIndex: 2,
                     }}>
                       {REACTIONS.map((emoji) => {
                         const chosen = (reactions[m.id] || []).some((r) => r.user_id === me && r.emoji === emoji);
                         return (
                           <button key={emoji} type="button" role="menuitem" aria-label={`React ${emoji}`} aria-pressed={chosen} onClick={() => react(m.id, emoji)} style={{
                             fontSize: narrow ? 24 : 20, lineHeight: 1, width: narrow ? 40 : 34, height: narrow ? 40 : 34, borderRadius: '50%',
-                            border: 'none', cursor: 'pointer', background: chosen ? 'rgba(180,81,30,0.18)' : 'transparent',
+                            border: 'none', cursor: 'pointer', background: chosen ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)' : 'transparent',
                           }}>
                             {emoji}
                           </button>
@@ -595,10 +597,10 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                       })}
                       {canSend && (
                         <>
-                          <span aria-hidden="true" style={{ width: 1, background: 'rgba(180,81,30,0.2)', margin: '6px 2px' }} />
+                          <span aria-hidden="true" style={{ width: 1, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', margin: '6px 2px' }} />
                           <button type="button" role="menuitem" aria-label="Reply" onClick={() => startReply(m)} style={{
                             display: 'flex', alignItems: 'center', gap: 4, border: 'none', cursor: 'pointer', borderRadius: 999,
-                            background: 'transparent', color: '#A8481A', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, padding: '0 8px',
+                            background: 'transparent', color: 'var(--ib-sienna, #A8481A)', fontFamily: 'inherit', fontSize: 12, fontWeight: 800, padding: '0 8px',
                           }}>
                             <Reply size={narrow ? 18 : 16} /> Reply
                           </button>
@@ -614,10 +616,10 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
                     return (
                       <button type="button" aria-label={`${list.length} reaction${list.length === 1 ? '' : 's'}. See who reacted`} onClick={(e) => { e.stopPropagation(); setPickerFor(null); setReactorsFor(m.id); }} style={{
                         display: 'inline-flex', alignItems: 'center', gap: 2, borderRadius: 999, padding: '2px 8px', marginTop: 3,
-                        fontSize: 12.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', color: '#1A0A00',
-                        background: mineToo ? 'rgba(180,81,30,0.16)' : '#FFF',
-                        border: mineToo ? '1px solid #B4511E' : '1px solid rgba(180,81,30,0.2)',
-                        boxShadow: '0 2px 6px rgba(26,10,0,0.06)',
+                        fontSize: 12.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', color: 'var(--ib-dark, #1A0A00)',
+                        background: mineToo ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.16)' : 'var(--ib-surface, #FFF)',
+                        border: mineToo ? '1px solid var(--ib-accent, #B4511E)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+                        boxShadow: '0 2px 6px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
                       }}>
                         <span style={{ fontSize: 14, letterSpacing: 1 }}>{used.join('')}</span>
                         {list.length > 1 && <span style={{ marginLeft: 3 }}>{list.length}</span>}
@@ -647,15 +649,15 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
 
       {/* replying to */}
       {canSend && replyTo && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#F2E4D0', flexShrink: 0 }}>
-          <Reply size={16} style={{ color: '#A8481A', flexShrink: 0 }} />
-          <div style={{ minWidth: 0, flex: 1, borderLeft: '3px solid #B4511E', paddingLeft: 8 }}>
-            <p style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', margin: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', background: 'var(--ib-parch, #F2E4D0)', flexShrink: 0 }}>
+          <Reply size={16} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} />
+          <div style={{ minWidth: 0, flex: 1, borderLeft: '3px solid var(--ib-accent, #B4511E)', paddingLeft: 8 }}>
+            <p style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', margin: 0 }}>
               Replying to {replyTo.user_id === me ? 'yourself' : nameFor(profiles[replyTo.user_id], isAdmin)}
             </p>
-            <p style={{ fontSize: 12.5, fontWeight: 500, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyTo.body}</p>
+            <p style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{replyTo.body}</p>
           </div>
-          <button type="button" onClick={() => setReplyTo(null)} aria-label="Cancel reply" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <button type="button" onClick={() => setReplyTo(null)} aria-label="Cancel reply" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <X size={18} />
           </button>
         </div>
@@ -663,7 +665,7 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
 
       {/* composer */}
       {canSend ? (
-        <form onSubmit={send} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: narrow ? '8px 10px' : '10px 12px', borderTop: '1px solid rgba(180,81,30,0.12)', background: '#FDF6EE', flexShrink: 0 }}>
+        <form onSubmit={send} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', padding: narrow ? '8px 10px' : '10px 12px', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', background: 'var(--ib-cream, #FDF6EE)', flexShrink: 0 }}>
           {isAdmin && <QuickReplies onPick={(t) => { setText(t.slice(0, MAX_LEN)); inputRef.current?.focus(); }} />}
           <textarea
             ref={inputRef}
@@ -675,20 +677,20 @@ const ChatWindow = ({ chat, me, isAdmin, narrow, onBack }) => {
             aria-label="Message"
             style={{
               flex: 1, resize: 'none', maxHeight: 120, minHeight: 42, boxSizing: 'border-box',
-              background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14,
-              padding: '10px 14px', fontSize: narrow ? 16 : 14, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+              background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 14,
+              padding: '10px 14px', fontSize: narrow ? 16 : 14, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
             }}
           />
           <button type="submit" disabled={!text.trim() || sending} aria-label="Send" style={{
             width: 42, height: 42, borderRadius: 14, border: 'none', flexShrink: 0,
-            background: !text.trim() || sending ? 'rgba(180,81,30,0.4)' : '#B4511E', color: '#FDF6EE',
+            background: !text.trim() || sending ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
             cursor: !text.trim() || sending ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {sending ? <Loader2 size={17} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={17} />}
           </button>
         </form>
       ) : (
-        <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#7A3A18', padding: '12px 16px', margin: 0, borderTop: '1px solid rgba(180,81,30,0.12)' }}>
+        <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', padding: '12px 16px', margin: 0, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
           <Lock size={13} /> This tour has ended, so its group chat is archived. You can still read it.
         </p>
       )}
@@ -704,26 +706,26 @@ const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narr
   // Your reaction first, then by emoji order.
   const sorted = [...shown].sort((a, b) => (a.user_id === me ? -1 : b.user_id === me ? 1 : REACTIONS.indexOf(a.emoji) - REACTIONS.indexOf(b.emoji)));
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(26,10,0,0.45)', display: 'flex', alignItems: narrow ? 'flex-end' : 'center', justifyContent: 'center', padding: narrow ? 0 : 20 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.45)', display: 'flex', alignItems: narrow ? 'flex-end' : 'center', justifyContent: 'center', padding: narrow ? 0 : 20 }}>
       <div role="dialog" aria-modal="true" aria-label="Who reacted" onClick={(e) => e.stopPropagation()} style={{
-        background: '#FDF6EE', width: '100%', maxWidth: 440, maxHeight: '70dvh', display: 'flex', flexDirection: 'column',
-        borderRadius: narrow ? '22px 22px 0 0' : 22, boxShadow: '0 -12px 40px rgba(26,10,0,0.25)',
+        background: 'var(--ib-cream, #FDF6EE)', width: '100%', maxWidth: 440, maxHeight: '70dvh', display: 'flex', flexDirection: 'column',
+        borderRadius: narrow ? '22px 22px 0 0' : 22, boxShadow: '0 -12px 40px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
         paddingBottom: 'env(safe-area-inset-bottom)', marginBottom: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 6px' }}>
-          <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>Reactions</p>
-          <button className="x-close" type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <p style={{ fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Reactions</p>
+          <button className="x-close" type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={18} />
           </button>
         </div>
-        <div role="tablist" style={{ display: 'flex', gap: 6, padding: '0 16px 10px', overflowX: 'auto', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
+        <div role="tablist" style={{ display: 'flex', gap: 6, padding: '0 16px 10px', overflowX: 'auto', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
           {['All', ...used].map((t) => {
             const count = t === 'All' ? list.length : list.filter((r) => r.emoji === t).length;
             const active = tab === t;
             return (
               <button key={t} type="button" role="tab" aria-selected={active} onClick={() => setTab(t)} style={{
                 border: 'none', borderRadius: 999, padding: '6px 12px', cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, flexShrink: 0,
-                background: active ? '#1A0A00' : '#F2E4D0', color: active ? '#FDF6EE' : '#1A0A00',
+                background: active ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)',
               }}>
                 {t === 'All' ? 'All' : <span style={{ fontSize: 15 }}>{t}</span>} {count}
               </button>
@@ -736,11 +738,11 @@ const ReactorsSheet = ({ list, me, nameOf, profiles, onRemoveMine, onClose, narr
             const isMe = r.user_id === me;
             return (
               <li key={r.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px' }}>
-                {isStaffRole(p?.role) ? <BrandAvatar size={36} /> : <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: isStaffRole(p?.role) ? '#B4511E' : '#1A0A00', color: isStaffRole(p?.role) ? '#FDF6EE' : '#E8A265', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {isStaffRole(p?.role) ? <BrandAvatar size={36} /> : <span aria-hidden="true" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, background: isStaffRole(p?.role) ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)', color: isStaffRole(p?.role) ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-amber, #E8A265)', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                   {p?.avatar_url && !isStaffRole(p.role) ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initialsOf(p)}
                 </span>}
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{nameOf(r.user_id)}</span>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{nameOf(r.user_id)}</span>
                   {isMe && onRemoveMine && (
                     <button type="button" onClick={() => onRemoveMine(r.emoji)} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
                       Tap to remove

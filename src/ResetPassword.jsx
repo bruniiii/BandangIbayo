@@ -13,10 +13,10 @@ const inputStyle = {
   width: '100%',
   padding: '12px 16px',
   borderRadius: 10,
-  border: '1.5px solid rgba(180,81,30,0.2)',
-  background: '#FDF6EE',
+  border: '1.5px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+  background: 'var(--ib-cream, #FDF6EE)',
   fontSize: 14,
-  color: '#1A0A00',
+  color: 'var(--ib-dark, #1A0A00)',
   outline: 'none',
   boxSizing: 'border-box',
   fontFamily: 'inherit',
@@ -28,7 +28,7 @@ const labelStyle = {
   fontWeight: 800,
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
-  color: '#7A3A18',
+  color: 'var(--ib-rust, #7A3A18)',
   marginBottom: 6,
   opacity: 0.9,
 };
@@ -88,37 +88,37 @@ const ResetPassword = () => {
   };
 
   return (
-    <div style={{
+    <div className="journal-paper" style={{
       minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#FDF6EE', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00',
+      background: 'var(--ib-cream, #FDF6EE)', fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: 'var(--ib-dark, #1A0A00)',
       padding: '3rem 1rem',
     }}>
       <div style={{
-        background: '#FDF6EE', padding: '2.5rem', borderRadius: 24,
-        boxShadow: '0 20px 60px rgba(26,10,0,0.14)', width: '100%', maxWidth: 420,
-        borderTop: '7px solid #B4511E',
+        background: 'var(--ib-cream, #FDF6EE)', padding: '2.5rem', borderRadius: 24,
+        boxShadow: '0 20px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)', width: '100%', maxWidth: 420,
+        borderTop: '7px solid var(--ib-accent, #B4511E)',
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <img src={logoIcon} alt="BANDANG IBAYO" style={{ width: 56, height: 56, objectFit: 'contain', margin: '0 auto 14px', display: 'block' }} />
-          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: '#1A0A00', margin: '0 0 8px' }}>
+          <h1 style={{ fontWeight: 900, fontSize: 24, letterSpacing: '-0.03em', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 8px' }}>
             Set a New Password
           </h1>
         </div>
 
         {checking ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(122,58,24,0.85)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}>
             <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
             <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
           </div>
         ) : done ? (
           <div style={{ textAlign: 'center' }}>
-            <CheckCircle2 size={40} style={{ color: '#A8481A', marginBottom: 12 }} />
-            <p style={{ fontSize: 13, color: '#7A3A18' }}>Password updated! Redirecting you to login…</p>
+            <CheckCircle2 size={40} style={{ color: 'var(--ib-sienna, #A8481A)', marginBottom: 12 }} />
+            <p style={{ fontSize: 13, color: 'var(--ib-rust, #7A3A18)' }}>Password updated! Redirecting you to login…</p>
           </div>
         ) : !ready ? (
-          <p style={{ fontSize: 13, color: '#7A3A18', textAlign: 'center', lineHeight: 1.7 }}>
+          <p style={{ fontSize: 13, color: 'var(--ib-rust, #7A3A18)', textAlign: 'center', lineHeight: 1.7 }}>
             This link is invalid or has expired. Please request a new one from the{' '}
-            <Link className="text-link" to="/forgot-password" style={{ color: '#A8481A', fontWeight: 800 }}>forgot password</Link> page.
+            <Link className="text-link" to="/forgot-password" style={{ color: 'var(--ib-sienna, #A8481A)', fontWeight: 800 }}>forgot password</Link> page.
           </p>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -146,15 +146,15 @@ const ResetPassword = () => {
             </div>
 
             {error && (
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>{error}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>{error}</p>
             )}
 
             <button
               disabled={loading || !password || !confirmPassword}
               style={{
                 width: '100%',
-                background: loading || !password || !confirmPassword ? 'rgba(180,81,30,0.55)' : '#B4511E',
-                color: '#FDF6EE',
+                background: loading || !password || !confirmPassword ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.55)' : 'var(--ib-accent, #B4511E)',
+                color: 'var(--ib-on-accent, #FDF6EE)',
                 fontWeight: 900,
                 fontSize: 13,
                 letterSpacing: '0.1em',

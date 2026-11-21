@@ -23,14 +23,14 @@ import { EXPENSE_CATEGORIES, newLineKey, lineAmount, linesTotal, formLinesOf, ba
 // lines; price: per joiner, or the whole group's when priceIsTotal.
 // ─────────────────────────────────────────────
 
-const sub = { fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 6px' };
+const sub = { fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 6px' };
 const box = {
-  width: '100%', boxSizing: 'border-box', background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10,
-  padding: '8px 10px', fontSize: 14, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10,
+  padding: '8px 10px', fontSize: 14, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
 const smallBtn = {
   display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 34, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
-  border: '1px solid rgba(180,81,30,0.35)', background: 'transparent', color: '#A8481A', fontFamily: 'inherit',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', background: 'transparent', color: 'var(--ib-sienna, #A8481A)', fontFamily: 'inherit',
   fontWeight: 900, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase',
 };
 const rateText = (v) => String(v ?? '').replace(/[^\d.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');
@@ -135,8 +135,8 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
     const r = ratings[id];
     return (
       <span title={r?.count ? `${r.avg.toFixed(1)} average from ${r.count} joiner rating${r.count === 1 ? '' : 's'}` : 'No joiner ratings yet'}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11.5, fontWeight: 800, color: r?.count ? (r.avg < 3 ? '#8C2F1C' : '#5C2A10') : '#9A7A60', whiteSpace: 'nowrap' }}>
-        <Star size={12} fill={r?.count ? '#E8A265' : 'none'} color="#E8A265" /> {r?.count ? `${r.avg.toFixed(1)} (${r.count})` : 'no ratings'}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11.5, fontWeight: 800, color: r?.count ? (r.avg < 3 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-brown, #5C2A10)') : 'var(--ib-rust, #9A7A60)', whiteSpace: 'nowrap' }}>
+        <Star size={12} fill={r?.count ? 'var(--ib-amber, #E8A265)' : 'none'} color="var(--ib-amber, #E8A265)" /> {r?.count ? `${r.avg.toFixed(1)} (${r.count})` : 'no ratings'}
       </span>
     );
   };
@@ -147,8 +147,8 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
       <div style={{ flex: '1 1 110px', minWidth: 0 }}><input aria-label={`Rate for ${l.label}`} value={l.rate} inputMode="decimal" onChange={(e) => update(l.key, { rate: rateText(e.target.value) })} placeholder="Rate (₱)" style={box} /></div>
       <div style={{ flex: '1 1 130px', minWidth: 0 }}><PrettySelect compact ariaLabel={`Rate basis for ${l.label}`} value={l.rate_basis} onChange={(v) => update(l.key, { rate_basis: v })}
         options={[{ value: 'per_trip', label: 'Per trip' }, { value: 'per_person', label: 'Per person' }]} /></div>
-      <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', whiteSpace: 'nowrap' }}>
-        = {formatPeso(lineAmount(l, n))}{l.rate_basis === 'per_person' ? <span style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18' }}> ({n} × {formatPeso(l.rate)})</span> : null}
+      <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', whiteSpace: 'nowrap' }}>
+        = {formatPeso(lineAmount(l, n))}{l.rate_basis === 'per_person' ? <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}> ({n} × {formatPeso(l.rate)})</span> : null}
       </span>
     </div>
   );
@@ -157,16 +157,16 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
     const on = !!line;
     const archived = s && !s.is_active;
     return (
-      <div key={s?.id || line.key} style={{ background: on ? 'rgba(180,81,30,0.08)' : '#FDF6EE', border: `1px solid ${on ? 'rgba(180,81,30,0.4)' : 'rgba(180,81,30,0.15)'}`, borderRadius: 12, padding: '10px 12px' }}>
+      <div key={s?.id || line.key} style={{ background: on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'var(--ib-cream, #FDF6EE)', border: `1px solid ${on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.15)'}`, borderRadius: 12, padding: '10px 12px' }}>
         <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-          <input type="checkbox" checked={on} onChange={(e) => (s ? tick(s, e.target.checked) : set(lines.filter((l) => l.key !== line.key)))} style={{ width: 18, height: 18, marginTop: 2, accentColor: '#B4511E', flexShrink: 0 }} />
+          <input type="checkbox" checked={on} onChange={(e) => (s ? tick(s, e.target.checked) : set(lines.filter((l) => l.key !== line.key)))} style={{ width: 18, height: 18, marginTop: 2, accentColor: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
           <span style={{ minWidth: 0, flex: 1 }}>
             <span style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-              <strong style={{ fontSize: 13.5, color: '#1A0A00' }}>{s?.name || line.label}</strong>
+              <strong style={{ fontSize: 13.5, color: 'var(--ib-dark, #1A0A00)' }}>{s?.name || line.label}</strong>
               {s && ratingOf(s.id)}
-              {archived && <span style={{ fontSize: 10.5, fontWeight: 900, color: '#8C2F1C' }}>ARCHIVED</span>}
+              {archived && <span style={{ fontSize: 10.5, fontWeight: 900, color: 'var(--ib-red, #8C2F1C)' }}>ARCHIVED</span>}
             </span>
-            <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#5C2A10' }}>
+            <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>
               Joiners see: <strong>{line?.label || s?.inclusion_name}</strong>{s ? ` · usual rate ${formatPeso(s.default_rate)} ${BASIS_LABEL[s.rate_basis]}` : ''}
             </span>
           </span>
@@ -177,11 +177,11 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
   };
 
   return (
-    <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0, flex: '1 1 240px' }}>
           <p style={{ ...sub, display: 'flex', gap: 6, alignItems: 'center', margin: 0 }}><Truck size={14} /> Suppliers & Expenses</p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#5C2A10', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', margin: '4px 0 0' }}>
             Tick what this tour includes. Joiners see only the names (no prices). Per-person costs use {n} {peopleLabel}.
           </p>
         </div>
@@ -191,13 +191,13 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
       </div>
 
       {problem ? (
-        <p style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>Suppliers couldn't load ({problem}). You can still add one-off costs below.</p>
+        <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>Suppliers couldn't load ({problem}). You can still add one-off costs below.</p>
       ) : !suppliers ? (
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#5C2A10', margin: 0 }}>Loading suppliers…</p>
+        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', margin: 0 }}>Loading suppliers…</p>
       ) : !destination.trim() ? (
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#5C2A10', margin: 0 }}>Type the destination to see the suppliers that serve it.</p>
+        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', margin: 0 }}>Type the destination to see the suppliers that serve it.</p>
       ) : local.length === 0 ? (
-        <p style={{ fontSize: 12.5, fontWeight: 600, color: '#5C2A10', margin: 0 }}>No saved suppliers serve {destination} yet. Search below, add one-off costs, or save suppliers in System Maintenance → Suppliers.</p>
+        <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', margin: 0 }}>No saved suppliers serve {destination} yet. Search below, add one-off costs, or save suppliers in System Maintenance → Suppliers.</p>
       ) : (
         SUPPLIER_TYPES.map(([type, typeLabel]) => {
           const group = local.filter((s) => s.supplier_type === type);
@@ -225,15 +225,15 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
       <div>
         <p style={sub}>Add a supplier from another place</p>
         <label style={{ position: 'relative', display: 'block' }}>
-          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#7A3A18' }} />
+          <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--ib-rust, #7A3A18)' }} />
           <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search saved suppliers" aria-label="Search saved suppliers" style={{ ...box, paddingLeft: 30 }} />
         </label>
         {q && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
-            {found.length === 0 ? <p style={{ fontSize: 12, fontWeight: 600, color: '#5C2A10', margin: 0 }}>No other active supplier matches.</p> : found.map((s) => (
-              <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: '#FDF6EE', borderRadius: 10, padding: '8px 10px', border: '1px solid rgba(180,81,30,0.15)' }}>
-                <span style={{ minWidth: 0, flex: 1, fontSize: 12.5, fontWeight: 700, color: '#1A0A00' }}>
-                  {s.name} <span style={{ fontWeight: 600, color: '#5C2A10' }}>· {TYPE_LABEL[s.supplier_type]} · {(s.destinations || []).join(', ')}</span>
+            {found.length === 0 ? <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', margin: 0 }}>No other active supplier matches.</p> : found.map((s) => (
+              <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 10, padding: '8px 10px', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)' }}>
+                <span style={{ minWidth: 0, flex: 1, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>
+                  {s.name} <span style={{ fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>· {TYPE_LABEL[s.supplier_type]} · {(s.destinations || []).join(', ')}</span>
                 </span>
                 {ratingOf(s.id)}
                 <button type="button" style={smallBtn} onClick={() => { tick(s, true); setQuery(''); }}><Plus size={12} /> Add</button>
@@ -247,12 +247,12 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
         <p style={sub}>One-off costs (no supplier)</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {oneOffs.map((l) => (
-            <div key={l.key} style={{ background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 12, padding: '10px 12px' }}>
+            <div key={l.key} style={{ background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 12, padding: '10px 12px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                 <div style={{ flex: '2 1 180px', minWidth: 0 }}><input aria-label="Expense name" value={l.label} maxLength={80} onChange={(e) => update(l.key, { label: e.target.value })} placeholder="e.g. Toll fees, Fuel, Entrance Fee" style={box} /></div>
                 <div style={{ flex: '1 1 130px', minWidth: 0 }}><PrettySelect compact ariaLabel="Category" value={l.category} onChange={(v) => update(l.key, { category: v })}
                   options={EXPENSE_CATEGORIES.filter(([v]) => v !== 'bag_tag').map(([v, lab]) => ({ value: v, label: lab }))} /></div>
-                <button type="button" aria-label="Remove this cost" onClick={() => set(lines.filter((x) => x.key !== l.key))} style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(122,58,24,0.3)', background: 'transparent', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                <button type="button" aria-label="Remove this cost" onClick={() => set(lines.filter((x) => x.key !== l.key))} style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.3)', background: 'transparent', color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={14} /></button>
               </div>
               {rateRow(l)}
             </div>
@@ -262,8 +262,8 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
       </div>
 
       {bag && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, color: '#1A0A00' }}>
-          <Lock size={14} color="#7A3A18" /> <span style={{ flex: 1 }}>Bag Tag <span style={{ fontWeight: 600, color: '#5C2A10' }}>(fixed, every tour)</span></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>
+          <Lock size={14} color="var(--ib-rust, #7A3A18)" /> <span style={{ flex: 1 }}>Bag Tag <span style={{ fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>(fixed, every tour)</span></span>
           <strong>{formatPeso(BAG_TAG_FEE)}</strong>
         </div>
       )}
@@ -275,14 +275,14 @@ const SupplierChecklist = ({ destination = '', people = 0, price = 0, priceIsTot
           ['Expected revenue', formatPeso(revenue)],
           ['Estimated profit', `${profit < 0 ? '−' : ''}${formatPeso(Math.abs(profit))}`],
         ].map(([k, v], i) => (
-          <div key={k} style={{ background: i === 3 ? (profit < 0 ? 'rgba(140,47,28,0.1)' : 'rgba(46,107,74,0.1)') : '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
+          <div key={k} style={{ background: i === 3 ? (profit < 0 ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)' : 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)') : 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
             <p style={{ ...sub, margin: 0, fontSize: 10 }}>{k}</p>
-            <p style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 900, color: i === 3 ? (profit < 0 ? '#8C2F1C' : '#2E6B4A') : '#1A0A00' }}>{v}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 16, fontWeight: 900, color: i === 3 ? (profit < 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)') : 'var(--ib-dark, #1A0A00)' }}>{v}</p>
           </div>
         ))}
       </div>
       {belowCost && (
-        <p role="alert" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', margin: 0, fontSize: 12.5, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.08)', borderRadius: 12, padding: '10px 12px' }}>
+        <p role="alert" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', margin: 0, fontSize: 12.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', borderRadius: 12, padding: '10px 12px' }}>
           <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
           The price ({formatPeso(pricePer)} per {peopleLabel === 'joiners' ? 'joiner' : 'person'}) is below the cost per {peopleLabel === 'joiners' ? 'joiner' : 'person'} ({formatPeso(perJoiner)}). This tour would lose money if it fills up.
         </p>

@@ -23,25 +23,25 @@ import NiceSelect from './ui/NiceSelect';
 
 // ── PALETTE ──────────────────────────────────────────────
 
-// #1A0A00  espresso dark
+// var(--ib-dark, #1A0A00)  espresso dark
 
-// #A8481A  burnt sienna (accent)
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
 
-// #E8A265  warm amber (highlight)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
 
-// #FDF6EE  cream (light card bg)
+// var(--ib-cream, #FDF6EE)  cream (light card bg)
 
-// #2D1B0E  deep brown (dark card)
+// var(--ib-deep, #2D1B0E)  deep brown (dark card)
 
-// #7A3A18  rust mid-tone
+// var(--ib-rust, #7A3A18)  rust mid-tone
 
-// #8C2F1C  deep rust red (error / full / alert)
+// var(--ib-red, #8C2F1C)  deep rust red (error / full / alert)
 
-// #F2E4D0  parchment (inset panel bg)
+// var(--ib-parch, #F2E4D0)  parchment (inset panel bg)
 
 // #EDEAE3  warm stone (page bg)
 
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 
 // ---------------------------------------------------------
 
@@ -184,9 +184,9 @@ const JoinerTours = ({ initialTourId = null }) => {
 
     width: '100%', boxSizing: 'border-box',
 
-    background: '#F2E4D0',
+    background: 'var(--ib-parch, #F2E4D0)',
 
-    border: '1px solid rgba(180,81,30,0.18)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
 
     borderRadius: 14,
 
@@ -194,7 +194,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
     fontSize: 13, fontWeight: 600,
 
-    color: '#1A0A00',
+    color: 'var(--ib-dark, #1A0A00)',
 
     fontFamily: 'inherit',
 
@@ -214,13 +214,13 @@ const JoinerTours = ({ initialTourId = null }) => {
 
       <div style={{
 
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
 
         borderRadius: 20, padding: '14px 18px',
 
-        border: '1px solid rgba(180,81,30,0.12)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
 
-        boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+        boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 
         display: SHOW_FILTERS ? 'flex' : 'none', flexWrap: 'wrap', gap: 12, alignItems: 'center',
 
@@ -238,7 +238,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
             transform: 'translateY(-50%)',
 
-            color: 'rgba(122,58,24,0.85)', pointerEvents: 'none',
+            color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', pointerEvents: 'none',
 
           }} />
 
@@ -317,7 +317,7 @@ const JoinerTours = ({ initialTourId = null }) => {
 
       {/* ── Difficulty: the only filter shown on Explore Tours ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#7A3A18' }}>Difficulty</span>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Difficulty</span>
         <div style={{ width: 220, maxWidth: '100%' }}>
           <PrettySelect
             ariaLabel="Filter by difficulty"
@@ -406,16 +406,17 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
   return (
 
     <div
+      className="journal-ticket"
 
       style={{
 
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
 
         borderRadius: 22, overflow: 'hidden',
 
-        border: '1px solid rgba(180,81,30,0.12)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
 
-        boxShadow: hovered ? '0 12px 36px rgba(26,10,0,0.14)' : '0 4px 16px rgba(26,10,0,0.06)',
+        boxShadow: hovered ? '0 12px 36px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14)' : '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
 
         // Grows a little when the mouse is over it.
         transform: hovered ? 'translateY(-5px) scale(1.07)' : 'none',
@@ -434,13 +435,13 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
       {/* Image */}
 
-      <div style={{ height: 186, background: '#F2E4D0', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+      <div style={{ height: 186, background: 'var(--ib-parch, #F2E4D0)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
 
         {tour.image_urls?.[0]
 
           ? <img loading="lazy" decoding="async" src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform 0.4s' }} alt="" />
 
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)' }}><ImageIcon size={44} /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={44} /></div>
 
         }
 
@@ -450,11 +451,11 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
           <span style={{
 
-            background: 'rgba(253,246,238,0.92)', borderRadius: 999,
+            background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.92)', borderRadius: 999,
 
             padding: '4px 12px', fontSize: 11, fontWeight: 900,
 
-            letterSpacing: '0.18em', textTransform: 'uppercase', color: '#1A0A00',
+            letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)',
 
           }}>{tour.difficulty}</span>
 
@@ -468,7 +469,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
           <span style={{
 
-            background: isFull ? '#8C2F1C' : '#B4511E', color: '#FDF6EE',
+            background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)', color: (isFull) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-on-accent, #FDF6EE)',
 
             borderRadius: 999, padding: '4px 10px',
 
@@ -486,6 +487,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
 
 
+      <div className="ticket-tear" aria-hidden="true" />
       {/* Body */}
 
       <div style={{ padding: '1.25rem 1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -494,15 +496,15 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
 
-            <h3 style={{ fontSize: 16, fontWeight: 900, color: '#1A0A00', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.2, margin: 0, flex: 1 }}>{tour.title}</h3>
 
             <PriceTag tour={tour} size={15} style={{ marginLeft: 10, flexShrink: 0 }} />
 
           </div>
 
-          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
+          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '0 0 12px' }}>
 
-            <MapPin size={11} style={{ color: '#A8481A' }} /> {tour.destination}
+            <MapPin size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.destination}
 
           </p>
 
@@ -511,21 +513,21 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
           ) : (<>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
-              <Calendar size={12} style={{ color: '#A8481A' }} /> {formatDateRange(tour.start_date, tour.duration)}
+              <Calendar size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {formatDateRange(tour.start_date, tour.duration)}
 
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? '#8C2F1C' : '#7A3A18', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 700, color: isFull ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-rust, #7A3A18)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
 
-              <Users size={12} style={{ color: '#A8481A' }} />
+              <Users size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
 
               {tour.current_booked} / {tour.group_size} Booked
 
               {isFull && (
 
-                <span style={{ background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
+                <span style={{ background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)', color: 'var(--ib-red, #8C2F1C)', fontSize: 11, fontWeight: 900, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Full</span>
 
               )}
 
@@ -533,7 +535,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
           </div>
 
-          <div style={{ width: '100%', background: '#F2E4D0', borderRadius: 999, height: 6, overflow: 'hidden', marginBottom: 4 }}>
+          <div style={{ width: '100%', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, height: 6, overflow: 'hidden', marginBottom: 4 }}>
 
             <div
 
@@ -541,7 +543,7 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
                 height: 6, borderRadius: 999, transition: 'all 0.3s',
 
-                background: isFull ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#B4511E',
+                background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : tour.available_slots <= 3 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)',
 
                 width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`,
 
@@ -579,15 +581,15 @@ const JoinerTourCard = ({ tour, onDetails, formatDateRange, showFavorite = true 
 
             transition: 'all 0.2s',
 
-            background: isFull ? '#F2E4D0' : '#1A0A00',
+            background: isFull ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-ink, #1A0A00)',
 
-            color: isFull ? 'rgba(122,58,24,0.85)' : '#FDF6EE',
+            color: isFull ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' : 'var(--ib-on-ink, #FDF6EE)',
 
           }}
 
-          onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = '#B4511E'; }}
+          onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; }}
 
-          onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = '#1A0A00'; }}
+          onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'; }}
 
         >
 

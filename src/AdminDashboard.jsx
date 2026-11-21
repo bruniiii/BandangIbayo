@@ -3,7 +3,6 @@ import AdminSearch from './AdminSearch';
 import AdminToday from './AdminToday';
 import Walkthrough from './ui/Walkthrough';
 import { ADMIN_STEPS, walkthroughKey } from './walkthroughSteps';
-import { downloadOverviewPDF } from './overviewPdf';
 import {
   LayoutDashboard, Map, Calendar, Users, FileText, Bell, CreditCard,
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
@@ -29,6 +28,7 @@ import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/logo.png';
 import AdminAccountMenu from './AdminAccountMenu';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ui/ThemeToggle';
 import Notification from './Notification';
 import { formatPeso, archivePastTours, todayManila } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -38,15 +38,15 @@ import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory, tabFromUrl } from './useTabHistory';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #2D1B0E  deep brown (dark card)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (legacy section bg, still used for some inset panels)
-// #FDF6EE  cream (page bg, same as the public Tours page)
-// #3F5D62  slate teal (secondary contrast accent, used sparingly)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-deep, #2D1B0E)  deep brown (dark card)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (legacy section bg, still used for some inset panels)
+// var(--ib-cream, #FDF6EE)  cream (page bg, same as the public Tours page)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent, used sparingly)
 // ---------------------------------------------------------
  
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -433,8 +433,8 @@ const AdminDashboard = () => {
     <div className="admin-dashboard-container" style={{
       display: 'flex', height: '100dvh',
       fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-      background: '#FDF6EE',
-      color: '#1A0A00',
+      background: 'var(--ib-cream, #FDF6EE)',
+      color: 'var(--ib-dark, #1A0A00)',
       overflow: 'hidden',
     }}>
  
@@ -457,11 +457,11 @@ const AdminDashboard = () => {
           // Wide enough for the longest menu label ("Tracking Management") in full.
           width: sidebarExpanded ? 296 : 84,
           flexShrink: 0,
-          background: '#1A0A00',
+          background: 'var(--ib-ink, #1A0A00)',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 20,
-          boxShadow: '4px 0 32px rgba(26,10,0,0.28)',
+          boxShadow: '4px 0 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)',
           position: 'relative',
           transition: 'width 0.25s ease',
           overflow: 'visible',
@@ -476,17 +476,17 @@ const AdminDashboard = () => {
               top: 26, right: -14,
               width: 28, height: 28,
               borderRadius: '50%',
-              background: '#B4511E',
+              background: 'var(--ib-accent, #B4511E)',
               border: '3px solid #EDEAE3',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: 'pointer',
-              color: '#FDF6EE',
+              color: 'var(--ib-on-accent, #FDF6EE)',
               zIndex: 30,
-              boxShadow: '0 4px 12px rgba(26,10,0,0.35)',
+              boxShadow: '0 4px 12px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)',
               transition: 'background 0.2s, transform 0.2s',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.background = '#B4511E'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--ib-amber, #E8A265)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'}
           >
             <X size={16} strokeWidth={3} />
           </button>
@@ -524,15 +524,15 @@ const AdminDashboard = () => {
               }}
             />
             {sidebarExpanded && (
-              <span className="font-display" style={{ fontSize: 19, color: '#FDF6EE', whiteSpace: 'nowrap' }}>
-                Bandang <span className="font-accent" style={{ color: '#E8A265' }}>IBAYO</span>
+              <span className="font-display" style={{ fontSize: 19, color: 'var(--ib-on-ink, #FDF6EE)', whiteSpace: 'nowrap' }}>
+                Bandang <span className="font-accent" style={{ color: 'var(--ib-amber, #E8A265)' }}>IBAYO</span>
               </span>
             )}
           </button>
           {sidebarExpanded && (
             <p style={{
               fontSize: 11, fontWeight: 800, letterSpacing: '0.22em',
-              textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: 0,
+              textTransform: 'uppercase', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: 0,
               whiteSpace: 'nowrap',
             }}>
               Admin Management
@@ -563,13 +563,13 @@ const AdminDashboard = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(232,210,190,0.85)',
+              color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
               fontFamily: 'inherit',
               padding: 0,
               transition: 'color 0.2s',
             }}
-            onMouseEnter={e => e.currentTarget.style.color = '#E8A265'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,210,190,0.85)'}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--ib-amber, #E8A265)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)'}
           >
             <LogOut size={16} style={{ flexShrink: 0 }} />
             {sidebarExpanded && (
@@ -586,7 +586,7 @@ const AdminDashboard = () => {
  
         {/* header */}
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: '#FDF6EE', display: 'flex', flexDirection: 'column' }}>
+        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)', display: 'flex', flexDirection: 'column' }}>
           {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
@@ -606,6 +606,7 @@ const AdminDashboard = () => {
                   surfaces joiner-side activity: new bookings, payment
                   submissions, cancellations, reviews, requests, registrations */}
               <AdminSearch onOpen={openFocused} />
+              <ThemeToggle />
               <NotificationBell onNotificationClick={handleNotificationNavigate} />
 
               {/* admin chip: who's signed in + Change Password */}
@@ -624,30 +625,25 @@ const AdminDashboard = () => {
               <div className="dashboard-hero-padding" style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 flexWrap: 'wrap', gap: 16,
-                background: '#1A0A00',
+                background: 'var(--ib-ink, #1A0A00)',
                 borderRadius: 20,
                 padding: '1.5rem 2rem',
-                boxShadow: '0 8px 28px rgba(26,10,0,0.2)',
+                boxShadow: '0 8px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
               }}>
                 <div>
                   <p style={{
                     fontSize: 11, fontWeight: 900, letterSpacing: '0.22em', textTransform: 'uppercase',
-                    color: '#E8A265', margin: '0 0 6px',
+                    color: 'var(--ib-amber, #E8A265)', margin: '0 0 6px',
                   }}>
                     Operations Overview
                   </p>
                   <h2 style={{
                     fontWeight: 900, fontSize: 20, letterSpacing: '-0.02em',
-                    color: '#FDF6EE', margin: 0,
+                    color: 'var(--ib-on-ink, #FDF6EE)', margin: 0,
                   }}>
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </h2>
                 </div>
-                <button type="button" disabled={loadingStats} onClick={() => downloadOverviewPDF({ stats, snippets }).catch((e) => toast.error("Couldn't create the PDF", e.message))} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 18px', borderRadius: 12, cursor: 'pointer',
-                  background: '#E8A265', color: '#1A0A00', border: 'none', fontFamily: 'inherit',
-                  fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                }}><FileText size={15} /> Download PDF</button>
               </div>
 
               {/* KPI row */}
@@ -656,7 +652,7 @@ const AdminDashboard = () => {
                   title="Revenue This Month"
                   value={loadingStats ? <Skel w={140} h={34} style={{ display: 'inline-block' }} /> : peso(stats.revenueThisMonth)}
                   icon={<Wallet size={18} />}
-                  iconColor="#A8481A"
+                  iconColor="var(--ib-sienna, #A8481A)"
                   trend={loadingStats ? '' : (() => {
                     const last = stats.revenueLastMonth || 0;
                     if (last === 0) return 'No data for last month';
@@ -668,7 +664,7 @@ const AdminDashboard = () => {
                   title="Total Bookings"
                   value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalBookings}
                   icon={<TrendingUp size={18} />}
-                  iconColor="#3F5D62"
+                  iconColor="var(--ib-sienna, #3F5D62)"
                   trend={loadingStats ? '' : (() => {
                     const curr = parseInt(stats.bookingsThisMonth.replace(/,/g, '')) || 0;
                     const last = stats.bookingsLastMonth || 0;
@@ -680,7 +676,7 @@ const AdminDashboard = () => {
                   title="Total Joiners"
                   value={loadingStats ? <Skel w={60} h={34} style={{ display: 'inline-block' }} /> : stats.totalJoiners}
                   icon={<Users size={18} />}
-                  iconColor="#3F5D62"
+                  iconColor="var(--ib-sienna, #3F5D62)"
                   trend={loadingStats ? '' : `${stats.joinersThisWeek} new this week`}
                 />
               </div>
@@ -696,11 +692,11 @@ const AdminDashboard = () => {
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
                   <h3 style={{
                     fontWeight: 900, fontSize: 13, letterSpacing: '0.18em',
-                    textTransform: 'uppercase', color: '#1A0A00', margin: 0,
+                    textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: 0,
                   }}>
                     Module Snapshots
                   </h3>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
                     Live from Tours, Bookings, Joiners, Reviews &amp; Feed
                   </p>
                 </div>
@@ -718,21 +714,21 @@ const AdminDashboard = () => {
                     emptyText="No active tours yet."
                   >
                     {snippets.tours.map(t => (
-                      <div key={t.id} style={{ padding: '10px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
+                      <div key={t.id} style={{ padding: '10px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {t.title}
                           </p>
-                          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>{shortDate(t.start_date)}</span>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, flexShrink: 0 }}>{shortDate(t.start_date)}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                          <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(180,81,30,0.14)', overflow: 'hidden' }}>
+                          <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', overflow: 'hidden' }}>
                             <div style={{
                               height: '100%', borderRadius: 999, width: `${t.pct}%`,
-                              background: t.pct >= 100 ? '#B4511E' : t.pct >= 80 ? '#E8A265' : '#7A3A18',
+                              background: t.pct >= 100 ? 'var(--ib-accent, #B4511E)' : t.pct >= 80 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-rust-solid, #7A3A18)',
                             }} />
                           </div>
-                          <span style={{ fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, flexShrink: 0 }}>
                             {t.booked}/{t.capacity}
                           </span>
                         </div>
@@ -751,16 +747,16 @@ const AdminDashboard = () => {
                     emptyText="Nothing awaiting verification."
                   >
                     {snippets.pendingBookings.map(b => (
-                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
+                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {personName(b.profiles, b.full_name)}
                           </p>
-                          <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {b.tours?.title || 'Tour'}
                           </p>
                         </div>
-                        <span style={{ fontSize: 11.5, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>{peso(b.total_price)}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}>{peso(b.total_price)}</span>
                       </div>
                     ))}
                   </ModuleCard>
@@ -776,18 +772,18 @@ const AdminDashboard = () => {
                     emptyText="No joiners registered yet."
                   >
                     {snippets.recentJoiners.map(p => (
-                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
+                      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
                         <div style={{
                           width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                          background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: '#E8A265', fontWeight: 900, fontSize: 11,
+                          background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11,
                         }}>
                           {p.avatar_url ? <img src={p.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : personInitials(p)}
                         </div>
-                        <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {personName(p, 'Unnamed Joiner')}
                         </p>
-                        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, flexShrink: 0 }}>{shortDate(p.created_at)}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, flexShrink: 0 }}>{shortDate(p.created_at)}</span>
                       </div>
                     ))}
                   </ModuleCard>
@@ -803,19 +799,19 @@ const AdminDashboard = () => {
                     emptyText="Nothing awaiting review."
                   >
                     {snippets.pendingExclusiveRequests.map(r => (
-                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(180,81,30,0.08)' }}>
+                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' }}>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.full_name || 'Joiner'}
                           </p>
-                          <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {r.destination || 'Destination TBD'}
                           </p>
                         </div>
                         <span style={{
                           fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
-                          color: r.request_type === 'exclusive' ? '#1A0A00' : '#A8481A',
-                          background: r.request_type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
+                          color: r.request_type === 'exclusive' ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-sienna, #A8481A)',
+                          background: r.request_type === 'exclusive' ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.06)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
                           borderRadius: 999, padding: '3px 9px', flexShrink: 0,
                         }}>
                           {r.request_type === 'exclusive' ? 'Private' : 'Request'}
@@ -837,22 +833,22 @@ const AdminDashboard = () => {
                     {snippets.latestReview && (
                       <div style={{ padding: '4px 0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
+                          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
                             {personName(snippets.latestReview.author, 'A Traveler')}
                           </p>
                           <div style={{ display: 'flex', gap: 1 }}>
                             {[1, 2, 3, 4, 5].map(n => (
-                              <Star key={n} size={11} fill={n <= snippets.latestReview.rating ? '#E8A265' : 'none'} color={n <= snippets.latestReview.rating ? '#E8A265' : 'rgba(122,58,24,0.85)'} />
+                              <Star key={n} size={11} fill={n <= snippets.latestReview.rating ? 'var(--ib-amber, #E8A265)' : 'none'} color={n <= snippets.latestReview.rating ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)'} />
                             ))}
                           </div>
                         </div>
                         {snippets.latestReview.tours?.title && (
-                          <p style={{ fontSize: 11.5, fontWeight: 700, color: '#A8481A', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-sienna, #A8481A)', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 4 }}>
                             <MapPin size={10} /> {snippets.latestReview.tours.title}
                           </p>
                         )}
                         {snippets.latestReview.comment && (
-                          <p style={{ fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.5, margin: 0 }}>
+                          <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, lineHeight: 1.5, margin: 0 }}>
                             "{truncate(snippets.latestReview.comment, 96)}"
                           </p>
                         )}
@@ -880,19 +876,19 @@ const AdminDashboard = () => {
                           ) : (
                             <div style={{
                               width: 52, height: 52, borderRadius: 12, flexShrink: 0,
-                              background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              color: '#A8481A',
+                              background: 'var(--ib-parch, #F2E4D0)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: 'var(--ib-sienna, #A8481A)',
                             }}>
                               <ImageIcon size={20} />
                             </div>
                           );
                         })()}
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ fontSize: 11.5, fontWeight: 800, color: '#1A0A00', margin: '0 0 3px' }}>
+                          <p style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 3px' }}>
                             {personName(snippets.latestPost.author, 'Bandang IBAYO')}
                           </p>
                           <p style={{
-                            fontSize: 12, fontWeight: 500, color: '#7A3A18', opacity: 0.9, lineHeight: 1.5, margin: 0,
+                            fontSize: 12, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, lineHeight: 1.5, margin: 0,
                             display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                           }}>
                             {snippets.latestPost.content || (snippets.latestPost.post_type === 'tour' ? 'New tour posted.' : 'Shared an update.')}
@@ -918,9 +914,9 @@ const AdminDashboard = () => {
                         ['Tours next month', stats.toursNextMonth],
                         ['New joiners (7 days)', stats.joinersThisWeek],
                       ].map(([label, value]) => (
-                        <div key={label} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
-                          <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#1A0A00' }}>{value}</p>
-                          <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: '#7A3A18', lineHeight: 1.3 }}>{label}</p>
+                        <div key={label} style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
+                          <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{value}</p>
+                          <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.3 }}>{label}</p>
                         </div>
                       ))}
                     </div>
@@ -939,11 +935,11 @@ const AdminDashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                       {snippets.ratingBreakdown.map(({ stars, count }) => (
                         <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ width: 28, fontSize: 12, fontWeight: 800, color: '#5C2A10', whiteSpace: 'nowrap' }}>{stars} ★</span>
-                          <div style={{ flex: 1, height: 8, borderRadius: 999, background: '#F2E4D0', overflow: 'hidden' }}>
-                            <div style={{ width: `${snippets.reviewCount ? (count / snippets.reviewCount) * 100 : 0}%`, height: '100%', background: '#E8A265' }} />
+                          <span style={{ width: 28, fontSize: 12, fontWeight: 800, color: 'var(--ib-brown, #5C2A10)', whiteSpace: 'nowrap' }}>{stars} ★</span>
+                          <div style={{ flex: 1, height: 8, borderRadius: 999, background: 'var(--ib-parch, #F2E4D0)', overflow: 'hidden' }}>
+                            <div style={{ width: `${snippets.reviewCount ? (count / snippets.reviewCount) * 100 : 0}%`, height: '100%', background: 'var(--ib-amber, #E8A265)' }} />
                           </div>
-                          <span style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>{count}</span>
+                          <span style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{count}</span>
                         </div>
                       ))}
                     </div>
@@ -991,28 +987,28 @@ const AdminDashboard = () => {
               height: '100%', minHeight: 400,
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-              background: '#FDF6EE',
+              background: 'var(--ib-cream, #FDF6EE)',
               borderRadius: 24,
-              border: '1px solid rgba(180,81,30,0.12)',
-              boxShadow: '0 4px 24px rgba(26,10,0,0.06)',
+              border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+              boxShadow: '0 4px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
               padding: '3rem',
               textAlign: 'center',
             }}>
               <div style={{
                 width: 72, height: 72, borderRadius: 20,
-                background: '#F2E4D0',
+                background: 'var(--ib-parch, #F2E4D0)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#A8481A', marginBottom: 20,
+                color: 'var(--ib-sienna, #A8481A)', marginBottom: 20,
               }}>
                 <FileText size={36} />
               </div>
               <h3 style={{
                 fontWeight: 900, fontSize: 14, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 8px',
+                textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 8px',
               }}>
                 {activeTab} Module
               </h3>
-              <p style={{ fontSize: 13, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+              <p style={{ fontSize: 13, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
                 Coming soon — check back later.
               </p>
             </div>
@@ -1063,21 +1059,21 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       borderRadius: 12,
       border: 'none', cursor: 'pointer',
       fontFamily: 'inherit',
-      background: active ? '#B4511E' : 'transparent',
-      color: active ? '#FDF6EE' : 'rgba(232,210,190,0.85)',
+      background: active ? 'var(--ib-accent, #B4511E)' : 'transparent',
+      color: active ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)',
       fontWeight: active ? 900 : 600,
       transform: active && !collapsed ? 'translateX(2px)' : 'translateX(0)',
-      boxShadow: active ? '0 6px 20px rgba(180,81,30,0.35)' : 'none',
+      boxShadow: active ? '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'none',
       transition: 'all 0.2s',
       textAlign: 'left',
     }}
     onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
   >
-    <span style={{ color: active ? '#FDF6EE' : 'rgba(232,162,101,0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
+    <span style={{ color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'rgba(var(--ib-amber-rgb, 232,162,101), 0.8)', flexShrink: 0, position: 'relative', display: 'flex' }}>
       {icon}
       {badge > 0 && collapsed && (
-        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span aria-label={`${badge} unread`} style={{ position: 'absolute', top: -6, right: -8, background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 16, height: 16, padding: '0 4px', boxSizing: 'border-box', fontSize: 9.5, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {badge > 99 ? '99+' : badge}
         </span>
       )}
@@ -1090,7 +1086,7 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
       </span>
     )}
     {!collapsed && badge > 0 && (
-      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: '#E8A265', color: '#1A0A00', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <span aria-label={`${badge} unread`} style={{ marginLeft: 'auto', background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', borderRadius: 999, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', fontSize: 11, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {badge > 99 ? '99+' : badge}
       </span>
     )}
@@ -1101,11 +1097,11 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge = 0 }) => (
  
 const StatCard = ({ title, value, icon, iconColor, trend }) => (
   <div style={{
-    background: '#FDF6EE',
+    background: 'var(--ib-cream, #FDF6EE)',
     borderRadius: 20,
     padding: '1.75rem 2rem',
-    border: '1px solid rgba(180,81,30,0.12)',
-    boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+    boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     display: 'flex', flexDirection: 'column', gap: 10,
     transition: 'transform 0.2s',
     cursor: 'default',
@@ -1116,15 +1112,15 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <p style={{
         fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em',
-        textTransform: 'uppercase', color: '#7A3A18', margin: 0,
+        textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: 0,
       }}>
         {title}
       </p>
       <div style={{
         width: 36, height: 36, borderRadius: 10,
-        background: '#F1EEE8',
+        background: 'var(--ib-surface-2, #F1EEE8)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: iconColor || '#A8481A',
+        color: iconColor || 'var(--ib-sienna, #A8481A)',
         flexShrink: 0,
       }}>
         {icon}
@@ -1133,14 +1129,14 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
     <p style={{
       // Shrinks on small screens so big peso amounts stay inside the card.
       fontSize: 'clamp(22px, 8vw, 38px)', fontWeight: 900, letterSpacing: '-0.04em',
-      color: '#1A0A00', margin: 0, lineHeight: 1.1, overflowWrap: 'anywhere',
+      color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.1, overflowWrap: 'anywhere',
     }}>
       {value}
     </p>
     {trend && (
       <p style={{
         fontSize: 11.5, fontWeight: 700, fontStyle: 'italic',
-        color: '#7A3A18', opacity: 0.9, margin: 0,
+        color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0,
       }}>
         {trend}
       </p>
@@ -1155,31 +1151,31 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
 
 const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyText, children }) => (
   <div style={{
-    background: '#FDF6EE',
+    background: 'var(--ib-cream, #FDF6EE)',
     borderRadius: 20,
-    border: '1px solid rgba(180,81,30,0.12)',
-    boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+    boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
     display: 'flex', flexDirection: 'column',
     overflow: 'hidden',
   }}>
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '1.1rem 1.35rem', borderBottom: '1px solid rgba(180,81,30,0.1)',
+      padding: '1.1rem 1.35rem', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
         <div style={{
           width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-          background: '#1A0A00', color: '#E8A265',
+          background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {icon}
         </div>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 12.5, fontWeight: 900, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <p style={{ fontSize: 12.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {title}
           </p>
           {metaLabel && (
-            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '2px 0 0' }}>
               {metaLabel}
             </p>
           )}
@@ -1191,7 +1187,7 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
         style={{
           display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0,
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#A8481A', fontFamily: 'inherit', fontWeight: 800,
+          color: 'var(--ib-sienna, #A8481A)', fontFamily: 'inherit', fontWeight: 800,
           fontSize: 11.5, letterSpacing: '0.06em', padding: 4,
         }}
       >
@@ -1207,11 +1203,11 @@ const ModuleCard = ({ icon, title, metaLabel, onViewAll, loading, empty, emptyTe
         <div style={{ padding: '1.25rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textAlign: 'center' }}>
           <span aria-hidden="true" style={{
             width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'linear-gradient(145deg, #F7E3CC, #F2D3B3)', color: '#A8481A',
+            background: 'linear-gradient(145deg, var(--ib-peach-1, #F7E3CC), var(--ib-peach-2, #F2D3B3))', color: 'var(--ib-sienna, #A8481A)',
           }}>
             {icon}
           </span>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>{emptyText}</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{emptyText}</p>
           {onViewAll && (
             <button type="button" className="text-link" onClick={onViewAll} style={{ background: 'none', border: 'none', padding: 0, fontFamily: 'inherit', fontSize: 11.5 }}>
               Open {title}

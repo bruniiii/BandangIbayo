@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaFacebook } from 'react-icons/fa';
 import {
   MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus,
@@ -15,6 +15,7 @@ import { reportError } from './ui/toast';
 import { AGENCY } from './agencyInfo';
 import AnnouncementBanner from './ui/AnnouncementBanner';
 import { SITE } from './siteContent';
+import ThemeToggle from './ui/ThemeToggle';
 
 // ─────────────────────────────────────────────
 // LANDING PAGE: "Bright & Tropical" (sand, ocean blue, sunset orange).
@@ -23,12 +24,13 @@ import { SITE } from './siteContent';
 //  • Tours, then reviews, then tour types (photo cards), How to Book (a
 //    numbered path), Why Us, a strip of trip
 //    photos, About & Contact, and a call to action on a photo.
-// The previous dark page is kept in LandingPremium.jsx (and the first one
-// in LandingClassic.jsx). Styles: PAGE_CSS below, scoped under .lk.
+// Styles: PAGE_CSS below, scoped under .lk.
 
 // The menu's links (each one a section of this page).
 const NAV = [['tours', 'Tours'], ['how', 'How to Book'], ['why', 'Why Us'], ['contact', 'Contact']];
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
+// The default hero photo: hikers watching the sunrise above the clouds.
+const HERO_PHOTO = '/hero-elnido.webp';
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
@@ -54,8 +56,6 @@ const REASONS = [
   { icon: Smartphone, title: 'No More Facebook Chaos', text: 'Confirm your booking instantly without waiting on DMs or comment threads.' },
 ];
 
-// The handwritten accent font (matches the script in the logo).
-const SCRIPT_FONT = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap';
 // Shown in the moving ribbon under the photo when there are few destinations.
 const KINDS = ['Mountains', 'Beaches', 'Islands', 'Waterfalls', 'Sunrise hikes', 'Food trips'];
 
@@ -68,14 +68,19 @@ const LandingTropical = () => {
   const [here, setHere] = useState(''); // the section on screen now (underlined in the menu)
   const [slide, setSlide] = useState(0);
   const pageRef = useRef(null);
+  const navigate = useNavigate();
 
+  // Opening the home-screen app (manifest start_url "/?app=1"): a signed-in
+  // joiner goes straight to their dashboard; everyone else sees this page.
+  // Only on launch, so tapping the logo later still shows the landing page.
   useEffect(() => {
-    if (document.querySelector(`link[href="${SCRIPT_FONT}"]`)) return;
-    const l = document.createElement('link');
-    l.rel = 'stylesheet';
-    l.href = SCRIPT_FONT;
-    document.head.appendChild(l);
-  }, []);
+    if (new URLSearchParams(window.location.search).get('app') !== '1') return;
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session) navigate('/dashboard', { replace: true });
+      else window.history.replaceState(null, '', '/');
+    });
+  }, [navigate]);
+
 
   useEffect(() => {
     (async () => {
@@ -123,11 +128,10 @@ const LandingTropical = () => {
     return () => seen.disconnect();
   }, [loading, tripPhotos.length]);
 
-  const featured = useMemo(() => tours.filter((t) => t.image_urls?.[0]).slice(0, 5), [tours]);
   const landing = SITE.landing || {};
   const customPhotos = Array.isArray(landing.hero_images) ? landing.hero_images.filter(Boolean) : [];
-  // Always a photo: Site Content photos, else the open tours', else the agency's.
-  const heroPhotos = customPhotos.length ? customPhotos : featured.length ? featured.map((t) => t.image_urls[0]) : [FALLBACK_PHOTO];
+  // Always a photo: Site Content photos, else the default hero photo.
+  const heroPhotos = customPhotos.length ? customPhotos : [HERO_PHOTO];
   const slideCount = heroPhotos.length;
   useEffect(() => {
     if (slideCount < 2 || lessMotion()) return undefined;
@@ -142,7 +146,7 @@ const LandingTropical = () => {
   // Photos for the tour-type cards and the "why us" photo: trip photos, else the agency's.
   const pool = [...tripPhotos.map((p) => p.src), ...heroPhotos].filter((s, i, a) => a.indexOf(s) === i);
   const photo = (i) => pool[i % Math.max(1, pool.length)] || FALLBACK_PHOTO;
-  const [priceColor, priceMuted] = ['#0B3B4F', 'rgba(11,59,79,0.6)'];
+  const [priceColor, priceMuted] = ['var(--text)', 'var(--muted)'];
 
   return (
     <div className="lk lk-tropical" ref={pageRef}>
@@ -157,6 +161,7 @@ const LandingTropical = () => {
           ))}
         </div>
         <div className="lk-nav-right">
+          <ThemeToggle className="lk-theme" />
           <Link to="/login" className="lk-login">Log in</Link>
           <Link to="/register" className="lk-btn lk-btn-main lk-btn-sm">Join now</Link>
         </div>
@@ -450,6 +455,10 @@ const PAGE_CSS = `
 .lk-links a.is-here { opacity: 1; font-weight: 800; }
 .lk-links a.is-here::after { transform: scaleX(1) rotate(-1.5deg); opacity: 1; }
 .lk-nav-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.lk-theme { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer;
+  background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.35); color: inherit; transition: background 0.2s ease, transform 0.2s ease; }
+.lk-theme:hover { background: rgba(255,255,255,0.24); transform: rotate(-12deg); }
+.lk-nav.is-scrolled .lk-theme { background: var(--panel); border-color: var(--line-strong); }
 .lk-login { font-size: 15.5px; font-weight: 700; text-decoration: none; }
 
 .lk-hero { position: relative; min-height: 92dvh; display: flex; flex-direction: column; justify-content: center; padding: 120px clamp(1rem, 4vw, 3.5rem) 110px; box-sizing: border-box; overflow: hidden; color: #FFFFFF; }
@@ -570,14 +579,22 @@ const PAGE_CSS = `
   .lk-empty { grid-template-columns: 1fr; }
   .lk-empty > div { padding: 0 1.25rem 1.5rem; }
 }
-@media (max-width: 420px) { .lk-login { display: none; } }
+/* Small phones: keep Log in visible. The name next to the logo hides (the
+   logo stays) and the menu buttons get a little smaller to make room. */
+@media (max-width: 440px) {
+  .lk-brand span { display: none; }
+  .lk-nav-right { gap: 10px; }
+  .lk-theme { width: 36px; height: 36px; }
+  .lk-login { font-size: 14.5px; }
+  .lk-nav .lk-btn-sm { padding: 10px 16px; font-size: 14px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .lk-hero-media > img, .lk-hero-copy, .lk-skeleton { animation: none !important; }
   .lk-hero-media > img { transition: none; }
 }
 
 /* ═════════ Colors: sand, ocean blue, sunset orange ═════════ */
-.lk-tropical { --bg: #FFF8EE; --bg2: #FDEBD3; --panel: #FFFFFF; --text: #0B3B4F; --muted: #3F6372; --accent: #FF7A3D; --accent2: #0A8BA6; --on-accent: #FFFFFF;
+.lk-tropical { --bg: #FFF8EE; --bg2: #FDEBD3; --panel: #FFFFFF; --text: #0B3B4F; --muted: #3F6372; --accent: #FF7A3D; --accent2: #0A8BA6; --on-accent: #0B3B4F;
   --hero-accent: #FFD27A; --line: rgba(11,59,79,0.1); --line-strong: rgba(10,139,166,0.35); --radius: 28px; --btn-radius: 999px; --search-radius: 999px;
   --btn-shadow: 0 10px 24px rgba(255,122,61,0.35); --card-border: none; --card-shadow: 0 14px 40px rgba(11,59,79,0.1); --icon-bg: rgba(10,139,166,0.12);
   --nav-bg: rgba(255,248,238,0.9); --head: 'Outfit', system-ui, sans-serif; --body: 'Outfit', system-ui, sans-serif;
@@ -635,8 +652,8 @@ const PAGE_CSS = `
 .lk-van { position: absolute; top: 18px; left: calc(16.7% + 46px); z-index: 2; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   background: #FFFFFF; color: #0A8BA6; box-shadow: 0 6px 16px rgba(11,59,79,0.18); animation: lk-drive 9s ease-in-out infinite; list-style: none; }
 @keyframes lk-drive { 0%, 8% { left: calc(16.7% + 46px); } 46%, 54% { left: calc(83.3% - 82px); } 92%, 100% { left: calc(16.7% + 46px); } }
-.lk-step:nth-child(3) .lk-step-num { background: linear-gradient(135deg, #0A8BA6, #2BB3C9); }
-.lk-step:nth-child(4) .lk-step-num { background: linear-gradient(135deg, #19A974, #5CC98F); }
+.lk-step:nth-child(3) .lk-step-num { background: linear-gradient(135deg, #0A8BA6, #2BB3C9); color: #FFFFFF; }
+.lk-step:nth-child(4) .lk-step-num { background: linear-gradient(135deg, #19A974, #5CC98F); color: #FFFFFF; }
 
 /* Trip photos as tilted prints with handwritten captions */
 .lk-strip figure { background: #FFFFFF; padding: 10px 10px 46px; border-radius: 6px; box-shadow: 0 14px 30px rgba(11,59,79,0.16); height: auto; overflow: visible; }
@@ -661,6 +678,26 @@ const PAGE_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .lk-ribbon-track, .lk-van { animation: none !important; }
 }
+
+/* ═════════ Dark mode (theme.js; the moon button in the menu) ═════════
+   Night by the sea: deep ocean navy, teal and sunset orange. The --ib-*
+   colours (shared parts like the reviews, prices and help button) are
+   flipped here too, only inside the landing page. */
+:root[data-theme="dark"] .lk-tropical { color-scheme: dark;
+  --bg: #08202B; --bg2: #0C2A37; --panel: #113442; --text: #EAF4F6; --muted: #A9C3CB; --accent: #FF8A52; --accent2: #4CC3DA; --on-accent: #0B3B4F;
+  --line: rgba(234,244,246,0.1); --line-strong: rgba(76,195,218,0.4); --btn-shadow: 0 10px 24px rgba(255,122,61,0.25);
+  --card-shadow: 0 14px 40px rgba(0,0,0,0.4); --icon-bg: rgba(76,195,218,0.14); --nav-bg: rgba(8,32,43,0.86);
+  --ib-dark: #EAF4F6; --ib-deep: #0C2A37; --ib-brown: #EAF4F6; --ib-rust: #A9C3CB; --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3;
+  --ib-accent: #FF8A52; --ib-amber: #FFC266; --ib-cream: #113442; --ib-parch: #0C2A37; --ib-red: #FF7A66;
+  --ib-dark-rgb: 234,244,246; --ib-rust-rgb: 169,195,203; --ib-accent-rgb: 76,195,218; --ib-sienna-rgb: 76,195,218; --ib-cream-rgb: 17,52,66;
+  --ib-parch-rgb: 12,42,55; --ib-soft-rgb: 169,195,203; --ib-amber-rgb: 255,194,102; --ib-red-rgb: 255,122,102; }
+:root[data-theme="dark"] .lk-tropical .lk-type, :root[data-theme="dark"] .lk-tropical .lk-strip figure { background: var(--panel); box-shadow: 0 16px 36px rgba(0,0,0,0.45); }
+:root[data-theme="dark"] .lk-tropical .lk-strip figcaption { color: var(--text); }
+:root[data-theme="dark"] .lk-tropical .lk-van { background: var(--panel); color: var(--accent2); box-shadow: 0 6px 16px rgba(0,0,0,0.4); }
+:root[data-theme="dark"] .lk-tropical .lk-alt::before { background: radial-gradient(circle, rgba(255,138,82,0.18), rgba(255,138,82,0) 70%); }
+:root[data-theme="dark"] .lk-tropical .lk-alt::after { background: radial-gradient(circle, rgba(76,195,218,0.14), rgba(76,195,218,0) 70%); }
+:root[data-theme="dark"] .lk-tropical .lk-card-tear { border-top-color: rgba(234,244,246,0.18); }
+:root[data-theme="dark"] .lk-tropical .lk-ribbon { background: #0A6F86; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
 `;
 
 export default LandingTropical;

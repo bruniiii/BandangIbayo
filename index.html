@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-skin="tropical">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon-64.png" />
@@ -14,9 +14,30 @@
     <link rel="preconnect" href="https://renugdlntgybazpikmbu.supabase.co" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <meta name="theme-color" content="#1A0A00" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
+    <meta name="theme-color" content="#0B3B4F" />
     <title>Bandang IBAYO</title>
+    <!-- How a shared link looks on Facebook, Messenger and other apps. A tour's
+         own link (/tours/:id) gets its title and photo from api/tour-preview.js. -->
+    <meta name="description" content="Join group tours across the Philippines. Share the ride, split the cost, and discover more places." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bandang IBAYO" />
+    <meta property="og:title" content="Bandang IBAYO · Group tours across the Philippines" />
+    <meta property="og:description" content="Join group tours across the Philippines. Share the ride, split the cost, and discover more places." />
+    <meta property="og:url" content="https://www.bandangibayo.website/" />
+    <meta property="og:image" content="https://www.bandangibayo.website/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Limestone islands and turquoise water in El Nido, Palawan" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.bandangibayo.website/og-image.jpg" />
+    <!-- The home page's photo starts downloading right away (not after the app's code loads). -->
+    <script>if (location.pathname === '/') { var hl = document.createElement('link'); hl.rel = 'preload'; hl.as = 'image'; hl.href = '/hero-elnido.webp'; hl.fetchPriority = 'high'; document.head.appendChild(hl); }</script>
+    <!-- Low-power phones (2-4 GB memory or 4 or fewer cores) get solid top bars
+         instead of the frosted ones, which make scrolling lag on them. index.css: data-lite. -->
+    <script>try { var mem = navigator.deviceMemory, cores = navigator.hardwareConcurrency, phone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); if ((phone && ((mem && mem <= 4) || (cores && cores <= 4))) || matchMedia('(prefers-reduced-transparency: reduce)').matches) document.documentElement.dataset.lite = '1'; } catch (e) {}</script>
+    <!-- Light or dark mode, set before the page draws (theme.js keeps it up to date). -->
+    <script>try { var t = localStorage.getItem('ibayo:theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); document.documentElement.dataset.theme = t; if (t === 'dark') document.querySelector('meta[name="theme-color"]').content = '#071C26'; } catch (e) {}</script>
   </head>
   <body>
     <div id="root"></div>

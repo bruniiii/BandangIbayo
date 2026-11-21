@@ -34,24 +34,23 @@ const parseDays = (text) => {
   return days;
 };
 
+// One day's stops along a dashed trail: a pin for each stop and a little
+// flag at the last one (index.css: .trail).
 const Items = ({ items }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+  <ol className="trail">
     {items.map((item, i) => (
-      <div key={i} style={{
-        display: 'flex', alignItems: 'flex-start', gap: 10,
-        background: 'rgba(180,81,30,0.06)', borderRadius: 12, padding: '9px 12px', maxWidth: '100%',
-      }}>
+      <li key={i} className={`trail-stop${i === items.length - 1 ? ' is-last' : ''}`}>
         {item.time && (
           <span style={{
-            flexShrink: 0, fontSize: 11, fontWeight: 900, color: '#A8481A',
-            background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)',
+            flexShrink: 0, fontSize: 11, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)',
+            background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)',
             borderRadius: 999, padding: '3px 10px', whiteSpace: 'nowrap',
           }}>{item.time}</span>
         )}
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', lineHeight: 1.4 }}>{item.activity}</span>
-      </div>
+        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.4 }}>{item.activity}</span>
+      </li>
     ))}
-  </div>
+  </ol>
 );
 
 // "Day 2" → "Day 2 · Sat, Oct 26" when the tour's start date is known.
@@ -65,7 +64,7 @@ const ItineraryTimeline = ({ text, startDate = null }) => {
   const [open, setOpen] = useState(() => new Set([0]));
 
   if (days.length === 0) {
-    return <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>N/A</p>;
+    return <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>N/A</p>;
   }
 
   const toggle = (i) => setOpen((prev) => {
@@ -81,23 +80,23 @@ const ItineraryTimeline = ({ text, startDate = null }) => {
         if (!day.label) return <Items key={i} items={day.items} />;
         const isOpen = open.has(i);
         return (
-          <div key={i} style={{ border: '1px solid rgba(180,81,30,0.16)', borderRadius: 14, overflow: 'hidden' }}>
+          <div key={i} style={{ border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.16)', borderRadius: 14, overflow: 'hidden' }}>
             <button
               type="button"
               onClick={() => toggle(i)}
               aria-expanded={isOpen}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                padding: '10px 12px', background: isOpen ? 'rgba(180,81,30,0.06)' : 'transparent',
+                padding: '10px 12px', background: isOpen ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)' : 'transparent',
                 border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
               }}
             >
               <span style={{
-                display: 'inline-block', background: '#1A0A00', color: '#FDF6EE',
+                display: 'inline-block', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
                 borderRadius: 999, padding: '4px 12px', fontSize: 11, fontWeight: 900,
                 letterSpacing: '0.15em', textTransform: 'uppercase',
               }}>{withDate(day.label, startDate)}</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 800, color: '#7A3A18', whiteSpace: 'nowrap' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', whiteSpace: 'nowrap' }}>
                 {day.items.length} {day.items.length === 1 ? 'stop' : 'stops'}
                 <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
               </span>

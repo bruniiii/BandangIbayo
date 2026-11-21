@@ -29,7 +29,7 @@ const StatusFilter = ({ statuses, value, onChange, count, style }) => {
   if (narrow) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, ...style }}>
-        <Menu size={18} color="#7A3A18" aria-hidden="true" />
+        <Menu size={18} color="var(--ib-rust, #7A3A18)" aria-hidden="true" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <PrettySelect
             ariaLabel="Filter by status"
@@ -52,9 +52,9 @@ const StatusFilter = ({ statuses, value, onChange, count, style }) => {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
               fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: on ? (tone?.bg || '#1A0A00') : '#FDF6EE', color: on ? (tone?.color || '#FDF6EE') : '#5C2A10',
-              border: `${on ? 2 : 1}px solid ${on ? (tone?.dot || '#1A0A00') : 'rgba(180,81,30,0.25)'}`,
-              boxShadow: on ? '0 6px 16px rgba(26,10,0,0.12)' : 'none', transition: 'background 0.15s, color 0.15s',
+              background: on ? (tone?.bg || 'var(--ib-ink, #1A0A00)') : 'var(--ib-cream, #FDF6EE)', color: on ? (tone?.color || 'var(--ib-on-ink, #FDF6EE)') : 'var(--ib-brown, #5C2A10)',
+              border: `${on ? 2 : 1}px solid ${on ? (tone?.dot || 'var(--ib-dark, #1A0A00)') : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
+              boxShadow: on ? '0 6px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12)' : 'none', transition: 'background 0.15s, color 0.15s',
             }}
           >
             {tone && <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: '50%', background: tone.dot, flexShrink: 0 }} />}
@@ -62,7 +62,7 @@ const StatusFilter = ({ statuses, value, onChange, count, style }) => {
             <span style={{
               minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 10.5, letterSpacing: 0, // (The selected All chip is dark, so its count is light on dark.)
-              background: tone ? tone.bg : on ? '#E8A265' : 'rgba(180,81,30,0.12)', color: tone ? tone.color : on ? '#1A0A00' : '#5C2A10',
+              background: tone ? tone.bg : on ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: tone ? tone.color : on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-brown, #5C2A10)',
               border: on && tone ? `1px solid ${tone.dot}` : 'none',
             }}>{count(st)}</span>
           </button>

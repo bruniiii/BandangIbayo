@@ -23,14 +23,14 @@ const uploadDoc = async (driverId, kind, file) => {
 };
 
 const input = {
-  width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1px solid rgba(180,81,30,0.25)',
-  background: '#FDF6EE', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: '#1A0A00',
+  width: '100%', boxSizing: 'border-box', padding: '11px 14px', borderRadius: 12, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)',
+  background: 'var(--ib-cream, #FDF6EE)', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)',
 };
-const label = { display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#5C2A10', marginBottom: 6 };
+const label = { display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-brown, #5C2A10)', marginBottom: 6 };
 const btn = (main) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, padding: '0 18px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-  background: main ? '#B4511E' : 'transparent', color: main ? '#FDF6EE' : '#5C2A10', border: main ? 'none' : '1px solid rgba(180,81,30,0.3)',
+  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 
 // ── Add or change one driver ──
@@ -80,11 +80,11 @@ export const DriverForm = ({ driver, onDone, onCancel }) => {
   };
 
   const fileBox = (key, text, Icon, file, setFile, onFile) => (
-    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, cursor: 'pointer', background: '#FDF6EE', border: `1px ${onFile || file ? 'solid' : 'dashed'} rgba(180,81,30,0.35)` }}>
-      <span style={{ width: 40, height: 40, borderRadius: 10, background: '#F2E4D0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#A8481A', flexShrink: 0 }}><Icon size={18} /></span>
+    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 12, cursor: 'pointer', background: 'var(--ib-cream, #FDF6EE)', border: `1px ${onFile || file ? 'solid' : 'dashed'} rgba(var(--ib-accent-rgb, 180,81,30), 0.35)` }}>
+      <span style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--ib-parch, #F2E4D0)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}><Icon size={18} /></span>
       <span style={{ minWidth: 0, flex: 1 }}>
-        <span style={{ display: 'block', fontSize: 12.5, fontWeight: 800, color: '#1A0A00' }}>{text} <span style={{ color: '#A8481A' }}>*</span></span>
-        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: file || onFile ? '#1B5E3B' : '#8C2F1C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ display: 'block', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{text} <span style={{ color: 'var(--ib-sienna, #A8481A)' }}>*</span></span>
+        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: file || onFile ? 'var(--ib-green, #1B5E3B)' : 'var(--ib-red, #8C2F1C)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {file ? file.name : onFile ? 'On file · tap to replace' : 'Tap to upload a photo'}
         </span>
       </span>
@@ -102,7 +102,7 @@ export const DriverForm = ({ driver, onDone, onCancel }) => {
         {fileBox('license', "Driver's license / valid ID", IdCard, license, setLicense, driver?.license_path)}
         {fileBox('photo', "Driver's photo (face)", Camera, photo, setPhoto, driver?.photo_path)}
       </div>
-      <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#5C2A10' }}>The ID and photo are private: only admins can see them (for liability).</p>
+      <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>The ID and photo are private: only admins can see them (for liability).</p>
       {!saving && missing.some(Boolean) && <MissingHint items={missing} />}
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
         <button type="button" onClick={onCancel} style={btn(false)}>Cancel</button>

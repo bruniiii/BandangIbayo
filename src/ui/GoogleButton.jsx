@@ -29,9 +29,9 @@ const GoogleButton = ({ nextPath = null, label = 'Continue with Google' }) => {
       disabled={busy}
       style={{
         width: '100%', minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-        background: '#FFFFFF', color: '#1F1F1F', border: '1.5px solid rgba(26,10,0,0.18)', borderRadius: 14,
+        background: '#FFFFFF', color: '#1F1F1F', border: '1.5px solid rgba(var(--ib-dark-rgb, 26,10,0), 0.18)', borderRadius: 14,
         fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
-        boxShadow: '0 2px 8px rgba(26,10,0,0.06)',
+        boxShadow: '0 2px 8px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
       }}
     >
       {busy ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <GoogleMark />}
@@ -42,8 +42,8 @@ const GoogleButton = ({ nextPath = null, label = 'Continue with Google' }) => {
 
 // A thin "or" line between the Google button and the email form.
 export const OrDivider = () => (
-  <div aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#7A3A18', fontSize: 12, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-    <span style={{ flex: 1, height: 1, background: 'rgba(180,81,30,0.2)' }} /> or <span style={{ flex: 1, height: 1, background: 'rgba(180,81,30,0.2)' }} />
+  <div aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 12, color: 'var(--ib-rust, #7A3A18)', fontSize: 12, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+    <span style={{ flex: 1, height: 1, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' }} /> or <span style={{ flex: 1, height: 1, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' }} />
   </div>
 );
 

@@ -94,19 +94,19 @@ const DataTab = ({ onNavigate }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <section style={card}>
-        <h3 style={h3}><MapIcon size={16} color="#A8481A" /> Update records</h3>
+        <h3 style={h3}><MapIcon size={16} color="var(--ib-sienna, #A8481A)" /> Update records</h3>
         <p style={hint}>Where to update or correct each kind of record. Every change is saved in Audit Trail.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: 8 }}>
           {SHORTCUTS.map((s) => {
             const Icon = s.icon;
             return (
               <button key={s.title} type="button" onClick={() => onNavigate(s.page)} style={{ ...row, flexWrap: 'nowrap', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                <Icon size={18} color="#B4511E" style={{ flexShrink: 0 }} />
+                <Icon size={18} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0 }} />
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{s.title}</span>
-                  <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{s.what}</span>
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{s.title}</span>
+                  <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{s.what}</span>
                 </span>
-                <ChevronRight size={16} color="#7A3A18" style={{ flexShrink: 0 }} />
+                <ChevronRight size={16} color="var(--ib-rust, #7A3A18)" style={{ flexShrink: 0 }} />
               </button>
             );
           })}
@@ -116,26 +116,26 @@ const DataTab = ({ onNavigate }) => {
       <section style={card}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div>
-            <h3 style={h3}><Database size={16} color="#A8481A" /> Clean up outdated data</h3>
+            <h3 style={h3}><Database size={16} color="var(--ib-sienna, #A8481A)" /> Clean up outdated data</h3>
             <p style={hint}>Most of it is cleaned up automatically; you can also clean it up now.</p>
           </div>
           <button type="button" onClick={runAll} disabled={!!running || !!error} style={btn(true)}>
             {running === 'all' ? <Loader2 size={14} style={spin} /> : <Wrench size={14} />} Run All Cleanups
           </button>
         </div>
-        {error && <p role="alert" style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color: '#8C2F1C' }}>Couldn't check the data ({error}). Run the latest database update (install_updates.sql).</p>}
+        {error && <p role="alert" style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>Couldn't check the data ({error}). Run the latest database update (install_updates.sql).</p>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {TASKS.map((t) => {
             const n = t.count ? Number(health?.[t.count]) || 0 : null;
             const Icon = t.icon;
             return (
-              <div key={t.key} style={{ ...row, background: n ? 'rgba(232,162,101,0.14)' : '#F2E4D0' }}>
-                <Icon size={18} color={n ? '#B4511E' : '#5C2A10'} style={{ flexShrink: 0 }} />
+              <div key={t.key} style={{ ...row, background: n ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)' : 'var(--ib-parch, #F2E4D0)' }}>
+                <Icon size={18} color={n ? 'var(--ib-accent, #B4511E)' : 'var(--ib-brown, #5C2A10)'} style={{ flexShrink: 0 }} />
                 <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>
-                    {t.title}{n != null && <span style={{ marginLeft: 8, color: n ? '#8C2F1C' : '#1B5E3B' }}>{n ? n : '✓ none'}</span>}
+                  <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
+                    {t.title}{n != null && <span style={{ marginLeft: 8, color: n ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #1B5E3B)' }}>{n ? n : '✓ none'}</span>}
                   </p>
-                  <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{t.what}</p>
+                  <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{t.what}</p>
                 </div>
                 <button type="button" onClick={() => run(t)} disabled={!!running || n === 0} style={btn(!!n || n == null)}>
                   {running === t.key ? <Loader2 size={14} style={spin} /> : <Wrench size={14} />} Clean Up
@@ -144,7 +144,7 @@ const DataTab = ({ onNavigate }) => {
             );
           })}
           {health && (Number(health.stale_requests) > 0 || Number(health.errors_7_days) > 0) && (
-            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 700, color: '#7A4410' }}>
+            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #7A4410)' }}>
               {Number(health.stale_requests) > 0 && `${health.stale_requests} request${health.stale_requests === 1 ? ' has' : 's have'} waited over 30 days for an answer (see Private Tours / Requested Tours). `}
               {Number(health.errors_7_days) > 0 && `${health.errors_7_days} website error${health.errors_7_days === 1 ? '' : 's'} in the last 7 days.`}
             </p>
@@ -153,11 +153,11 @@ const DataTab = ({ onNavigate }) => {
       </section>
 
       <section style={card}>
-        <h3 style={h3}><Clock size={16} color="#A8481A" /> Runs automatically</h3>
+        <h3 style={h3}><Clock size={16} color="var(--ib-sienna, #A8481A)" /> Runs automatically</h3>
         <p style={hint}>The database does these by itself, so the data stays up to date even when no one is cleaning.</p>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
           {automatic().map(([w, t]) => (
-            <li key={w} style={{ display: 'flex', gap: 10, fontSize: 12.5, color: '#1A0A00' }}>
+            <li key={w} style={{ display: 'flex', gap: 10, fontSize: 12.5, color: 'var(--ib-dark, #1A0A00)' }}>
               <CheckCircle2 size={15} color="#2E9B5F" style={{ flexShrink: 0, marginTop: 2 }} />
               <span><strong>{w}:</strong> {t}</span>
             </li>
@@ -166,14 +166,14 @@ const DataTab = ({ onNavigate }) => {
       </section>
 
       <section style={card}>
-        <h3 style={h3}><History size={16} color="#A8481A" /> Maintenance log</h3>
+        <h3 style={h3}><History size={16} color="var(--ib-sienna, #A8481A)" /> Maintenance log</h3>
         <p style={hint}>Every cleanup run from this page.</p>
-        {log.length === 0 ? <p style={{ margin: 0, fontSize: 12.5, color: '#5C2A10' }}>No cleanups yet.</p> : (
+        {log.length === 0 ? <p style={{ margin: 0, fontSize: 12.5, color: 'var(--ib-brown, #5C2A10)' }}>No cleanups yet.</p> : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
             {log.map((r) => (
-              <li key={r.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontSize: 12.5, background: '#F2E4D0', borderRadius: 10, padding: '8px 12px' }}>
-                <span style={{ fontWeight: 800, color: '#1A0A00' }}>{TASK_NAMES[r.task] || r.task}: {r.affected} item{r.affected === 1 ? '' : 's'}</span>
-                <span style={{ color: '#5C2A10', fontWeight: 600 }}>{names[r.admin_id] || (r.automatic ? 'Automatic' : 'Admin')} · {when(r.ran_at)}</span>
+              <li key={r.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', fontSize: 12.5, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 10, padding: '8px 12px' }}>
+                <span style={{ fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{TASK_NAMES[r.task] || r.task}: {r.affected} item{r.affected === 1 ? '' : 's'}</span>
+                <span style={{ color: 'var(--ib-brown, #5C2A10)', fontWeight: 600 }}>{names[r.admin_id] || (r.automatic ? 'Automatic' : 'Admin')} · {when(r.ran_at)}</span>
               </li>
             ))}
           </ul>

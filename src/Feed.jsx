@@ -34,12 +34,12 @@ const REACTIONS = [
 ];
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
 // ---------------------------------------------------------
 
 const timeAgo = (dateStr) => {
@@ -430,8 +430,8 @@ const Feed = ({ isAdmin = false, focus = null }) => {
       {/* composer — everyone (joiners' posts wait for approval) */}
       {(isAdmin || currentUserId) && (
         <div style={{
-          background: '#FDF6EE', borderRadius: 20, padding: '1.5rem',
-          border: '1px solid rgba(180,81,30,0.14)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1.5rem',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         }}>
           <textarea
             id="feed-composer"
@@ -442,19 +442,19 @@ const Feed = ({ isAdmin = false, focus = null }) => {
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box', resize: 'vertical',
-              background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
+              background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
               borderRadius: 14, padding: '12px 14px', fontSize: 13, fontWeight: 600,
-              color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+              color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
             }}
           />
 
           {!isAdmin && (
-            <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '8px 2px 0' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '8px 2px 0' }}>
               Posts are checked by Bandang IBAYO before they appear on the feed. You can share one post every 48 hours.
             </p>
           )}
           {!isAdmin && postWaitUntil && (
-            <p role="status" style={{ fontSize: 12, fontWeight: 800, color: '#8C5216', background: 'rgba(232,162,101,0.22)', borderRadius: 10, padding: '8px 12px', margin: '8px 0 0' }}>
+            <p role="status" style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-warn, #8C5216)', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.22)', borderRadius: 10, padding: '8px 12px', margin: '8px 0 0' }}>
               You can post again on {formatWhen(postWaitUntil)}.
             </p>
           )}
@@ -470,10 +470,10 @@ const Feed = ({ isAdmin = false, focus = null }) => {
                   )}
                   {item.type === 'video' && (
                     <div style={{
-                      position: 'absolute', bottom: 5, left: 5, background: 'rgba(26,10,0,0.7)',
+                      position: 'absolute', bottom: 5, left: 5, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)',
                       borderRadius: 6, padding: '2px 5px', display: 'flex', alignItems: 'center',
                     }}>
-                      <Video size={11} color="#FDF6EE" />
+                      <Video size={11} color="var(--ib-on-ink, #FDF6EE)" />
                     </div>
                   )}
                   <button
@@ -481,7 +481,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
                     style={{
                       position: 'absolute', top: -8, right: -8,
                       width: 26, height: 26, borderRadius: '50%',
-                      background: '#1A0A00', color: '#FDF6EE', border: '2px solid #FDF6EE',
+                      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: '2px solid var(--ib-cream, #FDF6EE)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
                     }}
                   >
@@ -499,7 +499,7 @@ const Feed = ({ isAdmin = false, focus = null }) => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
                 fontSize: 11.5, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: '#7A3A18', opacity: 0.9,
+                color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
                 background: 'none', border: 'none', padding: 0, fontFamily: 'inherit',
               }}
             >
@@ -524,11 +524,11 @@ const Feed = ({ isAdmin = false, focus = null }) => {
               title={postWaitUntil ? `You can post again on ${postWaitUntil.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}` : off && !posting ? 'Write something or add a photo first' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                background: off && !posting ? '#EADBC8' : '#1A0A00',
-                color: off && !posting ? '#7A3A18' : '#E8A265', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                background: off && !posting ? 'var(--ib-surface-2, #EADBC8)' : 'var(--ib-ink, #1A0A00)',
+                color: off && !posting ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
                 textTransform: 'uppercase', padding: '11px 22px', borderRadius: 999,
-                border: off && !posting ? '1px solid rgba(122,58,24,0.3)' : '1px solid #1A0A00', cursor: off ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit', boxShadow: off ? 'none' : '0 6px 18px rgba(26,10,0,0.22)',
+                border: off && !posting ? '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : '1px solid var(--ib-dark, #1A0A00)', cursor: off ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', boxShadow: off ? 'none' : '0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)',
               }}
             >
               {posting ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
@@ -546,25 +546,25 @@ const Feed = ({ isAdmin = false, focus = null }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <button type="button" onClick={() => setPendingOpen(o => !o)} aria-expanded={pendingOpen} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%',
-            background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 16, padding: '14px 18px',
-            cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+            background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 16, padding: '14px 18px',
+            cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
           }}>
-            <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+            <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
               Waiting for approval ({pendingPosts.length})
             </span>
-            <ChevronDown size={18} color="#A8481A" style={{ transform: pendingOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            <ChevronDown size={18} color="var(--ib-sienna, #A8481A)" style={{ transform: pendingOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
           {pendingOpen && pendingPosts.length > 1 && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', background: 'rgba(180,81,30,0.06)', borderRadius: 14, padding: '10px 14px' }}>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#5C2A10' }}>Looked through them all? Approve every waiting post at once.</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 14, padding: '10px 14px' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>Looked through them all? Approve every waiting post at once.</span>
               <button type="button" onClick={approveAll} disabled={bulkBusy} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                background: '#B4511E', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
               }}>{bulkBusy ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve All ({pendingPosts.length})</button>
             </div>
           )}
           {pendingOpen && pendingPosts.map(post => renderPost(post))}
-          <div style={{ borderTop: '1px solid rgba(180,81,30,0.15)', margin: '4px 0' }} />
+          <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', margin: '4px 0' }} />
         </div>
       )}
 
@@ -601,7 +601,7 @@ const CommentText = ({ comment: c, mine, onSave }) => {
     return (
       <div style={{ marginTop: 4 }}>
         <textarea value={text} maxLength={500} rows={2} autoFocus onChange={(e) => setText(e.target.value)} aria-label="Edit your comment"
-          style={{ width: '100%', boxSizing: 'border-box', borderRadius: 10, border: '1px solid rgba(180,81,30,0.3)', padding: '6px 10px', fontFamily: 'inherit', fontSize: 16, color: '#1A0A00', background: '#FDF6EE', resize: 'vertical' }} />
+          style={{ width: '100%', boxSizing: 'border-box', borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', padding: '6px 10px', fontFamily: 'inherit', fontSize: 16, color: 'var(--ib-dark, #1A0A00)', background: 'var(--ib-cream, #FDF6EE)', resize: 'vertical' }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <button type="button" className="text-link" onClick={save} disabled={saving || !text.trim()} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, fontWeight: 900 }}>{saving ? 'Saving…' : 'Save'}</button>
           <button type="button" className="text-link" onClick={() => { setText(c.content); setEditing(false); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Cancel</button>
@@ -611,10 +611,10 @@ const CommentText = ({ comment: c, mine, onSave }) => {
   }
   return (
     <>
-      <p style={{ fontSize: 12.5, color: '#1A0A00', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
+      <p style={{ fontSize: 12.5, color: 'var(--ib-dark, #1A0A00)', margin: '2px 0 0', whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
         {c.content}
       </p>
-      <p style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: '4px 0 0' }}>
+      <p style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '4px 0 0' }}>
         {timeAgo(c.created_at)}
         {c.edited_at && <span style={{ fontStyle: 'italic' }} title={`Edited ${new Date(c.edited_at).toLocaleString('en-PH')}`}>· Edited</span>}
         {mine && (
@@ -651,8 +651,8 @@ const FeedPostCard = ({
 
   return (
     <div style={{
-      background: '#FDF6EE', borderRadius: 20, overflow: 'hidden',
-      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     }}>
       <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -661,8 +661,8 @@ const FeedPostCard = ({
           ) : (
             <div style={{
               width: 42, height: 42, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
-              background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#E8A265', fontWeight: 900, fontSize: 16,
+              background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 16,
             }}>
               {post.author.avatar_url
                 ? <img loading="lazy" decoding="async" src={post.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -670,25 +670,25 @@ const FeedPostCard = ({
             </div>
           )}
           <div>
-            <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
               {displayName(post.author)}
               {isStaffRole(post.author?.role) && (
                 <span style={{
-                  marginLeft: 8, background: '#B4511E', color: '#FDF6EE',
+                  marginLeft: 8, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
                   borderRadius: 999, padding: '2px 8px', verticalAlign: 'middle',
                 }}>Admin</span>
               )}
             </p>
-            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '3px 0 0' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '3px 0 0' }}>
               {timeAgo(post.created_at)} {isTourPost && '· New Tour Posted'}
             </p>
             {status !== 'Approved' && (
               <span style={{
                 display: 'inline-block', marginTop: 5, borderRadius: 999, padding: '2px 9px',
                 fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: status === 'Pending' ? 'rgba(232,162,101,0.25)' : 'rgba(140,47,28,0.12)',
-                color: status === 'Pending' ? '#8C5216' : '#8C2F1C',
+                background: status === 'Pending' ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.25)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.12)',
+                color: status === 'Pending' ? 'var(--ib-warn, #8C5216)' : 'var(--ib-red, #8C2F1C)',
               }}>
                 {status === 'Pending' ? 'Waiting for approval' : 'Not approved'}
               </span>
@@ -704,7 +704,7 @@ const FeedPostCard = ({
             aria-label="Delete post"
             style={{
               background: 'none', border: 'none', cursor: deleting ? 'not-allowed' : 'pointer',
-              color: '#C0362C', padding: 8, flexShrink: 0, borderRadius: 8,
+              color: 'var(--ib-danger, #C0362C)', padding: 8, flexShrink: 0, borderRadius: 8,
             }}
           >
             {deleting ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={15} />}
@@ -713,13 +713,13 @@ const FeedPostCard = ({
       </div>
 
       {post.content && (
-        <p style={{ padding: '0 1.5rem 1rem', fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
+        <p style={{ padding: '0 1.5rem 1rem', fontSize: 13, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' }}>
           {post.content}
         </p>
       )}
 
       {media.length === 1 && (
-        <div style={{ width: '100%', maxHeight: 340, overflow: 'hidden', background: '#E8D5BC' }}>
+        <div style={{ width: '100%', maxHeight: 340, overflow: 'hidden', background: 'var(--ib-surface-2, #E8D5BC)' }}>
           {media[0].type === 'video' ? (
             <video src={media[0].url} controls style={{ width: '100%', maxHeight: 340, display: 'block', background: '#000' }} />
           ) : (
@@ -737,7 +737,7 @@ const FeedPostCard = ({
         <div style={{
           display: 'grid',
           gridTemplateColumns: media.length === 2 ? '1fr 1fr' : 'repeat(3, 1fr)',
-          gap: 3, background: '#E8D5BC',
+          gap: 3, background: 'var(--ib-surface-2, #E8D5BC)',
         }}>
           {media.map((m, idx) => (
             m.type === 'video' ? (
@@ -758,19 +758,19 @@ const FeedPostCard = ({
       {isTourPost && tour && (
         <div style={{
           margin: '1rem 1.5rem 1.5rem', padding: '14px 16px',
-          background: '#F2E4D0', borderRadius: 14,
+          background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {tour.title}
             </p>
-            <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
+            <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '4px 0 0' }}>
               <MapPin size={11} /> {tour.destination}
             </p>
           </div>
           {tour.price != null && (
-            <span style={{ fontSize: 14, fontWeight: 900, color: '#A8481A', flexShrink: 0 }}>
+            <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }}>
               {formatPeso(Number(tour.price))}
             </span>
           )}
@@ -780,17 +780,17 @@ const FeedPostCard = ({
       {/* Not on the feed yet: an admin approves or rejects it; no reactions or comments */}
       {status !== 'Approved' ? (
         isAdmin && status === 'Pending' && (
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap', padding: '1rem 1.5rem 1.25rem', marginTop: 4, borderTop: '1px solid rgba(180,81,30,0.12)' }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexWrap: 'wrap', padding: '1rem 1.5rem 1.25rem', marginTop: 4, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
             <button type="button" onClick={onReject} disabled={reviewing} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '10px 18px', borderRadius: 999, border: 'none',
-              background: 'rgba(140,47,28,0.1)', color: '#8C2F1C', cursor: 'pointer', fontFamily: 'inherit',
+              background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)', color: 'var(--ib-red, #8C2F1C)', cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
               <XCircle size={14} /> Reject
             </button>
             <button type="button" onClick={onApprove} disabled={reviewing} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 999, border: 'none',
-              background: '#B4511E', color: '#FDF6EE', cursor: 'pointer', fontFamily: 'inherit',
+              background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: 900, fontSize: 11.5, letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
               {reviewing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve
@@ -803,7 +803,7 @@ const FeedPostCard = ({
       {(reactions.length > 0 || comments.length > 0) && (
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 1.5rem 10px', fontSize: 11.5, fontWeight: 700, color: '#7A3A18',
+          padding: '0 1.5rem 10px', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)',
         }}>
           {reactions.length > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -818,7 +818,7 @@ const FeedPostCard = ({
           {comments.length > 0 && (
             <button
               onClick={onToggleComments}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit', opacity: 0.9 }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', fontSize: 11.5, fontWeight: 700, fontFamily: 'inherit', opacity: 0.9 }}
             >
               {comments.length} Comment{comments.length !== 1 ? 's' : ''}
             </button>
@@ -826,7 +826,7 @@ const FeedPostCard = ({
         </div>
       )}
 
-      <div style={{ borderTop: '1px solid rgba(180,81,30,0.12)', margin: '0 1.5rem' }} />
+      <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', margin: '0 1.5rem' }} />
 
       {/* action row: like / comment toggle */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '4px 1rem', gap: 4 }}>
@@ -837,7 +837,7 @@ const FeedPostCard = ({
             style={{
               display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
               cursor: reacting ? 'not-allowed' : 'pointer', padding: '10px 10px', borderRadius: 10,
-              fontSize: 12, fontWeight: 800, color: mine ? '#A8481A' : '#7A3A18', fontFamily: 'inherit',
+              fontSize: 12, fontWeight: 800, color: mine ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit',
             }}
           >
             <span style={{ fontSize: 15 }}>{mine ? mine.emoji : '👍'}</span>
@@ -846,16 +846,16 @@ const FeedPostCard = ({
           <button
             onClick={onTogglePicker}
             title="Choose a reaction"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#7A3A18', opacity: 0.9 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}
           >
             <ChevronDown size={13} />
           </button>
 
           {pickerOpen && (
             <div style={{
-              position: 'absolute', bottom: '110%', left: 0, background: '#FDF6EE',
-              border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999, padding: '6px 10px',
-              display: 'flex', gap: 6, boxShadow: '0 8px 24px rgba(26,10,0,0.18)', zIndex: 5,
+              position: 'absolute', bottom: '110%', left: 0, background: 'var(--ib-cream, #FDF6EE)',
+              border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 999, padding: '6px 10px',
+              display: 'flex', gap: 6, boxShadow: '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)', zIndex: 5,
             }}>
               {REACTIONS.map(r => (
                 <button
@@ -876,7 +876,7 @@ const FeedPostCard = ({
           style={{
             display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
             cursor: 'pointer', padding: '10px 10px', borderRadius: 10,
-            fontSize: 12, fontWeight: 800, color: '#7A3A18', fontFamily: 'inherit',
+            fontSize: 12, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', fontFamily: 'inherit',
           }}
         >
           <MessageCircle size={15} /> Comment
@@ -892,8 +892,8 @@ const FeedPostCard = ({
                 <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                   {isStaffRole(c.author?.role) ? <BrandAvatar size={28} /> : <div style={{
                     width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                    background: '#1A0A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#E8A265', fontWeight: 900, fontSize: 11,
+                    background: 'var(--ib-ink, #1A0A00)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--ib-amber, #E8A265)', fontWeight: 900, fontSize: 11,
                   }}>
                     {c.author?.avatar_url ? (
                       <img loading="lazy" decoding="async" src={c.author.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -901,9 +901,9 @@ const FeedPostCard = ({
                       displayName(c.author, 'Joiner').charAt(0).toUpperCase()
                     )}
                   </div>}
-                  <div style={{ flex: 1, background: '#F2E4D0', borderRadius: 14, padding: '8px 12px', minWidth: 0 }}>
+                  <div style={{ flex: 1, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '8px 12px', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                      <p style={{ fontSize: 11.5, fontWeight: 900, color: '#1A0A00', margin: 0 }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
                         {c.user_id ? displayName(c.author, 'Joiner') : 'Deleted account'}
                       </p>
                     </div>
@@ -923,9 +923,9 @@ const FeedPostCard = ({
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onAddComment(); } }}
               placeholder="Write a comment..."
               style={{
-                flex: 1, boxSizing: 'border-box', background: '#F2E4D0',
-                border: '1px solid rgba(180,81,30,0.18)', borderRadius: 999,
-                padding: '9px 14px', fontSize: 12.5, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+                flex: 1, boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)',
+                border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 999,
+                padding: '9px 14px', fontSize: 12.5, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
               }}
             />
             <button
@@ -933,8 +933,8 @@ const FeedPostCard = ({
               disabled={commenting || !commentDraft.trim()}
               style={{
                 width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                background: (commenting || !commentDraft.trim()) ? 'rgba(180,81,30,0.35)' : '#B4511E',
-                color: '#FDF6EE', border: 'none',
+                background: (commenting || !commentDraft.trim()) ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.35)' : 'var(--ib-accent, #B4511E)',
+                color: 'var(--ib-on-accent, #FDF6EE)', border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 cursor: (commenting || !commentDraft.trim()) ? 'not-allowed' : 'pointer',
               }}
@@ -942,7 +942,7 @@ const FeedPostCard = ({
               {commenting ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
             </button>
           </div>
-          <p id={`comment-note-${post.id}`} style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 4px 0' }}>
+          <p id={`comment-note-${post.id}`} style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '6px 4px 0' }}>
             You can edit your own comments; comments can't be deleted.
           </p>
           <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
@@ -958,7 +958,7 @@ const FeedPostCard = ({
           onClick={() => setLightboxIndex(null)}
           style={{
             position: 'fixed', inset: 0, zIndex: 300,
-            background: 'rgba(26,10,0,0.92)', backdropFilter: 'blur(6px)',
+            background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.92)', backdropFilter: 'blur(6px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '3rem 1.5rem', cursor: 'zoom-out',
           }}
@@ -969,9 +969,9 @@ const FeedPostCard = ({
             style={{
               position: 'absolute', top: 20, right: 20,
               width: 40, height: 40, borderRadius: '50%',
-              background: 'rgba(253,246,238,0.12)', border: 'none',
+              background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#FDF6EE', cursor: 'pointer',
+              color: 'var(--ib-on-ink, #FDF6EE)', cursor: 'pointer',
             }}
           >
             <X size={20} />
@@ -983,8 +983,8 @@ const FeedPostCard = ({
               style={{
                 position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                 width: 44, height: 44, borderRadius: '50%',
-                background: 'rgba(253,246,238,0.12)', border: 'none',
-                color: '#FDF6EE', fontSize: 20, cursor: 'pointer',
+                background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none',
+                color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 20, cursor: 'pointer',
               }}
             >
               ‹
@@ -996,8 +996,8 @@ const FeedPostCard = ({
               style={{
                 position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
                 width: 44, height: 44, borderRadius: '50%',
-                background: 'rgba(253,246,238,0.12)', border: 'none',
-                color: '#FDF6EE', fontSize: 20, cursor: 'pointer',
+                background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', border: 'none',
+                color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 20, cursor: 'pointer',
               }}
             >
               ›

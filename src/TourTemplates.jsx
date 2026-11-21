@@ -16,13 +16,13 @@ import { parseItinerary, serializeItinerary } from './itinerary';
 //   <TourTemplatePicker onUse={(trip) => …} onBlank={() => …} onClose={…} />
 // ─────────────────────────────────────────────
 
-const card = { background: '#FDF6EE', borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)' };
+const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)' };
 const btn = (main) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, padding: '0 18px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-  background: main ? '#B4511E' : 'transparent', color: main ? '#FDF6EE' : '#5C2A10', border: main ? 'none' : '1px solid rgba(180,81,30,0.3)',
+  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
-const sectionTitle = { margin: '14px 0 6px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' };
+const sectionTitle = { margin: '14px 0 6px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' };
 
 // Everything in a template, as checklist items: { id, section, label, img? }.
 const itemsOf = (d) => {
@@ -111,37 +111,37 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label={onBlank ? 'Create a tour' : 'Use a template'} style={{ ...card, position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto' }}>
-        <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+        <button type="button" onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 14, right: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
 
         {!chosen ? (
           <>
-            <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 900, color: '#1A0A00', display: 'flex', alignItems: 'center', gap: 8 }}><LayoutTemplate size={20} color="#B4511E" /> {onBlank ? 'Create a tour' : 'Use a template'}</h3>
-            <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 8 }}><LayoutTemplate size={20} color="var(--ib-accent, #B4511E)" /> {onBlank ? 'Create a tour' : 'Use a template'}</h3>
+            <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.5 }}>
               {onBlank
                 ? 'Start from a pre-made tour for the place and tick what you need, or start from scratch.'
                 : 'Pick a pre-made tour for the place and tick what you need. It fills in this form; you can still change anything.'}
             </p>
             {onBlank && <button type="button" onClick={onBlank} style={{ ...btn(false), marginBottom: 14 }}><Plus size={14} /> Start From Scratch</button>}
-            {templates === null ? <p style={{ margin: 0, color: '#7A3A18' }}>Loading…</p> : templates.length === 0 ? (
-              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#5C2A10', background: '#F2E4D0', borderRadius: 12, padding: '12px 14px' }}>
+            {templates === null ? <p style={{ margin: 0, color: 'var(--ib-rust, #7A3A18)' }}>Loading…</p> : templates.length === 0 ? (
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '12px 14px' }}>
                 No templates yet. Fill in a tour once, then click <strong>Save as Template</strong> at the bottom of the tour form. Next time, pick it here.
               </p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
                 {templates.map((t) => (
-                  <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F2E4D0', borderRadius: 14, padding: '10px 12px' }}>
+                  <li key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '10px 12px' }}>
                     {t.data?.image_urls?.[0]
                       ? <img src={t.data.image_urls[0]} alt="" style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                      : <span style={{ width: 48, height: 48, borderRadius: 10, background: '#1A0A00', color: '#E8A265', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><LayoutTemplate size={18} /></span>}
+                      : <span style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><LayoutTemplate size={18} /></span>}
                     <button type="button" onClick={() => choose(t)} style={{ flex: 1, minWidth: 0, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
-                      <span style={{ display: 'block', fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{t.name}</span>
-                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{t.data?.destination || ''}{t.data?.price ? ` · ${formatPeso(t.data.price)}` : ''}</span>
+                      <span style={{ display: 'block', fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{t.name}</span>
+                      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{t.data?.destination || ''}{t.data?.price ? ` · ${formatPeso(t.data.price)}` : ''}</span>
                     </button>
                     <button type="button" onClick={() => choose(t)} style={btn(true)}>Use</button>
-                    <button type="button" onClick={() => rename(t)} aria-label={`Rename ${t.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 6 }}><Pencil size={15} /></button>
-                    <button type="button" onClick={() => remove(t)} aria-label={`Delete ${t.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 6 }}><Trash2 size={15} /></button>
+                    <button type="button" onClick={() => rename(t)} aria-label={`Rename ${t.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', padding: 6 }}><Pencil size={15} /></button>
+                    <button type="button" onClick={() => remove(t)} aria-label={`Delete ${t.name}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-red, #8C2F1C)', padding: 6 }}><Trash2 size={15} /></button>
                   </li>
                 ))}
               </ul>
@@ -152,13 +152,13 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
             <button type="button" onClick={() => setChosen(null)} className="text-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
               <ChevronLeft size={14} /> All templates
             </button>
-            <h3 style={{ margin: '8px 0 4px', fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>{chosen.name}: what do you need for this tour?</h3>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>
+            <h3 style={{ margin: '8px 0 4px', fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{chosen.name}: what do you need for this tour?</h3>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.5 }}>
               Everything is ticked. Untick what this tour won't have; you can still change anything in the tour form.
             </p>
             <div style={{ display: 'flex', gap: 8, margin: '10px 0 0', flexWrap: 'wrap' }}>
               <button type="button" onClick={() => setOn(new Set(items.map((i) => i.id)))} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Tick all</button>
-              <span style={{ color: '#B4511E' }}>·</span>
+              <span style={{ color: 'var(--ib-accent, #B4511E)' }}>·</span>
               <button type="button" onClick={() => setOn(new Set())} className="text-link" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Untick all</button>
             </div>
             {sections.map((sec) => {
@@ -175,10 +175,10 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
                   <div style={{ display: sec === 'Photos' ? 'flex' : 'grid', flexWrap: 'wrap', gap: 6 }}>
                     {list.map((i) => (
                       <label key={i.id} style={{
-                        display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#1A0A00',
-                        background: on.has(i.id) ? 'rgba(180,81,30,0.08)' : 'transparent', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 10, padding: i.img ? 4 : '7px 10px',
+                        display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)',
+                        background: on.has(i.id) ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'transparent', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 10, padding: i.img ? 4 : '7px 10px',
                       }}>
-                        <input type="checkbox" checked={on.has(i.id)} onChange={() => toggle(i.id)} style={{ width: 17, height: 17, accentColor: '#B4511E', flexShrink: 0 }} />
+                        <input type="checkbox" checked={on.has(i.id)} onChange={() => toggle(i.id)} style={{ width: 17, height: 17, accentColor: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
                         {i.img ? <img src={i.img} alt={i.label} style={{ width: 70, height: 52, objectFit: 'cover', borderRadius: 8 }} /> : <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{i.label}</span>}
                       </label>
                     ))}
@@ -186,7 +186,7 @@ export const TourTemplatePicker = ({ onUse, onBlank, onClose }) => {
                 </div>
               );
             })}
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: 18, position: 'sticky', bottom: -24, background: '#FDF6EE', padding: '10px 0' }}>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: 18, position: 'sticky', bottom: -24, background: 'var(--ib-cream, #FDF6EE)', padding: '10px 0' }}>
               <button type="button" onClick={() => setChosen(null)} style={btn(false)}>Back</button>
               <button type="button" onClick={() => onUse(pickFrom(chosen.data || {}, on))} style={btn(true)}>Use Selected ({on.size})</button>
             </div>

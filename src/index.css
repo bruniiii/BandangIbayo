@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
-/* Site typeface and base colours (espresso #1A0A00 on cream #FDF6EE). */
+/* Site typeface and base colours (espresso #1A0A00 on cream #FDF6EE; the tropical skin overrides them, see below). */
 html, body {
   font-family: 'Outfit', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  color: #1A0A00;
+  color: var(--ib-dark, #1A0A00);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -26,8 +26,8 @@ h1[style*="uppercase"], h2[style*="uppercase"], h3[style*="uppercase"], h4[style
   font-style: normal;
   font-weight: 800 !important;
 }
-::placeholder { color: rgba(122,58,24,0.7); opacity: 1; }
-::selection { background: rgba(196,92,38,0.25); color: #1A0A00; }
+::placeholder { color: rgba(var(--ib-rust-rgb, 122,58,24), 0.7); opacity: 1; }
+::selection { background: rgba(var(--ib-orange-rgb, 196,92,38), 0.25); color: var(--ib-dark, #1A0A00); }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
@@ -46,23 +46,23 @@ select:-webkit-autofill:focus {
    Use className="text-link" on any <a>/<Link>/<button> that reads as text.
    ───────────────────────────────────────────── */
 .text-link {
-  color: #A8481A !important;
+  color: var(--ib-sienna, #A8481A) !important;
   text-decoration: underline !important;
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
   cursor: pointer;
   font-weight: 800;
 }
-.text-link:hover { color: #9E4316 !important; text-decoration-thickness: 2px; }
+.text-link:hover { color: var(--ib-sienna-hover, #9E4316) !important; text-decoration-thickness: 2px; }
 
 /* Clickable cards lift a little on hover so they read as clickable. */
 .clickable-card { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
-.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(26,10,0,0.12) !important; }
+.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12) !important; }
 
 /* Keyboard users can always see where they are. */
 a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
 input:focus-visible, select:focus-visible, textarea:focus-visible, [role="option"]:focus-visible {
-  outline: 3px solid rgba(180,81,30,0.55);
+  outline: 3px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.55);
   outline-offset: 2px;
 }
 
@@ -99,28 +99,28 @@ button:not(:disabled), [role="button"], a { cursor: pointer; }
 }
 
 /* Joiner homepage: the tour row scrolls sideways; keep a slim, visible bar. */
-.tour-packages-scroll { scrollbar-width: thin; scrollbar-color: rgba(180,81,30,0.45) transparent; }
+.tour-packages-scroll { scrollbar-width: thin; scrollbar-color: rgba(var(--ib-accent-rgb, 180,81,30), 0.45) transparent; }
 .tour-packages-scroll::-webkit-scrollbar { height: 8px; }
-.tour-packages-scroll::-webkit-scrollbar-track { background: rgba(180,81,30,0.08); border-radius: 999px; }
-.tour-packages-scroll::-webkit-scrollbar-thumb { background: rgba(180,81,30,0.45); border-radius: 999px; }
-.tour-packages-scroll::-webkit-scrollbar-thumb:hover { background: rgba(180,81,30,0.7); }
+.tour-packages-scroll::-webkit-scrollbar-track { background: rgba(var(--ib-accent-rgb, 180,81,30), 0.08); border-radius: 999px; }
+.tour-packages-scroll::-webkit-scrollbar-thumb { background: rgba(var(--ib-accent-rgb, 180,81,30), 0.45); border-radius: 999px; }
+.tour-packages-scroll::-webkit-scrollbar-thumb:hover { background: rgba(var(--ib-accent-rgb, 180,81,30), 0.7); }
 .tour-row-arrow {
   position: absolute; top: calc(50% - 6px); transform: translateY(-50%); z-index: 2;
-  width: 40px; height: 40px; border-radius: 50%; border: 2px solid #FDF6EE;
-  background: #1A0A00; color: #FDF6EE; cursor: pointer;
+  width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ib-cream, #FDF6EE);
+  background: var(--ib-ink, #1A0A00); color: var(--ib-on-ink, #FDF6EE); cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 6px 18px rgba(26,10,0,0.3); transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.3); transition: background 0.15s, transform 0.15s;
 }
-.tour-row-arrow:hover { background: #B4511E; transform: translateY(-50%) scale(1.06); }
+.tour-row-arrow:hover { background: var(--ib-accent, #B4511E); color: var(--ib-on-accent, #FDF6EE); transform: translateY(-50%) scale(1.06); }
 
 /* ── Skeleton loading (ui/Skeleton.jsx) ── */
 .skel {
-  background: linear-gradient(90deg, rgba(180,81,30,0.09) 25%, rgba(180,81,30,0.17) 37%, rgba(180,81,30,0.09) 63%);
+  background: linear-gradient(90deg, rgba(var(--ib-accent-rgb, 180,81,30), 0.09) 25%, rgba(var(--ib-accent-rgb, 180,81,30), 0.17) 37%, rgba(var(--ib-accent-rgb, 180,81,30), 0.09) 63%);
   background-size: 400% 100%;
   animation: skel-shimmer 1.4s ease infinite;
 }
 .skel-dark {
-  background: linear-gradient(90deg, rgba(253,246,238,0.07) 25%, rgba(253,246,238,0.15) 37%, rgba(253,246,238,0.07) 63%);
+  background: linear-gradient(90deg, rgba(var(--ib-cream-rgb, 253,246,238), 0.07) 25%, rgba(var(--ib-cream-rgb, 253,246,238), 0.15) 37%, rgba(var(--ib-cream-rgb, 253,246,238), 0.07) 63%);
   background-size: 400% 100%;
 }
 @keyframes skel-shimmer {
@@ -164,7 +164,7 @@ input::-ms-clear { display: none; }
 
 /* Group chat: the react button stays quiet until you point at it. */
 .chat-react-btn { opacity: 0.45; transition: opacity 0.15s, background 0.15s; }
-.chat-react-btn:hover, .chat-react-btn:focus-visible { opacity: 1; background: rgba(180,81,30,0.1) !important; }
+.chat-react-btn:hover, .chat-react-btn:focus-visible { opacity: 1; background: rgba(var(--ib-accent-rgb, 180,81,30), 0.1) !important; }
 
 /* Landing help button: on phones the panel spans the screen width. */
 @media (max-width: 560px) {
@@ -179,24 +179,24 @@ input::-ms-clear { display: none; }
    it and no arrow buttons, instead of the browser's plain bar on the edge. */
 /* Firefox only: in Chrome/Edge these two would switch off the styles below. */
 @supports (-moz-appearance: none) {
-  * { scrollbar-width: thin; scrollbar-color: rgba(122, 58, 24, 0.45) transparent; }
+  * { scrollbar-width: thin; scrollbar-color: rgba(var(--ib-rust-rgb, 122,58,24),  0.45) transparent; }
 }
 *::-webkit-scrollbar { width: 12px; height: 12px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(122, 58, 24, 0.4);
+  background-color: rgba(var(--ib-rust-rgb, 122,58,24),  0.4);
   border: 4px solid transparent;
   border-radius: 999px;
   background-clip: padding-box;
 }
-*::-webkit-scrollbar-thumb:hover { background-color: rgba(122, 58, 24, 0.65); }
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--ib-rust-rgb, 122,58,24),  0.65); }
 *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
 *::-webkit-scrollbar-corner { background: transparent; }
 
 /* Tour cards grow a little when the mouse is over them. */
 .grow-card { transition: transform 0.25s, box-shadow 0.25s; position: relative; }
 @media (hover: hover) {
-  .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(26,10,0,0.14) !important; z-index: 2; }
+  .grow-card:hover { transform: translateY(-4px) scale(1.07); box-shadow: 0 12px 30px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14) !important; z-index: 2; }
 }
 
 /* (The 620px minimum width for computers was removed: a narrow window or
@@ -230,7 +230,7 @@ html { touch-action: manipulation; }
   table.stack-table > tbody > tr {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; box-sizing: border-box; width: 100%;
     padding: 14px; margin: 0 0 10px; border-radius: 16px;
-    background: rgba(242,228,208,0.55); border: 1px solid rgba(180,81,30,0.14);
+    background: rgba(var(--ib-parch-rgb, 242,228,208), 0.55); border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14);
   }
   table.stack-table > tbody > tr > td {
     display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
@@ -238,12 +238,12 @@ html { touch-action: manipulation; }
   }
   table.stack-table > tbody > tr > td::before {
     content: attr(data-label); font-size: 10px; font-weight: 900; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #A8481A; line-height: 1.3;
+    text-transform: uppercase; color: var(--ib-sienna, #A8481A); line-height: 1.3;
   }
   /* The title: the whole width, a little bigger, with a line under it. */
   table.stack-table > tbody > tr > td:first-child {
-    grid-column: 1 / -1; font-size: 15px; font-weight: 900; color: #1A0A00;
-    padding-bottom: 10px !important; border-bottom: 1px solid rgba(180,81,30,0.16) !important;
+    grid-column: 1 / -1; font-size: 15px; font-weight: 900; color: var(--ib-dark, #1A0A00);
+    padding-bottom: 10px !important; border-bottom: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.16) !important;
   }
   table.stack-table > tbody > tr > td:first-child::before,
   table.stack-table > tbody > tr > td[data-label=""]::before,
@@ -259,14 +259,24 @@ html { touch-action: manipulation; }
   table.stack-table > tbody > tr > td[data-label=""]:last-child { margin-top: -6px; }
 }
 
-/* Small phones: the bell/account buttons keep their size and a long page
-   title is shortened with "…" instead of running under them. */
-@media (max-width: 480px) {
+/* Phones and small tablets: the top bar's buttons keep their size and a
+   long page title is shortened with "…" instead of running under them. */
+@media (max-width: 768px) {
   .dashboard-topbar { gap: 8px !important; }
   .dashboard-topbar > div:first-child { flex: 1 1 auto; min-width: 0; gap: 8px !important; }
   .dashboard-topbar > div:last-child { flex-shrink: 0; gap: 8px !important; }
-  .page-header h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px !important; }
+  .page-header > div:last-child { flex: 1 1 auto; min-width: 0; }
+  /* The brush-underlined title is a block here, so the "…" can shorten it. */
+  .page-header h1, .page-header h1.journal-title { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px !important; }
+  .page-header h1.journal-title::after { left: 0; right: auto; width: min(100%, 7em); bottom: 0; }
   .page-header > div[aria-hidden] { display: none !important; }
+}
+/* Phones: the page's icon (the stamp) instead of its name, which doesn't
+   fit next to the buttons. The name stays for screen readers. */
+@media (max-width: 480px) {
+  .page-header > div[aria-hidden] { display: flex !important; }
+  .page-header h1, .page-header h1.journal-title { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .page-header-subtitle { display: none !important; }
 }
 
 /* A footer with no buttons in it isn't shown. */
@@ -276,7 +286,7 @@ html { touch-action: manipulation; }
    behind the landing page and both dashboards. A cream overlay keeps the
    cards and text easy to read. */
 .nature-bg {
-  background: linear-gradient(rgba(253,246,238,0.55), rgba(253,246,238,0.55)), url('/nature-bg.webp') center / cover fixed, #FDF6EE;
+  background: url('/topo-light.svg') 0 0 / 640px repeat, linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.55), rgba(var(--ib-cream-rgb, 253,246,238), 0.55)), url('/nature-bg.webp') center / cover fixed, var(--ib-cream, #FDF6EE);
 }
 /* The top row of every dashboard page (page name, bell, account) stays put
    while the page scrolls under it: only the contents move. */
@@ -290,13 +300,13 @@ html { touch-action: manipulation; }
   flex-shrink: 0;
   margin: calc(-1 * var(--dash-pad)) calc(-1 * var(--dash-pad)) 20px !important;
   padding: 14px var(--dash-pad) !important;
-  background: rgba(253,246,238,0.9);
+  background: rgba(var(--ib-cream-rgb, 253,246,238), 0.9);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(180,81,30,0.12);
+  border-bottom: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12);
 }
 .dashboard-content {
-  background: linear-gradient(rgba(253,246,238,0.86), rgba(253,246,238,0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, #FDF6EE !important;
+  background: url('/topo-light.svg') 0 0 / 640px repeat, linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.86), rgba(var(--ib-cream-rgb, 253,246,238), 0.86)), url('/nature-bg.webp') center bottom / cover no-repeat, var(--ib-cream, #FDF6EE) !important;
   background-attachment: fixed !important;
 }
 @media (pointer: coarse) {
@@ -306,8 +316,8 @@ html { touch-action: manipulation; }
 
 /* An item opened from a notification glows for a moment (focusTarget.js). */
 @keyframes focusFlash {
-  0%, 55% { box-shadow: 0 0 0 4px rgba(232,162,101,0.95), 0 10px 30px rgba(180,81,30,0.25); }
-  100% { box-shadow: 0 0 0 0 rgba(232,162,101,0); }
+  0%, 55% { box-shadow: 0 0 0 4px rgba(var(--ib-amber-rgb, 232,162,101), 0.95), 0 10px 30px rgba(var(--ib-accent-rgb, 180,81,30), 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--ib-amber-rgb, 232,162,101), 0); }
 }
 .focus-flash { animation: focusFlash 2.6s ease-out; border-radius: 18px; }
 
@@ -351,23 +361,17 @@ input[type="time"]::-webkit-date-and-time-value { text-align: left; }
   .tour-row-arrow { display: none !important; }
 }
 
-/* Login page: the branding half is shown only on wide screens. */
-@media (max-width: 900px) {
-  .login-brand-side { display: none !important; }
-  .login-split { max-width: 440px !important; }
-}
-
 /* Readable disabled buttons (WCAG contrast): a disabled button is shown
    greyed but its words stay readable, instead of fading to 40-50%. */
 button:disabled:not(.no-touch-size):not(.text-link) {
-  background: #E6D9C9 !important;
-  color: #5C3A22 !important;
-  border-color: rgba(122,58,24,0.25) !important;
+  background: var(--ib-disabled-bg, #E6D9C9) !important;
+  color: var(--ib-disabled-text, #5C3A22) !important;
+  border-color: rgba(var(--ib-rust-rgb, 122,58,24), 0.25) !important;
   box-shadow: none !important;
   opacity: 1 !important;
   filter: none !important;
 }
-button:disabled:not(.no-touch-size):not(.text-link) svg { color: #5C3A22 !important; }
+button:disabled:not(.no-touch-size):not(.text-link) svg { color: var(--ib-disabled-text, #5C3A22) !important; }
 
 /* Registration on phones: the card fits the screen (it was wider and
    moved sideways). */
@@ -402,10 +406,10 @@ a[aria-label="Close and go to the home page"] {
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
-  background: #F2E4D0 !important;
-  border: 1px solid rgba(180,81,30,0.25) !important;
-  color: #7A3A18 !important;
-  box-shadow: 0 2px 8px rgba(26,10,0,0.08) !important;
+  background: var(--ib-parch, #F2E4D0) !important;
+  border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25) !important;
+  color: var(--ib-rust, #7A3A18) !important;
+  box-shadow: 0 2px 8px rgba(var(--ib-shadow-rgb, 26,10,0), 0.08) !important;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -418,7 +422,7 @@ a[aria-label="Close and go to the home page"] svg { width: 18px !important; heig
 button[aria-label="Close"]:hover,
 button[aria-label="Close help"]:hover,
 button[aria-label="Close notification"]:hover,
-a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !important; }
+a[aria-label="Close and go to the home page"]:hover { background: var(--ib-surface-2, #EAD3B8) !important; }
 /* Smaller inside a toast message. */
 .x-close-sm, button[aria-label="Close notification"] {
   width: 26px !important; height: 26px !important; min-width: 26px !important; min-height: 26px !important;
@@ -427,3 +431,207 @@ a[aria-label="Close and go to the home page"]:hover { background: #EAD3B8 !impor
 
 /* Activity Logs filters: the dropdowns and the date boxes are the same height. */
 .activity-filters > div > button { min-height: 50px !important; }
+
+/* ═════════ Bright & Tropical skin ═════════
+   Matches the landing page (sand, ocean blue, sunset orange). It's on for
+   the whole site (data-skin on <html> in index.html); each var() keeps the
+   old espresso colour as its fallback. */
+:root[data-skin="tropical"] {
+  --ib-dark: #0B3B4F; --ib-deep: #134B5F; --ib-brown: #0B3B4F; --ib-rust: #3F6372;
+  --ib-sienna: #0A7C94; --ib-sienna-hover: #086A7F; --ib-accent: #FF7A3D; --ib-amber: #FFB547;
+  --ib-cream: #FFF8EE; --ib-parch: #FDEBD3; --ib-red: #C4361F;
+  --ib-accent-rgb: 10,139,166; --ib-dark-rgb: 11,59,79; --ib-rust-rgb: 63,99,114; --ib-red-rgb: 196,54,31;
+  --ib-cream-rgb: 255,248,238; --ib-soft-rgb: 214,234,240; --ib-amber-rgb: 255,181,71;
+  --ib-sienna-rgb: 10,124,148; --ib-parch-rgb: 253,235,211; --ib-orange-rgb: 255,122,61;
+  --ib-primary-btn: #FF7A3D; --ib-primary-btn-text: #0B3B4F;
+  --ib-disabled-bg: #DCE7EA; --ib-disabled-text: #3F5A66;
+  /* Navy areas (sidebar, dark cards and buttons, overlays), the light words
+     on them, and shadows: they stay dark/light in both light and dark mode. */
+  --ib-ink: #0B3B4F; --ib-ink-deep: #134B5F; --ib-ink-rgb: 11,59,79; --ib-shadow-rgb: 11,59,79;
+  --ib-on-ink: #FFF8EE; --ib-on-ink-2: #FDEBD3; --ib-on-ink-rgb: 255,248,238;
+  /* Solid red / teal / slate fills (white words on them): the same deep
+     colours in light and dark mode. */
+  --ib-red-solid: #C4361F; --ib-sienna-solid: #0A7C94; --ib-rust-solid: #3F6372;
+  /* Words on the sunset-orange buttons and badges: navy (white on this orange
+     is too faint to read, 2.6:1; navy is 4.6:1). */
+  --ib-on-accent: #0B3B4F;
+}
+
+/* ═════════ Dark mode ═════════
+   Night by the sea: deep ocean navy, teal and sunset orange. Turned on by
+   data-theme="dark" on <html> (theme.js: the visitor's choice, else their
+   device's setting). The --ib-surface colours (white cards) are only set
+   here; in light mode each keeps its own fallback. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ib-dark: #E8F2F5; --ib-brown: #E8F2F5; --ib-deep: #0B2D3A; --ib-rust: #A3BEC7;
+  --ib-sienna: #4CC3DA; --ib-sienna-hover: #6FD0E3; --ib-accent: #FF7A3D; --ib-amber: #FFC266;
+  --ib-cream: #10303D; --ib-parch: #0B2633; --ib-red: #FF7A66;
+  --ib-dark-rgb: 232,242,245; --ib-rust-rgb: 163,190,199; --ib-accent-rgb: 76,195,218; --ib-sienna-rgb: 76,195,218;
+  --ib-cream-rgb: 16,48,61; --ib-parch-rgb: 11,38,51; --ib-soft-rgb: 163,190,199; --ib-amber-rgb: 255,194,102;
+  --ib-red-rgb: 255,122,102; --ib-orange-rgb: 255,138,82;
+  --ib-ink: #0E4256; --ib-ink-deep: #0B3647; --ib-ink-rgb: 3,16,22; --ib-shadow-rgb: 0,0,0;
+  --ib-on-ink: #F2F8FA; --ib-on-ink-2: #D6E6EB; --ib-on-ink-rgb: 242,248,250;
+  --ib-surface: #12384A; --ib-surface-2: #0E2F3D; --ib-peach-1: #164556; --ib-peach-2: #12394A;
+  --ib-disabled-bg: #2A5566; --ib-disabled-text: #C3D6DC;
+  /* Status words (warning, info, success, problem): brighter so they read on dark. */
+  --ib-warn: #FFC266; --ib-warn-rgb: 255,194,102; --ib-slate: #9CC9D2; --ib-slate-rgb: 156,201,210;
+  --ib-green: #6FD3A0; --ib-green-rgb: 111,211,160; --ib-danger: #FF7A66; --ib-danger-rgb: 255,122,102;
+}
+:root[data-theme="dark"], :root[data-theme="dark"] body, :root[data-theme="dark"] main { background: #071C26; }
+/* Browser-filled fields (saved logins) in dark mode: dark box, light words. */
+:root[data-theme="dark"] input:-webkit-autofill, :root[data-theme="dark"] textarea:-webkit-autofill, :root[data-theme="dark"] select:-webkit-autofill {
+  -webkit-text-fill-color: #E8F2F5 !important; -webkit-box-shadow: 0 0 0 1000px #12384A inset !important; }
+
+
+/* ═════════ Travel-journal touches (the whole site) ═════════
+   The landing page's handwritten, hand-drawn look carried everywhere:
+   faint topographic map lines behind pages, page icons as passport stamps,
+   brush-stroke underlines, handwritten notes (Caveat), tour cards as
+   tickets with a torn edge and a little van on the loading screen. */
+:root { --journal-topo: url('/topo-light.svg'); --journal-notch: #F3EADF; --journal-tape: rgba(255,210,122,0.78); }
+:root[data-theme="dark"] { --journal-topo: url('/topo-dark.svg'); --journal-notch: #0B2531; --journal-tape: rgba(255,194,102,0.55); }
+:root[data-theme="dark"] .dashboard-content, :root[data-theme="dark"] .nature-bg { background-image: var(--journal-topo), linear-gradient(rgba(var(--ib-cream-rgb, 253,246,238), 0.86), rgba(var(--ib-cream-rgb, 253,246,238), 0.86)), url('/nature-bg.webp') !important; }
+
+.journal-hand { font-family: 'Caveat', 'Outfit', cursive !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+
+/* Pages on plain "paper" (login, register, passwords, public tours): map lines. */
+.journal-paper { background-image: var(--journal-topo) !important; background-size: 640px !important; background-repeat: repeat !important; }
+
+/* Page header: the icon as a slightly tilted passport stamp, the title with a brush stroke. */
+.journal-stamp { transform: rotate(-4deg); outline: 1.5px dashed rgba(var(--ib-amber-rgb, 232,162,101), 0.7); outline-offset: -5px; }
+.journal-title { position: relative; display: inline-block; padding-bottom: 3px; isolation: isolate; }
+.journal-title::after { content: ''; position: absolute; left: -2px; right: -4px; bottom: -2px; height: 7px; z-index: -1; opacity: 0.85;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M2 7 C 25 3, 55 4, 98 5' fill='none' stroke='%23FF7A3D' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%; }
+.page-header-subtitle.journal-hand { transform: rotate(-1deg); transform-origin: left; }
+
+/* Small section headings in the dashboards (Latest Tour Packages, Today: to do…): a hand-drawn underline. */
+.dashboard-content h2[style*="uppercase"], .dashboard-content h3[style*="uppercase"] { padding-bottom: 6px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'%3E%3Cpath d='M2 5 C 30 2, 60 7, 98 3' fill='none' stroke='%23FF7A3D' stroke-width='3' stroke-linecap='round' opacity='0.8'/%3E%3C/svg%3E") no-repeat left bottom / 46px 6px; }
+
+/* Tour cards as tickets: a dashed tear line with two punched notches. */
+.ticket-tear { position: relative; height: 0; border-top: 2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28); margin: 0 14px; }
+.ticket-tear::before, .ticket-tear::after { content: ''; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 50%; background: var(--journal-notch); }
+.ticket-tear::before { left: -24px; }
+.ticket-tear::after { right: -24px; }
+
+
+/* Empty states: the doodle's circle bobs gently. */
+@media (prefers-reduced-motion: no-preference) {
+  .journal-doodle > div { animation: journal-bob 4s ease-in-out infinite; }
+}
+@keyframes journal-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+
+/* Loading screen: the logo and a little van driving along a dashed road. */
+.journal-loading { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: var(--journal-topo) 0 0 / 640px repeat, var(--ib-cream, #FDF6EE); }
+:root[data-theme="dark"] .journal-loading { background-color: #071C26; }
+.journal-loading img { opacity: 0.9; }
+.journal-loading p { margin: 0; font-size: 22px; color: var(--ib-sienna, #A8481A); transform: rotate(-2deg); }
+.journal-road { position: relative; width: 160px; height: 24px; border-bottom: 3px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.45); }
+.journal-van { position: absolute; bottom: -1px; left: 0; font-size: 22px; line-height: 1; transform: scaleX(-1); animation: journal-drive 2.2s ease-in-out infinite alternate; }
+@keyframes journal-drive { from { left: 0; } to { left: calc(100% - 26px); } }
+@media (prefers-reduced-motion: reduce) { .journal-van { animation: none; left: 40%; } }
+
+/* Statuses as inked rubber stamps: a squared outline in the ink colour,
+   slightly tilted, with a worn, uneven print (a noise mask). Stamps that
+   have a tinted background keep it, as the stamp's paper. */
+.rubber-stamp { display: inline-flex !important; align-items: center; border: 2px solid currentColor !important; border-radius: 5px !important;
+  padding: 2px 8px !important; line-height: 1.25; font-weight: 900 !important; letter-spacing: 0.12em !important; text-transform: uppercase;
+  transform: rotate(-3deg); transform-origin: center;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3.2 2.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3.2 2.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); -webkit-mask-size: 160px 80px; mask-size: 160px 80px; }
+td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rotate(2deg); }
+
+/* Tour photos as a taped polaroid: a white frame with a deeper bottom edge,
+   a strip of tape and the place handwritten underneath. */
+.polaroid { position: relative; background: #FFFDF7; padding: 10px 10px 6px; border-radius: 4px; margin: 14px 4px 18px;
+  box-shadow: 0 12px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18), 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12); transform: rotate(-1.2deg); }
+.polaroid::before { content: ''; position: absolute; top: -11px; left: 50%; width: 96px; height: 24px; z-index: 2; pointer-events: none;
+  transform: translateX(-50%) rotate(-3deg); background: var(--journal-tape); box-shadow: 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12);
+  -webkit-mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent calc(100% - 3px)); }
+.polaroid-caption { margin: 6px 4px 2px; font-size: 22px; line-height: 1.1; color: #0B3B4F; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.polaroid:not(:has(.polaroid-caption)) { padding-bottom: 26px; }
+:root[data-theme="dark"] .polaroid { background: #F4EEE2; box-shadow: 0 14px 32px rgba(0,0,0,0.5); }
+@media (prefers-reduced-motion: no-preference) { .polaroid { transition: transform 0.3s ease; } .polaroid:hover { transform: rotate(0deg); } }
+
+/* Handwritten note (ui/HandNote.jsx) for happy moments: lined paper held by
+   tape, the words handwritten, signed with a doodled heart. */
+.hand-note { position: relative; max-width: 560px; box-sizing: border-box; padding: 18px 22px 14px; border-radius: 6px; color: #0B3B4F; transform: rotate(-0.8deg);
+  background-color: #FFFBF0;
+  background-image: linear-gradient(90deg, transparent 34px, rgba(255,122,61,0.35) 34px 35px, transparent 35px),
+    repeating-linear-gradient(transparent 0 27px, rgba(10,124,148,0.16) 27px 28px);
+  background-position: 0 0, 0 14px;
+  box-shadow: 0 12px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.14), 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1); }
+.hand-note::before { content: ''; position: absolute; top: -10px; left: 50%; width: 92px; height: 22px; transform: translateX(-50%) rotate(-3deg);
+  background: var(--journal-tape); box-shadow: 0 1px 3px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12);
+  -webkit-mask: linear-gradient(90deg, transparent 0 3px, #000 3px calc(100% - 3px), transparent calc(100% - 3px)); }
+.hand-note-title, .hand-note-text, .hand-note-sign { font-family: 'Caveat', 'Outfit', cursive; font-weight: 700; margin: 0; padding-left: 26px; }
+.hand-note-title { font-size: 30px; line-height: 1.1; color: #E8622A; }
+.hand-note-text { font-size: 22px; line-height: 28px; }
+.hand-note-sign { font-size: 19px; margin-top: 6px; text-align: right; color: #0A7C94; }
+.hand-note-close { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
+  background: transparent; color: #0B3B4F; display: flex; align-items: center; justify-content: center; }
+.hand-note-close:hover { background: rgba(11,59,79,0.08); }
+:root[data-theme="dark"] .hand-note { background-color: #F6EFDF; box-shadow: 0 14px 32px rgba(0,0,0,0.5); }
+@media (prefers-reduced-motion: no-preference) { .hand-note { animation: hand-note-in 0.5s cubic-bezier(.2,.9,.3,1.2); } }
+@keyframes hand-note-in { from { opacity: 0; transform: rotate(-4deg) translateY(10px); } to { opacity: 1; transform: rotate(-0.8deg); } }
+
+/* Success toasts: the title handwritten. */
+.toast-success .toast-title { font-family: 'Caveat', 'Outfit', cursive; font-size: 23px; font-weight: 700; line-height: 1.05; letter-spacing: 0; }
+
+/* Itinerary (ui/ItineraryTimeline.jsx): each day's stops along a dashed
+   trail, a pin at every stop and a little flag at the last one. */
+.trail { list-style: none; margin: 0; padding: 2px 0 2px 30px; position: relative; display: flex; flex-direction: column; gap: 12px; }
+.trail::before { content: ''; position: absolute; left: 10px; top: 12px; bottom: 14px; border-left: 2.5px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.45); }
+.trail-stop { position: relative; display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; padding: 2px 0; }
+.trail-stop::before { content: ''; position: absolute; left: -27px; top: 3px; width: 16px; height: 16px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  background: var(--ib-accent, #B4511E); box-shadow: 0 0 0 3px var(--ib-cream, #FDF6EE); }
+.trail-stop::after { content: ''; position: absolute; left: -22px; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--ib-cream, #FDF6EE); }
+.trail-stop.is-last::before { width: 3px; height: 22px; border-radius: 2px; transform: none; top: -2px; left: -21px; background: var(--ib-sienna, #A8481A); box-shadow: none; }
+.trail-stop.is-last::after { width: 14px; height: 10px; border-radius: 0 2px 2px 0; top: -2px; left: -18px; background: var(--ib-accent, #B4511E); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+/* My Bookings: each booking as a boarding pass. The price and button are the
+   tear-off stub: a dashed perforation with two punched notches, and (on
+   wider screens) a little barcode. */
+.boarding-pass { position: relative; }
+.bp-stub { position: relative; border-left: 2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.35) !important; }
+.bp-stub::before, .bp-stub::after { content: ''; position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--journal-notch); }
+.boarding-pass:not(.is-mobile) .bp-stub { align-self: stretch; margin: -1.25rem 0; padding-top: 1.25rem; padding-bottom: 1.25rem; }
+.boarding-pass:not(.is-mobile) .bp-stub::before { left: -12px; top: -12px; }
+.boarding-pass:not(.is-mobile) .bp-stub::after { left: -12px; bottom: -12px; }
+.boarding-pass.is-mobile .bp-stub { border-left: none !important; border-top: 2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.35) !important; }
+.boarding-pass.is-mobile .bp-stub::before { top: -12px; left: -28px; }
+.boarding-pass.is-mobile .bp-stub::after { top: -12px; right: -28px; }
+.bp-pass { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.bp-pass .journal-hand { font-size: 17px; line-height: 1; color: var(--ib-sienna, #A8481A); transform: rotate(-3deg); }
+.bp-barcode { width: 96px; height: 22px; opacity: 0.75; border-radius: 1px;
+  background: repeating-linear-gradient(90deg, var(--ib-dark, #1A0A00) 0 2px, transparent 2px 4px, var(--ib-dark, #1A0A00) 4px 5px, transparent 5px 7px,
+    var(--ib-dark, #1A0A00) 7px 10px, transparent 10px 11px, var(--ib-dark, #1A0A00) 11px 12px, transparent 12px 15px); }
+
+/* Group chat: each message like a note passed around the group. A squarer
+   paper shape with a folded top corner, a slight tilt that alternates, and
+   a soft shadow. */
+.chat-note { position: relative; border-radius: 4px 14px 14px 14px !important; transform: rotate(-0.6deg);
+  box-shadow: 0 2px 6px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1); }
+.chat-note.tilt-right { transform: rotate(0.6deg); }
+.chat-note.is-mine { border-radius: 14px 4px 14px 14px !important; }
+.chat-note::after { content: ''; position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-radius: 0 12px 0 4px;
+  background: linear-gradient(225deg, var(--journal-notch) 50%, rgba(var(--ib-shadow-rgb, 26,10,0), 0.14) 50%); }
+.chat-note.is-mine::after { right: auto; left: 0; border-radius: 12px 0 4px 0; background: linear-gradient(135deg, var(--journal-notch) 50%, rgba(0,0,0,0.18) 50%); }
+
+/* Pop-up windows as paper cards: a faint paper grain and a second sheet
+   peeking out underneath, like a page on a small stack. */
+:root { --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); --paper-sheet: #F1E6D4; }
+:root[data-theme="dark"] { --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.95 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"); --paper-sheet: #0C2733; }
+.paper-card { background-image: var(--paper-grain) !important; background-size: 180px !important; background-repeat: repeat !important;
+  box-shadow: 0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22), 6px 7px 0 -1px var(--paper-sheet), 6px 7px 2px 0 rgba(var(--ib-shadow-rgb, 26,10,0), 0.1) !important; }
+
+/* Low-power phones (index.html sets data-lite): the frosted, see-through
+   top bars are re-blurred on every frame while scrolling, which makes
+   scrolling lag on these phones. They get solid bars instead; every other
+   device keeps the frosted look. */
+:root[data-lite] .dashboard-topbar, :root[data-lite] .lk-nav.is-scrolled, :root[data-lite] .site-nav {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+:root[data-lite] .dashboard-topbar, :root[data-lite] .site-nav { background: rgb(var(--ib-cream-rgb, 253,246,238)) !important; }
+:root[data-lite] .lk-tropical { --nav-bg: #FFF8EE; }
+:root[data-lite][data-theme="dark"] .lk-tropical { --nav-bg: #08202B; }

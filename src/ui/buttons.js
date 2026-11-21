@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────
 // BUTTON STYLES (one set for the whole site)
-//   primary   – the ONE main action of a screen or dialog (burnt sienna)
+//   primary   – the ONE main action of a screen or dialog (burnt sienna;
+//               sunset orange on the joiner side's tropical skin)
 //   secondary – Cancel / Back / Keep… (light, never competes with primary)
 //   danger    – actions that delete, cancel, reject or can't be undone (red)
 //   link      – text that does something: looks like a link (underlined)
@@ -8,14 +9,14 @@
 // ─────────────────────────────────────────────
 
 export const COLORS = {
-  primary: '#A8481A',
-  primaryDark: '#9E4316',
-  dark: '#1A0A00',
-  cream: '#FDF6EE',
-  parchment: '#F2E4D0',
-  rust: '#7A3A18',
-  danger: '#C0362C',
-  dangerDark: '#9E2B23',
+  primary: 'var(--ib-sienna, #A8481A)',
+  primaryDark: 'var(--ib-sienna-hover, #9E4316)',
+  dark: 'var(--ib-dark, #1A0A00)',
+  cream: 'var(--ib-cream, #FDF6EE)',
+  parchment: 'var(--ib-parch, #F2E4D0)',
+  rust: 'var(--ib-rust, #7A3A18)',
+  danger: 'var(--ib-danger, #C0362C)',
+  dangerDark: 'var(--ib-danger, #9E2B23)',
 };
 
 const base = {
@@ -29,24 +30,24 @@ const base = {
 const disabledStyle = (disabled) => (disabled ? { opacity: 0.55, cursor: 'not-allowed', boxShadow: 'none' } : null);
 
 export const primaryBtn = (disabled = false) => ({
-  ...base, background: COLORS.primary, color: COLORS.cream,
-  boxShadow: '0 6px 18px rgba(180,81,30,0.32)', ...disabledStyle(disabled),
+  ...base, background: 'var(--ib-primary-btn, #A8481A)', color: 'var(--ib-primary-btn-text, #FDF6EE)',
+  boxShadow: '0 6px 18px rgba(var(--ib-orange-rgb, 180,81,30), 0.32)', ...disabledStyle(disabled),
 });
 
 export const secondaryBtn = (disabled = false) => ({
   ...base, background: COLORS.parchment, color: COLORS.dark,
-  border: '1px solid rgba(180,81,30,0.25)', ...disabledStyle(disabled),
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', ...disabledStyle(disabled),
 });
 
 export const dangerBtn = (disabled = false) => ({
   ...base, background: COLORS.danger, color: '#FFFFFF',
-  boxShadow: '0 6px 18px rgba(192,54,44,0.3)', ...disabledStyle(disabled),
+  boxShadow: '0 6px 18px rgba(var(--ib-danger-rgb, 192,54,44), 0.3)', ...disabledStyle(disabled),
 });
 
 // A quieter red outline, for a destructive action that only opens a confirmation.
 export const dangerOutlineBtn = (disabled = false) => ({
-  ...base, background: 'rgba(192,54,44,0.06)', color: COLORS.danger,
-  border: `1px solid rgba(192,54,44,0.35)`, ...disabledStyle(disabled),
+  ...base, background: 'rgba(var(--ib-danger-rgb, 192,54,44), 0.06)', color: COLORS.danger,
+  border: `1px solid rgba(var(--ib-danger-rgb, 192,54,44), 0.35)`, ...disabledStyle(disabled),
 });
 
 export const linkBtn = {

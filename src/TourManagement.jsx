@@ -49,12 +49,12 @@ import { blackoutOn } from './siteContent';
 
  
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #F2E4D0  parchment (section bg)
-// #7A3A18  rust mid-tone
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
+// var(--ib-rust, #7A3A18)  rust mid-tone
 // ---------------------------------------------------------
  
 /* ─────────────────────────────────────────────
@@ -653,12 +653,12 @@ const TourManagement = ({ openTourId = null }) => {
   // ── shared input style ──
   const inputStyle = {
     width: '100%', boxSizing: 'border-box',
-    background: '#F2E4D0',
-    border: '1px solid rgba(180,81,30,0.18)',
+    background: 'var(--ib-parch, #F2E4D0)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
     borderRadius: 14,
     padding: '10px 14px',
     fontSize: 13, fontWeight: 600,
-    color: '#1A0A00',
+    color: 'var(--ib-dark, #1A0A00)',
     fontFamily: 'inherit',
     outline: 'none',
   };
@@ -667,7 +667,7 @@ const TourManagement = ({ openTourId = null }) => {
     display: 'block',
     fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.9,
+    color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
     marginBottom: 5,
   };
  
@@ -685,32 +685,32 @@ const TourManagement = ({ openTourId = null }) => {
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)',
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)',
           padding: 16,
         }}>
-          <div style={{
-            background: '#FDF6EE', padding: '3rem',
-            borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+          <div className="paper-card" style={{
+            background: 'var(--ib-cream, #FDF6EE)', padding: '3rem',
+            borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
             textAlign: 'center', width: '100%', maxWidth: 420,
-            borderTop: `8px solid ${confirmAction.isArchived ? '#B4511E' : '#E8A265'}`,
+            borderTop: `8px solid ${confirmAction.isArchived ? 'var(--ib-accent, #B4511E)' : 'var(--ib-amber, #E8A265)'}`,
           }}>
             <div style={{
               width: 88, height: 88, borderRadius: '50%',
-              background: confirmAction.isArchived ? '#B4511E' : '#1A0A00',
+              background: confirmAction.isArchived ? 'var(--ib-accent, #B4511E)' : 'var(--ib-ink, #1A0A00)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               margin: '0 auto 28px',
-              color: '#FDF6EE',
-              boxShadow: '0 12px 32px rgba(26,10,0,0.25)',
+              color: (confirmAction.isArchived) ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-on-ink, #FDF6EE)',
+              boxShadow: '0 12px 32px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
             }}>
               {confirmAction.isArchived ? <RefreshCw size={38} /> : <Archive size={38} />}
             </div>
             <h3 style={{
               fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em',
-              textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 12px',
+              textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 12px',
             }}>
               {confirmAction.isArchived ? 'Restore Tour?' : 'Archive Tour?'}
             </h3>
-            <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', opacity: 0.9, lineHeight: 1.7, margin: '0 0 32px' }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, lineHeight: 1.7, margin: '0 0 32px' }}>
               {confirmAction.isArchived
                 ? ((confirmAction.dates || []).some((d) => d.weather_status === 'cancelled')
                   ? 'This tour will be moved back to the active listings. Dates cancelled for bad weather open again for new bookings (the "Cancelled" label is removed). Their old bookings stay cancelled, and their refunds or moves don\'t change.'
@@ -722,24 +722,24 @@ const TourManagement = ({ openTourId = null }) => {
                 onClick={() => setConfirmAction(null)}
                 style={{
                   flex: 1, padding: '13px 0',
-                  background: '#F2E4D0',
-                  border: '1px solid rgba(180,81,30,0.18)',
+                  background: 'var(--ib-parch, #F2E4D0)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
                   borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: '#7A3A18',
+                  color: 'var(--ib-rust, #7A3A18)',
                 }}
               >Cancel</button>
               <button
                 onClick={executeToggleArchive}
                 style={{
                   flex: 1, padding: '13px 0',
-                  background: '#B4511E',
+                  background: 'var(--ib-accent, #B4511E)',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: '#FDF6EE',
-                  boxShadow: '0 6px 20px rgba(180,81,30,0.3)',
+                  color: 'var(--ib-on-accent, #FDF6EE)',
+                  boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
                 }}
               >{confirmAction.isArchived ? 'Restore Tour' : 'Archive Tour'}</button>
             </div>
@@ -760,7 +760,7 @@ const TourManagement = ({ openTourId = null }) => {
           <button className="x-close" style={{
             position: 'absolute', top: 32, right: 32,
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#FDF6EE',
+            color: 'var(--ib-on-ink, #FDF6EE)',
           }}>
             <X size={40} />
           </button>
@@ -774,7 +774,7 @@ const TourManagement = ({ openTourId = null }) => {
       {/* ── Header Tabs ── */}
       <div className="tm-header" style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap',
-        borderBottom: '1px solid rgba(180,81,30,0.15)',
+        borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
         paddingBottom: 16, marginBottom: 20,
       }}>
         <div className="tm-tabs" style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
@@ -784,11 +784,11 @@ const TourManagement = ({ openTourId = null }) => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'active' ? '#1A0A00' : 'rgba(122,58,24,0.85)',
+              color: currentTab === 'active' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
               transition: 'color 0.2s',
             }}
           >Active Tours</button>
-          <span style={{ color: '#A8481A', fontSize: 18 }}>|</span>
+          <span style={{ color: 'var(--ib-sienna, #A8481A)', fontSize: 18 }}>|</span>
           <button
             onClick={() => setCurrentTab('archive')}
             style={{
@@ -796,7 +796,7 @@ const TourManagement = ({ openTourId = null }) => {
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'inherit', padding: 0,
               fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'archive' ? '#1A0A00' : 'rgba(122,58,24,0.85)',
+              color: currentTab === 'archive' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
               transition: 'color 0.2s',
             }}
           >
@@ -806,8 +806,8 @@ const TourManagement = ({ openTourId = null }) => {
         <div className="tm-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {spotsInfo.available && (
           <button type="button" onClick={() => setShowSpots(true)} style={{
-            display: 'flex', alignItems: 'center', gap: 8, background: '#FDF6EE', color: '#1A0A00',
-            border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
+            display: 'flex', alignItems: 'center', gap: 8, background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-dark, #1A0A00)',
+            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase', padding: '12px 20px',
           }}><MapPin size={15} /> Pickup Spots</button>
         )}
@@ -815,16 +815,16 @@ const TourManagement = ({ openTourId = null }) => {
           onClick={() => setPickTemplate(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: '#B4511E', color: '#FDF6EE',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
             border: 'none', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
             padding: '12px 22px',
-            boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
+            boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
             transition: 'all 0.2s',
           }}
           onMouseEnter={e => e.currentTarget.style.background = '#a34d20'}
-          onMouseLeave={e => e.currentTarget.style.background = '#B4511E'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'}
         >
           <Plus size={16} strokeWidth={3} /> Create New Tour
         </button>
@@ -834,10 +834,10 @@ const TourManagement = ({ openTourId = null }) => {
  
       {/* ── Filters ── */}
       <div className="tm-filters" style={{
-        background: '#FDF6EE',
+        background: 'var(--ib-cream, #FDF6EE)',
         borderRadius: 20, padding: '14px 18px',
-        border: '1px solid rgba(180,81,30,0.12)',
-        boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
       }}>
@@ -846,7 +846,7 @@ const TourManagement = ({ openTourId = null }) => {
           <Search size={15} style={{
             position: 'absolute', left: 13, top: '50%',
             transform: 'translateY(-50%)',
-            color: 'rgba(122,58,24,0.85)', pointerEvents: 'none',
+            color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', pointerEvents: 'none',
           }} />
           <input
             type="text" placeholder="Search tours…"
@@ -938,19 +938,19 @@ const TourManagement = ({ openTourId = null }) => {
           padding: 16,
         }}>
           <div
-            style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.82)', backdropFilter: 'blur(4px)' }}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.82)', backdropFilter: 'blur(4px)' }}
             onClick={closeTourModal}
           />
-          <form
+          <form className="paper-card"
             ref={tourFormRef}
             onSubmit={handleFormSubmit}
             onInput={() => setFormDirty(true)}
             style={{
-              position: 'relative', background: '#FDF6EE',
+              position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
               width: '100%', maxWidth: 720,
-              borderRadius: 28, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+              borderRadius: 28, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
               overflow: 'hidden',
-              borderTop: '8px solid #B4511E',
+              borderTop: '8px solid var(--ib-accent, #B4511E)',
               maxHeight: '90dvh',
               display: 'flex', flexDirection: 'column',
             }}
@@ -961,15 +961,15 @@ const TourManagement = ({ openTourId = null }) => {
               style={{
                 position: 'absolute', top: 14, right: 14, zIndex: 10,
                 width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', cursor: 'pointer',
-                color: '#7A3A18', boxShadow: '0 4px 14px rgba(26,10,0,0.18)',
+                background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', cursor: 'pointer',
+                color: 'var(--ib-rust, #7A3A18)', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)',
               }}
             ><X size={20} /></button>
  
             <div className="responsive-modal-padding" style={{ padding: '2.5rem', overflowY: 'auto', flex: 1 }}>
               <h2 style={{
                 fontSize: 20, fontWeight: 900, letterSpacing: '-0.02em',
-                textTransform: 'uppercase', color: '#1A0A00', margin: '0 0 28px',
+                textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 28px',
               }}>
                 {editingTour ? 'Edit Tour Posting' : 'Create New Tour'}
               </h2>
@@ -978,9 +978,9 @@ const TourManagement = ({ openTourId = null }) => {
  
                 {/* Gallery */}
                 <div style={{
-                  background: '#F2E4D0',
+                  background: 'var(--ib-parch, #F2E4D0)',
                   borderRadius: 18, padding: '1.25rem',
-                  border: '2px dashed rgba(180,81,30,0.25)',
+                  border: '2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.25)',
                 }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Tour Gallery Management</label>
                   {(tempGallery.length > 0 || newFiles.length > 0) && (
@@ -995,11 +995,11 @@ const TourManagement = ({ openTourId = null }) => {
                   )}
                   <div style={{ position: 'relative', width: 'fit-content' }}>
                     <div style={{
-                      background: '#1A0A00', color: '#FDF6EE',
+                      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
                       borderRadius: 999, padding: '10px 18px',
                       display: 'flex', alignItems: 'center', gap: 8,
                       fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
-                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(26,10,0,0.2)',
+                      cursor: 'pointer', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
                     }}>
                       <UploadCloud size={14} /> Upload Images
                     </div>
@@ -1019,7 +1019,7 @@ const TourManagement = ({ openTourId = null }) => {
                 </div>
                 <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, alignItems: 'end' }}>
                   <ModalInput label="Regular Rate (₱)" name="regular_rate" {...moneyInputProps} placeholder={rangeText(REGULAR_RATE_MIN, REGULAR_RATE_MAX)} defaultValue={moneyDisplay(formTour?.regular_rate)} required />
-                  <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', lineHeight: 1.5, margin: '0 0 6px' }}>
+                  <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.5, margin: '0 0 6px' }}>
                     {RATE_HINT}
                   </p>
                 </div>
@@ -1040,29 +1040,29 @@ const TourManagement = ({ openTourId = null }) => {
  
                 {/* Dates: one trip, as many dates as the admin runs it. Joiners pick one when booking. */}
                 <div style={{
-                  background: 'rgba(180,81,30,0.06)',
+                  background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)',
                   borderRadius: 18, padding: '1.25rem',
-                  border: '1px solid rgba(180,81,30,0.18)',
+                  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
                 }}>
                   <label style={{ ...labelStyle, opacity: 1 }}>Tour Dates</label>
-                  <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '0 0 12px', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '0 0 12px', lineHeight: 1.5 }}>
                     Running this trip more than once? Add each date here. Joiners see one tour and pick the date they want.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {dateRows.map((r, i) => {
                       const minDate = r.id && r.original.start_date < getMinStartDate() ? r.original.start_date : getMinStartDate();
                       return (
-                        <div key={r.key} className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'end', background: '#FDF6EE', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(180,81,30,0.14)' }}>
+                        <div key={r.key} className="tour-date-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, alignItems: 'end', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 14, padding: '10px 12px', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
                           {/* With several dates: which one this is, and a way to remove it (not once joiners booked it). */}
                           {dateRows.length > 1 && (
                             <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>Date {i + 1}</span>
+                              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Date {i + 1}</span>
                               {r.booked > 0 ? (
-                                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>Booked, can't be removed</span>
+                                <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>Booked, can't be removed</span>
                               ) : (
                                 <button type="button" className="no-touch-size" onClick={() => removeDateRow(r.key)} aria-label={`Remove date ${i + 1}`} style={{
                                   display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 999, cursor: 'pointer',
-                                  border: '1px solid rgba(140,47,28,0.3)', background: 'transparent', color: '#8C2F1C',
+                                  border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.3)', background: 'transparent', color: 'var(--ib-red, #8C2F1C)',
                                   fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase',
                                 }}><Trash2 size={12} /> Remove</button>
                               )}
@@ -1078,12 +1078,12 @@ const TourManagement = ({ openTourId = null }) => {
                             <NiceDate name={`end_date_${i}`} min={r.start_date || minDate} max={r.start_date ? addDaysYmd(r.start_date, MAX_TOUR_DAYS - 1) : undefined} value={r.end_date} onChange={(e) => updateDateRow(r.key, 'end_date', e.target.value)}
                               style={inputStyle} required />
                           </div>
-                          <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+                          <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>
                             {[calculateDuration(r.start_date, r.end_date), r.id ? `${r.booked} booked` : 'New date'].filter(Boolean).join(' · ')}
                           </p>
                           {/* Sale: the sale discount off the Joiner Rate for this date, between two days. */}
-                          <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: '#8C2F1C', cursor: 'pointer' }}>
-                            <input type="checkbox" checked={r.sale} onChange={(e) => updateDateRow(r.key, 'sale', e.target.checked)} style={{ width: 16, height: 16, accentColor: '#8C2F1C' }} />
+                          <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', cursor: 'pointer' }}>
+                            <input type="checkbox" checked={r.sale} onChange={(e) => updateDateRow(r.key, 'sale', e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--ib-red, #8C2F1C)' }} />
                             Put this date on sale ({Math.round(SALE_DISCOUNT * 1000) / 10}% off the Joiner Rate)
                           </label>
                           {r.sale && (
@@ -1101,7 +1101,7 @@ const TourManagement = ({ openTourId = null }) => {
                               {(() => {
                                 const p = Number(formTourPrice) || 0;
                                 return p > 0 ? (
-                                  <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>
+                                  <p style={{ gridColumn: '1 / -1', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>
                                     Sale price: {formatPeso(salePriceOf(p))} per person (was {formatPeso(p)}).
                                   </p>
                                 ) : null;
@@ -1117,7 +1117,7 @@ const TourManagement = ({ openTourId = null }) => {
                     onClick={() => { setDateRows((rows) => [...rows, blankDateRow()]); setFormDirty(true); }}
                     style={{
                       marginTop: 10, width: '100%', minHeight: 40, borderRadius: 12, cursor: 'pointer',
-                      border: '1px dashed rgba(180,81,30,0.45)', background: 'transparent', color: '#A8481A',
+                      border: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.45)', background: 'transparent', color: 'var(--ib-sienna, #A8481A)',
                       fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     }}
@@ -1125,7 +1125,7 @@ const TourManagement = ({ openTourId = null }) => {
                 </div>
 
                 {/* Pickup points: joiners pick one when booking. Their times (ETAs) are set in Tracking Management. */}
-                <div style={{ background: 'rgba(180,81,30,0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.18)', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', display: 'flex', flexDirection: 'column', gap: 18 }}>
                   {spotsInfo.available && (
                     <RoutePickupPicker
                       spots={spotsInfo.spots}
@@ -1142,7 +1142,7 @@ const TourManagement = ({ openTourId = null }) => {
                       <input id="departure_time" type="time" name="departure_time" value={formDeparture}
                         onChange={(e) => { setFormDeparture(e.target.value); setFormDirty(true); }}
                         style={{ ...inputStyle, maxWidth: 220 }} />
-                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0', lineHeight: 1.5 }}>
                         The time at the first pickup point. The other pickup times are worked out from this and the driving time. Left empty, the first time in the itinerary is used.
                       </p>
                     </div>
@@ -1151,7 +1151,7 @@ const TourManagement = ({ openTourId = null }) => {
                   {spotsInfo.available ? (
                     <div>
                       <input type="hidden" name="pickup_new" value={pickupPicked.length ? String(pickupPicked.length) : ''} data-required="true" />
-                      <p style={{ fontSize: 11.5, fontWeight: 700, color: pickupPicked.length ? '#7A3A18' : '#8C2F1C', margin: 0, lineHeight: 1.5 }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 700, color: pickupPicked.length ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-red, #8C2F1C)', margin: 0, lineHeight: 1.5 }}>
                         {pickupPicked.length
                           ? `Pickup points (${pickupPicked.length}): ${pickupPicked.join(' · ')}. Joiners choose one of these when they book.`
                           : 'Tick at least one pickup spot above. Joiners choose one of these when they book.'}
@@ -1197,9 +1197,9 @@ const TourManagement = ({ openTourId = null }) => {
                 />
  
                 <div>
-                  <label style={{ ...labelStyle, color: '#A8481A', opacity: 1 }}>Important Notes</label>
+                  <label style={{ ...labelStyle, color: 'var(--ib-sienna, #A8481A)', opacity: 1 }}>Important Notes</label>
                   <textarea name="important_note" defaultValue={formTour?.important_note}
-                    style={{ ...inputStyle, minHeight: 100, background: 'rgba(180,81,30,0.07)', color: '#A8481A', fontWeight: 700, resize: 'vertical' }} />
+                    style={{ ...inputStyle, minHeight: 100, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)', color: 'var(--ib-sienna, #A8481A)', fontWeight: 700, resize: 'vertical' }} />
                 </div>
                 </fieldset>
               </div>
@@ -1207,42 +1207,42 @@ const TourManagement = ({ openTourId = null }) => {
  
             {/* What's still missing before it can be saved. */}
             {!tourFilled && !uploading && !savingTour && (
-              <div style={{ padding: '12px 2.5rem 0', background: '#FDF6EE', borderTop: '1px solid rgba(180,81,30,0.12)', flexShrink: 0 }}>
+              <div style={{ padding: '12px 2.5rem 0', background: 'var(--ib-cream, #FDF6EE)', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', flexShrink: 0 }}>
                 <MissingHint items={tourMissing} />
               </div>
             )}
             {/* Footer */}
             <div style={{
               padding: '1.5rem 2.5rem',
-              background: '#FDF6EE',
-              borderTop: '1px solid rgba(180,81,30,0.12)',
+              background: 'var(--ib-cream, #FDF6EE)',
+              borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
               display: 'flex', gap: 12, flexShrink: 0,
             }}>
               <button type="button" onClick={closeTourModal} style={{
                 flex: 1, padding: '13px 0',
-                background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 999,
+                background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 999,
                 cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: '#1A0A00',
+                color: 'var(--ib-dark, #1A0A00)',
               }}>Cancel</button>
               <button type="button" onClick={saveAsTemplate} disabled={savingTemplate || uploading || savingTour}
                 title="Keep these details (not the dates) as a pre-made tour for this place, to tick from next time."
                 style={{
                   flex: 1.4, padding: '13px 8px',
-                  background: 'transparent', border: '1px solid rgba(180,81,30,0.45)', borderRadius: 999,
+                  background: 'transparent', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.45)', borderRadius: 999,
                   cursor: 'pointer', fontFamily: 'inherit',
                   fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}>
                 {savingTemplate ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : 'Save as Template'}
               </button>
               <button type="submit" disabled={uploading || savingTour || !tourFilled} title={tourFilled ? undefined : 'Fill in every field first (photo, details, dates, pickup points, accommodation, lists and itinerary). Only First pickup at is optional.'} style={{
                 flex: 2, padding: '13px 0',
-                background: '#B4511E', border: 'none', borderRadius: 999,
+                background: 'var(--ib-accent, #B4511E)', border: 'none', borderRadius: 999,
                 cursor: tourFilled ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                color: '#FDF6EE',
-                boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
+                color: 'var(--ib-on-accent, #FDF6EE)',
+                boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: uploading ? 0.7 : tourFilled ? 1 : 0.5,
               }}>
@@ -1277,8 +1277,8 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
       style={{
         position: 'relative', aspectRatio: '1',
         borderRadius: 12, overflow: 'hidden',
-        border: isNew ? '2px solid #B4511E' : '2px solid rgba(180,81,30,0.2)',
-        boxShadow: '0 2px 8px rgba(26,10,0,0.1)',
+        border: isNew ? '2px solid var(--ib-accent, #B4511E)' : '2px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+        boxShadow: '0 2px 8px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -1289,10 +1289,10 @@ const GalleryThumb = ({ src, onRemove, isNew }) => {
           type="button" onClick={onRemove}
           style={{
             position: 'absolute', inset: 0,
-            background: 'rgba(180,81,30,0.82)',
+            background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.82)',
             border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#FDF6EE',
+            color: 'var(--ib-on-ink, #FDF6EE)',
           }}
         ><Trash2 size={18} /></button>
       )}
@@ -1305,7 +1305,7 @@ const ModalInput = ({ label, name, defaultValue, ...props }) => (
     <label htmlFor={props.id || `tour-${name}`} style={{
       display: 'block', fontSize: 11, fontWeight: 800,
       letterSpacing: '0.2em', textTransform: 'uppercase',
-      color: '#7A3A18', opacity: 0.9, marginBottom: 5,
+      color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, marginBottom: 5,
     }}>{label}</label>
     <input
       id={`tour-${name}`}
@@ -1314,11 +1314,11 @@ const ModalInput = ({ label, name, defaultValue, ...props }) => (
       {...props}
       style={{
         width: '100%', boxSizing: 'border-box',
-        background: '#F2E4D0',
-        border: '1px solid rgba(180,81,30,0.18)',
+        background: 'var(--ib-parch, #F2E4D0)',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
         borderRadius: 14, padding: '10px 14px',
         fontSize: 13, fontWeight: 600,
-        color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+        color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
       }}
     />
   </div>

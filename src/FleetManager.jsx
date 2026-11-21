@@ -18,7 +18,7 @@ import { loadFleet } from './fleet';
 const btn = (main) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, height: 42, padding: '0 18px', borderRadius: 999, cursor: 'pointer',
   fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-  background: main ? '#B4511E' : 'transparent', color: main ? '#FDF6EE' : '#5C2A10', border: main ? 'none' : '1px solid rgba(180,81,30,0.3)',
+  background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 
 // ── The Drivers & Vans window ──
@@ -52,37 +52,37 @@ const FleetManager = ({ onClose, onChanged }) => {
   const list = fleet ? fleet[tab] : null;
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label="Drivers and vans" style={{
-        position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto', background: '#FDF6EE',
-        borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 14,
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div className="paper-card" role="dialog" aria-modal="true" aria-label="Drivers and vans" style={{
+        position: 'relative', width: '100%', maxWidth: 680, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
+        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>Drivers & Vans</h3>
-            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 600, color: '#5C2A10', lineHeight: 1.5 }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Drivers & Vans</h3>
+            <p style={{ margin: '4px 0 0', fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.5 }}>
               Save each driver and van once. Then, in a tour's Fleet & Driver form, just pick which ones to use.
             </p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+          <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
 
-        <div role="tablist" aria-label="Drivers or vans" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4, width: 'fit-content' }}>
+        <div role="tablist" aria-label="Drivers or vans" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
           {[['drivers', 'Drivers', UserRound], ['vans', 'Vans', Truck]].map((t) => {
             const Icon = t[2];
             return (
               <button key={t[0]} type="button" role="tab" aria-selected={tab === t[0]} onClick={() => { setTab(t[0]); setEditing(null); }} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: tab === t[0] ? '#1A0A00' : 'transparent', color: tab === t[0] ? '#FDF6EE' : '#5C2A10',
+                background: tab === t[0] ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: tab === t[0] ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
               }}><Icon size={14} /> {t[1]} {fleet ? `(${fleet[t[0]].length})` : ''}</button>
             );
           })}
         </div>
 
         {editing ? (
-          <div style={{ background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 16, padding: '1rem' }}>
-            <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+          <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 16, padding: '1rem' }}>
+            <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
               {editing.item ? `Change ${editing.kind === 'drivers' ? editing.item.name : editing.item.plate_number}` : editing.kind === 'drivers' ? 'Add a driver' : 'Add a van'}
             </p>
             {editing.kind === 'drivers'
@@ -96,24 +96,24 @@ const FleetManager = ({ onClose, onChanged }) => {
         )}
 
         {list === null ? (
-          <p style={{ margin: 0, fontSize: 13, color: '#7A3A18' }}>Loading…</p>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--ib-rust, #7A3A18)' }}>Loading…</p>
         ) : list.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#5C2A10' }}>{tab === 'drivers' ? 'No drivers saved yet.' : 'No vans saved yet.'}</p>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{tab === 'drivers' ? 'No drivers saved yet.' : 'No vans saved yet.'}</p>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {list.map((item) => (
-              <li key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
-                {tab === 'drivers' ? <UserRound size={16} color="#B4511E" style={{ flexShrink: 0 }} /> : <Truck size={16} color="#B4511E" style={{ flexShrink: 0 }} />}
+              <li key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
+                {tab === 'drivers' ? <UserRound size={16} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0 }} /> : <Truck size={16} color="var(--ib-accent, #B4511E)" style={{ flexShrink: 0 }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: '#1A0A00' }}>{tab === 'drivers' ? item.name : `${item.car_type} · ${item.plate_number}`}</p>
-                  <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: '#5C2A10', overflowWrap: 'anywhere' }}>
+                  <p style={{ margin: 0, fontSize: 13.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{tab === 'drivers' ? item.name : `${item.car_type} · ${item.plate_number}`}</p>
+                  <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', overflowWrap: 'anywhere' }}>
                     {tab === 'drivers'
                       ? `${formatPhPhone(item.contact)} · ${item.license_path && item.photo_path ? 'ID and photo on file' : 'ID or photo missing'}`
                       : `${item.color} · ${item.seats ?? 14} seats · ${item.notes}`}
                   </p>
                 </div>
-                <button type="button" onClick={() => setEditing({ kind: tab, item })} aria-label="Change" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', padding: 4 }}><Pencil size={15} /></button>
-                <button type="button" onClick={() => remove(tab, item)} aria-label="Archive" title="Archive" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8C2F1C', padding: 4 }}><Archive size={15} /></button>
+                <button type="button" onClick={() => setEditing({ kind: tab, item })} aria-label="Change" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', padding: 4 }}><Pencil size={15} /></button>
+                <button type="button" onClick={() => remove(tab, item)} aria-label="Archive" title="Archive" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-red, #8C2F1C)', padding: 4 }}><Archive size={15} /></button>
               </li>
             ))}
           </ul>
@@ -136,9 +136,9 @@ export const FleetPicker = ({ driverId, vanId, onDriver, onVan, onManage, refres
   const pickedVan = fleet.vans.find((v) => v.id === vanId);
   const tooSmall = !!pickedVan && Number(slots) > Number(pickedVan.seats ?? 14);
   return (
-    <div style={{ background: 'rgba(180,81,30,0.06)', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <p style={{ margin: 0, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A' }}>Use a saved driver and van</p>
+        <p style={{ margin: 0, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Use a saved driver and van</p>
         <button type="button" className="text-link" onClick={onManage} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>Manage Drivers & Vans</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: 10 }}>
@@ -150,11 +150,11 @@ export const FleetPicker = ({ driverId, vanId, onDriver, onVan, onManage, refres
           onChange={(id) => { const v = fleet.vans.find((x) => x.id === id); if (v) onVan(v); }} />
       </div>
       {tooSmall && (
-        <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.08)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 10, padding: '8px 10px' }}>
+        <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)', borderRadius: 10, padding: '8px 10px' }}>
           This tour has {slots} slots but {pickedVan.car_type} · {pickedVan.plate_number} has only {pickedVan.seats} seats. Pick a bigger van, or plan a second one.
         </p>
       )}
-      <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#5C2A10' }}>Picking one fills in the details below (you can still change them).</p>
+      <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>Picking one fills in the details below (you can still change them).</p>
     </div>
   );
 };

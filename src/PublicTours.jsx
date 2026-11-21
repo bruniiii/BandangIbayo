@@ -13,6 +13,7 @@ import { withAvailableSlots, formatDateRange, todayManila, DEFAULT_GROUP_SIZE, g
 import PriceTag from './ui/PriceTag';
 import { TripDatePicker } from './ui/TripDates';
 import logoIcon from './assets/logo.png';
+import ThemeToggle from './ui/ThemeToggle';
 import EmptyState from './ui/EmptyState';
 import { CalendarClock } from 'lucide-react';
 import { SkeletonTourCards, SkeletonRegion, Skel } from './ui/Skeleton';
@@ -53,24 +54,25 @@ const PublicNav = ({ session }) => {
   return (
   <nav className="site-nav" style={{
     position: 'sticky', top: 0, zIndex: 50,
-    background: 'rgba(253,246,238,0.92)', backdropFilter: 'blur(12px)',
-    borderBottom: '1px solid rgba(180,81,30,0.12)',
+    background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.92)', backdropFilter: 'blur(12px)',
+    borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '0 clamp(1rem,5vw,4rem)', height: 64, gap: 12,
   }}>
     <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textDecoration: 'none' }}>
       <img loading="lazy" decoding="async" src={logoIcon} alt="BANDANG IBAYO" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }} />
-      <span className="public-nav-brand font-display" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: '#1A0A00', whiteSpace: 'nowrap' }}>
-        Bandang <span className="font-accent" style={{ color: '#A8481A' }}>IBAYO</span>
+      <span className="public-nav-brand font-display" style={{ fontWeight: 900, fontSize: 17, letterSpacing: '-0.03em', color: 'var(--ib-dark, #1A0A00)', whiteSpace: 'nowrap' }}>
+        Bandang <span className="font-accent" style={{ color: 'var(--ib-sienna, #A8481A)' }}>IBAYO</span>
       </span>
     </Link>
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+      <ThemeToggle style={{ borderRadius: '50%' }} />
       {/* Already on the list: go back to the top instead of doing nothing. */}
       <Link
         to="/tours"
         aria-current={onTourList ? 'page' : undefined}
         onClick={() => { if (onTourList) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        style={{ ...navLink, fontWeight: onTourList ? 900 : 700, color: onTourList ? '#A8481A' : '#7A3A18', borderBottomColor: onTourList ? '#B4511E' : 'transparent' }}
+        style={{ ...navLink, fontWeight: onTourList ? 900 : 700, color: onTourList ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)', borderBottomColor: onTourList ? 'var(--ib-accent, #B4511E)' : 'transparent' }}
       >
         Tours
       </Link>
@@ -88,19 +90,19 @@ const PublicNav = ({ session }) => {
 // "Tours" and "Log in" at the top: the same size and line, so they sit level.
 const navLink = {
   display: 'inline-flex', alignItems: 'center', height: 40, boxSizing: 'border-box',
-  fontSize: 13, fontWeight: 700, lineHeight: 1, color: '#7A3A18', textDecoration: 'none',
+  fontSize: 13, fontWeight: 700, lineHeight: 1, color: 'var(--ib-rust, #7A3A18)', textDecoration: 'none',
   borderTop: '2px solid transparent', borderBottom: '2px solid transparent',
 };
 const navCta = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-  fontSize: 13, fontWeight: 900, color: '#FDF6EE', textDecoration: 'none',
-  background: '#B4511E', borderRadius: 10, padding: '9px 16px',
+  fontSize: 13, fontWeight: 900, color: 'var(--ib-on-accent, #FDF6EE)', textDecoration: 'none',
+  background: 'var(--ib-accent, #B4511E)', borderRadius: 10, padding: '9px 16px',
   letterSpacing: '0.04em', whiteSpace: 'nowrap',
 };
 
 const pageStyle = {
-  background: '#FDF6EE', minHeight: '100dvh',
-  fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: '#1A0A00', overflowX: 'hidden',
+  background: 'var(--ib-cream, #FDF6EE)', minHeight: '100dvh',
+  fontFamily: "'Outfit', 'Inter', system-ui, sans-serif", color: 'var(--ib-dark, #1A0A00)', overflowX: 'hidden',
 };
 
 const CenteredMessage = ({ children }) => (
@@ -141,7 +143,7 @@ export const PublicTourList = () => {
   }, []);
 
   return (
-    <div style={pageStyle}>
+    <div className="journal-paper" style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(2rem,5vw,4rem) clamp(1rem,5vw,4rem)' }}>
         {/* Back to the top of the landing page */}
@@ -149,14 +151,14 @@ export const PublicTourList = () => {
           className="text-link"
           to="/"
           onClick={() => setTimeout(() => window.scrollTo({ top: 0 }), 0)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#7A3A18', textDecoration: 'none', marginBottom: 18 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', textDecoration: 'none', marginBottom: 18 }}
         >
           <ArrowLeft size={15} /> Back
         </Link>
         <div />
-        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#A8481A' }}>Open for booking</span>
+        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Open for booking</span>
         <h1 style={{ fontWeight: 900, fontSize: 'clamp(2rem,4vw,3rem)', letterSpacing: '-0.03em', margin: '8px 0 6px' }}>Upcoming Tours</h1>
-        <p style={{ fontSize: 15, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 28px' }}>
+        <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 28px' }}>
           Browse every joiner tour. Create a free account when you're ready to book.
         </p>
 
@@ -239,7 +241,7 @@ export const PublicTourDetail = () => {
 
   if (status !== 'ready') {
     return (
-      <div style={pageStyle}>
+      <div className="journal-paper" style={pageStyle}>
         <PublicNav session={session} />
         {status === 'loading' ? (
           <SkeletonRegion label="Loading tour" style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(1.25rem,4vw,3rem) clamp(1rem,5vw,4rem) 4rem' }}>
@@ -250,7 +252,7 @@ export const PublicTourDetail = () => {
                 <Skel h={300} r={18} style={{ marginTop: 12 }} />
                 <Skel w="25%" h={10} style={{ marginTop: 12 }} /><Skel w="95%" h={12} /><Skel w="85%" h={12} /><Skel w="60%" h={12} />
               </div>
-              <div style={{ background: '#1A0A00', borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ background: 'var(--ib-ink, #1A0A00)', borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <Skel dark w="40%" h={10} /><Skel dark w="60%" h={30} /><Skel dark w="85%" h={10} />
                 <Skel dark h={44} r={12} /><Skel dark h={44} r={12} />
                 <Skel dark w="70%" h={12} /><Skel dark w="55%" h={12} />
@@ -262,9 +264,9 @@ export const PublicTourDetail = () => {
         <CenteredMessage>
           {(
             <>
-              <Mountain size={40} style={{ color: '#A8481A' }} />
+              <Mountain size={40} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
               <h1 style={{ fontWeight: 900, fontSize: 24, margin: 0 }}>This tour isn't available</h1>
-              <p style={{ fontWeight: 600, color: '#7A3A18', margin: 0 }}>It may have been removed or the link is wrong.</p>
+              <p style={{ fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>It may have been removed or the link is wrong.</p>
               <Link to="/tours" style={{ ...navCta, padding: '12px 22px' }}>See open tours</Link>
             </>
           )}
@@ -290,10 +292,10 @@ export const PublicTourDetail = () => {
   ].filter(([, text]) => text);
 
   return (
-    <div className="public-tour-page" style={pageStyle}>
+    <div className="public-tour-page journal-paper" style={pageStyle}>
       <PublicNav session={session} />
       <div className="public-main" style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(1.25rem,4vw,3rem) clamp(1rem,5vw,4rem) 4rem' }}>
-        <Link className="text-link" to="/tours" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#7A3A18', textDecoration: 'none', marginBottom: 18 }}>
+        <Link className="text-link" to="/tours" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', textDecoration: 'none', marginBottom: 18 }}>
           <ArrowLeft size={15} /> All tours
         </Link>
 
@@ -302,49 +304,49 @@ export const PublicTourDetail = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 28, minWidth: 0 }}>
             <div>
               {tour.difficulty && (
-                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#A8481A' }}>{tour.difficulty}</span>
+                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>{tour.difficulty}</span>
               )}
               <h1 style={{ fontWeight: 900, fontSize: 'clamp(1.8rem,4vw,2.8rem)', letterSpacing: '-0.03em', lineHeight: 1.1, margin: '6px 0 8px', overflowWrap: 'anywhere' }}>{tour.title}</h1>
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: '#A8481A', margin: 0 }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: 'var(--ib-sienna, #A8481A)', margin: 0 }}>
                 <MapPin size={16} /> {tour.destination}
               </p>
             </div>
 
-            <TourImageCarousel images={tour.image_urls || []} />
+            <TourImageCarousel images={tour.image_urls || []} caption={tour.destination || tour.title} />
 
             <ViewSection title="About the Tour">
-              <p style={{ fontSize: 15, lineHeight: 1.8, fontWeight: 500, color: '#7A3A18', whiteSpace: 'pre-wrap', margin: 0 }}>
+              <p style={{ fontSize: 15, lineHeight: 1.8, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', whiteSpace: 'pre-wrap', margin: 0 }}>
                 {tour.description || 'No description provided.'}
               </p>
             </ViewSection>
 
-            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
-              <ViewSection title="Inclusions" titleColor="#A8481A" icon={<CheckCircle2 size={14} />}>
+            <div className="responsive-section-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', paddingTop: 24 }}>
+              <ViewSection title="Inclusions" titleColor="var(--ib-sienna, #A8481A)" icon={<CheckCircle2 size={14} />}>
                 <ChecklistGrid text={tour.inclusions} variant="include" />
               </ViewSection>
-              <ViewSection title="Exclusions" titleColor="#8C2F1C" icon={<X size={14} />}>
+              <ViewSection title="Exclusions" titleColor="var(--ib-red, #8C2F1C)" icon={<X size={14} />}>
                 <ChecklistGrid text={tour.exclusions} variant="exclude" />
               </ViewSection>
             </div>
 
-            <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
-              <ViewSection title="Itinerary" titleColor="#A8481A" icon={<Clock size={14} />}>
+            <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', paddingTop: 24 }}>
+              <ViewSection title="Itinerary" titleColor="var(--ib-sienna, #A8481A)" icon={<Clock size={14} />}>
                 <ItineraryTimeline text={tour.itinerary} startDate={tour.dates?.length > 1 ? null : tour.start_date} />
               </ViewSection>
             </div>
 
-            <div style={{ borderTop: '1px solid rgba(180,81,30,0.1)', paddingTop: 24 }}>
+            <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', paddingTop: 24 }}>
               <ViewSection title="Things to Bring">
                 <ChecklistGrid text={tour.things_to_bring} variant="neutral" />
               </ViewSection>
             </div>
 
             {tour.important_note && (
-              <div style={{ background: 'rgba(180,81,30,0.07)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(180,81,30,0.2)', display: 'flex', gap: 14 }}>
-                <AlertCircle size={22} style={{ color: '#A8481A', flexShrink: 0 }} />
+              <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)', borderRadius: 18, padding: '1.25rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', display: 'flex', gap: 14 }}>
+                <AlertCircle size={22} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} />
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A', margin: '0 0 8px' }}>Important Note</p>
-                  <p style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.7, color: '#1A0A00', whiteSpace: 'pre-wrap', margin: 0, overflowWrap: 'anywhere' }}>{tour.important_note}</p>
+                  <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)', margin: '0 0 8px' }}>Important Note</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.7, color: 'var(--ib-dark, #1A0A00)', whiteSpace: 'pre-wrap', margin: 0, overflowWrap: 'anywhere' }}>{tour.important_note}</p>
                 </div>
               </div>
             )}
@@ -354,14 +356,14 @@ export const PublicTourDetail = () => {
 
           {/* ── Right: price and booking ── */}
           <aside className="public-tour-aside" style={{
-            position: 'sticky', top: 88, background: '#1A0A00', color: '#FDF6EE',
+            position: 'sticky', top: 88, background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)',
             borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 18,
-            boxShadow: '0 16px 40px rgba(26,10,0,0.18)',
+            boxShadow: '0 16px 40px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)',
           }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)' }}>Price per joiner</div>
-              <PriceTag tour={tour} size={34} color="#FDF6EE" mutedColor="rgba(232,210,190,0.75)" align="flex-start" />
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)' }}>Pay in full or {DOWNPAYMENT_PERCENT}% downpayment online (GCash, Maya, card)</div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>Price per joiner</div>
+              <PriceTag tour={tour} size={34} color="var(--ib-on-ink, #FDF6EE)" mutedColor="rgba(var(--ib-soft-rgb, 232,210,190), 0.75)" align="flex-start" />
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>Pay in full or {DOWNPAYMENT_PERCENT}% downpayment online (GCash, Maya, card)</div>
             </div>
 
             {tour.dates.length > 1 && (
@@ -375,21 +377,21 @@ export const PublicTourDetail = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {facts.map(([icon, text], i) => (
-                <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(253,246,238,0.9)' }}>
-                  <span style={{ color: '#E8A265', display: 'flex' }}>{icon}</span>{text}
+                <p key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.9)' }}>
+                  <span style={{ color: 'var(--ib-amber, #E8A265)', display: 'flex' }}>{icon}</span>{text}
                 </p>
               ))}
             </div>
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 800, marginBottom: 6 }}>
-                <span style={{ color: isFull ? '#E8A265' : '#FDF6EE' }}>
+                <span style={{ color: isFull ? 'var(--ib-amber, #E8A265)' : 'var(--ib-on-ink, #FDF6EE)' }}>
                   {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
                 </span>
-                <span style={{ color: 'rgba(232,210,190,0.85)' }}>{tour.current_booked} / {capacity}</span>
+                <span style={{ color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>{tour.current_booked} / {capacity}</span>
               </div>
-              <div style={{ height: 6, borderRadius: 999, background: 'rgba(253,246,238,0.12)', overflow: 'hidden' }}>
-                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? '#8C2F1C' : '#B4511E' }} />
+              <div style={{ height: 6, borderRadius: 999, background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)', overflow: 'hidden' }}>
+                <div style={{ width: `${filledPct}%`, height: '100%', background: isFull ? 'var(--ib-red-solid, #8C2F1C)' : 'var(--ib-accent, #B4511E)' }} />
               </div>
             </div>
 
@@ -401,15 +403,15 @@ export const PublicTourDetail = () => {
                 border: 'none', borderRadius: 14, padding: '15px 18px', fontFamily: 'inherit',
                 fontSize: 14, fontWeight: 900, letterSpacing: '0.04em',
                 cursor: canBook ? 'pointer' : 'not-allowed',
-                background: canBook ? '#B4511E' : 'rgba(253,246,238,0.12)',
-                color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.85)',
+                background: canBook ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)',
+                color: canBook ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
               }}
             >
               {hasDeparted ? 'This tour has departed' : isFull ? (session ? 'Join the waitlist' : 'Log in to join the waitlist') : session ? 'Book this tour' : 'Log in to book'}
             </button>
             {canBook && !session && (
-              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(232,210,190,0.85)', margin: '-8px 0 0', textAlign: 'center' }}>
-                New here? <Link className="text-link" to={`/register?next=${encodeURIComponent(`/dashboard?book=${tour.id}`)}`} style={{ color: '#E8A265', fontWeight: 800 }}>Create a free account</Link>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: '-8px 0 0', textAlign: 'center' }}>
+                New here? <Link className="text-link" to={`/register?next=${encodeURIComponent(`/dashboard?book=${tour.id}`)}`} style={{ color: 'var(--ib-amber, #E8A265)', fontWeight: 800 }}>Create a free account</Link>
               </p>
             )}
 
@@ -418,7 +420,7 @@ export const PublicTourDetail = () => {
               onClick={handleShare}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                border: '1.5px solid rgba(232,210,190,0.25)', background: 'transparent', color: '#FDF6EE',
+                border: '1.5px solid rgba(var(--ib-soft-rgb, 232,210,190), 0.25)', background: 'transparent', color: 'var(--ib-on-ink, #FDF6EE)',
                 borderRadius: 14, padding: '12px 18px', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer',
               }}
             >
@@ -431,13 +433,13 @@ export const PublicTourDetail = () => {
       {/* Phones: the booking card sits below the itinerary, so keep Book reachable. */}
       <div className="public-tour-mobilebar" style={{
         display: 'none', position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40,
-        background: '#1A0A00', color: '#FDF6EE', padding: '12px 16px',
+        background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', padding: '12px 16px',
         alignItems: 'center', justifyContent: 'space-between', gap: 12,
-        boxShadow: '0 -8px 24px rgba(26,10,0,0.2)',
+        boxShadow: '0 -8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
       }}>
         <div style={{ minWidth: 0 }}>
-          <PriceTag tour={tour} size={20} color="#FDF6EE" mutedColor="rgba(232,210,190,0.75)" align="flex-start" showBadge={false} />
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(232,210,190,0.85)' }}>
+          <PriceTag tour={tour} size={20} color="var(--ib-on-ink, #FDF6EE)" mutedColor="rgba(var(--ib-soft-rgb, 232,210,190), 0.75)" align="flex-start" showBadge={false} />
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)' }}>
             {isFull ? 'Fully booked' : `${tour.available_slots} slot${tour.available_slots === 1 ? '' : 's'} left`}
           </div>
         </div>
@@ -449,8 +451,8 @@ export const PublicTourDetail = () => {
             border: 'none', borderRadius: 12, padding: '12px 18px', fontFamily: 'inherit',
             fontSize: 13, fontWeight: 900, flexShrink: 0,
             cursor: canBook ? 'pointer' : 'not-allowed',
-            background: canBook ? '#B4511E' : 'rgba(253,246,238,0.12)',
-            color: canBook ? '#FDF6EE' : 'rgba(253,246,238,0.85)',
+            background: canBook ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-cream-rgb, 253,246,238), 0.12)',
+            color: canBook ? 'var(--ib-on-accent, #FDF6EE)' : 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)',
           }}
         >
           {hasDeparted ? 'Departed' : isFull ? 'Join waitlist' : session ? 'Book now' : 'Log in to book'}

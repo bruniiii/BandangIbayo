@@ -12,8 +12,8 @@ const AdminDashboard = lazy(() => import('./AdminDashboard'));
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import MaintenanceGate from './MaintenanceGate';
-// The landing page: Bright & Tropical (the earlier ones are in LandingPremium.jsx
-// and LandingClassic.jsx).
+// The landing page: Bright & Tropical (the two earlier designs were removed;
+// they're in the git history).
 import LandingPage from './LandingTropical';
 const JoinerDashboard = lazy(() => import('./JoinerDashboard'));
 const ForgotPassword = lazy(() => import('./ForgotPassword'));
@@ -34,11 +34,13 @@ const PublicTourDetail = lazy(() => import('./PublicTours').then((m) => ({ defau
 // ---------------------------------------------------------
  
 
-// Shown for a moment while a page's code loads.
+// Shown for a moment while a page's code loads: the logo, and a little van
+// driving along a dashed road (index.css: .journal-loading).
 const PageLoading = () => (
-  <div role="status" aria-label="Loading" style={{ minHeight: '100dvh', background: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <img src={logoIcon} alt="" width={56} height={56} style={{ opacity: 0.85, animation: 'ibayo-pulse 1.2s ease-in-out infinite' }} />
-    <style>{'@keyframes ibayo-pulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.06);opacity:1}}'}</style>
+  <div role="status" aria-label="Loading" className="journal-loading">
+    <img src={logoIcon} alt="" width={56} height={56} />
+    <div className="journal-road" aria-hidden="true"><span className="journal-van">🚐</span></div>
+    <p className="journal-hand">Packing your bags…</p>
   </div>
 );
 
@@ -60,6 +62,7 @@ export default function App() {
     // Only when the site first opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   return (
     <Suspense fallback={<PageLoading />}>

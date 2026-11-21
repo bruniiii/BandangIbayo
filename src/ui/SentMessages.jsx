@@ -16,22 +16,22 @@ export const MessageItem = ({ m, to = '', unread = false, admin = false, tourNam
   const [open, setOpen] = useState(defaultOpen);
   const Icon = m.source === 'tour' ? Megaphone : Mail;
   return (
-    <li data-focus-id={`message-${m.id}`} style={{ listStyle: 'none', background: unread ? 'rgba(180,81,30,0.1)' : '#F2E4D0', border: `1px solid ${unread ? 'rgba(180,81,30,0.4)' : 'rgba(180,81,30,0.14)'}`, borderRadius: 14 }}>
+    <li data-focus-id={`message-${m.id}`} style={{ listStyle: 'none', background: unread ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' : 'var(--ib-parch, #F2E4D0)', border: `1px solid ${unread ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.4)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.14)'}`, borderRadius: 14 }}>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} style={{
         width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
         padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'flex-start',
       }}>
-        <Icon size={15} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2 }} />
+        <Icon size={15} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 2 }} />
         <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 13, fontWeight: 900, color: '#1A0A00', overflowWrap: 'anywhere' }}>{m.subject}</span>
-          <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#7A3A18', marginTop: 2 }}>
+          <span style={{ display: 'block', fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{m.subject}</span>
+          <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', marginTop: 2 }}>
             {[to && `To ${to}`, tourName ? `Tour update · ${tourName}` : messageSourceLabel(m), formatSent(m.created_at), admin && (m.emailed ? 'Emailed' : 'In-app only')].filter(Boolean).join(' · ')}
           </span>
         </span>
-        <ChevronDown size={15} style={{ color: '#A8481A', flexShrink: 0, marginTop: 2, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        <ChevronDown size={15} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 2, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
       {open && (
-        <p style={{ margin: 0, padding: '0 12px 12px 37px', fontSize: 12.5, fontWeight: 500, color: '#1A0A00', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+        <p style={{ margin: 0, padding: '0 12px 12px 37px', fontSize: 12.5, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
           {m.message}
         </p>
       )}
@@ -64,15 +64,15 @@ const SentMessages = ({ userId = null, names = null, limit = 50 }) => {
         : m.source === 'tour' && `tour:${m.tour_id}` === filter));
 
   if (rows === null) return <SkeletonLines lines={2} label="Loading sent messages" />;
-  if (error) return <p style={{ fontSize: 12, fontWeight: 700, color: '#8C2F1C', margin: 0 }}>Couldn't load sent messages: {error}</p>;
-  if (!rows.length) return <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>No messages sent yet.</p>;
+  if (error) return <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>Couldn't load sent messages: {error}</p>;
+  if (!rows.length) return <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>No messages sent yet.</p>;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18' }}>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>
         Show
         <NiceSelect aria-label="Filter sent messages" value={filter} onChange={(e) => setFilter(e.target.value)} style={{
-          flex: 1, minWidth: 0, background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10, padding: '7px 10px',
-          fontSize: 12.5, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit', letterSpacing: 0, textTransform: 'none', cursor: 'pointer',
+          flex: 1, minWidth: 0, background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10, padding: '7px 10px',
+          fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', letterSpacing: 0, textTransform: 'none', cursor: 'pointer',
         }}>
           <option value="all">All messages ({rows.length})</option>
           <option value="personal">Personal messages ({rows.filter((m) => m.source !== 'tour').length})</option>
@@ -83,7 +83,7 @@ const SentMessages = ({ userId = null, names = null, limit = 50 }) => {
         </NiceSelect>
       </label>
       {shown.length === 0 ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: 0 }}>No messages of this kind.</p>
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>No messages of this kind.</p>
       ) : (
         <ul style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {shown.map((m) => <MessageItem key={m.id} m={m} admin tourName={m.source === 'tour' ? tourNames[m.tour_id] : ''} to={names ? names[m.user_id] || 'Joiner' : ''} />)}

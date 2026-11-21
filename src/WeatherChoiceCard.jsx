@@ -40,13 +40,13 @@ const RefundStatus = ({ bookingId }) => {
     return () => { alive = false; };
   }, [bookingId]);
   const day = state?.at ? new Date(state.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' }) : '';
-  const line = !state ? { c: '#7A3A18', t: 'Checking where your refund is…' }
-    : state.status === 'succeeded' ? { c: '#1A0A00', t: `✓ Received: PayMongo finished sending it to your GCash, Maya or card${day ? ` on ${day}` : ''}. Check your account's history for the credit.` }
-      : state.status === 'pending' ? { c: '#7A3A18', t: 'On its way: PayMongo is still sending it. It usually reaches GCash or Maya in 1 to 5 days (cards can take longer).' }
-        : state.status === 'failed' ? { c: '#8C2F1C', t: "The refund didn't go through at PayMongo. Bandang IBAYO has been told and will send it again. You don't need to do anything." }
-          : { c: '#7A3A18', t: "Couldn't check with PayMongo right now. Please open this again later." };
+  const line = !state ? { c: 'var(--ib-rust, #7A3A18)', t: 'Checking where your refund is…' }
+    : state.status === 'succeeded' ? { c: 'var(--ib-dark, #1A0A00)', t: `✓ Received: PayMongo finished sending it to your GCash, Maya or card${day ? ` on ${day}` : ''}. Check your account's history for the credit.` }
+      : state.status === 'pending' ? { c: 'var(--ib-rust, #7A3A18)', t: 'On its way: PayMongo is still sending it. It usually reaches GCash or Maya in 1 to 5 days (cards can take longer).' }
+        : state.status === 'failed' ? { c: 'var(--ib-red, #8C2F1C)', t: "The refund didn't go through at PayMongo. Bandang IBAYO has been told and will send it again. You don't need to do anything." }
+          : { c: 'var(--ib-rust, #7A3A18)', t: "Couldn't check with PayMongo right now. Please open this again later." };
   if (!line) return null;
-  return <p role="status" style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: line.c, lineHeight: 1.5, background: '#F2E4D0', borderRadius: 10, padding: '8px 10px' }}>{line.t}</p>;
+  return <p role="status" style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: line.c, lineHeight: 1.5, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 10, padding: '8px 10px' }}>{line.t}</p>;
 };
 
 // The joiner says whether the refund reached them ("I didn't get it" tells the
@@ -69,19 +69,19 @@ const RefundConfirm = ({ booking, onChanged }) => {
     onChanged?.();
   };
   if (answer === 'received') {
-    return <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#B4511E' }}>✓ You confirmed you received it. Thank you!</p>;
+    return <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: 'var(--ib-accent, #B4511E)' }}>✓ You confirmed you received it. Thank you!</p>;
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(242,228,208,0.6)', borderRadius: 12, padding: '10px 12px' }}>
-      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: answer === 'not_received' ? '#8C2F1C' : '#1A0A00' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(var(--ib-parch-rgb, 242,228,208), 0.6)', borderRadius: 12, padding: '10px 12px' }}>
+      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: answer === 'not_received' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)' }}>
         {answer === 'not_received' ? "You said you didn't get it. Bandang IBAYO was told and is checking it." : 'Did you receive it?'}
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button type="button" onClick={() => say(true)} disabled={!!busy} style={{ ...btn('#B4511E', '#FDF6EE'), padding: '9px 14px' }}>
+        <button type="button" onClick={() => say(true)} disabled={!!busy} style={{ ...btn('var(--ib-accent, #B4511E)', 'var(--ib-on-ink, #FDF6EE)'), padding: '9px 14px' }}>
           {busy === 'yes' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={13} />} {answer === 'not_received' ? 'I got it now' : 'I received it'}
         </button>
         {answer !== 'not_received' && (
-          <button type="button" onClick={() => say(false)} disabled={!!busy} style={{ ...btn('transparent', '#1A0A00', '1px solid rgba(26,10,0,0.3)'), padding: '9px 14px' }}>
+          <button type="button" onClick={() => say(false)} disabled={!!busy} style={{ ...btn('transparent', 'var(--ib-dark, #1A0A00)', '1px solid rgba(var(--ib-dark-rgb, 26,10,0), 0.3)'), padding: '9px 14px' }}>
             {busy === 'no' ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : null} I didn't get it
           </button>
         )}
@@ -147,19 +147,19 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
     onChanged?.();
   };
 
-  const shell = (children, tone = '#3F5D62') => (
+  const shell = (children, tone = 'var(--ib-slate, #3F5D62)') => (
     <section aria-label={`${title}: weather update`} style={{
-      background: '#FDF6EE', borderRadius: 20, border: `2px solid ${tone}`, padding: '1.1rem 1.2rem', boxShadow: '0 6px 20px rgba(26,10,0,0.08)',
+      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: `2px solid ${tone}`, padding: '1.1rem 1.2rem', boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.08)',
       display: 'flex', flexDirection: 'column', gap: 12,
     }}>{children}</section>
   );
-  const heading = (text, tone = '#3F5D62') => (
+  const heading = (text, tone = 'var(--ib-slate, #3F5D62)') => (
     <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: tone }}>
       <CloudRain size={15} /> {text}
     </p>
   );
   const chatBtn = (
-    <button type="button" onClick={() => openGroupChat(booking.tour_id)} style={btn('transparent', '#1A0A00', '1px solid rgba(26,10,0,0.25)')}>
+    <button type="button" onClick={() => openGroupChat(booking.tour_id)} style={btn('transparent', 'var(--ib-dark, #1A0A00)', '1px solid rgba(var(--ib-dark-rgb, 26,10,0), 0.25)')}>
       <MessagesSquare size={14} /> Ask in the group chat
     </button>
   );
@@ -170,17 +170,17 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
     const sent = booking.weather_refund_status === 'Sent';
     const got = booking.weather_refund_received === 'received';
     // In the site's colors: the status is a small label, not the whole card.
-    const status = !sent ? { t: 'On the way', bg: 'transparent', fg: '#B4511E', bd: '1px solid rgba(180,81,30,0.5)' }
-      : got ? { t: 'Received ✓', bg: '#1A0A00', fg: '#E8A265', bd: '1px solid #1A0A00' }
-        : { t: 'Sent · please confirm', bg: '#B4511E', fg: '#FDF6EE', bd: '1px solid #B4511E' };
+    const status = !sent ? { t: 'On the way', bg: 'transparent', fg: 'var(--ib-accent, #B4511E)', bd: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.5)' }
+      : got ? { t: 'Received ✓', bg: 'var(--ib-ink, #1A0A00)', fg: 'var(--ib-amber, #E8A265)', bd: '1px solid var(--ib-dark, #1A0A00)' }
+        : { t: 'Sent · please confirm', bg: 'var(--ib-accent, #B4511E)', fg: 'var(--ib-on-ink, #FDF6EE)', bd: '1px solid var(--ib-accent, #B4511E)' };
     return (
       <section aria-label={`${title}: refund`} style={{
-        background: '#FDF6EE', borderRadius: 16, border: '1px solid rgba(180,81,30,0.2)', padding: '0.85rem 1rem',
-        boxShadow: '0 4px 14px rgba(26,10,0,0.06)', display: 'flex', flexDirection: 'column', gap: 10,
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 16, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', padding: '0.85rem 1rem',
+        boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)', display: 'flex', flexDirection: 'column', gap: 10,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <p style={{ margin: 0, flex: '1 1 220px', minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#1A0A00' }}>
-            <span style={{ width: 30, height: 30, borderRadius: 10, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(180,81,30,0.12)', color: '#B4511E' }}>
+          <p style={{ margin: 0, flex: '1 1 220px', minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>
+            <span style={{ width: 30, height: 30, borderRadius: 10, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: 'var(--ib-accent, #B4511E)' }}>
               <Wallet size={15} />
             </span>
             <span style={{ minWidth: 0 }}>
@@ -189,15 +189,15 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
             </span>
           </p>
           <button type="button" onClick={() => setRefundOpen((v) => !v)} aria-expanded={refundOpen}
-            style={{ ...btn('transparent', '#1A0A00', '1px solid rgba(26,10,0,0.3)'), padding: '8px 12px' }}>
+            style={{ ...btn('transparent', 'var(--ib-dark, #1A0A00)', '1px solid rgba(var(--ib-dark-rgb, 26,10,0), 0.3)'), padding: '8px 12px' }}>
             {refundOpen ? 'Hide' : 'See refund'} <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: refundOpen ? 'rotate(180deg)' : 'none' }} />
           </button>
         </div>
-        {refundOpen && (<div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 10 }}>
-          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: '#1A0A00', lineHeight: 1.45 }}>
+        {refundOpen && (<div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', paddingTop: 10 }}>
+          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.45 }}>
             {title} ({booking.booking_number}): {formatPeso(booking.weather_refund)} {sent ? 'was sent to you' : 'will be sent to your GCash'}.
           </p>
-          {sent && booking.weather_refund_ref && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#7A3A18', overflowWrap: 'anywhere' }}>Reference: {booking.weather_refund_ref}</p>}
+          {sent && booking.weather_refund_ref && <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', overflowWrap: 'anywhere' }}>Reference: {booking.weather_refund_ref}</p>}
           {sent && (
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
               <button type="button" className="text-link" onClick={() => downloadRefundReceipt(booking).catch((e) => toast.error("Couldn't make your refund receipt", e?.message))}
@@ -218,17 +218,17 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
 
   const options = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ background: 'rgba(63,93,98,0.07)', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 900, color: '#1A0A00', display: 'flex', alignItems: 'center', gap: 6 }}><CalendarCheck size={15} /> Move to another date</p>
+      <div style={{ background: 'rgba(var(--ib-slate-rgb, 63,93,98), 0.07)', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', display: 'flex', alignItems: 'center', gap: 6 }}><CalendarCheck size={15} /> Move to another date</p>
         {dates === null ? (
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 6 }}><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Looking for other dates…</p>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', gap: 6 }}><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Looking for other dates…</p>
         ) : dates.length === 0 ? (
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#7A3A18' }}>No other date of this tour is open yet. Ask in the group chat — a new date may be added soon.</p>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>No other date of this tour is open yet. Ask in the group chat — a new date may be added soon.</p>
         ) : (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <NiceSelect aria-label="Choose a date" value={pick} onChange={(e) => setPick(e.target.value)} style={{
-              flex: '1 1 200px', minWidth: 0, background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 12, padding: '10px 12px',
-              fontSize: 16, fontWeight: 700, color: '#1A0A00', fontFamily: 'inherit',
+              flex: '1 1 200px', minWidth: 0, background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 12, padding: '10px 12px',
+              fontSize: 16, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit',
             }}>
               <option value="" disabled>Choose a date…</option>
               {dates.map((d) => {
@@ -236,13 +236,13 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
                 return <option key={d.id} value={d.id} disabled={!fits}>{formatYmdRange(d.start_date, d.end_date)} · {fits ? `${d.available_slots} slots left` : 'full'}</option>;
               })}
             </NiceSelect>
-            <button type="button" disabled={!pick || !!busy} onClick={() => choose('move')} style={{ ...btn('#1A0A00', '#FDF6EE'), opacity: pick ? 1 : 0.5, cursor: pick ? 'pointer' : 'not-allowed' }}>
+            <button type="button" disabled={!pick || !!busy} onClick={() => choose('move')} style={{ ...btn('var(--ib-ink, #1A0A00)', 'var(--ib-on-ink, #FDF6EE)'), opacity: pick ? 1 : 0.5, cursor: pick ? 'pointer' : 'not-allowed' }}>
               {busy === 'move' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={14} />} Move
             </button>
           </div>
         )}
       </div>
-      <button type="button" disabled={!!busy} onClick={() => choose('refund')} style={btn('rgba(140,47,28,0.08)', '#8C2F1C', '1px solid rgba(140,47,28,0.35)')}>
+      <button type="button" disabled={!!busy} onClick={() => choose('refund')} style={btn('rgba(var(--ib-red-rgb, 140,47,28), 0.08)', 'var(--ib-red, #8C2F1C)', '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.35)')}>
         {busy === 'refund' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Wallet size={14} />} Get a {pct}% refund ({formatPeso(refund)})
       </button>
     </div>
@@ -250,28 +250,28 @@ const WeatherChoiceCard = ({ booking, weather, onChanged, defaultOpen = false })
 
   if (cancelled) {
     return shell(<>
-      {heading('Tour cancelled · please choose', '#8C2F1C')}
-      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.4 }}>
+      {heading('Tour cancelled · please choose', 'var(--ib-red, #8C2F1C)')}
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.4 }}>
         {title} on {formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)} was cancelled{why ? ` because of ${why}` : ''}.
       </p>
-      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#8C2F1C' }}>
+      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>
         Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the {pct}% refund.
       </p>
       {options}
       {chatBtn}
-    </>, '#8C2F1C');
+    </>, 'var(--ib-red, #8C2F1C)');
   }
 
   // Postponed: staying is the default.
   return shell(<>
     {heading('Tour postponed · please choose')}
-    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.4 }}>
+    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.4 }}>
       {title} was moved{weather?.weather_old_start ? ` from ${formatYmdRange(weather.weather_old_start, weather.weather_old_end)}` : ''} to {formatYmdRange(booking.tours?.start_date, booking.tours?.end_date)}{why ? ` because of ${why}` : ''}.
     </p>
-    <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#8C2F1C' }}>
+    <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>
       Choose before {deadlineText(booking.weather_deadline)}. If you don't, you'll get the {pct}% refund.
     </p>
-    <button type="button" disabled={!!busy} onClick={() => choose('stay')} style={btn('#1F6B4A', '#FDF6EE')}>
+    <button type="button" disabled={!!busy} onClick={() => choose('stay')} style={btn('#1F6B4A', 'var(--ib-on-ink, #FDF6EE)')}>
       {busy === 'stay' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CalendarCheck size={14} />} Keep my slot on the new date
     </button>
     {options}

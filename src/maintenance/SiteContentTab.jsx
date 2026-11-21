@@ -50,12 +50,12 @@ const SiteContentTab = () => {
   if (problem) {
     return (
       <div style={card}>
-        <h3 style={h3}><LayoutTemplate size={16} color="#8C2F1C" /> Site content isn't installed yet</h3>
+        <h3 style={h3}><LayoutTemplate size={16} color="var(--ib-red, #8C2F1C)" /> Site content isn't installed yet</h3>
         <p style={{ ...hint, margin: 0 }}>Run the database update <strong>20270101000000_site_content_blackouts.sql</strong>. ({problem})</p>
       </div>
     );
   }
-  if (!ann) return <div style={{ ...card, display: 'flex', gap: 8, alignItems: 'center', fontWeight: 700, color: '#5C2A10' }}><Loader2 size={15} style={spin} /> Loading…</div>;
+  if (!ann) return <div style={{ ...card, display: 'flex', gap: 8, alignItems: 'center', fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}><Loader2 size={15} style={spin} /> Loading…</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -81,8 +81,8 @@ const Announcement = ({ ann, setAnn, onSaved }) => {
   };
   return (
     <section style={card}>
-      <h3 style={h3}><Megaphone size={16} color="#B4511E" /> Announcement banner</h3>
-      <p style={hint}>A short notice joiners see on the homepage and their dashboard, e.g. a typhoon advisory. {ann.live ? <strong style={{ color: '#2E6B4A' }}>Showing now.</strong> : 'Not showing.'}</p>
+      <h3 style={h3}><Megaphone size={16} color="var(--ib-accent, #B4511E)" /> Announcement banner</h3>
+      <p style={hint}>A short notice joiners see on the homepage and their dashboard, e.g. a typhoon advisory. {ann.live ? <strong style={{ color: 'var(--ib-green, #2E6B4A)' }}>Showing now.</strong> : 'Not showing.'}</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <label style={label}>Message<textarea value={ann.message} rows={2} maxLength={300} onChange={(e) => setAnn({ ...ann, message: e.target.value })} placeholder="e.g. Typhoon advisory: tours this weekend may be moved. Check My Bookings." style={{ ...inp, resize: 'vertical', fontFamily: 'inherit' }} /></label>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 10 }}>
@@ -131,9 +131,9 @@ const Landing = ({ landing, setLanding, canEdit, onSaved }) => {
   };
   return (
     <section style={card}>
-      <h3 style={h3}><LayoutTemplate size={16} color="#B4511E" /> Landing page</h3>
+      <h3 style={h3}><LayoutTemplate size={16} color="var(--ib-accent, #B4511E)" /> Landing page</h3>
       <p style={hint}>The big headline, the line under it, and the photos behind them. Leave a box empty to use the usual text; with no photos, the open tours' photos are shown.</p>
-      {!canEdit && <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 12px' }}><Lock size={15} /> Only the main admin can change the landing page.</p>}
+      {!canEdit && <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', margin: '0 0 12px' }}><Lock size={15} /> Only the main admin can change the landing page.</p>}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 10 }}>
         <label style={label}>Headline<input value={landing.headline} disabled={!canEdit} maxLength={80} onChange={(e) => setLanding({ ...landing, headline: e.target.value })} placeholder="Your next adventure is" style={inp} /></label>
         <label style={label}>Highlighted part<input value={landing.headline_accent} disabled={!canEdit} maxLength={60} onChange={(e) => setLanding({ ...landing, headline_accent: e.target.value })} placeholder="one seat away." style={inp} /></label>
@@ -143,13 +143,13 @@ const Landing = ({ landing, setLanding, canEdit, onSaved }) => {
         {landing.hero_images.map((u) => (
           <div key={u} style={{ position: 'relative', width: 110, height: 72, borderRadius: 10, overflow: 'hidden' }}>
             <img src={u} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', maxWidth: 'none' }} />
-            {canEdit && <button type="button" aria-label="Remove photo" onClick={() => setLanding({ ...landing, hero_images: landing.hero_images.filter((x) => x !== u) })} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(26,10,0,0.7)', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>}
+            {canEdit && <button type="button" aria-label="Remove photo" onClick={() => setLanding({ ...landing, hero_images: landing.hero_images.filter((x) => x !== u) })} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>}
           </div>
         ))}
         {files.map((f, i) => (
-          <div key={i} style={{ position: 'relative', width: 110, height: 72, borderRadius: 10, overflow: 'hidden', outline: '2px dashed #B4511E' }}>
+          <div key={i} style={{ position: 'relative', width: 110, height: 72, borderRadius: 10, overflow: 'hidden', outline: '2px dashed var(--ib-accent, #B4511E)' }}>
             <img src={URL.createObjectURL(f)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', maxWidth: 'none' }} />
-            <button type="button" aria-label="Remove photo" onClick={() => setFiles(files.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(26,10,0,0.7)', color: '#FDF6EE', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
+            <button type="button" aria-label="Remove photo" onClick={() => setFiles(files.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', color: 'var(--ib-on-ink, #FDF6EE)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={12} /></button>
           </div>
         ))}
         {canEdit && total < 6 && (
@@ -191,7 +191,7 @@ const NoTourDates = ({ rows, onChanged }) => {
   const range = (x) => `${new Date(`${x.start_date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${x.end_date !== x.start_date ? ` – ${new Date(`${x.end_date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : ''}`;
   return (
     <section style={card}>
-      <h3 style={h3}><CalendarOff size={16} color="#B4511E" /> No-tour dates</h3>
+      <h3 style={h3}><CalendarOff size={16} color="var(--ib-accent, #B4511E)" /> No-tour dates</h3>
       <p style={hint}>Holidays and agency days off. New tours, date changes and private tour or tour requests can't be set on these days. Days that already have tours can't be blocked.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 10, alignItems: 'end', marginBottom: 12 }}>
         <div style={label}>First day<NiceDate value={f.start} min={todayManila()} onChange={(e) => setF({ ...f, start: e.target.value })} placeholder="Pick a day" /></div>
@@ -208,8 +208,8 @@ const NoTourDates = ({ rows, onChanged }) => {
         onRestore={(x) => setActive(x, true)}
         render={(x) => (
           <>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{x.reason}</p>
-            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#5C2A10' }}>{range(x)}{x.end_date < todayManila() ? ' · past' : ''}</p>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{x.reason}</p>
+            <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>{range(x)}{x.end_date < todayManila() ? ' · past' : ''}</p>
           </>
         )}
       />

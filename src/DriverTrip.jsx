@@ -162,27 +162,27 @@ const DriverTrip = () => {
     return (
       <div className="nature-bg" style={{ ...page, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <div style={{ maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <AlertTriangle size={40} color="#8C2F1C" />
-          <h1 style={{ fontSize: 20, color: '#1A0A00', margin: 0 }}>This link can't be used now</h1>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#7A3A18', margin: 0, lineHeight: 1.5 }}>{error}</p>
+          <AlertTriangle size={40} color="var(--ib-red, #8C2F1C)" />
+          <h1 style={{ fontSize: 20, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>This link can't be used now</h1>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0, lineHeight: 1.5 }}>{error}</p>
         </div>
       </div>
     );
   }
   if (!info) {
-    return <div className="nature-bg" style={{ ...page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={30} color="#B4511E" style={{ animation: 'spin 1s linear infinite' }} /></div>;
+    return <div className="nature-bg" style={{ ...page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 size={30} color="var(--ib-accent, #B4511E)" style={{ animation: 'spin 1s linear infinite' }} /></div>;
   }
 
   return (
     <div className="nature-bg" style={page}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>Bandang IBAYO · Driver</p>
-          <h1 style={{ margin: '4px 0 0', fontSize: 22, fontWeight: 900, color: '#1A0A00' }}>{info.tour?.title}</h1>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Bandang IBAYO · Driver</p>
+          <h1 style={{ margin: '4px 0 0', fontSize: 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{info.tour?.title}</h1>
         </div>
 
         {/* Big status + Start / End */}
-        <div style={{ background: sharing ? '#1F6B4A' : '#1A0A00', color: '#FDF6EE', borderRadius: 20, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ background: sharing ? '#1F6B4A' : 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 20, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <p style={{ margin: 0, fontSize: 12, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Navigation size={16} /> {sharing ? 'Sharing the van\'s location' : 'Not sharing yet'}
           </p>
@@ -200,37 +200,37 @@ const DriverTrip = () => {
           {!sharing ? (
             <button type="button" onClick={start} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '18px', borderRadius: 16, border: 'none', cursor: 'pointer',
-              background: '#E8A265', color: '#1A0A00', fontFamily: 'inherit', fontWeight: 900, fontSize: 16, letterSpacing: '0.08em', textTransform: 'uppercase',
+              background: 'var(--ib-amber, #E8A265)', color: 'var(--ib-ink, #1A0A00)', fontFamily: 'inherit', fontWeight: 900, fontSize: 16, letterSpacing: '0.08em', textTransform: 'uppercase',
             }}><Navigation size={20} /> Start Trip</button>
           ) : (
             <button type="button" onClick={stop} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px', borderRadius: 16, border: '2px solid #FDF6EE', cursor: 'pointer',
-              background: 'transparent', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px', borderRadius: 16, border: '2px solid var(--ib-cream, #FDF6EE)', cursor: 'pointer',
+              background: 'transparent', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
             }}><Square size={16} /> End Trip</button>
           )}
         </div>
 
-        <div style={{ background: '#F2E4D0', borderRadius: 14, padding: '12px 14px', fontSize: 12.5, fontWeight: 700, color: '#7A3A18', display: 'flex', gap: 8, lineHeight: 1.5 }}>
+        <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', display: 'flex', gap: 8, lineHeight: 1.5 }}>
           <Smartphone size={16} style={{ flexShrink: 0, marginTop: 2 }} />
           Keep this page open with the screen on, and the phone plugged in. The location stops if the screen turns off or you switch apps.
         </div>
 
         {stops.some((s) => s.lat == null || s.lng == null) && (
-          <div role="note" style={{ background: 'rgba(232,162,101,0.2)', borderRadius: 14, padding: '10px 14px', fontSize: 12.5, fontWeight: 700, color: '#8C5216', lineHeight: 1.5 }}>
+          <div role="note" style={{ background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 14, padding: '10px 14px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)', lineHeight: 1.5 }}>
             Some pickup stops aren't pinned on the map yet, so they can't be marked Arrived by themselves. The admin can pin them in Tour Management → Edit → The Van's Route (search, Choose on map, or "Pickup point not in the list? Pin it on the map"). The van's location is still shared.
           </div>
         )}
 
 
         <div>
-          <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#A8481A' }}>Pickup stops</p>
+          <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Pickup stops</p>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {stops.map((s, i) => (
-              <li key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.status === 'ARRIVED' ? 'rgba(31,107,74,0.1)' : '#FFF', border: '1px solid rgba(180,81,30,0.15)', borderRadius: 12, padding: '10px 12px' }}>
-                {s.status === 'ARRIVED' ? <CheckCircle2 size={18} color="#1F6B4A" /> : <MapPin size={18} color="#B4511E" />}
-                <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{i + 1}. {s.name}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: liveTimes[i] ? '#1F6B4A' : '#7A3A18', textAlign: 'right' }}>
-                  {s.status === 'ARRIVED' ? 'Arrived' : liveTimes[i] ? <>≈ {liveTimes[i]}<span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: '#7A3A18' }}>live</span></> : s.scheduled_time || ''}
+              <li key={`${s.name}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.status === 'ARRIVED' ? 'rgba(var(--ib-green-rgb, 31,107,74), 0.1)' : 'var(--ib-surface, #FFF)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', borderRadius: 12, padding: '10px 12px' }}>
+                {s.status === 'ARRIVED' ? <CheckCircle2 size={18} color="var(--ib-green, #1F6B4A)" /> : <MapPin size={18} color="var(--ib-accent, #B4511E)" />}
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{i + 1}. {s.name}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: liveTimes[i] ? 'var(--ib-green, #1F6B4A)' : 'var(--ib-rust, #7A3A18)', textAlign: 'right' }}>
+                  {s.status === 'ARRIVED' ? 'Arrived' : liveTimes[i] ? <>≈ {liveTimes[i]}<span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>live</span></> : s.scheduled_time || ''}
                 </span>
               </li>
             ))}

@@ -89,7 +89,7 @@ const SuppliersTab = () => {
   if (problem) {
     return (
       <div style={card}>
-        <h3 style={h3}><Truck size={16} color="#8C2F1C" /> Suppliers aren't installed yet</h3>
+        <h3 style={h3}><Truck size={16} color="var(--ib-red, #8C2F1C)" /> Suppliers aren't installed yet</h3>
         <p style={{ ...hint, margin: 0 }}>Run the database update <strong>20261223000000_suppliers.sql</strong> (in supabase/updates/install_updates.sql), then open this tab again. ({problem})</p>
       </div>
     );
@@ -99,7 +99,7 @@ const SuppliersTab = () => {
     <div style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
         <div style={{ minWidth: 0, flex: '1 1 260px' }}>
-          <h3 style={h3}><Truck size={16} color="#B4511E" /> Suppliers</h3>
+          <h3 style={h3}><Truck size={16} color="var(--ib-accent, #B4511E)" /> Suppliers</h3>
           <p style={hint}>Van rentals, tour guides, boats, places to stay, attractions and food. Save each once, then tick them when you build a tour. Joiners only ever see the inclusion name.</p>
         </div>
         <button type="button" style={btn(true)} onClick={() => setEditing({})}><Plus size={14} /> Add Supplier</button>
@@ -107,7 +107,7 @@ const SuppliersTab = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 10, marginBottom: 12 }}>
         <label style={{ position: 'relative', minWidth: 0, gridColumn: 'span 1' }}>
-          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#7A3A18' }} />
+          <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--ib-rust, #7A3A18)' }} />
           <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search name, contact, place…" aria-label="Search suppliers" style={{ ...input, paddingLeft: 34 }} />
         </label>
         <PrettySelect ariaLabel="Filter by type" value={type} onChange={(v) => { setType(v); setPage(1); }}
@@ -127,29 +127,29 @@ const SuppliersTab = () => {
           {visible.map((s) => {
             const r = ratings[s.id];
             return (
-              <div key={s.id} style={{ background: s.is_active ? '#F2E4D0' : 'rgba(242,228,208,0.5)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, opacity: s.is_active ? 1 : 0.85 }}>
+              <div key={s.id} style={{ background: s.is_active ? 'var(--ib-parch, #F2E4D0)' : 'rgba(var(--ib-parch-rgb, 242,228,208), 0.5)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6, opacity: s.is_active ? 1 : 0.85 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00', overflowWrap: 'anywhere' }}>{s.name}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#A8481A' }}>
+                    <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{s.name}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
                       {TYPE_LABEL[s.supplier_type]}{!s.is_active && ' · Archived'}
                     </p>
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', whiteSpace: 'nowrap' }}>{formatPeso(s.default_rate)}<span style={{ fontSize: 11, fontWeight: 700, color: '#5C2A10' }}> {BASIS_LABEL[s.rate_basis]}</span></span>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', whiteSpace: 'nowrap' }}>{formatPeso(s.default_rate)}<span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}> {BASIS_LABEL[s.rate_basis]}</span></span>
                 </div>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>Joiners see: <strong style={{ color: '#1A0A00' }}>{s.inclusion_name}</strong></p>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>Serves: {(s.destinations || []).join(', ')}</p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>Joiners see: <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{s.inclusion_name}</strong></p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>Serves: {(s.destinations || []).join(', ')}</p>
                 {(s.contact_person || s.contact_number) && (
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#5C2A10', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     {s.contact_person && <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><User size={12} /> {s.contact_person}</span>}
-                    {s.contact_number && <a href={`tel:${s.contact_number}`} style={{ display: 'inline-flex', gap: 4, alignItems: 'center', color: '#A8481A', fontWeight: 800 }}><Phone size={12} /> {formatPhPhone(s.contact_number)}</a>}
+                    {s.contact_number && <a href={`tel:${s.contact_number}`} style={{ display: 'inline-flex', gap: 4, alignItems: 'center', color: 'var(--ib-sienna, #A8481A)', fontWeight: 800 }}><Phone size={12} /> {formatPhPhone(s.contact_number)}</a>}
                   </p>
                 )}
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#5C2A10', display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <Star size={13} fill={r?.count ? '#E8A265' : 'none'} color="#E8A265" />
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <Star size={13} fill={r?.count ? 'var(--ib-amber, #E8A265)' : 'none'} color="var(--ib-amber, #E8A265)" />
                   {r?.count ? `${r.avg.toFixed(1)} from ${r.count} joiner rating${r.count === 1 ? '' : 's'}` : 'No joiner ratings yet'}
                 </p>
-                {s.notes && <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: '#5C2A10', whiteSpace: 'pre-wrap' }}>{s.notes}</p>}
+                {s.notes && <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: 'var(--ib-brown, #5C2A10)', whiteSpace: 'pre-wrap' }}>{s.notes}</p>}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                   <button type="button" style={btn(false)} onClick={() => setEditing(s)}><Pencil size={13} /> Edit</button>
                   {s.is_active
@@ -233,19 +233,19 @@ const SupplierForm = ({ supplier, all, knownDestinations, onClose, onSaved }) =>
     }
   };
 
-  const err = (k) => tried && errors[k] ? <span role="alert" style={{ fontSize: 11.5, fontWeight: 800, color: '#8C2F1C', letterSpacing: 0, textTransform: 'none' }}>{errors[k]}</span> : null;
-  const field = (k) => ({ ...inp, borderColor: tried && errors[k] ? '#8C2F1C' : 'rgba(180,81,30,0.25)' });
+  const err = (k) => tried && errors[k] ? <span role="alert" style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', letterSpacing: 0, textTransform: 'none' }}>{errors[k]}</span> : null;
+  const field = (k) => ({ ...inp, borderColor: tried && errors[k] ? 'var(--ib-red, #8C2F1C)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)' });
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label={isNew ? 'Add supplier' : 'Edit supplier'} style={{
-        position: 'relative', width: '100%', maxWidth: 640, maxHeight: '92vh', overflowY: 'auto', background: '#FDF6EE',
-        borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 14,
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div className="paper-card" role="dialog" aria-modal="true" aria-label={isNew ? 'Add supplier' : 'Edit supplier'} style={{
+        position: 'relative', width: '100%', maxWidth: 640, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
+        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>{isNew ? 'Add Supplier' : `Edit ${supplier.name}`}</h3>
-          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{isNew ? 'Add Supplier' : `Edit ${supplier.name}`}</h3>
+          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 12 }}>
@@ -281,9 +281,9 @@ const SupplierForm = ({ supplier, all, knownDestinations, onClose, onSaved }) =>
         <div style={label}>Destinations it serves *
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {f.destinations.map((d) => (
-              <span key={d} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#F2E4D0', borderRadius: 999, padding: '4px 6px 4px 10px', fontSize: 12, fontWeight: 800, color: '#1A0A00', letterSpacing: 0, textTransform: 'none' }}>
+              <span key={d} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, padding: '4px 6px 4px 10px', fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', letterSpacing: 0, textTransform: 'none' }}>
                 {d}
-                <button type="button" aria-label={`Remove ${d}`} onClick={() => set('destinations', f.destinations.filter((x) => x !== d))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18', display: 'flex', padding: 2 }}><X size={13} /></button>
+                <button type="button" aria-label={`Remove ${d}`} onClick={() => set('destinations', f.destinations.filter((x) => x !== d))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', display: 'flex', padding: 2 }}><X size={13} /></button>
               </span>
             ))}
           </div>

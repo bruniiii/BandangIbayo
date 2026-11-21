@@ -20,14 +20,14 @@ import { EXPENSE_CATEGORIES, CATEGORY_LABEL, newLineKey } from './tourExpenses';
 
 const BUCKET = 'expense-receipts';
 const box = {
-  width: '100%', boxSizing: 'border-box', background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.25)', borderRadius: 10,
-  padding: '8px 10px', fontSize: 14, fontWeight: 600, color: '#1A0A00', fontFamily: 'inherit', outline: 'none',
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 10,
+  padding: '8px 10px', fontSize: 14, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', outline: 'none',
 };
 const btn = (main, disabled = false) => ({
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 38, padding: '0 14px', borderRadius: 12,
   cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.55 : 1, fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
-  letterSpacing: '0.08em', textTransform: 'uppercase', background: main ? '#B4511E' : 'transparent', color: main ? '#FDF6EE' : '#5C2A10',
-  border: main ? 'none' : '1px solid rgba(180,81,30,0.3)',
+  letterSpacing: '0.08em', textTransform: 'uppercase', background: main ? 'var(--ib-accent, #B4511E)' : 'transparent', color: main ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+  border: main ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)',
 });
 const money = (v) => String(v ?? '').replace(/[^\d.]/g, '').replace(/^(\d*\.\d{0,2}).*$/, '$1');
 const num = (v) => (String(v ?? '').trim() === '' ? null : Number(v));
@@ -41,8 +41,8 @@ const ReceiptLink = ({ path }) => {
   }, [path]);
   if (!path) return null;
   return url
-    ? <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 800, color: '#A8481A' }}><ImageIcon size={13} /> View receipt</a>
-    : <span style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18' }}>Receipt saved</span>;
+    ? <a href={url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)' }}><ImageIcon size={13} /> View receipt</a>
+    : <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>Receipt saved</span>;
 };
 
 const ActualExpenses = ({ tour, onClose, onSaved }) => {
@@ -174,40 +174,40 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={close} />
-      <div role="dialog" aria-modal="true" aria-label="Actual expenses" style={{
-        position: 'relative', width: '100%', maxWidth: 820, maxHeight: '92vh', overflowY: 'auto', background: '#FDF6EE',
-        borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 14,
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={close} />
+      <div className="paper-card" role="dialog" aria-modal="true" aria-label="Actual expenses" style={{
+        position: 'relative', width: '100%', maxWidth: 820, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)',
+        borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 14,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A' }}>Actual Expenses</p>
-            <h3 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: '#1A0A00', overflowWrap: 'anywhere' }}>{tour.title}</h3>
-            <p style={{ margin: '2px 0 0', fontSize: 12.5, fontWeight: 600, color: '#5C2A10' }}>
+            <p style={{ margin: 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>Actual Expenses</p>
+            <h3 style={{ margin: '2px 0 0', fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflowWrap: 'anywhere' }}>{tour.title}</h3>
+            <p style={{ margin: '2px 0 0', fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>
               {formatYmdRange(tour.start_date, tour.end_date)} · {checkedIn} joiner{checkedIn === 1 ? '' : 's'} checked in
             </p>
           </div>
-          <button type="button" className="x-close" onClick={close} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+          <button type="button" className="x-close" onClick={close} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
 
         {finalAt && (
-          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, background: 'rgba(46,107,74,0.1)', color: '#2E6B4A', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800 }}>
+          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, background: 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)', color: 'var(--ib-green, #2E6B4A)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 800 }}>
             <Lock size={15} /> Final since {new Date(finalAt).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}.
             {me.isMain ? ' You can still change them (main admin).' : ' Only the main admin can change them.'}
           </p>
         )}
 
         {!rows ? (
-          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, fontSize: 13, fontWeight: 700, color: '#5C2A10' }}><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Loading…</p>
+          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Loading…</p>
         ) : rows.length === 0 ? (
-          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, fontSize: 13, fontWeight: 700, color: '#5C2A10' }}><AlertCircle size={15} /> This tour has no expense lines. Add unplanned expenses below.</p>
+          <p style={{ display: 'flex', gap: 8, alignItems: 'center', margin: 0, fontSize: 13, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}><AlertCircle size={15} /> This tour has no expense lines. Add unplanned expenses below.</p>
         ) : null}
 
         {rows && rows.map((r) => {
           const actual = num(r.actual);
           const d = actual == null ? null : actual - r.estimated;
           return (
-            <div key={r.key} style={{ background: r.is_unplanned ? 'rgba(232,162,101,0.14)' : '#F2E4D0', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div key={r.key} style={{ background: r.is_unplanned ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div style={{ minWidth: 0, flex: '2 1 220px' }}>
                   {r.is_unplanned ? (
@@ -218,29 +218,29 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
                     </div>
                   ) : (
                     <>
-                      <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{r.label}</p>
-                      <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: '#5C2A10' }}>
+                      <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{r.label}</p>
+                      <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>
                         {CATEGORY_LABEL[r.category]}{r.supplier_id && suppliers[r.supplier_id] ? ` · ${suppliers[r.supplier_id]}` : ''}
                         {r.rate_basis === 'per_person' ? ` · ${formatPeso(r.rate)} per person` : ''}
                       </p>
                     </>
                   )}
-                  {r.is_unplanned && <p style={{ margin: '4px 0 0', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', color: '#A8481A' }}>UNPLANNED</p>}
+                  {r.is_unplanned && <p style={{ margin: '4px 0 0', fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', color: 'var(--ib-sienna, #A8481A)' }}>UNPLANNED</p>}
                 </div>
                 <div style={{ flex: '1 1 120px', minWidth: 0 }}>
-                  <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18' }}>Estimated</p>
-                  <p style={{ margin: '4px 0 0', fontSize: 14, fontWeight: 800, color: '#1A0A00' }}>{r.is_unplanned ? '—' : formatPeso(r.estimated)}</p>
+                  <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Estimated</p>
+                  <p style={{ margin: '4px 0 0', fontSize: 14, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{r.is_unplanned ? '—' : formatPeso(r.estimated)}</p>
                 </div>
                 <label style={{ flex: '1 1 140px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18' }}>Actual (₱)</span>
+                  <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Actual (₱)</span>
                   <input value={r.actual} inputMode="decimal" disabled={locked} onChange={(e) => update(r.key, { actual: money(e.target.value) })} placeholder="0.00" style={box} />
                   {d != null && !r.is_unplanned && Math.abs(d) >= 0.01 && (
-                    <span style={{ fontSize: 11.5, fontWeight: 800, color: d > 0 ? '#8C2F1C' : '#2E6B4A' }}>{d > 0 ? '+' : '−'}{formatPeso(Math.abs(d))} vs estimate</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 800, color: d > 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)' }}>{d > 0 ? '+' : '−'}{formatPeso(Math.abs(d))} vs estimate</span>
                   )}
                 </label>
                 {r.is_unplanned && !locked && (
                   <button type="button" aria-label="Remove this expense" onClick={() => { setRows((list) => list.filter((x) => x.key !== r.key)); setDirty(true); }}
-                    style={{ width: 38, height: 38, marginTop: 18, borderRadius: 10, border: '1px solid rgba(122,58,24,0.3)', background: 'transparent', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                    style={{ width: 38, height: 38, marginTop: 18, borderRadius: 10, border: '1px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.3)', background: 'transparent', color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={14} /></button>
                 )}
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -257,14 +257,14 @@ const ActualExpenses = ({ tour, onClose, onSaved }) => {
           );
         })}
 
-        {rows && !locked && <button type="button" onClick={addUnplanned} style={{ ...btn(false), borderStyle: 'dashed', color: '#A8481A' }}><Plus size={13} /> Add unplanned expense</button>}
+        {rows && !locked && <button type="button" onClick={addUnplanned} style={{ ...btn(false), borderStyle: 'dashed', color: 'var(--ib-sienna, #A8481A)' }}><Plus size={13} /> Add unplanned expense</button>}
 
         {rows && rows.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: 8 }}>
-            {[['Estimated', formatPeso(estTotal), '#1A0A00'], ['Actual', formatPeso(actTotal), '#1A0A00'],
-              ['Difference', `${diff > 0 ? '+' : diff < 0 ? '−' : ''}${formatPeso(Math.abs(diff))}`, diff > 0 ? '#8C2F1C' : '#2E6B4A']].map(([k, v, c]) => (
-              <div key={k} style={{ background: '#F2E4D0', borderRadius: 12, padding: '10px 12px' }}>
-                <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18' }}>{k}</p>
+            {[['Estimated', formatPeso(estTotal), 'var(--ib-dark, #1A0A00)'], ['Actual', formatPeso(actTotal), 'var(--ib-dark, #1A0A00)'],
+              ['Difference', `${diff > 0 ? '+' : diff < 0 ? '−' : ''}${formatPeso(Math.abs(diff))}`, diff > 0 ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-green, #2E6B4A)']].map(([k, v, c]) => (
+              <div key={k} style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px' }}>
+                <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>{k}</p>
                 <p style={{ margin: '2px 0 0', fontSize: 17, fontWeight: 900, color: c }}>{v}</p>
               </div>
             ))}

@@ -35,12 +35,12 @@ const WeatherRefundBox = ({ booking, onSent }) => {
   const sent = b.weather_refund_status === 'Sent';
   const gcash = b.gcash_number || '';
   return (
-    <div style={{ marginTop: 12, background: sent ? 'rgba(31,107,74,0.08)' : 'rgba(63,93,98,0.08)', border: `1.5px solid ${sent ? 'rgba(31,107,74,0.35)' : 'rgba(63,93,98,0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? '#1F6B4A' : '#3F5D62' }}>
+    <div style={{ marginTop: 12, background: sent ? 'rgba(var(--ib-green-rgb, 31,107,74), 0.08)' : 'rgba(var(--ib-slate-rgb, 63,93,98), 0.08)', border: `1.5px solid ${sent ? 'rgba(var(--ib-green-rgb, 31,107,74), 0.35)' : 'rgba(var(--ib-slate-rgb, 63,93,98), 0.35)'}`, borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <p style={{ margin: 0, fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: sent ? 'var(--ib-green, #1F6B4A)' : 'var(--ib-slate, #3F5D62)' }}>
         {weatherRefundPercentOf(b)}% refund {sent ? '· sent' : '· to send'}
       </p>
-      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00' }}>
-        {formatPeso(b.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>({weatherRefundPercentOf(b)}% of the {formatPeso(b.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
+      <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>
+        {formatPeso(b.weather_refund)} <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>({weatherRefundPercentOf(b)}% of the {formatPeso(b.amount_paid)} paid){gcash ? ` · GCash ${gcash}` : ''}</span>
       </p>
       {sent ? <RefundSentInfo booking={b} onDone={reload} /> : <RefundPanel booking={b} onDone={reload} />}
     </div>
@@ -158,19 +158,19 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
     display: 'block',
     fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.9,
+    color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
     marginBottom: 5,
   };
  
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
-      <div style={{
-        position: 'relative', background: '#FDF6EE',
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div className="paper-card" style={{
+        position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 760,
-        borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
         overflow: 'hidden',
-        borderTop: '6px solid #B4511E',
+        borderTop: '6px solid var(--ib-accent, #B4511E)',
         maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
@@ -183,7 +183,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           onClose={onClose}
         >
           <StatusBadge status={shownStatus} />
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#7A3A18' }}>{joinerName}</span>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{joinerName}</span>
         </ModalHeader>
 
         {/* Scrollable Body */}
@@ -233,7 +233,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
           <div {...focusAttr('booking-payment')}>
           <ViewSection title="Payment Information" icon={<CreditCard size={14} />}>
-            <div style={{ background: '#F2E4D0', borderRadius: 18, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 18, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: 16 }}>
  
               <div className="responsive-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div>
@@ -250,7 +250,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                     <p style={labelStyle}>Balance Status</p>
                     <BalanceStatusBadge status={balanceSettled ? 'Fully Paid' : 'Balance Due'} />
                     {balanceSettled && balanceSettledAt && (
-                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '6px 0 0' }}>
                         Settled {formatDateTime(balanceSettledAt)}
                       </p>
                     )}
@@ -259,51 +259,51 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               </div>
  
               {/* Payment Breakdown */}
-              <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: '#7A3A18', opacity: 0.9 }}>Quantity</span>
-                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{booking.slots_booked} pax × {formatPeso((Number(booking.total_price) || 0) / (booking.slots_booked || 1))}{Number(booking.sale_discount) > 0 ? ' (sale)' : ''}</span>
+                  <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Quantity</span>
+                  <span style={{ fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{booking.slots_booked} pax × {formatPeso((Number(booking.total_price) || 0) / (booking.slots_booked || 1))}{Number(booking.sale_discount) > 0 ? ' (sale)' : ''}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                  <span style={{ color: '#7A3A18', opacity: 0.9 }}>Subtotal</span>
-                  <span style={{ fontWeight: 700, color: '#1A0A00' }}>{formatPeso(subtotal)}</span>
+                  <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Subtotal</span>
+                  <span style={{ fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{formatPeso(subtotal)}</span>
                 </div>
  
                 {booking.payment_method === 'Downpayment' && (
                   <>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Downpayment ({subtotal ? Math.round((downpaymentAmount / subtotal) * 100) : 50}%)</span>
-                      <span style={{ fontWeight: 700, color: '#8C5216' }}>{formatPeso(downpaymentAmount)}</span>
+                      <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Downpayment ({subtotal ? Math.round((downpaymentAmount / subtotal) * 100) : 50}%)</span>
+                      <span style={{ fontWeight: 700, color: 'var(--ib-warn, #8C5216)' }}>{formatPeso(downpaymentAmount)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Remaining Balance</span>
-                      <span style={{ fontWeight: 700, color: 'rgba(122,58,24,0.85)' }}>{formatPeso(balance)}</span>
+                      <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Remaining Balance</span>
+                      <span style={{ fontWeight: 700, color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}>{formatPeso(balance)}</span>
                     </div>
                   </>
                 )}
  
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid rgba(180,81,30,0.18)', paddingTop: 12, marginTop: 4 }}>
-                  <span style={{ fontWeight: 900, color: '#1A0A00', fontSize: 11.5, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 12, marginTop: 4 }}>
+                  <span style={{ fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', fontSize: 11.5, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
                     {booking.payment_method === 'Downpayment' ? 'Amount Paid (Due Now)' : 'Total Payment'}
                   </span>
-                  <span style={{ fontWeight: 900, color: '#A8481A', fontSize: 22, letterSpacing: '-0.02em' }}>{formatPeso(amountPaid)}</span>
+                  <span style={{ fontWeight: 900, color: 'var(--ib-sienna, #A8481A)', fontSize: 22, letterSpacing: '-0.02em' }}>{formatPeso(amountPaid)}</span>
                 </div>
               </div>
  
               {/* GCash Details */}
               {(booking.gcash_number || booking.gcash_reference_no) && (
-                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <p style={labelStyle}>GCash Details</p>
                   {booking.gcash_number && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>GCash Number</span>
-                      <span style={{ fontWeight: 700, color: '#1A0A00', fontFamily: 'monospace' }}>{booking.gcash_number}</span>
+                      <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>GCash Number</span>
+                      <span style={{ fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'monospace' }}>{booking.gcash_number}</span>
                     </div>
                   )}
                   {booking.gcash_reference_no && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                      <span style={{ color: '#7A3A18', opacity: 0.9 }}>Reference No.</span>
-                      <span style={{ fontWeight: 700, color: '#1A0A00', fontFamily: 'monospace' }}>{booking.gcash_reference_no}</span>
+                      <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Reference No.</span>
+                      <span style={{ fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'monospace' }}>{booking.gcash_reference_no}</span>
                     </div>
                   )}
                 </div>
@@ -311,9 +311,9 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
               {/* Paid online through PayMongo: no receipt to check */}
               {booking.paymongo_payment_id ? (
-                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Online Payment (PayMongo)</p>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00', margin: 0, lineHeight: 1.7 }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.7 }}>
                     Confirmed automatically{booking.paid_online_at ? ` on ${formatDateTime(booking.paid_online_at)}` : ''}.<br />
                     Payment ID: <span style={{ fontFamily: 'monospace' }}>{booking.paymongo_payment_id}</span>
                     {booking.paymongo_balance_payment_id && (
@@ -322,24 +322,24 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   </p>
                 </div>
               ) : booking.payment_status === 'Awaiting Payment' ? (
-                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Online Payment (PayMongo)</p>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0 }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>
                     The joiner hasn't finished paying yet. The slots are released automatically if they don't pay within {minutesText(PAYMENT_HOLD_MINUTES)}.
                   </p>
                 </div>
               ) : booking.receipt_url ? (
-                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
                   <ReceiptThumb src={receiptSrc} onClick={() => setShowReceiptPreview(true)} />
                 </div>
               ) : (
-                <div style={{ borderTop: '1px solid rgba(180,81,30,0.18)', paddingTop: 14 }}>
+                <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 14 }}>
                   <p style={labelStyle}>Transaction Receipt</p>
                   <div style={{
-                    border: '2px dashed rgba(180,81,30,0.25)', borderRadius: 16,
+                    border: '2px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.25)', borderRadius: 16,
                     padding: '1.5rem', display: 'flex', flexDirection: 'column',
-                    alignItems: 'center', justifyContent: 'center', color: 'rgba(122,58,24,0.85)',
+                    alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
                   }}>
                     <ImageIcon size={26} style={{ marginBottom: 8 }} />
                     <p style={{ fontSize: 11, fontWeight: 700, margin: 0 }}>No receipt uploaded</p>
@@ -353,7 +353,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           {/* Rejection Notice */}
           {isRejected && (
             <Notice
-              color="#8C2F1C" bg="rgba(140,47,28,0.07)"
+              color="var(--ib-red, #8C2F1C)" bg="rgba(var(--ib-red-rgb, 140,47,28), 0.07)"
               icon={<AlertCircle size={20} />}
               title="Booking Rejected"
               text="This booking was rejected due to insufficient or unverifiable GCash payment. Please contact the joiner for clarification."
@@ -362,19 +362,19 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
  
           {/* An older cancellation request (sent before cancellations became instant): approve it */}
           {cancelRequested && (
-            <div {...focusAttr('booking-cancellation')} style={{ background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div {...focusAttr('booking-cancellation')} style={{ background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.07)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.2)', borderRadius: 18, padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <AlertCircle size={20} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />
+                <AlertCircle size={20} style={{ color: 'var(--ib-red, #8C2F1C)', flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <p style={{ fontSize: 13.5, fontWeight: 900, color: '#8C2F1C', margin: 0 }}>Cancellation requested</p>
-                  <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '4px 0 0', lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 13.5, fontWeight: 900, color: 'var(--ib-red, #8C2F1C)', margin: 0 }}>Cancellation requested</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '4px 0 0', lineHeight: 1.6 }}>
                     Asked {formatDateTime(booking.cancellation_requested_at)}. Reason: “{booking.cancellation_reason || '—'}”.
                     {' '}Joiners' cancellations are now instant; this older request is approved automatically within {CANCELLATION_APPROVAL_HOURS} hours if you don't approve it first.
                   </p>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button type="button" onClick={decideCancellation} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: '#8C2F1C', color: '#FDF6EE', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <button type="button" onClick={decideCancellation} disabled={!!deciding} style={{ flex: '1 1 180px', padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-red-solid, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   {deciding === 'approve' ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <CheckCircle2 size={14} />} Approve Cancellation
                 </button>
               </div>
@@ -385,7 +385,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           {isCancelled && (
             <div {...focusAttr('booking-cancellation')}>
             <Notice
-              color="#1A0A00" bg="rgba(26,10,0,0.05)"
+              color="var(--ib-dark, #1A0A00)" bg="rgba(var(--ib-dark-rgb, 26,10,0), 0.05)"
               icon={<XCircle size={20} />}
               title={weatherCancel ? 'Tour Cancelled by Bandang IBAYO' : 'Booking Cancelled'}
               text={weatherCancel
@@ -393,9 +393,9 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 : booking.cancellation_reason ? "Cancelled at the joiner's request. The slot has been released back to the tour." : 'This booking was cancelled. The slot has been released back to the tour.'}
             >
               {booking.cancellation_reason && (
-                <div style={{ marginTop: 12, background: '#FDF6EE', border: '1.5px solid rgba(140,47,28,0.35)', borderLeft: '5px solid #8C2F1C', borderRadius: 12, padding: '12px 14px' }}>
-                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#8C2F1C' }}>{weatherCancel ? 'Reason' : "Joiner's reason for cancelling"}</p>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: '#1A0A00', lineHeight: 1.5, wordBreak: 'break-word' }}>{weatherCancel ? booking.cancellation_reason : `“${booking.cancellation_reason}”`}</p>
+                <div style={{ marginTop: 12, background: 'var(--ib-cream, #FDF6EE)', border: '1.5px solid rgba(var(--ib-red-rgb, 140,47,28), 0.35)', borderLeft: '5px solid var(--ib-red, #8C2F1C)', borderRadius: 12, padding: '12px 14px' }}>
+                  <p style={{ margin: '0 0 4px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-red, #8C2F1C)' }}>{weatherCancel ? 'Reason' : "Joiner's reason for cancelling"}</p>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.5, wordBreak: 'break-word' }}>{weatherCancel ? booking.cancellation_reason : `“${booking.cancellation_reason}”`}</p>
                 </div>
               )}
               {weatherCancel && booking.weather_refund != null && (
@@ -408,7 +408,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           {/* Confirmed Notice (not on a cancelled booking) */}
           {isComplete && !isCancelled && (
             <Notice
-              color="#A8481A" bg="rgba(180,81,30,0.08)"
+              color="var(--ib-sienna, #A8481A)" bg="rgba(var(--ib-accent-rgb, 180,81,30), 0.08)"
               icon={<CheckCircle2 size={20} />}
               title="Booking Confirmed"
               text="Payment has been verified and the booking is confirmed."
@@ -421,12 +421,12 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
         {/* Footer: Action Buttons */}
         {isPending && (
           <div style={{
-            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
-            background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0, flexWrap: 'wrap',
+            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+            background: 'var(--ib-cream, #FDF6EE)', display: 'flex', gap: 16, flexShrink: 0, flexWrap: 'wrap',
           }}>
-            <div style={{ flex: 1, minWidth: 200, background: '#F2E4D0', borderRadius: 16, padding: '14px 18px' }}>
+            <div style={{ flex: 1, minWidth: 200, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '14px 18px' }}>
               <p style={labelStyle}>Admin Action Required</p>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
                 Verify the GCash reference number and receipt screenshot before confirming.
               </p>
             </div>
@@ -437,7 +437,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '13px 22px',
-                  background: 'rgba(140,47,28,0.1)', color: '#8C2F1C',
+                  background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)', color: 'var(--ib-red, #8C2F1C)',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -452,11 +452,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '13px 26px',
-                  background: '#B4511E', color: '#FDF6EE',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
+                  boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
                   opacity: (confirming || rejecting) ? 0.5 : 1,
                 }}
               >
@@ -469,8 +469,8 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
         {/* Footer: Balance settlement (Downpayment bookings) + Receipt printing */}
         {isComplete && (
           <div style={{
-            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(180,81,30,0.12)',
-            background: '#FDF6EE', display: 'flex', gap: 16, flexShrink: 0,
+            padding: '1.5rem 2.5rem', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+            background: 'var(--ib-cream, #FDF6EE)', display: 'flex', gap: 16, flexShrink: 0,
             flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
           }}>
             {isCancelled ? (
@@ -478,7 +478,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               <>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <p style={labelStyle}>Payment Status</p>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '4px 0 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-sienna, #A8481A)', margin: '4px 0 0', lineHeight: 1.5 }}>
                     {weatherCancel
                       ? `Cancelled by Bandang IBAYO, so there's no balance to collect. ${weatherRefundPercentOf(booking)}% refund: ${formatPeso(booking.weather_refund)}${refundSent ? ' (sent)' : refundDue ? ' (to send)' : ''}.`
                       : "This booking was cancelled, so there's no balance to collect. Payments made are non-refundable."}
@@ -492,11 +492,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '13px 22px',
-                        background: '#1A0A00', color: '#E8A265',
+                        background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
                         fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
+                        boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)', flexShrink: 0,
                       }}
                     >
                       <Printer size={14} /> {text}
@@ -506,9 +506,9 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               </>
             ) : isDownpayment && !balanceSettled ? (
               <>
-                <div style={{ flex: 1, minWidth: 200, background: 'rgba(140,47,28,0.08)', borderRadius: 16, padding: '14px 18px' }}>
-                  <p style={{ ...labelStyle, color: '#8C2F1C' }}>Balance Due On Tour Day</p>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
+                <div style={{ flex: 1, minWidth: 200, background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', borderRadius: 16, padding: '14px 18px' }}>
+                  <p style={{ ...labelStyle, color: 'var(--ib-red, #8C2F1C)' }}>Balance Due On Tour Day</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5 }}>
                     Remaining balance of {formatPeso(balance)} is still unpaid. Mark it as paid once the joiner settles it on the day of the tour.
                   </p>
                 </div>
@@ -518,11 +518,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '13px 26px',
-                    background: '#B4511E', color: '#FDF6EE',
+                    background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                     border: 'none', borderRadius: 999, cursor: 'pointer',
                     fontFamily: 'inherit', fontWeight: 900,
                     fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                    boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
+                    boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
                     opacity: settlingBalance ? 0.5 : 1, flexShrink: 0,
                   }}
                 >
@@ -533,7 +533,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               <>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <p style={labelStyle}>Payment Status</p>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#A8481A', margin: '4px 0 0' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-sienna, #A8481A)', margin: '4px 0 0' }}>
                     {isDownpayment
                       ? `Full payment received${balanceSettledAt ? ' — balance settled ' + formatDateTime(balanceSettledAt) : ''}.`
                       : 'Payment received in full.'}
@@ -547,11 +547,11 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                       style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '13px 22px',
-                        background: '#1A0A00', color: '#E8A265',
+                        background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
                         border: 'none', borderRadius: 999, cursor: 'pointer',
                         fontFamily: 'inherit', fontWeight: 900,
                         fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                        boxShadow: '0 6px 20px rgba(26,10,0,0.28)', flexShrink: 0,
+                        boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28)', flexShrink: 0,
                       }}
                     >
                       <Printer size={14} /> {text}
@@ -569,37 +569,37 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
         <div style={{
           position: 'fixed', inset: 0, zIndex: 10050,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(26,10,0,0.75)', backdropFilter: 'blur(4px)', padding: 16,
+          background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(4px)', padding: 16,
         }}>
-          <div style={{
-            position: 'relative', background: '#FDF6EE',
+          <div className="paper-card" style={{
+            position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
             width: '100%', maxWidth: 420,
-            borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-            borderTop: '7px solid #B4511E',
+            borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
+            borderTop: '7px solid var(--ib-accent, #B4511E)',
             padding: '2rem',
           }}>
             <div style={{
               width: 56, height: 56, borderRadius: '50%',
-              background: 'rgba(180,81,30,0.12)',
+              background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 18, color: '#A8481A',
+              marginBottom: 18, color: 'var(--ib-sienna, #A8481A)',
             }}>
               <Wallet size={26} />
             </div>
-            <h3 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: '#1A0A00', margin: '0 0 10px' }}>
+            <h3 style={{ fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--ib-dark, #1A0A00)', margin: '0 0 10px' }}>
               Confirm Balance Payment
             </h3>
-            <p style={{ fontSize: 13, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '0 0 24px', lineHeight: 1.6 }}>
-              Confirm that the remaining balance of <strong style={{ color: '#1A0A00' }}>{formatPeso(balance)}</strong> for booking <strong style={{ color: '#1A0A00' }}>{booking.booking_number}</strong> has been paid in full.
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 24px', lineHeight: 1.6 }}>
+              Confirm that the remaining balance of <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{formatPeso(balance)}</strong> for booking <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{booking.booking_number}</strong> has been paid in full.
             </p>
             {/* A second, deliberate step so the balance isn't marked paid by an accidental click. */}
             <label style={{
               display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', margin: '-8px 0 22px',
-              background: 'rgba(180,81,30,0.07)', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 14, padding: '10px 12px',
-              fontSize: 12.5, fontWeight: 700, color: '#1A0A00', lineHeight: 1.5,
+              background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '10px 12px',
+              fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.5,
             }}>
               <input type="checkbox" checked={balanceReceived} onChange={(e) => setBalanceReceived(e.target.checked)}
-                style={{ width: 18, height: 18, marginTop: 1, accentColor: '#B4511E', flexShrink: 0 }} />
+                style={{ width: 18, height: 18, marginTop: 1, accentColor: 'var(--ib-accent, #B4511E)', flexShrink: 0 }} />
               <span>I received {formatPeso(balance)} from {joinerName !== '—' ? joinerName : 'the joiner'}.</span>
             </label>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
@@ -607,7 +607,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 onClick={() => setShowSettleConfirm(false)}
                 style={{
                   padding: '12px 22px',
-                  background: 'rgba(122,58,24,0.1)', color: '#7A3A18',
+                  background: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.1)', color: 'var(--ib-rust, #7A3A18)',
                   border: 'none', borderRadius: 999, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -622,12 +622,12 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '12px 24px',
-                  background: '#B4511E', color: '#FDF6EE',
+                  background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                   border: 'none', borderRadius: 999, cursor: balanceReceived ? 'pointer' : 'not-allowed',
                   opacity: balanceReceived ? 1 : 0.45,
                   fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-                  boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
+                  boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
                 }}
               >
                 <CheckCircle2 size={14} /> Mark Balance as Paid
@@ -650,7 +650,7 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
           <button className="x-close" style={{
             position: 'absolute', top: 32, right: 32,
             background: 'none', border: 'none', cursor: 'pointer',
-            color: '#FDF6EE',
+            color: 'var(--ib-on-ink, #FDF6EE)',
           }}>
             <X size={40} />
           </button>
@@ -673,22 +673,22 @@ const ReceiptThumb = ({ src, onClick }) => {
       onMouseLeave={() => setHovered(false)}
       style={{
         position: 'relative', borderRadius: 16, overflow: 'hidden',
-        cursor: 'pointer', border: '1px solid rgba(180,81,30,0.2)',
-        boxShadow: '0 4px 14px rgba(26,10,0,0.1)',
+        cursor: 'pointer', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+        boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)',
       }}
     >
       <img src={src} style={{ width: '100%', height: 160, objectFit: 'cover', objectPosition: 'top', display: 'block', transform: hovered ? 'scale(1.03)' : 'scale(1)', transition: 'transform 0.3s' }} alt="GCash Receipt" />
       <div style={{
         position: 'absolute', inset: 0,
-        background: hovered ? 'rgba(26,10,0,0.45)' : 'rgba(26,10,0,0)',
+        background: hovered ? 'rgba(var(--ib-ink-rgb, 26,10,0), 0.45)' : 'rgba(var(--ib-dark-rgb, 26,10,0), 0)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.2s',
       }}>
         {hovered && (
           <span style={{
-            background: 'rgba(253,246,238,0.95)', borderRadius: 999,
+            background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.95)', borderRadius: 999,
             padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8,
-            fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00',
+            fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)',
           }}>
             <Eye size={12} /> View Full Receipt
           </span>
@@ -705,11 +705,11 @@ const ViewSection = ({ title, icon, children }) => (
   <section>
     <h4 style={{
       fontSize: 11, fontWeight: 900, letterSpacing: '0.25em',
-      textTransform: 'uppercase', color: '#1A0A00',
+      textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)',
       margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 8,
-      paddingBottom: 12, borderBottom: '1px solid rgba(180,81,30,0.12)',
+      paddingBottom: 12, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
     }}>
-      <span style={{ color: '#A8481A' }}>{icon}</span> {title}
+      <span style={{ color: 'var(--ib-sienna, #A8481A)' }}>{icon}</span> {title}
     </h4>
     {children}
   </section>
@@ -755,15 +755,15 @@ const BookingActivity = ({ bookingId }) => {
       {entries === null ? (
         <SkeletonLines lines={3} label="Loading activity" />
       ) : entries.length === 0 ? (
-        <p style={{ fontSize: 12, color: '#7A3A18', margin: 0 }}>No activity recorded yet.</p>
+        <p style={{ fontSize: 12, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>No activity recorded yet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {entries.map((e) => (
-            <div key={e.id} style={{ borderLeft: '3px solid rgba(180,81,30,0.35)', paddingLeft: 12 }}>
-              <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0 }}>
-                {e.action} <span style={{ fontWeight: 600, color: '#7A3A18' }}>by {e.actor_name}</span>
+            <div key={e.id} style={{ borderLeft: '3px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', paddingLeft: 12 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
+                {e.action} <span style={{ fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>by {e.actor_name}</span>
               </p>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '2px 0 0' }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '2px 0 0' }}>
                 {new Date(e.created_at).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' })}
                 {describe(e.changes) && ` · ${describe(e.changes)}`}
               </p>
@@ -777,10 +777,10 @@ const BookingActivity = ({ bookingId }) => {
 
 const InfoItem = ({ label, value, mono = false }) => (
   <div>
-    <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: '0 0 4px' }}>
+    <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '0 0 4px' }}>
       {label}
     </p>
-    <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
+    <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, fontFamily: mono ? 'monospace' : 'inherit' }}>
       {value || '—'}
     </p>
   </div>
@@ -794,7 +794,7 @@ const Notice = ({ color, bg, icon, title, text, children }) => (
     <span style={{ color, flexShrink: 0, marginTop: 1 }}>{icon}</span>
     <div style={{ flex: 1, minWidth: 0 }}>
       <p style={{ fontSize: 13, fontWeight: 900, color, margin: '0 0 4px' }}>{title}</p>
-      <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, lineHeight: 1.6 }}>{text}</p>
+      <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0, lineHeight: 1.6 }}>{text}</p>
       {children}
     </div>
   </div>

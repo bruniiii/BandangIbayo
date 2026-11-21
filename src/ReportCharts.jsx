@@ -44,21 +44,21 @@ const MonthComparisonChart = ({ comparison }) => {
           <button key={m.key} type="button" aria-pressed={metricKey === m.key} onClick={() => setMetricKey(m.key)} style={{
             padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-            background: metricKey === m.key ? '#1A0A00' : '#F2E4D0', color: metricKey === m.key ? '#FDF6EE' : '#7A3A18',
+            background: metricKey === m.key ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: metricKey === m.key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>{m.label}</button>
         ))}
       </div>
 
       <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 8 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>
-          <span style={{ width: 18, height: 3, borderRadius: 2, background: '#B4511E' }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>
+          <span style={{ width: 18, height: 3, borderRadius: 2, background: 'var(--ib-accent, #B4511E)' }} />
           {comparison.thisMonthLabel} (so far): {metric.format(thisTotal)}
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
-          <span style={{ width: 18, height: 0, borderTop: '3px dashed rgba(122,58,24,0.6)' }} />
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)' }}>
+          <span style={{ width: 18, height: 0, borderTop: '3px dashed rgba(var(--ib-rust-rgb, 122,58,24), 0.6)' }} />
           {comparison.lastMonthLabel}: {metric.format(lastTotal)}
         </span>
-        <span style={{ fontSize: 12, fontWeight: 900, color: good ? '#2E6B4A' : '#8C2F1C' }}>
+        <span style={{ fontSize: 12, fontWeight: 900, color: good ? 'var(--ib-green, #2E6B4A)' : 'var(--ib-red, #8C2F1C)' }}>
           {change >= 0 ? '+' : ''}{change}% vs last month
         </span>
       </div>
@@ -75,32 +75,32 @@ const MonthComparisonChart = ({ comparison }) => {
           }}>
           {ticks.map((t) => (
             <g key={t}>
-              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(180,81,30,0.12)" />
-              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="#7A3A18">
+              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(var(--ib-accent-rgb, 180,81,30), 0.12)" />
+              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="var(--ib-rust, #7A3A18)">
                 {metricKey === 'revenue' && t >= 1000 ? `₱${Math.round(t / 1000)}k` : t}
               </text>
             </g>
           ))}
           {[1, 8, 15, 22, lastDay].map((d) => (
-            <text key={d} x={x(d - 1)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight="700" fill="#7A3A18">{d}</text>
+            <text key={d} x={x(d - 1)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--ib-rust, #7A3A18)">{d}</text>
           ))}
-          <path d={path(lastMonth)} fill="none" stroke="rgba(122,58,24,0.55)" strokeWidth="2.5" strokeDasharray="6 5" strokeLinejoin="round" />
-          <path d={path(thisMonth)} fill="none" stroke="#B4511E" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-          {thisMonth.length > 0 && <circle cx={x(thisMonth.length - 1)} cy={y(thisTotal)} r="4.5" fill="#B4511E" />}
+          <path d={path(lastMonth)} fill="none" stroke="rgba(var(--ib-rust-rgb, 122,58,24), 0.55)" strokeWidth="2.5" strokeDasharray="6 5" strokeLinejoin="round" />
+          <path d={path(thisMonth)} fill="none" stroke="var(--ib-accent, #B4511E)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+          {thisMonth.length > 0 && <circle cx={x(thisMonth.length - 1)} cy={y(thisTotal)} r="4.5" fill="var(--ib-accent, #B4511E)" />}
           {hover && (
-            <line x1={x(hover.day - 1)} x2={x(hover.day - 1)} y1={padT} y2={H - padB} stroke="rgba(26,10,0,0.25)" strokeDasharray="3 3" />
+            <line x1={x(hover.day - 1)} x2={x(hover.day - 1)} y1={padT} y2={H - padB} stroke="rgba(var(--ib-dark-rgb, 26,10,0), 0.25)" strokeDasharray="3 3" />
           )}
         </svg>
         {hover && (
           <div style={{
             position: 'absolute', top: 6, left: `${(x(hover.day - 1) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
-            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
           }}>
             Day {hover.day}: {hover.now != null ? metric.format(hover.now) : '—'} vs {hover.before != null ? metric.format(hover.before) : '—'}
           </div>
         )}
       </div>
-      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>Running totals by day of the month.</p>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0' }}>Running totals by day of the month.</p>
     </div>
   );
 };
@@ -132,17 +132,17 @@ const ForecastChart = ({ forecast }) => {
           <button key={key} type="button" aria-pressed={metric === key} onClick={() => setMetric(key)} style={{
             padding: '7px 14px', borderRadius: 999, cursor: 'pointer', border: 'none', fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-            background: metric === key ? '#1A0A00' : '#F2E4D0', color: metric === key ? '#FDF6EE' : '#7A3A18',
+            background: metric === key ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', color: metric === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>{label}</button>
         ))}
       </div>
 
       <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'baseline', marginBottom: 8 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>
-          <span style={{ width: 18, height: 3, borderRadius: 2, background: '#B4511E' }} /> Actual
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>
+          <span style={{ width: 18, height: 3, borderRadius: 2, background: 'var(--ib-accent, #B4511E)' }} /> Actual
         </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#7A3A18' }}>
-          <span style={{ width: 18, height: 0, borderTop: '3px dashed #E8A265' }} /> Expected in {forecast.nextLabel}: {fmt(predicted)}
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)' }}>
+          <span style={{ width: 18, height: 0, borderTop: '3px dashed var(--ib-amber, #E8A265)' }} /> Expected in {forecast.nextLabel}: {fmt(predicted)}
         </span>
       </div>
 
@@ -158,38 +158,38 @@ const ForecastChart = ({ forecast }) => {
           }}>
           {ticks.map((t) => (
             <g key={t}>
-              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(180,81,30,0.12)" />
-              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="#7A3A18">
+              <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke="rgba(var(--ib-accent-rgb, 180,81,30), 0.12)" />
+              <text x={padL - 8} y={y(t) + 4} textAnchor="end" fontSize="10" fontWeight="700" fill="var(--ib-rust, #7A3A18)">
                 {isRevenue && t >= 1000 ? `₱${Math.round(t / 1000)}k` : t}
               </text>
             </g>
           ))}
           {labels.map((l, i) => (
-            <text key={l + i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight={i === labels.length - 1 ? 900 : 700} fill={i === labels.length - 1 ? '#A8481A' : '#7A3A18'}>{l}</text>
+            <text key={l + i} x={x(i)} y={H - 8} textAnchor="middle" fontSize="10" fontWeight={i === labels.length - 1 ? 900 : 700} fill={i === labels.length - 1 ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-rust, #7A3A18)'}>{l}</text>
           ))}
-          <path d={line(actual.map((v, i) => [i, v]))} fill="none" stroke="#B4511E" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
-          <path d={line([[last, actual[last]], [labels.length - 1, predicted]])} fill="none" stroke="#E8A265" strokeWidth="3" strokeDasharray="6 5" />
-          {actual.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r="3.5" fill="#B4511E" />)}
-          <circle cx={x(labels.length - 1)} cy={y(predicted)} r="5" fill="#FDF6EE" stroke="#E8A265" strokeWidth="3" />
-          {hover != null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} stroke="rgba(26,10,0,0.25)" strokeDasharray="3 3" />}
+          <path d={line(actual.map((v, i) => [i, v]))} fill="none" stroke="var(--ib-accent, #B4511E)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+          <path d={line([[last, actual[last]], [labels.length - 1, predicted]])} fill="none" stroke="var(--ib-amber, #E8A265)" strokeWidth="3" strokeDasharray="6 5" />
+          {actual.map((v, i) => <circle key={i} cx={x(i)} cy={y(v)} r="3.5" fill="var(--ib-accent, #B4511E)" />)}
+          <circle cx={x(labels.length - 1)} cy={y(predicted)} r="5" fill="var(--ib-on-ink, #FDF6EE)" stroke="var(--ib-amber, #E8A265)" strokeWidth="3" />
+          {hover != null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} stroke="rgba(var(--ib-dark-rgb, 26,10,0), 0.25)" strokeDasharray="3 3" />}
         </svg>
         {hover != null && (
           <div style={{
             position: 'absolute', top: 6, left: `${(x(hover) / W) * 100}%`, transform: 'translateX(-50%)', pointerEvents: 'none',
-            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 10, padding: '6px 10px', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
           }}>
             {labels[hover]}: {fmt(values[hover])}{hover === labels.length - 1 ? ' (expected)' : hover === last ? ' (so far)' : ''}
           </div>
         )}
       </div>
-      <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0' }}>
         The forecast is a weighted average of the last three months. This month counts what's booked so far.
       </p>
     </div>
   );
 };
 
-const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
+const BarChart = ({ data, color = 'var(--ib-sienna, #A8481A)', height = 180 }) => {
   const max = Math.max(1, ...data.map((d) => d.value));
   const showEveryLabel = data.length <= 14;
   const labelStep = showEveryLabel ? 1 : Math.ceil(data.length / 10);
@@ -211,18 +211,18 @@ const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
             flex: '1 1 0', height: '100%',
           }}
         >
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#1A0A00', opacity: d.value ? 0.7 : 0, marginBottom: 4 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', opacity: d.value ? 0.7 : 0, marginBottom: 4 }}>
             {d.value || ''}
           </span>
           <div style={{
             width: '100%', maxWidth: 28,
             height: `${Math.max(2, (d.value / max) * (height - 46))}px`,
-            background: d.value === 0 ? 'rgba(180,81,30,0.12)' : color,
+            background: d.value === 0 ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' : color,
             borderRadius: '6px 6px 2px 2px',
             transition: 'height 0.3s',
           }} />
           <span style={{
-            fontSize: 'clamp(8px, 2.6vw, 11px)', fontWeight: 800, color: '#7A3A18', opacity: 0.9,
+            fontSize: 'clamp(8px, 2.6vw, 11px)', fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
             marginTop: 8, whiteSpace: 'nowrap',
           }}>
             {i % labelStep === 0 ? d.label : ''}
@@ -233,7 +233,7 @@ const BarChart = ({ data, color = '#A8481A', height = 180 }) => {
   );
 };
 
-const HorizontalBarChart = ({ data, color = '#A8481A', onBarClick, activeLabel }) => {
+const HorizontalBarChart = ({ data, color = 'var(--ib-sienna, #A8481A)', onBarClick, activeLabel }) => {
   const max = Math.max(1, ...data.map((d) => d.value));
   if (data.length === 0) return <EmptyChartNotice />;
   return (
@@ -245,10 +245,10 @@ const HorizontalBarChart = ({ data, color = '#A8481A', onBarClick, activeLabel }
           style={{ cursor: onBarClick ? 'pointer' : 'default', opacity: activeLabel && activeLabel !== d.label ? 0.45 : 1 }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#1A0A00' }}>{d.label}</span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: '#A8481A' }}>{d.value}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{d.label}</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{d.value}</span>
           </div>
-          <div style={{ background: '#F2E4D0', borderRadius: 999, height: 10, overflow: 'hidden' }}>
+          <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 999, height: 10, overflow: 'hidden' }}>
             <div style={{
               height: '100%', borderRadius: 999,
               width: `${(d.value / max) * 100}%`,
@@ -282,11 +282,11 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
       }}>
         <div style={{
           position: 'absolute', inset: thickness,
-          background: '#FDF6EE', borderRadius: '50%',
+          background: 'var(--ib-cream, #FDF6EE)', borderRadius: '50%',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ fontSize: 22, fontWeight: 900, color: '#1A0A00', lineHeight: 1 }}>{total}</span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
+          <span style={{ fontSize: 22, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1 }}>{total}</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 3 }}>
             Total
           </span>
         </div>
@@ -297,7 +297,7 @@ const DonutChart = ({ segments, size = 140, thickness = 20, onSegmentClick, acti
             key={i}
             onClick={onSegmentClick ? () => onSegmentClick(seg.key || seg.label) : undefined}
             style={{
-              display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, fontWeight: 700, color: '#1A0A00',
+              display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)',
               cursor: onSegmentClick ? 'pointer' : 'default',
               opacity: activeKey && activeKey !== (seg.key || seg.label) ? 0.45 : 1,
             }}
@@ -343,7 +343,7 @@ const PieChart = ({ segments, size = 180, format = (v) => v }) => {
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img"
           aria-label={`Pie chart: ${slices.map((s) => `${s.label} ${format(s.value)} (${pct(s.value)}%)`).join(', ')}`}>
           {slices.map((s, i) => (
-            <path key={s.label} d={s.d} fill={s.color} stroke="#FDF6EE" strokeWidth={2} strokeLinejoin="round"
+            <path key={s.label} d={s.d} fill={s.color} stroke="var(--ib-on-ink, #FDF6EE)" strokeWidth={2} strokeLinejoin="round"
               opacity={hover == null || hover === i ? 1 : 0.45}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
               style={{ cursor: 'default', transition: 'opacity 0.15s' }} />
@@ -352,8 +352,8 @@ const PieChart = ({ segments, size = 180, format = (v) => v }) => {
         {active && (
           <div role="tooltip" style={{
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', maxWidth: 260, textAlign: 'center',
-            background: '#1A0A00', color: '#FDF6EE', borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 700,
-            whiteSpace: 'normal', width: 'max-content', lineHeight: 1.35, boxShadow: '0 6px 18px rgba(26,10,0,0.25)', zIndex: 2,
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', borderRadius: 10, padding: '7px 10px', fontSize: 12, fontWeight: 700,
+            whiteSpace: 'normal', width: 'max-content', lineHeight: 1.35, boxShadow: '0 6px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)', zIndex: 2,
           }}>
             {active.label}: {format(active.value)} ({pct(active.value)}%)
           </div>
@@ -362,13 +362,13 @@ const PieChart = ({ segments, size = 180, format = (v) => v }) => {
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 9, minWidth: 0, flex: '1 1 220px' }}>
         {slices.map((s, i) => (
           <li key={s.label} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
-            style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, fontWeight: 700, color: '#1A0A00', opacity: hover == null || hover === i ? 1 : 0.55 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)', opacity: hover == null || hover === i ? 1 : 0.55 }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: s.color, flexShrink: 0 }} />
             <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{s.label}</span>
-            <span style={{ marginLeft: 'auto', color: '#7A3A18', fontWeight: 800, whiteSpace: 'nowrap' }}>{format(s.value)} · {pct(s.value)}%</span>
+            <span style={{ marginLeft: 'auto', color: 'var(--ib-rust, #7A3A18)', fontWeight: 800, whiteSpace: 'nowrap' }}>{format(s.value)} · {pct(s.value)}%</span>
           </li>
         ))}
-        <li style={{ fontSize: 11.5, fontWeight: 800, color: '#7A3A18', borderTop: '1px solid rgba(180,81,30,0.15)', paddingTop: 8 }}>
+        <li style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)', paddingTop: 8 }}>
           Total: {format(total)}
         </li>
       </ul>
@@ -386,12 +386,12 @@ const FunnelChart = ({ steps }) => {
         return (
           <div key={i}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00' }}>{s.label}</span>
-              <span style={{ fontSize: 12, fontWeight: 900, color: '#A8481A' }}>
-                {s.value}{dropOff !== null && dropOff > 0 && <span style={{ color: '#8C2F1C', fontWeight: 700, marginLeft: 6, fontSize: 11.5 }}>-{dropOff}%</span>}
+              <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>{s.label}</span>
+              <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>
+                {s.value}{dropOff !== null && dropOff > 0 && <span style={{ color: 'var(--ib-red, #8C2F1C)', fontWeight: 700, marginLeft: 6, fontSize: 11.5 }}>-{dropOff}%</span>}
               </span>
             </div>
-            <div style={{ width: `${widthPct}%`, minWidth: 60, height: 32, background: '#1A0A00', borderRadius: 10, opacity: 0.85 - i * 0.12, transition: 'width 0.4s' }} />
+            <div style={{ width: `${widthPct}%`, minWidth: 60, height: 32, background: 'var(--ib-ink, #1A0A00)', borderRadius: 10, opacity: 0.85 - i * 0.12, transition: 'width 0.4s' }} />
           </div>
         );
       })}
@@ -402,7 +402,7 @@ const FunnelChart = ({ steps }) => {
 const EmptyChartNotice = () => (
   <div style={{
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: '2.5rem 0', color: '#7A3A18',
+    padding: '2.5rem 0', color: 'var(--ib-rust, #7A3A18)',
     fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
   }}>
     No data for this range
@@ -415,10 +415,10 @@ const EmptyChartNotice = () => (
 const SectionTitle = ({ icon, children }) => (
   <h4 style={{
     fontSize: 11, fontWeight: 900, letterSpacing: '0.22em',
-    textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9,
+    textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
     margin: '0 0 18px', display: 'flex', alignItems: 'center', gap: 7,
   }}>
-    <span style={{ color: '#A8481A' }}>{icon}</span> {children}
+    <span style={{ color: 'var(--ib-sienna, #A8481A)' }}>{icon}</span> {children}
   </h4>
 );
 
@@ -426,21 +426,21 @@ const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValuel
   const trendGood = invertTrendColor ? (trend ?? 0) <= 0 : (trend ?? 0) >= 0;
   return (
     <div style={{
-      background: tone === 'warn' ? 'rgba(140,47,28,0.06)' : '#F2E4D0',
+      background: tone === 'warn' ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.06)' : 'var(--ib-parch, #F2E4D0)',
       borderRadius: 14, padding: compact ? '10px 14px' : '14px 18px',
     }}>
-      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '0 0 6px' }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 6px' }}>
         {label}
       </p>
       {!showValueless && (
-        <p style={{ fontSize: compact ? 16 : 20, fontWeight: 900, color: tone === 'warn' ? '#8C2F1C' : '#1A0A00', margin: 0, letterSpacing: '-0.02em' }}>
+        <p style={{ fontSize: compact ? 16 : 20, fontWeight: 900, color: tone === 'warn' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-dark, #1A0A00)', margin: 0, letterSpacing: '-0.02em' }}>
           {value}
         </p>
       )}
       {trend !== undefined && trend !== null && (
         <p style={{
           display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800,
-          color: trendGood ? '#A8481A' : '#8C2F1C', margin: showValueless ? 0 : '4px 0 0',
+          color: trendGood ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-red, #8C2F1C)', margin: showValueless ? 0 : '4px 0 0',
         }}>
           {trendGood ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
           {trend >= 0 ? '+' : ''}{trend}% {trendLabel || ''}
@@ -452,15 +452,15 @@ const MiniMetric = ({ label, value, trend, trendLabel, tone, compact, showValuel
 
 const HighlightCard = ({ icon, label, title, sub, tone }) => (
   <div style={{
-    background: tone === 'good' ? 'rgba(180,81,30,0.08)' : 'rgba(140,47,28,0.06)',
-    border: `1px solid ${tone === 'good' ? 'rgba(180,81,30,0.2)' : 'rgba(140,47,28,0.18)'}`,
+    background: tone === 'good' ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.06)',
+    border: `1px solid ${tone === 'good' ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.18)'}`,
     borderRadius: 16, padding: '1.1rem 1.3rem', display: 'flex', gap: 12, alignItems: 'flex-start',
   }}>
-    <span style={{ color: tone === 'good' ? '#A8481A' : '#8C2F1C', flexShrink: 0, marginTop: 2 }}>{icon}</span>
+    <span style={{ color: tone === 'good' ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-red, #8C2F1C)', flexShrink: 0, marginTop: 2 }}>{icon}</span>
     <div>
-      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: tone === 'good' ? '#A8481A' : '#8C2F1C', margin: '0 0 4px' }}>{label}</p>
-      <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: '0 0 2px' }}>{title}</p>
-      <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: 0 }}>{sub}</p>
+      <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: tone === 'good' ? 'var(--ib-sienna, #A8481A)' : 'var(--ib-red, #8C2F1C)', margin: '0 0 4px' }}>{label}</p>
+      <p style={{ fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: '0 0 2px' }}>{title}</p>
+      <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>{sub}</p>
     </div>
   </div>
 );
@@ -472,10 +472,10 @@ const ExportButton = ({ icon, label, onClick, disabled = false }) => (
     style={{
       opacity: disabled ? 0.55 : 1,
       display: 'flex', alignItems: 'center', gap: 7,
-      background: '#1A0A00', color: '#E8A265', border: 'none', borderRadius: 999,
+      background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', borderRadius: 999,
       padding: '10px 18px', fontFamily: 'inherit', fontWeight: 900,
       fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: disabled ? 'not-allowed' : 'pointer',
-      boxShadow: '0 4px 14px rgba(26,10,0,0.2)',
+      boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.2)',
     }}
   >
     {icon} {label}

@@ -15,8 +15,8 @@ export const SkeletonRegion = ({ label = 'Loading', children, style }) => (
 );
 
 const card = {
-  background: '#FDF6EE', borderRadius: 22, overflow: 'hidden',
-  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, overflow: 'hidden',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 };
 
 // Tour cards (Explore Tours, Tour Management, landing, /tours).
@@ -44,7 +44,7 @@ export const SkeletonTourCards = ({ count = 6, imageHeight = 186, label = 'Loadi
 export const SkeletonRows = ({ count = 5, avatar = true, label = 'Loading', boxed = true }) => (
   <SkeletonRegion label={label} style={boxed ? { ...card, padding: '0.5rem 1.25rem' } : undefined}>
     {Array.from({ length: count }, (_, i) => (
-      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderTop: i ? '1px solid rgba(180,81,30,0.08)' : 'none' }}>
+      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 0', borderTop: i ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'none' }}>
         {avatar && <Skel w={40} h={40} r={999} />}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7, minWidth: 0 }}>
           <Skel w={`${55 - (i % 3) * 10}%`} h={13} />
@@ -59,11 +59,11 @@ export const SkeletonRows = ({ count = 5, avatar = true, label = 'Loading', boxe
 // A table: header row and rows of cells.
 export const SkeletonTable = ({ rows = 6, cols = 6, label = 'Loading records' }) => (
   <SkeletonRegion label={label} style={{ ...card, padding: '0 1.25rem' }}>
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 16, padding: '16px 0', borderBottom: '1px solid rgba(180,81,30,0.12)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 16, padding: '16px 0', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
       {Array.from({ length: cols }, (_, c) => <Skel key={c} w="60%" h={10} />)}
     </div>
     {Array.from({ length: rows }, (_, r) => (
-      <div key={r} style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 16, alignItems: 'center', padding: '16px 0', borderTop: r ? '1px solid rgba(180,81,30,0.08)' : 'none' }}>
+      <div key={r} style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 16, alignItems: 'center', padding: '16px 0', borderTop: r ? '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'none' }}>
         {Array.from({ length: cols }, (_, c) => (
           c === 0
             ? <div key={c} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}><Skel w="85%" h={12} /><Skel w="55%" h={9} /></div>

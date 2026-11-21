@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase, currentUser } from './supabaseClient';
 import { notificationsChanged, onNotificationsChanged, onNotificationsRefresh, clearOldPaymentNotices, nextPaymentNoticeExpiry, fetchNotificationsSeenAt, markNotificationsSeen, unseenCount } from './notifications';
 import EmptyState from './ui/EmptyState';
@@ -135,9 +136,9 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
         style={{
           position: 'relative',
           width: 40, height: 40, borderRadius: 12,
-          background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
+          background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: '#1A0A00',
+          cursor: 'pointer', color: 'var(--ib-dark, #1A0A00)',
         }}
       >
         <Bell size={17} />
@@ -145,10 +146,10 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
           <span style={{
             position: 'absolute', top: -4, right: -4,
             minWidth: 17, height: 17, padding: '0 4px', borderRadius: 999,
-            background: '#B4511E', color: '#FDF6EE',
+            background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
             fontSize: 11, fontWeight: 900,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(180,81,30,0.4)',
+            boxShadow: '0 2px 8px rgba(var(--ib-accent-rgb, 180,81,30), 0.4)',
           }}>
             {badgeCount > 9 ? '9+' : badgeCount}
           </span>
@@ -159,22 +160,22 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
         <div className="notif-panel" style={{
           position: 'absolute', top: 'calc(100% + 10px)', right: 0, zIndex: 500,
           width: 340, maxHeight: 420,
-          background: '#FDF6EE', borderRadius: 20,
-          border: '1px solid rgba(180,81,30,0.14)',
-          boxShadow: '0 20px 50px rgba(26,10,0,0.25)',
+          background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20,
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)',
+          boxShadow: '0 20px 50px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 18px', borderBottom: '1px solid rgba(180,81,30,0.12)', flexShrink: 0,
+            padding: '14px 18px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', flexShrink: 0,
           }}>
             <div>
-              <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0 }}>
+              <p style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
                 Notifications
               </p>
               {/* New = arrived since you last looked (the badge); unread = not clicked yet. */}
               {!loading && (
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', margin: '3px 0 0' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '3px 0 0' }}>
                   {unreadCount} unread{newWhenOpened ? ` · ${newWhenOpened} new` : ''}
                 </p>
               )}
@@ -185,7 +186,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4,
                   background: 'none', border: 'none', cursor: 'pointer',
-                  color: '#A8481A', fontSize: 11, fontWeight: 800,
+                  color: 'var(--ib-sienna, #A8481A)', fontSize: 11, fontWeight: 800,
                   letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'inherit',
                 }}
               >
@@ -212,24 +213,24 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
                   }}
                   style={{
                     padding: '12px 18px',
-                    borderBottom: '1px solid rgba(180,81,30,0.08)',
-                    background: n.is_read ? 'transparent' : 'rgba(180,81,30,0.06)',
+                    borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)',
+                    background: n.is_read ? 'transparent' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)',
                     cursor: 'pointer',
                     display: 'flex', gap: 10, alignItems: 'flex-start',
                   }}
                 >
                   {!n.is_read && (
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#B4511E', marginTop: 5, flexShrink: 0 }} />
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)', marginTop: 5, flexShrink: 0 }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{n.title}</p>
+                    <p style={{ fontSize: 12, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{n.title}</p>
                     <p style={{
-                      fontSize: 11.5, fontWeight: 500, color: '#7A3A18', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5,
+                      fontSize: 11.5, fontWeight: 500, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '4px 0 0', lineHeight: 1.5,
                       display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     }}>
                       {n.message}
                     </p>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9, margin: '6px 0 0' }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '6px 0 0' }}>
                       {timeAgo(n.created_at)}
                     </p>
                   </div>
@@ -242,7 +243,9 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
       )}
     </div>
 
-    {viewingNotification && (
+    {/* Drawn at the page level (a portal): inside the top bar, whose blur
+        effect makes fixed windows sit inside the bar, it was squeezed and cut off. */}
+    {viewingNotification && createPortal(
       <NotificationDetailModal
         notification={viewingNotification}
         onClose={() => setViewingNotification(null)}
@@ -251,7 +254,8 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
           setViewingNotification(null);
           onNotificationClick?.(target);
         }}
-      />
+      />,
+      document.body,
     )}
     </>
   );
@@ -271,14 +275,14 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
     display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
   }}>
     <div
-      style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.75)', backdropFilter: 'blur(6px)' }}
+      style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.75)', backdropFilter: 'blur(6px)' }}
       onClick={onClose}
     />
-    <div style={{
-      position: 'relative', background: '#FDF6EE',
+    <div className="paper-card" style={{
+      position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
       width: '100%', maxWidth: 520,
-      borderRadius: 24, boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
-      borderTop: '7px solid #B4511E',
+      borderRadius: 24, boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
+      borderTop: '7px solid var(--ib-accent, #B4511E)',
       overflow: 'hidden', maxHeight: '85dvh',
       display: 'flex', flexDirection: 'column',
     }}>
@@ -286,16 +290,16 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
       <div style={{
         padding: '1.5rem 1.75rem 1.25rem', flexShrink: 0,
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
-        borderBottom: '1px solid rgba(180,81,30,0.12)',
+        borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
       }}>
         <div style={{ minWidth: 0 }}>
           <p style={{
             fontSize: 11, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase',
-            color: '#A8481A', margin: '0 0 8px',
+            color: 'var(--ib-sienna, #A8481A)', margin: '0 0 8px',
           }}>
             Notification
           </p>
-          <h3 style={{ fontSize: 17, fontWeight: 900, color: '#1A0A00', margin: 0, lineHeight: 1.3, wordBreak: 'break-word' }}>
+          <h3 style={{ fontSize: 17, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.3, wordBreak: 'break-word' }}>
             {notification.title}
           </h3>
         </div>
@@ -303,7 +307,7 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
           onClick={onClose}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'rgba(122,58,24,0.85)', padding: 4, flexShrink: 0,
+            color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', padding: 4, flexShrink: 0,
           }}
         >
           <X size={22} />
@@ -313,12 +317,12 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
       {/* Body — full message, whitespace preserved */}
       <div style={{ padding: '1.5rem 1.75rem', overflowY: 'auto', flex: 1 }}>
         <p style={{
-          fontSize: 13.5, fontWeight: 500, color: '#1A0A00',
+          fontSize: 13.5, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)',
           lineHeight: 1.75, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
         }}>
           {notification.message}
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, color: '#7A3A18', opacity: 0.9 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 20, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>
           <Clock size={12} />
           <span style={{ fontSize: 11.5, fontWeight: 700 }}>{fullDateTime(notification.created_at)}</span>
         </div>
@@ -326,19 +330,19 @@ const NotificationDetailModal = ({ notification, onClose, onNavigate }) => (
 
       {/* Footer */}
       <div style={{
-        padding: '1.25rem 1.75rem', borderTop: '1px solid rgba(180,81,30,0.12)',
-        background: '#F2E4D0', display: 'flex', gap: 10, flexShrink: 0, justifyContent: 'flex-end',
+        padding: '1.25rem 1.75rem', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        background: 'var(--ib-parch, #F2E4D0)', display: 'flex', gap: 10, flexShrink: 0, justifyContent: 'flex-end',
       }}>
         <button
           onClick={onNavigate}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '12px 22px',
-            background: '#1A0A00', color: '#E8A265',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
             border: 'none', borderRadius: 999, cursor: 'pointer',
             fontFamily: 'inherit', fontWeight: 900,
             fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
-            boxShadow: '0 6px 20px rgba(26,10,0,0.25)',
+            boxShadow: '0 6px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.25)',
           }}
         >
           Go There <ArrowRight size={13} />

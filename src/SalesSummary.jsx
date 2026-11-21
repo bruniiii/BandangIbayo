@@ -158,16 +158,16 @@ const SalesSummary = ({ onData }) => {
     <section aria-labelledby="sales-summary-title" style={card}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
         <div>
-          <h2 id="sales-summary-title" style={{ fontSize: 18, fontWeight: 900, color: '#1A0A00', margin: 0, letterSpacing: '-0.01em' }}>Sales Summary</h2>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>Money actually received, and who still owes a balance.</p>
+          <h2 id="sales-summary-title" style={{ fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, letterSpacing: '-0.01em' }}>Sales Summary</h2>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>Money actually received, and who still owes a balance.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <div role="tablist" aria-label="Show by" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4 }}>
+          <div role="tablist" aria-label="Show by" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4 }}>
             {[['day', 'Day'], ['month', 'Month'], ['year', 'Year']].map(([k, l]) => (
               <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => pickKind(k)} style={{
                 border: 'none', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', fontFamily: 'inherit',
                 fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: kind === k ? '#1A0A00' : 'transparent', color: kind === k ? '#FDF6EE' : '#5C2A10',
+                background: kind === k ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: kind === k ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
               }}>{l}</button>
             ))}
           </div>
@@ -213,8 +213,8 @@ const SalesSummary = ({ onData }) => {
                       <td style={td}>{t.start ? formatYmdRange(t.start, t.end) : '—'}</td>
                       <td style={td}>{t.pax}</td>
                       <td style={{ ...td, fontWeight: 800 }}>{formatPeso(t.collected)}</td>
-                      <td style={{ ...td, fontWeight: t.hasRate ? 800 : 600, color: t.hasRate ? '#1A0A00' : '#8C2F1C' }}>{t.hasRate ? formatPeso(t.regular) : 'Not set'}</td>
-                      <td style={{ ...td, color: t.balance ? '#8C5216' : '#7A3A18', fontWeight: t.balance ? 800 : 600 }}>{t.balance ? formatPeso(t.balance) : '—'}</td>
+                      <td style={{ ...td, fontWeight: t.hasRate ? 800 : 600, color: t.hasRate ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-red, #8C2F1C)' }}>{t.hasRate ? formatPeso(t.regular) : 'Not set'}</td>
+                      <td style={{ ...td, color: t.balance ? 'var(--ib-warn, #8C5216)' : 'var(--ib-rust, #7A3A18)', fontWeight: t.balance ? 800 : 600 }}>{t.balance ? formatPeso(t.balance) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -237,11 +237,11 @@ const SalesSummary = ({ onData }) => {
                 <tbody>
                   {summary.balances.map((r) => (
                     <tr key={r.ref}>
-                      <td style={{ ...td, fontWeight: 800 }}>{r.name || '—'}{r.contact ? <span style={{ display: 'block', fontWeight: 600, fontSize: 11.5, color: '#7A3A18' }}>{r.contact}</span> : null}</td>
+                      <td style={{ ...td, fontWeight: 800 }}>{r.name || '—'}{r.contact ? <span style={{ display: 'block', fontWeight: 600, fontSize: 11.5, color: 'var(--ib-rust, #7A3A18)' }}>{r.contact}</span> : null}</td>
                       <td style={{ ...td, fontFamily: 'monospace' }}>{r.ref}</td>
                       <td style={td}>{r.what}</td>
                       <td style={td}>{r.date ? formatYmdRange(r.date, '') : '—'}</td>
-                      <td style={{ ...td, fontWeight: 900, color: '#8C5216' }}>{formatPeso(r.amount)}</td>
+                      <td style={{ ...td, fontWeight: 900, color: 'var(--ib-warn, #8C5216)' }}>{formatPeso(r.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -255,31 +255,31 @@ const SalesSummary = ({ onData }) => {
 };
 
 const Stat = ({ icon, label, value, sub, tone }) => (
-  <div style={{ background: tone === 'warn' ? 'rgba(232,162,101,0.18)' : '#F2E4D0', borderRadius: 16, padding: '14px 16px' }}>
-    <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: tone === 'warn' ? '#8C5216' : '#7A3A18', margin: 0 }}>
+  <div style={{ background: tone === 'warn' ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.18)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '14px 16px' }}>
+    <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: tone === 'warn' ? 'var(--ib-warn, #8C5216)' : 'var(--ib-rust, #7A3A18)', margin: 0 }}>
       {icon} {label}
     </p>
-    <p style={{ fontSize: 'clamp(18px, 6.5vw, 24px)', fontWeight: 900, color: '#1A0A00', margin: '6px 0 0', letterSpacing: '-0.02em', overflowWrap: 'anywhere' }}>{value}</p>
-    {sub && <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: '2px 0 0' }}>{sub}</p>}
+    <p style={{ fontSize: 'clamp(18px, 6.5vw, 24px)', fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: '6px 0 0', letterSpacing: '-0.02em', overflowWrap: 'anywhere' }}>{value}</p>
+    {sub && <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>{sub}</p>}
   </div>
 );
 
 const card = {
-  background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 };
 const selectStyle = {
-  background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)', borderRadius: 12, padding: '9px 12px',
-  fontSize: 12.5, fontWeight: 800, color: '#1A0A00', fontFamily: 'inherit', cursor: 'pointer',
+  background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 12, padding: '9px 12px',
+  fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', fontFamily: 'inherit', cursor: 'pointer',
 };
-const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#7A3A18', margin: '20px 0 8px' };
+const subTitle = { fontSize: 11, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: '20px 0 8px' };
 const toggleBtn = {
   ...subTitle, display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', padding: 0,
   cursor: 'pointer', fontFamily: 'inherit', margin: '20px 0 8px',
 };
-const muted = { fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 };
+const muted = { fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 };
 const table = { width: '100%', borderCollapse: 'collapse', fontSize: 12.5, minWidth: 520 };
-const th = { textAlign: 'left', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A3A18', padding: '8px 10px', borderBottom: '1px solid rgba(180,81,30,0.18)' };
-const td = { padding: '9px 10px', color: '#1A0A00', fontWeight: 600, borderBottom: '1px solid rgba(180,81,30,0.08)', verticalAlign: 'top' };
+const th = { textAlign: 'left', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', padding: '8px 10px', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)' };
+const td = { padding: '9px 10px', color: 'var(--ib-dark, #1A0A00)', fontWeight: 600, borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.08)', verticalAlign: 'top' };
 
 export default SalesSummary;

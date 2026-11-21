@@ -54,7 +54,7 @@ const TemplatesTab = () => {
   if (problem) {
     return (
       <div style={card}>
-        <h3 style={h3}><Mail size={16} color="#8C2F1C" /> Templates aren't installed yet</h3>
+        <h3 style={h3}><Mail size={16} color="var(--ib-red, #8C2F1C)" /> Templates aren't installed yet</h3>
         <p style={{ ...hint, margin: 0 }}>Run the database update <strong>20261228000000_maintenance_tabs.sql</strong> and redeploy the send-email function. ({problem})</p>
       </div>
     );
@@ -62,10 +62,10 @@ const TemplatesTab = () => {
 
   return (
     <div style={card}>
-      <h3 style={h3}><Mail size={16} color="#B4511E" /> Notification Templates</h3>
+      <h3 style={h3}><Mail size={16} color="var(--ib-accent, #B4511E)" /> Notification Templates</h3>
       <p style={hint}>The emails joiners get. Change the subject, heading and message; booking details, pickup points and buttons are added automatically. Sign-in codes and the monthly summary aren't editable.</p>
       <label style={{ position: 'relative', display: 'block', marginBottom: 10 }}>
-        <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#7A3A18' }} />
+        <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--ib-rust, #7A3A18)' }} />
         <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search emails" aria-label="Search emails" style={{ ...inp, paddingLeft: 34 }} />
       </label>
       <StatusFilter statuses={STATUSES} value={status} onChange={(v) => { setStatus(v); setPage(1); }} count={(st) => (rows ? EMAIL_KINDS.filter((k) => matches(k, st)).length : 0)} style={{ marginBottom: 12 }} />
@@ -74,11 +74,11 @@ const TemplatesTab = () => {
           {visible.map((k) => {
             const t = isChanged(k[0]) ? rows[k[0]] : EMAIL_DEFAULTS[k[0]];
             return (
-              <div key={k[0]} style={{ background: '#F2E4D0', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: '#1A0A00' }}>{k[1]} {isChanged(k[0]) && <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', color: '#A8481A', background: 'rgba(168,72,26,0.12)', borderRadius: 999, padding: '2px 7px', marginLeft: 4 }}>CHANGED</span>}</p>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>{k[2]}</p>
-                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: '#1A0A00' }}>Subject: {fillIn(t.subject, SAMPLE_VARS)}</p>
-                {isChanged(k[0]) && <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>Changed {when(rows[k[0]].updated_at)}</p>}
+              <div key={k[0]} style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{k[1]} {isChanged(k[0]) && <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.1em', color: 'var(--ib-sienna, #A8481A)', background: 'rgba(var(--ib-sienna-rgb, 168,72,26), 0.12)', borderRadius: 999, padding: '2px 7px', marginLeft: 4 }}>CHANGED</span>}</p>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>{k[2]}</p>
+                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>Subject: {fillIn(t.subject, SAMPLE_VARS)}</p>
+                {isChanged(k[0]) && <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>Changed {when(rows[k[0]].updated_at)}</p>}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                   <button type="button" style={btn(false)} onClick={() => setEditing(k)}><Pencil size={13} /> Edit</button>
                   {isChanged(k[0]) && <button type="button" style={btn(false)} onClick={() => resetToDefault(k)}><RotateCcw size={13} /> Use default</button>}
@@ -116,26 +116,26 @@ const TemplateForm = ({ kind, saved, onClose, onSaved }) => {
   const paragraphs = fillIn(f.message, SAMPLE_VARS).split(/\n\s*\n/);
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
-      <div role="dialog" aria-modal="true" aria-label={`Edit ${name}`} style={{ position: 'relative', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', background: '#FDF6EE', borderRadius: 24, borderTop: '8px solid #B4511E', padding: '1.5rem', boxShadow: '0 24px 60px rgba(26,10,0,0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.6)', backdropFilter: 'blur(3px)' }} onClick={onClose} />
+      <div className="paper-card" role="dialog" aria-modal="true" aria-label={`Edit ${name}`} style={{ position: 'relative', width: '100%', maxWidth: 760, maxHeight: '92vh', overflowY: 'auto', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 24, borderTop: '8px solid var(--ib-accent, #B4511E)', padding: '1.5rem', boxShadow: '0 24px 60px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#1A0A00' }}>{name}</h3>
-          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A3A18' }}><X size={20} /></button>
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{name}</h3>
+          <button type="button" className="x-close" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
         <p style={{ ...hint, margin: 0 }}>Words you can use: {words.map((w) => `{${w}} = ${PLACEHOLDER_HELP[w]}`).join(' · ')}. **text** is bold; a blank line starts a new paragraph.</p>
         <label style={label}>Subject<input value={f.subject} maxLength={200} onChange={(e) => setF({ ...f, subject: e.target.value })} style={inp} /></label>
         <label style={label}>Heading<input value={f.heading} maxLength={120} onChange={(e) => setF({ ...f, heading: e.target.value })} style={inp} /></label>
         <label style={label}>Message<textarea value={f.message} rows={7} maxLength={4000} onChange={(e) => setF({ ...f, message: e.target.value })} style={{ ...inp, resize: 'vertical', lineHeight: 1.6, fontFamily: 'inherit' }} /></label>
-        {unknown.length > 0 && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: '#8C2F1C' }}>{[...new Set(unknown)].map((w) => `{${w}}`).join(', ')} can't be filled in for this email.</p>}
-        <div style={{ background: '#FFFDF9', border: '1px solid rgba(180,81,30,0.2)', borderRadius: 14, padding: '14px 16px' }}>
-          <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18' }}>Preview · {fillIn(f.subject, SAMPLE_VARS)}</p>
-          <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 900, color: '#C45C26' }}>{fillIn(f.heading, SAMPLE_VARS)}</p>
+        {unknown.length > 0 && <p role="alert" style={{ margin: 0, fontSize: 12, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{[...new Set(unknown)].map((w) => `{${w}}`).join(', ')} can't be filled in for this email.</p>}
+        <div style={{ background: 'var(--ib-surface, #FFFDF9)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 14, padding: '14px 16px' }}>
+          <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Preview · {fillIn(f.subject, SAMPLE_VARS)}</p>
+          <p style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 900, color: 'var(--ib-accent, #C45C26)' }}>{fillIn(f.heading, SAMPLE_VARS)}</p>
           {paragraphs.map((p, i) => (
-            <p key={i} style={{ margin: '0 0 8px', fontSize: 13.5, color: '#1A0A00', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+            <p key={i} style={{ margin: '0 0 8px', fontSize: 13.5, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
               {p.split(/(\*\*.+?\*\*)/g).map((part, j) => (part.startsWith('**') && part.endsWith('**') ? <strong key={j}>{part.slice(2, -2)}</strong> : part))}
             </p>
           ))}
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#7A3A18' }}>(+ the booking details the website adds)</p>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>(+ the booking details the website adds)</p>
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
           <button type="button" style={btn(false)} onClick={() => setF({ ...EMAIL_DEFAULTS[key] })}><RotateCcw size={13} /> Start from default</button>

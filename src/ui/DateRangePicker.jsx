@@ -64,34 +64,34 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
         style={{
           ...style, width: '100%', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box',
           display: 'flex', alignItems: 'center', gap: 10, paddingTop: 6, paddingBottom: 6, paddingLeft: 8,
-          color: start ? '#1A0A00' : 'rgba(122,58,24,0.75)',
-          border: `1px solid ${open ? '#B4511E' : 'rgba(180,81,30,0.18)'}`,
-          boxShadow: open ? '0 0 0 3px rgba(180,81,30,0.14)' : 'none',
+          color: start ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.75)',
+          border: `1px solid ${open ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.18)'}`,
+          boxShadow: open ? '0 0 0 3px rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' : 'none',
         }}
       >
         {/* Same look as the site's other date boxes (NiceDate). */}
-        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: start ? '#B4511E' : 'rgba(180,81,30,0.1)', color: start ? '#FDF6EE' : '#A8481A' }}>
+        <span style={{ width: 28, height: 28, borderRadius: 9, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: start ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: start ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}>
           <Calendar size={14} />
         </span>
         <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-        <ChevronDown size={16} style={{ color: '#A8481A', flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown size={16} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
 
       {open && (
         <div role="dialog" aria-label="Choose trip dates" style={{
           position: 'absolute', top: 'calc(100% + 8px)', left: 0, zIndex: 50,
           width: 300, maxWidth: 'calc(100vw - 48px)', boxSizing: 'border-box',
-          background: '#FDF6EE', border: '1px solid rgba(180,81,30,0.22)', borderRadius: 18,
-          boxShadow: '0 18px 44px rgba(26,10,0,0.22)', padding: 14,
+          background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.22)', borderRadius: 18,
+          boxShadow: '0 18px 44px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)', padding: 14,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <button type="button" onClick={() => shift(-1)} disabled={!canGoBack} aria-label="Previous month" style={navBtn(!canGoBack)}><ChevronLeft size={16} /></button>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: 13.5, color: '#1A0A00' }}>{MONTHS[view.m]} {view.y}</p>
+            <p style={{ margin: 0, fontWeight: 900, fontSize: 13.5, color: 'var(--ib-dark, #1A0A00)' }}>{MONTHS[view.m]} {view.y}</p>
             <button type="button" onClick={() => shift(1)} aria-label="Next month" style={navBtn(false)}><ChevronRight size={16} /></button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }} onMouseLeave={() => setHover('')}>
             {WEEKDAYS.map((w) => (
-              <span key={w} style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 800, color: '#7A3A18', padding: '4px 0' }}>{w}</span>
+              <span key={w} style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', padding: '4px 0' }}>{w}</span>
             ))}
             {cells.map((day, i) => {
               if (!day) return <span key={`e${i}`} />;
@@ -111,8 +111,8 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
                   style={{
                     height: 36, border: 'none', borderRadius: 10, fontFamily: 'inherit', fontSize: 12.5, fontWeight: 800,
                     cursor: disabled ? 'default' : 'pointer',
-                    background: isEdge ? '#B4511E' : inRange || isHoverEnd ? 'rgba(180,81,30,0.16)' : 'transparent',
-                    color: isEdge ? '#FDF6EE' : disabled ? 'rgba(122,58,24,0.3)' : '#1A0A00',
+                    background: isEdge ? 'var(--ib-accent, #B4511E)' : inRange || isHoverEnd ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.16)' : 'transparent',
+                    color: isEdge ? 'var(--ib-on-accent, #FDF6EE)' : disabled ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-dark, #1A0A00)',
                   }}
                 >
                   {Number(day.slice(8))}
@@ -121,7 +121,7 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
             })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 8 }}>
-            <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: '#7A3A18' }}>
+            <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
               {!start ? 'Tap the first day of your trip' : !end ? 'Now tap the last day' : 'Trip dates set'}
             </p>
             {start && (
@@ -138,7 +138,7 @@ const DateRangePicker = ({ name, start, end, min, maxDays = null, onChange, styl
 
 const navBtn = (disabled) => ({
   width: 32, height: 32, borderRadius: 10, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-  background: disabled ? 'transparent' : 'rgba(180,81,30,0.1)', color: disabled ? 'rgba(122,58,24,0.3)' : '#A8481A',
+  background: disabled ? 'transparent' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', color: disabled ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.3)' : 'var(--ib-sienna, #A8481A)',
   cursor: disabled ? 'default' : 'pointer',
 });
 

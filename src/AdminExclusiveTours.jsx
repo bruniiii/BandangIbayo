@@ -24,13 +24,13 @@ import { formatYmdRange, daysLabel } from './dateRange';
 import { REJECT_REASONS } from './optionLists';
 
 // ── PALETTE ──────────────────────────────────────────────
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light bg)
-// #7A3A18  rust mid-tone
-// #F2E4D0  parchment (section bg)
-// #8C2F1C  oxblood (reject / danger)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light bg)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-parch, #F2E4D0)  parchment (section bg)
+// var(--ib-red, #8C2F1C)  oxblood (reject / danger)
 // ---------------------------------------------------------
 
 const formatDate = (d) => {
@@ -72,7 +72,7 @@ const reviewDeadline = (request) => {
 const StatusBadge = ({ status, large = false }) => {
   const { bg, color, dot } = STATUS_STYLES[status] || STATUS_STYLES.Pending;
   return (
-    <span style={{
+    <span className={large ? undefined : 'rubber-stamp'} style={{
       display: 'inline-flex', alignItems: 'center',
       background: large ? (status === 'Fully Paid' ? bg : color) : bg,
       color: large ? '#FFFFFF' : color,
@@ -91,8 +91,8 @@ const StatusBadge = ({ status, large = false }) => {
 const TypeBadge = ({ type, dark = false }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', gap: 5,
-    background: dark ? 'rgba(232,162,101,0.14)' : type === 'exclusive' ? 'rgba(26,10,0,0.06)' : 'rgba(180,81,30,0.12)',
-    color: dark ? '#E8A265' : type === 'exclusive' ? '#1A0A00' : '#A8481A',
+    background: dark ? 'rgba(var(--ib-amber-rgb, 232,162,101), 0.14)' : type === 'exclusive' ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.06)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+    color: dark ? 'var(--ib-amber, #E8A265)' : type === 'exclusive' ? 'var(--ib-dark, #1A0A00)' : 'var(--ib-sienna, #A8481A)',
     borderRadius: 999, padding: '4px 12px',
     fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
   }}>
@@ -104,12 +104,12 @@ const TypeBadge = ({ type, dark = false }) => (
 // ── shared input style ──
 const inputStyle = {
   width: '100%', boxSizing: 'border-box',
-  background: '#F2E4D0',
-  border: '1px solid rgba(180,81,30,0.18)',
+  background: 'var(--ib-parch, #F2E4D0)',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
   borderRadius: 14,
   padding: '10px 14px',
   fontSize: 13, fontWeight: 600,
-  color: '#1A0A00',
+  color: 'var(--ib-dark, #1A0A00)',
   fontFamily: 'inherit',
   outline: 'none',
 };
@@ -173,17 +173,17 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
       <div style={{ display: 'flex', flexDirection: 'column' }}>
 
         {pendingCount > 0 && (
-          <p style={{ fontSize: 12.5, fontWeight: 800, color: '#A8481A', margin: '0 0 16px' }}>
+          <p style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)', margin: '0 0 16px' }}>
             {pendingCount} request{pendingCount === 1 ? '' : 's'} awaiting review.
           </p>
         )}
 
         {/* ── Filters ── */}
         <div style={{
-          background: '#FDF6EE',
+          background: 'var(--ib-cream, #FDF6EE)',
           borderRadius: 20, padding: '14px 18px',
-          border: '1px solid rgba(180,81,30,0.12)',
-          boxShadow: '0 4px 16px rgba(26,10,0,0.05)',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+          boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
           display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
           marginBottom: 24,
         }}>
@@ -191,7 +191,7 @@ const AdminExclusiveTours = ({ type = 'exclusive', openRequestId = null }) => {
             <Search size={15} style={{
               position: 'absolute', left: 13, top: '50%',
               transform: 'translateY(-50%)',
-              color: 'rgba(122,58,24,0.85)', pointerEvents: 'none',
+              color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', pointerEvents: 'none',
             }} />
             <input
               type="text" placeholder="Search name, destination, email…"
@@ -258,33 +258,33 @@ const RequestRow = ({ request, onView }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#FDF6EE', borderRadius: 18, padding: '1.1rem 1.4rem',
-        border: '1px solid rgba(180,81,30,0.12)',
-        boxShadow: hovered ? '0 8px 24px rgba(26,10,0,0.1)' : '0 2px 10px rgba(26,10,0,0.04)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 18, padding: '1.1rem 1.4rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+        boxShadow: hovered ? '0 8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.1)' : '0 2px 10px rgba(var(--ib-shadow-rgb, 26,10,0), 0.04)',
         cursor: 'pointer', transition: 'all 0.2s',
         display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap',
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160 }}>
         <TypeBadge type={request.request_type} />
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>
           {formatDate(request.created_at)}
         </span>
       </div>
 
       <div style={{ flex: 1, minWidth: 200 }}>
-        <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{request.full_name || '—'}</p>
-        <p style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
-          <MapPin size={12} style={{ color: '#A8481A' }} /> {request.destination || '—'}
+        <p style={{ fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{request.full_name || '—'}</p>
+        <p style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 5, margin: '4px 0 0' }}>
+          <MapPin size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {request.destination || '—'}
         </p>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', minWidth: 130 }}>
-        <Users size={13} style={{ color: '#A8481A' }} /> {request.group_size || '—'} pax
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', minWidth: 130 }}>
+        <Users size={13} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {request.group_size || '—'} pax
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#7A3A18', minWidth: 150 }}>
-        <Calendar size={13} style={{ color: '#A8481A' }} /> {tripDates(request)}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', minWidth: 150 }}>
+        <Calendar size={13} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tripDates(request)}
       </div>
 
       <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -300,12 +300,12 @@ const RequestRow = ({ request, onView }) => {
 ───────────────────────────────────────────── */
 const DetailRow = ({ icon, label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, minWidth: 0 }}>
-    <span style={{ color: '#A8481A', opacity: 0.9, marginTop: 2, flexShrink: 0 }}>{icon}</span>
+    <span style={{ color: 'var(--ib-sienna, #A8481A)', opacity: 0.9, marginTop: 2, flexShrink: 0 }}>{icon}</span>
     <div style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7A3A18', margin: 0 }}>
+      <p style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>
         {label}
       </p>
-      <p style={{ fontSize: 15, fontWeight: 800, color: '#1A0A00', margin: '3px 0 0' }}>
+      <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: '3px 0 0' }}>
         {value || '—'}
       </p>
     </div>
@@ -410,20 +410,20 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
 
   return (
     <div style={{
-      background: isPaid ? '#1A0A00' : '#F2E4D0', borderRadius: 18, padding: '1.25rem 1.5rem',
-      border: '1px solid rgba(180,81,30,0.18)',
+      background: isPaid ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-parch, #F2E4D0)', borderRadius: 18, padding: '1.25rem 1.5rem',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
       display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
     }}>
       <div style={{ flex: '1 1 260px', minWidth: 0 }}>
         <p style={{
           display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px',
           fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
-          color: isPaid ? '#E8A265' : '#1A0A00',
+          color: isPaid ? 'var(--ib-amber, #E8A265)' : 'var(--ib-dark, #1A0A00)',
         }}>
-          {isPaid ? <CheckCircle2 size={14} /> : <Wallet size={14} style={{ color: '#A8481A' }} />}
+          {isPaid ? <CheckCircle2 size={14} /> : <Wallet size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} />}
           {title}
         </p>
-        <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6, margin: 0, color: isPaid ? 'rgba(253,246,238,0.9)' : '#7A3A18' }}>{text}</p>
+        <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6, margin: 0, color: isPaid ? 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.9)' : 'var(--ib-rust, #7A3A18)' }}>{text}</p>
       </div>
       {action && (
         <button
@@ -432,7 +432,7 @@ const DownpaymentSection = ({ request, price, onChanged }) => {
           disabled={saving}
           style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px', borderRadius: 999,
-            border: '1px solid rgba(180,81,30,0.35)', background: '#FDF6EE', color: '#A8481A',
+            border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.35)', background: 'var(--ib-cream, #FDF6EE)', color: 'var(--ib-sienna, #A8481A)',
             fontSize: 12, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
             cursor: saving ? 'default' : 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap',
           }}
@@ -535,7 +535,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
     display: 'block',
     fontSize: 11, fontWeight: 800,
     letterSpacing: '0.2em', textTransform: 'uppercase',
-    color: '#7A3A18', opacity: 0.9,
+    color: 'var(--ib-rust, #7A3A18)', opacity: 0.9,
     marginBottom: 6,
   };
 
@@ -543,11 +543,11 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,10,0,0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
-      <div style={{
-        position: 'relative', background: '#FDF6EE',
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div className="paper-card" style={{
+        position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
         width: '100%', maxWidth: 680,
-        borderRadius: 24, borderTop: '6px solid #B4511E', boxShadow: '0 32px 80px rgba(26,10,0,0.4)',
+        borderRadius: 24, borderTop: '6px solid var(--ib-accent, #B4511E)', boxShadow: '0 32px 80px rgba(var(--ib-shadow-rgb, 26,10,0), 0.4)',
         overflow: 'hidden', maxHeight: '92dvh',
         display: 'flex', flexDirection: 'column',
       }}>
@@ -582,10 +582,10 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
           {people.length > 0 && (
             <div>
               <p style={labelStyle}>Who's Coming ({people.length})</p>
-              <div style={{ background: '#F2E4D0', borderRadius: 16, padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '0.75rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {people.map((p, i) => (
-                  <p key={i} style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: 0 }}>
-                    {i + 1}. <strong>{p.full_name}</strong>{p.contact_number ? <span style={{ color: '#7A3A18' }}> · {p.contact_number}</span> : null}
+                  <p key={i} style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>
+                    {i + 1}. <strong>{p.full_name}</strong>{p.contact_number ? <span style={{ color: 'var(--ib-rust, #7A3A18)' }}> · {p.contact_number}</span> : null}
                   </p>
                 ))}
               </div>
@@ -595,42 +595,42 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
           {request.notes && (
             <div>
               <p style={labelStyle}>Notes / Special Requests</p>
-              <div style={{ background: '#F2E4D0', borderRadius: 16, padding: '1rem 1.25rem' }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#1A0A00', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
+              <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 16, padding: '1rem 1.25rem' }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
                   {request.notes}
                 </p>
               </div>
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>
             <Clock size={13} /> Submitted {formatDateTime(request.created_at)}
             {request.reviewed_at && <> · Reviewed {formatDateTime(request.reviewed_at)}</>}
           </div>
 
           {overdueReason && (
             <div style={{
-              background: 'rgba(26,10,0,0.05)', borderRadius: 16, padding: '1rem 1.25rem',
-              border: '1px solid rgba(26,10,0,0.15)', display: 'flex', gap: 12, alignItems: 'flex-start',
+              background: 'rgba(var(--ib-dark-rgb, 26,10,0), 0.05)', borderRadius: 16, padding: '1rem 1.25rem',
+              border: '1px solid rgba(var(--ib-dark-rgb, 26,10,0), 0.15)', display: 'flex', gap: 12, alignItems: 'flex-start',
             }}>
-              <XCircle size={18} style={{ color: '#7A3A18', flexShrink: 0, marginTop: 1 }} />
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
-                <strong style={{ color: '#1A0A00' }}>Rejected automatically.</strong> {overdueReason} The tour package must be sent within {periodText(REQUEST_REVIEW_DAYS)} of the request, and at least {periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} before the trip.
+              <XCircle size={18} style={{ color: 'var(--ib-rust, #7A3A18)', flexShrink: 0, marginTop: 1 }} />
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0, lineHeight: 1.6 }}>
+                <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>Rejected automatically.</strong> {overdueReason} The tour package must be sent within {periodText(REQUEST_REVIEW_DAYS)} of the request, and at least {periodText(EXCLUSIVE_APPROVAL_CUTOFF_DAYS)} before the trip.
               </p>
             </div>
           )}
 
           {!isPending && !overdueReason && (
             <div style={{
-              background: request.status === 'Approved' ? 'rgba(180,81,30,0.08)' : 'rgba(140,47,28,0.07)',
+              background: request.status === 'Approved' ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.07)',
               borderRadius: 16, padding: '1rem 1.25rem',
-              border: `1px solid ${request.status === 'Approved' ? 'rgba(180,81,30,0.2)' : 'rgba(140,47,28,0.2)'}`,
+              border: `1px solid ${request.status === 'Approved' ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.2)' : 'rgba(var(--ib-red-rgb, 140,47,28), 0.2)'}`,
               display: 'flex', gap: 12, alignItems: 'flex-start',
             }}>
               {request.status === 'Approved'
-                ? <CheckCircle2 size={18} style={{ color: '#A8481A', flexShrink: 0, marginTop: 1 }} />
-                : <XCircle size={18} style={{ color: '#8C2F1C', flexShrink: 0, marginTop: 1 }} />}
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: 0, lineHeight: 1.6 }}>
+                ? <CheckCircle2 size={18} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 1 }} />
+                : <XCircle size={18} style={{ color: 'var(--ib-red, #8C2F1C)', flexShrink: 0, marginTop: 1 }} />}
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: 0, lineHeight: 1.6 }}>
                 This request has already been {request.status.toLowerCase()} and the joiner has been notified.
                 {request.request_type === 'request' && request.status === 'Approved' && !packageSentAt && (
                   <> Send the tour package below to post it on <strong>Explore Tours</strong> so joiners can book it.</>
@@ -642,23 +642,23 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
           {/* Tour Package Details — the same form as Create New Tour in Tour Management */}
           {isApproved && (
             <div style={{
-              background: '#F2E4D0', borderRadius: 18, padding: '1.5rem',
-              border: '1px solid rgba(180,81,30,0.18)',
+              background: 'var(--ib-parch, #F2E4D0)', borderRadius: 18, padding: '1.5rem',
+              border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
               display: 'flex', flexDirection: 'column', gap: 14,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                 <p style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase',
-                  color: '#1A0A00', margin: 0,
+                  color: 'var(--ib-dark, #1A0A00)', margin: 0,
                 }}>
-                  <Package size={14} style={{ color: '#A8481A' }} /> Tour Package Details
+                  <Package size={14} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Tour Package Details
                 </p>
                 {packageSentAt && (
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: 6,
                     fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase',
-                    color: '#A8481A', background: 'rgba(180,81,30,0.12)', borderRadius: 999, padding: '4px 10px',
+                    color: 'var(--ib-sienna, #A8481A)', background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', borderRadius: 999, padding: '4px 10px',
                   }}>
                     <CheckCircle2 size={12} /> {isOpenRequest ? 'Posted' : 'Sent'} {formatDateTime(packageSentAt)}
                   </span>
@@ -666,22 +666,22 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               </div>
 
               {packageSentAt && pkg.title && (
-                <div style={{ background: '#FDF6EE', borderRadius: 14, padding: '12px 14px', border: '1px solid rgba(180,81,30,0.14)' }}>
-                  <p style={{ fontSize: 14, fontWeight: 900, color: '#1A0A00', margin: 0 }}>{pkg.title}</p>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#7A3A18', margin: '3px 0 0' }}>
+                <div style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 14, padding: '12px 14px', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)' }}>
+                  <p style={{ fontSize: 14, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{pkg.title}</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', margin: '3px 0 0' }}>
                     {pkg.start_date ? formatYmdRange(pkg.start_date, pkg.end_date || pkg.start_date) : tripDates(request)}
                     {' · '}{formatPeso(Number(pkg.price) || 0)}{isOpenRequest ? ' per person' : ' package'}
                     {pkg.group_size ? ` · ${pkg.group_size} ${isOpenRequest ? 'slots' : 'pax'}` : ''}
                   </p>
                   {isOpenRequest && (
-                    <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0', lineHeight: 1.5 }}>
                       On Explore Tours. {request.full_name || 'The requester'}'s {request.group_size || 1} slot{Number(request.group_size) === 1 ? ' is' : 's are'} held for 2 days after posting; unpaid slots are released automatically.
                     </p>
                   )}
                 </div>
               )}
 
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0, lineHeight: 1.6 }}>
                 {isOpenRequest
                   ? (packageSentAt
                     ? 'Edit the tour to change its details on Explore Tours.'
@@ -691,13 +691,13 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                     : `Fill in the tour like Create New Tour. The joiner is notified and pays a ${PRIVATE_DOWNPAYMENT_PERCENT}% downpayment to confirm.`)}
               </p>
               {isExclusive && packageSentAt && request.payment_status === 'Paid' && !pkg.tour_id && (
-                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: '#8C2F1C', background: 'rgba(140,47,28,0.07)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
+                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.07)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)', borderRadius: 12, padding: '10px 12px', lineHeight: 1.55 }}>
                   This paid private tour isn't on the Calendar, Tracking or the joiner's My Bookings yet (it was paid before that update).
                   Click <strong>Edit & Resend Package</strong> once to add it. If another tour is on those days, the website says which one: move that tour or these dates first.
                 </p>
               )}
               {isExclusive && dp.waiting ? (
-                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: dp.expired ? '#8C2F1C' : '#A8481A', lineHeight: 1.55 }}>
+                <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: dp.expired ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-sienna, #A8481A)', lineHeight: 1.55 }}>
                   {dp.expired
                     ? 'The joiner didn\'t pay the downpayment in time, so this request didn\'t continue. No package is needed.'
                     : `Waiting for the downpayment (due ${formatDateTime(dp.dueAt)}). You can create the tour package once it's paid.`}
@@ -708,7 +708,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
                 onClick={() => setShowPackageForm(true)}
                 style={{
                   alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '12px 22px', background: '#1A0A00', color: '#E8A265',
+                  padding: '12px 22px', background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)',
                   border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900,
                   fontSize: 11.5, letterSpacing: '0.14em', textTransform: 'uppercase',
                 }}
@@ -739,20 +739,20 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
         {/* Footer actions */}
         {isPending && (
           <div className="request-modal-actions" style={{
-            padding: '1.5rem 2.25rem', borderTop: '1px solid rgba(180,81,30,0.12)',
-            background: '#FDF6EE', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end',
+            padding: '1.5rem 2.25rem', borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+            background: 'var(--ib-cream, #FDF6EE)', display: 'flex', gap: 10, flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end',
           }}>
             {rejecting && (
-              <div style={{ flexBasis: '100%', display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(140,47,28,0.06)', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 14, padding: '12px 14px' }}>
-                <label htmlFor="reject-reason" style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8C2F1C' }}>Reason for rejecting *</label>
+              <div style={{ flexBasis: '100%', display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.06)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)', borderRadius: 14, padding: '12px 14px' }}>
+                <label htmlFor="reject-reason" style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-red, #8C2F1C)' }}>Reason for rejecting *</label>
                 <NiceSelect id="reject-reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Choose a reason">
                   <option value="">Choose a reason</option>
                   {REJECT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
                 </NiceSelect>
                 <textarea aria-label="Details for the joiner" value={rejectDetails} maxLength={300} rows={2} onChange={(e) => setRejectDetails(e.target.value)}
                   placeholder={rejectReason === 'Other' ? 'Explain the reason (required)' : 'Details for the joiner (optional)'}
-                  style={{ width: '100%', boxSizing: 'border-box', background: '#FDF6EE', border: '1px solid rgba(140,47,28,0.25)', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontFamily: 'inherit', color: '#1A0A00', resize: 'vertical' }} />
-                <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: '#7A3A18' }}>The joiner sees this reason in their notification and on their request.</p>
+                  style={{ width: '100%', boxSizing: 'border-box', background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.25)', borderRadius: 12, padding: '10px 12px', fontSize: 16, fontFamily: 'inherit', color: 'var(--ib-dark, #1A0A00)', resize: 'vertical' }} />
+                <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>The joiner sees this reason in their notification and on their request.</p>
               </div>
             )}
             <button
@@ -761,7 +761,7 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '13px 22px',
-                background: 'rgba(140,47,28,0.1)', color: '#8C2F1C',
+                background: 'rgba(var(--ib-red-rgb, 140,47,28), 0.1)', color: 'var(--ib-red, #8C2F1C)',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
                 fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -776,11 +776,11 @@ const RequestDetailModal = ({ request, onClose, onResolved }) => {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 padding: '13px 26px',
-                background: '#B4511E', color: '#FDF6EE',
+                background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                 border: 'none', borderRadius: 999, cursor: 'pointer',
                 fontFamily: 'inherit', fontWeight: 900,
                 fontSize: 11.5, letterSpacing: '0.15em', textTransform: 'uppercase',
-                boxShadow: '0 6px 20px rgba(180,81,30,0.35)',
+                boxShadow: '0 6px 20px rgba(var(--ib-accent-rgb, 180,81,30), 0.35)',
                 opacity: submitting !== null ? 0.5 : 1,
               }}
             >

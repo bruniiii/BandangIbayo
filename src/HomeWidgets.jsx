@@ -31,25 +31,25 @@ const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
   >
     <div style={{
       width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-      background: 'rgba(232,162,101,0.12)',
+      background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.12)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#E8A265',
+      color: 'var(--ib-amber, #E8A265)',
     }}>
       {icon}
     </div>
     <div style={{ flex: 1 }}>
-      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(232,210,190,0.85)', margin: '0 0 4px' }}>
+      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: '0 0 4px' }}>
         {label}
       </p>
-      <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: '#FDF6EE', margin: '0 0 4px', lineHeight: 1 }}>
+      <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 4px', lineHeight: 1 }}>
         {value}
       </p>
-      <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(232,210,190,0.85)', margin: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: 0 }}>
         {subcopy}
       </p>
     </div>
     {onClick && (
-      <ChevronRight size={16} style={{ color: 'rgba(232,210,190,0.85)', flexShrink: 0 }} />
+      <ChevronRight size={16} style={{ color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', flexShrink: 0 }} />
     )}
   </div>
 );
@@ -57,10 +57,10 @@ const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
 /* ── NEXT TRIP CARD ── */
 const NextTripCard = ({ trip, onViewBookings }) => {
   const cardStyle = {
-    background: '#FDF6EE',
+    background: 'var(--ib-cream, #FDF6EE)',
     borderRadius: 22,
-    border: '1px solid rgba(180,81,30,0.12)',
-    boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+    boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     overflow: 'hidden',
   };
 
@@ -85,25 +85,25 @@ const NextTripCard = ({ trip, onViewBookings }) => {
       )}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(26,10,0,0.92) 0%, rgba(26,10,0,0.35) 60%, rgba(26,10,0,0.15) 100%)',
+        background: 'linear-gradient(to top, rgba(var(--ib-ink-rgb, 26,10,0), 0.92) 0%, rgba(var(--ib-ink-rgb, 26,10,0), 0.35) 60%, rgba(var(--ib-ink-rgb, 26,10,0), 0.15) 100%)',
       }} />
       <div style={{ position: 'relative', zIndex: 1, padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
         <span style={{
           alignSelf: 'flex-start',
-          background: '#B4511E', color: '#FDF6EE',
+          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
           fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
           borderRadius: 999, padding: '5px 12px',
         }}>
           Next Trip
         </span>
         <div>
-          <p style={{ fontSize: 30, fontWeight: 900, color: '#FDF6EE', margin: '0 0 4px', letterSpacing: '-0.03em' }}>
+          <p style={{ fontSize: 30, fontWeight: 900, color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>
             {daysToGo === 0 ? 'Today!' : `${daysToGo} day${daysToGo === 1 ? '' : 's'} to go`}
           </p>
-          <p style={{ fontSize: 15, fontWeight: 800, color: '#E8A265', margin: '0 0 4px' }}>
+          <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ib-amber, #E8A265)', margin: '0 0 4px' }}>
             {trip.tours.title}
           </p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.85)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
             <MapPin size={13} /> {trip.tours.destination}
           </p>
         </div>
@@ -124,14 +124,14 @@ const TripReadinessCard = ({ trip, onClick }) => {
   const chip = (label, ok) => (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 8,
-      background: ok ? 'rgba(180,81,30,0.08)' : 'rgba(122,58,24,0.06)',
-      border: `1px solid ${ok ? 'rgba(180,81,30,0.22)' : 'rgba(122,58,24,0.14)'}`,
+      background: ok ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.06)',
+      border: `1px solid ${ok ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.22)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.14)'}`,
       borderRadius: 12, padding: '10px 14px', flex: 1,
     }}>
-      <CheckCircle2 size={16} style={{ color: ok ? '#A8481A' : 'rgba(122,58,24,0.85)', flexShrink: 0 }} />
+      <CheckCircle2 size={16} style={{ color: ok ? 'var(--ib-sienna, #A8481A)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', flexShrink: 0 }} />
       <div>
-        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A3A18', opacity: 0.9, margin: '0 0 2px' }}>{label}</p>
-        <p style={{ fontSize: 12, fontWeight: 800, color: '#1A0A00', margin: 0 }}>{ok ? 'Confirmed' : 'Pending'}</p>
+        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 2px' }}>{label}</p>
+        <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{ok ? 'Confirmed' : 'Pending'}</p>
       </div>
     </div>
   );
@@ -140,26 +140,26 @@ const TripReadinessCard = ({ trip, onClick }) => {
     <div
       onClick={onClick}
       style={{
-        background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         cursor: 'pointer',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Wallet size={15} style={{ color: '#A8481A' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
+          <Wallet size={15} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>
             Trip Readiness
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: 'rgba(122,58,24,0.85)' }} />
+        <ChevronRight size={15} style={{ color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }} />
       </div>
       <div style={{ display: 'flex', gap: 10 }}>
         {chip('Booking', bookingConfirmed)}
         {!paymentSettled && chip('Payment', false)}
       </div>
       {!paymentSettled && (
-        <p style={{ fontSize: 11, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '12px 0 0' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '12px 0 0' }}>
           {bookingConfirmed && balanceLeft > 0
             ? `Settle your remaining balance of ${formatPeso(balanceLeft)} before departure. Tap to pay it online.`
             : 'Settle your remaining balance before departure to lock in your seat.'}
@@ -221,15 +221,15 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
   return (
     <div
       style={{
-        background: '#FDF6EE', borderRadius: 20, padding: '1rem 1.1rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, padding: '1rem 1.1rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         display: 'flex', flexDirection: 'column',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <div onClick={handleHeaderClick} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-          <CalendarIcon size={16} style={{ color: '#A8481A' }} />
-          <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '-0.01em', color: '#1A0A00' }}>
+          <CalendarIcon size={16} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
+          <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: '-0.01em', color: 'var(--ib-dark, #1A0A00)' }}>
             {monthName} {year}
           </span>
         </div>
@@ -238,8 +238,8 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
             onClick={() => setMonthOffset(o => o - 1)}
             aria-label="Previous month"
             style={{
-              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(180,81,30,0.18)',
-              background: 'transparent', cursor: 'pointer', color: '#7A3A18',
+              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
+              background: 'transparent', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
@@ -249,8 +249,8 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
             onClick={() => setMonthOffset(o => o + 1)}
             aria-label="Next month"
             style={{
-              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(180,81,30,0.18)',
-              background: 'transparent', cursor: 'pointer', color: '#7A3A18',
+              width: 26, height: 26, borderRadius: 8, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
+              background: 'transparent', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
@@ -266,7 +266,7 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px 4px', maxWidth: 280, width: '100%', margin: '0 auto' }}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <span key={i} style={{ fontSize: 11, fontWeight: 800, textAlign: 'center', color: '#7A3A18', paddingBottom: 2 }}>{d}</span>
+            <span key={i} style={{ fontSize: 11, fontWeight: 800, textAlign: 'center', color: 'var(--ib-rust, #7A3A18)', paddingBottom: 2 }}>{d}</span>
           ))}
           {cells.map(({ day, muted }, i) => {
             const isToday = isCurrentMonth && !muted && day === todayDate;
@@ -286,19 +286,19 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
                   height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   borderRadius: 8,
                   cursor: 'pointer',
-                  background: isConfirmedTrip ? '#E8A265' : isToday ? '#1A0A00' : 'transparent',
-                  color: muted ? 'rgba(122,58,24,0.85)' : isConfirmedTrip ? '#1A0A00' : isToday ? '#E8A265' : '#1A0A00',
+                  background: isConfirmedTrip ? 'var(--ib-amber, #E8A265)' : isToday ? 'var(--ib-ink, #1A0A00)' : 'transparent',
+                  color: muted ? 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' : isConfirmedTrip ? 'var(--ib-dark, #1A0A00)' : isToday ? 'var(--ib-amber, #E8A265)' : 'var(--ib-dark, #1A0A00)',
                   fontSize: 11, fontWeight: (isToday || isConfirmedTrip) ? 900 : 600,
-                  boxShadow: isConfirmedTrip ? '0 3px 10px rgba(232,162,101,0.5)' : 'none',
+                  boxShadow: isConfirmedTrip ? '0 3px 10px rgba(var(--ib-amber-rgb, 232,162,101), 0.5)' : 'none',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'rgba(180,81,30,0.08)'; }}
+                onMouseEnter={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)'; }}
                 onMouseLeave={e => { if (!isConfirmedTrip && !isToday) e.currentTarget.style.background = 'transparent'; }}
               >
                 {day}
                 {hasDot && (
                   <span style={{
-                    position: 'absolute', bottom: 1, width: 4, height: 4, borderRadius: '50%', background: '#B4511E',
+                    position: 'absolute', bottom: 1, width: 4, height: 4, borderRadius: '50%', background: 'var(--ib-accent, #B4511E)',
                   }} />
                 )}
               </div>
@@ -307,9 +307,9 @@ const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(180,81,30,0.1)' }}>
-        <span style={{ width: 9, height: 9, borderRadius: 3, background: '#E8A265', flexShrink: 0 }} />
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: '#7A3A18', opacity: 0.9 }}>Confirmed trip</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
+        <span style={{ width: 9, height: 9, borderRadius: 3, background: 'var(--ib-amber, #E8A265)', flexShrink: 0 }} />
+        <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Confirmed trip</span>
       </div>
     </div>
   );
@@ -323,44 +323,44 @@ const TrackingSnippet = ({ loading, hasTrip, stop, onClick }) => {
     <div
       onClick={onClick}
       style={{
-        background: isActive ? '#1A0A00' : '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+        background: isActive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
+        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
         cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Clock size={15} style={{ color: isActive ? '#E8A265' : '#A8481A' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? '#FDF6EE' : '#1A0A00' }}>
+          <Clock size={15} style={{ color: isActive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }} />
+          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: isActive ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)' }}>
             Tracking
           </span>
         </div>
-        <ChevronRight size={15} style={{ color: isActive ? 'rgba(253,246,238,0.85)' : 'rgba(122,58,24,0.85)' }} />
+        <ChevronRight size={15} style={{ color: isActive ? 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }} />
       </div>
 
       {loading ? (
         <SkeletonLines lines={3} label="Loading tracking" />
       ) : !hasTrip ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
           Tracking activates once you have a confirmed trip.
         </p>
       ) : !stop ? (
-        <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: 0 }}>
           No pickup route posted for your trip yet.
         </p>
       ) : (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <MapPin size={14} style={{ color: isActive ? '#E8A265' : '#A8481A' }} />
-            <span style={{ fontSize: 13, fontWeight: 900, color: isActive ? '#FDF6EE' : '#1A0A00' }}>
+            <MapPin size={14} style={{ color: isActive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-sienna, #A8481A)' }} />
+            <span style={{ fontSize: 13, fontWeight: 900, color: isActive ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-dark, #1A0A00)' }}>
               {stop.location_name}
             </span>
           </div>
           <span style={{
             display: 'inline-block', fontSize: 11, fontWeight: 800,
             padding: '3px 10px', borderRadius: 999,
-            background: isActive ? '#B4511E' : 'rgba(180,81,30,0.12)',
-            color: isActive ? '#FDF6EE' : '#7A3A18',
+            background: isActive ? 'var(--ib-accent, #B4511E)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+            color: isActive ? 'var(--ib-on-accent, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
           }}>
             {stop.status}
           </span>
@@ -405,12 +405,12 @@ const MyRequestsCard = ({ onOpen }) => {
 
   return (
     <div style={{
-      background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-      border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+      background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
+      border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-        <Sparkles size={15} style={{ color: '#A8481A' }} />
-        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#1A0A00' }}>
+        <Sparkles size={15} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
+        <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>
           Private &amp; Requested Tours
         </span>
       </div>
@@ -419,14 +419,14 @@ const MyRequestsCard = ({ onOpen }) => {
         <SkeletonLines lines={3} label="Loading your requests" />
       ) : rows.length === 0 ? (
         <>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A3A18', opacity: 0.9, margin: '0 0 12px' }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 12px' }}>
             No requests yet. Plan a private trip or ask us to open a tour.
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {[['exclusive', 'Private Tour'], ['request', 'Request a Tour']].map(([type, label]) => (
               <button key={type} type="button" onClick={() => onOpen(type)} style={{
-                flex: '1 1 120px', padding: '9px 10px', borderRadius: 10, border: '1px solid rgba(180,81,30,0.3)', background: 'transparent',
-                color: '#A8481A', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
+                flex: '1 1 120px', padding: '9px 10px', borderRadius: 10, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', background: 'transparent',
+                color: 'var(--ib-sienna, #A8481A)', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer',
               }}>{label}</button>
             ))}
           </div>
@@ -438,22 +438,22 @@ const MyRequestsCard = ({ onOpen }) => {
             const tone = REQUEST_STATUS_COLORS[label] || REQUEST_STATUS_COLORS['For Approval'];
             return (
               <button key={r.id} type="button" onClick={() => onOpen(r.request_type)} style={{
-                textAlign: 'left', width: '100%', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.14)', borderRadius: 14,
+                textAlign: 'left', width: '100%', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', borderRadius: 14,
                 padding: '10px 12px', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', flexDirection: 'column', gap: 5,
               }}>
                 <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#A8481A' }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
                     {r.request_type === 'request' ? 'Requested Tour' : 'Private Tour'}
                   </span>
-                  <span style={{ fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, background: tone.bg, color: tone.color, whiteSpace: 'nowrap' }}>{label}</span>
+                  <span className="rubber-stamp" style={{ fontSize: 10.5, fontWeight: 900, padding: '2px 8px', borderRadius: 999, background: tone.bg, color: tone.color, whiteSpace: 'nowrap' }}>{label}</span>
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.destination || 'Tour request'}</span>
+                <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.destination || 'Tour request'}</span>
                 {r.preferred_date && (
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <CalendarIcon size={11} style={{ color: '#A8481A' }} /> {formatYmdRange(r.preferred_date, r.preferred_end_date || r.preferred_date)}
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <CalendarIcon size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {formatYmdRange(r.preferred_date, r.preferred_end_date || r.preferred_date)}
                   </span>
                 )}
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: label === 'Rejected' ? '#8C2F1C' : '#7A3A18', lineHeight: 1.4 }}>{requestNote(r, label)}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: label === 'Rejected' ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-rust, #7A3A18)', lineHeight: 1.4 }}>{requestNote(r, label)}</span>
               </button>
             );
           })}
@@ -472,8 +472,8 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 8 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-        <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1A0A00', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Star size={15} style={{ color: '#A8481A' }} /> Reviews
+        <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Star size={15} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Reviews
         </h3>
         <button type="button" className="text-link" onClick={onOpen} style={{ background: 'none', border: 'none', padding: '4px 2px', fontSize: 13, whiteSpace: 'nowrap' }}>
           See all reviews
@@ -487,19 +487,19 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
           className="clickable-card"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', textAlign: 'left',
-            background: '#1A0A00', color: '#FDF6EE', border: 'none', borderRadius: 18, padding: '1rem 1.25rem', fontFamily: 'inherit',
+            background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-on-ink, #FDF6EE)', border: 'none', borderRadius: 18, padding: '1rem 1.25rem', fontFamily: 'inherit',
           }}
         >
           <span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 900 }}>
-              <Star size={15} fill="#E8A265" style={{ color: '#E8A265' }} />
+              <Star size={15} fill="var(--ib-amber, #E8A265)" style={{ color: 'var(--ib-amber, #E8A265)' }} />
               {toReviewCount} tour{toReviewCount === 1 ? '' : 's'} to review
             </span>
-            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(253,246,238,0.85)', marginTop: 3 }}>
+            <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)', marginTop: 3 }}>
               Tell other joiners how it went — it takes a minute.
             </span>
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#E8A265', whiteSpace: 'nowrap' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)', whiteSpace: 'nowrap' }}>
             Write a review <ChevronRight size={14} />
           </span>
         </button>
@@ -508,14 +508,14 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
       {reviews === null ? (
         <SkeletonRegion label="Loading reviews" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 }}>
           {[0, 1, 2].map((i) => (
-            <div key={i} style={{ background: '#FDF6EE', borderRadius: 18, padding: '1.1rem 1.2rem', border: '1px solid rgba(180,81,30,0.12)', display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <div key={i} style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 18, padding: '1.1rem 1.2rem', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', display: 'flex', flexDirection: 'column', gap: 9 }}>
               <Skel w="40%" h={12} /><Skel w="95%" h={10} /><Skel w="80%" h={10} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}><Skel w={36} h={36} r={999} /><Skel w="45%" h={11} /></div>
             </div>
           ))}
         </SkeletonRegion>
       ) : reviews.length === 0 ? (
-        <p style={{ fontSize: 13, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>
           No reviews yet. Joiners can review a tour once it's finished.
         </p>
       ) : (

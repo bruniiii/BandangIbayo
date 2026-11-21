@@ -13,8 +13,8 @@ const AnnouncementBanner = ({ style }) => {
   return (
     <div role="status" style={{
       display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', borderRadius: 14,
-      background: warn ? '#FBEDE6' : '#FFF4E3', border: `1px solid ${warn ? 'rgba(140,47,28,0.4)' : 'rgba(180,81,30,0.3)'}`,
-      color: warn ? '#8C2F1C' : '#5C2A10', fontSize: 13, fontWeight: 800, lineHeight: 1.5, ...style,
+      background: warn ? 'var(--ib-surface-2, #FBEDE6)' : 'var(--ib-surface-2, #FFF4E3)', border: `1px solid ${warn ? 'rgba(var(--ib-red-rgb, 140,47,28), 0.4)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.3)'}`,
+      color: warn ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-brown, #5C2A10)', fontSize: 13, fontWeight: 800, lineHeight: 1.5, ...style,
     }}>
       <Megaphone size={16} style={{ flexShrink: 0, marginTop: 2 }} />
       <span style={{ flex: 1, minWidth: 0, whiteSpace: 'pre-line' }}>{a.message}</span>

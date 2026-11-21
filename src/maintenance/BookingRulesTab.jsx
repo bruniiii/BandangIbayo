@@ -191,7 +191,7 @@ const BookingRulesTab = () => {
   if (problem) {
     return (
       <div style={card}>
-        <h3 style={h3}><AlertTriangle size={16} color="#8C2F1C" /> Booking Rules aren't installed yet</h3>
+        <h3 style={h3}><AlertTriangle size={16} color="var(--ib-red, #8C2F1C)" /> Booking Rules aren't installed yet</h3>
         <p style={{ ...hint, margin: 0 }}>
           Run the database update <strong>20261222000000_booking_rules.sql</strong> (it's in supabase/updates/install_updates.sql) in the
           Supabase SQL Editor, then open this tab again. Until then the website keeps using its usual values. ({problem})
@@ -200,25 +200,25 @@ const BookingRulesTab = () => {
     );
   }
   if (!saved) {
-    return <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 10, color: '#5C2A10', fontWeight: 700, fontSize: 13 }}><Loader2 size={16} style={spin} /> Loading the booking rules…</div>;
+    return <div style={{ ...card, display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ib-brown, #5C2A10)', fontWeight: 700, fontSize: 13 }}><Loader2 size={16} style={spin} /> Loading the booking rules…</div>;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={card}>
-        <h3 style={h3}><Scale size={16} color="#B4511E" /> Booking Rules</h3>
+        <h3 style={h3}><Scale size={16} color="var(--ib-accent, #B4511E)" /> Booking Rules</h3>
         <p style={hint}>
           The rules the whole website follows: the booking pages, the database and the payment and email functions all read them from here.
           A change applies to <strong>new bookings and requests only</strong>; bookings already made keep the rules they were made under.
           Last changed {when(saved.updated_at)}.
         </p>
         {!canEdit && (
-          <p style={{ ...row, margin: '0 0 14px', fontSize: 12.5, fontWeight: 700, color: '#5C2A10' }}>
+          <p style={{ ...row, margin: '0 0 14px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}>
             <Lock size={15} style={{ flexShrink: 0 }} /> Only the main admin can change the booking rules. You can look at them here.
           </p>
         )}
         {leftovers.length > 0 && (
-          <p style={{ ...row, margin: '0 0 14px', background: '#FBEDE6', fontSize: 12.5, fontWeight: 700, color: '#8C2F1C' }}>
+          <p style={{ ...row, margin: '0 0 14px', background: 'var(--ib-surface-2, #FBEDE6)', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)' }}>
             <AlertTriangle size={15} style={{ flexShrink: 0 }} />
             These database functions still use their old fixed values: {leftovers.join(', ')}. Run the 20261222 update again to switch them over.
           </p>
@@ -226,7 +226,7 @@ const BookingRulesTab = () => {
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
           <label style={{ position: 'relative', flex: '1 1 220px', minWidth: 0 }}>
-            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#7A3A18' }} />
+            <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--ib-rust, #7A3A18)' }} />
             <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search rules (e.g. refund, van, cancel)"
               aria-label="Search rules" style={{ ...input, paddingLeft: 34 }} />
           </label>
@@ -244,25 +244,25 @@ const BookingRulesTab = () => {
               return (
                 <React.Fragment key={f.key}>
                   {groupStart && (
-                    <p style={{ gridColumn: '1 / -1', margin: i ? '8px 0 0' : 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#A8481A' }}>{f.group}</p>
+                    <p style={{ gridColumn: '1 / -1', margin: i ? '8px 0 0' : 0, fontSize: 11, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>{f.group}</p>
                   )}
                   <div style={{
-                    background: '#F2E4D0', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6,
-                    border: `1.5px solid ${err ? '#8C2F1C' : isChanged ? '#B4511E' : 'transparent'}`,
+                    background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6,
+                    border: `1.5px solid ${err ? 'var(--ib-red, #8C2F1C)' : isChanged ? 'var(--ib-accent, #B4511E)' : 'transparent'}`,
                   }}>
-                    <label htmlFor={`rule-${f.key}`} style={{ fontSize: 13, fontWeight: 900, color: '#1A0A00' }}>{f.label}</label>
-                    {f.help && <span style={{ fontSize: 11.5, fontWeight: 600, color: '#5C2A10', lineHeight: 1.45 }}>{f.help}</span>}
+                    <label htmlFor={`rule-${f.key}`} style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{f.label}</label>
+                    {f.help && <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.45 }}>{f.help}</span>}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {f.unit === '₱' && <span style={{ fontWeight: 900, color: '#5C2A10' }}>₱</span>}
+                      {f.unit === '₱' && <span style={{ fontWeight: 900, color: 'var(--ib-brown, #5C2A10)' }}>₱</span>}
                       <input id={`rule-${f.key}`} name={f.key} type="text" inputMode={f.whole ? 'numeric' : 'decimal'} value={form[f.key] ?? ''}
                         disabled={!canEdit} onChange={(e) => set(f.key, e.target.value.replace(/[^\d.]/g, ''))}
                         aria-invalid={!!err} aria-describedby={err ? `rule-${f.key}-err` : undefined}
-                        style={{ ...input, flex: 1, minWidth: 0, background: canEdit ? '#FFFDF9' : '#EFE3D3', cursor: canEdit ? 'text' : 'not-allowed' }} />
-                      {f.unit !== '₱' && <span style={{ fontSize: 12, fontWeight: 800, color: '#5C2A10', whiteSpace: 'nowrap' }}>{f.unit}</span>}
+                        style={{ ...input, flex: 1, minWidth: 0, background: canEdit ? 'var(--ib-surface, #FFFDF9)' : 'var(--ib-surface-2, #EFE3D3)', cursor: canEdit ? 'text' : 'not-allowed' }} />
+                      {f.unit !== '₱' && <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-brown, #5C2A10)', whiteSpace: 'nowrap' }}>{f.unit}</span>}
                     </div>
-                    {err && <span id={`rule-${f.key}-err`} role="alert" style={{ fontSize: 11.5, fontWeight: 800, color: '#8C2F1C' }}>{err}</span>}
-                    {!err && isChanged && <span style={{ fontSize: 11.5, fontWeight: 800, color: '#B4511E' }}>Was {shown(f, saved[f.key])} · not saved yet</span>}
-                    {!err && !isChanged && notDefault(f) && <span style={{ fontSize: 11, fontWeight: 700, color: '#7A3A18' }}>Original value: {shown(f, DEFAULT_RULES[f.key])}</span>}
+                    {err && <span id={`rule-${f.key}-err`} role="alert" style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)' }}>{err}</span>}
+                    {!err && isChanged && <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--ib-accent, #B4511E)' }}>Was {shown(f, saved[f.key])} · not saved yet</span>}
+                    {!err && !isChanged && notDefault(f) && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>Original value: {shown(f, DEFAULT_RULES[f.key])}</span>}
                   </div>
                 </React.Fragment>
               );
@@ -273,7 +273,7 @@ const BookingRulesTab = () => {
         {pages > 1 && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 14 }}>
             <button type="button" style={btn(false)} disabled={current <= 1} onClick={() => setPage(current - 1)}>Previous</button>
-            <span style={{ fontSize: 12, fontWeight: 800, color: '#5C2A10' }}>Page {current} of {pages}</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-brown, #5C2A10)' }}>Page {current} of {pages}</span>
             <button type="button" style={btn(false)} disabled={current >= pages} onClick={() => setPage(current + 1)}>Next</button>
           </div>
         )}
@@ -292,16 +292,16 @@ const BookingRulesTab = () => {
       </div>
 
       <div style={card}>
-        <h3 style={h3}><History size={16} color="#B4511E" /> Recent rule changes</h3>
+        <h3 style={h3}><History size={16} color="var(--ib-accent, #B4511E)" /> Recent rule changes</h3>
         {history.length === 0 ? (
           <p style={{ ...hint, margin: 0 }}>No changes yet. Every change is saved in Audit Trail with who made it and the old and new values.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {history.map((h) => (
               <div key={h.id} style={{ ...row, flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
-                <span style={{ fontSize: 12, fontWeight: 900, color: '#1A0A00' }}>{h.admin_name || 'Main admin'} · {when(h.at)}</span>
+                <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>{h.admin_name || 'Main admin'} · {when(h.at)}</span>
                 {Object.keys(h.new_values || {}).filter((k) => FIELD[k]).map((k) => (
-                  <span key={k} style={{ fontSize: 12, fontWeight: 600, color: '#5C2A10' }}>
+                  <span key={k} style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>
                     {FIELD[k].label}: {shown(FIELD[k], h.old_values?.[k])} → {shown(FIELD[k], h.new_values[k])}
                   </span>
                 ))}

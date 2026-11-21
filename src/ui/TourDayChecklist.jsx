@@ -40,14 +40,14 @@ const TourDayChecklist = ({ tourId, logisticsSaved, docsReady }) => {
   const done = items.filter(([ok]) => ok).length;
 
   return (
-    <div style={{ background: '#FFF', padding: '1rem 1.25rem', borderRadius: 16, border: `1px solid ${done === items.length ? 'rgba(46,155,95,0.4)' : 'rgba(180,81,30,0.15)'}`, marginBottom: 18 }}>
-      <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 10px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#A8481A' }}>
+    <div style={{ background: 'var(--ib-surface, #FFF)', padding: '1rem 1.25rem', borderRadius: 16, border: `1px solid ${done === items.length ? 'rgba(var(--ib-green-rgb, 46,155,95), 0.4)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.15)'}`, marginBottom: 18 }}>
+      <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 10px', fontSize: 11.5, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ib-sienna, #A8481A)' }}>
         <ListChecks size={14} /> Tour-day checklist · {done}/{items.length}
       </p>
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
         {items.map(([ok, text]) => (
-          <li key={text} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: ok ? '#1B5E3B' : '#5C2A10' }}>
-            {ok ? <CheckCircle2 size={16} color="#2E9B5F" /> : <Circle size={16} color="#B4511E" />} {text}
+          <li key={text} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: ok ? 'var(--ib-green, #1B5E3B)' : 'var(--ib-brown, #5C2A10)' }}>
+            {ok ? <CheckCircle2 size={16} color="#2E9B5F" /> : <Circle size={16} color="var(--ib-accent, #B4511E)" />} {text}
           </li>
         ))}
       </ul>

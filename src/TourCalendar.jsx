@@ -15,16 +15,16 @@ import { Skel, SkeletonRegion } from './ui/Skeleton';
 import { periodText } from './bookingRules';
 
 // ── PALETTE ──────────────────────────────────────────────  
-// #1A0A00  espresso dark
-// #A8481A  burnt sienna (accent)
-// #E8A265  warm amber (highlight)
-// #FDF6EE  cream (light card bg)
-// #2D1B0E  deep brown (dark card)
-// #7A3A18  rust mid-tone
-// #8C2F1C  deep rust red (error / full / alert)
-// #F2E4D0  parchment (inset panel bg)
+// var(--ib-dark, #1A0A00)  espresso dark
+// var(--ib-sienna, #A8481A)  burnt sienna (accent)
+// var(--ib-amber, #E8A265)  warm amber (highlight)
+// var(--ib-cream, #FDF6EE)  cream (light card bg)
+// var(--ib-deep, #2D1B0E)  deep brown (dark card)
+// var(--ib-rust, #7A3A18)  rust mid-tone
+// var(--ib-red, #8C2F1C)  deep rust red (error / full / alert)
+// var(--ib-parch, #F2E4D0)  parchment (inset panel bg)
 // #EDEAE3  warm stone (page bg)
-// #3F5D62  slate teal (secondary contrast accent)
+// var(--ib-slate, #3F5D62)  slate teal (secondary contrast accent)
 // ---------------------------------------------------------
  
 /* ─────────────────────────────────────────────
@@ -94,23 +94,23 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
         {/* ── Calendar Grid ── */}
         <div className="cal-panel" style={{
           minWidth: 0,
-          background: '#FDF6EE',
+          background: 'var(--ib-cream, #FDF6EE)',
           padding: '2rem',
           borderRadius: 28,
-          border: '1px solid rgba(180,81,30,0.12)',
-          boxShadow: '0 4px 20px rgba(26,10,0,0.06)',
+          border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
+          boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
           textAlign: 'left'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#1A0A00', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: 0 }}>
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
                 style={{
-                  padding: 8, background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.15)',
-                  borderRadius: 12, cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  padding: 8, background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
+                  borderRadius: 12, cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
                 <ChevronLeft size={18} />
@@ -118,8 +118,8 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
               <button
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
                 style={{
-                  padding: 8, background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.15)',
-                  borderRadius: 12, cursor: 'pointer', color: '#7A3A18', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  padding: 8, background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
+                  borderRadius: 12, cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)', display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}
               >
                 <ChevronRight size={18} />
@@ -127,9 +127,9 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
             </div>
           </div>
  
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 14, textAlign: 'center', borderBottom: '1px solid rgba(180,81,30,0.1)', paddingBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 14, textAlign: 'center', borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)', paddingBottom: 12 }}>
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="cal-weekday" style={{ fontSize: 11.5, fontWeight: 900, color: '#7A3A18', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
+              <div key={day} className="cal-weekday" style={{ fontSize: 11.5, fontWeight: 900, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.15em' }}>{day}</div>
             ))}
           </div>
  
@@ -156,8 +156,8 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                     transition: 'all 0.2s',
                     display: 'flex',
                     flexDirection: 'column',
-                    border: isSelected && !isPast ? '2px solid #B4511E' : '1px solid transparent',
-                    background: isPast ? 'rgba(242,228,208,0.2)' : isSelected ? 'rgba(180,81,30,0.08)' : '#F2E4D0',
+                    border: isSelected && !isPast ? '2px solid var(--ib-accent, #B4511E)' : '1px solid transparent',
+                    background: isPast ? 'rgba(var(--ib-parch-rgb, 242,228,208), 0.2)' : isSelected ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'var(--ib-parch, #F2E4D0)',
                     cursor: isPast ? 'not-allowed' : 'pointer',
                     opacity: isPast ? 0.7 : 1,
                     textAlign: 'left'
@@ -168,7 +168,7 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                     fontWeight: 900,
                     whiteSpace: 'nowrap',
                     lineHeight: 1.2,
-                    color: isPast ? '#7A3A18' : isSelected ? '#A8481A' : isCurrentMonth ? '#1A0A00' : 'rgba(122,58,24,0.85)'
+                    color: isPast ? 'var(--ib-rust, #7A3A18)' : isSelected ? 'var(--ib-sienna, #A8481A)' : isCurrentMonth ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)'
                   }}>
                     {format(day, 'd')}
                   </span>
@@ -180,14 +180,14 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                           display: 'block', maxWidth: '100%', boxSizing: 'border-box',
                           fontSize: 11, fontWeight: 800, lineHeight: 1.3,
                           padding: '2px 6px', borderRadius: 6,
-                          color: t.is_exclusive ? '#E8A265' : '#1A0A00', background: t.is_exclusive ? '#1A0A00' : '#E8A265',
+                          color: t.is_exclusive ? 'var(--ib-amber, #E8A265)' : 'var(--ib-ink, #1A0A00)', background: t.is_exclusive ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-amber, #E8A265)',
                           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                         }}>
                           {t.is_exclusive ? '★ ' : ''}{t.title}
                         </span>
                       ))}
                       {dayTours.length > 2 && (
-                        <span className="cal-tour-more" style={{ fontSize: 10.5, fontWeight: 800, color: '#A8481A', paddingLeft: 2 }}>+{dayTours.length - 2} more</span>
+                        <span className="cal-tour-more" style={{ fontSize: 10.5, fontWeight: 800, color: 'var(--ib-sienna, #A8481A)', paddingLeft: 2 }}>+{dayTours.length - 2} more</span>
                       )}
                     </div>
                   )}
@@ -200,23 +200,23 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
         {/* ── Daily Sidebar ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, height: '100%', textAlign: 'left', minWidth: 0 }}>
           <div style={{
-            background: '#1A0A00',
+            background: 'var(--ib-ink, #1A0A00)',
             padding: '2rem',
             borderRadius: 28,
-            color: '#FDF6EE',
-            boxShadow: '0 16px 40px rgba(26,10,0,0.22)',
+            color: 'var(--ib-on-ink, #FDF6EE)',
+            boxShadow: '0 16px 40px rgba(var(--ib-shadow-rgb, 26,10,0), 0.22)',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             textAlign: 'left'
           }}>
-            <p style={{ fontSize: 11, fontWeight: 900, color: '#E8A265', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
-            <h3 style={{ fontSize: 24, fontWeight: 900, color: '#FDF6EE', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
+            <p style={{ fontSize: 11, fontWeight: 900, color: 'var(--ib-amber, #E8A265)', textTransform: 'uppercase', letterSpacing: '0.2em', margin: '0 0 6px' }}>Schedule for</p>
+            <h3 style={{ fontSize: 24, fontWeight: 900, color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 24px' }}>{format(selectedDate, 'MMMM dd')}</h3>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
               {loading ? (
                 <SkeletonRegion label="Loading tours" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {[0, 1].map((i) => (
-                    <div key={i} style={{ background: 'rgba(253,246,238,0.06)', borderRadius: 18, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 9 }}>
+                    <div key={i} style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.06)', borderRadius: 18, padding: '1rem', display: 'flex', flexDirection: 'column', gap: 9 }}>
                       <Skel dark w="65%" h={14} /><Skel dark w="45%" h={10} /><Skel dark h={34} r={10} />
                     </div>
                   ))}
@@ -224,26 +224,26 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
               ) : selectedDayTours.length > 0 ? (
                 selectedDayTours.map(tour => (
                   <div key={tour.id} style={{
-                    background: 'rgba(253,246,238,0.06)',
+                    background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.06)',
                     padding: '1.25rem',
                     borderRadius: 20,
                     border: '1px solid rgba(255,255,255,0.08)',
                     transition: 'all 0.2s'
                   }}>
                     {tour.is_exclusive && (
-                      <p style={{ margin: '0 0 6px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#E8A265' }}>★ Your private tour</p>
+                      <p style={{ margin: '0 0 6px', fontSize: 10.5, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-amber, #E8A265)' }}>★ Your private tour</p>
                     )}
-                    <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: '#FDF6EE', margin: '0 0 8px' }}>{tour.title}</h4>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(232,210,190,0.85)', marginBottom: 4 }}>
-                      <MapPin size={12} style={{ color: '#A8481A' }} /> {tour.destination}
+                    <h4 style={{ fontWeight: 900, fontSize: 13, textTransform: 'uppercase', color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 8px' }}>{tour.title}</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', marginBottom: 4 }}>
+                      <MapPin size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.destination}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, marginBottom: 12 }}>
-                      <Users size={12} style={{ color: '#A8481A' }} />
-                      <span style={{ color: tour.available_slots > 0 ? '#FDF6EE' : '#8C2F1C' }}>
+                      <Users size={12} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
+                      <span style={{ color: tour.available_slots > 0 ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-red, #8C2F1C)' }}>
                         {tour.current_booked}/{tour.group_size} Booked
                       </span>
                       {tour.available_slots <= 0 && (
-                        <span style={{ background: '#8C2F1C', color: '#FDF6EE', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
+                        <span style={{ background: 'var(--ib-red-solid, #8C2F1C)', color: 'var(--ib-on-ink, #FDF6EE)', fontSize: 11, fontWeight: 900, padding: '2px 6px', borderRadius: 999, textTransform: 'uppercase' }}>Full</span>
                       )}
                     </div>
                     {/* Slot bar */}
@@ -253,18 +253,18 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                           height: '100%',
                           borderRadius: 999,
                           transition: 'all 0.3s',
-                          background: tour.available_slots <= 0 ? '#8C2F1C' : tour.available_slots <= 3 ? '#E8A265' : '#B4511E',
+                          background: tour.available_slots <= 0 ? 'var(--ib-red-solid, #8C2F1C)' : tour.available_slots <= 3 ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)',
                           width: `${Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100)}%`
                         }}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <PriceTag tour={tour} size={15} color="#E8A265" mutedColor="rgba(232,210,190,0.7)" align="flex-start" />
+                      <PriceTag tour={tour} size={15} color="var(--ib-amber, #E8A265)" mutedColor="rgba(var(--ib-soft-rgb, 232,210,190), 0.7)" align="flex-start" />
                       <button
                         onClick={() => (tour.is_exclusive ? onOpenMyBookings?.() : setSelectedTour(tour))}
                         style={{
-                          background: '#FDF6EE',
-                          color: '#1A0A00',
+                          background: 'var(--ib-cream, #FDF6EE)',
+                          color: 'var(--ib-dark, #1A0A00)',
                           border: 'none',
                           padding: '7px 14px',
                           borderRadius: 10,
@@ -278,8 +278,8 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                           gap: 6,
                           transition: 'all 0.2s'
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#B4511E'; e.currentTarget.style.color = '#FDF6EE'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#FDF6EE'; e.currentTarget.style.color = '#1A0A00'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; e.currentTarget.style.color = 'var(--ib-on-ink, #FDF6EE)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--ib-cream, #FDF6EE)'; e.currentTarget.style.color = 'var(--ib-dark, #1A0A00)'; }}
                       >
                         {tour.is_exclusive ? 'My Bookings' : 'Details'}
                       </button>
@@ -288,28 +288,28 @@ const TourCalendar = ({ initialDate, onPlanTrip, onOpenMyBookings }) => {
                 ))
               ) : (
                 <div style={{
-                  padding: '3rem 1rem', textAlign: 'center', color: 'rgba(232,210,190,0.85)', fontStyle: 'italic',
+                  padding: '3rem 1rem', textAlign: 'center', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', fontStyle: 'italic',
                   fontSize: 12, border: '2px dashed rgba(255,255,255,0.1)', borderRadius: 20
                 }}>
                   No tours scheduled.
                   {/* Private tours and requests start at least TRIP_REQUEST_LEAD_DAYS ahead. */}
                   {onPlanTrip && format(selectedDate, 'yyyy-MM-dd') < addDaysPH(TRIP_REQUEST_LEAD_DAYS) && (
-                    <p style={{ fontStyle: 'normal', margin: '14px 0 0', fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.9)', lineHeight: 1.6 }}>
+                    <p style={{ fontStyle: 'normal', margin: '14px 0 0', fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.9)', lineHeight: 1.6 }}>
                       Private tours and tour requests can be booked from {periodText(TRIP_REQUEST_LEAD_DAYS)} ahead.
-                      Pick a day from <strong style={{ color: '#E8A265' }}>{format(new Date(`${addDaysPH(TRIP_REQUEST_LEAD_DAYS)}T00:00:00`), 'MMMM d')}</strong> onwards.
+                      Pick a day from <strong style={{ color: 'var(--ib-amber, #E8A265)' }}>{format(new Date(`${addDaysPH(TRIP_REQUEST_LEAD_DAYS)}T00:00:00`), 'MMMM d')}</strong> onwards.
                     </p>
                   )}
                   {onPlanTrip && format(selectedDate, 'yyyy-MM-dd') >= addDaysPH(TRIP_REQUEST_LEAD_DAYS) && (
                     <div style={{ fontStyle: 'normal', marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'rgba(232,210,190,0.9)' }}>Want to travel on this day?</p>
+                      <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.9)' }}>Want to travel on this day?</p>
                       <button type="button" onClick={() => onPlanTrip('exclusive', format(selectedDate, 'yyyy-MM-dd'))} style={{
-                        padding: '12px 16px', borderRadius: 14, border: 'none', background: '#B4511E', color: '#FDF6EE',
+                        padding: '12px 16px', borderRadius: 14, border: 'none', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                       }}>
                         Private Tour
                       </button>
                       <button type="button" onClick={() => onPlanTrip('request', format(selectedDate, 'yyyy-MM-dd'))} style={{
-                        padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(232,162,101,0.45)', background: 'transparent', color: '#E8A265',
+                        padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.45)', background: 'transparent', color: 'var(--ib-amber, #E8A265)',
                         fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
                       }}>
                         Request a Tour

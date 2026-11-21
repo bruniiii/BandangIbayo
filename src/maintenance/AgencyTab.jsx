@@ -74,15 +74,15 @@ const AgencyTab = () => {
     }
   };
 
-  if (!f) return <div style={{ ...card, display: 'flex', gap: 8, alignItems: 'center', fontWeight: 700, color: '#5C2A10' }}><Loader2 size={15} style={spin} /> Loading…</div>;
+  if (!f) return <div style={{ ...card, display: 'flex', gap: 8, alignItems: 'center', fontWeight: 700, color: 'var(--ib-brown, #5C2A10)' }}><Loader2 size={15} style={spin} /> Loading…</div>;
   const preview = file ? URL.createObjectURL(file) : f.logo_url;
 
   return (
     <div style={card}>
-      <h3 style={h3}><Building2 size={16} color="#B4511E" /> Agency Information</h3>
+      <h3 style={h3}><Building2 size={16} color="var(--ib-accent, #B4511E)" /> Agency Information</h3>
       <p style={hint}>Shown on the landing page, receipts, the help button and the "We'll be back soon" page, so joiners can always reach you.</p>
       {!canEdit && (
-        <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#F2E4D0', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: '#5C2A10', margin: '0 0 12px' }}>
+        <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', margin: '0 0 12px' }}>
           <Lock size={15} /> Only the main admin can change the agency information.
         </p>
       )}
@@ -94,7 +94,7 @@ const AgencyTab = () => {
         ))}
         <div style={label}>Logo
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 14, background: '#1A0A00', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8A265', fontSize: 11, flexShrink: 0 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 14, background: 'var(--ib-ink, #1A0A00)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ib-amber, #E8A265)', fontSize: 11, flexShrink: 0 }}>
               {preview ? <img src={preview} alt="Agency logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : 'Default'}
             </div>
             {canEdit && (

@@ -26,9 +26,9 @@ import NiceSelect from './ui/NiceSelect';
 // ─────────────────────────────────────────────
 
 const RESULT_STYLES = {
-  ok: { bg: 'rgba(46,107,74,0.1)', border: '#2E6B4A', color: '#2E6B4A', Icon: CheckCircle2 },
-  already: { bg: 'rgba(154,91,30,0.1)', border: '#9A5B1E', color: '#8C5216', Icon: AlertTriangle },
-  bad: { bg: 'rgba(140,47,28,0.08)', border: '#8C2F1C', color: '#8C2F1C', Icon: XCircle },
+  ok: { bg: 'rgba(var(--ib-green-rgb, 46,107,74), 0.1)', border: 'var(--ib-green, #2E6B4A)', color: 'var(--ib-green, #2E6B4A)', Icon: CheckCircle2 },
+  already: { bg: 'rgba(154,91,30,0.1)', border: '#9A5B1E', color: 'var(--ib-warn, #8C5216)', Icon: AlertTriangle },
+  bad: { bg: 'rgba(var(--ib-red-rgb, 140,47,28), 0.08)', border: 'var(--ib-red, #8C2F1C)', color: 'var(--ib-red, #8C2F1C)', Icon: XCircle },
 };
 
 const timeOf = (iso) => (iso ? new Date(iso).toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit' }) : '');
@@ -384,39 +384,39 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             )}
 
             {outAvailable && (
-              <div role="group" aria-label="Check in or check out" style={{ display: 'flex', gap: 4, background: '#F2E4D0', borderRadius: 12, padding: 4, marginBottom: 14 }}>
+              <div role="group" aria-label="Check in or check out" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4, marginBottom: 14 }}>
                 {[['in', 'Check in (pickup)'], ['out', 'Check out (drop-off)']].map(([m, text]) => (
                   <button key={m} type="button" aria-pressed={mode === m} onClick={() => switchMode(m)} style={{
                     flex: 1, minHeight: 38, border: 'none', borderRadius: 9, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11,
-                    letterSpacing: '0.08em', textTransform: 'uppercase', background: mode === m ? '#1A0A00' : 'transparent', color: mode === m ? '#FDF6EE' : '#5C2A10',
+                    letterSpacing: '0.08em', textTransform: 'uppercase', background: mode === m ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: mode === m ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
                   }}>{text}</button>
                 ))}
               </div>
             )}
 
             {tour && !open(tour) && (
-              <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C5216', background: 'rgba(232,162,101,0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
+              <p role="note" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-warn, #8C5216)', background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.2)', borderRadius: 12, padding: '10px 12px', margin: '0 0 16px', lineHeight: 1.5 }}>
                 {isOut
                   ? `This tour is on ${tourDates(tour)}. Check-out is open from the first day of the tour until the day after it ends.`
                   : `This tour is on ${tourDates(tour)}. Check-in opens on the day of the tour, so joiners can't be checked in yet.`}
               </p>
             )}
 
-            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: '#1A0A00', aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: 'var(--ib-ink, #1A0A00)', aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {cameraOn ? (
                 <>
                   <video ref={videoRef} playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div aria-hidden style={{ position: 'absolute', inset: '18%', border: '3px solid rgba(232,162,101,0.9)', borderRadius: 18, boxShadow: '0 0 0 9999px rgba(26,10,0,0.35)' }} />
-                  {checking && <Loader2 size={28} style={{ position: 'absolute', color: '#FDF6EE', animation: 'spin 1s linear infinite' }} />}
+                  <div aria-hidden style={{ position: 'absolute', inset: '18%', border: '3px solid rgba(var(--ib-amber-rgb, 232,162,101), 0.9)', borderRadius: 18, boxShadow: '0 0 0 9999px rgba(var(--ib-shadow-rgb, 26,10,0), 0.35)' }} />
+                  {checking && <Loader2 size={28} style={{ position: 'absolute', color: 'var(--ib-on-ink, #FDF6EE)', animation: 'spin 1s linear infinite' }} />}
                 </>
               ) : (
-                <div style={{ textAlign: 'center', color: 'rgba(232,210,190,0.85)', padding: 20 }}>
-                  <ScanLine size={40} style={{ color: '#E8A265', marginBottom: 10 }} />
+                <div style={{ textAlign: 'center', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', padding: 20 }}>
+                  <ScanLine size={40} style={{ color: 'var(--ib-amber, #E8A265)', marginBottom: 10 }} />
                   <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>Point the camera at the joiner's QR code.</p>
                 </div>
               )}
             </div>
-            {cameraError && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: '#8C2F1C', margin: '10px 0 0' }}>{cameraError}</p>}
+            {cameraError && <p role="alert" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ib-red, #8C2F1C)', margin: '10px 0 0' }}>{cameraError}</p>}
             <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
               {cameraOn
                 ? <button type="button" onClick={stopCamera} style={secondaryBtn()}><CameraOff size={15} /> Stop Camera</button>
@@ -452,14 +452,14 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                 <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 900, color: tone.color, margin: '0 0 4px' }}>
                   <tone.Icon size={20} /> {shown.title}
                 </p>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#1A0A00', margin: 0 }}>{shown.detail}</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{shown.detail}</p>
                 {(result.result === 'ok' || result.result === 'already') && result.companions?.length > 0 && (
-                  <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: '6px 0 0' }}>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '6px 0 0' }}>
                     With: {result.companions.map((c) => c.full_name).filter(Boolean).join(', ')}
                   </p>
                 )}
                 {(result.result === 'ok' || result.result === 'already') && Number(result.balance_due) > 0 && (
-                  <p style={{ fontSize: 13, fontWeight: 800, color: '#8C5216', margin: '8px 0 0' }}>Balance to collect: {peso(result.balance_due)}</p>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--ib-warn, #8C5216)', margin: '8px 0 0' }}>Balance to collect: {peso(result.balance_due)}</p>
                 )}
                 {result.mode === 'out' && (result.result === 'ok' || result.result === 'already_out') && (
                   <button type="button" className="text-link" onClick={() => undoOut(result.booking_id, result.full_name)} style={{ background: 'none', border: 'none', padding: '8px 0 0', fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
@@ -479,7 +479,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
           <div style={card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
               <p style={{ ...label, margin: 0 }}>Joiner list{tour ? ` · ${tour.title}` : ''}</p>
-              <p style={{ fontSize: 13, fontWeight: 800, color: '#1A0A00', margin: 0, whiteSpace: 'nowrap' }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, whiteSpace: 'nowrap' }}>
                 <span style={{ fontSize: 22, fontWeight: 900 }}>{inPeople}</span> / {basePeople} {isOut ? 'checked out' : 'checked in'}
               </p>
             </div>
@@ -487,10 +487,10 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
               <>
                 {/* How far along check-in is */}
                 <div role="progressbar" aria-valuemin={0} aria-valuemax={basePeople} aria-valuenow={inPeople} aria-label={isOut ? 'Checked out' : 'Checked in'}
-                  style={{ height: 10, borderRadius: 999, background: '#F2E4D0', overflow: 'hidden', margin: '0 0 10px' }}>
-                  <div style={{ width: `${basePeople ? (inPeople / basePeople) * 100 : 0}%`, height: '100%', background: inPeople === basePeople ? '#2E9B5F' : '#B4511E', transition: 'width 0.3s' }} />
+                  style={{ height: 10, borderRadius: 999, background: 'var(--ib-parch, #F2E4D0)', overflow: 'hidden', margin: '0 0 10px' }}>
+                  <div style={{ width: `${basePeople ? (inPeople / basePeople) * 100 : 0}%`, height: '100%', background: inPeople === basePeople ? '#2E9B5F' : 'var(--ib-accent, #B4511E)', transition: 'width 0.3s' }} />
                 </div>
-                <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? '#8C5216' : '#2E6B4A', margin: '0 0 10px' }}>
+                <p style={{ fontSize: 12.5, fontWeight: 800, color: waitingCount ? 'var(--ib-warn, #8C5216)' : 'var(--ib-green, #2E6B4A)', margin: '0 0 10px' }}>
                   {waitingCount
                     ? `${isOut ? 'Not checked out yet' : 'Still waiting for'}: ${waitingCount} booking${waitingCount === 1 ? '' : 's'} (${basePeople - inPeople} ${basePeople - inPeople === 1 ? 'person' : 'people'}).`
                     : isOut ? (base.length ? 'Everyone is checked out! 🏁' : 'No one has checked in yet.') : 'Everyone is checked in! 🎉'}
@@ -507,19 +507,19 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
             ) : roster.length === 0 ? (
               <EmptyState compact icon={Users} title="No confirmed joiners yet" message="Paid bookings for this tour will appear here." />
             ) : shownRoster.length === 0 ? (
-              <p style={{ fontSize: 12.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>
                 {isOut ? (show === 'waiting' ? 'No one left to check out.' : 'No one has checked out yet.') : (show === 'waiting' ? 'No one left to check in.' : 'No one has checked in yet.')}
               </p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {shownRoster.map((b) => (isOut ? (
-                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_out_at ? 'rgba(46,107,74,0.08)' : '#FDF6EE', border: '1px solid rgba(180,81,30,0.1)' }}>
+                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_out_at ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.08)' : 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
                     {b.checked_out_at
-                      ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked out" />
-                      : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(122,58,24,0.45)', flexShrink: 0 }} />}
+                      ? <CheckCircle2 size={18} style={{ color: 'var(--ib-green, #2E6B4A)', flexShrink: 0 }} aria-label="Checked out" />
+                      : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.45)', flexShrink: 0 }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
-                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{b.booking_number} · in {timeOf(b.checked_in_at)}</p>
+                      <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{b.booking_number} · in {timeOf(b.checked_in_at)}</p>
                     </div>
                     {!b.checked_out_at && phoneOf(b) && (
                       <a href={`tel:${phoneOf(b).replace(/[^\d+]/g, '')}`} aria-label={`Call ${nameOf(b)}`} title={`Call ${phoneOf(b)}`} style={callBtn}>
@@ -528,7 +528,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                     )}
                     {b.checked_out_at ? (
                       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: '#2E6B4A', whiteSpace: 'nowrap' }}>out {timeOf(b.checked_out_at)}</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-green, #2E6B4A)', whiteSpace: 'nowrap' }}>out {timeOf(b.checked_out_at)}</span>
                         <button type="button" onClick={() => undoOut(b.id, nameOf(b))} style={rowLinkBtn}><Undo2 size={12} /> Undo</button>
                       </span>
                     ) : (
@@ -538,13 +538,13 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                     )}
                   </li>
                 ) : (
-                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_in_at ? 'rgba(46,107,74,0.08)' : '#FDF6EE', border: '1px solid rgba(180,81,30,0.1)' }}>
+                  <li key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: b.checked_in_at ? 'rgba(var(--ib-green-rgb, 46,107,74), 0.08)' : 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.1)' }}>
                     {b.checked_in_at
-                      ? <CheckCircle2 size={18} style={{ color: '#2E6B4A', flexShrink: 0 }} aria-label="Checked in" />
-                      : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(122,58,24,0.45)', flexShrink: 0 }} />}
+                      ? <CheckCircle2 size={18} style={{ color: 'var(--ib-green, #2E6B4A)', flexShrink: 0 }} aria-label="Checked in" />
+                      : <span aria-label="Not yet" style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(var(--ib-rust-rgb, 122,58,24), 0.45)', flexShrink: 0 }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13.5, fontWeight: 800, color: '#1A0A00', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
-                      <p style={{ fontSize: 11.5, fontWeight: 600, color: '#7A3A18', margin: 0 }}>{b.booking_number} · {b.slots_booked > 1 ? `${b.slots_booked} people` : '1 person'}</p>
+                      <p style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{nameOf(b)}</p>
+                      <p style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: 0 }}>{b.booking_number} · {b.slots_booked > 1 ? `${b.slots_booked} people` : '1 person'}</p>
                     </div>
                     {!b.checked_in_at && phoneOf(b) && (
                       <a href={`tel:${phoneOf(b).replace(/[^\d+]/g, '')}`} aria-label={`Call ${nameOf(b)}`} title={`Call ${phoneOf(b)}`} style={callBtn}>
@@ -553,7 +553,7 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
                     )}
                     {b.checked_in_at ? (
                       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: '#2E6B4A', whiteSpace: 'nowrap' }}>{timeOf(b.checked_in_at)}</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-green, #2E6B4A)', whiteSpace: 'nowrap' }}>{timeOf(b.checked_in_at)}</span>
                         <button type="button" onClick={() => undo(b.id, nameOf(b))} style={rowLinkBtn}><Undo2 size={12} /> Undo</button>
                       </span>
                     ) : (
@@ -573,38 +573,38 @@ const AdminCheckIn = ({ tourId: startTourId = null }) => {
 };
 
 const card = {
-  background: '#FDF6EE', borderRadius: 22, padding: '1.5rem',
-  border: '1px solid rgba(180,81,30,0.12)', boxShadow: '0 4px 20px rgba(26,10,0,0.05)',
+  background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
 };
 const chip = (active) => ({
-  border: active ? 'none' : '1px solid rgba(180,81,30,0.2)', borderRadius: 999, padding: '6px 12px', cursor: 'pointer',
+  border: active ? 'none' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 999, padding: '6px 12px', cursor: 'pointer',
   fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800,
-  background: active ? '#1A0A00' : 'transparent', color: active ? '#FDF6EE' : '#7A3A18',
+  background: active ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: active ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
 });
 
 const rowCheckBtn = (disabled) => ({
   display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, whiteSpace: 'nowrap',
   border: 'none', borderRadius: 10, padding: '8px 10px', minHeight: 32, fontFamily: 'inherit',
   fontSize: 11.5, fontWeight: 900, cursor: disabled ? 'not-allowed' : 'pointer',
-  background: disabled ? 'rgba(26,10,0,0.08)' : '#1A0A00', color: disabled ? 'rgba(26,10,0,0.45)' : '#FDF6EE',
+  background: disabled ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.08)' : 'var(--ib-ink, #1A0A00)', color: disabled ? 'rgba(var(--ib-dark-rgb, 26,10,0), 0.45)' : 'var(--ib-on-ink, #FDF6EE)',
 });
 const rowLinkBtn = {
   display: 'inline-flex', alignItems: 'center', gap: 3, background: 'none', border: 'none', padding: '2px 0',
-  cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800, color: '#8C2F1C',
+  cursor: 'pointer', fontFamily: 'inherit', fontSize: 11.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)',
 };
 
 const callBtn = {
   width: 32, height: 32, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  background: 'rgba(180,81,30,0.12)', color: '#A8481A', textDecoration: 'none',
+  background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: 'var(--ib-sienna, #A8481A)', textDecoration: 'none',
 };
 
 const label = {
   display: 'block', fontSize: 11.5, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
-  color: '#7A3A18', margin: '0 0 6px',
+  color: 'var(--ib-rust, #7A3A18)', margin: '0 0 6px',
 };
 const field = {
-  width: '100%', boxSizing: 'border-box', background: '#F2E4D0', border: '1px solid rgba(180,81,30,0.18)',
-  borderRadius: 12, padding: '10px 14px', minHeight: 44, fontSize: 14, fontWeight: 600, color: '#1A0A00',
+  width: '100%', boxSizing: 'border-box', background: 'var(--ib-parch, #F2E4D0)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)',
+  borderRadius: 12, padding: '10px 14px', minHeight: 44, fontSize: 14, fontWeight: 600, color: 'var(--ib-dark, #1A0A00)',
   fontFamily: 'inherit', outline: 'none',
 };
 
