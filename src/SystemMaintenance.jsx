@@ -129,11 +129,14 @@ const SectionSearch = ({ onPick }) => {
 const SystemMaintenance = ({ onNavigate = () => {} }) => {
   const [tab, setTabState] = useState(readTab);
   const [ruleQuery, setRuleQuery] = useState(''); // a booking rule picked in the search
+  // The last section opened in each group (clicking a group goes back to it).
+  const lastIn = useRef({ [SECTION[tab].group]: tab });
   const narrow = useNarrow();
   const maintenance = useMaintenance();
   const setTab = (raw) => {
     const t = SECTION[fix(raw)] ? fix(raw) : 'overview';
     setRuleQuery('');
+    lastIn.current[SECTION[t].group] = t;
     setTabState(t);
     try { localStorage.setItem(SAVED_TAB, t); } catch { /* not saved */ }
   };
@@ -172,17 +175,29 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
         <PrettySelect ariaLabel="System Maintenance section" value={tab} onChange={setTab}
           options={SECTIONS.map((s) => ({ value: s.key, label: `${s.group} · ${s.label}` }))} />
       ) : (
-        <div className="maint-groups" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: 12 }}>
-          {GROUPS.map(([group, list]) => (
-            <div key={group} role="tablist" aria-label={group} className="maint-group" style={{
-              display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', gap: 6, padding: '10px 12px 12px', borderRadius: 18,
-              background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.05)', border: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28)',
-              gridColumn: list.length > 4 ? 'span 2' : undefined,
-            }}>
-              <p className="journal-hand" style={{ width: '100%', margin: '0 0 2px', fontSize: 21, lineHeight: 1.1, color: 'var(--ib-sienna, #A8481A)', transform: 'rotate(-1.5deg)', transformOrigin: 'left' }}>{group}</p>
-              {list.map(([key, label, Icon]) => chip(key, label, Icon))}
-            </div>
-          ))}
+        <div className="maint-nav" style={{
+          borderRadius: 20, overflow: 'hidden', border: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28)',
+          background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.05)',
+        }}>
+          {/* The 4 groups, side by side; the chosen one's sections underneath. */}
+          <div role="tablist" aria-label="System Maintenance groups" style={{ display: 'grid', gridTemplateColumns: `repeat(${GROUPS.length}, minmax(0, 1fr))`, borderBottom: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28)' }}>
+            {GROUPS.map(([group, list]) => {
+              const on = group === SECTION[tab].group;
+              return (
+                <button key={group} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) setTab(lastIn.current[group] || list[0][0]); }} style={{
+                  position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '12px 8px 10px', border: 'none', cursor: on ? 'default' : 'pointer',
+                  fontFamily: 'inherit', background: on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)' : 'transparent',
+                }}>
+                  <span className="journal-hand" style={{ fontSize: 23, lineHeight: 1.05, color: 'var(--ib-sienna, #A8481A)', opacity: on ? 1 : 0.7, transform: 'rotate(-1.5deg)' }}>{group}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{list.length} section{list.length === 1 ? '' : 's'}</span>
+                  {on && <span aria-hidden="true" style={{ position: 'absolute', left: '22%', right: '22%', bottom: -1, height: 3, borderRadius: 3, background: 'var(--ib-sienna, #A8481A)' }} />}
+                </button>
+              );
+            })}
+          </div>
+          <div role="tablist" aria-label={`${SECTION[tab].group} sections`} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '14px 16px' }}>
+            {GROUPS.find(([g]) => g === SECTION[tab].group)[1].map(([key, label, Icon]) => chip(key, label, Icon))}
+          </div>
         </div>
       )}
 
