@@ -318,8 +318,10 @@ const LandingTropical = () => {
       <section id="why" className="lk-section lk-alt">
         <div className="lk-wrap lk-why">
           <div>
-            <span className="lk-eyebrow">Why Us</span>
-            <h2 className="lk-h2">Built for Smarter, Safer Journeys</h2>
+            <div className="lk-center">
+              <span className="lk-eyebrow">Why Us</span>
+              <h2 className="lk-h2">Built for Smarter, Safer Journeys</h2>
+            </div>
             <div className="lk-reasons">
               {REASONS.map((r) => {
                 const Icon = r.icon;
@@ -345,7 +347,7 @@ const LandingTropical = () => {
       {/* ── FROM OUR TRIPS: a strip of tour photos ── */}
       {tripPhotos.length >= 3 && (
         <section className="lk-section lk-strip-wrap" aria-label="Photos from our trips">
-          <div className="lk-wrap"><div className="lk-head"><span className="lk-eyebrow">From Our Trips</span><h2 className="lk-h2 lk-h2-sm">Where we've been</h2></div></div>
+          <div className="lk-wrap"><div className="lk-head lk-center"><span className="lk-eyebrow">From Our Trips</span><h2 className="lk-h2 lk-h2-sm">Where we've been</h2></div></div>
           <div className="lk-strip">
             {tripPhotos.map((p) => (
               <figure key={p.src} className="lk-reveal"><img src={p.src} alt={p.label} loading="lazy" decoding="async" /><figcaption>{p.label}</figcaption></figure>
