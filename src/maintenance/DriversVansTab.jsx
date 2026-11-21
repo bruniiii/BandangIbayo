@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ChipTabs from '../ui/ChipTabs';
 import { Truck, UserRound, Plus, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../ui/toast';
@@ -52,17 +53,8 @@ const DriversVansTab = () => {
         </div>
         <button type="button" style={btn(true)} onClick={() => setEditing({ kind, item: null })}><Plus size={14} /> {kind === 'drivers' ? 'Add Driver' : 'Add Van'}</button>
       </div>
-      <div role="tablist" aria-label="Drivers or vans" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 12 }}>
-        {[['drivers', 'Drivers', UserRound], ['vans', 'Vans', Truck]].map((t) => {
-          const Icon = t[2];
-          return (
-            <button key={t[0]} type="button" role="tab" aria-selected={kind === t[0]} onClick={() => setKind(t[0])} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit',
-              fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', background: kind === t[0] ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: kind === t[0] ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-            }}><Icon size={14} /> {t[1]}</button>
-          );
-        })}
-      </div>
+      <ChipTabs ariaLabel="Drivers or vans" value={kind} onChange={setKind} style={{ marginBottom: 12 }}
+        items={[{ value: 'drivers', label: 'Drivers', icon: UserRound }, { value: 'vans', label: 'Vans', icon: Truck }]} />
       <RecordList
         key={kind}
         items={rows[kind]}

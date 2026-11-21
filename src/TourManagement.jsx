@@ -1,4 +1,5 @@
 import { saveNewPickupSpots } from './pickupStops';
+import ChipTabs from './ui/ChipTabs';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRequiredFilled } from './ui/useRequiredFilled';
 import MissingHint from './ui/MissingHint';
@@ -777,32 +778,8 @@ const TourManagement = ({ openTourId = null }) => {
         borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
         paddingBottom: 16, marginBottom: 20,
       }}>
-        <div className="tm-tabs" style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-          <button
-            onClick={() => setCurrentTab('active')}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', padding: 0,
-              fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'active' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
-              transition: 'color 0.2s',
-            }}
-          >Active Tours</button>
-          <span style={{ color: 'var(--ib-sienna, #A8481A)', fontSize: 18 }}>|</span>
-          <button
-            onClick={() => setCurrentTab('archive')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', padding: 0,
-              fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'archive' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
-              transition: 'color 0.2s',
-            }}
-          >
-            <History size={18} /> Tour Archive
-          </button>
-        </div>
+        <ChipTabs ariaLabel="Tours" value={currentTab} onChange={setCurrentTab} style={{ flex: '1 1 auto' }}
+          items={[{ value: 'active', label: 'Active Tours', icon: MapIcon }, { value: 'archive', label: 'Tour Archive', icon: History }]} />
         <div className="tm-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {spotsInfo.available && (
           <button type="button" onClick={() => setShowSpots(true)} style={{

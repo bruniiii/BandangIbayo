@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Wallet, AlertCircle, Users, ChevronDown } from 'lucide-react';
+import ChipTabs from './ui/ChipTabs';
+import { Wallet, AlertCircle, Users, ChevronDown, CalendarDays, CalendarRange, Calendar } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { formatPeso } from './tourUtils';
 import { formatYmdRange } from './dateRange';
@@ -162,15 +163,8 @@ const SalesSummary = ({ onData }) => {
           <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', margin: '2px 0 0' }}>Money actually received, and who still owes a balance.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <div role="tablist" aria-label="Show by" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4 }}>
-            {[['day', 'Day'], ['month', 'Month'], ['year', 'Year']].map(([k, l]) => (
-              <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => pickKind(k)} style={{
-                border: 'none', borderRadius: 9, padding: '7px 12px', cursor: 'pointer', fontFamily: 'inherit',
-                fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: kind === k ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: kind === k ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-              }}>{l}</button>
-            ))}
-          </div>
+          <ChipTabs ariaLabel="Show by" value={kind} onChange={pickKind}
+            items={[{ value: 'day', label: 'Day', icon: CalendarDays }, { value: 'month', label: 'Month', icon: CalendarRange }, { value: 'year', label: 'Year', icon: Calendar }]} />
           {kind === 'day' ? (
             <NiceDate aria-label="Day" value={month} max={periodKeyOf(new Date(), 'day')} clearable={false} onChange={(e) => e.target.value && setMonth(e.target.value)} style={{ minWidth: 200 }} />
           ) : kind === 'year' ? (

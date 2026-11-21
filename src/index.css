@@ -692,3 +692,11 @@ td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rot
   .maint-group-btn:not(.is-on) { transition: translate 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
   .maint-group-btn:not(.is-on):hover { translate: 0 -2px; border-color: var(--ib-sienna, #A8481A) !important; box-shadow: 0 8px 18px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12) !important; }
 }
+
+/* Admin pages: every search box is the same rounded white pill as the
+   System Maintenance search (the page's own icon and padding stay). */
+.admin-area input[type="search"], .admin-area input[placeholder^="Search"] {
+  border-radius: 999px !important; background-color: var(--ib-surface, #FFFDF9) !important;
+  border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.28) !important; box-shadow: 0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05);
+}
+.admin-area .dashboard-topbar input[placeholder^="Search"] { box-shadow: none; }
