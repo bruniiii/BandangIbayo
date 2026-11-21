@@ -341,6 +341,8 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             <Wallet size={16} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0 }} />
             <span><strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{balancesDue.length} booking{balancesDue.length === 1 ? '' : 's'}</strong> still {balancesDue.length === 1 ? 'owes' : 'owe'} a total of <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{formatPeso(totalBalanceDue)}</strong>. Joiners get an automatic reminder 2–3 days before their tour.</span>
           </p>
+          {/* The two buttons stay together at the right */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
           <button
             type="button"
             onClick={() => setStatusFilter(statusFilter === 'Balance Due' ? 'All Status' : 'Balance Due')}
@@ -358,6 +360,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
             padding: '9px 16px', fontFamily: 'inherit', fontWeight: 900, fontSize: 11.5,
             letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer',
           }}>{reminding ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Bell size={13} />} Remind All</button>
+          </div>
         </div>
       )}
 
