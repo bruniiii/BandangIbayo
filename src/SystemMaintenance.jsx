@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Power, Search, X, CornerDownLeft } from 'lucide-react';
+import { Power, Search, X, CornerDownLeft, Scale, Bus, Globe, Activity } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
 import BookingRulesTab from './maintenance/BookingRulesTab';
@@ -36,6 +36,7 @@ import { GROUPS, SECTIONS, SECTION, OLD_SECTIONS, searchSections } from './maint
 // ─────────────────────────────────────────────
 
 const SAVED_TAB = 'ibayo:maintenance-tab';
+const GROUP_ICONS = { Bookings: Scale, Trips: Bus, 'Website & messages': Globe, System: Activity };
 const fix = (t) => OLD_SECTIONS[t] || t;
 
 const readTab = () => {
@@ -180,17 +181,26 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
           background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.05)',
         }}>
           {/* The 4 groups, side by side; the chosen one's sections underneath. */}
-          <div role="tablist" aria-label="System Maintenance groups" style={{ display: 'grid', gridTemplateColumns: `repeat(${GROUPS.length}, minmax(0, 1fr))`, borderBottom: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28)' }}>
+          <div role="tablist" aria-label="System Maintenance groups" className="maint-group-row" style={{ display: 'grid', gap: 10, padding: '12px 12px 14px', borderBottom: '1px dashed rgba(var(--ib-accent-rgb, 180,81,30), 0.28)' }}>
             {GROUPS.map(([group, list]) => {
               const on = group === SECTION[tab].group;
+              const Icon = GROUP_ICONS[group];
               return (
-                <button key={group} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) setTab(lastIn.current[group] || list[0][0]); }} style={{
-                  position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '12px 8px 10px', border: 'none', cursor: on ? 'default' : 'pointer',
-                  fontFamily: 'inherit', background: on ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.07)' : 'transparent',
+                <button key={group} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) setTab(lastIn.current[group] || list[0][0]); }} className={on ? 'maint-group-btn is-on' : 'maint-group-btn'} style={{
+                  position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 62, padding: '8px 12px', borderRadius: 16,
+                  cursor: on ? 'default' : 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                  background: on ? 'rgba(var(--ib-sienna-rgb, 10,124,148), 0.1)' : 'var(--ib-surface, #FFFDF9)',
+                  border: on ? '2px solid var(--ib-sienna, #A8481A)' : '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)',
+                  boxShadow: on ? 'none' : '0 3px 10px rgba(var(--ib-shadow-rgb, 26,10,0), 0.08)',
                 }}>
-                  <span className="journal-hand" style={{ fontSize: 23, lineHeight: 1.05, color: 'var(--ib-sienna, #A8481A)', opacity: on ? 1 : 0.7, transform: 'rotate(-1.5deg)' }}>{group}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{list.length} section{list.length === 1 ? '' : 's'}</span>
-                  {on && <span aria-hidden="true" style={{ position: 'absolute', left: '22%', right: '22%', bottom: -1, height: 3, borderRadius: 3, background: 'var(--ib-sienna, #A8481A)' }} />}
+                  <span style={{ width: 36, height: 36, borderRadius: 12, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: on ? 'var(--ib-sienna, #A8481A)' : 'rgba(var(--ib-sienna-rgb, 10,124,148), 0.1)', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-sienna, #A8481A)' }}><Icon size={17} /></span>
+                  <span style={{ minWidth: 0 }}>
+                    <span className="journal-hand" style={{ display: 'block', fontSize: 23, lineHeight: 1.05, color: 'var(--ib-sienna, #A8481A)' }}>{group}</span>
+                    <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>{list.length} section{list.length === 1 ? '' : 's'}</span>
+                  </span>
+                  {/* A little arrow from the chosen group down to its sections */}
+                  {on && <span aria-hidden="true" style={{ position: 'absolute', left: '50%', bottom: -9, width: 14, height: 14, transform: 'translateX(-50%) rotate(45deg)', background: 'var(--ib-surface, #FFFDF9)', borderRight: '2px solid var(--ib-sienna, #A8481A)', borderBottom: '2px solid var(--ib-sienna, #A8481A)', borderRadius: '0 0 3px 0' }} />}
                 </button>
               );
             })}
