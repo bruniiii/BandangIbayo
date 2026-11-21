@@ -10,7 +10,7 @@ import { POLICY_WORDS, policySections, forgetPolicy } from '../policies';
 import { card, h3, hint, btn, input, label, when, spin } from './shared';
 
 // ─────────────────────────────────────────────
-// System Maintenance → Policies & Content
+// System Maintenance → Terms & Policies
 // The Terms & Conditions joiners agree to. Each change is published as a new
 // version (old versions are kept, never edited or deleted). Only the main
 // admin publishes; all admins can read every version.

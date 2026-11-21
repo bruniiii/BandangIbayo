@@ -13,7 +13,7 @@ import RecordList from './RecordList';
 import { card, h3, hint, btn, input, label, when, spin } from './shared';
 
 // ─────────────────────────────────────────────
-// System Maintenance → Site Content
+// System Maintenance → Home Page & Banner
 //  • Announcement banner (any admin): a notice on the homepage and the
 //    joiner dashboard, optionally until a set time.
 //  • Landing page (main admin): the headline, the text under it, and up to

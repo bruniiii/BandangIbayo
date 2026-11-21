@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 
 // ─────────────────────────────────────────────
-// SITE CONTENT (System Maintenance → Site Content): the announcement banner,
+// SITE CONTENT (System Maintenance → Home Page & Banner): the announcement banner,
 // the landing page headline and photos, and the no-tour dates. Loaded at
 // startup (everyone can read them) and kept in this browser.
 // ─────────────────────────────────────────────
