@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import { recordPaymentWithPassword } from './paymentPassword';
 import { supabase } from './supabaseClient';
 import EmptyState from './ui/EmptyState';
@@ -284,15 +285,8 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
       <div style={{ display: 'flex', flexDirection: 'column' }}>
  
       {/* ── Two parts: Bookings, and Refunds (sent manually through GCash) ── */}
-      <div role="tablist" aria-label="Booking Management" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: 4, width: 'fit-content', maxWidth: '100%', marginBottom: 16 }}>
-        {[['bookings', 'Bookings'], ['refunds', 'Refunds']].map(([key, label]) => (
-          <button key={key} type="button" role="tab" aria-selected={section === key} onClick={() => setSection(key)} style={{
-            border: 'none', borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'inherit',
-            fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-            background: section === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: section === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-          }}>{label}{key === 'refunds' && refundCount > 0 && <span aria-label={`${refundCount} to do`} style={{ marginLeft: 6, background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '1px 7px', fontSize: 10.5 }}>{refundCount}</span>}</button>
-        ))}
-      </div>
+      <ChipTabs ariaLabel="Booking Management" value={section} onChange={setSection} style={{ marginBottom: 16 }}
+        items={[{ value: 'bookings', label: 'Bookings', icon: ClipboardList }, { value: 'refunds', label: 'Refunds', icon: Wallet, count: refundCount, alert: true }]} />
 
       {/* ── 50% refunds to send after a weather postponement or cancellation ── */}
       {section === 'refunds' && <WeatherRefunds standalone />}

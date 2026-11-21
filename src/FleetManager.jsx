@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import { X, Plus, Pencil, Archive, Truck, UserRound } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { toast } from './ui/toast';
@@ -67,18 +68,8 @@ const FleetManager = ({ onClose, onChanged }) => {
           <button type="button" onClick={onClose} aria-label="Close" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ib-rust, #7A3A18)' }}><X size={20} /></button>
         </div>
 
-        <div role="tablist" aria-label="Drivers or vans" style={{ display: 'flex', gap: 4, background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: 4, width: 'fit-content' }}>
-          {[['drivers', 'Drivers', UserRound], ['vans', 'Vans', Truck]].map((t) => {
-            const Icon = t[2];
-            return (
-              <button key={t[0]} type="button" role="tab" aria-selected={tab === t[0]} onClick={() => { setTab(t[0]); setEditing(null); }} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', borderRadius: 9, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit',
-                fontWeight: 900, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase',
-                background: tab === t[0] ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: tab === t[0] ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-              }}><Icon size={14} /> {t[1]} {fleet ? `(${fleet[t[0]].length})` : ''}</button>
-            );
-          })}
-        </div>
+        <ChipTabs ariaLabel="Drivers or vans" value={tab} onChange={(k) => { setTab(k); setEditing(null); }}
+          items={[{ value: 'drivers', label: 'Drivers', icon: UserRound, count: fleet?.drivers.length }, { value: 'vans', label: 'Vans', icon: Truck, count: fleet?.vans.length }]} />
 
         {editing ? (
           <div style={{ background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', borderRadius: 16, padding: '1rem' }}>

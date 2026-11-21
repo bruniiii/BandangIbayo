@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import { supabase } from './supabaseClient';
 import { useOpenOnce } from './focusTarget';
 import EmptyState from './ui/EmptyState';
@@ -10,7 +11,7 @@ import { logAdminMessages } from './adminMessages';
 import SentMessages from './ui/SentMessages';
 import {
   Search, Loader2, Users, Mail, Phone, Calendar, MapPin,
-  ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle, AlertTriangle, RotateCcw, ImageOff, ArchiveRestore, UserX,
+  ShieldAlert, X, Compass, ChevronRight, Send, CheckCircle2, AlertCircle, AlertTriangle, RotateCcw, ImageOff, ArchiveRestore, UserX, Archive,
 } from 'lucide-react';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { reportError, toast } from './ui/toast';
@@ -259,17 +260,8 @@ const JoinerAccounts = ({ openJoinerId = null }) => {
               ? `${archived.length} archived account${archived.length !== 1 ? 's' : ''}`
               : `${activeJoiners.length} active joiner${activeJoiners.length !== 1 ? 's' : ''}`}
           </p>
-          <div role="tablist" aria-label="Joiner accounts" style={{ display: 'inline-flex', background: 'var(--ib-parch, #F2E4D0)', padding: 4, borderRadius: 12, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', marginTop: 8 }}>
-            {[['active', 'Active'], ['archived', 'Archived'], ['removed', 'Removed']].map(([key, label]) => (
-              <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)} style={{
-                padding: '7px 16px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                fontWeight: 900, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-                background: view === key ? 'var(--ib-ink, #1A0A00)' : 'transparent', color: view === key ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-rust, #7A3A18)',
-              }}>
-                {label}{key === 'archived' && archived.length ? ` (${archived.length})` : ''}{key === 'removed' && removed.length ? ` (${removed.length})` : ''}
-              </button>
-            ))}
-          </div>
+          <ChipTabs ariaLabel="Joiner accounts" value={view} onChange={setView} style={{ marginTop: 8 }}
+            items={[{ value: 'active', label: 'Active', icon: Users }, { value: 'archived', label: 'Archived', icon: Archive, count: archived.length }, { value: 'removed', label: 'Removed', icon: UserX, count: removed.length }]} />
         </div>
 
         <div className="joiners-actions" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>

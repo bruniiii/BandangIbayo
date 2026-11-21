@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import { Power, Search, X, CornerDownLeft, Scale, Bus, Globe, Activity } from 'lucide-react';
 import { useMaintenance } from './maintenanceMode';
 import PrettySelect from './ui/PrettySelect';
@@ -143,20 +144,7 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
   };
   const fromSearch = (r) => { setTab(r.tab); if (r.rule) setRuleQuery(r.rule); };
 
-  const chip = (key, label, icon) => {
-    const Icon = icon;
-    const on = tab === key;
-    return (
-      <button key={key} type="button" role="tab" aria-selected={on} onClick={() => setTab(key)} className={on ? 'maint-chip is-on' : 'maint-chip'} style={{
-        display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 38, padding: '0 14px', borderRadius: 999, cursor: 'pointer', whiteSpace: 'nowrap',
-        fontFamily: 'inherit', fontWeight: 800, fontSize: 12.5,
-        background: on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-surface, #FFFDF9)', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
-        border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.22)'}`, boxShadow: on ? '0 6px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)' : 'none',
-      }}>
-        <Icon size={14} style={{ color: on ? 'var(--ib-amber, #E8A265)' : 'var(--ib-accent, #B4511E)' }} /> {label}
-      </button>
-    );
-  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingBottom: 40 }}>
@@ -205,8 +193,8 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
               );
             })}
           </div>
-          <div role="tablist" aria-label={`${SECTION[tab].group} sections`} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '14px 16px' }}>
-            {GROUPS.find(([g]) => g === SECTION[tab].group)[1].map(([key, label, Icon]) => chip(key, label, Icon))}
+          <div style={{ padding: '14px 16px' }}>
+            <ChipTabs ariaLabel={`${SECTION[tab].group} sections`} value={tab} onChange={setTab} items={GROUPS.find(([g]) => g === SECTION[tab].group)[1].map(([key, label, icon]) => ({ value: key, label, icon }))} />
           </div>
         </div>
       )}

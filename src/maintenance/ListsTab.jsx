@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ChipTabs from '../ui/ChipTabs';
 import { ListChecks, Plus, X, Loader2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast, reportError } from '../ui/toast';
@@ -86,14 +87,8 @@ const ListsTab = () => {
     <div style={card}>
       <h3 style={h3}><ListChecks size={16} color="var(--ib-accent, #B4511E)" /> Lists & FAQ</h3>
       <p style={hint}>The choices the website offers in its forms, and the Help FAQ. Changes show the next time a page is opened.</p>
-      <div role="tablist" aria-label="Which list" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-        {SECTIONS.map(([k, l]) => (
-          <button key={k} type="button" role="tab" aria-selected={section === k} onClick={() => { if (k !== section) { setRows(null); setSection(k); setAdding(''); } }} style={{
-            minHeight: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase',
-            background: section === k ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-cream, #FDF6EE)', color: section === k ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)', border: `1px solid ${section === k ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
-          }}>{l}</button>
-        ))}
-      </div>
+      <ChipTabs ariaLabel="Which list" value={section} onChange={(k) => { if (k !== section) { setRows(null); setSection(k); setAdding(''); } }} style={{ marginBottom: 12 }}
+        items={SECTIONS.map(([k, l]) => ({ value: k, label: l }))} />
       <p style={{ ...hint, marginBottom: 10 }}>{HINTS[section]}</p>
       {isFaq ? (
         <button type="button" style={{ ...btn(true), marginBottom: 12 }} onClick={() => setEditing({})}><Plus size={14} /> Add Question</button>

@@ -631,7 +631,7 @@ const AdminDashboard = () => {
  
         {/* header */}
         {/* content */}
-        <div className="dashboard-content" ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)', display: 'flex', flexDirection: 'column' }}>
+        <div className="dashboard-content admin-area" ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)', display: 'flex', flexDirection: 'column' }}>
           {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>

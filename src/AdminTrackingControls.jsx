@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ChipTabs from './ui/ChipTabs';
 import TourDayChecklist from './ui/TourDayChecklist';
 import FleetManager, { FleetPicker } from './FleetManager';
 import PrettySelect from './ui/PrettySelect';
@@ -410,36 +411,12 @@ export const AdminTrackingControls = ({ openTourId = null }) => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* ── Top Header Tabs ── */}
       <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap',
         borderBottom: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.15)',
         paddingBottom: 16, marginBottom: 20,
       }}>
-        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-          <button
-            onClick={() => setCurrentTab('active')}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', padding: 0,
-              fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'active' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
-            }}
-          >
-            Active Trips
-          </button>
-          <span style={{ color: 'var(--ib-sienna, #A8481A)', fontSize: 18 }}>|</span>
-          <button
-            onClick={() => setCurrentTab('archive')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', padding: 0,
-              fontSize: 17, fontWeight: 900, letterSpacing: '-0.02em',
-              color: currentTab === 'archive' ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)',
-            }}
-          >
-            <History size={18} /> Tracking Archive
-          </button>
-        </div>
+        <ChipTabs ariaLabel="Trips" value={currentTab} onChange={setCurrentTab}
+          items={[{ value: 'active', label: 'Active Trips', icon: Navigation }, { value: 'archive', label: 'Tracking Archive', icon: History }]} />
         <button type="button" onClick={() => setFleetOpen(true)} style={{
           display: 'inline-flex', alignItems: 'center', gap: 7, height: 40, padding: '0 16px', borderRadius: 12, cursor: 'pointer',
           background: 'var(--ib-ink, #1A0A00)', color: 'var(--ib-amber, #E8A265)', border: 'none', fontFamily: 'inherit',

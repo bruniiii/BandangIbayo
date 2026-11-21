@@ -4,8 +4,8 @@ import PrettySelect from './PrettySelect';
 import { STATUS_COLORS } from './statusColors';
 
 // ─────────────────────────────────────────────
-// Filter by status: a row of chips, each with its status color (dot + count)
-// as a legend. On phones the row becomes one menu (☰) to save space.
+// Filter by status: a row of chips (the same look as ui/ChipTabs), each with
+// its status color as a dot, and a count. On phones the row becomes one menu (☰) to save space.
 //   <StatusFilter statuses={['All', 'For Approval', …]} value={f} onChange={setF} count={(st) => n} />
 // ─────────────────────────────────────────────
 
@@ -49,21 +49,21 @@ const StatusFilter = ({ statuses, value, onChange, count, style }) => {
         return (
           <button
             key={st} type="button" role="tab" aria-selected={on} onClick={() => onChange(st)}
+            className={on ? 'chip-tab is-on' : 'chip-tab'}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8, height: 36, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
-              fontFamily: 'inherit', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-              background: on ? (tone?.bg || 'var(--ib-ink, #1A0A00)') : 'var(--ib-cream, #FDF6EE)', color: on ? (tone?.color || 'var(--ib-on-ink, #FDF6EE)') : 'var(--ib-brown, #5C2A10)',
-              border: `${on ? 2 : 1}px solid ${on ? (tone?.dot || 'var(--ib-dark, #1A0A00)') : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.25)'}`,
-              boxShadow: on ? '0 6px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.12)' : 'none', transition: 'background 0.15s, color 0.15s',
+              display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 38, padding: '0 14px', borderRadius: 999, cursor: 'pointer', whiteSpace: 'nowrap',
+              fontFamily: 'inherit', fontWeight: 800, fontSize: 12.5,
+              background: on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-surface, #FFFDF9)', color: on ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-brown, #5C2A10)',
+              border: `1px solid ${on ? 'var(--ib-dark, #1A0A00)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.22)'}`,
+              boxShadow: on ? '0 6px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.15)' : 'none',
             }}
           >
-            {tone && <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: '50%', background: tone.dot, flexShrink: 0 }} />}
+            {tone && <span aria-hidden="true" style={{ width: 10, height: 10, borderRadius: '50%', background: tone.dot, flexShrink: 0, boxShadow: on ? '0 0 0 2px rgba(255,255,255,0.35)' : 'none' }} />}
             {labelOf(st)}
             <span style={{
               minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 10.5, letterSpacing: 0, // (The selected All chip is dark, so its count is light on dark.)
-              background: tone ? tone.bg : on ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: tone ? tone.color : on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-brown, #5C2A10)',
-              border: on && tone ? `1px solid ${tone.dot}` : 'none',
+              fontSize: 11, fontWeight: 900,
+              background: on ? 'var(--ib-amber, #E8A265)' : 'rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', color: on ? 'var(--ib-ink, #1A0A00)' : 'var(--ib-brown, #5C2A10)',
             }}>{count(st)}</span>
           </button>
         );
