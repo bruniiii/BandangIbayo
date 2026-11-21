@@ -14,7 +14,7 @@ const STEPS = [
   'Supabase keeps automatic daily backups of the whole database. Check they are on: Supabase → your project → Database → Backups. (Free plans keep fewer days; Pro adds Point-in-Time Recovery to a chosen minute.)',
   'The CSV backups on this page are copies to read in Excel or Google Sheets and keep for your records. They are not used to restore the website.',
   'To restore: in Supabase → Database → Backups, pick the backup (or the time, with Point-in-Time Recovery) and click Restore. The website is unavailable for a few minutes, and everything after that time is lost, so turn on Maintenance Mode first and tell your admins.',
-  'After a restore: open System Status, run Check Again and the data check here, and make a fresh CSV backup.',
+  'After a restore: open Status Overview, run Check Again and the data check here, and make a fresh CSV backup.',
   'Never paste database passwords or keys in chats or screenshots.',
 ];
 const OPTIONS = [['off', 'Off (keep them)'], ['365', 'After 1 year archived'], ['730', 'After 2 years archived'], ['1095', 'After 3 years archived'], ['1825', 'After 5 years archived']];

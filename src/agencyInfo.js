@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 
 // ─────────────────────────────────────────────
-// AGENCY INFORMATION (System Maintenance → Agency Information)
+// AGENCY INFORMATION (System Maintenance → Contact Details)
 // The agency's name, email, phone, Facebook page, address and logo, shown on
 // the landing page, receipts and the help button. Loaded once at startup
 // (get_agency_info, readable by everyone) and kept in this browser for the

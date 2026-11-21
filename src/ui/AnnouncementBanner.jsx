@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Megaphone, X } from 'lucide-react';
 import { SITE } from '../siteContent';
 
-// The announcement from System Maintenance → Site Content (homepage and the
+// The announcement from System Maintenance → Home Page & Banner (homepage and the
 // joiner dashboard). Closing it hides that announcement in this browser.
 const AnnouncementBanner = ({ style }) => {
   const a = SITE.announcement;

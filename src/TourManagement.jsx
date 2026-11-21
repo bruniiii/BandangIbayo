@@ -453,7 +453,7 @@ const TourManagement = ({ openTourId = null }) => {
         [`end_date_${i}`, r.end_date < r.start_date ? `${label}The end date can't be before the start date.` : ''],
         [`end_date_${i}`, tripDays > MAX_TOUR_DAYS ? `${label}A tour can be at most ${MAX_TOUR_DAYS} days long.` : ''],
         [`start_date_${i}`, r.end_date >= r.start_date ? overlapError(r, i, label) : ''],
-        // No-tour dates (System Maintenance → Site Content).
+        // No-tour dates (System Maintenance → Home Page & Banner).
         [`start_date_${i}`, changed && blackoutOn(r.start_date, r.end_date) ? `${label}No tours on those days: ${blackoutOn(r.start_date, r.end_date)}.` : ''],
         // Sale (a discount off the Joiner Rate, see Booking Rules) on this date only, ending by the day the tour starts.
         [`sale_starts_${i}`, r.sale && !r.sale_starts ? `${label}Pick when the sale starts.` : ''],

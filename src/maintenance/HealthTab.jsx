@@ -6,7 +6,7 @@ import { paginate } from '../ui/paginate';
 import { card, h3, hint, btn, input, when, spin } from './shared';
 
 // ─────────────────────────────────────────────
-// System Status → Jobs & Emails
+// System Maintenance → System → Jobs & Emails
 // The automatic jobs (releasing unpaid holds, reminders, weather deadlines,
 // archiving…) with their last run and failures in the last 24 hours, and the
 // emails that couldn't be sent.

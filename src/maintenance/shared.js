@@ -1,5 +1,11 @@
 // Shared look for the System Maintenance tabs.
-export const card = { background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', padding: '1.25rem 1.5rem', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)' };
+// Cards are sheets of paper, like the rest of the admin side: a faint grain
+// and a second sheet peeking out underneath (index.css --paper-grain).
+export const card = {
+  backgroundColor: 'var(--ib-surface, #FFFDF9)', backgroundImage: 'var(--paper-grain)', backgroundSize: '180px', borderRadius: 18,
+  border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14)', padding: '1.25rem 1.5rem',
+  boxShadow: '0 6px 22px rgba(var(--ib-shadow-rgb, 26,10,0), 0.07), 5px 6px 0 -1px var(--paper-sheet), 5px 6px 2px 0 rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
+};
 export const h3 = { display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 4px', fontSize: 13, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' };
 export const hint = { margin: '0 0 14px', fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)', lineHeight: 1.5 };
 export const row = { display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px' };

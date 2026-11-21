@@ -11,7 +11,7 @@ import { maintenanceChanged } from '../maintenanceMode';
 import { card, h3, hint, btn, input, label, spin } from './shared';
 
 // ─────────────────────────────────────────────
-// System Maintenance → Agency Information
+// System Maintenance → Contact Details
 // The agency's name, email, phone, Facebook page, address and logo: shown on
 // the landing page, receipts, the help button and the "We'll be back soon"
 // page. Everyone can read it; only the main admin changes it.
@@ -79,7 +79,7 @@ const AgencyTab = () => {
 
   return (
     <div style={card}>
-      <h3 style={h3}><Building2 size={16} color="var(--ib-accent, #B4511E)" /> Agency Information</h3>
+      <h3 style={h3}><Building2 size={16} color="var(--ib-accent, #B4511E)" /> Contact Details</h3>
       <p style={hint}>Shown on the landing page, receipts, the help button and the "We'll be back soon" page, so joiners can always reach you.</p>
       {!canEdit && (
         <p style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--ib-parch, #F2E4D0)', borderRadius: 12, padding: '10px 12px', fontSize: 12.5, fontWeight: 700, color: 'var(--ib-brown, #5C2A10)', margin: '0 0 12px' }}>
@@ -111,7 +111,7 @@ const AgencyTab = () => {
       </div>
       {canEdit && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
-          <button type="button" style={btn(true)} disabled={saving} onClick={save}>{saving ? <Loader2 size={14} style={spin} /> : null} Save Agency Information</button>
+          <button type="button" style={btn(true)} disabled={saving} onClick={save}>{saving ? <Loader2 size={14} style={spin} /> : null} Save Contact Details</button>
         </div>
       )}
     </div>

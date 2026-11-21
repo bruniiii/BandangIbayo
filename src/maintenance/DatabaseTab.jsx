@@ -20,7 +20,7 @@ const CHECKS = {
   overpaid: { title: 'Bookings paid more than their total', fix: 'Check the payment, then fix the amount or refund the extra.', page: 'Booking Management' },
   open_tour_missing_details: { title: 'Open tours missing details', fix: 'Add the missing price, slots, photo or pickup points.', page: 'Tour Management' },
   bad_dates: { title: 'Tours that end before they start', fix: 'Fix the dates in the tour form.', page: 'Tour Management' },
-  past_tour_open: { title: 'Tours that ended but are still open', fix: 'System Status → Cleanups moves them to Tour Archive.', page: null },
+  past_tour_open: { title: 'Tours that ended but are still open', fix: 'System → Cleanups moves them to Tour Archive.', page: null },
   joiner_missing_contact: { title: 'Joiners without a name or phone number', fix: 'They are asked to finish their profile when they log in.', page: 'Joiner Accounts' },
 };
 

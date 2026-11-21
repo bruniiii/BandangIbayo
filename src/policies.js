@@ -2,7 +2,7 @@ import { supabase } from './supabaseClient';
 import { RULES } from './bookingRules';
 
 // ─────────────────────────────────────────────
-// POLICIES (System Maintenance → Policies & Content)
+// POLICIES (System Maintenance → Terms & Policies)
 // The current Terms & Conditions from the database (site_policies). Words
 // in {braces} are the Booking Rules, filled in when shown, e.g.
 // {cancellation_cutoff_days} → 14. "## " starts a section.

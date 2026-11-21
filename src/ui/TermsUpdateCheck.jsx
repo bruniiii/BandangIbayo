@@ -4,7 +4,7 @@ import { toast } from './toast';
 import TermsModal from './TermsModal';
 
 // When a newer version of the Terms & Conditions is published (System
-// Maintenance → Policies & Content), a joiner who agreed to an older one is
+// Maintenance → Terms & Policies), a joiner who agreed to an older one is
 // asked to agree to the new one when they open their dashboard. Closing
 // it asks again next time.
 const TermsUpdateCheck = () => {
