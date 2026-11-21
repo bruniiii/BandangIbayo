@@ -105,6 +105,16 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
   const unreadCount = unread.length;
   // The badge: new notifications since the bell or Notification page was last opened.
   const badgeCount = unseenCount(notifications, seenAt);
+  // The bell wiggles when the count of new ones goes up (index.css .fx-wiggle).
+  const bellRef = useRef(null);
+  const lastBadge = useRef(badgeCount);
+  useEffect(() => {
+    const el = bellRef.current;
+    if (el && badgeCount > lastBadge.current) {
+      el.classList.remove('fx-wiggle'); void el.offsetWidth; el.classList.add('fx-wiggle');
+    }
+    lastBadge.current = badgeCount;
+  }, [badgeCount]);
 
   const toggleOpen = () => {
     setOpen((v) => {
@@ -131,6 +141,7 @@ const NotificationBell = ({ onNotificationClick, clearPaymentNotices = false }) 
     <>
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <button
+        ref={bellRef}
         onClick={toggleOpen}
         title={`Notifications: ${badgeCount} new, ${unreadCount} unread`}
         style={{

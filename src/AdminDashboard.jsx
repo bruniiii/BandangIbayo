@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import CountUp from './ui/CountUp';
+import { pageEnter } from './motion';
 import AdminSearch from './AdminSearch';
 import AdminToday from './AdminToday';
 import Walkthrough from './ui/Walkthrough';
@@ -114,6 +116,9 @@ const SETTINGS_ITEM = { icon: <ShieldCheck size={18} strokeWidth={2} />, label: 
 const AdminDashboard = () => {
   // The page named in the address (/admin/dashboard/<page>) opens first, else the last one this tab was on.
   const [activeTab, setActiveTab] = useState(() => tabFromUrl(ADMIN_BASE, TAB_LABELS) || readTab(TAB_KEY, TAB_LABELS, 'Overview'));
+  // A new page fades and slides in (motion.js).
+  const contentRef = useRef(null);
+  useEffect(() => { pageEnter(contentRef.current); }, [activeTab]);
   const me = useAdminMe();
   const navItems = me.isMain ? [...NAV_ITEMS, SETTINGS_ITEM] : NAV_ITEMS;
   // A refresh reopens the page you were on (see rememberTab.js).
@@ -586,7 +591,7 @@ const AdminDashboard = () => {
  
         {/* header */}
         {/* content */}
-        <div className="dashboard-content" style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)', display: 'flex', flexDirection: 'column' }}>
+        <div className="dashboard-content" ref={contentRef} style={{ flex: 1, overflowY: 'auto', padding: '2.5rem', background: 'var(--ib-cream, #FDF6EE)', display: 'flex', flexDirection: 'column' }}>
           {/* Top row: page title on the left, bell and account on the right (stays at the top: index.css) */}
           <div className="dashboard-topbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, position: 'relative', zIndex: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
@@ -1131,7 +1136,7 @@ const StatCard = ({ title, value, icon, iconColor, trend }) => (
       fontSize: 'clamp(22px, 8vw, 38px)', fontWeight: 900, letterSpacing: '-0.04em',
       color: 'var(--ib-dark, #1A0A00)', margin: 0, lineHeight: 1.1, overflowWrap: 'anywhere',
     }}>
-      {value}
+      {typeof value === 'string' || typeof value === 'number' ? <CountUp value={value} /> : value}
     </p>
     {trend && (
       <p style={{

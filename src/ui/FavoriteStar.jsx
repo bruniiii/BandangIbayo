@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Star } from 'lucide-react';
 import { useFavorites, isFavorite, toggleFavorite } from '../favorites';
 
@@ -5,8 +6,17 @@ import { useFavorites, isFavorite, toggleFavorite } from '../favorites';
 const FavoriteStar = ({ trip, size = 36, style }) => {
   const { ids } = useFavorites();
   const on = isFavorite(ids, trip);
+  // Pops once when added (index.css .fx-pop-once); not on first show.
+  const ref = useRef(null);
+  const was = useRef(on);
+  useEffect(() => {
+    const el = ref.current;
+    if (on && !was.current && el) { el.classList.remove('fx-pop-once'); void el.offsetWidth; el.classList.add('fx-pop-once'); }
+    was.current = on;
+  }, [on]);
   return (
     <button
+      ref={ref}
       type="button"
       onClick={(e) => { e.stopPropagation(); toggleFavorite(trip); }}
       aria-pressed={on}
