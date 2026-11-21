@@ -11,6 +11,7 @@ const FavoritesButton = ({ onOpenTour }) => {
   const [open, setOpen] = useState(false);
   const [tours, setTours] = useState(null);
   const wrapRef = useRef(null);
+  const [top, setTop] = useState(0); // phones: where the list starts (just under the star)
   const count = ids.size;
 
   useEffect(() => {
@@ -51,7 +52,7 @@ const FavoritesButton = ({ onOpenTour }) => {
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
       <button
-        type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
+        type="button" onClick={() => { setTop(Math.round((wrapRef.current?.getBoundingClientRect().bottom || 66) + 10)); setOpen((v) => !v); }} aria-expanded={open}
         aria-label={`Favorites (${count})`} title="Favorites"
         style={{
           position: 'relative', width: 40, height: 40, borderRadius: 12, cursor: 'pointer',
@@ -70,7 +71,8 @@ const FavoritesButton = ({ onOpenTour }) => {
       </button>
 
       {open && (
-        <div role="dialog" aria-label="Your favorite tours" style={{
+        <div role="dialog" aria-label="Your favorite tours" className="fav-panel" style={{
+          '--fav-top': `${top}px`,
           position: 'absolute', right: 0, top: 'calc(100% + 10px)', zIndex: 60, width: 'min(360px, calc(100vw - 32px))',
           background: '#FFFDF9', borderRadius: 18, border: '1px solid rgba(180,81,30,0.18)', boxShadow: '0 20px 48px rgba(26,10,0,0.2)', overflow: 'hidden',
         }}>
