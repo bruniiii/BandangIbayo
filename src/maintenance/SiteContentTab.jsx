@@ -10,6 +10,7 @@ import { shrinkImage } from '../imageCompress';
 import { loadSiteContent } from '../siteContent';
 import { todayManila } from '../tourUtils';
 import RecordList from './RecordList';
+import SharePreview from './SharePreview';
 import { card, h3, hint, btn, input, label, when, spin } from './shared';
 
 // ─────────────────────────────────────────────
@@ -61,6 +62,7 @@ const SiteContentTab = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Announcement ann={ann} setAnn={setAnn} onSaved={load} />
       <Landing landing={landing} setLanding={setLanding} canEdit={me.isMain} onSaved={load} />
+      <SharePreview canEdit={me.can('maintenance')} />
       <NoTourDates rows={blackouts} onChanged={load} />
     </div>
   );

@@ -22,6 +22,8 @@ import DataTab from './maintenance/DataTab';
 import SecurityTab from './maintenance/SecurityTab';
 import HealthTab from './maintenance/HealthTab';
 import LastChanged from './maintenance/LastChanged';
+import PaymentsTab from './maintenance/PaymentsTab';
+import PromoCodesTab from './maintenance/PromoCodesTab';
 import { GROUPS, SECTIONS, SECTION, OLD_SECTIONS, searchSections } from './maintenance/sections';
 
 // ─────────────────────────────────────────────
@@ -130,6 +132,7 @@ const SectionSearch = ({ onPick }) => {
 
 const SystemMaintenance = ({ onNavigate = () => {} }) => {
   const [tab, setTabState] = useState(readTab);
+  const [redraw, setRedraw] = useState(0); // after an Undo, the section reloads
   const [ruleQuery, setRuleQuery] = useState(''); // a booking rule picked in the search
   // The last section opened in each group (clicking a group goes back to it).
   const lastIn = useRef({ [SECTION[tab].group]: tab });
@@ -199,7 +202,8 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
         </div>
       )}
 
-      <LastChanged key={tab} section={tab} onOpenAudit={() => setTab('audit')} />
+      <LastChanged key={tab} section={tab} onOpenAudit={() => setTab('audit')} onUndone={() => setRedraw((n) => n + 1)} />
+      <React.Fragment key={redraw}>
 
       {tab === 'rules' && <BookingRulesTab key={ruleQuery} initialQuery={ruleQuery} />}
       {tab === 'suppliers' && <SuppliersTab />}
@@ -219,6 +223,9 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       {tab === 'security' && <SecurityTab onNavigate={onNavigate} />}
       {tab === 'audit' && <ActivityTab />}
       {tab === 'backup' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
+      {tab === 'payments' && <PaymentsTab />}
+      {tab === 'promos' && <PromoCodesTab />}
+      </React.Fragment>
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>
   );

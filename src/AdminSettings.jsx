@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, UserPlus, Archive, ArchiveRestore, ChevronDown, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail } from 'lucide-react';
+import { ShieldCheck, UserPlus, Archive, ArchiveRestore, ChevronDown, Loader2, Eye, EyeOff, Crown, Pencil, MailCheck, ArrowLeft, X, Plus, Mail, KeyRound } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
 import { toast } from './ui/toast';
 import { confirmDialog } from './ui/ConfirmDialog';
@@ -9,6 +9,8 @@ import PasswordChecklist from './PasswordChecklist';
 import { passwordErrorMessage } from './passwordPolicy';
 import { emailError, fullNameError } from './validation';
 import { SkeletonRows } from './ui/Skeleton';
+import PermissionsDialog from './ui/PermissionsDialog';
+import { permissionSummary } from './adminPermissions';
 import { useAdminMe } from './adminMe';
 import AdminNameForm from './AdminNameForm';
 import BrandAvatar from './ui/BrandAvatar';
@@ -21,7 +23,7 @@ const MAX_OTHER_ADMINS = 2;
 // ─────────────────────────────────────────────
 // ADMIN SETTINGS (main admin only): the list of admins, adding an admin (a new
 // account), archiving one (they can't log in, nothing is deleted) and
-// restoring an archived admin. Every admin can do everything else; only their
+// restoring an archived admin. Other admins do what their Permissions allow; only their
 // name differs (top-right card, receipts).
 // ─────────────────────────────────────────────
 
@@ -60,6 +62,8 @@ const AdminSettings = () => {
   const [code, setCode] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [adding, setAdding] = useState(false); // the Add Admin window
+  const [perms, setPerms] = useState({}); // admin id → permissions (null = everything)
+  const [permsFor, setPermsFor] = useState(null); // the admin whose permissions are being changed
   const closeAdding = () => { if (busy) return; setAdding(false); setPending(null); setCode(''); setError(''); };
 
   // Loads quietly after the first time. Nothing is asked for while signed out.
@@ -70,6 +74,9 @@ const AdminSettings = () => {
     const { data, error: err } = await supabase.rpc('list_admins');
     if (err) { toast.error("Couldn't load the admins", err.message); setAdmins([]); return; }
     setAdmins(data || []);
+    // Each admin's permissions (before the update that adds them: everyone can do everything).
+    const { data: perms } = await supabase.rpc('list_admin_permissions');
+    setPerms(Object.fromEntries((perms || []).map((p) => [p.id, p.permissions])));
     const { data: old, error: oldErr } = await supabase.rpc('list_archived_admins');
     if (oldErr) toast.error("Couldn't load the archived admins", oldErr.message);
     setArchived(old || []);
@@ -87,7 +94,7 @@ const AdminSettings = () => {
     if (problem) { setError(problem); return; }
     if (!(await confirmDialog({
       title: `Add ${form.first_name.trim()} ${form.last_name.trim()} as an admin?`,
-      message: `We'll email a 6-digit code to ${form.email.trim()}. Ask them for it to finish adding them. They'll be able to do everything admins can.`,
+      message: `We'll email a 6-digit code to ${form.email.trim()}. Ask them for it to finish adding them. They'll be able to do everything admins can; you can limit that afterwards with Permissions.`,
       confirmLabel: 'Send Code', cancelLabel: 'Go Back',
     }))) return;
     setBusy(true);
@@ -265,7 +272,7 @@ const AdminSettings = () => {
             <h3 style={cardTitle}><ShieldCheck size={16} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> Admins
               {admins && <span style={{ marginLeft: 4, padding: '1px 9px', borderRadius: 999, background: 'var(--ib-parch, #F2E4D0)', fontSize: 11.5, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{admins.length}</span>}
             </h3>
-            <p style={{ ...cardHint, margin: '4px 0 0' }}>Every admin can do everything on the dashboard. Only the main admin can add, archive or restore admins, up to {MAX_OTHER_ADMINS} other admins{admins ? ` (${others} of ${MAX_OTHER_ADMINS} used)` : ''}.</p>
+            <p style={{ ...cardHint, margin: '4px 0 0' }}>Each admin can do what their Permissions allow (everything, unless you limit it). Only the main admin can add, archive or restore admins, up to {MAX_OTHER_ADMINS} other admins{admins ? ` (${others} of ${MAX_OTHER_ADMINS} used)` : ''}.</p>
             {full && <p style={{ ...cardHint, margin: '4px 0 0', color: 'var(--ib-red, #8C2F1C)', fontWeight: 800 }}>That's the limit. Archive an admin first to add or restore another.</p>}
           </div>
           <button type="button" onClick={() => { setAdding(true); setError(''); }} disabled={full}
@@ -290,7 +297,14 @@ const AdminSettings = () => {
                       {a.name}{a.id === myId && <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>(you)</span>}
                     </p>
                     {showEmail && <p style={{ margin: '2px 0 0', fontSize: 12, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.email}</p>}
+                    {!a.is_main_admin && <p style={{ margin: '2px 0 0', fontSize: 11.5, fontWeight: 700, color: 'var(--ib-sienna, #A8481A)' }}>{permissionSummary(perms[a.id])}</p>}
                   </div>
+                  {!a.is_main_admin && (
+                    <button type="button" onClick={() => setPermsFor(a)} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6, height: 34, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
+                      background: 'transparent', color: 'var(--ib-sienna, #A8481A)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.3)', fontFamily: 'inherit', fontWeight: 900, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    }}><KeyRound size={13} /> Permissions</button>
+                  )}
                   <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', minWidth: 120 }}>Added {formatDate(a.created_at)}</span>
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 999, minWidth: 64, justifyContent: 'center',
@@ -416,6 +430,7 @@ const AdminSettings = () => {
       )}
 
       {/* ── Add Admin window: 1 Details → 2 Verify email ── */}
+      {permsFor && <PermissionsDialog admin={permsFor} perms={perms[permsFor.id]} onClose={() => setPermsFor(null)} onSaved={(p) => { setPerms((m) => ({ ...m, [permsFor.id]: p })); setPermsFor(null); }} />}
       {adding && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10050, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.7)', backdropFilter: 'blur(4px)' }} onClick={closeAdding} />

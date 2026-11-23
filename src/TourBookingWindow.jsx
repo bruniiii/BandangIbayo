@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import MissingHint from './ui/MissingHint';
+import PromoCodeBox from './ui/PromoCodeBox';
 import WeatherNotice from './ui/WeatherNotice';
 import { supabase, currentUser } from './supabaseClient';
 import { toast, reportError } from './ui/toast';
@@ -89,8 +90,19 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     const isAlmostFull = !isFullyBooked && liveSlots <= 3;
     const maxBookingLimit = Math.max(0, liveSlots);
     // On sale on this date: the sale discount off the Joiner Rate (the database charges the same).
-    const subtotal = effectivePrice(tour) * numPersons;
+    // A promo code (checked for this number of persons) lowers the total.
+    const [promo, setPromo] = useState(null);
+    const baseTotal = effectivePrice(tour) * numPersons;
+    const promoOk = !!promo && promo.slots === numPersons;
+    const subtotal = promoOk ? Number(promo.total) : baseTotal;
     const downpaymentAmount = downpaymentFor(subtotal);
+    // System Maintenance → Payments can pause online payments.
+    const [paused, setPaused] = useState(null);
+    useEffect(() => {
+        let active = true;
+        supabase.rpc('get_payment_settings').then(({ data }) => { if (active && data?.paused) setPaused(data.message || 'Online payments are paused for a while. Please try again later, or message us.'); });
+        return () => { active = false; };
+    }, []);
     const filledPct = Math.min(100, ((tour.current_booked || 0) / (tour.group_size || 1)) * 100);
 
     useEffect(() => {
@@ -173,6 +185,8 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             setAccommodationError('Please choose your accommodation.');
             return;
         }
+        if (paused) { toast.info('Online payments are paused', paused); return; }
+        if (promo && !promoOk) { setSlotError('You changed the number of persons: tap Apply on the promo code again, or remove it.'); return; }
         setIsBooking(true);
         const user = await currentUser();
         if (!user) { toast.info('Please log in to book a tour.'); setIsBooking(false); return; }
@@ -235,6 +249,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             paymentType: type,
             companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
             accommodation: accommodation || null,
+            promoCode: promoOk ? promo.code : null,
         });
         if (!ok) {
             if (!cancelled) toast.error("Couldn't start the payment", error);
@@ -504,7 +519,10 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Total</span>
 
-                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(subtotal)}</span>
+                                        <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
+                                            {promoOk && <s style={{ fontSize: 15, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.75 }}>{formatPeso(baseTotal)}</s>}
+                                            <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(subtotal)}</span>
+                                        </span>
 
                                     </div>
 
@@ -516,6 +534,14 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                         {isOnSale(tour)
                                             ? ' · on sale, paid in full'
                                             : ` · or pay a ${DOWNPAYMENT_PERCENT}% downpayment of ${formatPeso(downpaymentAmount)} now and the rest before the trip`}
+                                    </p>
+                                )}
+                                {!isFullyBooked && !isOnSale(tour) && !paused && (
+                                    <PromoCodeBox tourId={tour.id} slots={numPersons} promo={promo} onChange={setPromo} />
+                                )}
+                                {!isFullyBooked && paused && (
+                                    <p role="alert" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', margin: '0 0 12px', padding: '10px 12px', borderRadius: 12, background: 'var(--ib-surface-2, #FBEDE6)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.35)', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', lineHeight: 1.5 }}>
+                                        <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 2 }} /> {paused}
                                     </p>
                                 )}
                                 {/* Why Book This Tour is greyed out */}
@@ -545,13 +571,13 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     onClick={handleBookThisTour}
 
-                                    disabled={isBooking || isFullyBooked || bookChoicesMissing}
+                                    disabled={isBooking || isFullyBooked || bookChoicesMissing || !!paused}
 
                                     title={bookChoicesMissing ? 'Choose your pickup point and accommodation first' : undefined}
 
                                     style={{
 
-                                        width: '100%', padding: '14px 0', opacity: bookChoicesMissing ? 0.5 : 1,
+                                        width: '100%', padding: '14px 0', opacity: bookChoicesMissing || paused ? 0.5 : 1,
 
                                         background: isFullyBooked ? 'var(--ib-surface-2, #EDEAE3)' : 'var(--ib-accent, #B4511E)',
 

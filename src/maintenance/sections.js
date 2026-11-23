@@ -1,4 +1,4 @@
-import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks, LayoutTemplate, Timer, Wrench, ShieldCheck } from 'lucide-react';
+import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks, LayoutTemplate, Timer, Wrench, ShieldCheck, CreditCard, TicketPercent } from 'lucide-react';
 import { FIELDS } from './ruleFields';
 
 // ─────────────────────────────────────────────
@@ -9,6 +9,8 @@ import { FIELDS } from './ruleFields';
 export const GROUPS = [
   ['Bookings', [
     ['rules', 'Booking Rules', Scale, 'cancellation cutoff downpayment payment hold refund sale discount reminder private tour request rates slots seats vans'],
+    ['payments', 'Payments', CreditCard, 'payment methods gcash maya card grabpay paymongo pause online payments'],
+    ['promos', 'Promo Codes', TicketPercent, 'promo code discount voucher coupon percent off'],
   ]],
   ['Trips', [
     ['suppliers', 'Suppliers', Truck, 'van rental tour guide food hotel resort entrance fee bag tag supplier contact rating cost'],
@@ -17,16 +19,16 @@ export const GROUPS = [
     ['pickup', 'Pickup Points', MapPin, 'pickup meetup point map location route terminal'],
   ]],
   ['Website & messages', [
-    ['site', 'Home Page & Banner', LayoutTemplate, 'announcement banner landing page home page headline hero photo no-tour dates blackout holiday'],
+    ['site', 'Home Page & Banner', LayoutTemplate, 'announcement banner landing page home page headline hero photo no-tour dates blackout holiday link preview share facebook messenger'],
     ['policies', 'Terms & Policies', FileText, 'terms and conditions privacy policy refund policy waiver version'],
     ['lists', 'Lists & FAQ', ListChecks, 'cancellation reasons weather reasons rejection reasons accommodation difficulty help faq questions'],
     ['templates', 'Notification Templates', Mail, 'email template subject message booking confirmed payment reminder'],
     ['chat', 'Chat Filter', ShieldBan, 'bad words blocked words profanity group chat feed'],
-    ['agency', 'Contact Details', Building2, 'agency name logo email phone address facebook gcash contact'],
+    ['agency', 'Contact Details', Building2, 'agency name logo email phone address facebook instagram tiktok social links gcash contact'],
   ]],
   ['System', [
     ['overview', 'Status Overview', Activity, 'system status health errors last backup outdated'],
-    ['settings', 'Maintenance Mode & Emails', Power, 'maintenance mode we\'ll be back soon email switches turn off emails'],
+    ['settings', 'Maintenance Mode & Emails', Power, 'maintenance mode we\'ll be back soon plan schedule planned email switches turn off emails'],
     ['health', 'Jobs & Emails', Timer, 'scheduled jobs cron email failures sent emails'],
     ['data', 'Cleanups', Wrench, 'cleanup outdated archive old tours expired holds'],
     ['security', 'Security', ShieldCheck, 'security admins passwords sign in'],
@@ -65,11 +67,13 @@ export const searchSections = (text) => {
 // What each section changes (for "Last changed by …"): tables, and app_settings keys.
 export const CHANGES = {
   rules: { tables: ['booking_rules'] },
+  payments: { keys: ['payment_settings'] },
+  promos: { tables: ['promo_codes'] },
   suppliers: { tables: ['suppliers'] },
   fleet: { tables: ['fleet_drivers', 'fleet_vans'] },
   destinations: { tables: ['destinations'] },
   pickup: { tables: ['pickup_spots'] },
-  site: { tables: ['blackout_dates'], keys: ['announcement', 'landing_content'] },
+  site: { tables: ['blackout_dates'], keys: ['announcement', 'landing_content', 'share_preview'] },
   policies: { tables: ['site_policies'] },
   lists: { tables: ['option_lists', 'help_faqs'] },
   templates: { tables: ['notification_templates'] },

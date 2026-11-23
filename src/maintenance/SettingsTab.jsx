@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Power, Mail, Settings, Loader2, Lock, UserCog, KeyRound, AlertTriangle } from 'lucide-react';
+import { Power, Mail, Settings, Loader2, Lock, UserCog, KeyRound, AlertTriangle, CalendarClock } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { toast } from '../ui/toast';
 import { confirmDialog } from '../ui/ConfirmDialog';
 import { useAdminMe } from '../adminMe';
 import { maintenanceChanged } from '../maintenanceMode';
 import { card, h3, hint, btn, input, label, row, when, spin } from './shared';
+import Toggle from './Toggle';
 
 // ─────────────────────────────────────────────
 // System Settings (the main admin changes them; other admins can look):
@@ -23,15 +24,6 @@ const EMAILS = [
   ['balance', 'Balance reminder', 'Two to three days before a tour, to joiners who paid a downpayment and still owe the balance.'],
   ['monthly_summary', 'Monthly summary', "On the 1st of the month: last month's bookings and sales, emailed to the main admin."],
 ];
-
-const Toggle = ({ on, onChange, disabled, label: text }) => (
-  <button type="button" role="switch" aria-checked={on} aria-label={text} disabled={disabled} onClick={() => onChange(!on)} style={{
-    width: 52, height: 30, borderRadius: 999, border: 'none', padding: 3, cursor: disabled ? 'not-allowed' : 'pointer', flexShrink: 0,
-    background: on ? '#2E9B5F' : '#C9B8A6', display: 'flex', justifyContent: on ? 'flex-end' : 'flex-start', transition: 'background 0.15s', opacity: disabled ? 0.6 : 1,
-  }}>
-    <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--ib-surface, #FFFDF9)', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }} />
-  </button>
-);
 
 const SettingsTab = ({ onNavigate }) => {
   const me = useAdminMe();
@@ -66,7 +58,11 @@ const SettingsTab = ({ onNavigate }) => {
       }
       : { title: 'Turn off Maintenance Mode?', message: 'The website opens again for joiners right away.', confirmLabel: 'Turn Off', cancelLabel: 'Keep It On' }))) return;
     setSaving('mode');
-    const { data, error } = await supabase.rpc('set_maintenance', { p_on: turnOn, p_message: message, p_until: until });
+    let { data, error } = await supabase.rpc('set_maintenance', { p_on: turnOn, p_message: message, p_until: until });
+    // On because of a planned time: turning it off ends that plan too.
+    if (!error && !turnOn && data?.on && mode?.starts_at) {
+      ({ data, error } = await supabase.rpc('set_maintenance_schedule', { p_starts: null, p_ends: null, p_message: null }));
+    }
     setSaving('');
     if (error) { toast.error("Couldn't change Maintenance Mode", error.message); return; }
     setMode(data);
@@ -76,7 +72,7 @@ const SettingsTab = ({ onNavigate }) => {
 
   const saveMessage = async () => {
     setSaving('message');
-    const { data, error } = await supabase.rpc('set_maintenance', { p_on: !!mode?.on, p_message: message, p_until: until });
+    const { data, error } = await supabase.rpc('set_maintenance', { p_on: !!mode?.manual, p_message: message, p_until: until });
     setSaving('');
     if (error) { toast.error("Couldn't save the message", error.message); return; }
     setMode(data);
@@ -117,7 +113,7 @@ const SettingsTab = ({ onNavigate }) => {
             <h3 style={h3}><Power size={16} color={on ? 'var(--ib-red, #8C2F1C)' : 'var(--ib-sienna, #A8481A)'} /> Maintenance Mode</h3>
             <p style={{ ...hint, margin: 0 }}>
               {on
-                ? <><strong style={{ color: 'var(--ib-red, #8C2F1C)' }}>On{mode?.started_at ? ` since ${when(mode.started_at)}` : ''}.</strong> Joiners see the "We'll be back soon" page. Admins and drivers' tracking links keep working.</>
+                ? <><strong style={{ color: 'var(--ib-red, #8C2F1C)' }}>On{mode?.started_at ? ` since ${when(mode.started_at)}` : ''}{!mode?.manual && mode?.ends_at ? ` (planned, turns off by itself ${when(mode.ends_at)})` : ''}.</strong> Joiners see the "We'll be back soon" page. Admins and drivers' tracking links keep working.</>
                 : 'Off. Turn it on while you fix or update the website: the whole joiner side shows a "We\'ll be back soon" page (no booking, paying, posting or chatting). Admins keep working.'}
             </p>
           </div>
@@ -148,6 +144,8 @@ const SettingsTab = ({ onNavigate }) => {
           </div>
         )}
       </section>
+
+      <PlanMaintenance mode={mode} canEdit={canEdit} message={message} onSaved={(d) => { setMode(d); maintenanceChanged(); }} />
 
       {/* Email reminders */}
       <section style={card}>
@@ -194,6 +192,65 @@ const SettingsTab = ({ onNavigate }) => {
         </div>
       </section>
     </div>
+  );
+};
+
+
+// "2026-12-01T22:00" typed in the form is Philippine time.
+const toManila = (iso) => {
+  if (!iso) return '';
+  const d = new Date(new Date(iso).getTime() + 8 * 3600000);
+  return d.toISOString().slice(0, 16);
+};
+const fromManila = (v) => (v ? new Date(`${v}:00+08:00`).toISOString() : null);
+
+// Plan Maintenance Mode ahead: it turns on and off by itself, and joiners see a
+// notice on the website during the 7 days before it starts.
+const PlanMaintenance = ({ mode, canEdit, message, onSaved }) => {
+  const [starts, setStarts] = useState('');
+  const [ends, setEnds] = useState('');
+  const [busy, setBusy] = useState(false);
+  const planned = mode?.starts_at && mode?.ends_at;
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- shows the saved plan when it loads
+  useEffect(() => { setStarts(toManila(mode?.starts_at)); setEnds(toManila(mode?.ends_at)); }, [mode?.starts_at, mode?.ends_at]);
+
+  const save = async (clear) => {
+    if (!clear && (!starts || !ends)) { toast.error('Choose when it starts and ends'); return; }
+    if (clear && !(await confirmDialog({ title: 'Cancel the planned maintenance?', message: mode?.on && !mode?.manual ? 'Maintenance Mode turns off right away and the website opens for joiners.' : 'Joiners stop seeing the notice about it.', confirmLabel: 'Cancel It', cancelLabel: 'Keep It' }))) return;
+    setBusy(true);
+    const { data, error } = await supabase.rpc('set_maintenance_schedule', clear
+      ? { p_starts: null, p_ends: null, p_message: null }
+      : { p_starts: fromManila(starts), p_ends: fromManila(ends), p_message: message });
+    setBusy(false);
+    if (error) { toast.error("Couldn't save the plan", error.message); return; }
+    onSaved(data);
+    toast.success(clear ? 'Planned maintenance cancelled' : 'Maintenance planned', clear ? '' : 'It turns on and off by itself. Joiners see a notice before it starts.');
+  };
+
+  const inp = { ...input, textTransform: 'none', letterSpacing: 0, fontWeight: 600 };
+  return (
+    <section style={card}>
+      <h3 style={h3}><CalendarClock size={16} color="var(--ib-sienna, #A8481A)" /> Plan maintenance</h3>
+      <p style={hint}>
+        Choose a time and Maintenance Mode turns on and off by itself (Philippine time, up to 3 days long). During the 7 days before, joiners see a notice at the top of the website so they can book or pay earlier. It uses the message above.
+      </p>
+      {planned && (
+        <p role="status" style={{ ...row, margin: '0 0 12px', fontSize: 13, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)' }}>
+          <CalendarClock size={16} color="var(--ib-accent, #B4511E)" />
+          {mode.on && !mode.manual ? 'Happening now' : 'Planned'}: {when(mode.starts_at)} → {when(mode.ends_at)}
+        </p>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(220px, 100%), 1fr))', gap: 12 }}>
+        <label style={label}>Starts<input type="datetime-local" value={starts} onChange={(e) => setStarts(e.target.value)} disabled={!canEdit} style={inp} /></label>
+        <label style={label}>Ends<input type="datetime-local" value={ends} onChange={(e) => setEnds(e.target.value)} disabled={!canEdit} style={inp} /></label>
+      </div>
+      {canEdit && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+          {planned && <button type="button" onClick={() => save(true)} disabled={busy} style={btn(false)}>Cancel Plan</button>}
+          <button type="button" onClick={() => save(false)} disabled={busy} style={btn(true)}>{busy ? <Loader2 size={14} style={spin} /> : <CalendarClock size={14} />} {planned ? 'Save Changes' : 'Plan It'}</button>
+        </div>
+      )}
+    </section>
   );
 };
 

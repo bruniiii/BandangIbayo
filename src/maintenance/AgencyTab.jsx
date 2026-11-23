@@ -20,7 +20,8 @@ import { card, h3, hint, btn, input, label, spin } from './shared';
 const inp = { ...input, letterSpacing: 0, textTransform: 'none', fontWeight: 600 };
 const FIELDS = [
   ['name', 'Agency name *', 'Bandang IBAYO'], ['email', 'Email', 'name@example.com'], ['phone', 'Phone', '0917 123 4567'],
-  ['facebook', 'Facebook / Messenger link', 'https://facebook.com/…'], ['address', 'Address', 'City, Province'],
+  ['facebook', 'Facebook / Messenger link', 'https://facebook.com/…'], ['instagram', 'Instagram link', 'https://instagram.com/…'],
+  ['tiktok', 'TikTok link', 'https://tiktok.com/@…'], ['address', 'Address', 'City, Province'],
 ];
 
 const AgencyTab = () => {
@@ -40,7 +41,9 @@ const AgencyTab = () => {
     if (!f.name.trim()) return 'Enter the agency name.';
     if (f.email.trim()) { const e = emailError(f.email); if (e) return e; }
     if (f.phone.trim()) { const p = phoneError(f.phone, 'Phone', { required: false }); if (p) return p; }
-    if (f.facebook.trim() && !/^https?:\/\//i.test(f.facebook.trim())) return 'The Facebook link must start with https://';
+    for (const [k, n] of [['facebook', 'Facebook'], ['instagram', 'Instagram'], ['tiktok', 'TikTok']]) {
+      if ((f[k] || '').trim() && !/^https?:\/\//i.test(f[k].trim())) return `The ${n} link must start with https://`;
+    }
     if (f.address.length > 300) return 'Keep the address under 300 characters.';
     return '';
   };

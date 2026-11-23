@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaFacebook } from 'react-icons/fa';
+import { FaFacebook, FaInstagram, FaTiktok } from 'react-icons/fa';
 import {
   MapPin, Calendar, Users, Clock, CheckCircle, ShieldCheck, Smartphone, Map as MapIcon, CreditCard, Globe, Mail, Phone, ArrowRight, Bus,
 } from 'lucide-react';
@@ -372,6 +372,8 @@ const LandingTropical = () => {
             <p className="lk-meta lk-meta-lg"><MapPin size={18} /> {AGENCY.address}</p>
             <div className="lk-head-actions">
               <a href={AGENCY.facebook} target="_blank" rel="noreferrer" className="lk-btn lk-btn-ghost lk-btn-sm"><FaFacebook size={17} /> Facebook</a>
+              {AGENCY.instagram && <a href={AGENCY.instagram} target="_blank" rel="noreferrer" className="lk-btn lk-btn-ghost lk-btn-sm"><FaInstagram size={17} /> Instagram</a>}
+              {AGENCY.tiktok && <a href={AGENCY.tiktok} target="_blank" rel="noreferrer" className="lk-btn lk-btn-ghost lk-btn-sm"><FaTiktok size={16} /> TikTok</a>}
               <a href={`tel:${AGENCY.phone.replace(/[^\d+]/g, '')}`} aria-label={`Call ${AGENCY.name} at ${AGENCY.phone}`} className="lk-btn lk-btn-ghost lk-btn-sm"><Phone size={16} /> {AGENCY.phone}</a>
             </div>
           </div>

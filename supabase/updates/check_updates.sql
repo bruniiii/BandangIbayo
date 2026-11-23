@@ -151,5 +151,6 @@ from (values
   ('20261231 editable lists and Help FAQ', to_regclass('public.option_lists') is not null and to_regclass('public.help_faqs') is not null),
   ('20270101 site content and no-tour dates', to_regclass('public.blackout_dates') is not null and exists (select 1 from pg_proc where proname = 'get_site_content')),
   ('20270102 job and email health, joiner data requests', to_regclass('public.email_failures') is not null and exists (select 1 from pg_proc where proname = 'anonymize_joiner')),
-  ('20270103 20270103 seats per van', exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'fleet_vans' and column_name = 'seats'))
+  ('20270103 seats per van', exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'fleet_vans' and column_name = 'seats')),
+  ('20270104 admin extras (payments, promo codes, undo, permissions)', to_regprocedure('public.undo_admin_change(bigint)') is not null and to_regclass('public.promo_codes') is not null)
 ) as u(update_file, installed);

@@ -3,7 +3,9 @@ import { supabase, currentUser } from './supabaseClient';
 
 // ─────────────────────────────────────────────
 // The signed-in admin: their name (top-right card) and whether they're the
-// main admin (only the main admin sees Admin Settings).
+// main admin (only the main admin sees Admin Settings), and what they may do
+// (Admin Settings → permissions; null = everything).
+//   me.can('payments')
 // ─────────────────────────────────────────────
 
 const ADMIN_ME_CHANGED = 'ibayo:admin-me-changed';
@@ -12,17 +14,17 @@ const ADMIN_ME_CHANGED = 'ibayo:admin-me-changed';
 export const adminMeChanged = (patch = null) => window.dispatchEvent(new CustomEvent(ADMIN_ME_CHANGED, { detail: patch }));
 
 export const useAdminMe = () => {
-  const [me, setMe] = useState({ name: '', email: '', isMain: false, loaded: false });
+  const [me, setMe] = useState({ name: '', email: '', isMain: false, perms: null, loaded: false });
   useEffect(() => {
     let alive = true;
     const load = async () => {
       const user = await currentUser();
       if (!user) return;
       const { data } = await supabase.from('profiles')
-        .select('first_name, last_name, username, is_main_admin').eq('id', user.id).maybeSingle();
+        .select('*').eq('id', user.id).maybeSingle(); // * : works before and after the permissions update
       if (!alive) return;
       const name = [data?.first_name, data?.last_name].filter(Boolean).join(' ').trim() || data?.username || user.email || 'Admin';
-      setMe({ name, email: user.email || '', isMain: !!data?.is_main_admin, loaded: true });
+      setMe({ name, email: user.email || '', isMain: !!data?.is_main_admin, perms: Array.isArray(data?.admin_permissions) ? data.admin_permissions : null, loaded: true });
     };
     load();
     const onChange = (e) => {
@@ -32,5 +34,5 @@ export const useAdminMe = () => {
     window.addEventListener(ADMIN_ME_CHANGED, onChange);
     return () => { alive = false; window.removeEventListener(ADMIN_ME_CHANGED, onChange); };
   }, []);
-  return me;
+  return { ...me, can: (p) => me.isMain || !me.perms || me.perms.includes(p) };
 };

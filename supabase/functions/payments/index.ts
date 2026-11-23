@@ -60,6 +60,29 @@ const SITE_URL = SITE_URLS[0] ?? "";
 const PAYMENT_METHODS = (Deno.env.get("PAYMONGO_PAYMENT_METHODS") ?? "gcash,paymaya,card,grab_pay")
   .split(",").map((m) => m.trim()).filter(Boolean);
 const PAYMONGO_API = "https://api.paymongo.com/v1";
+
+// System Maintenance → Payments: which methods joiners can use, and a switch
+// that pauses online payments (e.g. while PayMongo has problems).
+async function paymentMethods(): Promise<string[]> {
+  const { data } = await supabase.rpc("get_payment_settings");
+  if (data?.paused) {
+    throw new HttpError(503, data.message || "Online payments are paused for a while. Please try again later, or message us.");
+  }
+  const allowed = Array.isArray(data?.methods) ? data.methods : null;
+  const methods = allowed ? PAYMENT_METHODS.filter((m) => allowed.includes(m)) : PAYMENT_METHODS;
+  if (!methods.length) throw new HttpError(503, "Online payments aren't available right now. Please message us.");
+  return methods;
+}
+
+// A promo code typed in the booking window (the database checks it and lowers
+// the total). If it can't be used, the booking keeps its full price.
+async function applyPromo(booking: any, userId: string, code: unknown) {
+  const c = typeof code === "string" ? code.trim() : "";
+  if (!c) return booking;
+  const { data, error } = await supabase.rpc("apply_promo_code", { p_booking_id: booking.id, p_user_id: userId, p_code: c });
+  if (error) throw new HttpError(409, error.message);
+  return data ?? booking;
+}
 // The booking rules (System Maintenance → Booking Rules) live in the database.
 // These are only used if they can't be read.
 const DEFAULT_RULES = {
@@ -170,7 +193,7 @@ async function createSession(opts: {
           currency: "PHP",
           quantity: 1,
         }],
-        payment_method_types: PAYMENT_METHODS,
+        payment_method_types: await paymentMethods(),
         billing: billingFor(booking.full_name, booking.email, phone),
         description: `Bandang IBAYO booking ${booking.booking_number}. Payments are non-refundable; bookings can be cancelled up to ${opts.cancelDays ?? 14} days before the tour.`,
         reference_number: booking.booking_number,
@@ -304,9 +327,11 @@ function chosenAccommodation(options: unknown, choice: unknown) {
 
 async function createCheckout(userId: string, p: any) {
   checkoutPhone(p.phone); // checked before anything is saved
+  await paymentMethods(); // paused → stop before holding any slots
   const { data: offered } = await supabase.from("tours").select("accommodation_options").eq("id", p.tourId).maybeSingle();
   const accommodation = chosenAccommodation(offered?.accommodation_options, p.accommodation);
-  const { data: booking, error } = await supabase.rpc("start_online_booking", {
+  // deno-lint-ignore prefer-const
+  let { data: booking, error } = await supabase.rpc("start_online_booking", {
     p_user_id: userId,
     p_tour_id: p.tourId,
     p_slots: p.slots,
@@ -315,6 +340,15 @@ async function createCheckout(userId: string, p: any) {
   });
   if (error) throw new HttpError(409, error.message);
   if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
+  try {
+    booking = await applyPromo(booking, userId, p.promoCode);
+  } catch (err) {
+    // The code can't be used: let the slots go, so the joiner can try again.
+    await supabase.from("bookings")
+      .update({ booking_status: "Cancelled", payment_status: "Expired", cancellation_reason: "Promo code could not be used." })
+      .eq("id", booking.id);
+    throw err;
+  }
 
   const { data: tour } = await supabase.from("tours").select("id, title").eq("id", booking.tour_id).single();
   const full = p.paymentType === "full";
@@ -341,6 +375,7 @@ async function createCheckout(userId: string, p: any) {
 
 async function payBalance(userId: string, p: any) {
   checkoutPhone(p.phone); // checked before anything is saved
+  await paymentMethods();
   const booking = await loadOwnBooking(p.bookingId, userId);
   const balance = Math.max(0, Number(booking.total_price || 0) - Number(booking.amount_paid || 0));
   if (booking.payment_method !== "Downpayment" || booking.payment_status !== "Complete"
@@ -369,6 +404,7 @@ async function payBalance(userId: string, p: any) {
 // or downpayment and name their companions, then pay like any booking.
 async function payHeld(userId: string, p: any) {
   checkoutPhone(p.phone); // checked before anything is saved
+  await paymentMethods();
   const booking = await loadOwnBooking(p.bookingId, userId);
   if (!booking.request_id || booking.payment_status !== "Awaiting Payment") {
     throw new HttpError(409, "This booking is not waiting for payment.");
@@ -381,7 +417,7 @@ async function payHeld(userId: string, p: any) {
   }
   const { data: offered } = await supabase.from("tours").select("accommodation_options").eq("id", booking.tour_id).maybeSingle();
   const accommodation = chosenAccommodation(offered?.accommodation_options, p.accommodation);
-  const { data: prepared, error } = await supabase.rpc("prepare_held_booking", {
+  let { data: prepared, error } = await supabase.rpc("prepare_held_booking", {
     p_booking_id: booking.id,
     p_user_id: userId,
     p_payment_type: p.paymentType,
@@ -389,6 +425,13 @@ async function payHeld(userId: string, p: any) {
   });
   if (error) throw new HttpError(409, error.message);
   if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
+  // prepare_held_booking puts back the full price: apply the code again.
+  try {
+    prepared = await applyPromo(prepared, userId, p.promoCode ?? prepared.promo_code);
+  } catch (err) {
+    if (prepared.promo_code) await supabase.from("bookings").update({ promo_code: null, promo_discount: 0 }).eq("id", booking.id);
+    throw err;
+  }
 
   const full = p.paymentType === "full";
   const percent = await downpaymentPercentOf(booking);
@@ -540,7 +583,7 @@ async function exclusiveCheckout(request: any, p: any, part: "downpayment" | "ba
           currency: "PHP",
           quantity: 1,
         }],
-        payment_method_types: PAYMENT_METHODS,
+        payment_method_types: await paymentMethods(),
         billing: billingFor(request.full_name, request.email, phone),
         description: `Bandang IBAYO private tour ${reference}. ${label[0].toUpperCase()}${label.slice(1)} of the ₱${price.toLocaleString("en-PH", { minimumFractionDigits: 2 })} package. Payments are non-refundable.`,
         reference_number: reference,
@@ -586,6 +629,7 @@ async function payExclusiveBalance(request: any, p: any) {
 
 async function payExclusive(userId: string, p: any) {
   checkoutPhone(p.phone); // checked before anything is saved
+  await paymentMethods();
   const request = await loadOwnRequest(p.requestId, userId);
   if (p.part === "balance") return await payExclusiveBalance(request, p);
   if (request.payment_status === "Paid") return { alreadyPaid: true };

@@ -13,6 +13,8 @@ export const DEFAULT_AGENCY = Object.freeze({
   email: 'bandangibayo@gmail.com',
   phone: '+63 999 307 1958',
   facebook: 'https://www.facebook.com/bandangibayo',
+  instagram: '',
+  tiktok: '',
   address: 'Bulacan, Philippines',
   logo_url: '',
 });
