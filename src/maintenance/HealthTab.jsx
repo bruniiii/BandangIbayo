@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 import { card, h3, hint, btn, when, spin } from './shared';
 
 // ─────────────────────────────────────────────
-// System Maintenance → System → Jobs & Emails
+// System Maintenance → System → Jobs
 // The automatic jobs (releasing unpaid holds, reminders, weather deadlines,
 // archiving…) with their last run and failures in the last 24 hours.
 // ─────────────────────────────────────────────
