@@ -7,8 +7,8 @@ import { FEEDBACK_QUESTIONS } from './feedbackQuestions';
 
 // ─────────────────────────────────────────────
 // Feedback survey (joiners): five 1–5 ratings and a comment, to help improve
-// the website. Results are in the admin's Reports. Open from the Feedback
-// menu, or from the homepage after a trip.
+// the website. Results are in the admin's Reports. Open from Reviews →
+// Website Feedback, or from the homepage card after a trip.
 // ─────────────────────────────────────────────
 
 
