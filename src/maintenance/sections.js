@@ -28,7 +28,7 @@ export const GROUPS = [
   ['System', [
     ['overview', 'Status Overview', Activity, 'system status health errors outdated'],
     ['settings', 'Maintenance Mode & Emails', Power, 'maintenance mode we\'ll be back soon plan schedule planned email switches turn off emails'],
-    ['health', 'Jobs & Emails', Timer, 'scheduled jobs cron automatic reminder emails'],
+    ['health', 'Jobs', Timer, 'scheduled jobs cron automatic reminder emails'],
     ['data', 'Cleanups', Wrench, 'cleanup outdated archive old tours expired holds data check broken records anonymize privacy'],
     ['security', 'Security', ShieldCheck, 'security admins passwords sign in'],
     ['audit', 'Audit Trail', History, 'activity log history who changed audit'],
