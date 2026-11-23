@@ -35,9 +35,8 @@ const withPaymentPhone = async (action, body) => {
 };
 
 // Holds the slots for 30 minutes and returns PayMongo's checkout page URL.
-// promoCode: a code the booking window checked (the server checks it again).
-export const startCheckout = ({ tourId, slots, paymentType, companions, accommodation = null, promoCode = null }) =>
-  withPaymentPhone('create-checkout', { tourId, slots, paymentType, companions, accommodation, promoCode, returnBaseUrl: returnBaseUrl() });
+export const startCheckout = ({ tourId, slots, paymentType, companions, accommodation = null }) =>
+  withPaymentPhone('create-checkout', { tourId, slots, paymentType, companions, accommodation, returnBaseUrl: returnBaseUrl() });
 
 export const startBalanceCheckout = ({ bookingId }) =>
   withPaymentPhone('pay-balance', { bookingId, returnBaseUrl: returnBaseUrl() });

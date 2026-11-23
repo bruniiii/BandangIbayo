@@ -58,11 +58,6 @@ const TABLES = {
   admin_activity: [
     { id: 1, at: now, admin_name: 'Ana Cruz', table_name: 'tours', action: 'changed', summary: 'Mt. Ulap', changed: ['price'] },
     { id: 2, at: now, admin_name: 'Ana Cruz', table_name: 'suppliers', row_id: '1', action: 'changed', summary: 'Benguet Vans', changed: ['name'], old_values: { name: 'Benguet Van' }, new_values: { name: 'Benguet Vans' } },
-    { id: 3, at: now, admin_name: 'Ana Cruz', table_name: 'promo_codes', row_id: '1', action: 'added', summary: 'SUMMER10' },
-  ],
-  promo_codes: [
-    { id: 1, code: 'SUMMER10', description: 'Summer promo', kind: 'percent', value: 10, tour_title: null, min_persons: 1, max_uses: 50, once_per_joiner: true, is_active: true, created_at: now },
-    { id: 2, code: 'BARKADA500', kind: 'amount', value: 500, tour_title: 'Mt. Ulap Day Hike', min_persons: 4, ends_on: '2026-01-31', once_per_joiner: true, is_active: true, created_at: now },
   ],
   system_feedback: [{ id: 1, ease: 5, booking: 4, payment: 5, tracking: 4, overall: 5, comment: 'Love it', created_at: now }],
   feed_posts: [], exclusive_requests: [], tour_favorites: [], app_settings: [], tour_vehicles: [], site_policies: [],
@@ -87,7 +82,6 @@ const answer = (role, url, method, accept) => {
     if (fn === 'get_maintenance') return { json: { on: false } };
     if (fn === 'get_payment_settings') return { json: { methods: ['gcash', 'paymaya', 'card'], paused: false, message: null } };
     if (fn === 'get_share_preview') return { json: {} };
-    if (fn === 'check_promo_code') return { json: { ok: true, code: 'SUMMER10', discount: 250, total: 2250, label: '10% off' } };
     if (fn === 'list_admins') return { json: [{ id: ADMIN.id, name: 'Ana Cruz', email: ADMIN.email, is_main_admin: true, created_at: now }, { id: 'a2', name: 'Ben Reyes', email: 'ben@example.com', is_main_admin: false, created_at: now }] };
     if (fn === 'list_admin_permissions') return { json: [{ id: 'a2', is_main_admin: false, permissions: ['payments', 'feed'] }] };
     return { json: [] };
@@ -128,7 +122,7 @@ const ADMIN_PAGES = ['Overview', 'Feed', 'Tour Management', 'Booking Management'
   .map((l) => [`admin: ${l}`, `/admin/dashboard/${slug(l)}`, 'admin']);
 const PUBLIC_PAGES = [['public: landing', '/', null], ['public: login', '/login', null], ['public: register', '/register', null], ['public: tours', '/tours', null], ['public: tour detail', '/tours/101', null]];
 // Every System Maintenance section (opened through the section it remembers).
-const MAINTENANCE_SECTIONS = ['rules', 'payments', 'promos', 'suppliers', 'fleet', 'destinations', 'pickup', 'site', 'policies', 'lists', 'templates',
+const MAINTENANCE_SECTIONS = ['rules', 'payments', 'suppliers', 'fleet', 'destinations', 'pickup', 'site', 'policies', 'lists', 'templates',
   'chat', 'agency', 'overview', 'settings', 'health', 'data', 'security', 'audit', 'backup']
   .map((k) => [`admin: System Maintenance › ${k}`, '/admin/dashboard/system-maintenance', 'admin', k]);
 const PAGES = [...PUBLIC_PAGES, ...JOINER_PAGES, ...ADMIN_PAGES, ...MAINTENANCE_SECTIONS];

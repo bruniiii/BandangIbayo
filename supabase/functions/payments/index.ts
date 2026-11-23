@@ -73,16 +73,6 @@ async function paymentMethods(): Promise<string[]> {
   if (!methods.length) throw new HttpError(503, "Online payments aren't available right now. Please message us.");
   return methods;
 }
-
-// A promo code typed in the booking window (the database checks it and lowers
-// the total). If it can't be used, the booking keeps its full price.
-async function applyPromo(booking: any, userId: string, code: unknown) {
-  const c = typeof code === "string" ? code.trim() : "";
-  if (!c) return booking;
-  const { data, error } = await supabase.rpc("apply_promo_code", { p_booking_id: booking.id, p_user_id: userId, p_code: c });
-  if (error) throw new HttpError(409, error.message);
-  return data ?? booking;
-}
 // The booking rules (System Maintenance → Booking Rules) live in the database.
 // These are only used if they can't be read.
 const DEFAULT_RULES = {
@@ -330,8 +320,7 @@ async function createCheckout(userId: string, p: any) {
   await paymentMethods(); // paused → stop before holding any slots
   const { data: offered } = await supabase.from("tours").select("accommodation_options").eq("id", p.tourId).maybeSingle();
   const accommodation = chosenAccommodation(offered?.accommodation_options, p.accommodation);
-  // deno-lint-ignore prefer-const
-  let { data: booking, error } = await supabase.rpc("start_online_booking", {
+  const { data: booking, error } = await supabase.rpc("start_online_booking", {
     p_user_id: userId,
     p_tour_id: p.tourId,
     p_slots: p.slots,
@@ -340,15 +329,6 @@ async function createCheckout(userId: string, p: any) {
   });
   if (error) throw new HttpError(409, error.message);
   if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
-  try {
-    booking = await applyPromo(booking, userId, p.promoCode);
-  } catch (err) {
-    // The code can't be used: let the slots go, so the joiner can try again.
-    await supabase.from("bookings")
-      .update({ booking_status: "Cancelled", payment_status: "Expired", cancellation_reason: "Promo code could not be used." })
-      .eq("id", booking.id);
-    throw err;
-  }
 
   const { data: tour } = await supabase.from("tours").select("id, title").eq("id", booking.tour_id).single();
   const full = p.paymentType === "full";
@@ -417,7 +397,7 @@ async function payHeld(userId: string, p: any) {
   }
   const { data: offered } = await supabase.from("tours").select("accommodation_options").eq("id", booking.tour_id).maybeSingle();
   const accommodation = chosenAccommodation(offered?.accommodation_options, p.accommodation);
-  let { data: prepared, error } = await supabase.rpc("prepare_held_booking", {
+  const { data: prepared, error } = await supabase.rpc("prepare_held_booking", {
     p_booking_id: booking.id,
     p_user_id: userId,
     p_payment_type: p.paymentType,
@@ -425,13 +405,6 @@ async function payHeld(userId: string, p: any) {
   });
   if (error) throw new HttpError(409, error.message);
   if (accommodation) await supabase.from("bookings").update({ accommodation }).eq("id", booking.id);
-  // prepare_held_booking puts back the full price: apply the code again.
-  try {
-    prepared = await applyPromo(prepared, userId, p.promoCode ?? prepared.promo_code);
-  } catch (err) {
-    if (prepared.promo_code) await supabase.from("bookings").update({ promo_code: null, promo_discount: 0 }).eq("id", booking.id);
-    throw err;
-  }
 
   const full = p.paymentType === "full";
   const percent = await downpaymentPercentOf(booking);
