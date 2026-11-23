@@ -33,9 +33,9 @@ begin
   insert into public.destinations (name, region)
   select x.n, x.r from (values
     ('Kabayan, Benguet', 'CAR (Cordillera)'), ('Itogon, Benguet', 'CAR (Cordillera)'), ('Sagada, Mountain Province', 'CAR (Cordillera)'),
-    ('Basco, Batanes', 'Cagayan Valley'), ('Baler, Aurora', 'Central Luzon'), ('San Antonio, Zambales', 'Central Luzon'),
-    ('Capas, Tarlac', 'Central Luzon'), ('El Nido, Palawan', 'MIMAROPA'), ('Coron, Palawan', 'MIMAROPA'),
-    ('General Luna, Siargao', 'Caraga'), ('Tagaytay, Cavite', 'CALABARZON'), ('San Juan, La Union', 'Ilocos Region')) as x(n, r)
+    ('Banaue, Ifugao', 'CAR (Cordillera)'), ('Pagudpud, Ilocos Norte', 'Ilocos Region'), ('San Juan, La Union', 'Ilocos Region'),
+    ('Baler, Aurora', 'Central Luzon'), ('San Antonio, Zambales', 'Central Luzon'), ('Capas, Tarlac', 'Central Luzon'),
+    ('Tagaytay, Cavite', 'CALABARZON'), ('Vinzons, Camarines Norte', 'Bicol Region')) as x(n, r)
   where not exists (select 1 from public.destinations y where lower(y.name) = lower(x.n));
 
   -- ── Pickup points ──
@@ -66,28 +66,29 @@ begin
   insert into public.suppliers (name, supplier_type, inclusion_name, contact_person, contact_number, destinations, default_rate, rate_basis, notes)
   select x.* from (values
     ('JM Van Rentals', 'van_rental', 'Round-trip van with driver', 'Jojo Manalo', '09171112233',
-       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Baler, Aurora', 'San Antonio, Zambales', 'Capas, Tarlac', 'Tagaytay, Cavite', 'San Juan, La Union'], 9000::numeric, 'per_trip', 'Includes fuel, tolls and driver''s meals. Book 2 weeks ahead.'),
-    ('Island Airport Shuttles', 'van_rental', 'Airport transfers', 'Lito Ramos', '09281114455',
-       array['Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao'], 6000, 'per_trip', 'Partner vans at the airport for the island trips.'),
+       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Banaue, Ifugao', 'Baler, Aurora', 'San Antonio, Zambales', 'Capas, Tarlac', 'Tagaytay, Cavite', 'San Juan, La Union'], 9000::numeric, 'per_trip', 'Includes fuel, tolls and driver''s meals. Book 2 weeks ahead.'),
+    ('Northbound Van Tours', 'van_rental', 'Round-trip van with driver', 'Lito Ramos', '09281114455',
+       array['Pagudpud, Ilocos Norte', 'Vinzons, Camarines Norte'], 14000, 'per_trip', 'Bigger vans with reclining seats for the long trips up north and to Bicol.'),
     ('Kabayan Mountain Guides', 'tour_guide', 'Local mountain guide', 'Jun Bayangan', '09191234455', array['Kabayan, Benguet'], 1000, 'per_trip', 'DENR-accredited. 1 guide per 7 hikers.'),
     ('Sagada Genuine Guides Association', 'tour_guide', 'Local tour guide', 'Manang Cora Dao-ey', '09201239911', array['Sagada, Mountain Province'], 1000, 'per_trip', 'Cave connection guides included.'),
     ('Ampucao Trail Guides', 'tour_guide', 'Local trail guide', 'Ben Tayaban', '09211230022', array['Itogon, Benguet'], 1000, 'per_trip', null),
-    ('Island Hopping Guides PH', 'tour_guide', 'Local island guide', 'Rex Dumlao', '09231236677',
-       array['Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao', 'San Antonio, Zambales', 'Baler, Aurora', 'Capas, Tarlac'], 1000, 'per_trip', null),
+    ('Batad Guides Association', 'tour_guide', 'Local trek guide', 'Manong Peter Dulnuan', '09231236677', array['Banaue, Ifugao'], 1000, 'per_trip', 'Batad trek and Tappiya Falls.'),
+    ('Luzon Explorer Guides', 'tour_guide', 'Local tour guide', 'Rex Dumlao', '09241236688',
+       array['Pagudpud, Ilocos Norte', 'Vinzons, Camarines Norte', 'San Juan, La Union', 'San Antonio, Zambales', 'Baler, Aurora', 'Capas, Tarlac'], 1000, 'per_trip', null),
     ('Pundaquit Boatmen Association', 'boat', 'Boat transfers', 'Mang Tonyo Ladia', '09241237788', array['San Antonio, Zambales'], 3000, 'per_trip', 'Anawangin and Capones in one trip.'),
-    ('El Nido Island Tours Co.', 'boat', 'Island hopping boat', 'Grace Abrina', '09251238899', array['El Nido, Palawan', 'Coron, Palawan'], 3000, 'per_trip', 'Lunch on board included.'),
-    ('Siargao Island Boats', 'boat', 'Island hopping boat', 'Dodong Galarpe', '09261239900', array['General Luna, Siargao'], 3000, 'per_trip', null),
+    ('Calaguas Bangka Tours', 'boat', 'Boat transfers and island hopping', 'Grace Abrina', '09251238899', array['Vinzons, Camarines Norte'], 3000, 'per_trip', 'From Paracale port. Island hopping included.'),
     ('Ganduyan Inn', 'accommodation', 'Inn accommodation', 'Ate Lyn', '09271230011', array['Sagada, Mountain Province'], 450, 'per_person', 'Hot shower, 4 per room.'),
-    ('Ivatan Homestay', 'accommodation', 'Homestay', 'Nanay Rosa Agcaoili', '09281230022', array['Basco, Batanes'], 450, 'per_person', 'Traditional stone house.'),
-    ('Lagoon Breeze Inn', 'accommodation', 'Beach-side inn', 'Mark Villaflor', '09291230033',
-       array['El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao', 'Baler, Aurora'], 450, 'per_person', null),
+    ('Saud Beach Homestay', 'accommodation', 'Beach-front homestay', 'Nanay Rosa Agcaoili', '09281230022', array['Pagudpud, Ilocos Norte'], 450, 'per_person', 'A short walk to Saud Beach.'),
+    ('Banaue Native Village Inn', 'accommodation', 'Native-style inn', 'Mark Villaflor', '09291230033', array['Banaue, Ifugao'], 450, 'per_person', 'View of the rice terraces.'),
+    ('Urbiztondo Beach Hostel', 'accommodation', 'Beach hostel', 'Cha Lazaro', '09291230034', array['San Juan, La Union', 'Baler, Aurora'], 450, 'per_person', null),
     ('Anawangin Campsite', 'accommodation', 'Tent and campsite', 'Kuya Ben', '09301230044', array['San Antonio, Zambales', 'Kabayan, Benguet'], 450, 'per_person', 'Tents for 2, sleeping mats included.'),
+    ('Calaguas Camp Hosts', 'accommodation', 'Tent and campsite', 'Ate Weng', '09301230045', array['Vinzons, Camarines Norte'], 450, 'per_person', 'Beach-front tents and shower area.'),
     ('Lola Ising''s Kitchen', 'food', 'Meals', 'Lola Ising', '09311230055',
-       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Packed meals for hikes; vegetarian on request.'),
-    ('Batanes Seafood Grill', 'food', 'Meals', 'Joel Hidalgo', '09321230066',
-       array['Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao'], 250, 'per_person', null),
+       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Banaue, Ifugao', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Packed meals for hikes; vegetarian on request.'),
+    ('Ilocos Empanada & Grill', 'food', 'Meals', 'Joel Hidalgo', '09321230066',
+       array['Pagudpud, Ilocos Norte', 'San Juan, La Union', 'Vinzons, Camarines Norte'], 250, 'per_person', null),
     ('Protected Area & Tourism Fees', 'attraction', 'Entrance & environmental fees', null, null,
-       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Paid at the registration area.')
+       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Banaue, Ifugao', 'Pagudpud, Ilocos Norte', 'Vinzons, Camarines Norte', 'San Juan, La Union', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Paid at the registration area.')
   ) as x(name, supplier_type, inclusion_name, contact_person, contact_number, destinations, default_rate, rate_basis, notes)
   where not exists (select 1 from public.suppliers y where lower(y.name) = lower(x.name));
 
