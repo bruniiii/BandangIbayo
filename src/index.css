@@ -700,3 +700,7 @@ td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rot
   border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.28) !important; box-shadow: 0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05);
 }
 .dashboard-content .dashboard-topbar input[placeholder^="Search"] { box-shadow: none; }
+
+/* Joiner home: the next-trip card is photo | ready-check side by side, stacked on phones. */
+.next-trip-panel { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+@media (max-width: 700px) { .next-trip-panel { grid-template-columns: 1fr; } }
