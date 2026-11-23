@@ -8,7 +8,7 @@
 -- ▶ BEFORE RUNNING: put the email of YOUR demo joiner account on the line
 --   that says  v_demo_email text := '...';  (a little further down).
 --   That account gets a full history: 3 finished trips (2 reviewed), the
---   live trip on Nov 25 (Anawangin Cove, with tracking and group chat), an
+--   trip on Nov 25 (Anawangin Cove: route, pickups, group chat; tracking starts on the day), an
 --   upcoming trip with a balance to pay, favorites, a private tour request,
 --   notifications and a message from Bandang IBAYO.
 --
@@ -16,7 +16,7 @@
 --   • 12 demo joiners (they can't log in; their emails end in
 --     @ibayo-demo.test, which never receives mail)
 --   • 13 tour dates: 6 finished (one cancelled by a typhoon, with refunds),
---     1 happening on Nov 25–26 (live tracking), 6 upcoming (one on sale,
+--     1 on Nov 25–26 (tracking ready to start on the day), 6 upcoming (one on sale,
 --     one fully booked with a waitlist) + 1 private tour
 --   • bookings in every state: paid, downpayment with balance due, balance
 --     settled, waiting for payment, payment to check, cancellation request,
@@ -120,8 +120,9 @@ end $$;
 --   done          finished trip (paid in full, or downpayment + balance), checked in and out
 --   paid          paid; a downpayment booking still owes the balance
 --   settled       downpayment + balance paid (not yet travelled)
---   live          on the Nov 25 trip, checked in   (live_due: still owes the balance)
---   live_wait     on the Nov 25 trip, not picked up yet
+--   live          on the Nov 25 trip (not picked up yet: tracking starts on the day)
+--   live_due      same, still owes the balance
+--   live_wait     same as live
 --   awaiting      waiting for payment (slots on hold)
 --   verify        GCash receipt sent, waiting for an admin to check it
 --   cancel_req    paid, asked to cancel (waiting for approval)
@@ -205,8 +206,8 @@ begin
     case when p_state = 'verify' then '1013 ' || lpad((abs(hashtext(v_number)) % 100000000)::text, 8, '0') end,
     case when p_state = 'verify' then coalesce(p.phone_number, '09170000000') end,
     case when p_state = 'verify' then '/og-image.jpg' end,
-    case when p_state in ('done', 'live', 'live_due') then v_start + interval '10 minutes' end,
-    case when p_state in ('done', 'live', 'live_due') then p_admin end,
+    case when p_state = 'done' then v_start + interval '10 minutes' end,
+    case when p_state = 'done' then p_admin end,
     case when p_state = 'done' then v_end end,
     case when p_state = 'done' then p_admin end,
     case p_state when 'cancel_req' then 'Schedule conflict at work' when 'cancelled' then 'Family emergency'
@@ -305,9 +306,9 @@ declare
   v_pulag_desc text := 'Stand above the clouds on Luzon''s highest peak. A guided overnight climb through mossy forest and grasslands to watch the famous Mt. Pulag sea of clouds at sunrise.';
   v_pulag_incl text := E'Round-trip van from Metro Manila\nDENR orientation and permits\nLocal guide and porter assistance\nCampsite fees\n3 meals\nBag tag';
   v_pulag_itin text := E'Day 0:\n10:00 PM – Meet up at the pickup points\nDay 1:\n06:00 AM – DENR orientation in Ambangeg\n09:00 AM – Hike to Camp 2\n05:00 PM – Dinner and early sleep\nDay 2:\n02:00 AM – Summit assault\n05:30 AM – Sea of clouds at the summit\n11:00 AM – Back to Manila';
-  v_batanes_desc text := 'Rolling hills, stone houses and the bluest sea in the country. Four days around Batan and Sabtang with a local guide, by van and by falowa boat.';
-  v_batanes_incl text := E'Round-trip airport transfers in Batanes\nNorth and South Batan tours\nSabtang day tour with falowa boat\n3 nights homestay\nDaily breakfast\nEnvironmental fees\nLocal guide';
-  v_batanes_itin text := E'Day 1:\n08:00 AM – Arrive in Basco, lunch\n01:00 PM – North Batan tour: Valugan Boulder Beach, Vayang Rolling Hills\nDay 2:\n08:00 AM – South Batan tour: Marlboro Country, Rakuh-a-Payaman\nDay 3:\n06:00 AM – Falowa to Sabtang: Chavayan Village\nDay 4:\n09:00 AM – Flight back to Manila';
+  v_pagudpud_desc text := 'The Bangui windmills, the white sand of Saud Beach, Kapurpurawan Rock Formation and a night walk on Calle Crisologo in Vigan. Four days up north by van.';
+  v_pagudpud_incl text := E'Round-trip van from Metro Manila\n3 nights beach-front homestay\nBangui Windmills and Kapurpurawan Rock Formation\nPaoay Church and Vigan heritage walk\nDaily breakfast\nEnvironmental fees\nLocal guide';
+  v_pagudpud_itin text := E'Day 0:\n08:00 PM – Meet up at the pickup points\nDay 1:\n08:00 AM – Paoay Church and the Sand Dunes\n03:00 PM – Check in at Saud Beach\nDay 2:\n08:00 AM – Bangui Windmills, Kapurpurawan, Cape Bojeador Lighthouse\nDay 3:\n08:00 AM – Patapat Viaduct and Kabigan Falls\nDay 4:\n07:00 AM – Vigan: Calle Crisologo and empanada, then back to Manila';
   v_sagada_desc text := 'Caves, hanging coffins and a sunrise over a sea of clouds at Kiltepan. A relaxed long weekend in the cool mountains of Sagada.';
   v_sagada_incl text := E'Round-trip van from Metro Manila\n2 nights inn accommodation\nSumaguing Cave connection with guide\nHanging coffins and Echo Valley tour\nKiltepan sunrise\nEnvironmental fees';
   v_sagada_itin text := E'Day 0:\n09:00 PM – Meet up at the pickup points\nDay 1:\n09:00 AM – Arrive in Sagada, check in\n01:00 PM – Echo Valley and hanging coffins\nDay 2:\n05:00 AM – Kiltepan sunrise\n09:00 AM – Cave connection\nDay 3:\n08:00 AM – Breakfast and travel back to Manila';
@@ -315,8 +316,8 @@ declare
   v_excl text := E'Personal expenses\nTips for guides and drivers\nMeals not listed';
   v_note text := 'Please be at your pickup point 15 minutes early. The van leaves on time. Follow your guide and the Leave No Trace rules.';
 
-  t_pulag1 bigint; t_batanes1 bigint; t_elnido bigint; t_sagada1 bigint; t_baler bigint; t_ulap bigint;
-  t_live bigint; t_pinatubo bigint; t_sagada2 bigint; t_batanes2 bigint; t_siargao bigint; t_pulag2 bigint; t_coron bigint; t_private bigint;
+  t_pulag1 bigint; t_pagudpud1 bigint; t_calaguas bigint; t_sagada1 bigint; t_baler bigint; t_ulap bigint;
+  t_live bigint; t_pinatubo bigint; t_sagada2 bigint; t_pagudpud2 bigint; t_banaue bigint; t_pulag2 bigint; t_launion bigint; t_private bigint;
   b uuid;
   b_demo_live uuid; b_demo_sagada uuid; b_cancel uuid; b_verify uuid;
   r_private uuid;
@@ -357,9 +358,9 @@ begin
   insert into public.destinations (name, region)
   select x.n, x.r from (values
     ('Kabayan, Benguet', 'CAR (Cordillera)'), ('Itogon, Benguet', 'CAR (Cordillera)'), ('Sagada, Mountain Province', 'CAR (Cordillera)'),
-    ('Basco, Batanes', 'Cagayan Valley'), ('Baler, Aurora', 'Central Luzon'), ('San Antonio, Zambales', 'Central Luzon'),
-    ('Capas, Tarlac', 'Central Luzon'), ('El Nido, Palawan', 'MIMAROPA'), ('Coron, Palawan', 'MIMAROPA'),
-    ('General Luna, Siargao', 'Caraga'), ('Tagaytay, Cavite', 'CALABARZON'), ('San Juan, La Union', 'Ilocos Region')) as x(n, r)
+    ('Banaue, Ifugao', 'CAR (Cordillera)'), ('Pagudpud, Ilocos Norte', 'Ilocos Region'), ('San Juan, La Union', 'Ilocos Region'),
+    ('Baler, Aurora', 'Central Luzon'), ('San Antonio, Zambales', 'Central Luzon'), ('Capas, Tarlac', 'Central Luzon'),
+    ('Tagaytay, Cavite', 'CALABARZON'), ('Vinzons, Camarines Norte', 'Bicol Region')) as x(n, r)
   where not exists (select 1 from public.destinations y where lower(y.name) = lower(x.n));
 
   -- ── Pickup points ──
@@ -390,28 +391,29 @@ begin
   insert into public.suppliers (name, supplier_type, inclusion_name, contact_person, contact_number, destinations, default_rate, rate_basis, notes)
   select x.* from (values
     ('JM Van Rentals', 'van_rental', 'Round-trip van with driver', 'Jojo Manalo', '09171112233',
-       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Baler, Aurora', 'San Antonio, Zambales', 'Capas, Tarlac', 'Tagaytay, Cavite', 'San Juan, La Union'], 9000::numeric, 'per_trip', 'Includes fuel, tolls and driver''s meals. Book 2 weeks ahead.'),
-    ('Island Airport Shuttles', 'van_rental', 'Airport transfers', 'Lito Ramos', '09281114455',
-       array['Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao'], 6000, 'per_trip', 'Partner vans at the airport for the island trips.'),
+       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Banaue, Ifugao', 'Baler, Aurora', 'San Antonio, Zambales', 'Capas, Tarlac', 'Tagaytay, Cavite', 'San Juan, La Union'], 9000::numeric, 'per_trip', 'Includes fuel, tolls and driver''s meals. Book 2 weeks ahead.'),
+    ('Northbound Van Tours', 'van_rental', 'Round-trip van with driver', 'Lito Ramos', '09281114455',
+       array['Pagudpud, Ilocos Norte', 'Vinzons, Camarines Norte'], 14000, 'per_trip', 'Bigger vans with reclining seats for the long trips up north and to Bicol.'),
     ('Kabayan Mountain Guides', 'tour_guide', 'Local mountain guide', 'Jun Bayangan', '09191234455', array['Kabayan, Benguet'], 1000, 'per_trip', 'DENR-accredited. 1 guide per 7 hikers.'),
     ('Sagada Genuine Guides Association', 'tour_guide', 'Local tour guide', 'Manang Cora Dao-ey', '09201239911', array['Sagada, Mountain Province'], 1000, 'per_trip', 'Cave connection guides included.'),
     ('Ampucao Trail Guides', 'tour_guide', 'Local trail guide', 'Ben Tayaban', '09211230022', array['Itogon, Benguet'], 1000, 'per_trip', null),
-    ('Island Hopping Guides PH', 'tour_guide', 'Local island guide', 'Rex Dumlao', '09231236677',
-       array['Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao', 'San Antonio, Zambales', 'Baler, Aurora', 'Capas, Tarlac'], 1000, 'per_trip', null),
+    ('Batad Guides Association', 'tour_guide', 'Local trek guide', 'Manong Peter Dulnuan', '09231236677', array['Banaue, Ifugao'], 1000, 'per_trip', 'Batad trek and Tappiya Falls.'),
+    ('Luzon Explorer Guides', 'tour_guide', 'Local tour guide', 'Rex Dumlao', '09241236688',
+       array['Pagudpud, Ilocos Norte', 'Vinzons, Camarines Norte', 'San Juan, La Union', 'San Antonio, Zambales', 'Baler, Aurora', 'Capas, Tarlac'], 1000, 'per_trip', null),
     ('Pundaquit Boatmen Association', 'boat', 'Boat transfers', 'Mang Tonyo Ladia', '09241237788', array['San Antonio, Zambales'], 3000, 'per_trip', 'Anawangin and Capones in one trip.'),
-    ('El Nido Island Tours Co.', 'boat', 'Island hopping boat', 'Grace Abrina', '09251238899', array['El Nido, Palawan', 'Coron, Palawan'], 3000, 'per_trip', 'Lunch on board included.'),
-    ('Siargao Island Boats', 'boat', 'Island hopping boat', 'Dodong Galarpe', '09261239900', array['General Luna, Siargao'], 3000, 'per_trip', null),
+    ('Calaguas Bangka Tours', 'boat', 'Boat transfers and island hopping', 'Grace Abrina', '09251238899', array['Vinzons, Camarines Norte'], 3000, 'per_trip', 'From Paracale port. Island hopping included.'),
     ('Ganduyan Inn', 'accommodation', 'Inn accommodation', 'Ate Lyn', '09271230011', array['Sagada, Mountain Province'], 450, 'per_person', 'Hot shower, 4 per room.'),
-    ('Ivatan Homestay', 'accommodation', 'Homestay', 'Nanay Rosa Agcaoili', '09281230022', array['Basco, Batanes'], 450, 'per_person', 'Traditional stone house.'),
-    ('Lagoon Breeze Inn', 'accommodation', 'Beach-side inn', 'Mark Villaflor', '09291230033',
-       array['El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao', 'Baler, Aurora'], 450, 'per_person', null),
+    ('Saud Beach Homestay', 'accommodation', 'Beach-front homestay', 'Nanay Rosa Agcaoili', '09281230022', array['Pagudpud, Ilocos Norte'], 450, 'per_person', 'A short walk to Saud Beach.'),
+    ('Banaue Native Village Inn', 'accommodation', 'Native-style inn', 'Mark Villaflor', '09291230033', array['Banaue, Ifugao'], 450, 'per_person', 'View of the rice terraces.'),
+    ('Urbiztondo Beach Hostel', 'accommodation', 'Beach hostel', 'Cha Lazaro', '09291230034', array['San Juan, La Union', 'Baler, Aurora'], 450, 'per_person', null),
     ('Anawangin Campsite', 'accommodation', 'Tent and campsite', 'Kuya Ben', '09301230044', array['San Antonio, Zambales', 'Kabayan, Benguet'], 450, 'per_person', 'Tents for 2, sleeping mats included.'),
+    ('Calaguas Camp Hosts', 'accommodation', 'Tent and campsite', 'Ate Weng', '09301230045', array['Vinzons, Camarines Norte'], 450, 'per_person', 'Beach-front tents and shower area.'),
     ('Lola Ising''s Kitchen', 'food', 'Meals', 'Lola Ising', '09311230055',
-       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Packed meals for hikes; vegetarian on request.'),
-    ('Batanes Seafood Grill', 'food', 'Meals', 'Joel Hidalgo', '09321230066',
-       array['Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao'], 250, 'per_person', null),
+       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Banaue, Ifugao', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Packed meals for hikes; vegetarian on request.'),
+    ('Ilocos Empanada & Grill', 'food', 'Meals', 'Joel Hidalgo', '09321230066',
+       array['Pagudpud, Ilocos Norte', 'San Juan, La Union', 'Vinzons, Camarines Norte'], 250, 'per_person', null),
     ('Protected Area & Tourism Fees', 'attraction', 'Entrance & environmental fees', null, null,
-       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Basco, Batanes', 'El Nido, Palawan', 'Coron, Palawan', 'General Luna, Siargao', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Paid at the registration area.')
+       array['Kabayan, Benguet', 'Itogon, Benguet', 'Sagada, Mountain Province', 'Banaue, Ifugao', 'Pagudpud, Ilocos Norte', 'Vinzons, Camarines Norte', 'San Juan, La Union', 'San Antonio, Zambales', 'Capas, Tarlac', 'Baler, Aurora'], 250, 'per_person', 'Paid at the registration area.')
   ) as x(name, supplier_type, inclusion_name, contact_person, contact_number, destinations, default_rate, rate_basis, notes)
   where not exists (select 1 from public.suppliers y where lower(y.name) = lower(x.name));
 
@@ -434,14 +436,14 @@ begin
   -- Finished
   t_pulag1 := pg_temp.sym_tour('Mt. Pulag Sea of Clouds', 'Kabayan, Benguet', date '2026-07-18', date '2026-07-19', 3800, 'Hard', true,
     v_pulag_desc, v_pulag_incl, v_excl, v_bring || E'\nWarm jacket and gloves\nHeadlamp', v_pulag_itin, '22:00', v_img_mountain, '{}', v_note);
-  t_batanes1 := pg_temp.sym_tour('Batanes Island Escape', 'Basco, Batanes', date '2026-08-13', date '2026-08-16', 7500, 'Easy', true,
-    v_batanes_desc, v_batanes_incl, v_excl || E'\nRound-trip airfare to Basco', v_bring || E'\nSunscreen\nHat', v_batanes_itin, '05:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
-  t_elnido := pg_temp.sym_tour('El Nido Island Hopping', 'El Nido, Palawan', date '2026-09-10', date '2026-09-13', 7200, 'Easy', true,
-    'Lagoons, limestone cliffs and white-sand beaches. Island hopping Tours A and C with lunch on the boat, plus a free day in town.',
-    E'Island hopping Tours A and C\nBoat lunch on both days\n3 nights beach-side inn\nKayak rental at Big Lagoon\nEco-tourism fees\nLocal guide', v_excl || E'\nRound-trip airfare to Puerto Princesa',
-    v_bring || E'\nSwimwear and rash guard\nDry bag\nReef-safe sunscreen',
-    E'Day 1:\n10:00 AM – Arrive in El Nido, check in\n04:00 PM – Sunset at Las Cabañas\nDay 2:\n08:30 AM – Tour A: Big Lagoon, Small Lagoon, Secret Lagoon\nDay 3:\n08:30 AM – Tour C: Hidden Beach, Matinloc Shrine\nDay 4:\n09:00 AM – Free morning, then travel back',
-    '06:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+  t_pagudpud1 := pg_temp.sym_tour('Pagudpud & Vigan Heritage Trip', 'Pagudpud, Ilocos Norte', date '2026-08-13', date '2026-08-16', 6500, 'Easy', true,
+    v_pagudpud_desc, v_pagudpud_incl, v_excl, v_bring || E'\nSunscreen\nHat\nSwimwear', v_pagudpud_itin, '20:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+  t_calaguas := pg_temp.sym_tour('Calaguas Island Escape', 'Vinzons, Camarines Norte', date '2026-09-10', date '2026-09-13', 5800, 'Easy', true,
+    'Powdery white sand and clear blue water on Mahabang Buhangin. A long van ride to Bicol, a boat across, and two nights camping on one of the best beaches in Luzon.',
+    E'Round-trip van from Metro Manila\nBoat transfers from Paracale\n2 nights tent camping on the beach\nIsland hopping to Tinaga and Pinagtarcan\n6 meals\nEnvironmental fees\nLocal guide', v_excl,
+    v_bring || E'\nSwimwear and rash guard\nDry bag\nHeadlamp',
+    E'Day 0:\n09:00 PM – Meet up at the pickup points\nDay 1:\n08:00 AM – Arrive in Paracale, boat to Calaguas\n12:00 PM – Lunch and swimming at Mahabang Buhangin\nDay 2:\n08:00 AM – Island hopping: Tinaga and Pinagtarcan\n05:30 PM – Sunset from the hill\nDay 3:\n06:00 AM – Sunrise and breakfast\n10:00 AM – Boat back to Paracale\nDay 4:\n07:00 AM – Pasalubong stop in Daet, then back to Manila',
+    '21:00', v_img_beach, array['Tent (2 pax)'], v_note);
   t_sagada1 := pg_temp.sym_tour('Sagada Cave & Sunrise', 'Sagada, Mountain Province', date '2026-10-09', date '2026-10-11', 4200, 'Moderate', true,
     v_sagada_desc, v_sagada_incl, v_excl, v_bring || E'\nJacket (it gets cold)', v_sagada_itin, '21:00', v_img_mountain, array['Shared room (4 pax)', 'Couple room'], v_note);
   t_baler := pg_temp.sym_tour('Baler Surf Weekend', 'Baler, Aurora', date '2026-10-24', date '2026-10-25', 2800, 'Easy', true,
@@ -469,20 +471,20 @@ begin
   update public.tours set sale_starts = date '2026-11-20', sale_ends = date '2026-12-03' where id = t_pinatubo;
   t_sagada2 := pg_temp.sym_tour('Sagada Cave & Sunrise', 'Sagada, Mountain Province', date '2026-12-11', date '2026-12-13', 4200, 'Moderate', false,
     v_sagada_desc, v_sagada_incl, v_excl, v_bring || E'\nJacket (it gets cold)', v_sagada_itin, '21:00', v_img_mountain, array['Shared room (4 pax)', 'Couple room'], v_note);
-  t_batanes2 := pg_temp.sym_tour('Batanes Island Escape', 'Basco, Batanes', date '2026-12-27', date '2026-12-30', 7500, 'Easy', false,
-    v_batanes_desc, v_batanes_incl, v_excl || E'\nRound-trip airfare to Basco', v_bring || E'\nSunscreen\nHat', v_batanes_itin, '05:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
-  t_siargao := pg_temp.sym_tour('Siargao Island Hopping', 'General Luna, Siargao', date '2027-01-14', date '2027-01-17', 7400, 'Easy', false,
-    'Naked Island, Daku and Guyam, the Sugba Lagoon and a sunset at Cloud 9. Island life at its best.',
-    E'Airport transfers in Siargao\nTri-island hopping with lunch\nSugba Lagoon tour\n3 nights resort stay\nDaily breakfast', v_excl || E'\nRound-trip airfare to Siargao',
-    v_bring || E'\nSwimwear\nDry bag', E'Day 1:\n10:00 AM – Arrive, check in\n04:00 PM – Cloud 9 boardwalk sunset\nDay 2:\n08:00 AM – Naked, Daku and Guyam islands\nDay 3:\n07:00 AM – Sugba Lagoon\nDay 4:\n09:00 AM – Check out, travel back',
-    '06:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+  t_pagudpud2 := pg_temp.sym_tour('Pagudpud & Vigan Heritage Trip', 'Pagudpud, Ilocos Norte', date '2026-12-27', date '2026-12-30', 6500, 'Easy', false,
+    v_pagudpud_desc, v_pagudpud_incl, v_excl, v_bring || E'\nSunscreen\nHat\nSwimwear', v_pagudpud_itin, '20:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+  t_banaue := pg_temp.sym_tour('Banaue & Batad Rice Terraces', 'Banaue, Ifugao', date '2027-01-15', date '2027-01-17', 4500, 'Moderate', false,
+    'The 2,000-year-old rice terraces of Ifugao. A hike down to the amphitheater of Batad, a swim at Tappiya Falls and a night in a native-style inn.',
+    E'Round-trip van from Metro Manila\n2 nights inn in Banaue\nBatad trek with local guide\nTappiya Falls\nBanaue viewpoint\nEnvironmental fees', v_excl,
+    v_bring || E'\nTrail shoes\nJacket (it gets cold)', E'Day 0:\n09:00 PM – Meet up at the pickup points\nDay 1:\n08:00 AM – Arrive in Banaue, viewpoint\n01:00 PM – Hapao rice terraces\nDay 2:\n07:00 AM – Batad trek and Tappiya Falls\nDay 3:\n08:00 AM – Breakfast, then back to Manila',
+    '21:00', v_img_mountain, array['Shared room (4 pax)', 'Couple room'], v_note);
   t_pulag2 := pg_temp.sym_tour('Mt. Pulag Sea of Clouds', 'Kabayan, Benguet', date '2027-01-23', date '2027-01-24', 3800, 'Hard', false,
     v_pulag_desc, v_pulag_incl, v_excl, v_bring || E'\nWarm jacket and gloves\nHeadlamp', v_pulag_itin, '22:00', v_img_mountain, '{}', v_note);
-  t_coron := pg_temp.sym_tour('Coron Island Hopping', 'Coron, Palawan', date '2027-02-11', date '2027-02-14', 7300, 'Easy', false,
-    'Kayangan Lake, Twin Lagoon, shipwreck snorkeling and Maquinit Hot Spring in Coron.',
-    E'Coron town tour\nUltimate island hopping with lunch\nShipwreck snorkeling\n3 nights inn\nDaily breakfast', v_excl || E'\nRound-trip airfare to Busuanga',
-    v_bring || E'\nSwimwear\nSnorkel (or rent there)', E'Day 1:\n11:00 AM – Arrive, town tour, Mt. Tapyas sunset\nDay 2:\n08:00 AM – Kayangan Lake and Twin Lagoon\nDay 3:\n08:00 AM – Shipwreck and reef snorkeling\nDay 4:\n09:00 AM – Travel back',
-    '06:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+  t_launion := pg_temp.sym_tour('La Union Surf & Food Trip', 'San Juan, La Union', date '2027-02-12', date '2027-02-14', 3600, 'Easy', false,
+    'Surf lessons in Urbiztondo, Tangadan Falls, the grape farm and a food crawl along the beach. Three easy days in Elyu.',
+    E'Round-trip van from Metro Manila\n2 nights beach hostel\n1 hour surf lesson with board\nTangadan Falls tour\nDaily breakfast', v_excl,
+    v_bring || E'\nSwimwear\nSlippers', E'Day 0:\n10:00 PM – Meet up at the pickup points\nDay 1:\n05:00 AM – Arrive, surf lesson at sunrise\n02:00 PM – Tangadan Falls\nDay 2:\n09:00 AM – Grape farm and Baluarte Watchtower\n06:00 PM – Food crawl in Urbiztondo\nDay 3:\n09:00 AM – Check out, back to Manila',
+    '22:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
 
   -- Baler was cancelled by Typhoon Ofel.
   update public.tours set weather_status = 'cancelled', weather_reason = 'Typhoon Ofel (Signal No. 2 over Aurora)',
@@ -497,19 +499,19 @@ begin
   b := pg_temp.sym_booking(t_pulag1, u[3], 3, 'full', 'done', timestamptz '2026-06-20 21:30+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
   b := pg_temp.sym_booking(t_pulag1, u[4], 2, 'down', 'done', timestamptz '2026-06-25 18:22+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
   b := pg_temp.sym_booking(t_pulag1, u[5], 1, 'full', 'cancelled', timestamptz '2026-06-27 11:11+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  -- Batanes (Aug)
-  b := pg_temp.sym_booking(t_batanes1, v_demo, 2, 'full', 'done', timestamptz '2026-07-02 19:48+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes1, u[6], 2, 'full', 'done', timestamptz '2026-07-05 08:30+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes1, u[7], 3, 'down', 'done', timestamptz '2026-07-08 13:15+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes1, u[8], 2, 'full', 'done', timestamptz '2026-07-15 22:02+08', 'Petron NLEX Balintawak', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes1, u[9], 1, 'full', 'done', timestamptz '2026-07-19 10:44+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  -- El Nido (Sep)
-  b := pg_temp.sym_booking(t_elnido, u[3], 2, 'full', 'done', timestamptz '2026-08-01 16:20+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_elnido, u[10], 2, 'full', 'done', timestamptz '2026-08-06 09:58+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_elnido, u[11], 3, 'down', 'done', timestamptz '2026-08-12 20:31+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_elnido, u[12], 1, 'full', 'done', timestamptz '2026-08-19 07:47+08', 'Petron NLEX Balintawak', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_elnido, u[1], 2, 'full', 'done', timestamptz '2026-08-21 15:03+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_elnido, u[2], 1, 'full', 'rejected', timestamptz '2026-08-24 12:12+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  -- Pagudpud & Vigan (Aug)
+  b := pg_temp.sym_booking(t_pagudpud1, v_demo, 2, 'full', 'done', timestamptz '2026-07-02 19:48+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud1, u[6], 2, 'full', 'done', timestamptz '2026-07-05 08:30+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud1, u[7], 3, 'down', 'done', timestamptz '2026-07-08 13:15+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud1, u[8], 2, 'full', 'done', timestamptz '2026-07-15 22:02+08', 'Petron NLEX Balintawak', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud1, u[9], 1, 'full', 'done', timestamptz '2026-07-19 10:44+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  -- Calaguas (Sep)
+  b := pg_temp.sym_booking(t_calaguas, u[3], 2, 'full', 'done', timestamptz '2026-08-01 16:20+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_calaguas, u[10], 2, 'full', 'done', timestamptz '2026-08-06 09:58+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_calaguas, u[11], 3, 'down', 'done', timestamptz '2026-08-12 20:31+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_calaguas, u[12], 1, 'full', 'done', timestamptz '2026-08-19 07:47+08', 'Petron NLEX Balintawak', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_calaguas, u[1], 2, 'full', 'done', timestamptz '2026-08-21 15:03+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_calaguas, u[2], 1, 'full', 'rejected', timestamptz '2026-08-24 12:12+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
   -- Sagada (Oct)
   b := pg_temp.sym_booking(t_sagada1, v_demo, 1, 'full', 'done', timestamptz '2026-09-03 21:09+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
   b := pg_temp.sym_booking(t_sagada1, u[5], 2, 'full', 'done', timestamptz '2026-09-06 10:30+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
@@ -553,35 +555,35 @@ begin
   insert into public.pickup_requests (booking_id, tour_id, user_id, location, note, status, created_at, updated_at)
   select id, t_sagada2, user_id, 'Malolos Crossing (Jollibee)', 'I live in Malolos. Can the van pass by on the way north?', 'Requested', now() - interval '20 hours', now() - interval '20 hours'
     from public.bookings where tour_id = t_sagada2 and user_id = u[6];
-  -- Batanes (Dec 27): fully booked + waitlist
-  b := pg_temp.sym_booking(t_batanes2, u[1], 3, 'down', 'paid', timestamptz '2026-10-20 20:11+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes2, u[4], 2, 'full', 'paid', timestamptz '2026-10-24 09:36+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes2, u[7], 2, 'down', 'settled', timestamptz '2026-10-27 13:02+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes2, u[9], 3, 'full', 'paid', timestamptz '2026-11-01 17:45+08', 'Petron NLEX Balintawak', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes2, u[10], 2, 'full', 'paid', timestamptz '2026-11-06 21:18+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_batanes2, u[11], 2, 'down', 'paid', timestamptz '2026-11-11 11:27+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
+  -- Pagudpud & Vigan (Dec 27): fully booked + waitlist
+  b := pg_temp.sym_booking(t_pagudpud2, u[1], 3, 'down', 'paid', timestamptz '2026-10-20 20:11+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud2, u[4], 2, 'full', 'paid', timestamptz '2026-10-24 09:36+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud2, u[7], 2, 'down', 'settled', timestamptz '2026-10-27 13:02+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud2, u[9], 3, 'full', 'paid', timestamptz '2026-11-01 17:45+08', 'Petron NLEX Balintawak', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud2, u[10], 2, 'full', 'paid', timestamptz '2026-11-06 21:18+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_pagudpud2, u[11], 2, 'down', 'paid', timestamptz '2026-11-11 11:27+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
   insert into public.tour_waitlist (tour_id, user_id, slots_wanted, created_at) values
-    (t_batanes2, u[12], 2, now() - interval '4 days'), (t_batanes2, u[3], 1, now() - interval '2 days');
-  -- Siargao, Mt. Pulag (Jan), Coron (Feb)
-  b := pg_temp.sym_booking(t_siargao, u[2], 2, 'down', 'paid', timestamptz '2026-11-15 20:40+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_siargao, u[5], 2, 'full', 'paid', timestamptz '2026-11-18 08:25+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+    (t_pagudpud2, u[12], 2, now() - interval '4 days'), (t_pagudpud2, u[3], 1, now() - interval '2 days');
+  -- Banaue (Jan), Mt. Pulag (Jan), La Union (Feb)
+  b := pg_temp.sym_booking(t_banaue, u[2], 2, 'down', 'paid', timestamptz '2026-11-15 20:40+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_banaue, u[5], 2, 'full', 'paid', timestamptz '2026-11-18 08:25+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
   b := pg_temp.sym_booking(t_pulag2, u[6], 3, 'down', 'paid', timestamptz '2026-11-19 19:52+08', 'SM North EDSA (The Block entrance)', v_admin, v_admin_name);
   b := pg_temp.sym_booking(t_pulag2, u[8], 1, 'full', 'paid', timestamptz '2026-11-21 10:07+08', 'Petron NLEX Balintawak', v_admin, v_admin_name);
-  b := pg_temp.sym_booking(t_coron, u[4], 2, 'full', 'paid', timestamptz '2026-11-22 16:31+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
+  b := pg_temp.sym_booking(t_launion, u[4], 2, 'full', 'paid', timestamptz '2026-11-22 16:31+08', 'Cubao (Araneta City Bus Port)', v_admin, v_admin_name);
 
   -- ── Expenses (Reports) ──
   perform pg_temp.sym_expenses(t_pulag1, 10500, false, true, v_admin);
-  perform pg_temp.sym_expenses(t_batanes1, 6000, false, true, v_admin);
-  perform pg_temp.sym_expenses(t_elnido, 6000, true, true, v_admin);
+  perform pg_temp.sym_expenses(t_pagudpud1, 14000, false, true, v_admin);
+  perform pg_temp.sym_expenses(t_calaguas, 12000, true, true, v_admin);
   perform pg_temp.sym_expenses(t_sagada1, 12000, false, true, v_admin);
   perform pg_temp.sym_expenses(t_ulap, 9000, false, true, v_admin);
   perform pg_temp.sym_expenses(t_live, 9000, true, false, v_admin);
   perform pg_temp.sym_expenses(t_pinatubo, 8000, false, false, v_admin);
   perform pg_temp.sym_expenses(t_sagada2, 12000, false, false, v_admin);
-  perform pg_temp.sym_expenses(t_batanes2, 6000, false, false, v_admin);
-  perform pg_temp.sym_expenses(t_siargao, 6000, true, false, v_admin);
+  perform pg_temp.sym_expenses(t_pagudpud2, 14000, false, false, v_admin);
+  perform pg_temp.sym_expenses(t_banaue, 12000, false, false, v_admin);
   perform pg_temp.sym_expenses(t_pulag2, 10500, false, false, v_admin);
-  perform pg_temp.sym_expenses(t_coron, 6000, true, false, v_admin);
+  perform pg_temp.sym_expenses(t_launion, 9000, false, false, v_admin);
 
   -- ── Link the tours to the saved drivers, vans and suppliers ──
   select array_agg(id order by array_position(array['Ramon Castillo', 'Eduardo "Edong" Pascual', 'Noel Villareal'], name)) into d
@@ -623,7 +625,7 @@ begin
      order by b.user_id, l.tour_id, l.supplier_id, l.sort_order;
   end if;
 
-  -- ── Live trip (Nov 25): route, a 4th pickup on the way, where the van is ──
+  -- ── Live trip (Nov 25): its route and a 4th pickup on the way ──
   update public.tours set route = jsonb_build_object(
       'start', jsonb_build_object('name', 'Cubao (Araneta City Bus Port)', 'lat', 14.6197, 'lng', 121.0537),
       'end', jsonb_build_object('name', 'Pundaquit Beach, San Antonio', 'lat', 14.9663, 'lng', 120.0818),
@@ -631,29 +633,17 @@ begin
    where id = t_live;
   insert into public.tour_meetups (tour_id, location_name, scheduled_time, status, note, lat, lng, route_order, minutes_from_start, created_at)
   values (t_live, 'Petron SCTEX Dinalupihan', '5:45 AM', 'DEPARTURE', 'Joshua joins here', 14.8790, 120.4650, 4, 160, timestamptz '2026-10-26 10:00+08');
-  update public.tour_meetups set status = 'DEPARTED', arrived_at = timestamptz '2026-11-25 03:00+08' where tour_id = t_live and route_order = 1;
-  update public.tour_meetups set status = 'DEPARTED', arrived_at = timestamptz '2026-11-25 03:32+08' where tour_id = t_live and route_order = 2;
-  update public.tour_meetups set status = 'CURRENTLY HERE', arrived_at = timestamptz '2026-11-25 03:48+08' where tour_id = t_live and route_order = 3;
-  insert into public.van_locations (tour_id, lat, lng, accuracy_m, speed_kmh, heading, updated_at)
-  values (t_live, 14.6612, 121.0013, 12, 0, 315, now());
-  insert into public.tour_tracking_logs (tour_id, meetup_id, location_name, status, display_text, created_at)
-  select t_live, id, location_name, status,
-         case route_order when 1 then 'The van left Cubao (Araneta City Bus Port). Have a safe trip!'
-                          when 2 then 'Picked up at SM North EDSA. Next: Petron NLEX Balintawak.'
-                          else 'The van is at Petron NLEX Balintawak, the last pickup in Metro Manila.' end,
-         arrived_at
-    from public.tour_meetups where tour_id = t_live and route_order <= 3;
+  -- Tracking hasn't started: every pickup is still waiting, and there's no van
+  -- location yet. Start it on Nov 25 (Tracking Management or the driver link).
 
   -- ── Group chats ──
   insert into public.tour_chat_messages (tour_id, user_id, body, kind, created_at) values
-    (t_live, v_admin, 'Good evening, everyone! The van leaves Cubao at 3:00 AM sharp. Please bring a valid ID and your swimwear. See you! 🌊', 'announcement', timestamptz '2026-11-24 19:00+08'),
-    (t_live, u[5], 'Excited na! Is there a store near the campsite for snacks?', null, timestamptz '2026-11-24 19:12+08'),
-    (t_live, v_admin, 'There''s a small sari-sari store at Pundaquit before the boat ride. The campsite only sells water and coffee.', null, timestamptz '2026-11-24 19:20+08'),
-    (t_live, v_demo, 'Thank you! We''ll be at Cubao by 2:45 AM 🙌', null, timestamptz '2026-11-24 19:31+08'),
-    (t_live, u[7], 'Can I pay my balance tomorrow morning in the van?', null, timestamptz '2026-11-24 20:05+08'),
-    (t_live, v_admin, 'Yes, Kristine. You can also pay it online now in My Bookings so you don''t need cash.', null, timestamptz '2026-11-24 20:11+08'),
-    (t_live, u[4], 'On the way to Cubao now 🚐', null, timestamptz '2026-11-25 02:40+08'),
-    (t_live, v_admin, 'Everyone from Cubao and SM North is on board. Next stop: Petron NLEX Balintawak.', 'announcement', timestamptz '2026-11-25 03:35+08'),
+    (t_live, v_admin, 'Hello, everyone! The van leaves Cubao at 3:00 AM sharp on Wednesday, Nov 25. Please bring a valid ID and your swimwear. See you! 🌊', 'announcement', now() - interval '20 hours'),
+    (t_live, u[5], 'Excited na! Is there a store near the campsite for snacks?', null, now() - interval '19 hours 40 minutes'),
+    (t_live, v_admin, 'There''s a small sari-sari store at Pundaquit before the boat ride. The campsite only sells water and coffee.', null, now() - interval '19 hours 30 minutes'),
+    (t_live, v_demo, 'Thank you! We''ll be at Cubao by 2:45 AM 🙌', null, now() - interval '19 hours'),
+    (t_live, u[7], 'Can I pay my balance in the van on the day?', null, now() - interval '6 hours'),
+    (t_live, v_admin, 'Yes, Kristine. You can also pay it online now in My Bookings so you don''t need cash.', null, now() - interval '5 hours 45 minutes'),
     (t_sagada2, v_admin, 'Hi everyone! Our Sagada group chat is open. Pack a warm jacket: mornings are around 12°C in December. 🧥', 'announcement', timestamptz '2026-11-15 18:00+08'),
     (t_sagada2, u[2], 'Is the cave connection okay for first-timers?', null, timestamptz '2026-11-15 18:22+08'),
     (t_sagada2, v_admin, 'Yes! The guides help you all the way. Just wear shoes or sandals with a good grip.', null, timestamptz '2026-11-15 18:30+08'),
@@ -671,15 +661,15 @@ begin
     (t_pulag1, u[1], 5, 'Best climb ever. Everything was organized from pickup to drop-off.', timestamptz '2026-07-21 08:30+08', null, null),
     (t_pulag1, u[2], 4, 'Great trip. The cold was intense at the summit, so bring real gloves!', timestamptz '2026-07-22 12:15+08', null, null),
     (t_pulag1, u[3], 5, 'We were 3 friends and loved every minute. Worth waking up at 2 AM.', timestamptz '2026-07-23 19:40+08', null, null),
-    (t_batanes1, u[6], 5, 'Batanes is paradise, and the homestay family was so warm.', timestamptz '2026-08-18 21:05+08', null, null),
-    (t_batanes1, u[7], 5, 'Sabtang was the highlight. Thank you for the very detailed itinerary!', timestamptz '2026-08-19 10:20+08',
-       'Thank you, Kristine! Sabtang is our favorite too. 💙', timestamptz '2026-08-19 15:00+08'),
-    (t_batanes1, u[8], 4, 'Beautiful place. The wind on the Sabtang boat ride was strong, but the crew was careful.', timestamptz '2026-08-20 18:44+08', null, null),
-    (t_elnido, u[3], 5, 'Crystal-clear lagoons and great boat lunches. 10/10!', timestamptz '2026-09-15 20:00+08', null, null),
-    (t_elnido, u[10], 4, 'Very fun! Tour C was more crowded than Tour A.', timestamptz '2026-09-16 09:12+08', null, null),
-    (t_elnido, u[11], 5, 'My first trip with Bandang IBAYO and definitely not the last.', timestamptz '2026-09-16 21:47+08', null, null),
-    (t_elnido, u[12], 3, 'Good tour but the inn was far from the beach. Hope you find a closer one next time.', timestamptz '2026-09-17 13:30+08',
-       'Thanks for the honest feedback, Joshua. We already found a beach-side inn for the next El Nido dates.', timestamptz '2026-09-18 10:00+08'),
+    (t_pagudpud1, u[6], 5, 'Pagudpud is paradise, and the homestay family was so warm.', timestamptz '2026-08-18 21:05+08', null, null),
+    (t_pagudpud1, u[7], 5, 'Kapurpurawan was the highlight. Thank you for the very detailed itinerary!', timestamptz '2026-08-19 10:20+08',
+       'Thank you, Kristine! Kapurpurawan is our favorite too. 💙', timestamptz '2026-08-19 15:00+08'),
+    (t_pagudpud1, u[8], 4, 'Beautiful place. The ride up north is long, but the driver was careful and we had enough stops.', timestamptz '2026-08-20 18:44+08', null, null),
+    (t_calaguas, u[3], 5, 'The sand is like powder and the water so clear. 10/10!', timestamptz '2026-09-15 20:00+08', null, null),
+    (t_calaguas, u[10], 4, 'Very fun! The boat ride back was a bit rough, but the crew was great.', timestamptz '2026-09-16 09:12+08', null, null),
+    (t_calaguas, u[11], 5, 'My first trip with Bandang IBAYO and definitely not the last.', timestamptz '2026-09-16 21:47+08', null, null),
+    (t_calaguas, u[12], 3, 'Good trip but the campsite was crowded. Hope you find a quieter spot next time.', timestamptz '2026-09-17 13:30+08',
+       'Thanks for the honest feedback, Joshua. We moved our campsite to the quieter side of the island for the next dates.', timestamptz '2026-09-18 10:00+08'),
     (t_sagada1, v_demo, 5, 'Cozy inn, delicious food and the cave connection was an adventure. The Kiltepan sunrise made my year.', timestamptz '2026-10-13 19:25+08', null, null),
     (t_sagada1, u[5], 5, 'Loved it! The guides made the cave connection safe and fun.', timestamptz '2026-10-12 22:10+08', null, null),
     (t_sagada1, u[9], 4, 'Nice trip. A bit long on the road but the views were worth it.', timestamptz '2026-10-14 08:40+08', null, null),
@@ -694,7 +684,7 @@ begin
 
   -- ── Feed ──
   insert into public.feed_posts (author_id, content, image_url, post_type, tour_id, created_at, media, status) values
-    (v_admin, 'NEW DATES: Siargao Island Hopping on January 14–17, 2027! 🏝️ Naked Island, Sugba Lagoon and the Cloud 9 sunset. Book now on Explore Tours.', null, 'tour', t_siargao,
+    (v_admin, 'NEW DATES: Banaue & Batad Rice Terraces on January 15–17, 2027! 🌾 The Batad amphitheater, Tappiya Falls and a night in Ifugao. Book now on Explore Tours.', null, 'tour', t_banaue,
        timestamptz '2026-11-12 18:00+08', jsonb_build_array(jsonb_build_object('url', '/hero-elnido.webp', 'type', 'image')), 'Approved'),
     (v_admin, 'Mt. Pinatubo Crater Trek is ON SALE until December 3! 🌋 Limited slots for December 5.', null, 'tour', t_pinatubo,
        timestamptz '2026-11-20 12:00+08', jsonb_build_array(jsonb_build_object('url', '/nature-bg.webp', 'type', 'image')), 'Approved'),
@@ -702,17 +692,17 @@ begin
        timestamptz '2026-11-16 21:15+08', jsonb_build_array(jsonb_build_object('url', '/nature-bg.webp', 'type', 'image')), 'Approved'),
     (v_demo, 'Sagada sunrise from Kiltepan 🌄 Still dreaming about it. Who''s joining the December batch?', null, 'post', null,
        timestamptz '2026-10-14 19:40+08', jsonb_build_array(jsonb_build_object('url', '/hero-elnido.webp', 'type', 'image')), 'Approved'),
-    (u[3], 'El Nido lagoons were so blue they looked fake 😍', null, 'post', null,
+    (u[3], 'Calaguas sand is so fine it feels like flour 😍', null, 'post', null,
        timestamptz '2026-09-18 13:00+08', jsonb_build_array(jsonb_build_object('url', '/og-image.jpg', 'type', 'image')), 'Approved'),
     (u[12], 'Anyone selling a used tent? Looking for one for the Anawangin trip.', null, 'post', null,
        timestamptz '2026-11-23 09:30+08', '[]'::jsonb, 'Pending');
-  select id into p1 from public.feed_posts where tour_id = t_siargao;
+  select id into p1 from public.feed_posts where tour_id = t_banaue;
   select id into p2 from public.feed_posts where tour_id = t_pinatubo;
   select id into p3 from public.feed_posts where author_id = u[1];
   select id into p4 from public.feed_posts where author_id = v_demo;
   insert into public.feed_comments (post_id, user_id, content, created_at) values
     (p1, u[11], 'Saving up for this! 😍', timestamptz '2026-11-12 18:40+08'),
-    (p1, u[2], 'Booked na! See you in Siargao 🤙', timestamptz '2026-11-15 20:45+08'),
+    (p1, u[2], 'Booked na! See you in Banaue 🤙', timestamptz '2026-11-15 20:45+08'),
     (p2, u[10], 'Just booked for 1. Excited!', timestamptz '2026-11-21 18:45+08'),
     (p3, v_demo, 'Ang ganda! Next time sama ako 🙌', timestamptz '2026-11-17 08:10+08'),
     (p4, u[5], 'Same batch tayo! See you in December!', timestamptz '2026-10-14 20:02+08'),
@@ -726,8 +716,8 @@ begin
 
   -- ── Favorites (the demo joiner) ──
   insert into public.tour_favorites (user_id, tour_id, created_at) values
-    (v_demo, t_batanes2, now() - interval '6 days'), (v_demo, t_coron, now() - interval '3 days'), (v_demo, t_siargao, now() - interval '1 day'),
-    (u[1], t_coron, now() - interval '2 days'), (u[11], t_siargao, now() - interval '5 days');
+    (v_demo, t_pagudpud2, now() - interval '6 days'), (v_demo, t_launion, now() - interval '3 days'), (v_demo, t_banaue, now() - interval '1 day'),
+    (u[1], t_launion, now() - interval '2 days'), (u[11], t_banaue, now() - interval '5 days');
 
   -- ── Private tours and tour requests ──
   insert into public.exclusive_requests (user_id, request_type, full_name, contact_number, email, destination, region, group_size,
@@ -769,14 +759,14 @@ begin
       coalesce((select phone_number from public.profiles where id = v_demo), '09170000000'), v_demo_email,
       'San Juan, La Union', 'Ilocos Region', 6, date '2027-01-30', date '2027-01-31', 2, 'Beach resort', 25000, 'Barkada trip',
       'Surf lessons for beginners, and a sunset dinner by the beach please!', 'Pending', now() - interval '1 day', now() - interval '1 day'),
-    (u[10], 'request', 'Rafael Aquino', '09261234510', 'rafael.aquino@ibayo-demo.test', 'Mt. Apo, Davao', 'Davao Region', 10,
-      date '2027-03-18', date '2027-03-21', 4, 'Camping', 60000, 'Mountain climb', 'Our hiking club wants to climb the highest peak in the country.', 'Pending',
+    (u[10], 'request', 'Rafael Aquino', '09261234510', 'rafael.aquino@ibayo-demo.test', 'Mt. Ugo, Benguet', 'CAR (Cordillera)', 10,
+      date '2027-03-19', date '2027-03-20', 2, 'Camping', 30000, 'Mountain climb', 'Our hiking club wants to do the Mt. Ugo traverse down to Baguio.', 'Pending',
       now() - interval '3 days', now() - interval '3 days');
   insert into public.exclusive_requests (user_id, request_type, full_name, contact_number, email, destination, region, group_size,
       preferred_date, preferred_end_date, trip_days, accommodation, budget, tour_type, notes, status, admin_response, reviewed_by, reviewed_at, created_at, updated_at)
-  values (u[11], 'request', 'Nicole Torres', '09271234511', 'nicole.torres@ibayo-demo.test', 'Panglao, Bohol', 'Central Visayas', 5,
-      date '2026-12-24', date '2026-12-26', 3, 'Beach resort', 30000, 'Holiday trip', 'Christmas in Bohol with my family.',
-      'Rejected', 'Sorry, Nicole. Our vans and guides are fully booked over Christmas. We''d love to plan Bohol with you in January!', v_admin,
+  values (u[11], 'request', 'Nicole Torres', '09271234511', 'nicole.torres@ibayo-demo.test', 'Pagudpud, Ilocos Norte', 'Ilocos Region', 5,
+      date '2026-12-24', date '2026-12-26', 3, 'Beach resort', 30000, 'Holiday trip', 'Christmas in Pagudpud with my family.',
+      'Rejected', 'Sorry, Nicole. Our vans and guides are fully booked over Christmas. We''d love to plan Pagudpud with you in January!', v_admin,
       timestamptz '2026-11-02 10:00+08', timestamptz '2026-10-30 21:00+08', timestamptz '2026-11-02 10:00+08');
 
   -- ── Notifications ──
@@ -786,8 +776,7 @@ begin
     ('Balance paid', (select format('Thank you! The balance for %s is fully paid.', booking_number) from public.bookings where id = b_demo_live), 'payment', true, timestamptz '2026-11-18 12:00+08'),
     ('Booking Confirmed 🎉', (select format('Your downpayment for %s (Sagada Cave & Sunrise, Dec 11–13) is in. Pay the rest before the trip in My Bookings.', booking_number) from public.bookings where id = b_demo_sagada), 'booking', true, timestamptz '2026-11-09 21:20+08'),
     ('Bandang IBAYO replied to your review', 'Thank you for joining us! Kuya Jun says hi. See you on the next climb! 🏔️', 'review', true, timestamptz '2026-07-22 09:00+08'),
-    ('Pickup starts tomorrow 🚐', 'Anawangin Cove Camping: the van leaves Cubao (Araneta City Bus Port) at 3:00 AM. Open Tracking to follow the van.', 'tracking', false, timestamptz '2026-11-24 18:00+08'),
-    ('The van left Cubao', 'Anawangin Cove Camping is on the way. Open Tracking to see where the van is.', 'tracking', false, timestamptz '2026-11-25 03:01+08'),
+    ('Your trip is on Nov 25 🚐', 'Anawangin Cove Camping: the van leaves Cubao (Araneta City Bus Port) at 3:00 AM on Wednesday. Open Tracking on the day to follow the van.', 'tracking', false, now() - interval '3 hours'),
     ('Balance reminder', (select format('%s: your balance for Sagada Cave & Sunrise is due before December 11.', booking_number) from public.bookings where id = b_demo_sagada), 'payment', false, timestamptz '2026-11-23 09:00+08'),
     ('We got your private tour request', 'Thank you! We''ll send your La Union package within 2 days.', 'general', false, now() - interval '1 day')
   ) as x(t, m, ty, r, at);
@@ -798,7 +787,7 @@ begin
     ('Payment to check', (select format('%s sent a GCash receipt for %s (Sagada Cave & Sunrise). Check it in Booking Management.', full_name, booking_number) from public.bookings where id = b_verify), 'payment', false, timestamptz '2026-11-22 20:56+08'),
     ('Cancellation request', (select format('%s asked to cancel %s (Sagada Cave & Sunrise): Schedule conflict at work.', full_name, booking_number) from public.bookings where id = b_cancel), 'cancellation', false, now() - interval '40 minutes'),
     ('New private tour request', 'A joiner asked for a private La Union trip for 6 on Jan 30–31, 2027.', 'general', false, now() - interval '1 day'),
-    ('New tour request', 'Rafael Aquino requested a Mt. Apo climb for 10 on Mar 18–21, 2027.', 'general', false, now() - interval '3 days'),
+    ('New tour request', 'Rafael Aquino requested a Mt. Ugo climb for 10 on Mar 19–20, 2027.', 'general', false, now() - interval '3 days'),
     ('New Booking Paid Online', (select format('%s booked %s for Mt. Pinatubo Crater Trek (Dec 5).', full_name, booking_number) from public.bookings where tour_id = t_pinatubo and payment_status = 'Complete' order by created_at desc limit 1), 'booking', true, timestamptz '2026-11-22 12:36+08'),
     ('Pickup request', 'Paolo Garcia asked to be picked up at Malolos Crossing for Sagada Cave & Sunrise.', 'general', false, now() - interval '20 hours'),
     ('Weather refunds to send', '2 joiners of Baler Surf Weekend are still waiting for their 50% refund.', 'booking', false, now() - interval '2 days')
