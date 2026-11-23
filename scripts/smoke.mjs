@@ -29,7 +29,7 @@ const PHOTO = '/tour-placeholder.webp';
 const tour = (id, title, startIn, extra = {}) => ({
   id, title, destination: 'Itogon, Benguet', start_date: day(startIn), end_date: day(startIn + 1), duration: '2 Days, 1 Night',
   group_size: 14, price: 2500, regular_rate: 2000, difficulty: 'Easy', image_urls: [PHOTO], is_archived: false, is_exclusive: false,
-  itinerary: 'Day 1\n4:00 AM Meet at Petron', things_to_bring: 'Water\nJacket', inclusions: ['Van', 'Guide'], accommodation: ['Tent'], created_at: now, ...extra,
+  itinerary: 'Day 1\n4:00 AM Meet at Petron', things_to_bring: 'Water\nJacket', inclusions: 'Van\nTour guide\nEnvironmental fee', exclusions: 'Meals', accommodation_options: ['Tent'], created_at: now, ...extra,
 });
 const TOURS = [tour(101, 'Mt. Ulap Eco-Trail', 8), tour(102, 'Anawangin Cove Camping', 15), tour(103, 'Mt. Pulag Ambangeg', 22), tour(104, 'Baler Surf Weekend', -10, { is_archived: false })];
 const profile = (u, role, extra = {}) => ({
@@ -106,6 +106,25 @@ const PAGES = [...PUBLIC_PAGES, ...JOINER_PAGES, ...ADMIN_PAGES];
 // Messages that aren't the page's fault here (no real server).
 const IGNORE = /WebSocket|realtime|net::ERR|Failed to load resource|favicon|ERR_CONNECTION|ResizeObserver/i;
 
+// Sends every Supabase request to the sample data, and (for a role) saves a
+// fake sign-in in the browser. Also used by other scripts to open pages logged in.
+export const signIn = async (context, page, role) => {
+  await page.route(/supabase\.co/, (route) => {
+    const r = route.request();
+    if (!role) return route.fulfill({ json: r.url().includes('/rest/v1/tours') ? TOURS : [] });
+    const { json, headers } = answer(role, r.url(), r.method(), r.headers().accept || '');
+    return route.fulfill({ status: 200, contentType: 'application/json', headers: headers || {}, body: JSON.stringify(json) });
+  });
+  if (role) {
+    const session = sessionFor(role === 'admin' ? ADMIN : JOINER);
+    const who = role === 'admin' ? ADMIN : JOINER;
+    // The sign-in, and the first-visit guided tour marked as seen (it would cover the page).
+    await context.addInitScript(([key, value, tourKey]) => {
+      try { localStorage.setItem(key, value); localStorage.setItem(tourKey, '1'); } catch { /* */ }
+    }, [`sb-${PROJECT}-auth-token`, JSON.stringify(session), `ibayo:walkthrough-done:${role}:${who.id}`]);
+  }
+};
+
 const main = async () => {
   const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' });
   for (let i = 0; i < 60; i += 1) {
@@ -122,20 +141,7 @@ const main = async () => {
     const errors = [];
     page.on('pageerror', (e) => errors.push(`crash: ${e.message}`));
     page.on('console', (m) => { if (m.type() === 'error' && !IGNORE.test(m.text())) errors.push(`console: ${m.text().slice(0, 200)}`); });
-    await page.route(/supabase\.co/, (route) => {
-      const r = route.request();
-      if (!role) return route.fulfill({ json: r.url().includes('/rest/v1/tours') ? TOURS : [] });
-      const { json, headers } = answer(role, r.url(), r.method(), r.headers().accept || '');
-      return route.fulfill({ status: 200, contentType: 'application/json', headers: headers || {}, body: JSON.stringify(json) });
-    });
-    if (role) {
-      const session = sessionFor(role === 'admin' ? ADMIN : JOINER);
-      const who = role === 'admin' ? ADMIN : JOINER;
-      // The sign-in, and the first-visit guided tour marked as seen (it would cover the page).
-      await context.addInitScript(([key, value, tourKey]) => {
-        try { localStorage.setItem(key, value); localStorage.setItem(tourKey, '1'); } catch { /* */ }
-      }, [`sb-${PROJECT}-auth-token`, JSON.stringify(session), `ibayo:walkthrough-done:${role}:${who.id}`]);
-    }
+    await signIn(context, page, role);
     try {
       await page.goto(BASE + path, { waitUntil: 'networkidle', timeout: 30000 });
     } catch (e) { errors.push(`load: ${e.message.split('\n')[0]}`); }
@@ -156,4 +162,7 @@ const main = async () => {
   process.exit(failures.length ? 1 : 0);
 };
 
-main().catch((e) => { console.error(e); process.exit(1); });
+export { BASE, PORT, TOURS };
+
+// Run the test only when this file is run directly (not when imported).
+if (import.meta.url === `file://${process.argv[1]}`) main().catch((e) => { console.error(e); process.exit(1); });
