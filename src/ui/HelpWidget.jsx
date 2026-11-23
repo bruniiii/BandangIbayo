@@ -196,6 +196,13 @@ const HelpWidget = ({ zIndex = 600, onStartTour = null }) => {
             >
               <FacebookIcon size={18} /> Message us on Facebook
             </a>
+            {(AGENCY.instagram || AGENCY.tiktok) && (
+              <p style={{ margin: '8px 0 0', fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)' }}>
+                Also on {[AGENCY.instagram && <a key="ig" href={AGENCY.instagram} target="_blank" rel="noopener noreferrer" className="text-link">Instagram</a>,
+                  AGENCY.tiktok && <a key="tt" href={AGENCY.tiktok} target="_blank" rel="noopener noreferrer" className="text-link">TikTok</a>]
+                  .filter(Boolean).reduce((out, el, i) => (i ? [...out, ' and ', el] : [el]), [])}
+              </p>
+            )}
           </div>
         </div>
       )}

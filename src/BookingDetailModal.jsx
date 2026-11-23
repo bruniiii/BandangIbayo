@@ -262,8 +262,14 @@ const BookingDetailModal = ({ booking, onClose, onChanged, onStatusUpdate, onSet
               <div style={{ borderTop: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.18)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Quantity</span>
-                  <span style={{ fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{booking.slots_booked} pax × {formatPeso((Number(booking.total_price) || 0) / (booking.slots_booked || 1))}{Number(booking.sale_discount) > 0 ? ' (sale)' : ''}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{booking.slots_booked} pax × {formatPeso(((Number(booking.total_price) || 0) + (Number(booking.promo_discount) || 0)) / (booking.slots_booked || 1))}{Number(booking.sale_discount) > 0 ? ' (sale)' : ''}</span>
                 </div>
+                {Number(booking.promo_discount) > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Promo code <strong style={{ fontFamily: 'ui-monospace, monospace' }}>{booking.promo_code}</strong></span>
+                    <span style={{ fontWeight: 700, color: 'var(--ib-green, #1B5E3B)' }}>−{formatPeso(booking.promo_discount)}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Subtotal</span>
                   <span style={{ fontWeight: 700, color: 'var(--ib-dark, #1A0A00)' }}>{formatPeso(subtotal)}</span>

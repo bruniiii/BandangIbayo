@@ -122,7 +122,9 @@ const AdminDashboard = () => {
   const contentRef = useRef(null);
   useEffect(() => { pageEnter(contentRef.current); }, [activeTab]);
   const me = useAdminMe();
-  const navItems = me.isMain ? [...NAV_ITEMS, SETTINGS_ITEM] : NAV_ITEMS;
+  // Reports (money) is hidden from admins without that permission; on the other
+  // pages, what an admin may not change is refused by the database with a note.
+  const navItems = [...NAV_ITEMS.filter((n) => n.label !== 'Reports' || me.can('reports')), ...(me.isMain ? [SETTINGS_ITEM] : [])];
   // A refresh reopens the page you were on (see rememberTab.js).
   useEffect(() => { saveTab(TAB_KEY, activeTab); }, [activeTab]);
   // Browser Back goes to the previous dashboard page.
@@ -858,7 +860,7 @@ const AdminDashboard = () => {
           {activeTab === 'Requested Tours' && <AdminExclusiveTours key={`request${focusKey || ''}`} type="request" openRequestId={focusId} />}
           {activeTab === 'Reviews' && <Reviews key={focusKey} isAdmin={true} focusTourId={focusId} />}
           {activeTab === 'Messages' && <GroupChat isAdmin />}
-          {activeTab === 'Reports' && <Suspense fallback={<SkeletonRows count={4} label="Loading reports" />}><Reports /></Suspense>}
+          {activeTab === 'Reports' && me.can('reports') && <Suspense fallback={<SkeletonRows count={4} label="Loading reports" />}><Reports /></Suspense>}
           {activeTab === 'Tracking Management' && (
              <AdminTrackingControls key={focusKey} openTourId={focusId} />
           )}

@@ -25,6 +25,28 @@
       "destination": "/api/tour-preview?id=:id"
     },
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|meta-externalagent|Twitterbot|WhatsApp|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Viber|Pinterest|redditbot|Embedly|Iframely).*"
+        }
+      ],
+      "destination": "/api/site-preview?path=/"
+    },
+    {
+      "source": "/tours",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|meta-externalagent|Twitterbot|WhatsApp|TelegramBot|Slackbot|Discordbot|LinkedInBot|SkypeUriPreview|Viber|Pinterest|redditbot|Embedly|Iframely).*"
+        }
+      ],
+      "destination": "/api/site-preview?path=/tours"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
