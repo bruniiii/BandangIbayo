@@ -6,7 +6,7 @@ import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
 import TermsUpdateCheck from './ui/TermsUpdateCheck';
 import { loadChatFilter } from './profanity';
 import Feedback from './Feedback';
-import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronRight, Menu, X, Rss, Bell, MessagesSquare, Globe, Inbox, MessageSquareHeart } from 'lucide-react';
+import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronRight, Menu, X, Rss, Bell, MessagesSquare, Globe, Inbox, MessageSquareHeart, Eye, MapPin, Users, ChevronLeft, ImageIcon } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, currentUser } from './supabaseClient';
 import { myBookingForNotification, tourForNotification } from './notificationTarget';
@@ -16,7 +16,7 @@ import { withAvailableSlots, archivePastTours, notEndedFilter, groupTripDates, f
 import PriceTag from './ui/PriceTag';
 import { verifyCheckout, cancelCheckout, verifyExclusivePayment } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
-import JoinerTours, { DetailedTourModal, JoinerTourCard } from './JoinerTours';
+import JoinerTours, { DetailedTourModal } from './JoinerTours';
 import { JoinerGreeting, NextTripPanel, FirstTimeWelcome, ReviewNudge } from './JoinerHomeParts';
 import TourCalendar from './TourCalendar';
 import MyBookings from './MyBookings';
@@ -178,6 +178,9 @@ const JoinerDashboard = () => {
   const [monthDots, setMonthDots] = useState([]);
   const [trackingStop, setTrackingStop] = useState(null);
   const [featuredTours, setFeaturedTours] = useState([]);
+  const tourScrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const [selectedTour, setSelectedTour] = useState(null);
 
   // Drop ?book= / ?payment= from the URL so a refresh doesn't repeat them.
@@ -263,6 +266,42 @@ const JoinerDashboard = () => {
 
 
 
+  // Mouse wheel over the tour row scrolls it sideways (until it reaches an
+  // end, then the page scrolls as usual). Trackpads and touch already swipe.
+  useEffect(() => {
+    const row = tourScrollRef.current;
+    if (!row) return undefined;
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const max = row.scrollWidth - row.clientWidth;
+      if (max <= 0) return;
+      const atStart = row.scrollLeft <= 0 && e.deltaY < 0;
+      const atEnd = row.scrollLeft >= max - 1 && e.deltaY > 0;
+      if (atStart || atEnd) return;
+      e.preventDefault();
+      row.scrollLeft += e.deltaY;
+    };
+    // Show the side arrows only when there is more to see in that direction.
+    const updateArrows = () => {
+      const max = row.scrollWidth - row.clientWidth;
+      setCanScrollLeft(row.scrollLeft > 4);
+      setCanScrollRight(row.scrollLeft < max - 4);
+    };
+    updateArrows();
+    row.addEventListener('wheel', onWheel, { passive: false });
+    row.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    return () => {
+      row.removeEventListener('wheel', onWheel);
+      row.removeEventListener('scroll', updateArrows);
+      window.removeEventListener('resize', updateArrows);
+    };
+  }, [activeTab, featuredTours.length]);
+
+  const scrollTours = (direction) => {
+    const row = tourScrollRef.current;
+    if (row) row.scrollBy({ left: direction * row.clientWidth * 0.8, behavior: 'smooth' });
+  };
   // A tour picked from Favorites: open Explore Tours on that tour's booking window.
   const openFavoriteTour = (id) => {
     setMobileNavOpen(false);
@@ -563,6 +602,7 @@ const JoinerDashboard = () => {
   const homeShortcut = (key) => {
     if (key === 'trip' || key === 'pay') openNextTrip();
     else if (key === 'review') { setReviewsView('reviews'); setActiveTab('Reviews'); }
+    else if (key === 'explore') setActiveTab('Explore Tours');
     else { setBookingsFilter(key === 'completed' ? 'completed' : 'upcoming'); setActiveTab('My Bookings'); }
   };
 
@@ -580,6 +620,8 @@ const JoinerDashboard = () => {
     }}>
       <style>{`
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        .tour-packages-scroll{scrollbar-width:none;-ms-overflow-style:none;}
+        .tour-packages-scroll::-webkit-scrollbar{display:none;}
       `}</style>
 
       {/* MOBILE OVERLAY */}
@@ -826,6 +868,7 @@ const JoinerDashboard = () => {
                 completed={completedCount}
                 nextTrip={nextTrip}
                 toReview={toReviewCount}
+                photo={featuredTours[0]?.image_urls?.[0]}
                 onOpen={homeShortcut}
               />
 
@@ -845,28 +888,90 @@ const JoinerDashboard = () => {
                     <NextTripPanel trip={nextTrip} stop={trackingStop} onOpen={openNextTrip} />
                   )}
 
-                  {/* Latest tours: the same tickets as Explore Tours */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                  {/* Latest tours: a sideways row (mouse wheel, swipe or the arrows) */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ fontWeight: 900, fontSize: 13, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>Latest Tour Packages</h3>
-                    <button type="button" className="text-link" onClick={() => setActiveTab('Explore Tours')}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'none', border: 'none', padding: '4px 2px', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                      Explore all <ChevronRight size={15} />
-                    </button>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        className="text-link"
+                        onClick={() => setActiveTab('Explore Tours')}
+                        style={{ background: 'none', border: 'none', padding: '4px 2px', fontFamily: 'inherit', fontSize: 13, whiteSpace: 'nowrap', flexShrink: 0 }}
+                      >
+                        See more
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(230px, 100%), 1fr))', gap: 18 }}>
-                    {loadingHome && featuredTours.length === 0 ? [0, 1, 2].map((i) => (
-                      <div key={`skel-${i}`} aria-hidden="true" style={{ background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
-                        <Skel h={186} r={0} />
-                        <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                          <Skel w="75%" h={14} /><Skel w="50%" h={10} /><Skel w="60%" h={10} /><Skel h={36} r={10} style={{ marginTop: 4 }} />
+
+                  <div style={{ position: 'relative' }}>
+                  <div
+                    ref={tourScrollRef}
+                    className="tour-packages-scroll"
+                    style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollSnapType: 'x proximity', padding: '14px 12px 18px', margin: '-14px -12px 0' }}
+                  >
+                    {loadingHome && featuredTours.length === 0 && [0, 1, 2, 3].map((i) => (
+                      <div key={`skel-${i}`} aria-hidden="true" style={{ flex: '0 0 220px', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)' }}>
+                        <Skel h={115} r={0} />
+                        <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          <Skel w="75%" h={13} /><Skel w="50%" h={10} /><Skel w="60%" h={10} /><Skel h={30} r={8} style={{ marginTop: 4 }} />
                         </div>
                       </div>
-                    )) : featuredTours.slice(0, 3).map((tour) => (
-                      <JoinerTourCard key={tour.id} tour={tour} onDetails={() => setSelectedTour(tour)} formatDateRange={formatDateRange} />
                     ))}
-                    {!loadingHome && featuredTours.length === 0 && (
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)' }}>New dates are coming soon. Check Explore Tours or plan a private tour.</p>
-                    )}
+                    {featuredTours.map((tour) => {
+                      const dates = tour.dates || [tour];
+                      const isFull = dates.every((d) => d.available_slots <= 0);
+                      return (
+                        <div key={tour.id} className="grow-card" style={{ flex: '0 0 220px', scrollSnapAlign: 'start', background: 'var(--ib-cream, #FDF6EE)', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.04)', display: 'flex', flexDirection: 'column' }}>
+                          <div style={{ height: 115, background: 'var(--ib-parch, #F2E4D0)', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+                            {tour.image_urls?.[0] ? <img src={tour.image_urls[0]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }}><ImageIcon size={32} /></div>}
+                            <div style={{ position: 'absolute', top: 10, left: 10 }}><span style={{ background: 'rgba(var(--ib-cream-rgb, 253,246,238), 0.95)', borderRadius: 999, padding: '3px 10px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>{tour.difficulty}</span></div>
+                            <div style={{ position: 'absolute', top: 10, right: 10 }}><span style={{ background: isFull ? 'var(--ib-rust-solid, #7A3A18)' : 'var(--ib-accent, #B4511E)', color: (isFull) ? 'var(--ib-on-ink, #FDF6EE)' : 'var(--ib-on-accent, #FDF6EE)', borderRadius: 999, padding: '3px 8px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>{isFull ? 'Full' : `${tour.available_slots} Slots`}</span></div>
+                          </div>
+                          <div style={{ padding: '12px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4 }}>
+                                <h4 style={{ fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)', margin: 0, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden', flex: 1 }}>{tour.title}</h4>
+                                <PriceTag tour={tour} size={12} style={{ flexShrink: 0 }} showBadge={false} />
+                              </div>
+                              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, display: 'flex', alignItems: 'center', gap: 4, margin: '6px 0' }}><MapPin size={10} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.destination}</p>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: '11px', fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', textTransform: 'uppercase' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><CalendarIcon size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {formatDateRange(tour.start_date, tour.duration)}</div>
+                                {dates.length > 1 && <div style={{ color: 'var(--ib-sienna, #A8481A)', fontWeight: 800, paddingLeft: 16 }}>+{dates.length - 1} more date{dates.length > 2 ? 's' : ''}</div>}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Users size={11} style={{ color: 'var(--ib-sienna, #A8481A)' }} /> {tour.current_booked} / {tour.group_size} Booked</div>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => setSelectedTour(tour)}
+                              disabled={isFull}
+                              style={{
+                                width: '100%', padding: '8px 0', border: 'none', borderRadius: 8,
+                                cursor: isFull ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 11,
+                                letterSpacing: '0.1em', textTransform: 'uppercase', display: 'flex',
+                                alignItems: 'center', justifyContent: 'center', gap: 4,
+                                background: isFull ? 'var(--ib-parch, #F2E4D0)' : 'var(--ib-ink, #1A0A00)',
+                                color: isFull ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-on-ink, #FDF6EE)',
+                                transition: 'background 0.2s'
+                              }}
+                              onMouseEnter={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-accent, #B4511E)'; }}
+                              onMouseLeave={e => { if (!isFull) e.currentTarget.style.background = 'var(--ib-ink, #1A0A00)'; }}
+                            >
+                              <Eye size={11} /> {isFull ? 'Closed' : 'View Details'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {canScrollLeft && (
+                    <button type="button" aria-label="Scroll tours left" className="tour-row-arrow no-touch-size" style={{ left: -14 }} onClick={() => scrollTours(-1)}>
+                      <ChevronLeft size={20} />
+                    </button>
+                  )}
+                  {canScrollRight && (
+                    <button type="button" aria-label="Scroll tours right" className="tour-row-arrow no-touch-size" style={{ right: -14 }} onClick={() => scrollTours(1)}>
+                      <ChevronRight size={20} />
+                    </button>
+                  )}
                   </div>
 
                   {/* Reviews: other joiners' recent reviews (the "write one" nudge is at the top) */}

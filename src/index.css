@@ -704,3 +704,25 @@ td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rot
 /* Joiner home: the next-trip card is photo | ready-check side by side, stacked on phones. */
 .next-trip-panel { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
 @media (max-width: 700px) { .next-trip-panel { grid-template-columns: 1fr; } }
+
+/* Joiner home greeting: the trip photo on the right fading into navy, a
+   dashed route, and a tilted passport stamp with the countdown. */
+.joiner-greeting-photo { position: absolute; top: 0; right: 0; width: 62%; height: 100%; object-fit: cover; opacity: 0.85; }
+.joiner-greeting-shade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--ib-ink, #0B3B4F) 38%, rgba(var(--ib-ink-rgb, 11,59,79), 0.55) 70%, rgba(var(--ib-ink-rgb, 11,59,79), 0.2) 100%); }
+.joiner-greeting-route { position: absolute; left: 0; right: 0; bottom: 4px; width: 100%; height: 56px; }
+.joiner-stamp { flex-shrink: 0; width: 118px; height: 118px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: #FFB547; background: rgba(11,59,79,0.55); border: 3px solid #FFB547; outline: 2px dashed rgba(255,181,71,0.7); outline-offset: -10px;
+  transform: rotate(-9deg); cursor: pointer; font-family: inherit; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+@media (prefers-reduced-motion: no-preference) {
+  .joiner-stamp { animation: stamp-in 0.55s cubic-bezier(.2,.9,.3,1.4) 0.15s both; transition: rotate 0.2s ease; }
+  .joiner-stamp:hover { rotate: 6deg; }
+}
+@keyframes stamp-in { from { opacity: 0; scale: 1.5; } to { opacity: 1; scale: 1; } }
+@media (max-width: 640px) {
+  .joiner-greeting-photo { width: 100%; opacity: 0.45; }
+  .joiner-greeting-shade { background: linear-gradient(180deg, rgba(var(--ib-ink-rgb, 11,59,79), 0.75), rgba(var(--ib-ink-rgb, 11,59,79), 0.9)); }
+  .joiner-stamp { position: absolute; top: 12px; right: 12px; width: 78px; height: 78px; outline-offset: -7px; border-width: 2px; }
+  .joiner-stamp > span:first-child { font-size: 28px !important; }
+  .joiner-stamp .journal-hand { font-size: 13px !important; }
+  .joiner-greeting-text { padding-right: 80px; }
+}

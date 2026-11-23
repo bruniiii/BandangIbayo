@@ -17,13 +17,17 @@ const daysUntil = (ymd) => {
 const balanceOf = (b) => (b && b.payment_method === 'Downpayment' && !b.balance_settled
   ? Math.max(0, (Number(b.total_price) || 0) - (Number(b.amount_paid) || 0)) : 0);
 
-// "Good morning, Mia!" + today's date + chips for what's coming up (each a shortcut).
-export const JoinerGreeting = ({ name, loading, upcoming, completed, nextTrip, toReview, onOpen }) => {
+// "Good morning, Mia!" + today's date + chips for what's coming up (each a
+// shortcut), on a photo of the next trip (else the latest tour, else the
+// beach) fading into navy, with a passport-stamp countdown and a dashed
+// travel route.
+export const JoinerGreeting = ({ name, loading, upcoming, completed, nextTrip, toReview, photo, onOpen }) => {
   const h = manilaHour();
   const hello = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
   const first = String(name || '').trim().split(/\s+/)[0];
   const days = daysUntil(nextTrip?.tours?.start_date);
   const owe = balanceOf(nextTrip);
+  const bg = nextTrip?.tours?.image_urls?.[0] || photo || '/hero-elnido.webp';
   const chips = [];
   if (nextTrip?.tours) chips.push([CalendarDays, days === 0 ? `${nextTrip.tours.title} is today!` : `${nextTrip.tours.title} in ${days} day${days === 1 ? '' : 's'}`, 'trip', true]);
   if (owe > 0) chips.push([Wallet, `${formatPeso(owe)} balance due`, 'pay', true]);
@@ -31,26 +35,55 @@ export const JoinerGreeting = ({ name, loading, upcoming, completed, nextTrip, t
   chips.push([Compass, `${upcoming} upcoming trip${upcoming === 1 ? '' : 's'}`, 'upcoming', false]);
   chips.push([Mountain, `${completed} completed`, 'completed', false]);
   return (
-    <div style={{ background: 'var(--ib-ink, #1A0A00)', borderRadius: 22, padding: '1.35rem 1.6rem', boxShadow: '0 10px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)', display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div>
-        <p className="journal-hand" style={{ margin: 0, fontSize: 31, lineHeight: 1.05, color: 'var(--ib-amber, #E8A265)' }}>{hello}{first && first !== 'Joiner' ? `, ${first}` : ''}!</p>
-        <p style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 700, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.9)' }}>
-          {new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Manila', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-        </p>
-      </div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {chips.map(([icon, text, key, busy]) => {
-          const Icon = icon;
-          return (
-            <button key={key} type="button" onClick={() => onOpen(key)} disabled={loading} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 36, padding: '0 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 800,
-              background: busy ? 'var(--ib-amber, #E8A265)' : 'rgba(255,255,255,0.08)', color: busy ? 'var(--ib-ink, #1A0A00)' : 'rgba(var(--ib-soft-rgb, 232,210,190), 0.95)',
-              border: busy ? 'none' : '1px solid rgba(255,255,255,0.16)', opacity: loading ? 0.6 : 1, maxWidth: '100%',
-            }}>
-              <Icon size={14} style={{ flexShrink: 0 }} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{loading ? '…' : text}</span>
-            </button>
-          );
-        })}
+    <div className="joiner-greeting" style={{ position: 'relative', overflow: 'hidden', background: 'var(--ib-ink, #1A0A00)', borderRadius: 22, boxShadow: '0 10px 28px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18)' }}>
+      {/* The photo on the right, fading into navy on the left */}
+      <img src={bg} alt="" aria-hidden="true" decoding="async" className="joiner-greeting-photo" />
+      <span aria-hidden="true" className="joiner-greeting-shade" />
+      {/* A dashed travel route with pins, across the bottom */}
+      <svg aria-hidden="true" className="joiner-greeting-route" viewBox="0 0 600 80" preserveAspectRatio="none">
+        <path d="M10 62 C 120 20, 200 78, 300 44 S 470 18, 590 40" fill="none" stroke="#FFB547" strokeWidth="2.5" strokeDasharray="7 8" strokeLinecap="round" opacity="0.55" />
+      </svg>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, padding: '1.4rem 1.6rem 1.6rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0, flex: '1 1 320px' }}>
+          <div className="joiner-greeting-text">
+            <p className="journal-hand" style={{ margin: 0, fontSize: 34, lineHeight: 1.05, color: 'var(--ib-amber, #E8A265)', transform: 'rotate(-1.5deg)', transformOrigin: 'left' }}>{hello}{first && first !== 'Joiner' ? `, ${first}` : ''}!</p>
+            <p style={{ margin: '6px 0 0', fontSize: 13, fontWeight: 700, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.92)' }}>
+              {new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Manila', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {' · '}{nextTrip?.tours ? 'Your next adventure is coming up.' : 'Where to next?'}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {chips.map(([icon, text, key, busy]) => {
+              const Icon = icon;
+              return (
+                <button key={key} type="button" onClick={() => onOpen(key)} disabled={loading} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 36, padding: '0 14px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12.5, fontWeight: 800,
+                  background: busy ? 'var(--ib-amber, #E8A265)' : 'rgba(11,59,79,0.55)', color: busy ? 'var(--ib-ink, #1A0A00)' : '#FFF8EE',
+                  border: busy ? 'none' : '1px solid rgba(255,255,255,0.22)', opacity: loading ? 0.6 : 1, maxWidth: '100%',
+                  WebkitBackdropFilter: busy ? 'none' : 'blur(6px)', backdropFilter: busy ? 'none' : 'blur(6px)',
+                }}>
+                  <Icon size={14} style={{ flexShrink: 0 }} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{loading ? '…' : text}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {/* A passport stamp: the days to the next trip (or an invitation) */}
+        {!loading && (
+          <button type="button" onClick={() => onOpen(nextTrip?.tours ? 'trip' : 'explore')} className="joiner-stamp" aria-label={nextTrip?.tours ? `${days} days to ${nextTrip.tours.title}` : 'Explore tours'}>
+            {nextTrip?.tours ? (
+              <>
+                <span style={{ fontSize: 40, fontWeight: 900, lineHeight: 0.95 }}>{days}</span>
+                <span className="journal-hand" style={{ fontSize: 17, lineHeight: 1 }}>{days === 1 ? 'day to go' : days === 0 ? 'today!' : 'days to go'}</span>
+              </>
+            ) : (
+              <>
+                <Compass size={26} />
+                <span className="journal-hand" style={{ fontSize: 17, lineHeight: 1.05 }}>find your<br />next trip</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );
