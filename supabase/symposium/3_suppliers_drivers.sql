@@ -7,7 +7,8 @@
 -- If the symposium tours are there (2_symposium_data.sql), it also links
 -- them: each tour gets a saved driver and van, each expense line its
 -- supplier, and joiners of the finished trips rate the suppliers.
--- Run it in Supabase → SQL Editor (after 2_symposium_data.sql, or alone).
+-- 2_symposium_data.sql already does all this. Use this file only if you
+-- ran an older 2_symposium_data.sql (or want the samples without the demo).
 -- ═════════════════════════════════════════════
 
 begin;
