@@ -69,7 +69,6 @@ const NAV_ITEMS = [
   { icon: <MapIcon size={18} strokeWidth={2} />,     label: 'Private Tours' },
   { icon: <Globe size={18} strokeWidth={2} />,       label: 'Request a Tour' },
   { icon: <Star size={18} strokeWidth={2} />,        label: 'Reviews' },
-  { icon: <MessageSquareHeart size={18} strokeWidth={2} />, label: 'Feedback' },
   { icon: <User size={18} strokeWidth={2} />,        label: 'Profile Settings' },
   { icon: <Bell size={18} strokeWidth={2} />,        label: 'Notification' },
 ];
@@ -90,8 +89,7 @@ const PAGE_INFO = {
   'Tracking':         { icon: Clock,        title: 'Tracking',         subtitle: "Follow your tour's live location on the day" },
   'Private Tours':  { icon: MapIcon,      title: 'Private Tours',  subtitle: 'Book a private group trip, just for your group' },
   'Request a Tour':   { icon: Globe,        title: 'Request a Tour',   subtitle: "Suggest a destination we don't offer yet" },
-  'Reviews':          { icon: Star,         title: 'Tour Reviews',     subtitle: 'Share your experience & read what others say' },
-  'Feedback':         { icon: MessageSquareHeart, title: 'Feedback', subtitle: 'Tell us how to make the website better' },
+  'Reviews':          { icon: Star,         title: 'Reviews & Feedback', subtitle: 'Rate your trips, read what others say, and tell us how to make the website better' },
   'Profile Settings': { icon: User,         title: 'Profile Settings', subtitle: 'Manage your account information and preferences' },
   'Notification':     { icon: Bell,         title: 'Notifications',    subtitle: 'Updates on your bookings, requests & account' },
 };
@@ -127,7 +125,13 @@ const JoinerDashboard = () => {
   const [exclusiveKey, setExclusiveKey] = useState(0);
   const [exclusiveStart, setExclusiveStart] = useState(null); // { form, date } from the calendar
   const [myBookingsKey, setMyBookingsKey] = useState(0);
-  const [activeTab, setActiveTab] = useState(() => (paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Private Tours' : bookTourId ? 'Explore Tours'
+  // Feedback is now a tab of Reviews: an old Feedback link (/dashboard/feedback)
+  // or page saved before a refresh opens Reviews → Website Feedback.
+  const [oldFeedback] = useState(() => {
+    try { return /\/feedback\/?$/.test(window.location.pathname) || sessionStorage.getItem(TAB_KEY) === 'Feedback'; } catch { return false; }
+  });
+  const [reviewsView, setReviewsView] = useState(oldFeedback ? 'feedback' : 'reviews'); // Reviews page: 'reviews' | 'feedback'
+  const [activeTab, setActiveTab] = useState(() => (oldFeedback ? 'Reviews' : paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Private Tours' : bookTourId ? 'Explore Tours'
     : tabFromUrl(JOINER_BASE, JOINER_TABS) || readTab(TAB_KEY, JOINER_TABS, 'HomePage')));
   // A new page fades and slides in (motion.js).
   const contentRef = useRef(null);
@@ -383,6 +387,7 @@ const JoinerDashboard = () => {
       case 'review': {
         const booking = await myBookingForNotification(notification);
         const tourId = booking?.tour_id ?? (await tourForNotification(notification))?.id;
+        setReviewsView('reviews');
         openFocused('Reviews', tourId);
         break;
       }
@@ -986,7 +991,7 @@ const JoinerDashboard = () => {
                   <HomeReviews
                     loading={loadingHome}
                     toReviewCount={toReviewCount}
-                    onOpen={() => setActiveTab('Reviews')}
+                    onOpen={() => { setReviewsView('reviews'); setActiveTab('Reviews'); }}
                   />
                 </div>
 
@@ -1008,7 +1013,7 @@ const JoinerDashboard = () => {
                   <MyRequestsCard onOpen={(type) => setActiveTab(type === 'request' ? 'Request a Tour' : 'Private Tours')} />
                   {/* After a trip: ask for feedback about the website (the survey). */}
                   {!loadingHome && completedCount > 0 && (
-                    <button type="button" onClick={() => setActiveTab('Feedback')} style={{
+                    <button type="button" onClick={() => { setReviewsView('feedback'); setActiveTab('Reviews'); }} style={{
                       display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', width: '100%', cursor: 'pointer', fontFamily: 'inherit',
                       background: 'var(--ib-cream, #FDF6EE)', border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2)', borderRadius: 20, padding: '14px 16px', boxShadow: '0 4px 14px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
                     }}>
@@ -1054,9 +1059,13 @@ const JoinerDashboard = () => {
               onExplore={() => handleNavClick('Explore Tours')}
             />
           ) : activeTab === 'Reviews' ? (
-            <Reviews key={focusKey} isAdmin={false} focusTourId={focusId} onExplore={() => handleNavClick('Explore Tours')} />
-          ) : activeTab === 'Feedback' ? (
-            <Feedback />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <ChipTabs ariaLabel="Reviews or website feedback" value={reviewsView} onChange={setReviewsView}
+                items={[{ value: 'reviews', label: 'Tour Reviews', icon: Star }, { value: 'feedback', label: 'Website Feedback', icon: MessageSquareHeart }]} />
+              {reviewsView === 'feedback'
+                ? <Feedback />
+                : <Reviews key={focusKey} isAdmin={false} focusTourId={focusId} onExplore={() => handleNavClick('Explore Tours')} />}
+            </div>
           ) : activeTab === 'Profile Settings' ? (
             <ProfileSettings />
           ) : activeTab === 'Tracking' ? (
