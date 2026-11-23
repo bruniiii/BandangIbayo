@@ -598,7 +598,7 @@ const PackageTourForm = ({ request, onClose, onSent }) => {
               {/* The pickup points are the spots ticked above (no separate list to type in). */}
               {spotsInfo.available ? (
                 <div>
-                  <input type="hidden" name="pickup_new" value={pickedPlaces.length ? String(pickedPlaces.length) : ''} data-required="true" />
+                  <input type="hidden" name="pickup_new" aria-label="Pickup points" value={pickedPlaces.length ? String(pickedPlaces.length) : ''} data-required="true" />
                   <p style={{ fontSize: 11.5, fontWeight: 700, color: pickedPlaces.length ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-red, #8C2F1C)', margin: 0, lineHeight: 1.5 }}>
                     {pickedPlaces.length
                       ? `Pickup points (${pickedPlaces.length}): ${pickedPlaces.join(' · ')}. Joiners choose one of these.`

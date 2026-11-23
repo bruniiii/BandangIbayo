@@ -332,8 +332,6 @@ html { touch-action: manipulation; }
    the search box. */
 @media (max-width: 600px) {
   .tm-header { flex-direction: column; align-items: stretch !important; }
-  .tm-tabs { gap: 14px !important; }
-  .tm-tabs > button { white-space: nowrap; font-size: 16px !important; }
   .tm-actions { display: grid !important; grid-template-columns: 1fr 1fr; }
   .tm-actions > button { justify-content: center; padding: 12px 10px !important; letter-spacing: 0.06em !important; font-size: 11px !important; white-space: nowrap; }
   .tm-actions > button:only-child { grid-column: 1 / -1; }
@@ -725,4 +723,21 @@ td:nth-child(even) .rubber-stamp, .rubber-stamp + .rubber-stamp { transform: rot
   .joiner-stamp > span:first-child { font-size: 28px !important; }
   .joiner-stamp .journal-hand { font-size: 13px !important; }
   .joiner-greeting-text { padding-right: 80px; }
+}
+
+/* Booking window, phones: the total and Book button in a bar at the bottom of
+   the screen (TourBookingWindow); the window leaves room for it. */
+.booking-phone-bar { display: none; }
+@media (max-width: 760px) {
+  .booking-phone-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 2;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--ib-cream, #FDF6EE); border-top: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.2);
+    box-shadow: 0 -8px 24px rgba(var(--ib-shadow-rgb, 26,10,0), 0.18); }
+  .booking-window { max-height: calc(92dvh - 70px) !important; margin-bottom: 70px; }
+}
+
+/* Booking Management, phones: the filters two to a row under a full-width search. */
+@media (max-width: 640px) {
+  .bm-filters { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bm-filters > * { min-width: 0 !important; }
+  .bm-filters > :first-child { grid-column: 1 / -1; }
 }

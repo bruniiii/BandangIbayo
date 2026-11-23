@@ -1,5 +1,6 @@
 # Checks every pull request and every change to main: the code style
-# (lint), the automatic tests, and that the website builds.
+# (lint), the automatic tests, that the website builds, and that every
+# joiner and admin page opens without crashing (scripts/smoke.mjs).
 name: Check
 
 on:
@@ -20,3 +21,5 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke

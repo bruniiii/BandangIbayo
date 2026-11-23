@@ -257,7 +257,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(var(--ib-ink-rgb, 26,10,0), 0.88)', backdropFilter: 'blur(6px)' }} onClick={paymentStep ? undefined : onClose} />
 
-            <div className="paper-card" style={{
+            <div className="paper-card booking-window" style={{
 
                 position: 'relative', background: 'var(--ib-cream, #FDF6EE)',
 
@@ -496,7 +496,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
 
 
-                            <div style={{ marginTop: 20 }}>
+                            <div className="booking-cta" style={{ marginTop: 20 }}>
 
                                 {!isFullyBooked && (
 
@@ -508,6 +508,19 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                     </div>
 
+                                )}
+                                {/* How the total is worked out, and what's paid now */}
+                                {!isFullyBooked && (
+                                    <p style={{ margin: '-6px 0 14px', fontSize: 12, fontWeight: 700, color: 'var(--ib-rust, #7A3A18)', lineHeight: 1.55 }}>
+                                        {formatPeso(effectivePrice(tour))} × {numPersons} {numPersons === 1 ? 'person' : 'persons'}
+                                        {isOnSale(tour)
+                                            ? ' · on sale, paid in full'
+                                            : ` · or pay a ${DOWNPAYMENT_PERCENT}% downpayment of ${formatPeso(downpaymentAmount)} now and the rest before the trip`}
+                                    </p>
+                                )}
+                                {/* Why Book This Tour is greyed out */}
+                                {!isFullyBooked && bookChoicesMissing && (
+                                    <MissingHint style={{ marginBottom: 10 }} items={[pickupPoints?.length > 0 && !pickupPoint && 'Pickup point', accommodationChoices.length > 0 && !accommodation && 'Accommodation']} />
                                 )}
 
                                 {isFullyBooked && (
@@ -685,6 +698,22 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             </div>
 
 
+
+            {/* Phones: the total and Book button stay at the bottom of the screen
+                (the form is far down the window there). Hidden on wider screens (index.css). */}
+            {!isFullyBooked && !paymentStep && (
+                <div className="booking-phone-bar">
+                    <span style={{ minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 11, fontWeight: 900, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)' }}>Total · {numPersons} {numPersons === 1 ? 'person' : 'persons'}</span>
+                        <span style={{ display: 'block', fontSize: 20, fontWeight: 900, color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(subtotal)}</span>
+                    </span>
+                    <button type="button" disabled={isBooking}
+                        onClick={() => { if (bookChoicesMissing) document.querySelector('.booking-cta')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); handleBookThisTour(); }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minHeight: 46, padding: '0 20px', borderRadius: 14, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 900, fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)', flexShrink: 0 }}>
+                        {isBooking ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <CreditCard size={14} />} {bookChoicesMissing ? 'Choose & Book' : 'Book'}
+                    </button>
+                </div>
+            )}
 
             {/* Payment Flow Overlays */}
 

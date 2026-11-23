@@ -11,7 +11,6 @@ import {
   LogOut, TrendingUp, AlertCircle, Clock, Menu, X, Rss, Star, Globe, Shield,
   ArrowUpRight, MapPin, Wallet, ImageIcon, MessagesSquare, ShieldCheck, Wrench,
 } from 'lucide-react';
-import GroupChat from './GroupChat';
 import { useChatUnread } from './chatStore';
 import { useNavigate } from 'react-router-dom';
 import { supabase, currentUser } from './supabaseClient';
@@ -19,26 +18,45 @@ import { bookingForNotification, tourForNotification, postForNotification } from
 import SidebarPinButton from './ui/SidebarPinButton';
 import { useSidebarPin } from './ui/useSidebarPin';
 import { useAdminMe } from './adminMe';
-import AdminSettings from './AdminSettings';
 import { toast } from './ui/toast';
-import TourManagement from './TourManagement';
-import BookingManagement from './BookingManagement';
-import Feed from './Feed';
-import Reviews from './Reviews';
-import JoinerAccounts from './Joineraccounts';
-import AdminExclusiveTours from './AdminExclusiveTours';
-import { AdminTrackingControls } from "./AdminTrackingControls";
 import logoIcon from './assets/logo.png';
 import AdminAccountMenu from './AdminAccountMenu';
 import NotificationBell from './NotificationBell';
 import ThemeToggle from './ui/ThemeToggle';
-import Notification from './Notification';
 import { formatPeso, archivePastTours, todayManila } from './tourUtils';
 import { confirmDialog } from './ui/ConfirmDialog';
 import PageHeader from './ui/PageHeader';
 import { SkeletonRows, Skel } from './ui/Skeleton';
 import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory, tabFromUrl } from './useTabHistory';
+
+// Pages load only when opened (a smaller first download, faster on phones).
+// Once the dashboard is showing, preloadPages() fetches the rest quietly in
+// the background, so switching pages is still instant.
+const PAGE_LOADERS = {
+  GroupChat: () => import('./GroupChat'),
+  AdminSettings: () => import('./AdminSettings'),
+  TourManagement: () => import('./TourManagement'),
+  BookingManagement: () => import('./BookingManagement'),
+  Feed: () => import('./Feed'),
+  Reviews: () => import('./Reviews'),
+  JoinerAccounts: () => import('./Joineraccounts'),
+  AdminExclusiveTours: () => import('./AdminExclusiveTours'),
+  AdminTrackingControls: () => import('./AdminTrackingControls'),
+  Notification: () => import('./Notification'),
+};
+const GroupChat = lazy(PAGE_LOADERS.GroupChat);
+const AdminSettings = lazy(PAGE_LOADERS.AdminSettings);
+const TourManagement = lazy(PAGE_LOADERS.TourManagement);
+const BookingManagement = lazy(PAGE_LOADERS.BookingManagement);
+const Feed = lazy(PAGE_LOADERS.Feed);
+const Reviews = lazy(PAGE_LOADERS.Reviews);
+const JoinerAccounts = lazy(PAGE_LOADERS.JoinerAccounts);
+const AdminExclusiveTours = lazy(PAGE_LOADERS.AdminExclusiveTours);
+const AdminTrackingControls = lazy(() => PAGE_LOADERS.AdminTrackingControls().then((m) => ({ default: m.AdminTrackingControls })));
+const Notification = lazy(PAGE_LOADERS.Notification);
+const preloadPages = () => Object.values(PAGE_LOADERS).forEach((load) => { load().catch(() => {}); });
+
 
 // ── PALETTE ──────────────────────────────────────────────
 // var(--ib-dark, #1A0A00)  espresso dark
@@ -98,6 +116,8 @@ const SETTINGS_ITEM = { icon: <ShieldCheck size={18} strokeWidth={2} />, label: 
 const AdminDashboard = () => {
   // The page named in the address (/admin/dashboard/<page>) opens first, else the last one this tab was on.
   const [activeTab, setActiveTab] = useState(() => tabFromUrl(ADMIN_BASE, TAB_LABELS) || readTab(TAB_KEY, TAB_LABELS, 'Overview'));
+  // The other pages download in the background a moment after the dashboard shows.
+  useEffect(() => { const t = setTimeout(preloadPages, 2500); return () => clearTimeout(t); }, []);
   // A new page fades and slides in (motion.js).
   const contentRef = useRef(null);
   useEffect(() => { pageEnter(contentRef.current); }, [activeTab]);
@@ -828,7 +848,8 @@ const AdminDashboard = () => {
             </div>
           )}
  
-          {/* ROUTED CONTENT VIEWS */}
+          {/* ROUTED CONTENT VIEWS (each loads when first opened) */}
+          <Suspense fallback={<SkeletonRows count={4} label="Loading" />}>
           {activeTab === 'Feed' && <Feed key={focusKey} isAdmin={true} focus={focusId} />}
           {activeTab === 'Tour Management' && <TourManagement key={focusKey} openTourId={focusId} />}
           {activeTab === 'Booking Management' && <BookingManagement key={focusKey} openBookingId={focusId} openSection={focus?.section} />}
@@ -843,6 +864,7 @@ const AdminDashboard = () => {
           )}
           {activeTab === 'Notification' && <Notification isAdmin={true} onNavigate={handleNotificationNavigate} />}
           {activeTab === 'Admin Settings' && <AdminSettings />}
+          </Suspense>
           {activeTab === 'System Maintenance' && <Suspense fallback={<SkeletonRows count={4} label="Loading" />}><SystemMaintenance onNavigate={(page, id) => (id != null ? openFocused(page, id) : handleNavClick(page))} /></Suspense>}
           
 

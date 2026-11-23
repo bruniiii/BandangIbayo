@@ -406,7 +406,7 @@ const BookingManagement = ({ openBookingId = null, openSection = null }) => {
         boxShadow: '0 4px 16px rgba(var(--ib-shadow-rgb, 26,10,0), 0.05)',
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
         marginBottom: 24,
-      }}>
+      }} className="bm-filters">
         {/* Search */}
         <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
           <Search size={15} style={{

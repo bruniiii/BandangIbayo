@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import ChipTabs from './ui/ChipTabs';
 import { pageEnter } from './motion';
 import Walkthrough from './ui/Walkthrough';
 import { JOINER_STEPS, walkthroughKey } from './walkthroughSteps';
 import TermsUpdateCheck from './ui/TermsUpdateCheck';
 import { loadChatFilter } from './profanity';
-import Feedback from './Feedback';
 import { Home, Calendar as CalendarIcon, ShoppingBag, Clock, Star, LogOut, User, Compass, MapIcon, ChevronRight, Menu, X, Rss, Bell, MessagesSquare, Globe, Inbox, MessageSquareHeart, Eye, MapPin, Users, ChevronLeft, ImageIcon } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, currentUser } from './supabaseClient';
@@ -16,23 +15,12 @@ import { withAvailableSlots, archivePastTours, notEndedFilter, groupTripDates, f
 import PriceTag from './ui/PriceTag';
 import { verifyCheckout, cancelCheckout, verifyExclusivePayment } from './payments';
 // Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
-import JoinerTours, { DetailedTourModal } from './JoinerTours';
 import { JoinerGreeting, NextTripPanel, FirstTimeWelcome, ReviewNudge } from './JoinerHomeParts';
-import TourCalendar from './TourCalendar';
-import MyBookings from './MyBookings';
-import ExclusiveTour from './ExclusiveTour';
-import Feed from './Feed';
-import Reviews from './Reviews';
-import ProfileSettings from './Profilesettings.jsx';
 import logoIcon from './assets/logo.png';
-import { JoinerTracking } from './JoinerTracking';
 import NotificationBell from './NotificationBell';
 import FavoritesButton from './ui/FavoritesButton';
 import ThemeToggle from './ui/ThemeToggle';
 import HandNote from './ui/HandNote';
-import Notification from './Notification';
-import GroupChat from './GroupChat';
-import AdminInbox from './AdminInbox';
 import { useAdminInboxUnread } from './adminMessages';
 import HelpWidget from './ui/HelpWidget';
 import { useChatUnread, OPEN_CHAT } from './chatStore';
@@ -42,10 +30,44 @@ import { profileIsComplete } from './googleAuth';
 import InstallAppCard from './ui/InstallAppCard';
 import { readTab, saveTab, forgetTab } from './rememberTab';
 import { useTabHistory, tabFromUrl } from './useTabHistory';
-import { Skel } from './ui/Skeleton';
+import { Skel, SkeletonRows } from './ui/Skeleton';
 import { CalendarWidget, TrackingSnippet, MyRequestsCard, HomeReviews } from './HomeWidgets';
 import { reportError } from './ui/toast';
 import AnnouncementBanner from './ui/AnnouncementBanner';
+
+// Pages load only when opened (a smaller first download, faster on phones).
+// Once the dashboard is showing, preloadPages() fetches the rest quietly in
+// the background, so switching pages is still instant.
+const PAGE_LOADERS = {
+  Feedback: () => import('./Feedback'),
+  JoinerTours: () => import('./JoinerTours'),
+  TourCalendar: () => import('./TourCalendar'),
+  MyBookings: () => import('./MyBookings'),
+  ExclusiveTour: () => import('./ExclusiveTour'),
+  Feed: () => import('./Feed'),
+  Reviews: () => import('./Reviews'),
+  ProfileSettings: () => import('./Profilesettings.jsx'),
+  JoinerTracking: () => import('./JoinerTracking'),
+  Notification: () => import('./Notification'),
+  GroupChat: () => import('./GroupChat'),
+  AdminInbox: () => import('./AdminInbox'),
+  DetailedTourModal: () => import('./TourBookingWindow'),
+};
+const Feedback = lazy(PAGE_LOADERS.Feedback);
+const JoinerTours = lazy(PAGE_LOADERS.JoinerTours);
+const TourCalendar = lazy(PAGE_LOADERS.TourCalendar);
+const MyBookings = lazy(PAGE_LOADERS.MyBookings);
+const ExclusiveTour = lazy(PAGE_LOADERS.ExclusiveTour);
+const Feed = lazy(PAGE_LOADERS.Feed);
+const Reviews = lazy(PAGE_LOADERS.Reviews);
+const ProfileSettings = lazy(PAGE_LOADERS.ProfileSettings);
+const JoinerTracking = lazy(() => PAGE_LOADERS.JoinerTracking().then((m) => ({ default: m.JoinerTracking })));
+const Notification = lazy(PAGE_LOADERS.Notification);
+const GroupChat = lazy(PAGE_LOADERS.GroupChat);
+const AdminInbox = lazy(PAGE_LOADERS.AdminInbox);
+const DetailedTourModal = lazy(() => PAGE_LOADERS.DetailedTourModal().then((m) => ({ default: m.DetailedTourModal })));
+const preloadPages = () => Object.values(PAGE_LOADERS).forEach((load) => { load().catch(() => {}); });
+
 
 // ── PALETTE ──────────────────────────────────────────────
 // var(--ib-dark, #1A0A00)  espresso dark
@@ -134,6 +156,8 @@ const JoinerDashboard = () => {
   const [reviewsView, setReviewsView] = useState(oldFeedback ? 'feedback' : 'reviews'); // Reviews page: 'reviews' | 'feedback'
   const [activeTab, setActiveTab] = useState(() => (oldFeedback ? 'Reviews' : paymentReturn ? 'My Bookings' : exclusiveReturn ? 'Private Tours' : bookTourId ? 'Explore Tours'
     : tabFromUrl(JOINER_BASE, JOINER_TABS) || readTab(TAB_KEY, JOINER_TABS, 'HomePage')));
+  // The other pages download in the background a moment after the dashboard shows.
+  useEffect(() => { const t = setTimeout(preloadPages, 2500); return () => clearTimeout(t); }, []);
   // A new page fades and slides in (motion.js).
   const contentRef = useRef(null);
   useEffect(() => { pageEnter(contentRef.current); }, [activeTab]);
@@ -855,6 +879,7 @@ const JoinerDashboard = () => {
           )}
 
           <AnnouncementBanner style={{ marginBottom: 16 }} />
+          <Suspense fallback={<SkeletonRows count={4} label="Loading" />}>
           {activeTab === 'HomePage' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -1083,17 +1108,20 @@ const JoinerDashboard = () => {
               </p>
             </div>
           )}
+          </Suspense>
         </div>
       </main>
 
       {/* ── INLINE DETAILED TOUR BOOKING OVERLAY MODAL ── */}
       {selectedTour && (
+        <Suspense fallback={null}>
         <DetailedTourModal
           tour={selectedTour}
           onClose={() => setSelectedTour(null)}
           formatDateRange={formatDateRange}
           onBookingSuccess={fetchDashboardData}
         />
+        </Suspense>
       )}
     </div>
   );
