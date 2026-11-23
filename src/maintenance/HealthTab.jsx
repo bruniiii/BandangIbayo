@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Timer, MailWarning, RefreshCw, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { Timer, RefreshCw, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import Pager from '../ui/Pager';
-import { paginate } from '../ui/paginate';
-import { card, h3, hint, btn, input, when, spin } from './shared';
+import { card, h3, hint, btn, when, spin } from './shared';
 
 // ─────────────────────────────────────────────
 // System Maintenance → System → Jobs & Emails
 // The automatic jobs (releasing unpaid holds, reminders, weather deadlines,
-// archiving…) with their last run and failures in the last 24 hours, and the
-// emails that couldn't be sent.
+// archiving…) with their last run and failures in the last 24 hours.
 // ─────────────────────────────────────────────
 
 // Plain names for the scheduled jobs.
@@ -20,28 +17,17 @@ const JOB_NAMES = {
   'trip-not-started': 'Trip not started alerts', 'cleanup-client-errors': 'Delete old error reports', 'anonymize-old-archived': 'Anonymize long-archived joiners',
   'trip-emails': 'Trip emails', 'send-reminders': 'Reminder emails',
 };
-const inp = { ...input, letterSpacing: 0, textTransform: 'none', fontWeight: 600 };
 
 const HealthTab = () => {
   const [jobs, setJobs] = useState(null);
-  const [fails, setFails] = useState(null);
-  const [q, setQ] = useState('');
-  const [page, setPage] = useState(1);
   const load = async () => {
     setJobs(null);
-    const [j, f] = await Promise.all([
-      supabase.rpc('system_jobs'),
-      supabase.from('email_failures').select('*').order('at', { ascending: false }).limit(300),
-    ]);
+    const j = await supabase.rpc('system_jobs');
     setJobs(j.error ? { available: false, error: j.error.message, jobs: [] } : j.data);
-    setFails(f.error ? [] : f.data || []);
   };
   // eslint-disable-next-line react-hooks/set-state-in-effect -- loads when the section opens
   useEffect(() => { load(); }, []);
 
-  const text = q.trim().toLowerCase();
-  const shown = (fails || []).filter((x) => !text || `${x.kind} ${x.subject} ${x.recipient} ${x.error}`.toLowerCase().includes(text));
-  const { visible, pages, current } = paginate(shown, page, 15);
   const bad = (jobs?.jobs || []).filter((x) => x.last_status === 'failed' || x.failed_24h > 0);
 
   return (
@@ -79,22 +65,6 @@ const HealthTab = () => {
         )}
       </section>
 
-      <section style={card}>
-        <h3 style={h3}><MailWarning size={16} color="var(--ib-accent, #B4511E)" /> Emails that failed</h3>
-        <p style={hint}>Emails the website couldn't send (for example a wrong address or the mail service down). The joiner still gets the notice in the app.</p>
-        <input type="search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search failed emails" aria-label="Search failed emails" style={{ ...inp, marginBottom: 10 }} />
-        {!fails ? <p style={hint}>Loading…</p> : visible.length === 0 ? <p style={{ ...hint, margin: 0 }}>{fails.length ? 'Nothing matches.' : 'No failed emails. 🎉'}</p> : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {visible.map((x) => (
-              <div key={x.id} style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 10, padding: '8px 12px', fontSize: 12.5 }}>
-                <strong style={{ color: 'var(--ib-dark, #1A0A00)' }}>{x.subject || x.kind}</strong> <span style={{ color: 'var(--ib-brown, #5C2A10)' }}>to {x.recipient || '—'} · {when(x.at)}</span>
-                <span style={{ display: 'block', color: 'var(--ib-red, #8C2F1C)', fontWeight: 700, overflowWrap: 'anywhere' }}>{x.error}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <Pager page={current} pages={pages} onPage={setPage} />
-      </section>
     </div>
   );
 };

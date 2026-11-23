@@ -573,21 +573,10 @@ async function claim(kind: string, ref: string) {
 }
 const unclaim = (kind: string, ref: string) => supabase.from("email_log").delete().eq("kind", kind).eq("ref", ref);
 
-// An email that can't be sent is recorded (email_failures, shown in System
-// Status → Overview) before the error goes on as before.
-const maskEmail = (to: unknown) => String(to ?? "").replace(/^(.{2}).*(@.*)$/, "$1…$2");
-async function sendMailLogged(opts: any, kind = "email", ref: string | null = null) {
-  try {
-    return await transporter.sendMail(opts);
-  } catch (err) {
-    try {
-      await supabase.from("email_failures").insert({
-        kind, ref, recipient: maskEmail(opts?.to), subject: String(opts?.subject ?? "").slice(0, 200),
-        error: String((err as Error)?.message ?? err).slice(0, 500),
-      });
-    } catch (_e) { /* the table comes with the 20270102 update */ }
-    throw err;
-  }
+// Sends one email. (Failed emails used to be listed in System Maintenance;
+// that list was removed, so a failure just goes on as an error.)
+function sendMailLogged(opts: any, _kind = "email", _ref: string | null = null) {
+  return transporter.sendMail(opts);
 }
 
 async function sendOnce(kind: string, ref: string, to: string | null, subject: string, html: string) {
