@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, Users, Map as MapIcon, Archive, CalendarCheck, Wrench, Download, RefreshCw, CheckCircle2, AlertTriangle, Inbox } from 'lucide-react';
+import { Activity, Database, Users, Map as MapIcon, Archive, CalendarCheck, Wrench, RefreshCw, CheckCircle2, AlertTriangle, Inbox } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { card, h3, hint, btn, when } from './shared';
 
 // ─────────────────────────────────────────────
 // System Overview: is the website working, is the database reachable, the
-// main totals, and when maintenance and backups were last done.
+// main totals, and when maintenance was last done.
 // ─────────────────────────────────────────────
 
 const Stat = ({ icon, label, value, sub }) => {
@@ -74,7 +74,7 @@ const OverviewTab = ({ onTab }) => {
       </section>
 
       <section style={card}>
-        <h3 style={h3}><Wrench size={16} color="var(--ib-sienna, #A8481A)" /> Maintenance & backups</h3>
+        <h3 style={h3}><Wrench size={16} color="var(--ib-sienna, #A8481A)" /> Maintenance</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 10, marginTop: 10 }}>
           <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px' }}>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Last maintenance</p>
@@ -83,13 +83,6 @@ const OverviewTab = ({ onTab }) => {
               {outdated ? ` · ${outdated} outdated item${outdated === 1 ? '' : 's'} waiting` : ''}
             </p>
             <button type="button" onClick={() => onTab('data')} style={btn(!!outdated)}><Wrench size={14} /> Cleanups</button>
-          </div>
-          <div style={{ background: 'var(--ib-parch, #F2E4D0)', borderRadius: 14, padding: '12px 14px' }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: 'var(--ib-dark, #1A0A00)' }}>Last backup</p>
-            <p style={{ margin: '2px 0 8px', fontSize: 12.5, fontWeight: 600, color: 'var(--ib-brown, #5C2A10)' }}>
-              {data?.last_backup ? when(data.last_backup) : 'No backup downloaded yet.'}
-            </p>
-            <button type="button" onClick={() => onTab('database')} style={btn(!data?.last_backup)}><Download size={14} /> Backup & Export</button>
           </div>
         </div>
       </section>

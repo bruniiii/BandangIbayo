@@ -123,7 +123,7 @@ const ADMIN_PAGES = ['Overview', 'Feed', 'Tour Management', 'Booking Management'
 const PUBLIC_PAGES = [['public: landing', '/', null], ['public: login', '/login', null], ['public: register', '/register', null], ['public: tours', '/tours', null], ['public: tour detail', '/tours/101', null]];
 // Every System Maintenance section (opened through the section it remembers).
 const MAINTENANCE_SECTIONS = ['rules', 'payments', 'suppliers', 'fleet', 'destinations', 'pickup', 'site', 'policies', 'lists', 'templates',
-  'chat', 'agency', 'overview', 'settings', 'health', 'data', 'security', 'audit', 'backup']
+  'chat', 'agency', 'overview', 'settings', 'health', 'data', 'security', 'audit']
   .map((k) => [`admin: System Maintenance › ${k}`, '/admin/dashboard/system-maintenance', 'admin', k]);
 const PAGES = [...PUBLIC_PAGES, ...JOINER_PAGES, ...ADMIN_PAGES, ...MAINTENANCE_SECTIONS];
 

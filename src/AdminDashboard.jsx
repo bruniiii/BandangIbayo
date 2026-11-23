@@ -941,7 +941,7 @@ const PAGE_INFO = {
   'Reports':             { icon: FileText,        title: 'Reports',             subtitle: 'Bookings, sales and payments over time' },
   'Reviews':             { icon: Star,            title: 'Tour Reviews',        subtitle: 'What joiners are saying about your tours' },
   'Notification':        { icon: Bell,            title: 'Notifications',       subtitle: 'Every activity across bookings, requests, reviews & more' },
-  'System Maintenance':  { icon: Wrench,          title: 'System Maintenance',  subtitle: 'Monitor the system, keep the data correct, back it up, and control Maintenance Mode' },
+  'System Maintenance':  { icon: Wrench,          title: 'System Maintenance',  subtitle: 'Monitor the system, keep the data correct, and control Maintenance Mode' },
   'Admin Settings':      { icon: ShieldCheck,     title: 'Admin Settings',      subtitle: 'Add, archive or restore the people who can use the admin dashboard' },
 };
 
