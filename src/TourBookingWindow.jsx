@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import MissingHint from './ui/MissingHint';
-import PromoCodeBox from './ui/PromoCodeBox';
 import WeatherNotice from './ui/WeatherNotice';
 import { supabase, currentUser } from './supabaseClient';
 import { toast, reportError } from './ui/toast';
@@ -90,11 +89,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
     const isAlmostFull = !isFullyBooked && liveSlots <= 3;
     const maxBookingLimit = Math.max(0, liveSlots);
     // On sale on this date: the sale discount off the Joiner Rate (the database charges the same).
-    // A promo code (checked for this number of persons) lowers the total.
-    const [promo, setPromo] = useState(null);
-    const baseTotal = effectivePrice(tour) * numPersons;
-    const promoOk = !!promo && promo.slots === numPersons;
-    const subtotal = promoOk ? Number(promo.total) : baseTotal;
+    const subtotal = effectivePrice(tour) * numPersons;
     const downpaymentAmount = downpaymentFor(subtotal);
     // System Maintenance → Payments can pause online payments.
     const [paused, setPaused] = useState(null);
@@ -186,7 +181,6 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             return;
         }
         if (paused) { toast.info('Online payments are paused', paused); return; }
-        if (promo && !promoOk) { setSlotError('You changed the number of persons: tap Apply on the promo code again, or remove it.'); return; }
         setIsBooking(true);
         const user = await currentUser();
         if (!user) { toast.info('Please log in to book a tour.'); setIsBooking(false); return; }
@@ -249,7 +243,6 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
             paymentType: type,
             companions: companions.map((c) => ({ full_name: cleanName(c.full_name), contact_number: normalizePhone(c.contact_number) || c.contact_number.trim() })),
             accommodation: accommodation || null,
-            promoCode: promoOk ? promo.code : null,
         });
         if (!ok) {
             if (!cancelled) toast.error("Couldn't start the payment", error);
@@ -519,10 +512,7 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
 
                                         <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9 }}>Total</span>
 
-                                        <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
-                                            {promoOk && <s style={{ fontSize: 15, fontWeight: 800, color: 'var(--ib-rust, #7A3A18)', opacity: 0.75 }}>{formatPeso(baseTotal)}</s>}
-                                            <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(subtotal)}</span>
-                                        </span>
+                                        <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-sienna, #A8481A)' }}>{formatPeso(subtotal)}</span>
 
                                     </div>
 
@@ -535,9 +525,6 @@ const TourBookingWindow = ({ tour, dates, onPickDate, onClose, formatDateRange }
                                             ? ' · on sale, paid in full'
                                             : ` · or pay a ${DOWNPAYMENT_PERCENT}% downpayment of ${formatPeso(downpaymentAmount)} now and the rest before the trip`}
                                     </p>
-                                )}
-                                {!isFullyBooked && !isOnSale(tour) && !paused && (
-                                    <PromoCodeBox tourId={tour.id} slots={numPersons} promo={promo} onChange={setPromo} />
                                 )}
                                 {!isFullyBooked && paused && (
                                     <p role="alert" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', margin: '0 0 12px', padding: '10px 12px', borderRadius: 12, background: 'var(--ib-surface-2, #FBEDE6)', border: '1px solid rgba(var(--ib-red-rgb, 140,47,28), 0.35)', fontSize: 12.5, fontWeight: 800, color: 'var(--ib-red, #8C2F1C)', lineHeight: 1.5 }}>

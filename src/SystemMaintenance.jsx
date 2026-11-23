@@ -23,7 +23,6 @@ import SecurityTab from './maintenance/SecurityTab';
 import HealthTab from './maintenance/HealthTab';
 import LastChanged from './maintenance/LastChanged';
 import PaymentsTab from './maintenance/PaymentsTab';
-import PromoCodesTab from './maintenance/PromoCodesTab';
 import { GROUPS, SECTIONS, SECTION, OLD_SECTIONS, searchSections } from './maintenance/sections';
 
 // ─────────────────────────────────────────────
@@ -224,7 +223,6 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       {tab === 'audit' && <ActivityTab />}
       {tab === 'backup' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
       {tab === 'payments' && <PaymentsTab />}
-      {tab === 'promos' && <PromoCodesTab />}
       </React.Fragment>
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>
     </div>

@@ -1,4 +1,4 @@
-import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks, LayoutTemplate, Timer, Wrench, ShieldCheck, CreditCard, TicketPercent } from 'lucide-react';
+import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks, LayoutTemplate, Timer, Wrench, ShieldCheck, CreditCard } from 'lucide-react';
 import { FIELDS } from './ruleFields';
 
 // ─────────────────────────────────────────────
@@ -10,7 +10,6 @@ export const GROUPS = [
   ['Bookings', [
     ['rules', 'Booking Rules', Scale, 'cancellation cutoff downpayment payment hold refund sale discount reminder private tour request rates slots seats vans'],
     ['payments', 'Payments', CreditCard, 'payment methods gcash maya card grabpay paymongo pause online payments'],
-    ['promos', 'Promo Codes', TicketPercent, 'promo code discount voucher coupon percent off'],
   ]],
   ['Trips', [
     ['suppliers', 'Suppliers', Truck, 'van rental tour guide food hotel resort entrance fee bag tag supplier contact rating cost'],
@@ -68,7 +67,6 @@ export const searchSections = (text) => {
 export const CHANGES = {
   rules: { tables: ['booking_rules'] },
   payments: { keys: ['payment_settings'] },
-  promos: { tables: ['promo_codes'] },
   suppliers: { tables: ['suppliers'] },
   fleet: { tables: ['fleet_drivers', 'fleet_vans'] },
   destinations: { tables: ['destinations'] },
