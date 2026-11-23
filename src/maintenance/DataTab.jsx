@@ -5,6 +5,8 @@ import { toast } from '../ui/toast';
 import { confirmDialog } from '../ui/ConfirmDialog';
 import { card, h3, hint, row, btn, when, spin } from './shared';
 import { PAYMENT_HOLD_MINUTES, minutesText } from '../bookingRules';
+import DataCheck from './DataCheck';
+import { PrivacySetting } from './RestorePrivacy';
 
 // ─────────────────────────────────────────────
 // Data Maintenance: where to update and correct records (tours, prices,
@@ -179,6 +181,8 @@ const DataTab = ({ onNavigate }) => {
           </ul>
         )}
       </section>
+      <DataCheck onNavigate={onNavigate} />
+      <PrivacySetting />
     </div>
   );
 };

@@ -15,7 +15,6 @@ import SiteContentTab from './maintenance/SiteContentTab';
 import ChatFilterTab from './maintenance/ChatFilterTab';
 import AgencyTab from './maintenance/AgencyTab';
 import ActivityTab from './maintenance/ActivityTab';
-import DatabaseTab from './maintenance/DatabaseTab';
 import OverviewTab from './maintenance/OverviewTab';
 import SettingsTab from './maintenance/SettingsTab';
 import DataTab from './maintenance/DataTab';
@@ -221,7 +220,6 @@ const SystemMaintenance = ({ onNavigate = () => {} }) => {
       {tab === 'data' && <DataTab onNavigate={onNavigate} />}
       {tab === 'security' && <SecurityTab onNavigate={onNavigate} />}
       {tab === 'audit' && <ActivityTab />}
-      {tab === 'backup' && <DatabaseTab onNavigate={onNavigate} onTab={setTab} />}
       {tab === 'payments' && <PaymentsTab />}
       </React.Fragment>
       <style>{'@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}'}</style>

@@ -1,4 +1,4 @@
-import { Activity, Database, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks, LayoutTemplate, Timer, Wrench, ShieldCheck, CreditCard } from 'lucide-react';
+import { Activity, History, Power, Scale, Truck, Bus, MapPin, FileText, Mail, ShieldBan, Building2, Map as MapIcon, ListChecks, LayoutTemplate, Timer, Wrench, ShieldCheck, CreditCard } from 'lucide-react';
 import { FIELDS } from './ruleFields';
 
 // ─────────────────────────────────────────────
@@ -26,13 +26,12 @@ export const GROUPS = [
     ['agency', 'Contact Details', Building2, 'agency name logo email phone address facebook instagram tiktok social links gcash contact'],
   ]],
   ['System', [
-    ['overview', 'Status Overview', Activity, 'system status health errors last backup outdated'],
+    ['overview', 'Status Overview', Activity, 'system status health errors outdated'],
     ['settings', 'Maintenance Mode & Emails', Power, 'maintenance mode we\'ll be back soon plan schedule planned email switches turn off emails'],
     ['health', 'Jobs & Emails', Timer, 'scheduled jobs cron email failures sent emails'],
-    ['data', 'Cleanups', Wrench, 'cleanup outdated archive old tours expired holds'],
+    ['data', 'Cleanups', Wrench, 'cleanup outdated archive old tours expired holds data check broken records anonymize privacy'],
     ['security', 'Security', ShieldCheck, 'security admins passwords sign in'],
     ['audit', 'Audit Trail', History, 'activity log history who changed audit'],
-    ['backup', 'Backup & Export', Database, 'backup export csv download data checks restore anonymize'],
   ]],
 ];
 
@@ -40,7 +39,7 @@ export const SECTIONS = GROUPS.flatMap(([group, list]) => list.map(([key, label,
 export const SECTION = Object.fromEntries(SECTIONS.map((s) => [s.key, s]));
 
 // Older section names (saved in a browser, or used by links) → today's.
-export const OLD_SECTIONS = { status: 'overview', activity: 'audit', database: 'backup' };
+export const OLD_SECTIONS = { status: 'overview', activity: 'audit', database: 'data', backup: 'data' };
 
 // What the search box finds: every section, and every booking rule.
 export const SEARCH = [
