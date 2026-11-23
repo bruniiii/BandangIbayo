@@ -1,174 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import CountUp from './ui/CountUp';
 import { STATUS_COLORS } from './ui/statusColors';
-import { Calendar as CalendarIcon, Clock, Star, ChevronLeft, ChevronRight, MapPin, CheckCircle2, Wallet, Sparkles } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Star, ChevronLeft, ChevronRight, MapPin, Sparkles } from 'lucide-react';
 import { supabase, currentUser } from './supabaseClient';
-import { formatPeso, requestStatusLabel, requestPaymentLabel, requestOverdueReason } from './tourUtils';
+import { requestStatusLabel, requestPaymentLabel, requestOverdueReason } from './tourUtils';
 import { formatYmdRange } from './dateRange';
-// Booking (details, companions, payment, waitlist) is one shared flow in JoinerTours.
-import Reviews from './Reviews';
 import { ReviewCard } from './ui/ReviewCards';
 import { usePublicReviews } from './publicReviews';
 import { Skel, SkeletonRegion, SkeletonLines } from './ui/Skeleton';
 
 // ─────────────────────────────────────────────
-// JOINER HOMEPAGE widgets: trip stats, next trip, trip readiness, calendar,
-// tracking, Private & Requested Tours, and reviews.
+// JOINER HOMEPAGE widgets: calendar, tracking, Private & Requested Tours,
+// and reviews. (Greeting, next trip and welcome: JoinerHomeParts.jsx.)
 // ─────────────────────────────────────────────
-
-/* ── TRIP PULSE STAT ── */
-const PulseStat = ({ icon, label, value, subcopy, onClick }) => (
-  <div
-    onClick={onClick}
-    role="button"
-    style={{
-      flex: 1, display: 'flex', alignItems: 'center', gap: 16,
-      cursor: onClick ? 'pointer' : 'default',
-      borderRadius: 14, padding: '4px 8px', margin: '-4px -8px',
-      transition: 'background 0.15s',
-    }}
-    onMouseEnter={e => { if (onClick) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-  >
-    <div style={{
-      width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-      background: 'rgba(var(--ib-amber-rgb, 232,162,101), 0.12)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: 'var(--ib-amber, #E8A265)',
-    }}>
-      {icon}
-    </div>
-    <div style={{ flex: 1 }}>
-      <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: '0 0 4px' }}>
-        {label}
-      </p>
-      <p style={{ fontSize: 34, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 4px', lineHeight: 1 }}>
-        {typeof value === 'string' || typeof value === 'number' ? <CountUp value={value} /> : value}
-      </p>
-      <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', margin: 0 }}>
-        {subcopy}
-      </p>
-    </div>
-    {onClick && (
-      <ChevronRight size={16} style={{ color: 'rgba(var(--ib-soft-rgb, 232,210,190), 0.85)', flexShrink: 0 }} />
-    )}
-  </div>
-);
-
-/* ── NEXT TRIP CARD ── */
-const NextTripCard = ({ trip, onViewBookings }) => {
-  const cardStyle = {
-    background: 'var(--ib-cream, #FDF6EE)',
-    borderRadius: 22,
-    border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)',
-    boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
-    overflow: 'hidden',
-  };
-
-  if (!trip?.tours) return null;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startDate = new Date(trip.tours.start_date);
-  const daysToGo = Math.max(0, Math.ceil((startDate - today) / 86400000));
-  const cover = trip.tours.image_urls?.[0];
-
-  return (
-    <div
-      onClick={onViewBookings}
-      style={{ ...cardStyle, cursor: 'pointer', position: 'relative', minHeight: 220 }}
-    >
-      {cover && (
-        <img loading="lazy" decoding="async" src={cover} alt={trip.tours.title} style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover',
-        }} />
-      )}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(var(--ib-ink-rgb, 26,10,0), 0.92) 0%, rgba(var(--ib-ink-rgb, 26,10,0), 0.35) 60%, rgba(var(--ib-ink-rgb, 26,10,0), 0.15) 100%)',
-      }} />
-      <div style={{ position: 'relative', zIndex: 1, padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', minHeight: 220 }}>
-        <span style={{
-          alignSelf: 'flex-start',
-          background: 'var(--ib-accent, #B4511E)', color: 'var(--ib-on-accent, #FDF6EE)',
-          fontSize: 11, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase',
-          borderRadius: 999, padding: '5px 12px',
-        }}>
-          Next Trip
-        </span>
-        <div>
-          <p style={{ fontSize: 30, fontWeight: 900, color: 'var(--ib-on-ink, #FDF6EE)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>
-            {daysToGo === 0 ? 'Today!' : `${daysToGo} day${daysToGo === 1 ? '' : 's'} to go`}
-          </p>
-          <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--ib-amber, #E8A265)', margin: '0 0 4px' }}>
-            {trip.tours.title}
-          </p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(var(--ib-on-ink-rgb, 253,246,238), 0.85)', display: 'flex', alignItems: 'center', gap: 5, margin: 0 }}>
-            <MapPin size={13} /> {trip.tours.destination}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ── TRIP READINESS CARD ── */
-const TripReadinessCard = ({ trip, onClick }) => {
-  // Confirmed once payment is verified. Settled when nothing is left to pay:
-  // paid in full, or a downpayment whose balance was settled.
-  const bookingConfirmed = trip.payment_status === 'Complete' || trip.booking_status === 'Completed';
-  const balanceLeft = Math.max(0, (Number(trip.total_price) || 0) - (Number(trip.amount_paid) || 0));
-  const paymentSettled = bookingConfirmed
-    && (trip.payment_method !== 'Downpayment' || trip.balance_settled || balanceLeft <= 0);
-
-  const chip = (label, ok) => (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      background: ok ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.08)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.06)',
-      border: `1px solid ${ok ? 'rgba(var(--ib-accent-rgb, 180,81,30), 0.22)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.14)'}`,
-      borderRadius: 12, padding: '10px 14px', flex: 1,
-    }}>
-      <CheckCircle2 size={16} style={{ color: ok ? 'var(--ib-sienna, #A8481A)' : 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)', flexShrink: 0 }} />
-      <div>
-        <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '0 0 2px' }}>{label}</p>
-        <p style={{ fontSize: 12, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', margin: 0 }}>{ok ? 'Confirmed' : 'Pending'}</p>
-      </div>
-    </div>
-  );
-
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        background: 'var(--ib-cream, #FDF6EE)', borderRadius: 22, padding: '1.5rem',
-        border: '1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.12)', boxShadow: '0 4px 20px rgba(var(--ib-shadow-rgb, 26,10,0), 0.06)',
-        cursor: 'pointer',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Wallet size={15} style={{ color: 'var(--ib-sienna, #A8481A)' }} />
-          <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--ib-dark, #1A0A00)' }}>
-            Trip Readiness
-          </span>
-        </div>
-        <ChevronRight size={15} style={{ color: 'rgba(var(--ib-rust-rgb, 122,58,24), 0.85)' }} />
-      </div>
-      <div style={{ display: 'flex', gap: 10 }}>
-        {chip('Booking', bookingConfirmed)}
-        {!paymentSettled && chip('Payment', false)}
-      </div>
-      {!paymentSettled && (
-        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--ib-rust, #7A3A18)', opacity: 0.9, margin: '12px 0 0' }}>
-          {bookingConfirmed && balanceLeft > 0
-            ? `Settle your remaining balance of ${formatPeso(balanceLeft)} before departure. Tap to pay it online.`
-            : 'Settle your remaining balance before departure to lock in your seat.'}
-        </p>
-      )}
-    </div>
-  );
-};
 
 /* ── CALENDAR WIDGET ── */
 const CalendarWidget = ({ loading, monthDots, nextTripDay, onClick, onDayClick }) => {
@@ -529,9 +372,6 @@ const HomeReviews = ({ loading, toReviewCount, onOpen }) => {
 };
 
 export {
-  PulseStat,
-  NextTripCard,
-  TripReadinessCard,
   CalendarWidget,
   TrackingSnippet,
   MyRequestsCard,

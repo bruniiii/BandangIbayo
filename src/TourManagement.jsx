@@ -1127,7 +1127,7 @@ const TourManagement = ({ openTourId = null }) => {
                   {/* The pickup points are the spots ticked above (no separate list to type in). */}
                   {spotsInfo.available ? (
                     <div>
-                      <input type="hidden" name="pickup_new" value={pickupPicked.length ? String(pickupPicked.length) : ''} data-required="true" />
+                      <input type="hidden" name="pickup_new" aria-label="Pickup points" value={pickupPicked.length ? String(pickupPicked.length) : ''} data-required="true" />
                       <p style={{ fontSize: 11.5, fontWeight: 700, color: pickupPicked.length ? 'var(--ib-rust, #7A3A18)' : 'var(--ib-red, #8C2F1C)', margin: 0, lineHeight: 1.5 }}>
                         {pickupPicked.length
                           ? `Pickup points (${pickupPicked.length}): ${pickupPicked.join(' · ')}. Joiners choose one of these when they book.`

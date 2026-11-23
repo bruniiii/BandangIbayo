@@ -69,7 +69,7 @@ const answer = (role, url, method, accept) => {
   const u = new URL(url);
   const path = u.pathname;
   const user = role === 'admin' ? ADMIN : JOINER;
-  if (path.startsWith('/auth/v1/user')) return { json: { ...user, aud: 'authenticated', role: 'authenticated' } };
+  if (path.startsWith('/auth/v1/user')) return { json: role === 'guest' ? {} : { ...user, aud: 'authenticated', role: 'authenticated' } };
   if (path.startsWith('/auth/v1/')) return { json: {} };
   if (path.startsWith('/functions/v1/') || path.startsWith('/storage/v1/')) return { json: {} };
   if (path.startsWith('/rest/v1/rpc/')) {
@@ -80,11 +80,24 @@ const answer = (role, url, method, accept) => {
     return { json: [] };
   }
   const table = path.replace('/rest/v1/', '');
-  const rows = table === 'profiles' ? [profile(user, role)] : (TABLES[table] || []);
+  const guest = role === 'guest'; // not logged in: no profile
+  let rows = table === 'profiles' ? (guest ? [] : [profile(user, role)]) : (TABLES[table] || []);
+  // Simple "equals" filters (?id=eq.101): applied when the sample rows have that column.
+  for (const [key, value] of u.searchParams) {
+    if (!value.startsWith('eq.') || key === 'select') continue;
+    const want = value.slice(3);
+    rows = rows.filter((r) => !(key in r) || String(r[key]) === want);
+  }
   const one = accept.includes('vnd.pgrst.object');
   if (method === 'HEAD') return { json: null, headers: { 'content-range': `0-0/${rows.length}` } };
   if (method !== 'GET') return { json: one ? rows[0] || {} : rows };
-  if (one) return { json: table === 'profiles' ? profile(user, role) : SINGLE[table] ?? rows[0] ?? {} };
+  if (one) {
+    // One row asked for: the row with the id in the address (?id=eq.101), else the first.
+    const id = (u.searchParams.get('id') || '').replace(/^eq\./, '');
+    const hit = id ? rows.find((r) => String(r.id) === id) : null;
+    if (table === 'profiles') return { json: guest ? null : profile(user, role) };
+    return { json: hit || SINGLE[table] || rows[0] || {} };
+  }
   return { json: rows, headers: { 'content-range': `0-${Math.max(0, rows.length - 1)}/${rows.length}` } };
 };
 
@@ -111,8 +124,7 @@ const IGNORE = /WebSocket|realtime|net::ERR|Failed to load resource|favicon|ERR_
 export const signIn = async (context, page, role) => {
   await page.route(/supabase\.co/, (route) => {
     const r = route.request();
-    if (!role) return route.fulfill({ json: r.url().includes('/rest/v1/tours') ? TOURS : [] });
-    const { json, headers } = answer(role, r.url(), r.method(), r.headers().accept || '');
+    const { json, headers } = answer(role || 'guest', r.url(), r.method(), r.headers().accept || '');
     return route.fulfill({ status: 200, contentType: 'application/json', headers: headers || {}, body: JSON.stringify(json) });
   });
   if (role) {
