@@ -85,10 +85,11 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
             {dates.map((d) => {
               const full = (d.available_slots ?? 1) <= 0;
               return (
-                <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 10, padding: '7px 8px 7px 10px' }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                <div key={d.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, background: 'rgba(var(--ib-accent-rgb, 180,81,30), 0.06)', borderRadius: 10, padding: '8px 8px 8px 10px' }}>
+                  {/* The date gets at least 170px; when the buttons don't fit beside it they go on their own line below */}
+                  <div style={{ flex: '1 1 170px', minWidth: 0 }}>
                     {/* Wraps onto two lines when long (dates + weekdays) instead of running under the Joiners button */}
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.35, overflowWrap: 'anywhere' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12.5, fontWeight: 800, color: 'var(--ib-dark, #1A0A00)', lineHeight: 1.35 }}>
                       <Calendar size={12} style={{ color: 'var(--ib-sienna, #A8481A)', flexShrink: 0, marginTop: 2 }} /> <span style={{ minWidth: 0 }}>{formatDateRange(d.start_date, d.duration)}</span>
                     </div>
                     {/* "0 / 12 booked" stays on one line; labels (Sale, Full, Cancelled…) wrap below it neatly */}
@@ -107,6 +108,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                       )}
                     </div>
                   </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
                   <button
                     type="button"
                     onClick={() => onJoiners(d)}
@@ -145,6 +147,7 @@ const TourCard = ({ tour, onConfirmAction, onView, onEdit, onJoiners, onWeather 
                       }}
                     ><CloudRain size={14} /></button>
                   )}
+                  </div>
                 </div>
               );
             })}
