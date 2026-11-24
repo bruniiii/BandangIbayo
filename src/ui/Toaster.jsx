@@ -16,8 +16,8 @@ const STYLES = {
 const CSS = `
 .toaster { position: fixed; z-index: 200001; top: 14px; left: 50%; transform: translateX(-50%); width: min(520px, calc(100% - 24px));
   display: flex; flex-direction: column; align-items: stretch; gap: 10px; pointer-events: none; }
-.toast { pointer-events: auto; position: relative; overflow: hidden; display: flex; gap: 14px; align-items: flex-start; box-sizing: border-box;
-  padding: 16px 14px 16px 18px; border-radius: 18px; font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+.toast { pointer-events: auto; position: relative; overflow: hidden; display: flex; gap: 14px; align-items: center; box-sizing: border-box;
+  padding: 20px 14px 16px 18px; /* 4px more on top: the colored strip */ border-radius: 18px; font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   background: var(--ib-surface, #FFFFFF); color: var(--ib-dark, #1A0A00); border: 1px solid rgba(var(--ib-accent-rgb, 180,81,30), 0.14);
   box-shadow: 0 18px 50px rgba(var(--ib-shadow-rgb, 26,10,0), 0.28), 0 2px 6px rgba(var(--ib-dark-rgb, 26,10,0), 0.08);
   animation: toast-in 0.28s cubic-bezier(.2,.9,.3,1.2); }
@@ -44,7 +44,7 @@ const Toaster = () => {
             <span className="toast-icon">
               <Icon size={20} style={{ animation: t.type === 'loading' ? 'toast-spin 1s linear infinite' : 'none' }} />
             </span>
-            <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <p className="toast-title">{t.title}</p>
               {t.message && <p className="toast-msg">{t.message}</p>}
               {t.action && (
