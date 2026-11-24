@@ -8,7 +8,7 @@ import { FIELDS } from './ruleFields';
 
 export const GROUPS = [
   ['Bookings', [
-    ['rules', 'Booking Rules', Scale, 'cancellation cutoff downpayment payment hold refund sale discount reminder private tour request rates slots seats vans'],
+    ['rules', 'Booking Rules', Scale, 'cancellation cutoff downpayment payment hold refund sale discount reminder private tour request rates slots seats vans van rental tour guide expenses'],
     ['payments', 'Payments', CreditCard, 'payment methods gcash maya card grabpay paymongo pause online payments'],
   ]],
   ['Trips', [

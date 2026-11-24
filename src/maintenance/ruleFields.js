@@ -36,6 +36,12 @@ export const GROUPS = [
     ['joiner_rate_max', 'Joiner Rate, highest', '₱', 0, 10000000, false, 'What joiners pay per person.'],
     ['joiner_rate_margin', 'Joiner Rate above Regular Rate', '₱', 0, 10000000, false, 'The Joiner Rate must be at least this much more than the Regular Rate.'],
   ]],
+  ['Tour expenses', [
+    ['van_rent_min', 'Van rental, lowest', '₱', 0, 10000000, false, 'The lowest van rental (per trip) allowed in a tour\'s expenses and in private tour packages.'],
+    ['van_rent_max', 'Van rental, highest', '₱', 0, 10000000, false, 'The highest van rental (per trip) allowed in a tour\'s expenses and in private tour packages.'],
+    ['tour_guide_min', 'Tour guide, lowest', '₱', 0, 10000000, false, 'The lowest tour guide fee allowed in a tour\'s expenses and in private tour packages.'],
+    ['tour_guide_max', 'Tour guide, highest', '₱', 0, 10000000, false, 'The highest tour guide fee allowed in a tour\'s expenses and in private tour packages.'],
+  ]],
   ['Tours and vans', [
     ['tour_lead_days', 'New tour start', 'days ahead', 0, 365, true, 'A new tour date in Tour Management must start at least this many days from today.'],
     ['max_tour_days', 'Longest trip', 'days', 1, 60, true, 'Tours and requested trips can last at most this many days.'],
@@ -51,6 +57,8 @@ export const PAIRS = [
   ['private_budget_min', 'private_budget_max', 'The lowest budget can\'t be more than the highest.'],
   ['regular_rate_min', 'regular_rate_max', 'The lowest Regular Rate can\'t be more than the highest.'],
   ['joiner_rate_min', 'joiner_rate_max', 'The lowest Joiner Rate can\'t be more than the highest.'],
+  ['van_rent_min', 'van_rent_max', 'The lowest van rental can\'t be more than the highest.'],
+  ['tour_guide_min', 'tour_guide_max', 'The lowest tour guide fee can\'t be more than the highest.'],
   ['request_approval_cutoff_days', 'request_lead_days', 'The approval cutoff can\'t be more than the earliest trip date.'],
 ];
 
