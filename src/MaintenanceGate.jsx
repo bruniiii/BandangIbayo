@@ -91,7 +91,11 @@ const MaintenanceGate = ({ children, adminLogin = false }) => {
   const maintenance = useMaintenance();
   const location = useLocation();
   const isAdmin = useIsAdmin(maintenance.on);
-  if (!maintenance.loaded) return null;
+  // If the database is slow to answer, show the website after 4 seconds
+  // instead of a blank page (the check keeps going in the background).
+  const [waited, setWaited] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setWaited(true), 4000); return () => clearTimeout(t); }, []);
+  if (!maintenance.loaded) return waited ? children : null;
   if (!maintenance.on) return children;
   // The login page stays open for admins (link on the maintenance page).
   if (adminLogin && new URLSearchParams(location.search).get('admin') === '1') return children;
