@@ -27,6 +27,9 @@ import ThemeToggle from './ui/ThemeToggle';
 // Styles: PAGE_CSS below, scoped under .lk.
 
 // The menu's links (each one a section of this page).
+
+// Places not shown in "Where we've been" (lowercase).
+const HIDDEN_TRIP_PLACES = ['kabayan, benguet'];
 const NAV = [['tours', 'Tours'], ['how', 'How to Book'], ['why', 'Why Us'], ['contact', 'Contact']];
 const FALLBACK_PHOTO = '/tour-placeholder.webp';
 // The default hero photo: hikers watching the sunrise above the clouds.
@@ -94,9 +97,14 @@ const LandingTropical = () => {
       if (data) setBooked(Object.fromEntries(data.map((r) => [r.tour_id, Number(r.slots_booked) || 0])));
     });
     // The photo strip: photos from the tours (newest first), one per trip.
+    // Only photos uploaded to a tour: the website's own stand-in pictures
+    // (/hero-elnido.webp…) aren't real trip photos. Places in
+    // HIDDEN_TRIP_PLACES are left out.
     supabase.from('tours').select('title, destination, image_urls, is_exclusive').order('start_date', { ascending: false }).limit(40).then(({ data }) => {
       const seen = new Set();
-      setTripPhotos((data || []).filter((t) => !t.is_exclusive && t.image_urls?.[0] && !seen.has(t.image_urls[0]) && seen.add(t.image_urls[0]))
+      setTripPhotos((data || []).filter((t) => !t.is_exclusive && /^https?:\/\//.test(t.image_urls?.[0] || '')
+          && !HIDDEN_TRIP_PLACES.includes(String(t.destination || '').trim().toLowerCase())
+          && !seen.has(t.image_urls[0]) && seen.add(t.image_urls[0]))
         .slice(0, 10).map((t) => ({ src: t.image_urls[0], label: t.destination || t.title })));
     });
   }, []);
