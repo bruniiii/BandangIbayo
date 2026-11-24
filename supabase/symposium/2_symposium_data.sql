@@ -79,6 +79,27 @@ returns text language sql immutable as $$
   select to_char(date '2000-01-01' + p_dep::time + make_interval(mins => p_plus), 'FMHH12:MI AM')
 $$;
 
+-- Accommodation choices from Lists & FAQ → Accommodation (the website only
+-- accepts those): 'camp' = the tent/camping ones, 'room' = the others.
+create or replace function pg_temp.sym_accom(p_kind text)
+returns text[] language sql stable as $$
+  select coalesce(array_agg(label order by sort_order, label), '{}')
+    from public.option_lists
+   where list_key = 'accommodation' and is_active
+     and (case when p_kind = 'camp' then label ~* '(tent|camp)' else label !~* '(tent|camp)' end)
+$$;
+
+-- A difficulty from Lists & FAQ → Difficulty: the same name if it's there,
+-- else Easy = the first, Moderate = the middle one, Hard = the last.
+create or replace function pg_temp.sym_diff(p text)
+returns text language sql stable as $$
+  with l as (select label, row_number() over (order by sort_order, label) n, count(*) over () c
+               from public.option_lists where list_key = 'difficulty' and is_active)
+  select coalesce((select label from l where lower(label) = lower(p)),
+                  (select label from l where n = case p when 'Easy' then 1 when 'Moderate' then greatest(1, (c + 1) / 2) else c end),
+                  p)
+$$;
+
 -- One tour date with its Regular Rate, old-style expenses row, driver & van
 -- and the 3 usual Metro Manila pickup points.
 create or replace function pg_temp.sym_tour(p_title text, p_dest text, p_start date, p_end date, p_price numeric, p_diff text,
@@ -96,7 +117,7 @@ begin
                             accommodation_options, departure_time)
   values (p_start - interval '45 days', p_title, p_desc, p_dest, p_price,
           case when p_end = p_start then '1 Day' else format('%s Days, %s Night%s', p_end - p_start + 1, p_end - p_start, case when p_end - p_start > 1 then 's' else '' end) end,
-          14, p_diff, p_incl, p_excl, p_bring, p_itin, p_note, p_archived, p_imgs, p_start, p_end, coalesce(p_accom, '{}'), p_dep)
+          14, pg_temp.sym_diff(p_diff), p_incl, p_excl, p_bring, p_itin, p_note, p_archived, p_imgs, p_start, p_end, coalesce(p_accom, '{}'), p_dep)
   returning id into v_id;
 
   insert into public.tour_rates (tour_id, regular_rate) values (v_id, greatest(1300, p_price - 500));
@@ -437,15 +458,15 @@ begin
   t_pulag1 := pg_temp.sym_tour('Mt. Pulag Sea of Clouds', 'Kabayan, Benguet', date '2026-07-18', date '2026-07-19', 3800, 'Hard', true,
     v_pulag_desc, v_pulag_incl, v_excl, v_bring || E'\nWarm jacket and gloves\nHeadlamp', v_pulag_itin, '22:00', v_img_mountain, '{}', v_note);
   t_pagudpud1 := pg_temp.sym_tour('Pagudpud & Vigan Heritage Trip', 'Pagudpud, Ilocos Norte', date '2026-08-13', date '2026-08-16', 6500, 'Easy', true,
-    v_pagudpud_desc, v_pagudpud_incl, v_excl, v_bring || E'\nSunscreen\nHat\nSwimwear', v_pagudpud_itin, '20:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+    v_pagudpud_desc, v_pagudpud_incl, v_excl, v_bring || E'\nSunscreen\nHat\nSwimwear', v_pagudpud_itin, '20:00', v_img_beach, pg_temp.sym_accom('room'), v_note);
   t_calaguas := pg_temp.sym_tour('Calaguas Island Escape', 'Vinzons, Camarines Norte', date '2026-09-10', date '2026-09-13', 5800, 'Easy', true,
     'Powdery white sand and clear blue water on Mahabang Buhangin. A long van ride to Bicol, a boat across, and two nights camping on one of the best beaches in Luzon.',
     E'Round-trip van from Metro Manila\nBoat transfers from Paracale\n2 nights tent camping on the beach\nIsland hopping to Tinaga and Pinagtarcan\n6 meals\nEnvironmental fees\nLocal guide', v_excl,
     v_bring || E'\nSwimwear and rash guard\nDry bag\nHeadlamp',
     E'Day 0:\n09:00 PM – Meet up at the pickup points\nDay 1:\n08:00 AM – Arrive in Paracale, boat to Calaguas\n12:00 PM – Lunch and swimming at Mahabang Buhangin\nDay 2:\n08:00 AM – Island hopping: Tinaga and Pinagtarcan\n05:30 PM – Sunset from the hill\nDay 3:\n06:00 AM – Sunrise and breakfast\n10:00 AM – Boat back to Paracale\nDay 4:\n07:00 AM – Pasalubong stop in Daet, then back to Manila',
-    '21:00', v_img_beach, array['Tent (2 pax)'], v_note);
+    '21:00', v_img_beach, pg_temp.sym_accom('camp'), v_note);
   t_sagada1 := pg_temp.sym_tour('Sagada Cave & Sunrise', 'Sagada, Mountain Province', date '2026-10-09', date '2026-10-11', 4200, 'Moderate', true,
-    v_sagada_desc, v_sagada_incl, v_excl, v_bring || E'\nJacket (it gets cold)', v_sagada_itin, '21:00', v_img_mountain, array['Shared room (4 pax)', 'Couple room'], v_note);
+    v_sagada_desc, v_sagada_incl, v_excl, v_bring || E'\nJacket (it gets cold)', v_sagada_itin, '21:00', v_img_mountain, pg_temp.sym_accom('room'), v_note);
   t_baler := pg_temp.sym_tour('Baler Surf Weekend', 'Baler, Aurora', date '2026-10-24', date '2026-10-25', 2800, 'Easy', true,
     'Learn to surf at Sabang Beach, then visit the Ditumabo Mother Falls and the 600-year-old Balete tree.',
     E'Round-trip van from Metro Manila\n1 hour surf lesson with board\n1 night beach resort\nDitumabo Falls tour\n2 meals', v_excl, v_bring || E'\nSwimwear\nSlippers',
@@ -461,7 +482,7 @@ begin
     'Pine trees on a white-sand cove. A boat ride from Pundaquit to Anawangin, a night of camping under the stars and a morning at Capones Island lighthouse.',
     E'Round-trip van from Metro Manila\nBoat transfers from Pundaquit\nTent and camping fees\n3 meals\nCapones Island side trip\nBag tag', v_excl, v_bring || E'\nSwimwear\nHeadlamp\nSleeping mat',
     E'Day 1:\n03:00 AM – Pickup at Cubao\n07:30 AM – Arrive at Pundaquit, boat to Anawangin\n12:00 PM – Lunch and swimming\n07:00 PM – Bonfire dinner\nDay 2:\n06:00 AM – Capones Island lighthouse\n11:00 AM – Boat back, travel to Manila',
-    '03:00', v_img_beach, '{}', v_note);
+    '03:00', v_img_beach, pg_temp.sym_accom('camp'), v_note);
   -- Upcoming
   t_pinatubo := pg_temp.sym_tour('Mt. Pinatubo Crater Trek', 'Capas, Tarlac', date '2026-12-05', date '2026-12-05', 2400, 'Moderate', false,
     'Ride a 4x4 across the lahar fields, then hike to the turquoise crater lake of Mt. Pinatubo.',
@@ -470,21 +491,21 @@ begin
     '03:00', v_img_mountain, '{}', v_note);
   update public.tours set sale_starts = date '2026-11-20', sale_ends = date '2026-12-03' where id = t_pinatubo;
   t_sagada2 := pg_temp.sym_tour('Sagada Cave & Sunrise', 'Sagada, Mountain Province', date '2026-12-11', date '2026-12-13', 4200, 'Moderate', false,
-    v_sagada_desc, v_sagada_incl, v_excl, v_bring || E'\nJacket (it gets cold)', v_sagada_itin, '21:00', v_img_mountain, array['Shared room (4 pax)', 'Couple room'], v_note);
+    v_sagada_desc, v_sagada_incl, v_excl, v_bring || E'\nJacket (it gets cold)', v_sagada_itin, '21:00', v_img_mountain, pg_temp.sym_accom('room'), v_note);
   t_pagudpud2 := pg_temp.sym_tour('Pagudpud & Vigan Heritage Trip', 'Pagudpud, Ilocos Norte', date '2026-12-27', date '2026-12-30', 6500, 'Easy', false,
-    v_pagudpud_desc, v_pagudpud_incl, v_excl, v_bring || E'\nSunscreen\nHat\nSwimwear', v_pagudpud_itin, '20:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+    v_pagudpud_desc, v_pagudpud_incl, v_excl, v_bring || E'\nSunscreen\nHat\nSwimwear', v_pagudpud_itin, '20:00', v_img_beach, pg_temp.sym_accom('room'), v_note);
   t_banaue := pg_temp.sym_tour('Banaue & Batad Rice Terraces', 'Banaue, Ifugao', date '2027-01-15', date '2027-01-17', 4500, 'Moderate', false,
     'The 2,000-year-old rice terraces of Ifugao. A hike down to the amphitheater of Batad, a swim at Tappiya Falls and a night in a native-style inn.',
     E'Round-trip van from Metro Manila\n2 nights inn in Banaue\nBatad trek with local guide\nTappiya Falls\nBanaue viewpoint\nEnvironmental fees', v_excl,
     v_bring || E'\nTrail shoes\nJacket (it gets cold)', E'Day 0:\n09:00 PM – Meet up at the pickup points\nDay 1:\n08:00 AM – Arrive in Banaue, viewpoint\n01:00 PM – Hapao rice terraces\nDay 2:\n07:00 AM – Batad trek and Tappiya Falls\nDay 3:\n08:00 AM – Breakfast, then back to Manila',
-    '21:00', v_img_mountain, array['Shared room (4 pax)', 'Couple room'], v_note);
+    '21:00', v_img_mountain, pg_temp.sym_accom('room'), v_note);
   t_pulag2 := pg_temp.sym_tour('Mt. Pulag Sea of Clouds', 'Kabayan, Benguet', date '2027-01-23', date '2027-01-24', 3800, 'Hard', false,
     v_pulag_desc, v_pulag_incl, v_excl, v_bring || E'\nWarm jacket and gloves\nHeadlamp', v_pulag_itin, '22:00', v_img_mountain, '{}', v_note);
   t_launion := pg_temp.sym_tour('La Union Surf & Food Trip', 'San Juan, La Union', date '2027-02-12', date '2027-02-14', 3600, 'Easy', false,
     'Surf lessons in Urbiztondo, Tangadan Falls, the grape farm and a food crawl along the beach. Three easy days in Elyu.',
     E'Round-trip van from Metro Manila\n2 nights beach hostel\n1 hour surf lesson with board\nTangadan Falls tour\nDaily breakfast', v_excl,
     v_bring || E'\nSwimwear\nSlippers', E'Day 0:\n10:00 PM – Meet up at the pickup points\nDay 1:\n05:00 AM – Arrive, surf lesson at sunrise\n02:00 PM – Tangadan Falls\nDay 2:\n09:00 AM – Grape farm and Baluarte Watchtower\n06:00 PM – Food crawl in Urbiztondo\nDay 3:\n09:00 AM – Check out, back to Manila',
-    '22:00', v_img_beach, array['Shared room (4 pax)', 'Twin room'], v_note);
+    '22:00', v_img_beach, pg_temp.sym_accom('room'), v_note);
 
   -- Baler was cancelled by Typhoon Ofel.
   update public.tours set weather_status = 'cancelled', weather_reason = 'Typhoon Ofel (Signal No. 2 over Aurora)',
@@ -725,11 +746,11 @@ begin
       created_at, updated_at, package_details, package_sent_at, downpayment_amount, amount_paid, payment_status, paid_at, downpayment_due_at,
       processed_by, processed_by_name)
   values (u[5], 'exclusive', 'Bea Villanueva', '09211234505', 'bea.villanueva@ibayo-demo.test', 'Tagaytay, Cavite', 'CALABARZON', 8,
-      date '2026-12-19', date '2026-12-20', 2, 'Private house / villa', 40000, 'Family trip', 'For my parents'' 30th anniversary. Two seniors in the group.',
+      date '2026-12-19', date '2026-12-20', 2, (pg_temp.sym_accom('room'))[1], 40000, 'Family trip', 'For my parents'' 30th anniversary. Two seniors in the group.',
       'Approved', 'Happy anniversary to your parents! Here is your package. We added a cake at dinner. 🎂', v_admin, timestamptz '2026-11-08 15:00+08',
       timestamptz '2026-11-05 20:30+08', timestamptz '2026-11-10 11:00+08',
       jsonb_build_object('title', 'Private: Tagaytay Family Getaway', 'destination', 'Tagaytay, Cavite', 'price', 4800, 'group_size', 8,
-        'accommodation_options', '["Private house / villa"]'::jsonb,
+        'accommodation_options', to_jsonb(pg_temp.sym_accom('room')),
         'description', 'A slow-paced family weekend in Tagaytay: Sky Ranch, Picnic Grove, a Taal Lake view dinner and a private villa.',
         'inclusions', E'Private van with driver\n1 night private villa\n3 meals (with anniversary cake)\nPicnic Grove and Sky Ranch entrance',
         'exclusions', 'Personal expenses', 'things_to_bring', E'Valid ID\nJacket', 'itinerary', E'Day 1:\n07:00 AM – Pickup in Makati\n10:00 AM – Picnic Grove\n06:00 PM – Anniversary dinner\nDay 2:\n09:00 AM – Sky Ranch\n03:00 PM – Back to Makati',
@@ -743,7 +764,7 @@ begin
           'A slow-paced family weekend in Tagaytay: Sky Ranch, Picnic Grove, a Taal Lake view dinner and a private villa.', 'Tagaytay, Cavite', 4800, '2 Days, 1 Night', 8, 'Easy',
           E'Private van with driver\n1 night private villa\n3 meals (with anniversary cake)\nPicnic Grove and Sky Ranch entrance', 'Personal expenses', E'Valid ID\nJacket',
           E'Day 1:\n07:00 AM – Pickup in Makati\n10:00 AM – Picnic Grove\n06:00 PM – Anniversary dinner\nDay 2:\n09:00 AM – Sky Ranch\n03:00 PM – Back to Makati',
-          'Seniors ride in the front row.', false, v_img_mountain, date '2026-12-19', date '2026-12-20', array['Private house / villa'], '07:00', true, r_private)
+          'Seniors ride in the front row.', false, v_img_mountain, date '2026-12-19', date '2026-12-20', pg_temp.sym_accom('room'), '07:00', true, r_private)
   returning id into t_private;
   update public.exclusive_requests set package_details = package_details || jsonb_build_object('tour_id', t_private) where id = r_private;
   insert into public.tour_rates (tour_id, regular_rate) values (t_private, 4300);
@@ -757,15 +778,15 @@ begin
   values
     (v_demo, 'exclusive', (select trim(concat_ws(' ', first_name, last_name)) from public.profiles where id = v_demo),
       coalesce((select phone_number from public.profiles where id = v_demo), '09170000000'), v_demo_email,
-      'San Juan, La Union', 'Ilocos Region', 6, date '2027-01-30', date '2027-01-31', 2, 'Beach resort', 25000, 'Barkada trip',
+      'San Juan, La Union', 'Ilocos Region', 6, date '2027-01-30', date '2027-01-31', 2, (pg_temp.sym_accom('room'))[1], 25000, 'Barkada trip',
       'Surf lessons for beginners, and a sunset dinner by the beach please!', 'Pending', now() - interval '1 day', now() - interval '1 day'),
     (u[10], 'request', 'Rafael Aquino', '09261234510', 'rafael.aquino@ibayo-demo.test', 'Mt. Ugo, Benguet', 'CAR (Cordillera)', 10,
-      date '2027-03-19', date '2027-03-20', 2, 'Camping', 30000, 'Mountain climb', 'Our hiking club wants to do the Mt. Ugo traverse down to Baguio.', 'Pending',
+      date '2027-03-19', date '2027-03-20', 2, (pg_temp.sym_accom('camp'))[1], 30000, 'Mountain climb', 'Our hiking club wants to do the Mt. Ugo traverse down to Baguio.', 'Pending',
       now() - interval '3 days', now() - interval '3 days');
   insert into public.exclusive_requests (user_id, request_type, full_name, contact_number, email, destination, region, group_size,
       preferred_date, preferred_end_date, trip_days, accommodation, budget, tour_type, notes, status, admin_response, reviewed_by, reviewed_at, created_at, updated_at)
   values (u[11], 'request', 'Nicole Torres', '09271234511', 'nicole.torres@ibayo-demo.test', 'Pagudpud, Ilocos Norte', 'Ilocos Region', 5,
-      date '2026-12-24', date '2026-12-26', 3, 'Beach resort', 30000, 'Holiday trip', 'Christmas in Pagudpud with my family.',
+      date '2026-12-24', date '2026-12-26', 3, (pg_temp.sym_accom('room'))[1], 30000, 'Holiday trip', 'Christmas in Pagudpud with my family.',
       'Rejected', 'Sorry, Nicole. Our vans and guides are fully booked over Christmas. We''d love to plan Pagudpud with you in January!', v_admin,
       timestamptz '2026-11-02 10:00+08', timestamptz '2026-10-30 21:00+08', timestamptz '2026-11-02 10:00+08');
 
